@@ -421,10 +421,35 @@ public class PreProcessorTests
     }
 
     [TestMethod]
-    public async Task Execute_WritesTelemetry()
+    public async Task Execute_WritesTelemetry_SetViaCLI()
     {
+        var args = new List<string>(CreateArgs())
+        {
+            "/d:sonar.scanner.scanAll=false"
+        };
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
+        var settings = factory.ReadSettings();
+        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
+
+        var success = await preProcessor.Execute(args);
+
+        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
+        File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
+            .Should()
+            .BeEquivalentTo("""
+            {"s4net.params.sonar_scanner_scanAll.value":"false"}
+            {"s4net.params.sonar_scanner_scanAll.source":"CLI"}
+
+            """);
+    }
+
+    [TestMethod]
+    public async Task Execute_WritesTelemetry_SetViaServer()
+    {
+        using var scope = new TestScope(TestContext);
+        var factory = new MockObjectFactory(serverProperties: new Dictionary<string, string> { { "sonar.scanner.scanAll", "false" } });
         var settings = factory.ReadSettings();
         var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
 
@@ -435,7 +460,56 @@ public class PreProcessorTests
         File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
             .Should()
             .BeEquivalentTo("""
-            {"s4net.params.sonar_scanner_scanAll.value":true}
+            {"s4net.params.sonar_scanner_scanAll.value":"false"}
+            {"s4net.params.sonar_scanner_scanAll.source":"SQ_GLOBAL_SETTINGS"}
+
+            """);
+    }
+
+    [TestMethod]
+    public async Task Execute_WritesTelemetry_SetViaAnalysisXml()
+    {
+        var analysisXmlPath = CreateAnalysisXml(TestContext.TestRunDirectory, new Dictionary<string, string> { { "sonar.scanner.scanAll", "false" } });
+        var args = new List<string>(CreateArgs())
+        {
+            $"/s:{analysisXmlPath}"
+        };
+        using var scope = new TestScope(TestContext);
+        var factory = new MockObjectFactory();
+        var settings = factory.ReadSettings();
+        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
+
+        var success = await preProcessor.Execute(args);
+
+        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
+        File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
+            .Should()
+            .BeEquivalentTo("""
+            {"s4net.params.sonar_scanner_scanAll.value":"false"}
+            {"s4net.params.sonar_scanner_scanAll.source":"SONARQUBE_ANALYSIS_XML"}
+
+            """);
+    }
+
+    [TestMethod]
+    public async Task Execute_WritesTelemetry_SetViaEnvVariable()
+    {
+        using var scope = new TestScope(TestContext);
+        var factory = new MockObjectFactory();
+        var settings = factory.ReadSettings();
+        Environment.SetEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "false"}""");
+        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
+
+        var success = await preProcessor.Execute(CreateArgs());
+
+        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
+        File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
+            .Should()
+            .BeEquivalentTo("""
+            {"s4net.params.sonar_scanner_scanAll.value":"false"}
+            {"s4net.params.sonar_scanner_scanAll.source":"SONARQUBE_SCANNER_PARAMS"}
 
             """);
     }
@@ -525,6 +599,29 @@ public class PreProcessorTests
 
     private static PreProcessor CreatePreProcessor(MockObjectFactory factory) =>
         new(factory, factory.Logger);
+
+    private static string CreateAnalysisXml(string parentDir, Dictionary<string, string> properties = null)
+    {
+        Directory.Exists(parentDir).Should().BeTrue("Test setup error: expecting the parent directory to exist: {0}", parentDir);
+        var fullPath = Path.Combine(parentDir, "SonarQube.Analysis.xml");
+        var xmlProperties = new StringBuilder();
+        if (properties is not null)
+        {
+            foreach (var property in properties)
+            {
+                xmlProperties.AppendLine($"""<Property Name="{property.Key}">{property.Value}</Property>""");
+            }
+        }
+        var content = $"""
+           <?xml version="1.0" encoding="utf-8" ?>
+           <SonarQubeAnalysisProperties  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
+             {xmlProperties.ToString()}
+           </SonarQubeAnalysisProperties>
+           """;
+
+        File.WriteAllText(fullPath, content);
+        return fullPath;
+    }
 
     private sealed class TestScope : IDisposable
     {
