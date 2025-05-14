@@ -51,12 +51,13 @@ public class PreProcessorTests
         var factory = new MockObjectFactory();
         var sut = CreatePreProcessor(factory);
 
-        (await sut.Execute(new[] { "invalid args" })).Should().Be(false);
-        factory.Logger.AssertErrorLogged(
-@"Expecting at least the following command line argument:
-- SonarQube/SonarCloud project key
-The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
-Use '/?' or '/h' to see the help message.");
+        (await sut.Execute(["invalid args"])).Should().Be(false);
+        factory.Logger.AssertErrorLogged("""
+        Expecting at least the following command line argument:
+        - SonarQube/SonarCloud project key
+        The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
+        Use '/?' or '/h' to see the help message.
+        """);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -141,8 +142,10 @@ Use '/?' or '/h' to see the help message.");
 
         if (scanAll)
         {
-            factory.Logger.AssertUIWarningLogged("Multi-Language analysis is enabled. " +
-                "If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
+            factory.Logger.AssertUIWarningLogged("""
+                Multi-Language analysis is enabled.
+                If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set /d:sonar.scanner.scanAll=false" in the begin step.
+                """);
         }
         else
         {
@@ -444,7 +447,7 @@ Use '/?' or '/h' to see the help message.");
         yield return "/k:key";
         yield return "/n:name";
         yield return "/v:1.0";
-        if (organization != null)
+        if (organization is not null)
         {
             yield return $"/o:{organization}";
         }
@@ -452,7 +455,7 @@ Use '/?' or '/h' to see the help message.");
         yield return "/d:sonar.host.url=http://host";
         yield return "/d:sonar.log.level=INFO|DEBUG";
 
-        if (properties != null)
+        if (properties is not null)
         {
             foreach (var pair in properties)
             {
