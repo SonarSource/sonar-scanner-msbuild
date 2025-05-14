@@ -74,7 +74,7 @@ public interface ILogger
     /// <summary>
     /// Adds a telemetry message to a collection.
     /// </summary>
-    void AddTelemetryMessage(string key, string value);
+    void AddTelemetryMessage(string key, object value);
 
     /// <summary>
     /// Writes the collection of telemetry messages to the specified output folder.

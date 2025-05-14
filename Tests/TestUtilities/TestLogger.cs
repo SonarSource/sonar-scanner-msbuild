@@ -228,7 +228,7 @@ public class TestLogger : ILogger
         // no-op
     }
 
-    public void AddTelemetryMessage(string key, string value)
+    public void AddTelemetryMessage(string key, object value)
     {
         // no-op
     }

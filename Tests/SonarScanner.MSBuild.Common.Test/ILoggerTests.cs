@@ -393,42 +393,56 @@ public class ILoggerTests
     }
 
     [TestMethod]
-    public void ConsoleLogger_WriteTelemetryMessages_GeneratesFile()
+    public void ConsoleLogger_WriteTelemetryMessages()
     {
         var logger = new ConsoleLogger(false, fileWrapper);
-        fileWrapper.Exists(Arg.Any<string>()).Returns(false);
         logger.AddTelemetryMessage("key1", "value1");
         logger.AddTelemetryMessage("key2", "value2");
         logger.AddTelemetryMessage("key3", "value3");
 
         const string outputDir = "outputDir";
+        logger.WriteTelemetry(outputDir);
+
+        // Contents are created with string builder to have the correct line endings for each OS
         var contents = new StringBuilder()
             .AppendLine("""{"key1":"value1"}""")
             .AppendLine("""{"key2":"value2"}""")
             .AppendLine("""{"key3":"value3"}""")
             .ToString();
-        logger.WriteTelemetry(outputDir);
-        fileWrapper.Received(1).WriteAllText(
+        fileWrapper.Received(1).AppendAllText(
              Path.Combine(outputDir, FileConstants.TelemetryFileName), contents);
     }
 
     [TestMethod]
-    public void ConsoleLogger_WriteTelemetryMessages_FileExists_AppendsMessages()
+    public void ConsoleLogger_WriteTelemetryMessages_DifferentValueTypes()
     {
         var logger = new ConsoleLogger(false, fileWrapper);
-        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
         logger.AddTelemetryMessage("key1", "value1");
-        logger.AddTelemetryMessage("key2", "value2");
-        logger.AddTelemetryMessage("key3", "value3");
+        logger.AddTelemetryMessage("key2", 2);
+        logger.AddTelemetryMessage("key3", true);
 
-        var contents = new StringBuilder()
-            .AppendLine("""{"key1":"value1"}""")
-            .AppendLine("""{"key2":"value2"}""")
-            .AppendLine("""{"key3":"value3"}""")
-            .ToString();
         const string outputDir = "outputDir";
         logger.WriteTelemetry(outputDir);
+
+        // Contents are created with string builder to have the correct line endings for each OS
+        var contents = new StringBuilder()
+            .AppendLine("""{"key1":"value1"}""")
+            .AppendLine("""{"key2":2}""")
+            .AppendLine("""{"key3":true}""")
+            .ToString();
         fileWrapper.Received(1).AppendAllText(
              Path.Combine(outputDir, FileConstants.TelemetryFileName), contents);
+    }
+
+    [TestMethod]
+    public void ConsoleLogger_WriteTelemetryMessages_NotSupportedValueThrows()
+    {
+        var logger = new ConsoleLogger(false, fileWrapper);
+        logger.AddTelemetryMessage("key1", new Dictionary<string, string> {{ "key2",  "value" }});
+        const string outputDir = "outputDir";
+        logger.Invoking(x => x.WriteTelemetry(outputDir))
+            .Should()
+            .ThrowExactly<NotSupportedException>()
+            .WithMessage("Unsupported telemetry message value type: System.Collections.Generic.Dictionary`2[System.String,System.String]");
     }
 }

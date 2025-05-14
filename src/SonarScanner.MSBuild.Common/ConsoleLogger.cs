@@ -138,7 +138,7 @@ public class ConsoleLogger : ILogger
         }
     }
 
-    public void AddTelemetryMessage(string key, string value) =>
+    public void AddTelemetryMessage(string key, object value) =>
         telemetryMessages.Add(new(key, value));
 
     public void WriteTelemetry(string outputFolder)
@@ -146,20 +146,23 @@ public class ConsoleLogger : ILogger
         var telemetryMessagesJson = new StringBuilder();
         foreach (var message in telemetryMessages)
         {
-            var entry = new JObject();
-            entry[message.Key] = message.Value;
-            telemetryMessagesJson.AppendLine(entry.ToString(Formatting.None));
+            telemetryMessagesJson.AppendLine(ParseMessage(message));
         }
 
         var path = Path.Combine(outputFolder, FileConstants.TelemetryFileName);
         var telemetry = telemetryMessagesJson.ToString();
-        if (!fileWrapper.Exists(path))
+        fileWrapper.AppendAllText(path, telemetry);
+
+        static string ParseMessage(TelemetryMessage message)
         {
-            fileWrapper.WriteAllText(path, telemetry);
-        }
-        else
-        {
-            fileWrapper.AppendAllText(path, telemetry);
+            var entry = new JObject();
+            var value = JToken.FromObject(message.Value);
+            if (value is not JValue)
+            {
+                throw new NotSupportedException($"Unsupported telemetry message value type: {message.Value.GetType()}");
+            }
+            entry[message.Key] = value;
+            return entry.ToString(Formatting.None);
         }
     }
 
@@ -236,9 +239,15 @@ public class ConsoleLogger : ILogger
         public string FinalMessage { get; } = finalMessage;
     }
 
-    private readonly struct TelemetryMessage(string key, string value)
+    private readonly record struct TelemetryMessage
     {
-        public string Key { get; } = key;
-        public string Value { get; } = value;
+        public string Key { get; }
+        public object Value { get; }
+
+        public TelemetryMessage(string key, object value)
+        {
+            Key = key;
+            Value = value;
+        }
     }
 }

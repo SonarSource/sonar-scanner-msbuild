@@ -68,7 +68,7 @@ internal class MSBuildLoggerAdapter : ILogger
         // no-op
     }
 
-    void ILogger.AddTelemetryMessage(string key, string value)
+    void ILogger.AddTelemetryMessage(string key, object value)
     {
         // no-op
     }
