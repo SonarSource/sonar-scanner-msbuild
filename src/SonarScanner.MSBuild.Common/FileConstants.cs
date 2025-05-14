@@ -56,5 +56,5 @@ public static class FileConstants
     /// <summary>
     /// Name of the file containing the telemetry messages.
     /// </summary>
-    public const string TelemetryFileName = "Telemetry.json";
+    public const string TelemetryFileName = "Telemetry.S4NET.json";
 }
