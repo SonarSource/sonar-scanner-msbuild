@@ -47,12 +47,19 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public MockObjectFactory(TestLogger logger) : this() =>
         Logger = logger;
 
-    public MockObjectFactory(bool withDefaultRules = true, string organization = null)
+    public MockObjectFactory(bool withDefaultRules = true, string organization = null, Dictionary<string, string> serverProperties = null)
     {
         Server = new(organization);
 
         var data = Server.Data;
         data.ServerProperties.Add("server.key", "server value 1");
+        if (serverProperties is not null)
+        {
+            foreach (var pair in serverProperties)
+            {
+                data.ServerProperties.Add(pair.Key, pair.Value);
+            }
+        }
         data.Languages.Add("cs");
         data.Languages.Add("vbnet");
         data.Languages.Add("another_plugin");

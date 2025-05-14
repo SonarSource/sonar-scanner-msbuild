@@ -27,6 +27,7 @@ using System.Net;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
+using SonarScanner.MSBuild.PreProcessor.Telemetry;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -128,6 +129,7 @@ public sealed class PreProcessor : IPreProcessor
         }
 
         logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
+        logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
         return true;
     }
 
@@ -194,6 +196,9 @@ public sealed class PreProcessor : IPreProcessor
                     argumentsAndRuleSets.AnalyzersSettings.Add(analyzerSettings);
                 }
             }
+
+            var analysisPropertiesSetOnlyInServer = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings).GetAllProperties().Except(args.AggregateProperties.GetAllProperties());
+            TelemetryUtils.AddTelemetryFromProvider(logger, analysisPropertiesSetOnlyInServer, TelemetryProvider.SQ_SERVER_SETTINGS);
         }
         catch (AnalysisException)
         {

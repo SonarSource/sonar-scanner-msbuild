@@ -18,24 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
-public class PreProcessorTests
+public partial class PreProcessorTests
 {
     public TestContext TestContext { get; set; }
 
@@ -63,12 +51,13 @@ public class PreProcessorTests
         var factory = new MockObjectFactory();
         var sut = CreatePreProcessor(factory);
 
-        (await sut.Execute(new[] { "invalid args" })).Should().Be(false);
-        factory.Logger.AssertErrorLogged(
-@"Expecting at least the following command line argument:
-- SonarQube/SonarCloud project key
-The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
-Use '/?' or '/h' to see the help message.");
+        (await sut.Execute(["invalid args"])).Should().Be(false);
+        factory.Logger.AssertErrorLogged("""
+        Expecting at least the following command line argument:
+        - SonarQube/SonarCloud project key
+        The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
+        Use '/?' or '/h' to see the help message.
+        """);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -363,7 +352,7 @@ Use '/?' or '/h' to see the help message.");
         AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, factory.Logger);
 
         // only contains SonarQubeAnalysisConfig (no rulesets or additional files)
-        AssertDirectoryContains(settings.SonarConfigDirectory, Path.GetFileName(settings.AnalysisConfigFilePath));
+        AssertDirectoryExactlyContains(settings.SonarConfigDirectory, Path.GetFileName(settings.AnalysisConfigFilePath));
     }
 
     [TestMethod]
@@ -436,7 +425,7 @@ Use '/?' or '/h' to see the help message.");
         yield return "/k:key";
         yield return "/n:name";
         yield return "/v:1.0";
-        if (organization != null)
+        if (organization is not null)
         {
             yield return $"/o:{organization}";
         }
@@ -444,7 +433,7 @@ Use '/?' or '/h' to see the help message.");
         yield return "/d:sonar.host.url=http://host";
         yield return "/d:sonar.log.level=INFO|DEBUG";
 
-        if (properties != null)
+        if (properties is not null)
         {
             foreach (var pair in properties)
             {
@@ -488,7 +477,7 @@ Use '/?' or '/h' to see the help message.");
         TestContext.AddResultFile(filePath);
     }
 
-    private static void AssertDirectoryContains(string dirPath, params string[] fileNames)
+    private static void AssertDirectoryExactlyContains(string dirPath, params string[] fileNames)
     {
         Directory.Exists(dirPath);
         var actualFileNames = Directory.GetFiles(dirPath).Select(Path.GetFileName);
@@ -516,6 +505,29 @@ Use '/?' or '/h' to see the help message.");
 
     private static PreProcessor CreatePreProcessor(MockObjectFactory factory) =>
         new(factory, factory.Logger);
+
+    private static string CreateAnalysisXml(string parentDir, Dictionary<string, string> properties = null)
+    {
+        Directory.Exists(parentDir).Should().BeTrue("Test setup error: expecting the parent directory to exist: {0}", parentDir);
+        var fullPath = Path.Combine(parentDir, "SonarQube.Analysis.xml");
+        var xmlProperties = new StringBuilder();
+        if (properties is not null)
+        {
+            foreach (var property in properties)
+            {
+                xmlProperties.AppendLine($"""<Property Name="{property.Key}">{property.Value}</Property>""");
+            }
+        }
+        var content = $"""
+           <?xml version="1.0" encoding="utf-8" ?>
+           <SonarQubeAnalysisProperties  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
+             {xmlProperties.ToString()}
+           </SonarQubeAnalysisProperties>
+           """;
+
+        File.WriteAllText(fullPath, content);
+        return fullPath;
+    }
 
     private sealed class TestScope : IDisposable
     {
