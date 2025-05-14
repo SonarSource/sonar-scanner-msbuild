@@ -51,7 +51,7 @@ public class ConsoleLogger : ILogger
     /// <summary>
     /// List of telemetry messages computed during the begin and end step.
     /// </summary>
-    private readonly IList<TelemetryMessage> telemetryMessages = [];
+    private readonly IList<KeyValuePair<string, object>> telemetryMessages = [];
 
     private readonly IOutputWriter outputWriter;
     private readonly IFileWrapper fileWrapper;
@@ -138,6 +138,10 @@ public class ConsoleLogger : ILogger
         }
     }
 
+    /// <summary>
+    /// Saves a telemetry message for later processing.
+    /// The <paramref name="value"/> parameter must be a primitive JSON type, like a number, a String, or a Boolean.
+    /// </summary>
     public void AddTelemetryMessage(string key, object value) =>
         telemetryMessages.Add(new(key, value));
 
@@ -153,7 +157,7 @@ public class ConsoleLogger : ILogger
         var telemetry = telemetryMessagesJson.ToString();
         fileWrapper.AppendAllText(path, telemetry);
 
-        static string ParseMessage(TelemetryMessage message)
+        static string ParseMessage(KeyValuePair<string, object> message)
         {
             var entry = new JObject();
             var value = JToken.FromObject(message.Value);
@@ -237,17 +241,5 @@ public class ConsoleLogger : ILogger
     {
         public MessageType MessageType { get; } = messageType;
         public string FinalMessage { get; } = finalMessage;
-    }
-
-    private readonly record struct TelemetryMessage
-    {
-        public string Key { get; }
-        public object Value { get; }
-
-        public TelemetryMessage(string key, object value)
-        {
-            Key = key;
-            Value = value;
-        }
     }
 }
