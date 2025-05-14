@@ -187,6 +187,12 @@ public class TrxFileReader
                 nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
 
                 var attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
+                var runDeploymentRootNode = doc.SelectSingleNode("/x:TestRun/x:TestSettings[@name='default']/x:Deployment", nsmgr);
+                XmlAttribute runDeploymentRoot = null;
+                if (runDeploymentRootNode is not null)
+                {
+                    runDeploymentRoot = runDeploymentRootNode.Attributes["runDeploymentRoot"];
+                }
 
                 foreach (XmlNode attachmentNode in attachmentNodes)
                 {
@@ -196,7 +202,7 @@ public class TrxFileReader
                         continue;
                     }
 
-                    var coverageFullPath = TryFindCoverageFileFromUri(trxPath, att.Value);
+                    var coverageFullPath = TryFindCoverageFileFromUri(trxPath, att.Value, runDeploymentRoot?.Value);
                     if (coverageFullPath != null)
                     {
                         attachmentsPerTrx[trxPath].Add(coverageFullPath);
@@ -213,20 +219,21 @@ public class TrxFileReader
         return attachmentsPerTrx;
     }
 
-    private string TryFindCoverageFileFromUri(string trx, string attachmentUri)
+    private string TryFindCoverageFileFromUri(string trx, string attachmentUri, string runDeploymentRoot)
     {
         var trxDirectoryName = Path.GetDirectoryName(trx);
         var trxFileName = Path.GetFileNameWithoutExtension(trx);
 
-        var possibleCoveragePaths =
-            new[]
-            {
-                attachmentUri,
-                Path.Combine(trxDirectoryName, trxFileName, "In", attachmentUri),
-                // https://jira.sonarsource.com/browse/SONARMSBRU-361
-                // With VSTest task the coverage file name uses underscore instead of spaces.
-                Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentUri)
-            };
+        var possibleCoveragePaths = new List<string>();
+        possibleCoveragePaths.Add(attachmentUri);
+        possibleCoveragePaths.Add(Path.Combine(trxDirectoryName, trxFileName, "In", attachmentUri));
+        // https://jira.sonarsource.com/browse/SONARMSBRU-361
+        // With VSTest task the coverage file name uses underscore instead of spaces.
+        possibleCoveragePaths.Add(Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentUri));
+        if (runDeploymentRoot != null)
+        {
+            possibleCoveragePaths.Add(Path.Combine(trxDirectoryName, runDeploymentRoot, "In", attachmentUri));
+        }
         var firstFoundCoveragePath = possibleCoveragePaths.FirstOrDefault(path => this.fileWrapper.Exists(path));
 
         if (firstFoundCoveragePath != null)
