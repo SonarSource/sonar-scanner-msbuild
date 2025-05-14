@@ -142,10 +142,8 @@ public class PreProcessorTests
 
         if (scanAll)
         {
-            factory.Logger.AssertUIWarningLogged("""
-                Multi-Language analysis is enabled.
-                If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set /d:sonar.scanner.scanAll=false" in the begin step.
-                """);
+            factory.Logger.AssertUIWarningLogged("Multi-Language analysis is enabled. " +
+                "If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
         }
         else
         {
