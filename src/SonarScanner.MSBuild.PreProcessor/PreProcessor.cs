@@ -127,7 +127,9 @@ public sealed class PreProcessor : IPreProcessor
             logger.LogUIWarning(Resources.WARN_UI_ScanAllAnalysisEnabled);
         }
 
+        logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.value", config.ScanAllAnalysis);
         logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
+        logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
         return true;
     }
 
