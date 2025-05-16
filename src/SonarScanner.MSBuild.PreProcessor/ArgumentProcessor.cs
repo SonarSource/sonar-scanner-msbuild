@@ -83,7 +83,7 @@ public static class ArgumentProcessor // was internal
 
         // Handler for command line analysis properties
         parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out var cmdLineProperties);
-        AddTelemetryFromCLI(cmdLineProperties);
+        AddTelemetryFromProvider(cmdLineProperties, "CLI");
 
         // Handler for scanner environment properties
         parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out var scannerEnvProperties);
@@ -95,8 +95,8 @@ public static class ArgumentProcessor // was internal
 
         if (parsedOk)
         {
-            Debug.Assert(cmdLineProperties != null, "When parse is valid, expected cmd line properties to be non-null");
-            Debug.Assert(globalFileProperties != null, "When parse is valid, expected global file properties to be non-null");
+            Debug.Assert(cmdLineProperties is not null, "When parse is valid, expected cmd line properties to be non-null");
+            Debug.Assert(globalFileProperties is not null, "When parse is valid, expected global file properties to be non-null");
 
             processed = new ProcessedArgs(
                 ArgumentValue(ProjectKeyId, arguments),
@@ -120,12 +120,12 @@ public static class ArgumentProcessor // was internal
 
         return processed;
 
-        void AddTelemetryFromCLI(IAnalysisPropertyProvider arguments)
+        void AddTelemetryFromProvider(IAnalysisPropertyProvider arguments, string provider)
         {
             if (arguments.GetAllProperties().FirstOrDefault(x => x.Id.Equals(SonarProperties.ScanAllAnalysis)) is { } argument)
             {
                 logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.value", argument.Value);
-                logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.value", "CLI");
+                logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.value", provider);
             }
         }
     }
