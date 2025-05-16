@@ -69,7 +69,7 @@ public class WriteTelemetryTaskTests
         var result = runner.Execute(args);
         result.Succeeded.Should().BeTrue();
         File.Exists(telemetryFilename).Should().BeTrue();
-        File.ReadAllText(telemetryFilename).Should().Be(new StringBuilder() // NewLine is OS specific and raw string blocks always use \r\n.
+        File.ReadAllText(telemetryFilename).Should().Be(new StringBuilder() // NewLine is OS specific and raw string blocks always use the new line of this file.
             .AppendLine("""{"Test1":"123"}""")
             .AppendLine("""{"TestKey1":"SomeMessage"}""")
             .AppendLine("""{"TestKey1":"SomeOtherMessage"}""")
