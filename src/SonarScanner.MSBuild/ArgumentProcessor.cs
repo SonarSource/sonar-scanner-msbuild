@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.CommandLine;
 
 namespace SonarScanner.MSBuild;
@@ -92,11 +86,11 @@ public static class ArgumentProcessor
 
         if (parsedOk)
         {
-            Debug.Assert(cmdLineProperties != null, "When parse is valid, expected cmd line properties to be non-null");
-            Debug.Assert(globalFileProperties != null, "When parse is valid, expected global file properties to be non-null");
+            Debug.Assert(cmdLineProperties is not null, "When parse is valid, expected cmd line properties to be non-null");
+            Debug.Assert(globalFileProperties is not null, "When parse is valid, expected global file properties to be non-null");
 
             var properties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties);
-            var baseChildArgs = commandLineArgs.Except(new[] { BeginVerb, EndVerb }).ToList(); // We don't want to forward these to the pre- or post- processor.
+            var baseChildArgs = commandLineArgs.Except([BeginVerb, EndVerb]).ToList(); // We don't want to forward these to the pre- or post- processor.
 
             settings = phase == AnalysisPhase.PreProcessing
                 ? CreatePreProcessorSettings(baseChildArgs, properties, globalFileProperties, logger)
@@ -142,7 +136,7 @@ public static class ArgumentProcessor
         // be able to find it otherwise).
         if (globalFileProperties is FilePropertyProvider { IsDefaultSettingsFile: true } fileProvider)
         {
-            Debug.Assert(fileProvider.PropertiesFile != null, "Expected the properties file to be non-null");
+            Debug.Assert(fileProvider.PropertiesFile is not null, "Expected the properties file to be non-null");
             Debug.Assert(!string.IsNullOrEmpty(fileProvider.PropertiesFile.FilePath), "Expected the properties file path to be set");
             childArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
         }
