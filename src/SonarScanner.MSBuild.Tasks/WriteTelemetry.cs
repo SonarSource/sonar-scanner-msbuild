@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -28,6 +26,8 @@ namespace SonarScanner.MSBuild.Tasks;
 
 public sealed class WriteTelemetry : Task
 {
+    private readonly IFileWrapper fileWrapper;
+
     [Required]
     public ITaskItem Filename { get; set; }
 
@@ -37,23 +37,32 @@ public sealed class WriteTelemetry : Task
 
     public ITaskItem[] Telemetry { get; set; } = [];
 
+    public WriteTelemetry() : this(FileWrapper.Instance) { }
+
+    public WriteTelemetry(IFileWrapper instance) => this.fileWrapper = instance;
+
     public override bool Execute()
     {
-        Debugger.Launch();
         if (AllTelemetry().ToList() is { Count: > 0 } allTelemetry)
         {
-            File.AppendAllLines(Filename.ItemSpec, allTelemetry.Select(static x =>
-                new JsonObject()
-                {
-                    new KeyValuePair<string, JsonNode>(x.Key, JsonValue.Create(x.Value))
-                }.ToJsonString()), Encoding.UTF8);
+            try
+            {
+                fileWrapper.AppendAllLines(Filename.ItemSpec, allTelemetry.Select(static x =>
+                    new JsonObject()
+                    {
+                        new KeyValuePair<string, JsonNode>(x.Key, JsonValue.Create(x.Value))
+                    }.ToJsonString()), Encoding.UTF8);
+            }
+            catch (IOException ex)
+            {
+                Log.LogWarningFromException(ex);
+            }
         }
         return true;
     }
 
     private IEnumerable<KeyValuePair<string, string>> AllTelemetry() =>
-        Telemetry
-            .Select(x => new KeyValuePair<string, string>(x.ItemSpec, x.GetMetadata("Value")))
-            .Concat([new KeyValuePair<string, string>(Key, Value)])
-            .Where(x => !string.IsNullOrEmpty(x.Key));
+        Enumerable.Repeat(new KeyValuePair<string, string>(Key, Value), 1)
+        .Concat(Telemetry.Select(x => new KeyValuePair<string, string>(x.ItemSpec, x.GetMetadata("Value"))))
+        .Where(x => !string.IsNullOrEmpty(x.Key));
 }

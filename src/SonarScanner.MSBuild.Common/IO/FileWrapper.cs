@@ -53,4 +53,7 @@ public class FileWrapper : IFileWrapper
 
     public void Delete(string file) =>
         File.Delete(file);
+
+    public void AppendAllLines(string file, IEnumerable<string> enumerable, Encoding encoding) =>
+        File.AppendAllLines(file, enumerable, encoding);
 }
