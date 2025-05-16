@@ -79,7 +79,7 @@ public class WriteTelemetryTests
         sut.Execute();
         fileWrapper.Received(1).AppendAllLines(
             "Dummy.json",
-            Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new string[]
+            Arg.Is<IEnumerable<string>>(static x => x.SequenceEqual(new[]
             {
                 """{"key3":"value3"}""",
             })),
@@ -89,7 +89,7 @@ public class WriteTelemetryTests
     [TestMethod]
     public void DirectoryNotFoundIsCaught()
     {
-        const string dummyPath = @"C:\NonexistentPath\Telemetry.json";
+        var dummyPath = Path.Combine("NonexistentPath", "Telemetry.json");
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.When(x => x.AppendAllLines(dummyPath, Arg.Any<IEnumerable<string>>(), Arg.Any<Encoding>()))
             .Do(_ => throw new DirectoryNotFoundException($"Could not find a part of the path '{dummyPath}'"));

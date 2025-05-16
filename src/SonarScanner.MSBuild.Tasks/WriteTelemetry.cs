@@ -48,7 +48,7 @@ public sealed class WriteTelemetry : Task
             try
             {
                 fileWrapper.AppendAllLines(Filename.ItemSpec, allTelemetry.Select(static x =>
-                    new JsonObject()
+                    new JsonObject
                     {
                         new KeyValuePair<string, JsonNode>(x.Key, JsonValue.Create(x.Value))
                     }.ToJsonString()), Encoding.UTF8);
