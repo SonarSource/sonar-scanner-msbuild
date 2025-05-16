@@ -49,7 +49,7 @@ public class WriteTelemetryTests
         sut.Execute();
         fileWrapper.Received(1).AppendAllLines(
             "Dummy.json",
-            Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new string[]
+            Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[]
             {
                 """{"key1":"value1"}""",
                 """{"key2":"value2"}""",
