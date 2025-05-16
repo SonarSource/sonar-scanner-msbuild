@@ -32,7 +32,7 @@ public class WriteTelemetryTaskTests
     [TestMethod]
     public void WriteTelemetryWritesJsonToFile()
     {
-        ExecuteMsBuild("""
+        var result = ExecuteMsBuild("""
             <ItemGroup>
               <Telemetry Include="TestKey1" Value="SomeMessage"/>
             </ItemGroup>
@@ -44,9 +44,9 @@ public class WriteTelemetryTaskTests
             </ItemGroup>
             <WriteTelemetry Filename="$(TelemetryFilename)" Key ="Test1" Value="123" Telemetry="@(Telemetry)"/>
             <WriteTelemetry Filename="$(TelemetryFilename)" Key ="Test2" Value="456"/>
-            """, out var telemetryDirectory, out var result);
-        var telemetryFilename = Path.Combine(telemetryDirectory, TelemetryFileName);
-        result.Succeeded.Should().BeTrue();
+            """, true);
+        var telemetryFilename = result.GetPropertyValue("TelemetryFilename");
+        result.BuildSucceeded.Should().BeTrue();
         File.Exists(telemetryFilename).Should().BeTrue();
         File.ReadAllText(telemetryFilename).Should().Be(new StringBuilder() // NewLine is OS specific and raw string blocks always use the new line of this file.
             .AppendLine("""{"Test1":"123"}""")
@@ -60,39 +60,39 @@ public class WriteTelemetryTaskTests
     [TestMethod]
     public void WriteTelemetryFailsWithoutUndefinedFilename()
     {
-        ExecuteMsBuild("""
+        var result = ExecuteMsBuild("""
             <WriteTelemetry Filename="$(Undefined)" Key ="Test1" Value="123"/>
-            """, out _, out var result);
-        result.Succeeded.Should().BeFalse();
-        result.StandardOutput.Should().Contain("""error MSB4044: The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
+            """, false);
+        result.BuildSucceeded.Should().BeFalse();
+        result.Errors.Should().Contain("""The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
     }
 
     [TestMethod]
     public void WriteTelemetryFailsWithoutFilename()
     {
-        ExecuteMsBuild("""
+        var result = ExecuteMsBuild("""
             <WriteTelemetry Key ="Test1" Value="123"/>
-            """, out _, out var result);
-        result.Succeeded.Should().BeFalse();
-        result.StandardOutput.Should().Contain("""error MSB4044: The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
+            """, false);
+        result.BuildSucceeded.Should().BeFalse();
+        result.Errors.Should().Contain("""The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
     }
 
     [TestMethod]
     public void WriteTelemetryWarningIfTelemetryFileCanNotBeCreated()
     {
-        ExecuteMsBuild("""
+        var result = ExecuteMsBuild("""
             <WriteTelemetry Filename="$(TelemetryDirectory)/SubDirectory/Telemetry.json" Key ="Test1" Value="123"/>
-            """, out var telemetryDirectory, out var result);
-        result.Succeeded.Should().BeTrue();
-        result.StandardOutput.Should().Contain($"""
-            warning : Could not find a part of the path '{Path.Combine(telemetryDirectory, "SubDirectory", TelemetryFileName)}'.
+            """, true);
+        result.BuildSucceeded.Should().BeTrue();
+        var telemetryDirectory = result.GetPropertyValue("TelemetryDirectory");
+        result.Warnings.Should().Contain($"""
+            Could not find a part of the path '{Path.Combine(telemetryDirectory, "SubDirectory", TelemetryFileName)}'.
             """);
     }
 
-    private void ExecuteMsBuild(string writeTelemetry, out string telemetryDirectory, out ProcessResult result)
+    private BuildLog ExecuteMsBuild(string writeTelemetry, bool buildShouldSucceed)
     {
-        var msBuild = MSBuildLocator.GetMSBuildPath(TestContext);
-        telemetryDirectory = Path.Combine(TestContext.TestRunDirectory, UniqueDirectory.CreateNext(TestContext.TestRunDirectory));
+        var telemetryDirectory = Path.Combine(TestContext.TestRunDirectory, UniqueDirectory.CreateNext(TestContext.TestRunDirectory));
         var telemetryFilename = Path.Combine(telemetryDirectory, TelemetryFileName);
         var projFileContent = $"""
             <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -104,7 +104,7 @@ public class WriteTelemetryTaskTests
                 <TelemetryDirectory>{telemetryDirectory}</TelemetryDirectory>
                 <TelemetryFilename>{telemetryFilename}</TelemetryFilename>
               </PropertyGroup>
-              <Target Name="MyTarget">
+              <Target Name="TestTarget">
                 {writeTelemetry}
               </Target>
             </Project>
@@ -112,12 +112,6 @@ public class WriteTelemetryTaskTests
         var projFilename = Path.Combine(telemetryDirectory, "TestProject.proj");
         File.WriteAllText(projFilename, projFileContent);
 
-        string[] msbuildArgs = [projFilename, "/m:1", "/t:MyTarget"];
-        var args = new ProcessRunnerArguments(msBuild, false)
-        {
-            CmdLineArgs = msbuildArgs
-        };
-        var runner = new ProcessRunner(new ConsoleLogger(true));
-        result = runner.Execute(args);
+        return BuildRunner.BuildTargets(TestContext, projFilename, buildShouldSucceed, "TestTarget");
     }
 }
