@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Telemetry;
 using static SonarScanner.MSBuild.Common.CommandLine.CommandLineFlagPrefix;
 
 namespace SonarScanner.MSBuild.PreProcessor;
@@ -53,8 +48,8 @@ public static class ArgumentProcessor // was internal
 
     static ArgumentProcessor()
     {
-        Debug.Assert(Descriptors.All(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
-        Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
+        Debug.Assert(Descriptors.All(x => x.Prefixes is not null && x.Prefixes.Any()), "All descriptors must provide at least one prefix");
+        Debug.Assert(Descriptors.Select(x => x.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
     }
 
     /// <summary>
@@ -83,15 +78,19 @@ public static class ArgumentProcessor // was internal
 
         // Handler for command line analysis properties
         parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out var cmdLineProperties);
-        AddTelemetryFromProvider(cmdLineProperties, "CLI");
+        TelemetryUtils.AddTelemetryFromProvider(logger, cmdLineProperties.GetAllProperties(), TelemetryProvider.CLI);
 
         // Handler for scanner environment properties
         parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out var scannerEnvProperties);
+        TelemetryUtils.AddTelemetryFromProvider(logger, scannerEnvProperties.GetAllProperties(), TelemetryProvider.SONARQUBE_SCANNER_PARAMS);
 
         // Handler for property file
         var asmPath = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
-        parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger,
-            out var globalFileProperties);
+        parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out var globalFileProperties);
+        if (arguments.Any(x => x.Descriptor.Id.Equals("properties.file.argument")))
+        {
+            TelemetryUtils.AddTelemetryFromProvider(logger, globalFileProperties.GetAllProperties(), TelemetryProvider.SONARQUBE_ANALYSIS_XML);
+        }
 
         if (parsedOk)
         {
@@ -119,19 +118,10 @@ public static class ArgumentProcessor // was internal
         }
 
         return processed;
-
-        void AddTelemetryFromProvider(IAnalysisPropertyProvider arguments, string provider)
-        {
-            if (arguments.GetAllProperties().FirstOrDefault(x => x.Id.Equals(SonarProperties.ScanAllAnalysis)) is { } argument)
-            {
-                logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.value", argument.Value);
-                logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.value", provider);
-            }
-        }
     }
 
     private static string ArgumentValue(string id, IEnumerable<ArgumentInstance> arguments) =>
-        arguments.Where(a => a.Descriptor.Id == id).Select(a => a.Value).SingleOrDefault();
+        arguments.Where(x => x.Descriptor.Id == id).Select(x => x.Value).SingleOrDefault();
 
     private static bool TryGetInstallTargetsEnabled(IEnumerable<ArgumentInstance> arguments, ILogger logger, out bool installTargetsEnabled)
     {
