@@ -40,6 +40,10 @@ public class WriteTelemetryTests
                 new TaskItem("key2", new Dictionary<string, string>() { { "Value", "value2" } }),
                 new TaskItem("key3", new Dictionary<string, string>() { { "Value", "value3" } }),
                 new TaskItem("key3", new Dictionary<string, string>() { { "Value", "duplicate" } }),
+                new TaskItem("key4", new Dictionary<string, string>() { { "Value", """
+                        Special value with
+                        NewLines
+                        """ } }),
             ]
         };
         sut.Execute();
@@ -51,6 +55,7 @@ public class WriteTelemetryTests
                 """{"key2":"value2"}""",
                 """{"key3":"value3"}""",
                 """{"key3":"duplicate"}""",
+                """{"key4":"Special value with\nNewLines"}""",
             })),
             Encoding.UTF8);
     }
