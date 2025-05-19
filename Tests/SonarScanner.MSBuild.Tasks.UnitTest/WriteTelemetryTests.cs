@@ -39,13 +39,13 @@ public class WriteTelemetryTests
             Value = "value1",
             Telemetry =
             [
-                new TaskItem("key2", new Dictionary<string, string>() { { "Value", "value2" } }),
-                new TaskItem("key3", new Dictionary<string, string>() { { "Value", "value3" } }),
-                new TaskItem("key3", new Dictionary<string, string>() { { "Value", "duplicate" } }),
-                new TaskItem("key4", new Dictionary<string, string>() { { "Value", """
-                        Special value with
-                        NewLines
-                        """ } }),
+                TelemetryTaskItem("key2", "value2"),
+                TelemetryTaskItem("key3", "value3"),
+                TelemetryTaskItem("key3", "duplicate"),
+                TelemetryTaskItem("key4", """
+                    Special value with
+                    NewLines
+                    """),
             ]
         };
         sut.Execute();
@@ -75,9 +75,9 @@ public class WriteTelemetryTests
             Value = "value1",
             Telemetry =
             [
-                new TaskItem(string.Empty, new Dictionary<string, string>() { { "Value", "value2" } }),
-                new TaskItem("key3", new Dictionary<string, string>() { { "Value", "value3" } }),
-                new TaskItem(string.Empty, new Dictionary<string, string>() { { "Value", "value4" } }),
+                TelemetryTaskItem(string.Empty, "value2"),
+                TelemetryTaskItem("key3", "value3"),
+                TelemetryTaskItem(string.Empty, "value4"),
             ]
         };
         sut.Execute();
@@ -120,9 +120,9 @@ public class WriteTelemetryTests
             Filename = new TaskItem("Dummy.json"),
             Telemetry =
             [
-                new TaskItem("key1", new Dictionary<string, string>() { { "Value", "value1" } }),
-                new TaskItem("key2", new Dictionary<string, string>() { { "NotValue", "value2" } }),
-                new TaskItem("key3", new Dictionary<string, string>() { { "NotValue", "notValue3" }, { "Value", "value3" } }),
+                new TaskItem("key1", new Dictionary<string, string> { { "Value", "value1" } }),
+                new TaskItem("key2", new Dictionary<string, string> { { "NotValue", "value2" } }),
+                new TaskItem("key3", new Dictionary<string, string> { { "NotValue", "notValue3" }, { "Value", "value3" } }),
             ]
         };
         sut.Execute();
@@ -136,4 +136,7 @@ public class WriteTelemetryTests
             })),
             Encoding.UTF8);
     }
+
+    private static TaskItem TelemetryTaskItem(string key, string value) =>
+        new(key, new Dictionary<string, string> { { "Value", value } });
 }
