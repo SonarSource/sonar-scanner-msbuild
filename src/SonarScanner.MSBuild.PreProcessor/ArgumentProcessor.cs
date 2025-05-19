@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Telemetry;
 using static SonarScanner.MSBuild.Common.CommandLine.CommandLineFlagPrefix;
 
 namespace SonarScanner.MSBuild.PreProcessor;
@@ -78,19 +77,13 @@ public static class ArgumentProcessor // was internal
 
         // Handler for command line analysis properties
         parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out var cmdLineProperties);
-        TelemetryUtils.AddTelemetryFromProvider(logger, cmdLineProperties?.GetAllProperties(), TelemetryProvider.CLI);
 
         // Handler for scanner environment properties
         parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out var scannerEnvProperties);
-        TelemetryUtils.AddTelemetryFromProvider(logger, scannerEnvProperties?.GetAllProperties(), TelemetryProvider.SONARQUBE_SCANNER_PARAMS);
 
         // Handler for property file
         var asmPath = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
         parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out var globalFileProperties);
-        if (arguments.Any(x => x.Descriptor.Id.Equals("properties.file.argument")))
-        {
-            TelemetryUtils.AddTelemetryFromProvider(logger, globalFileProperties?.GetAllProperties(), TelemetryProvider.SONARQUBE_ANALYSIS_XML);
-        }
 
         if (parsedOk)
         {

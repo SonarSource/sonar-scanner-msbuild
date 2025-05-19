@@ -41,27 +41,8 @@ public partial class PreProcessorTests
         File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
             .Should()
             .BeEquivalentTo(Contents(
-                """{"s4net.params.sonar_scanner_scanAll.value":"false"}""",
-                """{"s4net.params.sonar_scanner_scanAll.source":"CLI"}"""));
-    }
-
-    [TestMethod]
-    public async Task Execute_WritesTelemetry_SetViaServer()
-    {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory(serverProperties: new Dictionary<string, string> { { "sonar.scanner.scanAll", "false" } });
-        var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
-
-        var success = await preProcessor.Execute(CreateArgs());
-
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-        Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
-        File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"s4net.params.sonar_scanner_scanAll.value":"false"}""",
-                """{"s4net.params.sonar_scanner_scanAll.source":"SQ_SERVER_SETTINGS"}"""));
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.value":"false"}""",
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.source":"CLI"}"""));
     }
 
     [TestMethod]
@@ -84,8 +65,8 @@ public partial class PreProcessorTests
         File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
             .Should()
             .BeEquivalentTo(Contents(
-                """{"s4net.params.sonar_scanner_scanAll.value":"false"}""",
-                """{"s4net.params.sonar_scanner_scanAll.source":"SONARQUBE_ANALYSIS_XML"}"""));
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.value":"false"}""",
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.source":"SONARQUBE_ANALYSIS_XML"}"""));
     }
 
     [TestMethod]
@@ -104,14 +85,12 @@ public partial class PreProcessorTests
         File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
             .Should()
             .BeEquivalentTo(Contents(
-                """{"s4net.params.sonar_scanner_scanAll.value":"false"}""",
-                """{"s4net.params.sonar_scanner_scanAll.source":"SONARQUBE_SCANNER_PARAMS"}"""
-            ));
-
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.value":"false"}""",
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.source":"SONARQUBE_SCANNER_PARAMS"}"""));
     }
 
     [TestMethod]
-    public async Task Execute_WritesTelemetry_SetViaMultipleSources_WritesAll()
+    public async Task Execute_WritesTelemetry_SetViaMultipleSources_ProviderWithHighestPriorityIsWritten()
     {
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
@@ -130,10 +109,8 @@ public partial class PreProcessorTests
         File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
             .Should()
             .BeEquivalentTo(Contents(
-                """{"s4net.params.sonar_scanner_scanAll.value":"false"}""",
-                """{"s4net.params.sonar_scanner_scanAll.source":"CLI"}""",
-                """{"s4net.params.sonar_scanner_scanAll.value":"true"}""",
-                """{"s4net.params.sonar_scanner_scanAll.source":"SONARQUBE_SCANNER_PARAMS"}"""));
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.value":"false"}""",
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.source":"CLI"}"""));
     }
 
     // Contents are created with string builder to have the correct line endings for each OS

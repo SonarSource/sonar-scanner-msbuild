@@ -18,16 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
-using SonarScanner.MSBuild.PreProcessor.Telemetry;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -196,9 +188,6 @@ public sealed class PreProcessor : IPreProcessor
                     argumentsAndRuleSets.AnalyzersSettings.Add(analyzerSettings);
                 }
             }
-
-            var analysisPropertiesSetOnlyInServer = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings).GetAllProperties().Except(args.AggregateProperties.GetAllProperties());
-            TelemetryUtils.AddTelemetryFromProvider(logger, analysisPropertiesSetOnlyInServer, TelemetryProvider.SQ_SERVER_SETTINGS);
         }
         catch (AnalysisException)
         {

@@ -18,16 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor.Telemetry;
+namespace SonarScanner.MSBuild.Common;
 
 public static class TelemetryUtils
 {
-    public static void AddTelemetryFromProvider(ILogger logger, IEnumerable<Property> properties, TelemetryProvider provider)
+    private static string[] telemetryProperties = [SonarProperties.ScanAllAnalysis];
+
+    public static void AddTelemetry(ILogger logger, AggregatePropertiesProvider aggregatedProperties)
     {
-        if (properties is not null && properties.FirstOrDefault(x => x.Id.Equals(SonarProperties.ScanAllAnalysis)) is { } argument)
+        foreach (var propertyId in telemetryProperties)
         {
-            logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.value", argument.Value);
-            logger.AddTelemetryMessage("s4net.params.sonar_scanner_scanAll.source", provider.ToString());
+            if (aggregatedProperties.GetAllPropertiesWithProvider().FirstOrDefault(x => x.Key.Id.Equals(propertyId)) is { Key: { }, Value: { } } propertyWithProvider)
+            {
+                logger.AddTelemetryMessage($"dotnetenterprise.s4net.params.{ToTelemetryId(propertyId)}.value", propertyWithProvider.Key.Value);
+                logger.AddTelemetryMessage($"dotnetenterprise.s4net.params.{ToTelemetryId(propertyId)}.source", propertyWithProvider.Value.ProviderType.ToString());
+            }
         }
     }
+
+    private static string ToTelemetryId(string property) =>
+        property.ToLower().Replace('.', '_');
 }

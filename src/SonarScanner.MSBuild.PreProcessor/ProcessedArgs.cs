@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -107,7 +102,7 @@ public class ProcessedArgs
     /// <summary>
     /// Returns the combined command line and file analysis settings.
     /// </summary>
-    public IAnalysisPropertyProvider AggregateProperties { get; }
+    public AggregatePropertiesProvider AggregateProperties { get; }
 
     public IAnalysisPropertyProvider CmdLineProperties { get; }
 
@@ -172,6 +167,8 @@ public class ProcessedArgs
         AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
         AggregateProperties.TryGetValue(SonarProperties.Region, out var region);
         AggregateProperties.TryGetValue(SonarProperties.ApiBaseUrl, out var apiBaseUrl);
+
+        TelemetryUtils.AddTelemetry(logger, AggregateProperties);
 
         ServerInfo = HostInfo.FromProperties(logger, sonarHostUrl, sonarcloudUrl, apiBaseUrl, region);
         IsValid &= ServerInfo is not null;
