@@ -506,29 +506,6 @@ public partial class PreProcessorTests
     private static PreProcessor CreatePreProcessor(MockObjectFactory factory) =>
         new(factory, factory.Logger);
 
-    private static string CreateAnalysisXml(string parentDir, Dictionary<string, string> properties = null)
-    {
-        Directory.Exists(parentDir).Should().BeTrue("Test setup error: expecting the parent directory to exist: {0}", parentDir);
-        var fullPath = Path.Combine(parentDir, "SonarQube.Analysis.xml");
-        var xmlProperties = new StringBuilder();
-        if (properties is not null)
-        {
-            foreach (var property in properties)
-            {
-                xmlProperties.AppendLine($"""<Property Name="{property.Key}">{property.Value}</Property>""");
-            }
-        }
-        var content = $"""
-           <?xml version="1.0" encoding="utf-8" ?>
-           <SonarQubeAnalysisProperties  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
-             {xmlProperties.ToString()}
-           </SonarQubeAnalysisProperties>
-           """;
-
-        File.WriteAllText(fullPath, content);
-        return fullPath;
-    }
-
     private sealed class TestScope : IDisposable
     {
         public readonly string WorkingDir;
