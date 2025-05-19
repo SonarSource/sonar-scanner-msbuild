@@ -27,6 +27,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest;
 /// </summary>
 internal static class MSBuildLocator
 {
+    public static IOperatingSystemProvider OperatingSystemProvider { get; set; } = new OperatingSystemProvider(FileWrapper.Instance, new ConsoleLogger(true));
+
     /// <summary>
     /// Returns a path to an instance of msbuild.exe or null if one could
     /// not be found.
@@ -55,11 +57,24 @@ internal static class MSBuildLocator
     /// <param name="msBuildMajorVersion">MSBuild major version number e.g. 15.0</param>
     private static string GetMSBuildPath(string msBuildMajorVersion, TestContext testContext)
     {
+        testContext.WriteLine($"Test setup: attempting to locate an MSBuild instance. Version: {msBuildMajorVersion}");
+        if (OperatingSystemProvider.IsUnix())
+        {
+            testContext.WriteLine($"Linux: We need to use 'dotnet msbuild'.");
+            // https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables#net-sdk-and-cli-environment-variables
+            string[] knownLocations = [
+                @"/usr/local/share/dotnet/dotnet",
+                @"/usr/local/share/dotnet/x64/dotnet",
+                @"/usr/share/dotnet",
+                @"/usr/lib/dotnet/dotnet",
+            ];
+            return knownLocations.FirstOrDefault(File.Exists) ?? throw new NotSupportedException("Can not find dotnet on this OS.");
+        }
+
         // Note: we're using a Microsoft component that locates instances of VS, and then
         // we're searching for an expected path under VS.
         // A more robust and flexible approach would be to use https://www.nuget.org/packages/vswhere/
         // which would allow us to search for a specific version of MSBuild directly.
-        testContext.WriteLine($"Test setup: attempting to locate an MSBuild instance. Version: {msBuildMajorVersion}");
         ISetupConfiguration config = new SetupConfiguration();
 
         var instances = new ISetupInstance[100];
