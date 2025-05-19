@@ -59,7 +59,7 @@ public class WriteTelemetryTests
                 """{"key2":"value2"}""",
                 """{"key3":"value3"}""",
                 """{"key3":"duplicate"}""",
-                """{"key4":"Special value with\nNewLines"}""",
+                """{"key4":"Special value with\r\nNewLines"}""",
             })),
             Encoding.UTF8);
     }
