@@ -32,15 +32,17 @@ namespace SonarScanner.MSBuild.Common;
 public class AggregatePropertiesProvider : IAnalysisPropertyProvider
 {
     /// <summary>
-    /// Ordered list of child providers
+    /// Ordered list of child providers.
     /// </summary>
-    private readonly IAnalysisPropertyProvider[] providers;
+    public IAnalysisPropertyProvider[] Providers { get; }
+
+    public PropertyProviderKind ProviderType => PropertyProviderKind.UNKNOWN;
 
     #region Public methods
 
     public AggregatePropertiesProvider(params IAnalysisPropertyProvider[] providers)
     {
-        this.providers = providers ?? throw new ArgumentNullException(nameof(providers));
+        Providers = providers ?? throw new ArgumentNullException(nameof(providers));
     }
 
     #endregion Public methods
@@ -49,9 +51,9 @@ public class AggregatePropertiesProvider : IAnalysisPropertyProvider
 
     public IEnumerable<Property> GetAllProperties()
     {
-        var allKeys = new HashSet<string>(providers.SelectMany(p => p.GetAllProperties().Select(s => s.Id)));
+        var allKeys = new HashSet<string>(Providers.SelectMany(p => p.GetAllProperties().Select(s => s.Id)));
 
-        IList<Property> allProperties = new List<Property>();
+        IList<Property> allProperties = [];
         foreach (var key in allKeys)
         {
             var match = TryGetProperty(key, out var property);
@@ -67,7 +69,7 @@ public class AggregatePropertiesProvider : IAnalysisPropertyProvider
     {
         property = null;
 
-        foreach (var current in providers)
+        foreach (var current in Providers)
         {
             if (current.TryGetProperty(key, out property))
             {

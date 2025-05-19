@@ -20,25 +20,12 @@
 
 namespace SonarScanner.MSBuild.Common;
 
-public class EmptyPropertyProvider : IAnalysisPropertyProvider
+public enum PropertyProviderKind
 {
-    public static readonly IAnalysisPropertyProvider Instance = new EmptyPropertyProvider();
-
-    public PropertyProviderKind ProviderType => PropertyProviderKind.UNKNOWN;
-
-    private EmptyPropertyProvider()
-    {
-    }
-
-    #region IAnalysisPropertyProvider interface
-
-    public IEnumerable<Property> GetAllProperties() => [];
-
-    public bool TryGetProperty(string key, out Property property)
-    {
-        property = null;
-        return false;
-    }
-
-    #endregion IAnalysisPropertyProvider interface
+    CLI,
+    SONARQUBE_SCANNER_PARAMS,
+    SONARQUBE_ANALYSIS_XML,
+    SQ_SERVER_SETTINGS,
+    SONAR_SCANNER_OPTS, // Specifies options to the JVM for the sonar-scanner
+    UNKNOWN
 }

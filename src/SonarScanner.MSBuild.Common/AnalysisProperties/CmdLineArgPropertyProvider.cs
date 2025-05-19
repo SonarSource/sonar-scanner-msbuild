@@ -32,11 +32,13 @@ public class CmdLineArgPropertyProvider : IAnalysisPropertyProvider
 {
     public const string DynamicPropertyArgumentId = "dynamic.property";
 
-    public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(
+    public static readonly ArgumentDescriptor Descriptor = new(
         id: DynamicPropertyArgumentId, prefixes: CommandLineFlagPrefix.GetPrefixedFlags("d:"), required: false, allowMultiple: true,
         description: Resources.CmdLine_ArgDescription_DynamicProperty);
 
     private readonly IEnumerable<Property> properties;
+
+    public PropertyProviderKind ProviderType => PropertyProviderKind.CLI;
 
     #region Public methods
 
@@ -46,14 +48,13 @@ public class CmdLineArgPropertyProvider : IAnalysisPropertyProvider
     /// <param name="commandLineArguments">List of command line arguments (optional)</param>
     /// <returns>False if errors occurred when constructing the provider, otherwise true</returns>
     /// <remarks>If no properties were provided on the command line then an empty provider will be returned</remarks>
-    public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, ILogger logger,
-        out IAnalysisPropertyProvider provider)
+    public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, ILogger logger, out IAnalysisPropertyProvider provider)
     {
-        if (commandLineArguments == null)
+        if (commandLineArguments is null)
         {
             throw new ArgumentNullException(nameof(commandLineArguments));
         }
-        if (logger == null)
+        if (logger is null)
         {
             throw new ArgumentNullException(nameof(logger));
         }
@@ -80,15 +81,11 @@ public class CmdLineArgPropertyProvider : IAnalysisPropertyProvider
 
     #region IAnalysisPropertyProvider interface
 
-    public bool TryGetProperty(string key, out Property property)
-    {
-        return Property.TryGetProperty(key, properties, out property);
-    }
+    public bool TryGetProperty(string key, out Property property) =>
+        Property.TryGetProperty(key, properties, out property);
 
-    public IEnumerable<Property> GetAllProperties()
-    {
-        return properties ?? Enumerable.Empty<Property>();
-    }
+    public IEnumerable<Property> GetAllProperties() =>
+        properties ?? [];
 
     #endregion IAnalysisPropertyProvider interface
 
@@ -112,8 +109,7 @@ public class CmdLineArgPropertyProvider : IAnalysisPropertyProvider
     /// Analysis properties (/d:[key]=[value] arguments) need further processing. We need
     /// to extract the key-value pairs and check for duplicate keys.
     /// </remarks>
-    private static bool ExtractAndValidateProperties(IEnumerable<ArgumentInstance> arguments, ILogger logger,
-        out IEnumerable<Property> analysisProperties)
+    private static bool ExtractAndValidateProperties(IEnumerable<ArgumentInstance> arguments, ILogger logger, out IEnumerable<Property> analysisProperties)
     {
         var containsDuplicateProperty = false;
         var containsAnalysisProperty = false;
@@ -166,8 +162,7 @@ public class CmdLineArgPropertyProvider : IAnalysisPropertyProvider
             !containsUnsettableWorkingDirectory;
     }
 
-    private static bool ContainsNamedParameter(string propertyName, IEnumerable<Property> properties, ILogger logger,
-        string errorMessage)
+    private static bool ContainsNamedParameter(string propertyName, IEnumerable<Property> properties, ILogger logger, string errorMessage)
     {
         if (Property.TryGetProperty(propertyName, properties, out var existing))
         {
