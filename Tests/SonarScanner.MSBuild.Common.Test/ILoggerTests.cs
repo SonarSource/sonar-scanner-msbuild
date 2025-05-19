@@ -435,6 +435,16 @@ public class ILoggerTests
     }
 
     [TestMethod]
+    public void ConsoleLogger_WriteTelemetryMessages_IOException_DoesNotThrow()
+    {
+        var logger = new ConsoleLogger(false);
+        logger.WriteTelemetry("NonExistingDir");
+        logger.Invoking(x => x.WriteTelemetry("NonExistingDir"))
+            .Should()
+            .NotThrow<IOException>();
+    }
+
+    [TestMethod]
     public void ConsoleLogger_WriteTelemetryMessages_NotSupportedValueThrows()
     {
         var logger = new ConsoleLogger(false, fileWrapper);

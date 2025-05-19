@@ -155,7 +155,14 @@ public class ConsoleLogger : ILogger
 
         var path = Path.Combine(outputFolder, FileConstants.TelemetryFileName);
         var telemetry = telemetryMessagesJson.ToString();
-        fileWrapper.AppendAllText(path, telemetry);
+        try
+        {
+            fileWrapper.AppendAllText(path, telemetry);
+        }
+        catch (IOException ex)
+        {
+            LogWarning($"Could not write {FileConstants.TelemetryFileName} in {outputFolder}", ex.Message);
+        }
 
         static string ParseMessage(KeyValuePair<string, object> message)
         {
