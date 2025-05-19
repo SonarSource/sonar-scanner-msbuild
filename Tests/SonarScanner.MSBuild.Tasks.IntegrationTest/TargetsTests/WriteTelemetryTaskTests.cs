@@ -43,8 +43,8 @@ public class WriteTelemetryTaskTests
             <ItemGroup>
               <Telemetry Include="TestKey2" Value="SomeMessage"/>
             </ItemGroup>
-            <WriteTelemetry Filename="$(TelemetryFilename)" Key ="Test1" Value="123" Telemetry="@(Telemetry)"/>
-            <WriteTelemetry Filename="$(TelemetryFilename)" Key ="Test2" Value="456"/>
+            <WriteTelemetry Filename="$(TelemetryFilename)" Key="Test1" Value="123" Telemetry="@(Telemetry)"/>
+            <WriteTelemetry Filename="$(TelemetryFilename)" Key="Test2" Value="456"/>
             """, true);
         var telemetryFilename = result.GetPropertyValue("TelemetryFilename");
         result.BuildSucceeded.Should().BeTrue();
@@ -63,7 +63,7 @@ public class WriteTelemetryTaskTests
     public void WriteTelemetryFailsWithoutUndefinedFilename()
     {
         var result = ExecuteMsBuild("""
-            <WriteTelemetry Filename="$(Undefined)" Key ="Test1" Value="123"/>
+            <WriteTelemetry Filename="$(Undefined)" Key="Test1" Value="123"/>
             """, false);
         result.BuildSucceeded.Should().BeFalse();
         result.Errors.Should().Contain("""The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
@@ -74,7 +74,7 @@ public class WriteTelemetryTaskTests
     public void WriteTelemetryFailsWithoutFilename()
     {
         var result = ExecuteMsBuild("""
-            <WriteTelemetry Key ="Test1" Value="123"/>
+            <WriteTelemetry Key="Test1" Value="123"/>
             """, false);
         result.BuildSucceeded.Should().BeFalse();
         result.Errors.Should().Contain("""The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
@@ -85,7 +85,7 @@ public class WriteTelemetryTaskTests
     public void WriteTelemetryWarningIfTelemetryFileCanNotBeCreated()
     {
         var result = ExecuteMsBuild("""
-            <WriteTelemetry Filename="$(TelemetryDirectory)/SubDirectory/Telemetry.json" Key ="Test1" Value="123"/>
+            <WriteTelemetry Filename="$(TelemetryDirectory)/SubDirectory/Telemetry.json" Key="Test1" Value="123"/>
             """, true);
         result.BuildSucceeded.Should().BeTrue();
         var telemetryDirectory = result.GetPropertyValue("TelemetryDirectory");
