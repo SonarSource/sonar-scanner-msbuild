@@ -39,8 +39,6 @@ public class WriteTelemetryTaskTests
             </ItemGroup>
             <ItemGroup>
               <Telemetry Include="TestKey1" Value="SomeOtherMessage"/>
-            </ItemGroup>
-            <ItemGroup>
               <Telemetry Include="TestKey2" Value="SomeMessage"/>
             </ItemGroup>
             <WriteTelemetry Filename="$(TelemetryFilename)" Key="Test1" Value="123" Telemetry="@(Telemetry)"/>
