@@ -198,7 +198,7 @@ public sealed class PreProcessor : IPreProcessor
             }
 
             var analysisPropertiesSetOnlyInServer = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings).GetAllProperties().Except(args.AggregateProperties.GetAllProperties());
-            TelemetryUtils.AddTelemetryFromProvider(logger, analysisPropertiesSetOnlyInServer, TelemetryProvider.SQ_GLOBAL_SETTINGS);
+            TelemetryUtils.AddTelemetryFromProvider(logger, analysisPropertiesSetOnlyInServer, TelemetryProvider.SQ_SERVER_SETTINGS);
         }
         catch (AnalysisException)
         {

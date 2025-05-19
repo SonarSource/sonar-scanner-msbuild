@@ -63,7 +63,7 @@ public partial class PreProcessorTests
             .Should()
             .BeEquivalentTo("""
             {"s4net.params.sonar_scanner_scanAll.value":"false"}
-            {"s4net.params.sonar_scanner_scanAll.source":"SQ_GLOBAL_SETTINGS"}
+            {"s4net.params.sonar_scanner_scanAll.source":"SQ_SERVER_SETTINGS"}
 
             """);
     }

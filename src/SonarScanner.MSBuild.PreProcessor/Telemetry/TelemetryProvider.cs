@@ -25,5 +25,6 @@ public enum TelemetryProvider
     CLI,
     SONARQUBE_SCANNER_PARAMS,
     SONARQUBE_ANALYSIS_XML,
-    SQ_GLOBAL_SETTINGS
+    SQ_SERVER_SETTINGS,
+    SONAR_SCANNER_OPTS // Specifies options to the JVM for the sonar-scanner
 }
