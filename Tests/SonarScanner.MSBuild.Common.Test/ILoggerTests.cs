@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute;
+
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -438,9 +440,13 @@ public class ILoggerTests
     public void ConsoleLogger_WriteTelemetryMessages_IOException_DoesNotThrow()
     {
         var recorder = new OutputRecorder();
-        var logger = ConsoleLogger.CreateLoggerForTesting(true, recorder, FileWrapper.Instance);
-        logger.WriteTelemetry("NonExistingDir");
-        recorder.AssertExpectedLastOutput($"{@"\d{2}:\d{2}:\d{2}(.\d{1,3})?"}  WARNING: Could not write Telemetry.S4NET.json in NonExistingDir", ConsoleColor.Yellow, false);
+        var telemetryJson = Path.Combine("outputDir", FileConstants.TelemetryFileName);
+        fileWrapper.When(x => x.AppendAllText(telemetryJson, Arg.Any<string>())).Do(_ => throw new DirectoryNotFoundException($"Could not find a part of the path '{telemetryJson}'."));
+        var logger = ConsoleLogger.CreateLoggerForTesting(true, recorder, fileWrapper);
+        logger.WriteTelemetry("outputDir");
+
+        fileWrapper.Received(1).AppendAllText(telemetryJson, Arg.Any<string>());
+        recorder.AssertExpectedLastOutput($"{@"\d{2}:\d{2}:\d{2}(.\d{1,3})?"}  WARNING: Could not write Telemetry.S4NET.json in outputDir", ConsoleColor.Yellow, false);
     }
 
     [TestMethod]
