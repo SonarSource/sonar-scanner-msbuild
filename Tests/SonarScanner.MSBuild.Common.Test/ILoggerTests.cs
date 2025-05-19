@@ -437,11 +437,10 @@ public class ILoggerTests
     [TestMethod]
     public void ConsoleLogger_WriteTelemetryMessages_IOException_DoesNotThrow()
     {
-        var logger = new ConsoleLogger(false);
+        var recorder = new OutputRecorder();
+        var logger = ConsoleLogger.CreateLoggerForTesting(true, recorder, FileWrapper.Instance);
         logger.WriteTelemetry("NonExistingDir");
-        logger.Invoking(x => x.WriteTelemetry("NonExistingDir"))
-            .Should()
-            .NotThrow<IOException>();
+        recorder.AssertExpectedLastOutput($"{@"\d{2}:\d{2}:\d{2}(.\d{1,3})?"}  WARNING: Could not write Telemetry.S4NET.json in NonExistingDir", ConsoleColor.Yellow, false);
     }
 
     [TestMethod]
