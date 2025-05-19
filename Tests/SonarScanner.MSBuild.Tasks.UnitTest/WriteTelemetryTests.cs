@@ -26,6 +26,8 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest;
 [TestClass]
 public class WriteTelemetryTests
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     public void AllTelemetryIsWrittenToFile()
     {
@@ -47,6 +49,8 @@ public class WriteTelemetryTests
             ]
         };
         sut.Execute();
+        var receivedJsonLines = (IEnumerable<string>)fileWrapper.ReceivedCalls().Should().ContainSingle().Which.GetArguments()[1];
+        TestContext.WriteLine($"Received JSON lines: {string.Join(Environment.NewLine, receivedJsonLines)}");
         fileWrapper.Received(1).AppendAllLines(
             "Dummy.json",
             Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[]
