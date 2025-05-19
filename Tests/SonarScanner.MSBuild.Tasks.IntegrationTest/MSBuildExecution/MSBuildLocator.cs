@@ -67,6 +67,8 @@ internal static class MSBuildLocator
                 @"/usr/local/share/dotnet/x64/dotnet",
                 @"/usr/share/dotnet",
                 @"/usr/lib/dotnet/dotnet",
+                @"/usr/local/bin/dotnet",
+                @"/usr/bin/dotnet",
             ];
             return knownLocations.FirstOrDefault(File.Exists) ?? throw new NotSupportedException("Can not find dotnet on this OS.");
         }
