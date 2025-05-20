@@ -101,7 +101,7 @@ public class AggregatePropertiesProviderTests
     {
         var listPropertiesProvider = new ListPropertiesProvider();
         listPropertiesProvider.AddProperty("shared.key.A", "value A from one");
-        listPropertiesProvider.AddProperty("shared.key.B", "value B from one");
+        listPropertiesProvider.AddProperty("key.B", "value B from one");
         listPropertiesProvider.AddProperty("p1.unique.key.1", "p1 unique value 1");
 
         var args = new List<ArgumentInstance>
@@ -110,15 +110,18 @@ public class AggregatePropertiesProviderTests
             new(CmdLineArgPropertyProvider.Descriptor, "p2.unique.key.1=p2 unique value 1")
         };
         _ = CmdLineArgPropertyProvider.TryCreateProvider(args, new TestLogger(), out var commandLineProvider);
-        var aggProvider = new AggregatePropertiesProvider(listPropertiesProvider, commandLineProvider);
-        var expected = new Dictionary<PropertyProviderKind, IList<string>>
+
+        var aggProvider = new AggregatePropertiesProvider(commandLineProvider, listPropertiesProvider);
+        var expected = new Dictionary<string, PropertyProviderKind>
         {
-            { PropertyProviderKind.SQ_SERVER_SETTINGS, ["shared.key.A", "shared.key.B", "p1.unique.key.1"] },
-            { PropertyProviderKind.CLI, ["shared.key.A", "p2.unique.key.1"] }
+            { "key.B", PropertyProviderKind.SQ_SERVER_SETTINGS },
+            { "p1.unique.key.1", PropertyProviderKind.SQ_SERVER_SETTINGS },
+            { "shared.key.A", PropertyProviderKind.CLI },
+            { "p2.unique.key.1", PropertyProviderKind.CLI },
         };
 
         aggProvider.AssertExpectedPropertyCount(4);
-        aggProvider.GetAllPropertiesPerProvider().Select(x => x.Value.Select(x => x.Value)).Equals(expected);
+        aggProvider.GetAllPropertiesPerProvider().ToDictionary(x => x.Key.Id, x => x.Value.ProviderType).Should().BeEquivalentTo(expected);
     }
 
     #endregion Tests

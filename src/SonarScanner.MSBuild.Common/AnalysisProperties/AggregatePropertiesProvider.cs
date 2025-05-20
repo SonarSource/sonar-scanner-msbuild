@@ -58,33 +58,34 @@ public class AggregatePropertiesProvider : IAnalysisPropertyProvider
         return allProperties;
     }
 
-    public IDictionary<PropertyProviderKind, IList<Property>> GetAllPropertiesPerProvider()
+    public IEnumerable<KeyValuePair<Property, IAnalysisPropertyProvider>> GetAllPropertiesPerProvider()
     {
-        var propertiesPerProvider = new Dictionary<PropertyProviderKind, IList<Property>>();
-        foreach (var providerWithProperties in providers.ToDictionary(x => x.ProviderType, x => x.GetAllProperties()))
-        {
-            IList<Property> properties = [];
-            foreach (var prop in providerWithProperties.Value)
-            {
-                var match = TryGetProperty(prop.Id, out var property);
+        var allKeys = new HashSet<string>(providers.SelectMany(x => x.GetAllProperties().Select(x => x.Id)));
 
-                Debug.Assert(match, "Expecting to find value for all keys. Key: " + property.Id);
-                properties.Add(property);
-            }
-            propertiesPerProvider.Add(providerWithProperties.Key, properties);
+        IList<KeyValuePair<Property, IAnalysisPropertyProvider>> allProperties = [];
+        foreach (var key in allKeys)
+        {
+            var match = TryGetProperty(key, out var property, out var provider);
+            Debug.Assert(match, "Expecting to find value for all keys. Key: " + key);
+            allProperties.Add(new KeyValuePair<Property, IAnalysisPropertyProvider>(property, provider));
         }
 
-        return propertiesPerProvider;
+        return allProperties;
     }
 
-    public bool TryGetProperty(string key, out Property property)
+    public bool TryGetProperty(string key, out Property property) =>
+        TryGetProperty(key, out property, out _);
+
+    public bool TryGetProperty(string key, out Property property, out IAnalysisPropertyProvider provider)
     {
         property = null;
+        provider = null;
 
         foreach (var current in providers)
         {
             if (current.TryGetProperty(key, out property))
             {
+                provider = current;
                 return true;
             }
         }
