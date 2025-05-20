@@ -39,7 +39,7 @@ public sealed class WriteTelemetry : Task
 
     public WriteTelemetry() : this(FileWrapper.Instance) { }
 
-    public WriteTelemetry(IFileWrapper instance) => this.fileWrapper = instance;
+    public WriteTelemetry(IFileWrapper instance) => fileWrapper = instance;
 
     public override bool Execute()
     {
