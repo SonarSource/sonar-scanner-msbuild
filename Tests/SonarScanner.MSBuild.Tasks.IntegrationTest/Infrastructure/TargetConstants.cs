@@ -142,6 +142,9 @@ internal static class TargetProperties
     public const string ItemType_Compile = "Compile";
     public const string ItemType_Content = "Content";
     public const string AutoGenMetadata = "AutoGen";
+
+    // Telemetry
+    public const string SonarTelemetryFilePath = "SonarTelemetryFilePath";
 }
 
 internal static class TargetItemGroups

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
 using TestUtilities;
 
@@ -68,6 +67,7 @@ public class SonarIntegrationTargetsTests
         var result = CreateProjectAndLoad(projectXml);
         result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_Legacy\.sonarqube\out");
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_Legacy\.sonarqube\conf");
+        result.AssertPropertyValue(TargetProperties.SonarTelemetryFilePath, @"t:\TeamBuildDir_Legacy\.sonarqube\conf");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -84,6 +84,7 @@ public class SonarIntegrationTargetsTests
         var result = CreateProjectAndLoad(projectXml);
         result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\out");
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\conf");
+        result.AssertPropertyValue(TargetProperties.SonarTelemetryFilePath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\out");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]

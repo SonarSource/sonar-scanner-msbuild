@@ -104,6 +104,7 @@
   <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
     <SonarQubeConfigPath Condition=" $(SonarQubeConfigPath) == '' ">$(SonarQubeTempPath)\conf</SonarQubeConfigPath>
     <SonarQubeOutputPath Condition=" $(SonarQubeOutputPath) == '' ">$(SonarQubeTempPath)\out</SonarQubeOutputPath>
+    <SonarTelemetryFilePath>$(SonarQubeOutputPath)</SonarTelemetryFilePath>
 
     <!-- Specify the ItemGroups to be analyzed -->
     <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">AndroidEnvironment;AndroidJavaSource;AndroidResource;ApplicationDefinition;Build;ClCompile;ClInclude;Compile;Content;DeploymentExtensionConfiguration;EmbeddedResource;EntityDeploy;None;Page;PostDeploy;PRIResource;PreDeploy;RefactorLog;Resource;Script;ScriptCode;TypeScriptCompile;$(SQAdditionalAnalysisFileItemTypes)</SQAnalysisFileItemTypes>
@@ -323,6 +324,7 @@
     <!-- Create .sonarqube/conf/ sub-folder with the same unique name -->
     <PropertyGroup>
       <ProjectSpecificConfDir>$(SonarQubeConfigPath)\$(UniqueName)</ProjectSpecificConfDir>
+      <SonarTelemetryFilePath>$(ProjectSpecificOutDir)</SonarTelemetryFilePath>
     </PropertyGroup>
     <MakeDir Directories="$(ProjectSpecificConfDir)" />
   </Target>
@@ -622,4 +624,3 @@
   <!-- **************************************************************************** -->
 
 </Project>
- 
