@@ -39,4 +39,6 @@ public interface IFileWrapper
     void Move(string sourceFileName, string destFileName);
 
     void Delete(string file);
+
+    void AppendAllLines(string file, IEnumerable<string> enumerable, Encoding encoding);
 }
