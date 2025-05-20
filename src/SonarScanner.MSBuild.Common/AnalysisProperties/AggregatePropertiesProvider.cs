@@ -42,23 +42,10 @@ public class AggregatePropertiesProvider : IAnalysisPropertyProvider
 
     #region IAnalysisPropertyProvider interface
 
-    public IEnumerable<Property> GetAllProperties()
-    {
-        var allKeys = new HashSet<string>(providers.SelectMany(x => x.GetAllProperties().Select(x => x.Id)));
+    public IEnumerable<Property> GetAllProperties() =>
+        GetAllPropertiesWithProvider().Select(x => x.Key);
 
-        IList<Property> allProperties = [];
-        foreach (var key in allKeys)
-        {
-            var match = TryGetProperty(key, out var property);
-
-            Debug.Assert(match, "Expecting to find value for all keys. Key: " + key);
-            allProperties.Add(property);
-        }
-
-        return allProperties;
-    }
-
-    public IEnumerable<KeyValuePair<Property, IAnalysisPropertyProvider>> GetAllPropertiesPerProvider()
+    public IEnumerable<KeyValuePair<Property, IAnalysisPropertyProvider>> GetAllPropertiesWithProvider()
     {
         var allKeys = new HashSet<string>(providers.SelectMany(x => x.GetAllProperties().Select(x => x.Id)));
 

@@ -99,7 +99,7 @@ public class AggregatePropertiesProviderTests
     [TestMethod]
     public void AggProperties_GetAllPropertiesPerProvider()
     {
-        var listPropertiesProvider = new ListPropertiesProvider();
+        var listPropertiesProvider = new ListPropertiesProvider(PropertyProviderKind.SQ_SERVER_SETTINGS);
         listPropertiesProvider.AddProperty("shared.key.A", "value A from one");
         listPropertiesProvider.AddProperty("key.B", "value B from one");
         listPropertiesProvider.AddProperty("p1.unique.key.1", "p1 unique value 1");
@@ -121,7 +121,7 @@ public class AggregatePropertiesProviderTests
         };
 
         aggProvider.AssertExpectedPropertyCount(4);
-        aggProvider.GetAllPropertiesPerProvider().ToDictionary(x => x.Key.Id, x => x.Value.ProviderType).Should().BeEquivalentTo(expected);
+        aggProvider.GetAllPropertiesWithProvider().ToDictionary(x => x.Key.Id, x => x.Value.ProviderType).Should().BeEquivalentTo(expected);
     }
 
     #endregion Tests

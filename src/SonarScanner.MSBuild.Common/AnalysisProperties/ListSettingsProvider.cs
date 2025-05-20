@@ -30,13 +30,14 @@ public class ListPropertiesProvider : IAnalysisPropertyProvider
 {
     private readonly IList<Property> properties;
 
-    public PropertyProviderKind ProviderType => PropertyProviderKind.SQ_SERVER_SETTINGS;
+    public PropertyProviderKind ProviderType { get; }
 
     #region Public methods
 
-    public ListPropertiesProvider()
+    public ListPropertiesProvider(PropertyProviderKind propertyProvider = PropertyProviderKind.UNKNOWN)
     {
         properties = [];
+        ProviderType = propertyProvider;
     }
 
     public ListPropertiesProvider(IEnumerable<Property> properties)
@@ -49,8 +50,8 @@ public class ListPropertiesProvider : IAnalysisPropertyProvider
         this.properties = [.. properties];
     }
 
-    public ListPropertiesProvider(IDictionary<string, string> keyValuePairs)
-        : this()
+    public ListPropertiesProvider(IDictionary<string, string> keyValuePairs, PropertyProviderKind propertyProvider = PropertyProviderKind.UNKNOWN)
+        : this(propertyProvider)
     {
         if (keyValuePairs is null)
         {
