@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using SonarScanner.MSBuild.Common.CommandLine;
 
 namespace SonarScanner.MSBuild.Common;

@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -69,4 +63,8 @@ public class EnvScannerPropertiesProviderTest
         var provider = new EnvScannerPropertiesProvider(null);
         provider.GetAllProperties().Should().BeEmpty();
     }
+
+    [TestMethod]
+    public void EnvScannerProvider_HasCorrectProviderType() =>
+        new EnvScannerPropertiesProvider("""{"key": "value"}""").ProviderType.Should().Be(PropertyProviderKind.SONARQUBE_SCANNER_PARAMS);
 }

@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.Test;
 
@@ -173,6 +167,16 @@ public class FilePropertyProviderTests
         // Assert
         logger.AssertErrorsLogged(1);
         logger.AssertSingleErrorExists(invalidFile);
+    }
+
+    [TestMethod]
+    public void FileProvider_HasCorrectProviderType()
+    {
+        var defaultPropertiesDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        _ = CreateValidPropertiesFile(defaultPropertiesDir, FilePropertyProvider.DefaultFileName, "key1", "value1");
+        var provider = CheckProcessingSucceeds(new List<ArgumentInstance>(), defaultPropertiesDir, new TestLogger());
+
+        provider.ProviderType.Should().Be(PropertyProviderKind.SONARQUBE_ANALYSIS_XML);
     }
 
     #endregion Tests
