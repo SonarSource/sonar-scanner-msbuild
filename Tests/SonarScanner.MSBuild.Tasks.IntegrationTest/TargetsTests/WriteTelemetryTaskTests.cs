@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 
 [TestClass]
@@ -29,7 +27,6 @@ public class WriteTelemetryTaskTests
 
     public TestContext TestContext { get; set; }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteTelemetryWritesJsonToFile()
     {
@@ -56,7 +53,6 @@ public class WriteTelemetryTaskTests
             .ToString());
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteTelemetryFailsWithoutUndefinedFilename()
     {
@@ -67,7 +63,6 @@ public class WriteTelemetryTaskTests
         result.Errors.Should().Contain("""The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteTelemetryFailsWithoutFilename()
     {
@@ -78,7 +73,6 @@ public class WriteTelemetryTaskTests
         result.Errors.Should().Contain("""The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteTelemetryWarningIfTelemetryFileCanNotBeCreated()
     {
