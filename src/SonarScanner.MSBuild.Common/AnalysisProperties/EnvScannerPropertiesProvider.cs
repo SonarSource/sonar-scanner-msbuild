@@ -62,7 +62,7 @@ public class EnvScannerPropertiesProvider : IAnalysisPropertyProvider
     public bool TryGetProperty(string key, out Property property) =>
         Property.TryGetProperty(key, properties, out property);
 
-    private IEnumerable<Property> ParseVar(string json) =>
+    private static IEnumerable<Property> ParseVar(string json) =>
         JObject.Parse(json)
             .Properties()
             .Select(x => new Property(x.Name, x.Value.ToString()));

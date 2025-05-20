@@ -19,8 +19,10 @@
  */
 
 using System;
+using System.Security.Cryptography;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.Test;
@@ -40,7 +42,7 @@ public class AggregatePropertiesProviderTests
         act.Should().ThrowExactly<ArgumentNullException>();
 
         // 2. Empty list of providers -> valid but returns nothing
-        var provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });
+        var provider = new AggregatePropertiesProvider([]);
 
         provider.GetAllProperties().Should().BeEmpty();
         var success = provider.TryGetProperty("any key", out var actualProperty);
@@ -92,6 +94,31 @@ public class AggregatePropertiesProviderTests
         aggProvider.AssertExpectedPropertyValue("p1.unique.key.1", "p1 unique value 1");
         aggProvider.AssertExpectedPropertyValue("p2.unique.key.1", "p2 unique value 1");
         aggProvider.AssertExpectedPropertyValue("p3.unique.key.1", "p3 unique value 1");
+    }
+
+    [TestMethod]
+    public void AggProperties_GetAllPropertiesPerProvider()
+    {
+        var listPropertiesProvider = new ListPropertiesProvider();
+        listPropertiesProvider.AddProperty("shared.key.A", "value A from one");
+        listPropertiesProvider.AddProperty("shared.key.B", "value B from one");
+        listPropertiesProvider.AddProperty("p1.unique.key.1", "p1 unique value 1");
+
+        var args = new List<ArgumentInstance>
+        {
+            new(CmdLineArgPropertyProvider.Descriptor, "shared.key.A=value A from one"),
+            new(CmdLineArgPropertyProvider.Descriptor, "p2.unique.key.1=p2 unique value 1")
+        };
+        _ = CmdLineArgPropertyProvider.TryCreateProvider(args, new TestLogger(), out var commandLineProvider);
+        var aggProvider = new AggregatePropertiesProvider(listPropertiesProvider, commandLineProvider);
+        var expected = new Dictionary<PropertyProviderKind, IList<string>>
+        {
+            { PropertyProviderKind.SQ_SERVER_SETTINGS, ["shared.key.A", "shared.key.B", "p1.unique.key.1"] },
+            { PropertyProviderKind.CLI, ["shared.key.A", "p2.unique.key.1"] }
+        };
+
+        aggProvider.AssertExpectedPropertyCount(4);
+        aggProvider.GetAllPropertiesPerProvider().Select(x => x.Value.Select(x => x.Value)).Equals(expected);
     }
 
     #endregion Tests
