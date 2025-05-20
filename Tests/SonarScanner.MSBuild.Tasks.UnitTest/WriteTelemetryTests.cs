@@ -49,8 +49,7 @@ public class WriteTelemetryTests
             ]
         };
         sut.Execute();
-        var receivedJsonLines = (IEnumerable<string>)fileWrapper.ReceivedCalls().Should().ContainSingle().Which.GetArguments()[1];
-        TestContext.WriteLine($"Received JSON lines: {string.Join(Environment.NewLine, receivedJsonLines)}");
+        PrintReceivedJsonToTestContext(fileWrapper);
         fileWrapper.Received(1).AppendAllLines(
             "Dummy.json",
             Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new[]
@@ -81,6 +80,7 @@ public class WriteTelemetryTests
             ]
         };
         sut.Execute();
+        PrintReceivedJsonToTestContext(fileWrapper);
         fileWrapper.Received(1).AppendAllLines(
             "Dummy.json",
             Arg.Is<IEnumerable<string>>(static x => x.SequenceEqual(new[]
@@ -126,6 +126,7 @@ public class WriteTelemetryTests
             ]
         };
         sut.Execute();
+        PrintReceivedJsonToTestContext(fileWrapper);
         fileWrapper.Received(1).AppendAllLines(
             "Dummy.json",
             Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new string[]
@@ -135,6 +136,14 @@ public class WriteTelemetryTests
                 """{"key3":"value3"}""",
             })),
             Encoding.UTF8);
+    }
+
+    private void PrintReceivedJsonToTestContext(IFileWrapper fileWrapper)
+    {
+        var receivedCall = fileWrapper.ReceivedCalls().Should().ContainSingle().Which;
+        receivedCall.GetMethodInfo().Name.Should().Be(nameof(IFileWrapper.AppendAllLines));
+        var receivedJsonLines = receivedCall.GetArguments().Should().HaveCount(3).And.Subject.ElementAt(1).Should().BeAssignableTo<IEnumerable<string>>().Subject;
+        TestContext.WriteLine($"Received JSON lines:{Environment.NewLine}{string.Join(Environment.NewLine, receivedJsonLines)}");
     }
 
     private static TaskItem TelemetryTaskItem(string key, string value) =>
