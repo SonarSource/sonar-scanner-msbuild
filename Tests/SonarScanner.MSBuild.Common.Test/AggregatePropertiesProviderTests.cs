@@ -107,29 +107,29 @@ public class AggregatePropertiesProviderTests
         var aggProvider = new AggregatePropertiesProvider(commandLineProvider, listPropertiesProvider);
         aggProvider.AssertExpectedPropertyCount(4);
         aggProvider.GetAllPropertiesWithProvider().Should().SatisfyRespectively(
-            x0 =>
+            x =>
             {
-                x0.Key.Id.Should().Be("shared.key.A");
-                x0.Key.Value.Should().Be("value A from one");
-                x0.Value.ProviderType.Should().Be(PropertyProviderKind.CLI);
+                x.Key.Id.Should().Be("shared.key.A");
+                x.Key.Value.Should().Be("value A from one");
+                x.Value.ProviderType.Should().Be(PropertyProviderKind.CLI);
             },
-            x1 =>
+            x =>
             {
-                x1.Key.Id.Should().Be("p2.unique.key.1");
-                x1.Key.Value.Should().Be("p2 unique value 1");
-                x1.Value.ProviderType.Should().Be(PropertyProviderKind.CLI);
+                x.Key.Id.Should().Be("p2.unique.key.1");
+                x.Key.Value.Should().Be("p2 unique value 1");
+                x.Value.ProviderType.Should().Be(PropertyProviderKind.CLI);
             },
-            x2 =>
+            x =>
             {
-                x2.Key.Id.Should().Be("key.B");
-                x2.Key.Value.Should().Be("value B from one");
-                x2.Value.ProviderType.Should().Be(PropertyProviderKind.SQ_SERVER_SETTINGS);
+                x.Key.Id.Should().Be("key.B");
+                x.Key.Value.Should().Be("value B from one");
+                x.Value.ProviderType.Should().Be(PropertyProviderKind.SQ_SERVER_SETTINGS);
             },
-            x3 =>
+            x =>
             {
-                x3.Key.Id.Should().Be("p1.unique.key.1");
-                x3.Key.Value.Should().Be("p1 unique value 1");
-                x3.Value.ProviderType.Should().Be(PropertyProviderKind.SQ_SERVER_SETTINGS);
+                x.Key.Id.Should().Be("p1.unique.key.1");
+                x.Key.Value.Should().Be("p1 unique value 1");
+                x.Value.ProviderType.Should().Be(PropertyProviderKind.SQ_SERVER_SETTINGS);
             });
     }
 
