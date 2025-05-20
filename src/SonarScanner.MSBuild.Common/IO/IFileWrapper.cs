@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
-
 namespace SonarScanner.MSBuild.Common;
 
 public interface IFileWrapper
@@ -29,6 +27,8 @@ public interface IFileWrapper
     string ReadAllText(string path);
 
     void WriteAllText(string path, string contents);
+
+    void AppendAllText(string path, string contents);
 
     void Copy(string sourceFileName, string destFileName, bool overwrite);
 

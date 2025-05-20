@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.Test;
 
@@ -397,5 +392,72 @@ public class ILoggerTests
 #endif
         var logger = Substitute.For<ILogger>();
         logger.Invoking(x => x.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage(expectedMessage);
+    }
+
+    [TestMethod]
+    public void ConsoleLogger_WriteTelemetryMessages()
+    {
+        var logger = new ConsoleLogger(false, fileWrapper);
+        logger.AddTelemetryMessage("key1", "value1");
+        logger.AddTelemetryMessage("key2", "value2");
+        logger.AddTelemetryMessage("key3", "value3");
+
+        const string outputDir = "outputDir";
+        logger.WriteTelemetry(outputDir);
+
+        // Contents are created with string builder to have the correct line endings for each OS
+        var contents = new StringBuilder()
+            .AppendLine("""{"key1":"value1"}""")
+            .AppendLine("""{"key2":"value2"}""")
+            .AppendLine("""{"key3":"value3"}""")
+            .ToString();
+        fileWrapper.Received(1).AppendAllText(
+             Path.Combine(outputDir, FileConstants.TelemetryFileName), contents);
+    }
+
+    [TestMethod]
+    public void ConsoleLogger_WriteTelemetryMessages_DifferentValueTypes()
+    {
+        var logger = new ConsoleLogger(false, fileWrapper);
+        logger.AddTelemetryMessage("key1", "value1");
+        logger.AddTelemetryMessage("key2", 2);
+        logger.AddTelemetryMessage("key3", true);
+
+        const string outputDir = "outputDir";
+        logger.WriteTelemetry(outputDir);
+
+        // Contents are created with string builder to have the correct line endings for each OS
+        var contents = new StringBuilder()
+            .AppendLine("""{"key1":"value1"}""")
+            .AppendLine("""{"key2":2}""")
+            .AppendLine("""{"key3":true}""")
+            .ToString();
+        fileWrapper.Received(1).AppendAllText(
+             Path.Combine(outputDir, FileConstants.TelemetryFileName), contents);
+    }
+
+    [TestMethod]
+    public void ConsoleLogger_WriteTelemetryMessages_IOException_DoesNotThrow()
+    {
+        var recorder = new OutputRecorder();
+        var telemetryJson = Path.Combine("outputDir", FileConstants.TelemetryFileName);
+        fileWrapper.When(x => x.AppendAllText(telemetryJson, Arg.Any<string>())).Do(_ => throw new DirectoryNotFoundException($"Could not find a part of the path '{telemetryJson}'."));
+        var logger = ConsoleLogger.CreateLoggerForTesting(true, recorder, fileWrapper);
+        logger.WriteTelemetry("outputDir");
+
+        fileWrapper.Received(1).AppendAllText(telemetryJson, Arg.Any<string>());
+        recorder.AssertExpectedLastOutput($"{@"\d{2}:\d{2}:\d{2}(.\d{1,3})?"}  WARNING: Could not write Telemetry.S4NET.json in outputDir", ConsoleColor.Yellow, false);
+    }
+
+    [TestMethod]
+    public void ConsoleLogger_WriteTelemetryMessages_NotSupportedValueThrows()
+    {
+        var logger = new ConsoleLogger(false, fileWrapper);
+        logger.AddTelemetryMessage("key1", new Dictionary<string, string> {{ "key2",  "value" }});
+        const string outputDir = "outputDir";
+        logger.Invoking(x => x.WriteTelemetry(outputDir))
+            .Should()
+            .ThrowExactly<NotSupportedException>()
+            .WithMessage("Unsupported telemetry message value type: System.Collections.Generic.Dictionary`2[System.String,System.String]");
     }
 }
