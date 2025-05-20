@@ -42,6 +42,9 @@ public class FileWrapper : IFileWrapper
     public void WriteAllText(string path, string contents) =>
         File.WriteAllText(path, contents);
 
+    public void AppendAllText(string path, string contents) =>
+        File.AppendAllText(path, contents);
+
     public Stream Open(string path) =>
         File.OpenRead(path);
 

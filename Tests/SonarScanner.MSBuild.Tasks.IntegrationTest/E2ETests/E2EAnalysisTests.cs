@@ -496,7 +496,6 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.AnalysisSettings.Single(x => PropertiesFileGenerator.IsReportFilePaths(x.Id)).Value.Should().Be(customErrorLog);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_BareProject_FilesToAnalyze()
     {

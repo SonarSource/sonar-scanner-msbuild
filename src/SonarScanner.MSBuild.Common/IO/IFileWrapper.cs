@@ -28,6 +28,8 @@ public interface IFileWrapper
 
     void WriteAllText(string path, string contents);
 
+    void AppendAllText(string path, string contents);
+
     void Copy(string sourceFileName, string destFileName, bool overwrite);
 
     Stream Open(string path);

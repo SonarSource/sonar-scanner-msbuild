@@ -34,16 +34,18 @@ public static class BuildRunner
         var exePath = MSBuildLocator.GetMSBuildPath(testContext);
         exePath.Should().NotBeNull("Test setup failure - failed to locate MSBuild.exe");
         File.Exists(exePath).Should().BeTrue($"expecting the returned msbuild.exe file to exist. File path: {exePath}");
-        Path.GetFileName(exePath).Should().Be("msbuild.exe");
+        var executable = Path.GetFileName(exePath);
+        executable.Should().MatchRegex(@"(msbuild\.exe|dotnet)");
 
         // We generate binary log because the build is being run in a separate process so we can't directly capture the property values or which tasks/targets were executed.
         var projectDir = Path.GetDirectoryName(projectFile);
         var binaryLogPath = Path.Combine(projectDir, "build.binlog");
-        var msbuildArgs = new List<string>
-        {
+        List<string> msbuildArgs =
+        [
+            .. executable == "dotnet" ? (string[])["msbuild"] : [],
             projectFile,
             "/bl:" + binaryLogPath
-        };
+        ];
         Console.WriteLine("Project Directory: " + projectDir);
 
         // Specify the targets to be executed, if any
