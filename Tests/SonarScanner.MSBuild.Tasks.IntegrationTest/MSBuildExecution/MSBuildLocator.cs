@@ -60,7 +60,7 @@ internal static class MSBuildLocator
         testContext.WriteLine($"Test setup: attempting to locate an MSBuild instance. Version: {msBuildMajorVersion}");
         if (OperatingSystemProvider.IsUnix())
         {
-            testContext.WriteLine("OS is Linux: Locating 'dotnet msbuild'.");
+            testContext.WriteLine("OS is *nix: Locating 'dotnet msbuild'.");
             // https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-environment-variables#net-sdk-and-cli-environment-variables
             string[] knownLocations = [
                 @"/usr/local/share/dotnet/dotnet",
