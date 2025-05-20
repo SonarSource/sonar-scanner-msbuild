@@ -39,7 +39,7 @@ public static class BuildRunner
 
         // We generate binary log because the build is being run in a separate process so we can't directly capture the property values or which tasks/targets were executed.
         var projectDir = Path.GetDirectoryName(projectFile);
-        var binaryLogPath = Path.Combine(projectDir, "build.binlog");
+        var binaryLogPath = Path.Combine(projectDir, Path.ChangeExtension(Path.GetRandomFileName(), ".binlog"));
         List<string> msbuildArgs =
         [
             .. executable == "dotnet" ? (string[])["msbuild"] : [],
