@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Security.Cryptography;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -112,16 +105,32 @@ public class AggregatePropertiesProviderTests
         _ = CmdLineArgPropertyProvider.TryCreateProvider(args, new TestLogger(), out var commandLineProvider);
 
         var aggProvider = new AggregatePropertiesProvider(commandLineProvider, listPropertiesProvider);
-        var expected = new Dictionary<string, PropertyProviderKind>
-        {
-            { "key.B", PropertyProviderKind.SQ_SERVER_SETTINGS },
-            { "p1.unique.key.1", PropertyProviderKind.SQ_SERVER_SETTINGS },
-            { "shared.key.A", PropertyProviderKind.CLI },
-            { "p2.unique.key.1", PropertyProviderKind.CLI },
-        };
-
         aggProvider.AssertExpectedPropertyCount(4);
-        aggProvider.GetAllPropertiesWithProvider().ToDictionary(x => x.Key.Id, x => x.Value.ProviderType).Should().BeEquivalentTo(expected);
+        aggProvider.GetAllPropertiesWithProvider().Should().SatisfyRespectively(
+            x0 =>
+            {
+                x0.Key.Id.Should().Be("shared.key.A");
+                x0.Key.Value.Should().Be("value A from one");
+                x0.Value.ProviderType.Should().Be(PropertyProviderKind.CLI);
+            },
+            x1 =>
+            {
+                x1.Key.Id.Should().Be("p2.unique.key.1");
+                x1.Key.Value.Should().Be("p2 unique value 1");
+                x1.Value.ProviderType.Should().Be(PropertyProviderKind.CLI);
+            },
+            x2 =>
+            {
+                x2.Key.Id.Should().Be("key.B");
+                x2.Key.Value.Should().Be("value B from one");
+                x2.Value.ProviderType.Should().Be(PropertyProviderKind.SQ_SERVER_SETTINGS);
+            },
+            x3 =>
+            {
+                x3.Key.Id.Should().Be("p1.unique.key.1");
+                x3.Key.Value.Should().Be("p1 unique value 1");
+                x3.Value.ProviderType.Should().Be(PropertyProviderKind.SQ_SERVER_SETTINGS);
+            });
     }
 
     #endregion Tests

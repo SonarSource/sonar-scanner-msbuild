@@ -54,7 +54,7 @@ public class AggregatePropertiesProvider : IAnalysisPropertyProvider
         {
             var match = TryGetProperty(key, out var property, out var provider);
             Debug.Assert(match, "Expecting to find value for all keys. Key: " + key);
-            allProperties.Add(new KeyValuePair<Property, IAnalysisPropertyProvider>(property, provider));
+            allProperties.Add(new(property, provider));
         }
 
         return allProperties;
