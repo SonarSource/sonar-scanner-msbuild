@@ -104,7 +104,7 @@
   <PropertyGroup Condition=" $(SonarQubeTempPath) != '' ">
     <SonarQubeConfigPath Condition=" $(SonarQubeConfigPath) == '' ">$(SonarQubeTempPath)\conf</SonarQubeConfigPath>
     <SonarQubeOutputPath Condition=" $(SonarQubeOutputPath) == '' ">$(SonarQubeTempPath)\out</SonarQubeOutputPath>
-    <SonarTelemetryFilePath>$(SonarQubeOutputPath)</SonarTelemetryFilePath>
+    <SonarTelemetryFilePath>$(SonarQubeOutputPath)\Telemetry.S4NET.json</SonarTelemetryFilePath>
 
     <!-- Specify the ItemGroups to be analyzed -->
     <SQAnalysisFileItemTypes Condition=" $(SQAnalysisFileItemTypes) == '' ">AndroidEnvironment;AndroidJavaSource;AndroidResource;ApplicationDefinition;Build;ClCompile;ClInclude;Compile;Content;DeploymentExtensionConfiguration;EmbeddedResource;EntityDeploy;None;Page;PostDeploy;PRIResource;PreDeploy;RefactorLog;Resource;Script;ScriptCode;TypeScriptCompile;$(SQAdditionalAnalysisFileItemTypes)</SQAnalysisFileItemTypes>
@@ -324,9 +324,10 @@
     <!-- Create .sonarqube/conf/ sub-folder with the same unique name -->
     <PropertyGroup>
       <ProjectSpecificConfDir>$(SonarQubeConfigPath)\$(UniqueName)</ProjectSpecificConfDir>
-      <SonarProjectTelemetryFilePath>$(ProjectSpecificOutDir)</SonarProjectTelemetryFilePath>
+      <SonarProjectTelemetryFilePath>$(ProjectSpecificOutDir)\Telemetry.json</SonarProjectTelemetryFilePath>
     </PropertyGroup>
     <MakeDir Directories="$(ProjectSpecificConfDir)" />
+    <MakeDir Directories="$(ProjectSpecificOutDir)" />
   </Target>
 
   <!-- SonarWriteProjectData has to be invoked after the Build target, so it can pick up the results for C++ projects.  -->
