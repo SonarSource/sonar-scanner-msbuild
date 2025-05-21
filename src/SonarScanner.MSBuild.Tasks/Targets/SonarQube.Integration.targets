@@ -324,7 +324,7 @@
     <!-- Create .sonarqube/conf/ sub-folder with the same unique name -->
     <PropertyGroup>
       <ProjectSpecificConfDir>$(SonarQubeConfigPath)\$(UniqueName)</ProjectSpecificConfDir>
-      <SonarTelemetryFilePath>$(ProjectSpecificOutDir)</SonarTelemetryFilePath>
+      <SonarProjectTelemetryFilePath>$(ProjectSpecificOutDir)</SonarProjectTelemetryFilePath>
     </PropertyGroup>
     <MakeDir Directories="$(ProjectSpecificConfDir)" />
   </Target>
