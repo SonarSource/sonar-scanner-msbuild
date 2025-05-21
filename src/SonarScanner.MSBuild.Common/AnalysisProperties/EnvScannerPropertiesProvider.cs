@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Common;
@@ -33,9 +30,16 @@ public class EnvScannerPropertiesProvider : IAnalysisPropertyProvider
     public static readonly string ENV_VAR_KEY = "SONARQUBE_SCANNER_PARAMS";
     private readonly IEnumerable<Property> properties;
 
+    public PropertyProviderKind ProviderType => PropertyProviderKind.SONARQUBE_SCANNER_PARAMS;
+
+    public EnvScannerPropertiesProvider(string json)
+    {
+        properties = (json is null) ? [] : ParseVar(json);
+    }
+
     public static bool TryCreateProvider(ILogger logger, out IAnalysisPropertyProvider provider)
     {
-        if (logger == null)
+        if (logger is null)
         {
             throw new ArgumentNullException(nameof(logger));
         }
@@ -53,25 +57,13 @@ public class EnvScannerPropertiesProvider : IAnalysisPropertyProvider
         return false;
     }
 
-    public EnvScannerPropertiesProvider(string json)
-    {
-        properties = (json == null) ? new List<Property>() : ParseVar(json);
-    }
+    public IEnumerable<Property> GetAllProperties() => properties;
 
-    public IEnumerable<Property> GetAllProperties()
-    {
-        return properties;
-    }
+    public bool TryGetProperty(string key, out Property property) =>
+        Property.TryGetProperty(key, properties, out property);
 
-    public bool TryGetProperty(string key, out Property property)
-    {
-        return Property.TryGetProperty(key, properties, out property);
-    }
-
-    private IEnumerable<Property> ParseVar(string json)
-    {
-        return JObject.Parse(json)
+    private static IEnumerable<Property> ParseVar(string json) =>
+        JObject.Parse(json)
             .Properties()
-            .Select(p => new Property(p.Name, p.Value.ToString()));
-    }
+            .Select(x => new Property(x.Name, x.Value.ToString()));
 }

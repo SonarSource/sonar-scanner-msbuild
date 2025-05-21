@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -29,6 +26,8 @@ namespace SonarScanner.MSBuild.Common;
 /// <remarks>The properties could come from different sources e.g. a file, command line arguments, the SonarQube server</remarks>
 public interface IAnalysisPropertyProvider
 {
+    PropertyProviderKind ProviderType { get; }
+
     IEnumerable<Property> GetAllProperties();
 
     bool TryGetProperty(string key, out Property property);
@@ -38,7 +37,7 @@ public static class AnalysisPropertyProviderExtensions
 {
     public static bool TryGetValue(this IAnalysisPropertyProvider provider, string name, out string value)
     {
-        if (provider == null)
+        if (provider is null)
         {
             throw new ArgumentNullException(nameof(provider));
         }
@@ -61,7 +60,7 @@ public static class AnalysisPropertyProviderExtensions
 
     public static bool HasProperty(this IAnalysisPropertyProvider provider, string key)
     {
-        if (provider == null)
+        if (provider is null)
         {
             throw new ArgumentNullException(nameof(provider));
         }

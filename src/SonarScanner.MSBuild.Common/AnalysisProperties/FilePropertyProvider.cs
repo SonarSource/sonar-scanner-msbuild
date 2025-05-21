@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using SonarScanner.MSBuild.Common.CommandLine;
 
 namespace SonarScanner.MSBuild.Common;
@@ -31,13 +27,18 @@ namespace SonarScanner.MSBuild.Common;
 /// </summary>
 public class FilePropertyProvider : IAnalysisPropertyProvider
 {
-    private const string DescriptorId = "properties.file.argument";
     public const string DefaultFileName = "SonarQube.Analysis.xml";
     public const string Prefix = "/s:";
     public const string DescriptorPrefix = "s:";
+    private const string DescriptorId = "properties.file.argument";
 
-    public static readonly ArgumentDescriptor Descriptor = new ArgumentDescriptor(DescriptorId, CommandLineFlagPrefix.GetPrefixedFlags(DescriptorPrefix),
+    public static readonly ArgumentDescriptor Descriptor = new(DescriptorId, CommandLineFlagPrefix.GetPrefixedFlags(DescriptorPrefix),
         false, Resources.CmdLine_ArgDescription_PropertiesFilePath, false);
+
+    public AnalysisProperties PropertiesFile { get; }
+    public bool IsDefaultSettingsFile => IsDefaultPropertiesFile;
+    public bool IsDefaultPropertiesFile { get; private set; }
+    public PropertyProviderKind ProviderType => PropertyProviderKind.SONARQUBE_ANALYSIS_XML;
 
     #region Public methods
 
@@ -48,10 +49,9 @@ public class FilePropertyProvider : IAnalysisPropertyProvider
     /// <param name="commandLineArguments">List of command line arguments (optional)</param>
     /// <returns>False if errors occurred when constructing the provider, otherwise true</returns>
     /// <remarks>If a properties file could not be located then an empty provider will be returned</remarks>
-    public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, string defaultPropertiesFileDirectory,
-        ILogger logger, out IAnalysisPropertyProvider provider)
+    public static bool TryCreateProvider(IEnumerable<ArgumentInstance> commandLineArguments, string defaultPropertiesFileDirectory, ILogger logger, out IAnalysisPropertyProvider provider)
     {
-        if (commandLineArguments == null)
+        if (commandLineArguments is null)
         {
             throw new ArgumentNullException(nameof(commandLineArguments));
         }
@@ -59,7 +59,7 @@ public class FilePropertyProvider : IAnalysisPropertyProvider
         {
             throw new ArgumentNullException(nameof(defaultPropertiesFileDirectory));
         }
-        if (logger == null)
+        if (logger is null)
         {
             throw new ArgumentNullException(nameof(logger));
         }
@@ -72,7 +72,7 @@ public class FilePropertyProvider : IAnalysisPropertyProvider
         if (ResolveFilePath(propertiesFilePath, defaultPropertiesFileDirectory, logger,
             out var locatedPropertiesFile))
         {
-            if (locatedPropertiesFile == null)
+            if (locatedPropertiesFile is null)
             {
                 provider = EmptyPropertyProvider.Instance;
             }
@@ -103,25 +103,15 @@ public class FilePropertyProvider : IAnalysisPropertyProvider
         return provider;
     }
 
-    public AnalysisProperties PropertiesFile { get; }
-
-    public bool IsDefaultSettingsFile { get { return IsDefaultPropertiesFile; } }
-
-    public bool IsDefaultPropertiesFile { get; private set; }
-
     #endregion Public methods
 
     #region IAnalysisPropertyProvider methods
 
-    public IEnumerable<Property> GetAllProperties()
-    {
-        return PropertiesFile ?? Enumerable.Empty<Property>();
-    }
+    public IEnumerable<Property> GetAllProperties() =>
+        PropertiesFile ?? Enumerable.Empty<Property>();
 
-    public bool TryGetProperty(string key, out Property property)
-    {
-        return Property.TryGetProperty(key, PropertiesFile, out property);
-    }
+    public bool TryGetProperty(string key, out Property property) =>
+        Property.TryGetProperty(key, PropertiesFile, out property);
 
     #endregion IAnalysisPropertyProvider methods
 
@@ -137,15 +127,14 @@ public class FilePropertyProvider : IAnalysisPropertyProvider
     /// Attempt to find a properties file - either the one specified by the user, or the default properties file.
     /// Returns true if the path to a file could be resolved, otherwise false.
     /// </summary>
-    private static bool ResolveFilePath(string propertiesFilePath, string defaultPropertiesFileDirectory, ILogger logger,
-        out AnalysisProperties properties)
+    private static bool ResolveFilePath(string propertiesFilePath, string defaultPropertiesFileDirectory, ILogger logger, out AnalysisProperties properties)
     {
         properties = null;
         var isValid = true;
 
         var resolvedPath = propertiesFilePath ?? TryGetDefaultPropertiesFilePath(defaultPropertiesFileDirectory, logger);
 
-        if (resolvedPath != null)
+        if (resolvedPath is not null)
         {
             // The File APIs below will automatically work with relative paths, but we resolve
             // the path anyway because we want to show better error messages, containing the

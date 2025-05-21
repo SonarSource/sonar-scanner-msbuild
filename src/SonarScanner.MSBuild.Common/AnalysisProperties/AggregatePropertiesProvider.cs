@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -32,45 +27,52 @@ namespace SonarScanner.MSBuild.Common;
 public class AggregatePropertiesProvider : IAnalysisPropertyProvider
 {
     /// <summary>
-    /// Ordered list of child providers
+    /// Ordered list of child providers.
     /// </summary>
     private readonly IAnalysisPropertyProvider[] providers;
 
+    public PropertyProviderKind ProviderType => PropertyProviderKind.UNKNOWN;
+
     #region Public methods
 
-    public AggregatePropertiesProvider(params IAnalysisPropertyProvider[] providers)
-    {
+    public AggregatePropertiesProvider(params IAnalysisPropertyProvider[] providers) =>
         this.providers = providers ?? throw new ArgumentNullException(nameof(providers));
-    }
 
     #endregion Public methods
 
     #region IAnalysisPropertyProvider interface
 
-    public IEnumerable<Property> GetAllProperties()
-    {
-        var allKeys = new HashSet<string>(providers.SelectMany(p => p.GetAllProperties().Select(s => s.Id)));
+    public IEnumerable<Property> GetAllProperties() =>
+        GetAllPropertiesWithProvider().Select(x => x.Key);
 
-        IList<Property> allProperties = new List<Property>();
+    public IEnumerable<KeyValuePair<Property, IAnalysisPropertyProvider>> GetAllPropertiesWithProvider()
+    {
+        var allKeys = new HashSet<string>(providers.SelectMany(x => x.GetAllProperties().Select(x => x.Id)));
+
+        IList<KeyValuePair<Property, IAnalysisPropertyProvider>> allProperties = [];
         foreach (var key in allKeys)
         {
-            var match = TryGetProperty(key, out var property);
-
+            var match = TryGetProperty(key, out var property, out var provider);
             Debug.Assert(match, "Expecting to find value for all keys. Key: " + key);
-            allProperties.Add(property);
+            allProperties.Add(new(property, provider));
         }
 
         return allProperties;
     }
 
-    public bool TryGetProperty(string key, out Property property)
+    public bool TryGetProperty(string key, out Property property) =>
+        TryGetProperty(key, out property, out _);
+
+    public bool TryGetProperty(string key, out Property property, out IAnalysisPropertyProvider provider)
     {
         property = null;
+        provider = null;
 
         foreach (var current in providers)
         {
             if (current.TryGetProperty(key, out property))
             {
+                provider = current;
                 return true;
             }
         }

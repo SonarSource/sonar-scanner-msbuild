@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -40,7 +35,7 @@ public class AggregatePropertiesProviderTests
         act.Should().ThrowExactly<ArgumentNullException>();
 
         // 2. Empty list of providers -> valid but returns nothing
-        var provider = new AggregatePropertiesProvider(new IAnalysisPropertyProvider[] { });
+        var provider = new AggregatePropertiesProvider([]);
 
         provider.GetAllProperties().Should().BeEmpty();
         var success = provider.TryGetProperty("any key", out var actualProperty);
@@ -92,6 +87,50 @@ public class AggregatePropertiesProviderTests
         aggProvider.AssertExpectedPropertyValue("p1.unique.key.1", "p1 unique value 1");
         aggProvider.AssertExpectedPropertyValue("p2.unique.key.1", "p2 unique value 1");
         aggProvider.AssertExpectedPropertyValue("p3.unique.key.1", "p3 unique value 1");
+    }
+
+    [TestMethod]
+    public void AggProperties_GetAllPropertiesPerProvider()
+    {
+        var listPropertiesProvider = new ListPropertiesProvider(PropertyProviderKind.SQ_SERVER_SETTINGS);
+        listPropertiesProvider.AddProperty("shared.key.A", "value A from one");
+        listPropertiesProvider.AddProperty("key.B", "value B from one");
+        listPropertiesProvider.AddProperty("p1.unique.key.1", "p1 unique value 1");
+
+        var args = new List<ArgumentInstance>
+        {
+            new(CmdLineArgPropertyProvider.Descriptor, "shared.key.A=value A from one"),
+            new(CmdLineArgPropertyProvider.Descriptor, "p2.unique.key.1=p2 unique value 1")
+        };
+        _ = CmdLineArgPropertyProvider.TryCreateProvider(args, new TestLogger(), out var commandLineProvider);
+
+        var aggProvider = new AggregatePropertiesProvider(commandLineProvider, listPropertiesProvider);
+        aggProvider.AssertExpectedPropertyCount(4);
+        aggProvider.GetAllPropertiesWithProvider().Should().SatisfyRespectively(
+            x =>
+            {
+                x.Key.Id.Should().Be("shared.key.A");
+                x.Key.Value.Should().Be("value A from one");
+                x.Value.ProviderType.Should().Be(PropertyProviderKind.CLI);
+            },
+            x =>
+            {
+                x.Key.Id.Should().Be("p2.unique.key.1");
+                x.Key.Value.Should().Be("p2 unique value 1");
+                x.Value.ProviderType.Should().Be(PropertyProviderKind.CLI);
+            },
+            x =>
+            {
+                x.Key.Id.Should().Be("key.B");
+                x.Key.Value.Should().Be("value B from one");
+                x.Value.ProviderType.Should().Be(PropertyProviderKind.SQ_SERVER_SETTINGS);
+            },
+            x =>
+            {
+                x.Key.Id.Should().Be("p1.unique.key.1");
+                x.Key.Value.Should().Be("p1 unique value 1");
+                x.Value.ProviderType.Should().Be(PropertyProviderKind.SQ_SERVER_SETTINGS);
+            });
     }
 
     #endregion Tests

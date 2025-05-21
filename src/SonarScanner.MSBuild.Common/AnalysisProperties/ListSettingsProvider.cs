@@ -30,27 +30,30 @@ public class ListPropertiesProvider : IAnalysisPropertyProvider
 {
     private readonly IList<Property> properties;
 
+    public PropertyProviderKind ProviderType { get; }
+
     #region Public methods
 
-    public ListPropertiesProvider()
+    public ListPropertiesProvider(PropertyProviderKind propertyProvider = PropertyProviderKind.UNKNOWN)
     {
-        properties = new List<Property>();
+        properties = [];
+        ProviderType = propertyProvider;
     }
 
     public ListPropertiesProvider(IEnumerable<Property> properties)
     {
-        if (properties == null)
+        if (properties is null)
         {
             throw new ArgumentNullException(nameof(properties));
         }
 
-        this.properties = new List<Property>(properties);
+        this.properties = [.. properties];
     }
 
-    public ListPropertiesProvider(IDictionary<string, string> keyValuePairs)
-        : this()
+    public ListPropertiesProvider(IDictionary<string, string> keyValuePairs, PropertyProviderKind propertyProvider = PropertyProviderKind.UNKNOWN)
+        : this(propertyProvider)
     {
-        if (keyValuePairs == null)
+        if (keyValuePairs is null)
         {
             throw new ArgumentNullException(nameof(keyValuePairs));
         }
@@ -82,20 +85,12 @@ public class ListPropertiesProvider : IAnalysisPropertyProvider
 
     #region IAnalysisProperiesProvider interface
 
-    public IEnumerable<Property> GetAllProperties()
-    {
-        return properties;
-    }
+    public IEnumerable<Property> GetAllProperties() => properties;
 
-    public bool TryGetProperty(string key, out Property property)
-    {
-        if (string.IsNullOrWhiteSpace(key))
-        {
-            throw new ArgumentNullException(nameof(key));
-        }
-
-        return Property.TryGetProperty(key, properties, out property);
-    }
+    public bool TryGetProperty(string key, out Property property) =>
+        string.IsNullOrWhiteSpace(key)
+            ? throw new ArgumentNullException(nameof(key))
+            : Property.TryGetProperty(key, properties, out property);
 
     #endregion IAnalysisProperiesProvider interface
 }

@@ -18,27 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common;
+namespace SonarScanner.MSBuild.Common.Test;
 
-public class EmptyPropertyProvider : IAnalysisPropertyProvider
+[TestClass]
+public class EmptyPropertyProviderTest
 {
-    public static readonly IAnalysisPropertyProvider Instance = new EmptyPropertyProvider();
-
-    public PropertyProviderKind ProviderType => PropertyProviderKind.UNKNOWN;
-
-    private EmptyPropertyProvider()
-    {
-    }
-
-    #region IAnalysisPropertyProvider interface
-
-    public IEnumerable<Property> GetAllProperties() => [];
-
-    public bool TryGetProperty(string key, out Property property)
-    {
-        property = null;
-        return false;
-    }
-
-    #endregion IAnalysisPropertyProvider interface
+    [TestMethod]
+    public void EmptyPropertyProvider_HasCorrectProviderType() =>
+        EmptyPropertyProvider.Instance.ProviderType.Should().Be(PropertyProviderKind.UNKNOWN);
 }
