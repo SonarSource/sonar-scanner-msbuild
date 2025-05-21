@@ -170,7 +170,6 @@ public class ProcessedArgs
         AggregateProperties.TryGetValue(SonarProperties.Region, out var region);
         AggregateProperties.TryGetValue(SonarProperties.ApiBaseUrl, out var apiBaseUrl);
 
-
         ServerInfo = HostInfo.FromProperties(logger, sonarHostUrl, sonarcloudUrl, apiBaseUrl, region);
         IsValid &= ServerInfo is not null;
 
