@@ -26,13 +26,10 @@ public static class TelemetryUtils
 
     public static void AddTelemetry(ILogger logger, AggregatePropertiesProvider aggregatedProperties)
     {
-        foreach (var propertyId in telemetryProperties)
+        foreach (var propertyWithProvider in aggregatedProperties.GetAllPropertiesWithProvider().Where(x => !x.Key.ContainsSensitiveData() && telemetryProperties.Contains(x.Key.Id)))
         {
-            if (aggregatedProperties.GetAllPropertiesWithProvider().FirstOrDefault(x => x.Key.Id.Equals(propertyId)) is { Key: { }, Value: { } } propertyWithProvider)
-            {
-                logger.AddTelemetryMessage($"dotnetenterprise.s4net.params.{ToTelemetryId(propertyId)}.value", propertyWithProvider.Key.Value);
-                logger.AddTelemetryMessage($"dotnetenterprise.s4net.params.{ToTelemetryId(propertyId)}.source", propertyWithProvider.Value.ProviderType.ToString());
-            }
+            logger.AddTelemetryMessage($"dotnetenterprise.s4net.params.{ToTelemetryId(propertyWithProvider.Key.Id)}.value", propertyWithProvider.Key.Value);
+            logger.AddTelemetryMessage($"dotnetenterprise.s4net.params.{ToTelemetryId(propertyWithProvider.Key.Id)}.source", propertyWithProvider.Value.ProviderType.ToString());
         }
     }
 

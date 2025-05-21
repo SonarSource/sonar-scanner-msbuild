@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute;
+
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 public partial class PreProcessorTests
@@ -29,16 +31,9 @@ public partial class PreProcessorTests
         {
             "/d:sonar.scanner.scanAll=false"
         };
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
+        var settings = await SetUpTest(args);
 
-        var success = await preProcessor.Execute(args);
-
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-        Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
-        File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
+        TelemetryContent(settings)
             .Should()
             .BeEquivalentTo(Contents(
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.value":"false"}""",
@@ -53,16 +48,9 @@ public partial class PreProcessorTests
         {
             $"/s:{analysisXmlPath}"
         };
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
+        var settings = await SetUpTest(args);
 
-        var success = await preProcessor.Execute(args);
-
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-        Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
-        File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
+        TelemetryContent(settings)
             .Should()
             .BeEquivalentTo(Contents(
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.value":"false"}""",
@@ -72,17 +60,9 @@ public partial class PreProcessorTests
     [TestMethod]
     public async Task Execute_WritesTelemetry_SetViaEnvVariable()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var settings = factory.ReadSettings();
-        Environment.SetEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "false"}""");
-        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
+        var settings = await SetUpTest(environmentVariables: new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "false"}"""));
 
-        var success = await preProcessor.Execute(CreateArgs());
-
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-        Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
-        File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
+        TelemetryContent(settings)
             .Should()
             .BeEquivalentTo(Contents(
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.value":"false"}""",
@@ -92,21 +72,13 @@ public partial class PreProcessorTests
     [TestMethod]
     public async Task Execute_WritesTelemetry_SetViaMultipleSources_ProviderWithHighestPriorityIsWritten()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var settings = factory.ReadSettings();
-        Environment.SetEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "true"}""");
         var args = new List<string>(CreateArgs())
         {
             "/d:sonar.scanner.scanAll=false"
         };
-        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
+        var settings = await SetUpTest(args, new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "true"}"""));
 
-        var success = await preProcessor.Execute(args);
-
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-        Directory.GetFiles(settings.SonarOutputDirectory).Select(Path.GetFileName).Should().Contain(FileConstants.TelemetryFileName);
-        File.ReadAllText(Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName))
+        TelemetryContent(settings)
             .Should()
             .BeEquivalentTo(Contents(
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanAll.value":"false"}""",
@@ -145,5 +117,30 @@ public partial class PreProcessorTests
 
         File.WriteAllText(fullPath, content);
         return fullPath;
+    }
+
+    private async Task<BuildSettings> SetUpTest(IEnumerable<string> args = null, params KeyValuePair<string, string>[] environmentVariables)
+    {
+        using var scope = new TestScope(TestContext);
+        using var env = new EnvironmentVariableScope();
+        foreach (var envVariable in environmentVariables)
+        {
+            env.SetVariable(envVariable.Key, envVariable.Value);
+        }
+        var factory = new MockObjectFactory();
+        var settings = factory.ReadSettings();
+        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
+
+        var success = await preProcessor.Execute(args ?? CreateArgs());
+
+        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        return settings;
+    }
+
+    private static string TelemetryContent(BuildSettings settings)
+    {
+        var expectedTelemetryLocation = Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName);
+        File.Exists(expectedTelemetryLocation).Should().BeTrue();
+        return File.ReadAllText(expectedTelemetryLocation);
     }
 }
