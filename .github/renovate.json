@@ -1,0 +1,43 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>SonarSource/renovate-config"
+  ],
+  "enabledManagers": [
+    "nuget",
+    "maven",
+    "github-actions"
+  ],
+  "nuget": {
+    "description": "ignorePaths in the root does not work due to higher-precedence built-in counter-intuitive nuget-specifc defaults",
+    "ignorePaths": [ "its/projects/**" ]
+  },
+  "minimumReleaseAge": "3 days",
+  "packageRules": [
+    {
+      "description": "Do not update SonarSource GH actions, we want the branch-version. Only external actions must have commit ID.",
+      "matchDepNames": [ "SonarSource/**" ],
+      "enabled": false
+    },
+    {
+      "description": "Group MSTest dependencies into a single PR",
+      "matchPackageNames": [ "MSTest.**", "Microsoft.NET.Test.Sdk" ],
+      "groupName": "MSTest"
+    },
+    {
+      "description": "Group Coverlet dependencies into a single PR",
+      "matchPackageNames": [ "coverlet.**" ],
+      "groupName": "MSTest"
+    },
+    {
+      "description": "Do not update Build dependency. It provides backward compatibility with MsBuild 14+",
+      "matchPackageNames": [ "Microsoft.Build**" ],
+      "enabled":  false
+    },
+    {
+      "description": "Do not update FluentAssertions above v7 due to license change",
+      "matchPackageNames": [ "FluentAssertions" ],
+      "allowedVersions": "<8.0.0"
+    }
+  ]
+}
