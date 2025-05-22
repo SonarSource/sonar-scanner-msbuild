@@ -327,7 +327,6 @@
       <SonarProjectTelemetryFilePath>$(ProjectSpecificOutDir)\Telemetry.json</SonarProjectTelemetryFilePath>
     </PropertyGroup>
     <MakeDir Directories="$(ProjectSpecificConfDir)" />
-    <MakeDir Directories="$(ProjectSpecificOutDir)" />
   </Target>
 
   <!-- SonarWriteProjectData has to be invoked after the Build target, so it can pick up the results for C++ projects.  -->
