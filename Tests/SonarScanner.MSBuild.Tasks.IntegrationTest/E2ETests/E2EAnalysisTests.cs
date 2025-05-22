@@ -829,6 +829,39 @@ public class E2EAnalysisTests
         AssertFilesExistsAndAreNotEmpty(protobufDir, protobufFileNames);
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestMethod]
+    public void E2E_AnalysisSettings_HasCorrectTelemetryPath()
+    {
+        // Arrange
+        var context = CreateContext();
+        var codeFilePath = context.CreateInputFile("codeFile1.txt");
+        var projectXml = $"""
+                          <ItemGroup>
+                            <Compile Include='{codeFilePath}' />
+                          </ItemGroup>
+                          """;
+        var projectFilePath = context.CreateProjectFile(projectXml);
+        var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+        var defaultProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
+
+        // Act
+        var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
+
+        // Assert
+        result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
+        result.AssertErrorCount(0);
+        result.AssertTargetOrdering(
+            TargetConstants.SonarCategoriseProject,
+            TargetConstants.SonarWriteFilesToAnalyze,
+            TargetConstants.DefaultBuild,
+            TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
+            TargetConstants.SonarWriteProjectData);
+
+        var projectInfo = ProjectInfo.Load(defaultProjectInfoPath);
+        projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Value.Should().Be(Path.Combine(rootOutputFolder, "0", "Telemetry.json"));
+    }
+
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
     {
         // Protobuf files containing metrics information should be created for test projects.
