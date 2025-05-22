@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using NSubstitute;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -453,7 +451,7 @@ public class ILoggerTests
     public void ConsoleLogger_WriteTelemetryMessages_NotSupportedValueThrows()
     {
         var logger = new ConsoleLogger(false, fileWrapper);
-        logger.AddTelemetryMessage("key1", new Dictionary<string, string> {{ "key2",  "value" }});
+        logger.AddTelemetryMessage("key1", new Dictionary<string, string> { { "key2", "value" } });
         const string outputDir = "outputDir";
         logger.Invoking(x => x.WriteTelemetry(outputDir))
             .Should()

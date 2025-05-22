@@ -18,14 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 namespace SonarScanner.MSBuild.PreProcessor;
@@ -128,6 +121,7 @@ public sealed class PreProcessor : IPreProcessor
         }
 
         logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
+        logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
         return true;
     }
 
