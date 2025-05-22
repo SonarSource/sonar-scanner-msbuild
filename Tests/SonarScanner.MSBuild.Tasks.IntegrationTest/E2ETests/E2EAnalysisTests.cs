@@ -859,7 +859,7 @@ public class E2EAnalysisTests
             TargetConstants.SonarWriteProjectData);
 
         var projectInfo = ProjectInfo.Load(defaultProjectInfoPath);
-        projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Value.Should().Be(Path.Combine(rootOutputFolder, "0", "Telemetry.json"));
+        projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Which.Value.Should().Be(Path.Combine(rootOutputFolder, "0", "Telemetry.json"));
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
