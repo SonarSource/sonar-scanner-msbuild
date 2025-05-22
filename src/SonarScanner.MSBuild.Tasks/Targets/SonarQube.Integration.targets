@@ -128,6 +128,7 @@
   <UsingTask TaskName="GetAnalyzerSettings" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="MakeUniqueDir" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="WriteZeroLengthFiles" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
+  <UsingTask TaskName="WriteTelemetry" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
   <!-- **************************************************************************** -->
@@ -167,6 +168,15 @@
       <SonarResolvedReferences Include="@(%(ReferencePathWithRefAssemblies.FusionName))" />
     </ItemGroup>
   </Target>
+
+  <Target Name="WriteSolutionTelemetry" Condition=" $(SonarQubeTempPath) != ''">
+    <WriteTelemetry Condition="$(VisualStudioVersion) != ''" Filename="$(SonarTelemetryFilePath)" Key="dotnetenterprise.s4net.params.visualstudioversion.value" Value="$(VisualStudioVersion)" />
+    <WriteTelemetry Condition="$(VisualStudioVersion) != ''" Filename="$(SonarTelemetryFilePath)" Key="dotnetenterprise.s4net.params.visualstudioversion.source" Value="targets" />
+
+    <WriteTelemetry Filename="$(SonarTelemetryFilePath)" Key="dotnetenterprise.s4net.params.msbuildtoolsversion.value" Value="$(MSBuildToolsVersion)" />
+    <WriteTelemetry Filename="$(SonarTelemetryFilePath)" Key="dotnetenterprise.s4net.params.msbuildtoolsversion.source" Value="targets" />
+  </Target>
+
 
   <!-- **************************************************************************** -->
   <!-- Categorize as a product or test project -->
@@ -393,6 +403,9 @@
        TargetFramework="$(TargetFramework)" />
 
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Project processed successfully" />
+
+    <WriteTelemetry Filename="$(SonarProjectTelemetryFilePath)" Key="dotnetenterprise.s4net.params.targetframework.value" Value="$(TargetFramework)" />
+    <WriteTelemetry Filename="$(SonarProjectTelemetryFilePath)" Key="dotnetenterprise.s4net.params.targetframework.source" Value="targets" />
   </Target>
 
   <!--
