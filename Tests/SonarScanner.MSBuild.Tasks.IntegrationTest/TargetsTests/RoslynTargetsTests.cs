@@ -696,7 +696,7 @@ public class RoslynTargetsTests
     {
         var matches = actualResult.GetItem(BuildTaskConstants.SettingItemName);
 
-        matches.Should().BeEmpty("Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurrences: {1}", settingName, matches.Count());
+        matches.Should().NotContain(x => x.Text.Equals(settingName), "Not expected SonarQubeSetting with include value of '{0}' to exist. Actual occurrences: {1}", settingName, matches.Count());
     }
 
     /// <summary>

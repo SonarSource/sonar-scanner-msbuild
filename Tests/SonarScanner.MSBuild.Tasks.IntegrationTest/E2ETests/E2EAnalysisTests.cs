@@ -200,7 +200,7 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.GetProjectGuidAsString().Should().Be("4077C120-AF29-422F-8360-8D7192FA03F3");
 
         AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName, ExpectedProjectConfigFileName, ExpectedProjectOutFolderFileName);
-        AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName);
+        AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName, FileConstants.TelemetryProjectFileName);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -860,8 +860,38 @@ public class E2EAnalysisTests
 
         var projectInfo = ProjectInfo.Load(defaultProjectInfoPath);
         // this assertion will fail once the path for sonar.cs.scanner.telemetry" has a file with contents. Once it fails the assertion should be replaced with
-        // projectInfo.AnalysisSettings.Should().NotContain.ContainSingle(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Which.Value.Should().Be(Path.Combine(rootOutputFolder, "0", "Telemetry.json"));
-        projectInfo.AnalysisSettings.Should().NotContain(x => x.Id.Equals("sonar.cs.scanner.telemetry"));
+        projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Which.Value.Should().Be(Path.Combine(rootOutputFolder, "0", "Telemetry.json"));
+    }
+
+    [TestMethod]
+    public void E2E_TelemetryFiles_AllWritten()
+    {
+        var context = CreateContext();
+        var codeFilePath = context.CreateInputFile("codeFile1.cs");
+        var projectXml = $"""
+                          <ItemGroup>
+                            <Compile Include='{codeFilePath}' />
+                          </ItemGroup>
+                          """;
+        var projectFilePath = context.CreateProjectFile(projectXml);
+        var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+
+        // Act
+        var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
+
+        // Assert
+        result.BuildSucceeded.Should().BeTrue();
+
+        result.AssertTargetOrdering(
+            TargetConstants.SonarCategoriseProject,
+            TargetConstants.SonarWriteFilesToAnalyze,
+            TargetConstants.CoreCompile,
+            TargetConstants.DefaultBuild,
+            TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
+            TargetConstants.SonarWriteProjectData);
+
+        File.Exists(Path.Combine(rootOutputFolder, "0", "Telemetry.json")).Should().BeTrue();
+        File.Exists(Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json")).Should().BeTrue();
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
@@ -917,7 +947,7 @@ public class E2EAnalysisTests
 
         AssertNoAdditionalFilesInFolder(
             actualStructure.ProjectSpecificOutputDir,
-            protobufFileNames.Concat([ExpectedAnalysisFilesListFileName, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName]).ToArray());
+            protobufFileNames.Concat([ExpectedAnalysisFilesListFileName, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName, FileConstants.TelemetryProjectFileName]).ToArray());
         return result;
     }
 
@@ -1066,7 +1096,7 @@ public class E2EAnalysisTests
             // We've only built one project, so we only expect one directory under the root
             Directory.EnumerateDirectories(rootFolder).Should().ContainSingle($"Only expecting one child directory to exist under the root analysis {logType} folder");
 
-            var fileCount = Directory.GetFiles(rootFolder, "*.*", SearchOption.TopDirectoryOnly).Count();
+            var fileCount = Directory.GetFiles(rootFolder, "*.*", SearchOption.TopDirectoryOnly).Count(x => !x.Contains("Telemetry.Targets.S4NET.json"));
             fileCount.Should().Be(0, $"Not expecting the top-level {logType} folder to contain any files");
 
             var projectSpecificPath = Directory.EnumerateDirectories(rootFolder).Single();
