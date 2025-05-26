@@ -24,7 +24,7 @@ using Microsoft.Build.Utilities;
 
 namespace SonarScanner.MSBuild.Tasks;
 
-public sealed class WriteTelemetry : Task
+public sealed class WriteSonarTelemetry : Task
 {
     private readonly IFileWrapper fileWrapper;
 
@@ -37,9 +37,9 @@ public sealed class WriteTelemetry : Task
 
     public ITaskItem[] Telemetry { get; set; } = [];
 
-    public WriteTelemetry() : this(FileWrapper.Instance) { }
+    public WriteSonarTelemetry() : this(FileWrapper.Instance) { }
 
-    public WriteTelemetry(IFileWrapper instance) => fileWrapper = instance;
+    public WriteSonarTelemetry(IFileWrapper instance) => fileWrapper = instance;
 
     public override bool Execute()
     {

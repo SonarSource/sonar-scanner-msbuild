@@ -24,7 +24,7 @@ using NSubstitute;
 namespace SonarScanner.MSBuild.Tasks.UnitTest;
 
 [TestClass]
-public class WriteTelemetryTests
+public class WriteSonarTelemetryTests
 {
     public TestContext TestContext { get; set; }
 
@@ -32,7 +32,7 @@ public class WriteTelemetryTests
     public void AllTelemetryIsWrittenToFile()
     {
         var fileWrapper = Substitute.For<IFileWrapper>();
-        var sut = new WriteTelemetry(fileWrapper)
+        var sut = new WriteSonarTelemetry(fileWrapper)
         {
             Filename = new TaskItem("Dummy.json"),
             Key = "key1",
@@ -67,7 +67,7 @@ public class WriteTelemetryTests
     public void EmptyKeysAreIgnored()
     {
         var fileWrapper = Substitute.For<IFileWrapper>();
-        var sut = new WriteTelemetry(fileWrapper)
+        var sut = new WriteSonarTelemetry(fileWrapper)
         {
             Filename = new TaskItem("Dummy.json"),
             Key = null,
@@ -98,7 +98,7 @@ public class WriteTelemetryTests
         fileWrapper.When(x => x.AppendAllLines(dummyPath, Arg.Any<IEnumerable<string>>(), Arg.Any<Encoding>()))
             .Do(_ => throw new DirectoryNotFoundException($"Could not find a part of the path '{dummyPath}'"));
         var buildEngine = new DummyBuildEngine();
-        var sut = new WriteTelemetry(fileWrapper)
+        var sut = new WriteSonarTelemetry(fileWrapper)
         {
             BuildEngine = buildEngine,
             Filename = new TaskItem(dummyPath),
@@ -114,7 +114,7 @@ public class WriteTelemetryTests
     {
         var fileWrapper = Substitute.For<IFileWrapper>();
         var buildEngine = new DummyBuildEngine();
-        var sut = new WriteTelemetry(fileWrapper)
+        var sut = new WriteSonarTelemetry(fileWrapper)
         {
             BuildEngine = buildEngine,
             Filename = new TaskItem("Dummy.json"),

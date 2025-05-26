@@ -21,7 +21,7 @@
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 
 [TestClass]
-public class WriteTelemetryTaskTests
+public class WriteSonarTelemetryTaskTests
 {
     private const string TelemetryFileName = "Telemetry.json";
 
@@ -38,8 +38,8 @@ public class WriteTelemetryTaskTests
               <Telemetry Include="TestKey1" Value="SomeOtherMessage"/>
               <Telemetry Include="TestKey2" Value="SomeMessage"/>
             </ItemGroup>
-            <WriteTelemetry Filename="$(TelemetryFilename)" Key="Test1" Value="123" Telemetry="@(Telemetry)"/>
-            <WriteTelemetry Filename="$(TelemetryFilename)" Key="Test2" Value="456"/>
+            <WriteSonarTelemetry Filename="$(TelemetryFilename)" Key="Test1" Value="123" Telemetry="@(Telemetry)"/>
+            <WriteSonarTelemetry Filename="$(TelemetryFilename)" Key="Test2" Value="456"/>
             """, true);
         var telemetryFilename = result.GetPropertyValue("TelemetryFilename");
         result.BuildSucceeded.Should().BeTrue();
@@ -57,27 +57,27 @@ public class WriteTelemetryTaskTests
     public void WriteTelemetryFailsWithoutUndefinedFilename()
     {
         var result = ExecuteMsBuild("""
-            <WriteTelemetry Filename="$(Undefined)" Key="Test1" Value="123"/>
+            <WriteSonarTelemetry Filename="$(Undefined)" Key="Test1" Value="123"/>
             """, false);
         result.BuildSucceeded.Should().BeFalse();
-        result.Errors.Should().Contain("""The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
+        result.Errors.Should().Contain("""The "WriteSonarTelemetry" task was not given a value for the required parameter "Filename".""");
     }
 
     [TestMethod]
     public void WriteTelemetryFailsWithoutFilename()
     {
         var result = ExecuteMsBuild("""
-            <WriteTelemetry Key="Test1" Value="123"/>
+            <WriteSonarTelemetry Key="Test1" Value="123"/>
             """, false);
         result.BuildSucceeded.Should().BeFalse();
-        result.Errors.Should().Contain("""The "WriteTelemetry" task was not given a value for the required parameter "Filename".""");
+        result.Errors.Should().Contain("""The "WriteSonarTelemetry" task was not given a value for the required parameter "Filename".""");
     }
 
     [TestMethod]
     public void WriteTelemetryWarningIfTelemetryFileCanNotBeCreated()
     {
         var result = ExecuteMsBuild("""
-            <WriteTelemetry Filename="$(TelemetryDirectory)/SubDirectory/Telemetry.json" Key="Test1" Value="123"/>
+            <WriteSonarTelemetry Filename="$(TelemetryDirectory)/SubDirectory/Telemetry.json" Key="Test1" Value="123"/>
             """, true);
         result.BuildSucceeded.Should().BeTrue();
         var telemetryDirectory = result.GetPropertyValue("TelemetryDirectory");
@@ -93,8 +93,8 @@ public class WriteTelemetryTaskTests
         var projFileContent = $"""
             <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
               <UsingTask
-                  TaskName="{nameof(WriteTelemetry)}"
-                  AssemblyFile="{typeof(WriteTelemetry).Assembly.Location}">
+                  TaskName="{nameof(WriteSonarTelemetry)}"
+                  AssemblyFile="{typeof(WriteSonarTelemetry).Assembly.Location}">
               </UsingTask>
               <PropertyGroup>
                 <TelemetryDirectory>{telemetryDirectory}</TelemetryDirectory>
