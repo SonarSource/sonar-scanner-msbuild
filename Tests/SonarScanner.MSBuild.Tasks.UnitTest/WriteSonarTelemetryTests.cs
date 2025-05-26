@@ -44,7 +44,7 @@ public class WriteSonarTelemetryTests
                 TelemetryTaskItem("key3", "duplicate"),
                 TelemetryTaskItem("key4", """
                     Special value with
-                    NewLines
+                    NewLines and <html> tags </htnml>
                     """),
             ]
         };
@@ -58,7 +58,7 @@ public class WriteSonarTelemetryTests
                 """{"key2":"value2"}""",
                 """{"key3":"value3"}""",
                 """{"key3":"duplicate"}""",
-                """{"key4":"Special value with\r\nNewLines"}""",
+                """{"key4":"Special value with\r\nNewLines and <html> tags </htnml>"}""",
             })),
             Encoding.UTF8);
     }

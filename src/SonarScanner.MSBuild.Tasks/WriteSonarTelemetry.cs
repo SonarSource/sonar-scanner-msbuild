@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Text.Json.Nodes;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -48,10 +47,9 @@ public sealed class WriteSonarTelemetry : Task
             try
             {
                 fileWrapper.AppendAllLines(Filename.ItemSpec, allTelemetry.Select(static x =>
-                    new JsonObject
-                    {
-                        new KeyValuePair<string, JsonNode>(x.Key, JsonValue.Create(x.Value))
-                    }.ToJsonString()), Encoding.UTF8);
+                    $$"""
+                    {{{HttpUtility.JavaScriptStringEncode(x.Key, addDoubleQuotes: true)}}:{{HttpUtility.JavaScriptStringEncode(x.Value, addDoubleQuotes: true)}}}
+                    """), Encoding.UTF8);
             }
             catch (IOException ex)
             {
