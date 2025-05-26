@@ -27,7 +27,7 @@
     {
       "description": "Group Coverlet dependencies into a single PR",
       "matchPackageNames": [ "coverlet.**" ],
-      "groupName": "MSTest"
+      "groupName": "Coverlet"
     },
     {
       "description": "Do not update Build dependency. It provides backward compatibility with MsBuild 14+",
