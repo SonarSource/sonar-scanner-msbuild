@@ -57,7 +57,7 @@ public sealed class WriteSonarTelemetry : Task
                                    // * ex.HResult == 0x00000011 on Umbuntu. This corresponds EEXIST.
                                    // EEXIST is tpyically 0x00000011 but the concrete number is not defined by POSIX.
                                    // We do not want to depend on the concrete number returned by HResult as it seems not be very stable.
-                                   // We assume that the IOException is ERROR_FILE_EXISTS for the CreateNew case.
+                                   // We assume that the IOException is ERROR_FILE_EXISTS for the CreateNew case regardless the HResult.
             {
                 if (!CreateNew) // CreateNewAllLines throws if the file already exists. This is the desired behavior and we do not want to log that exception.
                 {
