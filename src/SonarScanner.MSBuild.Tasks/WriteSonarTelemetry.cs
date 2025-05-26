@@ -44,7 +44,7 @@ public sealed class WriteSonarTelemetry : Task
 
     public override bool Execute()
     {
-        if (AllTelemetry().Select(static x => 
+        if (AllTelemetry().Select(static x =>
             $$"""
             {{{HttpUtility.JavaScriptStringEncode(x.Key, addDoubleQuotes: true)}}:{{HttpUtility.JavaScriptStringEncode(x.Value, addDoubleQuotes: true)}}}
             """
