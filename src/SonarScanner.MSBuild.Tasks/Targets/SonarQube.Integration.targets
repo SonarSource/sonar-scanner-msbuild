@@ -363,7 +363,7 @@
       <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(SonarErrorLogExists) == 'true'">
         <Value>$(ProjectSpecificOutDir)</Value>
       </SonarQubeSetting>
-      <SonarQubeSetting Include="sonar.$(SQLanguage).scanner.telemetry" Condition= "$(SonarErrorLogExists) == 'true'">
+      <SonarQubeSetting Include="sonar.$(SQLanguage).scanner.telemetry" Condition="Exists($(SonarProjectTelemetryFilePath))">
         <Value>$(SonarProjectTelemetryFilePath)</Value>
       </SonarQubeSetting>
     </ItemGroup>

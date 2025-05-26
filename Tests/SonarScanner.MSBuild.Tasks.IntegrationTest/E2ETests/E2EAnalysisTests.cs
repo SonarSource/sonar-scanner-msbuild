@@ -859,7 +859,9 @@ public class E2EAnalysisTests
             TargetConstants.SonarWriteProjectData);
 
         var projectInfo = ProjectInfo.Load(defaultProjectInfoPath);
-        projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Which.Value.Should().Be(Path.Combine(rootOutputFolder, "0", "Telemetry.json"));
+        // this assertion will fail once the path for sonar.cs.scanner.telemetry" has a file with contents. Once it fails the assertion should be replaced with
+        // projectInfo.AnalysisSettings.Should().NotContain.ContainSingle(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Which.Value.Should().Be(Path.Combine(rootOutputFolder, "0", "Telemetry.json"));
+        projectInfo.AnalysisSettings.Should().NotContain(x => x.Id.Equals("sonar.cs.scanner.telemetry"));
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
