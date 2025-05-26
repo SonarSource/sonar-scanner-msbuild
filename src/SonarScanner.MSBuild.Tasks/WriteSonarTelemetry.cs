@@ -47,8 +47,7 @@ public sealed class WriteSonarTelemetry : Task
         if (AllTelemetry().Select(static x =>
             $$"""
             {{{HttpUtility.JavaScriptStringEncode(x.Key, addDoubleQuotes: true)}}:{{HttpUtility.JavaScriptStringEncode(x.Value, addDoubleQuotes: true)}}}
-            """
-        ).ToList() is { Count: > 0 } allTelemetry)
+            """).ToList() is { Count: > 0 } allTelemetry)
         {
             Action<string, IEnumerable<string>, Encoding> allLinesWriter = CreateNew ? fileWrapper.CreateNewAllLines : fileWrapper.AppendAllLines;
             try
