@@ -86,6 +86,32 @@ public class WriteSonarTelemetryTaskTests
             """);
     }
 
+    [TestMethod]
+    public void WriteTelemetryCreateNewWritesOnlyTheFirstEntry()
+    {
+        var result = ExecuteMsBuild("""
+            <ItemGroup>
+              <Telemetry Include="TestKey1" Value="SomeMessage"/>
+              <Telemetry Include="TestKey2" Value="SomeMessage"/>
+            </ItemGroup>
+            <WriteSonarTelemetry Filename="$(TelemetryFilename)" CreateNew="true" Telemetry="@(Telemetry)"/>
+            <WriteSonarTelemetry Filename="$(TelemetryFilename)" CreateNew="true" Telemetry="@(Telemetry)"/>            <!-- This is ignored, because the file already exists and CreateNew="true" -->
+            <WriteSonarTelemetry Filename="$(TelemetryFilename)" CreateNew="true" Key="IgnoredKey" Value="456"/>        <!-- This is ignored, because the file already exists and CreateNew="true" -->
+            <WriteSonarTelemetry Filename="$(TelemetryFilename)" CreateNew="false" Key="TestKey3" Value="SomeMessage"/> <!-- This is appended, because CreateNew="false" -->
+            <WriteSonarTelemetry Filename="$(TelemetryFilename)" Key="TestKey4" Value="SomeMessage"/>                   <!-- This is appended, because CreateNew defaults to "false" -->
+            """, true);
+        var telemetryFilename = result.GetPropertyValue("TelemetryFilename");
+        result.BuildSucceeded.Should().BeTrue();
+        File.Exists(telemetryFilename).Should().BeTrue();
+        File.ReadAllText(telemetryFilename).Should().Be(new StringBuilder() // NewLine is OS specific and raw string blocks always use the new line of this file.
+            .AppendLine("""{"TestKey1":"SomeMessage"}""")
+            .AppendLine("""{"TestKey2":"SomeMessage"}""")
+            .AppendLine("""{"TestKey3":"SomeMessage"}""")
+            .AppendLine("""{"TestKey4":"SomeMessage"}""")
+            .ToString());
+        result.Warnings.Should().BeEmpty();
+    }
+
     private BuildLog ExecuteMsBuild(string writeTelemetry, bool buildShouldSucceed)
     {
         var telemetryDirectory = Path.Combine(TestContext.TestRunDirectory, UniqueDirectory.CreateNext(TestContext.TestRunDirectory));

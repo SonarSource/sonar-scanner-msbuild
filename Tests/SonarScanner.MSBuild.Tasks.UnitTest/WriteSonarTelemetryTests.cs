@@ -61,6 +61,7 @@ public class WriteSonarTelemetryTests
                 """{"key4":"Special value with\r\nNewLines"}""",
             })),
             Encoding.UTF8);
+        fileWrapper.DidNotReceive().CreateNewAllLines(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<Encoding>());
     }
 
     [TestMethod]
@@ -88,6 +89,7 @@ public class WriteSonarTelemetryTests
                 """{"key3":"value3"}""",
             })),
             Encoding.UTF8);
+        fileWrapper.DidNotReceive().CreateNewAllLines(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<Encoding>());
     }
 
     [TestMethod]
@@ -136,6 +138,63 @@ public class WriteSonarTelemetryTests
                 """{"key3":"value3"}""",
             })),
             Encoding.UTF8);
+        fileWrapper.DidNotReceive().CreateNewAllLines(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<Encoding>());
+    }
+
+    [TestMethod]
+    public void CreateNewCaugthIoException()
+    {
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        var buildEngine = new DummyBuildEngine();
+        var sut = new WriteSonarTelemetry(fileWrapper)
+        {
+            BuildEngine = buildEngine,
+            Filename = new TaskItem("Dummy.json"),
+            CreateNew = true,
+            Telemetry =
+            [
+                new TaskItem("key1", new Dictionary<string, string> { { "Value", "value1" } }),
+            ]
+        };
+        fileWrapper.When(x => x.CreateNewAllLines("Dummy.json", Arg.Any<IEnumerable<string>>(), Encoding.UTF8)).Throw<IOException>();
+        sut.Execute();
+        fileWrapper.Received(1).CreateNewAllLines(
+            "Dummy.json",
+            Arg.Is<IEnumerable<string>>(x => x.SequenceEqual(new string[]
+            {
+                """{"key1":"value1"}""",
+            })),
+            Encoding.UTF8);
+        fileWrapper.DidNotReceive().AppendAllLines(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<Encoding>());
+        buildEngine.AssertNoWarnings();
+    }
+
+    [TestMethod]
+    public void CreateNewOnlySingleFileIsCreated()
+    {
+        var fileWrapper = FileWrapper.Instance; // Use the real file wrapper to test the exception handling logic.
+        var buildEngine = new DummyBuildEngine();
+        var basePath = TestContext.TestRunDirectory;
+        var testFile = Path.Combine(basePath, "Telemetry.json");
+        var sut = new WriteSonarTelemetry(fileWrapper)
+        {
+            BuildEngine = buildEngine,
+            Filename = new TaskItem(testFile),
+            CreateNew = true,
+            Key = "key1",
+            Value = "value1",
+        };
+        ExecuteInParallel(sut, 100);
+        File.ReadAllLines(testFile).Should().BeEquivalentTo("""{"key1":"value1"}"""); // only a single Task should win the race and the other task should not touch the file.
+        sut.Key = "otherKey";
+        sut.Value = "otherValue";
+        ExecuteInParallel(sut, 100);
+        File.ReadAllLines(testFile).Should().BeEquivalentTo("""{"key1":"value1"}"""); // the file already exists and is not touched. The new kvp is neither appended nor replaces the existing extry.
+        buildEngine.AssertNoWarnings();
+
+        // Simulate parallel builds that write to the telemetry file.
+        static void ExecuteInParallel(WriteSonarTelemetry sut, int parallelTasks) =>
+            Parallel.For(0, parallelTasks, new ParallelOptions { MaxDegreeOfParallelism = parallelTasks }, _ => sut.Execute());
     }
 
     private void PrintReceivedJsonToTestContext(IFileWrapper fileWrapper)
