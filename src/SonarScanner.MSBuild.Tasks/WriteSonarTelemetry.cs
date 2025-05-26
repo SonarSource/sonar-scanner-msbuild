@@ -31,6 +31,8 @@ public sealed class WriteSonarTelemetry : Task
     [Required]
     public ITaskItem Filename { get; set; }
 
+    public bool CreateNew { get; set; }
+
     public string Key { get; set; }
 
     public string Value { get; set; }
@@ -43,19 +45,19 @@ public sealed class WriteSonarTelemetry : Task
 
     public override bool Execute()
     {
-        if (AllTelemetry().ToList() is { Count: > 0 } allTelemetry)
+        if (AllTelemetry().Select(static x => new JsonObject { new KeyValuePair<string, JsonNode>(x.Key, JsonValue.Create(x.Value)) }.ToJsonString()).ToList() is { Count: > 0 } allTelemetry)
         {
+            Action<string, IEnumerable<string>, Encoding> allLinesWriter = CreateNew ? fileWrapper.CreateNewAllLines : fileWrapper.AppendAllLines;
             try
             {
-                fileWrapper.AppendAllLines(Filename.ItemSpec, allTelemetry.Select(static x =>
-                    new JsonObject
-                    {
-                        new KeyValuePair<string, JsonNode>(x.Key, JsonValue.Create(x.Value))
-                    }.ToJsonString()), Encoding.UTF8);
+                allLinesWriter(Filename.ItemSpec, allTelemetry, Encoding.UTF8);
             }
             catch (IOException ex)
             {
-                Log.LogWarningFromException(ex);
+                if (!CreateNew) // CreateNewAllLines throws if the file already exists. This is the desired behavior and we do not want to log that exception.
+                {
+                    Log.LogWarningFromException(ex);
+                }
             }
         }
         return true;
