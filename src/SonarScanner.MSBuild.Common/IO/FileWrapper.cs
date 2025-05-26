@@ -59,4 +59,14 @@ public class FileWrapper : IFileWrapper
 
     public void AppendAllLines(string file, IEnumerable<string> enumerable, Encoding encoding) =>
         File.AppendAllLines(file, enumerable, encoding);
+
+    public void CreateNewAllLines(string file, IEnumerable<string> enumerable, Encoding encoding)
+    {
+        using var fs = new FileStream(file, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+        using var streamWriter = new StreamWriter(fs, encoding);
+        foreach (var line in enumerable)
+        {
+            streamWriter.WriteLine(line);
+        }
+    }
 }

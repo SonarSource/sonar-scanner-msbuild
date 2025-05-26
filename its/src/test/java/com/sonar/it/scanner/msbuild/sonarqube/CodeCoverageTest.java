@@ -128,7 +128,7 @@ class CodeCoverageTest {
     boolean isFileExcluded) {
     var context = AnalysisContext.forServer("ExclusionsAndCoverage");
     context.begin.setDebugLogs();
-    context.build.useDotNet();
+    context.build.useDotNet().setTimeout(Timeout.TWO_MINUTES);
     context.end.setTimeout(Timeout.TWO_MINUTES);
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
 

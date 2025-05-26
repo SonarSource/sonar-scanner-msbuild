@@ -41,4 +41,6 @@ public interface IFileWrapper
     void Delete(string file);
 
     void AppendAllLines(string file, IEnumerable<string> enumerable, Encoding encoding);
+
+    void CreateNewAllLines(string file, IEnumerable<string> enumerable, Encoding encoding);
 }
