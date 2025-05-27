@@ -72,7 +72,7 @@ public static class TelemetryUtils
             || property.IsKey(SonarProperties.Tests))
         {
             // Long values or senstive data. Just specify the source where the parameter came from.
-            return [new($"{ToTelemetryId(property.Id)}.source", provider.ProviderType.ToString())];
+            return MessagePair(provider, property, null);
         }
         else
         {
@@ -84,8 +84,11 @@ public static class TelemetryUtils
     private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property, string value)
     {
         var telemetryKey = $"{ToTelemetryId(property.Id)}";
-        yield return new($"{telemetryKey}.value", value);
         yield return new($"{telemetryKey}.source", source.ProviderType.ToString());
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            yield return new($"{telemetryKey}.value", value);
+        }
     }
 
     private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property) =>
