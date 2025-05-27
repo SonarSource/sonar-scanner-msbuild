@@ -83,8 +83,9 @@ public static class TelemetryUtils
 
     private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property, string value)
     {
-        yield return new($"{ToTelemetryId(property.Id)}.value", value);
-        yield return new($"{ToTelemetryId(property.Id)}.source", source.ProviderType.ToString());
+        var telemetryKey = $"{ToTelemetryId(property.Id)}";
+        yield return new($"{telemetryKey}.value", value);
+        yield return new($"{telemetryKey}.source", source.ProviderType.ToString());
     }
 
     private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property) =>
