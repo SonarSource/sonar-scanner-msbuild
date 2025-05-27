@@ -38,18 +38,41 @@ internal static class HttpUtility
 
         foreach (var c in value)
         {
-            sb.Append(c switch
+            // Use a switch statement instead of a switch expression, to avoid conversions from char to string and use the best overloads of sb.Append for each case.
+            switch (c)
             {
-                '\"' => "\\\"",
-                '\\' => "\\\\",
-                '\b' => "\\b",
-                '\f' => "\\f",
-                '\n' => "\\n",
-                '\r' => "\\r",
-                '\t' => "\\t",
-                _ when c < 0x20 => $@"\u{(int)c:X4}",
-                _ => c.ToString()
-            });
+                case '\"':
+                    sb.Append("\\\"");
+                    break;
+                case '\\':
+                    sb.Append("\\\\");
+                    break;
+                case '\b':
+                    sb.Append("\\b");
+                    break;
+                case '\f':
+                    sb.Append("\\f");
+                    break;
+                case '\n':
+                    sb.Append("\\n");
+                    break;
+                case '\r':
+                    sb.Append("\\r");
+                    break;
+                case '\t':
+                    sb.Append("\\t");
+                    break;
+                default:
+                    if (c < 0x20)
+                    {
+                        sb.AppendFormat(@"\u{0:X4}", (int)c);
+                    }
+                    else
+                    {
+                        sb.Append(c);
+                    }
+                    break;
+            }
         }
 
         sb.Append('\"');
