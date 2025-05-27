@@ -21,30 +21,28 @@
 namespace SonarScanner.MSBuild.Tasks;
 
 #pragma warning disable S3776   // Cognitive Complexity of methods should not be too high
-#pragma warning disable IDE0011 // Add braces
-#pragma warning disable S121    // Control structures should use curly braces
-#pragma warning disable SA1121  // Use built-in type alias
-#pragma warning disable SA1503  // Braces should not be omitted
-#pragma warning disable SA1408  // Conditional expressions should declare precedence
-#pragma warning disable SA1519  // Braces should not be omitted from multi-line child statement
 
 internal static class HttpUtility
 {
-    // Courtesy of the mono-project
+    // Based in parts on the implementation in the mono-project
     // https://github.com/mono/mono/blob/0f53e9e151d92944cacab3e24ac359410c606df6/mcs/class/System.Web/System.Web/HttpUtility.cs#L528
-    public static string JavaScriptStringEncode(string value, bool addDoubleQuotes)
+    // Adopted to comply with ecma-404
+    // https://ecma-international.org/publications-and-standards/standards/ecma-404/
+    public static string JavaScriptStringEncode(string value)
     {
-        if (String.IsNullOrEmpty(value))
-            return addDoubleQuotes ? "\"\"" : String.Empty;
+        if (string.IsNullOrEmpty(value))
+        {
+            return "\"\"";
+        }
 
-        int len = value.Length;
-        bool needEncode = false;
+        var len = value.Length;
+        var needEncode = false;
         char c;
-        for (int i = 0; i < len; i++)
+        for (var i = 0; i < len; i++)
         {
             c = value[i];
 
-            if (c >= 0 && c <= 31 || c == 34 || c == 39 || c == 92)
+            if ((c >= 0 && c <= 0x1F) || c == '"' || c == '\\')
             {
                 needEncode = true;
                 break;
@@ -52,57 +50,37 @@ internal static class HttpUtility
         }
 
         if (!needEncode)
-            return addDoubleQuotes ? "\"" + value + "\"" : value;
-
-        var sb = new StringBuilder();
-        if (addDoubleQuotes)
-            sb.Append('"');
-
-        for (int i = 0; i < len; i++)
         {
-            c = value[i];
-            if (c >= 0 && c <= 7 || c == 11 || c >= 14 && c <= 31 || c == 39)
-                sb.AppendFormat("\\u{0:x4}", (int)c);
-            else
-                switch ((int)c)
-                {
-                    case 8:
-                        sb.Append("\\b");
-                        break;
-
-                    case 9:
-                        sb.Append("\\t");
-                        break;
-
-                    case 10:
-                        sb.Append("\\n");
-                        break;
-
-                    case 12:
-                        sb.Append("\\f");
-                        break;
-
-                    case 13:
-                        sb.Append("\\r");
-                        break;
-
-                    case 34:
-                        sb.Append("\\\"");
-                        break;
-
-                    case 92:
-                        sb.Append("\\\\");
-                        break;
-
-                    default:
-                        sb.Append(c);
-                        break;
-                }
+            return "\"" + value + "\"";
         }
 
-        if (addDoubleQuotes)
-            sb.Append('"');
+        var sb = new StringBuilder();
+        sb.Append('"');
 
+        for (var i = 0; i < len; i++)
+        {
+            c = value[i];
+            if ((c >= 0 && c <= 7) || c == 11 || (c >= 14 && c <= 31))
+            {
+                sb.AppendFormat("\\u{0:x4}", (int)c);
+            }
+            else
+            {
+                sb.Append((int)c switch
+                {
+                    8 => "\\b",
+                    9 => "\\t",
+                    10 => "\\n",
+                    12 => "\\f",
+                    13 => "\\r",
+                    34 => "\\\"",
+                    92 => "\\\\",
+                    _ => c,
+                });
+            }
+        }
+
+        sb.Append('"');
         return sb.ToString();
     }
 }
