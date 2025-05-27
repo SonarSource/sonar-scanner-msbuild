@@ -63,7 +63,7 @@ internal static class HttpUtility
                     sb.Append("\\t");
                     break;
                 default:
-                    if (c < 0x20)
+                    if (c <= 0x1F)
                     {
                         sb.AppendFormat(@"\u{0:X4}", (int)c);
                     }
