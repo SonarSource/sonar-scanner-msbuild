@@ -138,11 +138,11 @@
 
   <Target Name="WriteSonarTelemetry" Condition ="$(SonarTelemetryFilePath) != ''" BeforeTargets="Build">
     <ItemGroup>
-      <Telemetry Condition="$(VisualStudioVersion) != ''" Include="dotnetenterprise.s4net.build.visual_studio_version" Value="$(VisualStudioVersion)" />
-      <Telemetry Include="dotnetenterprise.s4net.build.msbuild_tools_version" Value="$(MSBuildToolsVersion)" />
+      <SonarTelemetry Condition="$(VisualStudioVersion) != ''" Include="dotnetenterprise.s4net.build.visual_studio_version" Value="$(VisualStudioVersion)" />
+      <SonarTelemetry Include="dotnetenterprise.s4net.build.msbuild_tools_version" Value="$(MSBuildToolsVersion)" />
     </ItemGroup>
 
-    <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" CreateNew="true" Telemetry="@(Telemetry)"/>
+    <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" CreateNew="true" Telemetry="@(SonarTelemetry)"/>
   </Target>
 
   <Target Name="SkippingSonarQubeAnalysis" BeforeTargets="Build"
