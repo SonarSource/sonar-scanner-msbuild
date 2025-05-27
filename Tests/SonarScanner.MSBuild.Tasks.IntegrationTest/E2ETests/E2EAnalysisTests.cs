@@ -863,6 +863,7 @@ public class E2EAnalysisTests
         projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Which.Value.Should().Be(Path.Combine(rootOutputFolder, "0", "Telemetry.json"));
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_TelemetryFiles_AllWritten()
     {
@@ -890,8 +891,16 @@ public class E2EAnalysisTests
             TargetConstants.InvokeSonarWriteProjectData_NonRazorProject,
             TargetConstants.SonarWriteProjectData);
 
-        File.Exists(Path.Combine(rootOutputFolder, "0", "Telemetry.json")).Should().BeTrue();
-        File.Exists(Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json")).Should().BeTrue();
+        var solutionTargetTelemetryFile = Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json");
+        File.Exists(solutionTargetTelemetryFile).Should().BeTrue();
+        File.ReadAllLines(solutionTargetTelemetryFile).Should().SatisfyRespectively(
+            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.visual_studio_version.value":"""),
+            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.msbuild_tools_version.value":"""));
+
+        var projectTelemetryFile = Path.Combine(rootOutputFolder, "0", "Telemetry.json");
+        File.Exists(projectTelemetryFile).Should().BeTrue();
+        File.ReadAllLines(projectTelemetryFile).Should().SatisfyRespectively(
+            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.target_framework":"""));
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
@@ -1096,8 +1105,7 @@ public class E2EAnalysisTests
             // We've only built one project, so we only expect one directory under the root
             Directory.EnumerateDirectories(rootFolder).Should().ContainSingle($"Only expecting one child directory to exist under the root analysis {logType} folder");
 
-            var fileCount = Directory.GetFiles(rootFolder, "*.*", SearchOption.TopDirectoryOnly).Count(x => !x.Contains("Telemetry.Targets.S4NET.json"));
-            fileCount.Should().Be(0, $"Not expecting the top-level {logType} folder to contain any files");
+            Directory.GetFiles(rootFolder, "*.*", SearchOption.TopDirectoryOnly).Should().BeEquivalentTo("Telemetry.Targets.S4NET.json");
 
             var projectSpecificPath = Directory.EnumerateDirectories(rootFolder).Single();
 
