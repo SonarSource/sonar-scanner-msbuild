@@ -38,7 +38,7 @@ internal static class HttpUtility
 
         foreach (var c in value)
         {
-            // Use a switch statement instead of a switch expression, to avoid conversions from char to string and use the best overloads of sb.Append for each case.
+            // Use a switch statement instead of a switch expression, to avoid conversions from char to string and use the best overload of sb.Append for each case.
             switch (c)
             {
                 case '\"':
