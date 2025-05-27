@@ -1105,7 +1105,8 @@ public class E2EAnalysisTests
             // We've only built one project, so we only expect one directory under the root
             Directory.EnumerateDirectories(rootFolder).Should().ContainSingle($"Only expecting one child directory to exist under the root analysis {logType} folder");
 
-            Directory.GetFiles(rootFolder, "*.*", SearchOption.TopDirectoryOnly).Should().BeEquivalentTo("Telemetry.Targets.S4NET.json");
+            var fileCount = Directory.GetFiles(rootFolder, "*.*", SearchOption.TopDirectoryOnly).Count(x => !x.Contains("Telemetry.Targets.S4NET.json"));
+            fileCount.Should().Be(0, $"Not expecting the top-level {logType} folder to contain any files");
 
             var projectSpecificPath = Directory.EnumerateDirectories(rootFolder).Single();
 
