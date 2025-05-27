@@ -42,9 +42,10 @@ public class WriteSonarTelemetryTests
                 TelemetryTaskItem("key2", "value2"),
                 TelemetryTaskItem("key3", "value3"),
                 TelemetryTaskItem("key3", "duplicate"),
-                TelemetryTaskItem("key4", """
+                TelemetryTaskItem("key4", $"""
                     Special value with
-                    NewLines and <Html Attribute="Value"> tags </Html>
+                    NewLines, <Html Attribute="Value"> tags </Html>
+                    Special characters {'\t'} {'\b'} {'\f'} " \ {'\u0007'} '
                     """),
             ]
         };
@@ -58,7 +59,7 @@ public class WriteSonarTelemetryTests
                 """{"key2":"value2"}""",
                 """{"key3":"value3"}""",
                 """{"key3":"duplicate"}""",
-                """{"key4":"Special value with\r\nNewLines and <Html Attribute=\"Value\"> tags </Html>"}""",
+                """{"key4":"Special value with\r\nNewLines, <Html Attribute=\"Value\"> tags </Html>\r\nSpecial characters \t \b \f \" \\ \u0007 \u0027"}""",
             })),
             Encoding.UTF8);
         fileWrapper.DidNotReceive().CreateNewAllLines(Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<Encoding>());
