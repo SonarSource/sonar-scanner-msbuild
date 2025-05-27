@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Text.Json.Nodes;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -45,7 +44,10 @@ public sealed class WriteSonarTelemetry : Task
 
     public override bool Execute()
     {
-        if (AllTelemetry().Select(static x => new JsonObject { new KeyValuePair<string, JsonNode>(x.Key, JsonValue.Create(x.Value)) }.ToJsonString()).ToList() is { Count: > 0 } allTelemetry)
+        if (AllTelemetry().Select(static x =>
+            $$"""
+            {{{HttpUtility.JavaScriptStringEncode(x.Key)}}:{{HttpUtility.JavaScriptStringEncode(x.Value)}}}
+            """).ToList() is { Count: > 0 } allTelemetry)
         {
             Action<string, IEnumerable<string>, Encoding> allLinesWriter = CreateNew ? fileWrapper.CreateNewAllLines : fileWrapper.AppendAllLines;
             try
