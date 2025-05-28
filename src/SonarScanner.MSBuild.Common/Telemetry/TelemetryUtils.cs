@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
-using System.Runtime.InteropServices;
-
 namespace SonarScanner.MSBuild.Common;
 
 public static class TelemetryUtils
@@ -115,14 +112,7 @@ public static class TelemetryUtils
     {
         try
         {
-            if (Path.IsPathRooted(directoryPath))
-            {
-                return "rooted";
-            }
-            else
-            {
-                return "relative";
-            }
+            return Path.IsPathRooted(directoryPath) ? "rooted" : "relative";
         }
         catch (ArgumentException)
         {
