@@ -32,15 +32,24 @@ public static class TelemetryUtils
 
     public static void AddTelemetry(ILogger logger, HostInfo serverInfo)
     {
-        var serverUrl = serverInfo.IsSonarCloud
-                        ? serverInfo.ServerUrl
-                        : serverInfo.ServerUrl.Equals("http://localhost:9000") ? "localhost" : "custom_url";
-        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.product", serverInfo.IsSonarCloud ? "SQ_Server" : "SQ_Cloud");
-        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.version", serverUrl);
-        if (serverInfo.IsSonarCloud)
+        if (serverInfo is null)
         {
-            logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.region", serverInfo.ServerUrl.EndsWith(".us") ? "us" : "default");
+            return;
         }
+
+        string serverUrl;
+        if (serverInfo.IsSonarCloud && serverInfo as CloudHostInfo is { } cloudServerInfo)
+        {
+            logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.region", cloudServerInfo.Region is "us" ? "us" : "default");
+            serverUrl = CloudHostInfo.IsKnownUrl(cloudServerInfo.ServerUrl) ? cloudServerInfo.ServerUrl : "custom_url";
+        }
+        else
+        {
+            serverUrl = serverInfo.ServerUrl == "http://localhost:9000" ? "localhost" : "custom_url";
+        }
+
+        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.product", serverInfo.IsSonarCloud ? "SQ_Cloud" : "SQ_Server");
+        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.serverUrl", serverUrl);
     }
 
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
