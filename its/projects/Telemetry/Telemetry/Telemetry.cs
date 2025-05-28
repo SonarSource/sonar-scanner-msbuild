@@ -1,14 +1,15 @@
-﻿namespace Telemetry;
-
-public class Telemetry
+﻿namespace Telemetry
 {
-    public void Method()
+    public class Telemetry
     {
-        // empty body
-    }
+        public void Method()
+        {
+            // empty body
+        }
 
-    private class InnerClass
-    {
-        public string Name { get; set; } = "InnerClass";
+        private class InnerClass
+        {
+            public string Name { get; set; } = "InnerClass";
+        }
     }
 }

@@ -48,15 +48,17 @@ class TelemetryTest {
   @Test
   void telemetry_telemetryFiles_areCorrect() throws IOException {
     var context = AnalysisContext.forServer("Telemetry");
-    context.begin.setProperty("sonar.scanner.scanAll", "true");
+    context.begin.setProperty(
+      new Property("sonar.scanner.scanAll", "false"),
+      new Property("s", context.projectDir.resolve("SonarQube.Analysis.xml").toAbsolutePath().toString()));
     context.runAnalysis();
 
     var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
 
     assertThat(readContents(sonarQubeOutDirectory.resolve(("Telemetry.S4NET.json"))))
       .satisfiesExactly(
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.value"),
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.source")
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.value\":\"false\"}"),
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.source\":\"CLI\"}")
       );
 
     assertThat(readContents(sonarQubeOutDirectory.resolve("Telemetry.Targets.S4NET.json")))
@@ -65,9 +67,9 @@ class TelemetryTest {
         x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.msbuild_tools_version\":")
       );
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i<3; i++) {
       assertThat(readContents(sonarQubeOutDirectory.resolve(String.valueOf(i)).resolve("Telemetry.json"))).satisfiesExactly(
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.target_framework_moniker\":"));
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETStandard,Version=v2.0\"}"));
     }
   }
 

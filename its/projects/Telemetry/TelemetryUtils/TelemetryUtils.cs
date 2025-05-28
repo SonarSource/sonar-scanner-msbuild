@@ -1,13 +1,14 @@
-﻿namespace TelemetryUtils;
-
-public class TelemetryUtils
+﻿namespace TelemetryUtils
 {
-    public void Method()
+    public class TelemetryUtils
     {
-        // empty body
-    }
-    private class InnerClass
-    {
-        public string Name { get; set; } = "InnerClass";
+        public void Method()
+        {
+            // empty body
+        }
+        private class InnerClass
+        {
+            public string Name { get; set; } = "InnerClass";
+        }
     }
 }

@@ -26,6 +26,8 @@ import com.sonar.orchestrator.build.SynchronousAnalyzer;
 import com.sonar.orchestrator.util.Command;
 import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
+
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -155,7 +157,17 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
       }
     }
     for (var entry : properties.entrySet()) {
-      command.addArgument("/d:" + entry.getKey() + "=" + entry.getValue());
+      if (entry.getKey().equals("s")) {
+        command.addArgument("/s:" + entry.getValue());
+        if (!Files.exists(Path.of((entry.getValue()))))
+        {
+          LOG.warn("File" + entry.getValue() + "does not exist. Analysis configuration from file won't be loaded.");
+        } else {
+          LOG.info("Analysis configuration from " + entry.getValue()+ " was successfully loaded.");
+        }
+      } else {
+        command.addArgument("/d:" + entry.getKey() + "=" + entry.getValue());
+      }
     }
     if (shouldExpandEnvVars) {
       assertFalse(OSPlatform.isWindows(), "Trying to expand environment variables on Windows. This is not supposed to happen.");
