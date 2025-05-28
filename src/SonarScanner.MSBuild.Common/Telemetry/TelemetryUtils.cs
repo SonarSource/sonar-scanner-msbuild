@@ -27,13 +27,13 @@ public static class TelemetryUtils
 {
     public static void AddTelemetry(ILogger logger, AggregatePropertiesProvider aggregatedProperties)
     {
-        foreach (var kvp in aggregatedProperties.GetAllPropertiesWithProvider().SelectMany(SelectMany))
+        foreach (var kvp in aggregatedProperties.GetAllPropertiesWithProvider().SelectMany(SelectManyTelemetryProperties))
         {
             logger.AddTelemetryMessage(kvp.Key, kvp.Value);
         }
     }
 
-    private static IEnumerable<KeyValuePair<string, string>> SelectMany(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
+    private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {
         var property = argument.Key;
         var value = argument.Key.Value;
