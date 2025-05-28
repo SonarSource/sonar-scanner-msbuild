@@ -23,8 +23,6 @@ namespace SonarScanner.MSBuild.Common.Test;
 [TestClass]
 public class TelemetryUtilsTests
 {
-    public TestContext TestContext { get; set; }
-
 #pragma warning disable S103 // Lines should not be too long
     [DataTestMethod]
     // Sensitive data
