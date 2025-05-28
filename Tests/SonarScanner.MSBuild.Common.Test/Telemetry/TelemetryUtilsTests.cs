@@ -48,7 +48,6 @@ public class TelemetryUtilsTests
     [DataRow(SonarProperties.JavaExePath, "path/to/java", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
     [DataRow(SonarProperties.JavaExePath, "path/to/java.exe", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.value=.exe")]
     [DataRow(SonarProperties.JavaExePath, "", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
-    [DataRow(SonarProperties.JavaExePath, "invalidFileName.exe;*>\0//", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
     // Directories
     [DataRow(SonarProperties.PullRequestCacheBasePath, "/SomePath", "dotnetenterprise.s4net.params.sonar_pullrequest_cache_basepath.source=CLI", "dotnetenterprise.s4net.params.sonar_pullrequest_cache_basepath.value=rooted")]
     [DataRow(SonarProperties.VsCoverageXmlReportsPaths, "/SomePath", "dotnetenterprise.s4net.params.sonar_cs_vscoveragexml_reportspaths.source=CLI", "dotnetenterprise.s4net.params.sonar_cs_vscoveragexml_reportspaths.value=rooted")]
@@ -74,7 +73,16 @@ public class TelemetryUtilsTests
     [DataRow("something.other", "value", "dotnetenterprise.s4net.params.something_other.source=CLI")]
     [DataRow("Something.Other", "value", "dotnetenterprise.s4net.params.something_other.source=CLI")]
 #pragma warning restore S103 // Lines should not be too long
-    public void LoogedTelemetryFromProperties(string propertyId, string value, params string[] exepectedTelemetry)
+    public void LoogedTelemetryFromProperties(string propertyId, string value, params string[] exepectedTelemetry) =>
+        AssertTelemetry(propertyId, value, exepectedTelemetry);
+
+    [TestCategory(TestCategories.NoLinux)]
+    [DataTestMethod]
+    [DataRow(SonarProperties.JavaExePath, "invalidFileName.exe;*>\0//", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
+    public void LoogedTelemetryFromPropertiesNoLinux(string propertyId, string value, params string[] exepectedTelemetry) =>
+        AssertTelemetry(propertyId, value, exepectedTelemetry);
+
+    private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
     {
         var logger = Substitute.For<ILogger>();
         var list = new ListPropertiesProvider(PropertyProviderKind.CLI);
