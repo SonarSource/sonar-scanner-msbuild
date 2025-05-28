@@ -69,7 +69,7 @@ class TelemetryTest {
 
     for (int i = 0; i<3; i++) {
       assertThat(readContents(sonarQubeOutDirectory.resolve(String.valueOf(i)).resolve("Telemetry.json"))).satisfiesExactly(
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETStandard,Version=v2.0\"}"));
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETStandard,Version=v1.6\"}"));
     }
   }
 
