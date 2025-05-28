@@ -47,6 +47,7 @@ public class TelemetryUtilsTests
     [DataRow(SonarProperties.JavaExePath, "path/to/java", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
     [DataRow(SonarProperties.JavaExePath, "path/to/java.exe", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.value=.exe")]
     [DataRow(SonarProperties.JavaExePath, "", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
+    [DataRow(SonarProperties.JavaExePath, "invalidFileName.exe;*>\0//", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
     // Directories
     [DataRow(SonarProperties.PullRequestCacheBasePath, "/SomePath", "dotnetenterprise.s4net.params.sonar_pullrequest_cache_basepath.source=CLI", "dotnetenterprise.s4net.params.sonar_pullrequest_cache_basepath.value=rooted")]
     [DataRow(SonarProperties.VsCoverageXmlReportsPaths, "/SomePath", "dotnetenterprise.s4net.params.sonar_cs_vscoveragexml_reportspaths.source=CLI", "dotnetenterprise.s4net.params.sonar_cs_vscoveragexml_reportspaths.value=rooted")]
@@ -56,6 +57,7 @@ public class TelemetryUtilsTests
     [DataRow(SonarProperties.UserHome, "/SomePath", "dotnetenterprise.s4net.params.sonar_userhome.source=CLI", "dotnetenterprise.s4net.params.sonar_userhome.value=rooted")]
     [DataRow(SonarProperties.WorkingDirectory, "/SomePath", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=rooted")]
     [DataRow(SonarProperties.WorkingDirectory, "SomePath", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=relative")]
+    [DataRow(SonarProperties.WorkingDirectory, "\0", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=invalid")]
     // Some wellknown properties with confidential data
     [DataRow(SonarProperties.ProjectBranch, "someValue", "dotnetenterprise.s4net.params.sonar_branch.source=CLI")]
     [DataRow(SonarProperties.ProjectName, "someValue", "dotnetenterprise.s4net.params.sonar_projectname.source=CLI")]
