@@ -33,6 +33,14 @@ public static class TelemetryUtils
         }
     }
 
+    public static void AddCIEnvironmentTelemetry(ILogger logger)
+    {
+        if (CIPlatformDetector.Detect() is var ciPlatform && ciPlatform is not CIPlatform.None)
+        {
+            logger.AddTelemetryMessage("dotnetenterprise.s4net.ci_platform", ciPlatform.ToString());
+        }
+    }
+
     private static string ToTelemetryId(string property) =>
         property.ToLower().Replace('.', '_');
 }

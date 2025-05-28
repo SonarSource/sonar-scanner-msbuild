@@ -121,6 +121,7 @@ public sealed class PreProcessor : IPreProcessor
         }
 
         logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
+        TelemetryUtils.AddCIEnvironmentTelemetry(logger);
         logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
         return true;
     }
