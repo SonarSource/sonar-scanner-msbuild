@@ -76,15 +76,6 @@ public static class TelemetryUtils
             // Whitelist of the properties that are logged with their value
             return MessagePair(provider, property);
         }
-        else if (property.IsKey(SonarProperties.ProjectBranch)
-            || property.IsKey(SonarProperties.ProjectName)
-            || property.IsKey(SonarProperties.ProjectVersion)
-            || property.IsKey(SonarProperties.Sources)
-            || property.IsKey(SonarProperties.Tests))
-        {
-            // Long values or senstive data. Just specify the source where the parameter came from.
-            return MessagePair(provider, property, null);
-        }
         else
         {
             // Default: Write the source of the specified property but not its value
