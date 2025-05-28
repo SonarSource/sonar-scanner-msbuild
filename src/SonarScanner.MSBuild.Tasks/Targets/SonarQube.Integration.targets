@@ -138,8 +138,8 @@
 
   <Target Name="WriteSonarTelemetry" Condition ="$(SonarTelemetryFilePath) != ''" BeforeTargets="Build">
     <ItemGroup>
-      <SonarTelemetry Condition="$(VisualStudioVersion) != ''" Include="dotnetenterprise.s4net.build.visual_studio_version" Value="$(VisualStudioVersion)" />
-      <SonarTelemetry Include="dotnetenterprise.s4net.build.msbuild_tools_version" Value="$(MSBuildToolsVersion)" />
+      <SonarTelemetry Condition="$(VisualStudioVersion) != ''" Include="dotnetenterprise.s4net.build.visual_studio_version" Value="$(VisualStudioVersion)" /> <!-- https://learn.microsoft.com/en-us/visualstudio/msbuild/common-msbuild-project-properties?view=vs-2022-->
+      <SonarTelemetry Condition="$(MSBuildVersion) != ''" Include="dotnetenterprise.s4net.build.msbuild_version" Value="$(MSBuildVersion)" /> <!-- Version of MSBuild. Preferred over MSBuildToolsVersion which defaults to just "Current" https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-reserved-and-well-known-properties?view=vs-2022-->
     </ItemGroup>
 
     <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" CreateNew="true" Telemetry="@(SonarTelemetry)"/>
@@ -364,8 +364,6 @@
       <SonarReportFilePath Condition= "$(SonarErrorLogExists) == 'true'" Include="$(SonarErrorLog)" />
     </ItemGroup>
 
-    <WriteSonarTelemetry Filename="$(SonarProjectTelemetryFilePath)" Key="dotnetenterprise.s4net.build.target_framework_moniker" Value="$(TargetFrameworkMoniker)" />
-
     <ItemGroup>
       <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(SonarReportFilePath) != '' ">
         <!-- Join the paths with |  -->
@@ -403,6 +401,14 @@
        Configuration="$(Configuration)"
        Platform="$(Platform)"
        TargetFramework="$(TargetFramework)" />
+    
+    <ItemGroup>
+      <SonarProjectTelemetry Condition="$(TargetFrameworkMoniker) != ''" Include="dotnetenterprise.s4net.build.target_framework_moniker" Value="$(TargetFrameworkMoniker)" />
+      <SonarProjectTelemetry Condition="$(UsingMicrosoftNETSdk) != ''" Include="dotnetenterprise.s4net.build.using_microsoft_net_sdk" Value="$(UsingMicrosoftNETSdk)" /> <!-- new SDK style projects https://stackoverflow.com/a/53530363-->
+      <SonarProjectTelemetry Condition="$(Deterministic) != ''" Include="dotnetenterprise.s4net.build.deterministic" Value="$(Deterministic)" />
+      <SonarProjectTelemetry Condition="$(NuGetProjectStyle) != ''" Include="dotnetenterprise.s4net.build.nuget_project_style" Value="$(NuGetProjectStyle)" />
+    </ItemGroup>
+    <WriteSonarTelemetry Condition="$(SonarProjectTelemetryFilePath)!=''" Filename="$(SonarProjectTelemetryFilePath)" Telemtry="@(SonarProjectTelemetry)" />
 
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Project processed successfully" />
   </Target>
