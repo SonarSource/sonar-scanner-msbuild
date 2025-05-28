@@ -24,6 +24,7 @@ namespace SonarScanner.MSBuild.Common.Test;
 public class TelemetryUtilsTests
 {
     public TestContext TestContext { get; set; }
+
 #pragma warning disable S103 // Lines should not be too long
     [DataTestMethod]
     // Sensitive data
@@ -57,7 +58,6 @@ public class TelemetryUtilsTests
     [DataRow(SonarProperties.UserHome, "/SomePath", "dotnetenterprise.s4net.params.sonar_userhome.source=CLI", "dotnetenterprise.s4net.params.sonar_userhome.value=rooted")]
     [DataRow(SonarProperties.WorkingDirectory, "/SomePath", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=rooted")]
     [DataRow(SonarProperties.WorkingDirectory, "SomePath", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=relative")]
-    [DataRow(SonarProperties.WorkingDirectory, "\0", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=invalid")]
     // Some wellknown properties with confidential data
     [DataRow(SonarProperties.ProjectBranch, "someValue", "dotnetenterprise.s4net.params.sonar_branch.source=CLI")]
     [DataRow(SonarProperties.ProjectName, "someValue", "dotnetenterprise.s4net.params.sonar_projectname.source=CLI")]
@@ -74,7 +74,16 @@ public class TelemetryUtilsTests
     [DataRow("something.other", "value", "dotnetenterprise.s4net.params.something_other.source=CLI")]
     [DataRow("Something.Other", "value", "dotnetenterprise.s4net.params.something_other.source=CLI")]
 #pragma warning restore S103 // Lines should not be too long
-    public void LoogedTelemetryFromProperties(string propertyId, string value, params string[] exepectedTelemetry)
+    public void LoogedTelemetryFromProperties(string propertyId, string value, params string[] exepectedTelemetry) =>
+        AssertTelemetry(propertyId, value, exepectedTelemetry);
+
+    [TestCategory(TestCategories.NoLinux)]
+    [DataTestMethod]
+    [DataRow(SonarProperties.WorkingDirectory, "\0", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=invalid")]
+    public void LoogedTelemetryFromPropertiesNoLinux(string propertyId, string value, params string[] exepectedTelemetry) =>
+        AssertTelemetry(propertyId, value, exepectedTelemetry);
+
+    private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
     {
         var logger = Substitute.For<ILogger>();
         var list = new ListPropertiesProvider(PropertyProviderKind.CLI);
