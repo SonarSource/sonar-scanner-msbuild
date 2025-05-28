@@ -72,6 +72,9 @@ public class Property
     public string AsSonarScannerArg() =>
         $"-D{Id}={Value}";
 
+    public bool IsKey(string id) =>
+        AreKeysEqual(Id, id);
+
     /// <summary>
     /// Returns true if the supplied string is a valid key for a sonar-XXX.properties file.
     /// </summary>
