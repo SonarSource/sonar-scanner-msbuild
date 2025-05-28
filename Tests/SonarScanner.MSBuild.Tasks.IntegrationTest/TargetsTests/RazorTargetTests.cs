@@ -75,7 +75,7 @@ public class RazorTargetTests
         result.AssertPropertyValue(TargetProperties.RazorCompilationErrorLog, null);
         result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, $"{rootOutputFolder}{Separator}0.tmp");
 
-        result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 1); // ProjectInfo.xml
+        result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 2); // ProjectInfo.xml and Telemetry.S4NET.Targets.json
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -111,7 +111,7 @@ public class RazorTargetTests
         AssertExpectedErrorLog(result, rootOutputFolder + $@"{Separator}0{Separator}Issues.Views.json");
         result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, $"{rootOutputFolder}{Separator}0.tmp");
 
-        result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 1); // ProjectInfo.xml
+        result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 2); // ProjectInfo.xml and Telemetry.S4NET.Targets.json
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -181,7 +181,7 @@ public class RazorTargetTests
         AssertExpectedErrorLog(result, @"C:\UserDefined.json");
         result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, $"{rootOutputFolder}{Separator}0.tmp");
 
-        result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 1); // ProjectInfo.xml
+        result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 2); // ProjectInfo.xml and Telemetry.S4NET.Targets.json
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -240,12 +240,12 @@ public class RazorTargetTests
         // contents should be moved to temporary folder
         var temporaryProjectSpecificOutDir = Path.Combine(rootOutputFolder, "0.tmp");
         result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, temporaryProjectSpecificOutDir);
-        result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 2); // ProjectInfo.xml and bar.txt
+        result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 3); // ProjectInfo.xml, bar.txt and Telemetry.S4NET.Targets.json
         Directory.Exists(temporaryProjectSpecificOutDir).Should().BeTrue();
         File.Exists(Path.Combine(temporaryProjectSpecificOutDir, "ProjectInfo.xml")).Should().BeTrue();
         // the dir and file should have been moved as well
         File.Exists(Path.Combine(temporaryProjectSpecificOutDir, subDirName, subDirFileName)).Should().BeTrue();
-        result.Messages.Should().ContainMatch($@"Sonar: Preparing for Razor compilation, moved files (*{Separator}foo{Separator}bar.txt;*{Separator}ProjectInfo.xml) to *{Separator}0.tmp.");
+        result.Messages.Should().ContainMatch($@"Sonar: Preparing for Razor compilation, moved files (*{Separator}foo{Separator}bar.txt;*{Separator}ProjectInfo.xml*{Separator}Telemetry.json) to *{Separator}0.tmp.");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]

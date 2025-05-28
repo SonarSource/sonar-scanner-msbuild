@@ -67,7 +67,7 @@ public class SonarIntegrationTargetsTests
         var result = CreateProjectAndLoad(projectXml);
         result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_Legacy\.sonarqube\out");
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_Legacy\.sonarqube\conf");
-        result.AssertPropertyValue(TargetProperties.SonarTelemetryFilePath, @"t:\TeamBuildDir_Legacy\.sonarqube\out\Telemetry.S4NET.json");
+        result.AssertPropertyValue(TargetProperties.SonarTelemetryFilePath, @"t:\TeamBuildDir_Legacy\.sonarqube\out\Telemetry.Targets.S4NET.json");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -84,7 +84,7 @@ public class SonarIntegrationTargetsTests
         var result = CreateProjectAndLoad(projectXml);
         result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\out");
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\conf");
-        result.AssertPropertyValue(TargetProperties.SonarTelemetryFilePath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\out\Telemetry.S4NET.json");
+        result.AssertPropertyValue(TargetProperties.SonarTelemetryFilePath, @"t:\TeamBuildDir_NonLegacy\.sonarqube\out\Telemetry.Targets.S4NET.json");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]

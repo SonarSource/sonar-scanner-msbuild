@@ -39,7 +39,7 @@ public static class FileConstants
     public const string ConfigFileName = "SonarQubeAnalysisConfig.xml";
 
     /// <summary>
-    /// Name of the import before target file
+    /// Name of the import before target file.
     /// </summary>
     public const string ImportBeforeTargetsName = "SonarQube.Integration.ImportBefore.targets";
 
@@ -54,7 +54,17 @@ public static class FileConstants
     public const string UIWarningsFileName = "AnalysisWarnings.S4NET.json";
 
     /// <summary>
+    /// Name of the file containing the telemetry messages per project.
+    /// </summary>
+    public const string TelemetryProjectFileName = "Telemetry.json";
+
+    /// <summary>
     /// Name of the file containing the telemetry messages.
     /// </summary>
     public const string TelemetryFileName = "Telemetry.S4NET.json";
+
+    /// <summary>
+    /// Name of the file containing the telemetry messages coming from the Integreation targets.
+    /// </summary>
+    public const string TelemetryTargetsFileName = "Telemetry.Targets.S4NET.json";
 }
