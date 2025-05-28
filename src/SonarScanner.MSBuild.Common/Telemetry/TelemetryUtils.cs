@@ -36,6 +36,8 @@ public static class TelemetryUtils
     private static IEnumerable<KeyValuePair<string, string>> SelectMany(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {
         var property = argument.Key;
+        var value = argument.Key.Value;
+        var provider = argument.Value;
         if (property.ContainsSensitiveData()
             // Further senstive parameters
             || property.IsKey(SonarProperties.Organization)
@@ -48,9 +50,7 @@ public static class TelemetryUtils
         {
             return [];
         }
-        var value = argument.Key.Value;
-        var provider = argument.Value;
-        if ((property.IsKey(SonarProperties.ClientCertPath)
+        else if ((property.IsKey(SonarProperties.ClientCertPath)
             || property.IsKey(SonarProperties.TruststorePath)
             || property.IsKey(SonarProperties.JavaExePath)) && value is { } filePath)
         {
