@@ -37,11 +37,8 @@ public partial class PreProcessorTests
             .Should()
             .BeEquivalentTo(Contents(
                 """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.cmd_line1.value":"cmdline.value.1"}""",
                 """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_log_level.value":"INFO|DEBUG"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.value":"false"}"""));
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}"""));
     }
 
     [TestMethod]
@@ -58,11 +55,8 @@ public partial class PreProcessorTests
             .Should()
             .BeEquivalentTo(Contents(
                 """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.cmd_line1.value":"cmdline.value.1"}""",
                 """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_log_level.value":"INFO|DEBUG"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_ANALYSIS_XML"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.value":"false"}"""));
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_ANALYSIS_XML"}"""));
     }
 
     [TestMethod]
@@ -74,11 +68,8 @@ public partial class PreProcessorTests
             .Should()
             .BeEquivalentTo(Contents(
                 """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.cmd_line1.value":"cmdline.value.1"}""",
                 """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_log_level.value":"INFO|DEBUG"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_SCANNER_PARAMS"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.value":"false"}"""));
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_SCANNER_PARAMS"}"""));
     }
 
     [TestMethod]
@@ -94,11 +85,8 @@ public partial class PreProcessorTests
             .Should()
             .BeEquivalentTo(Contents(
                 """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.cmd_line1.value":"cmdline.value.1"}""",
                 """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_log_level.value":"INFO|DEBUG"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.value":"false"}"""));
+                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}"""));
     }
 
     // Contents are created with string builder to have the correct line endings for each OS
