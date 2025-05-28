@@ -83,6 +83,22 @@ public static class TelemetryUtils
         }
     }
 
+    private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property, string value)
+    {
+        var telemetryKey = $"{ToTelemetryId(property.Id)}";
+        yield return new($"{telemetryKey}.source", source.ProviderType.ToString());
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            yield return new($"{telemetryKey}.value", value);
+        }
+    }
+
+    private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property) =>
+        MessagePair(source, property, property.Value);
+
+    private static string ToTelemetryId(string property) =>
+        $"dotnetenterprise.s4net.params.{property.ToLower().Replace('.', '_')}";
+
     private static string FileExtension(string filePath)
     {
         try
@@ -113,20 +129,4 @@ public static class TelemetryUtils
             return "invalid";
         }
     }
-
-    private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property, string value)
-    {
-        var telemetryKey = $"{ToTelemetryId(property.Id)}";
-        yield return new($"{telemetryKey}.source", source.ProviderType.ToString());
-        if (!string.IsNullOrWhiteSpace(value))
-        {
-            yield return new($"{telemetryKey}.value", value);
-        }
-    }
-
-    private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property) =>
-        MessagePair(source, property, property.Value);
-
-    private static string ToTelemetryId(string property) =>
-        $"dotnetenterprise.s4net.params.{property.ToLower().Replace('.', '_')}";
 }
