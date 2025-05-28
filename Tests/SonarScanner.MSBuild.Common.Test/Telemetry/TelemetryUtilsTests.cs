@@ -31,6 +31,7 @@ public class TelemetryUtilsTests
     [DataTestMethod]
     // Sensitive data
     [DataRow(SonarProperties.SonarToken, "secret")]
+    [DataRow("SONAR.TOKEN", "secret")]
     [DataRow(SonarProperties.SonarPassword, "secret")]
     [DataRow(SonarProperties.SonarUserName, "secret")]
     [DataRow(SonarProperties.ClientCertPassword, "secret")]
