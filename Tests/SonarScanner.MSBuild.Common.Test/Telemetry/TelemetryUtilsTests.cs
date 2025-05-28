@@ -87,8 +87,7 @@ public class TelemetryUtilsTests
         foreach (var expected in exepectedTelemetry)
         {
             var parts = expected.Split('=');
-            var expectedPropertyId = parts[0];
-            var expectedValue = parts[1];
+            var (expectedPropertyId, expectedValue) = (parts[0], parts[1]);
             logger.Received(1).AddTelemetryMessage(expectedPropertyId, expectedValue);
         }
     }
