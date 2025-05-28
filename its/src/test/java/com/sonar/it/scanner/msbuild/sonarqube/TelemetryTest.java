@@ -57,8 +57,12 @@ class TelemetryTest {
 
     assertThat(readContents(sonarQubeOutDirectory.resolve(("Telemetry.S4NET.json"))))
       .satisfiesExactly(
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.value\":\"false\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.source\":\"CLI\"}")
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source\":\"CLI\"}"),
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source\":\"CLI\"}"),
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_projectbasedir.source\":\"CLI\"}"),
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_projectbasedir.value\":\"rooted\"}"),
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.source\":\"CLI\"}"),
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scm_disabled.source\":\"CLI\"}")
       );
 
     assertThat(readContents(sonarQubeOutDirectory.resolve("Telemetry.Targets.S4NET.json")))
@@ -67,13 +71,13 @@ class TelemetryTest {
         x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.msbuild_tools_version\":")
       );
 
-    for (int i = 0; i<3; i++) {
+    for (int i = 0; i < 3; i++) {
       assertThat(readContents(sonarQubeOutDirectory.resolve(String.valueOf(i)).resolve("Telemetry.json"))).satisfiesExactly(
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETStandard,Version=v1.6\"}"));
     }
   }
 
-  private List<String> readContents(Path path) throws IOException  {
+  private List<String> readContents(Path path) throws IOException {
     List<String> content = Files.readAllLines(path, StandardCharsets.UTF_8);
     // see: https://stackoverflow.com/a/73590918
     content.replaceAll(x -> x.replace("\uFEFF", ""));
