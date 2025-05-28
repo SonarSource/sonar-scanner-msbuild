@@ -71,13 +71,13 @@ public class TelemetryUtilsTests
     [DataRow("something.other", "value", "dotnetenterprise.s4net.params.something_other.source=CLI")]
     [DataRow("Something.Other", "value", "dotnetenterprise.s4net.params.something_other.source=CLI")]
 #pragma warning restore S103 // Lines should not be too long
-    public void LoogedTelemetryFromProperties(string propertyId, string value, params string[] exepectedTelemetry) =>
+    public void LoggedTelemetryFromProperties(string propertyId, string value, params string[] exepectedTelemetry) =>
         AssertTelemetry(propertyId, value, exepectedTelemetry);
 
     [TestCategory(TestCategories.NoMacOS)]
     [DataTestMethod]
     [DataRow(SonarProperties.JavaExePath, "invalidFileName.exe;*>\0//", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
-    public void LoogedTelemetryFromPropertiesNoMacOS(string propertyId, string value, params string[] exepectedTelemetry) =>
+    public void LoggedTelemetryFromPropertiesNoMacOS(string propertyId, string value, params string[] exepectedTelemetry) =>
         AssertTelemetry(propertyId, value, exepectedTelemetry);
 
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
