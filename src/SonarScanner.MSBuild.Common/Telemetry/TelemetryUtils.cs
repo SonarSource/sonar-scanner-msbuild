@@ -55,7 +55,7 @@ public static class TelemetryUtils
             || property.IsKey(SonarProperties.JavaExePath)) && value is { } filePath)
         {
             // Don't put the file path in the telemetry. The file extension is indicator enough
-            return MessagePair(provider, property, PathExtension(filePath));
+            return MessagePair(provider, property, FileExtension(filePath));
         }
         else if ((property.IsKey(SonarProperties.PullRequestCacheBasePath)
             || property.IsKey(SonarProperties.VsCoverageXmlReportsPaths)
@@ -83,7 +83,7 @@ public static class TelemetryUtils
         }
     }
 
-    private static string PathExtension(string filePath)
+    private static string FileExtension(string filePath)
     {
         try
         {
