@@ -57,7 +57,7 @@ public class TelemetryUtilsTests
     [DataRow(SonarProperties.UserHome, "/SomePath", "dotnetenterprise.s4net.params.sonar_userhome.source=CLI", "dotnetenterprise.s4net.params.sonar_userhome.value=rooted")]
     [DataRow(SonarProperties.WorkingDirectory, "/SomePath", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=rooted")]
     [DataRow(SonarProperties.WorkingDirectory, "SomePath", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=relative")]
-    [DataRow(SonarProperties.WorkingDirectory, "invalidPath;*>\0//", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=invalid")]
+    [DataRow(SonarProperties.WorkingDirectory, "<>invalidPath;*>\0//", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=invalid")]
     // Some wellknown properties with confidential data
     [DataRow(SonarProperties.ProjectBranch, "someValue", "dotnetenterprise.s4net.params.sonar_branch.source=CLI")]
     [DataRow(SonarProperties.ProjectName, "someValue", "dotnetenterprise.s4net.params.sonar_projectname.source=CLI")]
