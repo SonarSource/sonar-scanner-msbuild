@@ -408,7 +408,7 @@
       <SonarProjectTelemetry Condition="$(Deterministic) != ''" Include="dotnetenterprise.s4net.build.deterministic" Value="$(Deterministic)" />
       <SonarProjectTelemetry Condition="$(NuGetProjectStyle) != ''" Include="dotnetenterprise.s4net.build.nuget_project_style" Value="$(NuGetProjectStyle)" />
     </ItemGroup>
-    <WriteSonarTelemetry Condition="$(SonarProjectTelemetryFilePath)!=''" Filename="$(SonarProjectTelemetryFilePath)" Telemtry="@(SonarProjectTelemetry)" />
+    <WriteSonarTelemetry Condition="$(SonarProjectTelemetryFilePath)!=''" Filename="$(SonarProjectTelemetryFilePath)" Telemetry="@(SonarProjectTelemetry)" />
 
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Project processed successfully" />
   </Target>
