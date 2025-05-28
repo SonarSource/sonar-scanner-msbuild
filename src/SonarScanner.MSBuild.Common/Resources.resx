@@ -272,4 +272,28 @@
   <data name="MSG_CouldNotImportTruststoreWithDefaultPassword" xml:space="preserve">
     <value>Could not import the truststore '{0}' with the default password at index {1}. Reason: {2}</value>
   </data>
+  <data name="WARN_HostUrlAndSonarcloudUrlSet" xml:space="preserve">
+    <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.</value>
+  </data>
+  <data name="WARN_RegionIsOverriden" xml:space="preserve">
+    <value>The {0} parameter is set to "{1}". The setting will be overriden by one or more of the properties {2}, {3}, or {4}.</value>
+  </data>
+  <data name="ERR_HostUrlAndSonarcloudUrlAreEmpty" xml:space="preserve">
+    <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.</value>
+  </data>
+  <data name="ERR_HostUrlDiffersFromSonarcloudUrl" xml:space="preserve">
+    <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.</value>
+  </data>
+  <data name="MSG_ServerInfo_ApiUrlDetected" xml:space="preserve">
+    <value>Api Url: {0}</value>
+  </data>
+  <data name="MSG_ServerInfo_IsSonarCloudDetected" xml:space="preserve">
+    <value>Is SonarCloud: {0}</value>
+  </data>
+  <data name="MSG_ServerInfo_ServerUrlDetected" xml:space="preserve">
+    <value>Server Url: {0}</value>
+  </data>
+  <data name="ERROR_UnsupportedRegion" xml:space="preserve">
+    <value>Unsupported region '{0}'. List of supported regions: 'us'. Please check the 'sonar.region' property.</value>
+  </data>
 </root>
