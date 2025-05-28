@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
+using System.Runtime.InteropServices;
+
 namespace SonarScanner.MSBuild.Common;
 
 public static class TelemetryUtils
@@ -52,7 +55,7 @@ public static class TelemetryUtils
             || property.IsKey(SonarProperties.JavaExePath)) && value is { } filePath)
         {
             // Don't put the file path in the telemetry. The file extension is indicator enough
-            return MessagePair(provider, property, Path.GetExtension(filePath));
+            return MessagePair(provider, property, PathExtension(filePath));
         }
         else if ((property.IsKey(SonarProperties.PullRequestCacheBasePath)
             || property.IsKey(SonarProperties.VsCoverageXmlReportsPaths)
@@ -63,7 +66,15 @@ public static class TelemetryUtils
             || property.IsKey(SonarProperties.WorkingDirectory)) && value is { } directoryPath)
         {
             // Don't write directories to telemetry. Just specify if the path was absolute or relative
-            return MessagePair(provider, property, Path.IsPathRooted(directoryPath) ? "rooted" : "relative");
+            return MessagePair(provider, property, PathCharacteristics(directoryPath));
+        }
+        else if (property.IsKey(SonarProperties.OperatingSystem)
+            || property.IsKey(SonarProperties.Architecture)
+            || property.IsKey(SonarProperties.SourceEncoding)
+            || property.IsKey(SonarProperties.JavaxNetSslTrustStoreType))
+        {
+            // Whitelist of the properties that are logged with their value
+            return MessagePair(provider, property);
         }
         else if (property.IsKey(SonarProperties.ProjectBranch)
             || property.IsKey(SonarProperties.ProjectName)
@@ -76,8 +87,39 @@ public static class TelemetryUtils
         }
         else
         {
-            // Default: Write the value specified by the user to the telemetry.
-            return MessagePair(provider, property);
+            // Default: Write the source of the specified property but not its value
+            return MessagePair(provider, property, null);
+        }
+    }
+
+    private static string PathExtension(string filePath)
+    {
+        try
+        {
+            return Path.GetExtension(filePath);
+        }
+        catch (ArgumentException)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string PathCharacteristics(string directoryPath)
+    {
+        try
+        {
+            if (Path.IsPathRooted(directoryPath))
+            {
+                return "rooted";
+            }
+            else
+            {
+                return "relative";
+            }
+        }
+        catch (ArgumentException)
+        {
+            return "invalid";
         }
     }
 
