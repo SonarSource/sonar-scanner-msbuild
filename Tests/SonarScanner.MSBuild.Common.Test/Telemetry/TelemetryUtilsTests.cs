@@ -76,10 +76,10 @@ public class TelemetryUtilsTests
     public void LoogedTelemetryFromProperties(string propertyId, string value, params string[] exepectedTelemetry) =>
         AssertTelemetry(propertyId, value, exepectedTelemetry);
 
-    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [DataTestMethod]
     [DataRow(SonarProperties.JavaExePath, "invalidFileName.exe;*>\0//", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
-    public void LoogedTelemetryFromPropertiesNoLinux(string propertyId, string value, params string[] exepectedTelemetry) =>
+    public void LoogedTelemetryFromPropertiesNoMacOS(string propertyId, string value, params string[] exepectedTelemetry) =>
         AssertTelemetry(propertyId, value, exepectedTelemetry);
 
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
