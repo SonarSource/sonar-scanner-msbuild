@@ -172,6 +172,7 @@ public class ProcessedArgs
 
         ServerInfo = HostInfo.FromProperties(logger, sonarHostUrl, sonarcloudUrl, apiBaseUrl, region);
         IsValid &= ServerInfo is not null;
+        TelemetryUtils.AddTelemetry(logger, ServerInfo);
 
         OperatingSystem = GetOperatingSystem(AggregateProperties);
         Architecture = AggregateProperties.TryGetProperty(SonarProperties.Architecture, out var architecture)

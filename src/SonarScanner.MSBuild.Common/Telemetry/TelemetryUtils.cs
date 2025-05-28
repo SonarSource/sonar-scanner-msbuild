@@ -30,6 +30,19 @@ public static class TelemetryUtils
         }
     }
 
+    public static void AddTelemetry(ILogger logger, HostInfo serverInfo)
+    {
+        var serverUrl = serverInfo.IsSonarCloud
+                        ? serverInfo.ServerUrl
+                        : serverInfo.ServerUrl.Equals("http://localhost:9000") ? "localhost" : "custom_url";
+        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.product", serverInfo.IsSonarCloud ? "SQ_Server" : "SQ_Cloud");
+        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.version", serverUrl);
+        if (serverInfo.IsSonarCloud)
+        {
+            logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.region", serverInfo.ServerUrl.EndsWith(".us") ? "us" : "default");
+        }
+    }
+
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {
         var property = argument.Key;
