@@ -95,9 +95,9 @@ public class TelemetryUtilsTests
 
     [DataTestMethod]
     [DataRow("https://sonarcloud.io", "", "https://sonarcloud.io", "default")]
-    [DataRow("https://sonarcloud.io", "region", "https://sonarcloud.io", "default")]
+    [DataRow("https://sonarcloud.io", "region", "https://sonarcloud.io", "region")]
     [DataRow("https://sonarqube.us", "us", "https://sonarqube.us", "us")]
-    [DataRow("private/server", "region", "custom_url", "default")]
+    [DataRow("private/server", "region", "custom_url", "region")]
     public void LoggedTelemetryFromHostInfoSqCloud(string serverUrl, string region, string telemetryUrlValue, string telemetryRegionValue)
     {
         var logger = Substitute.For<ILogger>();

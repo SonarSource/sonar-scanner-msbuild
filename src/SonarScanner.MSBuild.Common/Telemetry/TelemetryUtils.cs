@@ -38,9 +38,9 @@ public static class TelemetryUtils
         }
 
         string serverUrl;
-        if (serverInfo.IsSonarCloud && serverInfo as CloudHostInfo is { } cloudServerInfo)
+        if (serverInfo is CloudHostInfo cloudServerInfo)
         {
-            logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.region", cloudServerInfo.Region is "us" ? "us" : "default");
+            logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.region", string.IsNullOrWhiteSpace(cloudServerInfo.Region) ? "default" : cloudServerInfo.Region);
             serverUrl = CloudHostInfo.IsKnownUrl(cloudServerInfo.ServerUrl) ? cloudServerInfo.ServerUrl : "custom_url";
         }
         else
