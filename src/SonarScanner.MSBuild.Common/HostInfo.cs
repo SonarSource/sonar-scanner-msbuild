@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor;
+namespace SonarScanner.MSBuild.Common;
 
 public abstract record HostInfo(string ServerUrl, string ApiBaseUrl)
 {

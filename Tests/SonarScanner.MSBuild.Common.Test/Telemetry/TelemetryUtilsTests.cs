@@ -80,6 +80,35 @@ public class TelemetryUtilsTests
     public void LoggedTelemetryFromPropertiesNoMacOS(string propertyId, string value, params string[] exepectedTelemetry) =>
         AssertTelemetry(propertyId, value, exepectedTelemetry);
 
+    [DataTestMethod]
+    [DataRow("http://localhost:9000", "localhost")]
+    [DataRow("private.com", "custom_url")]
+    public void LoggedTelemetryFromHostInfoSqServer(string serverUrl, string telemetryValue)
+    {
+        var logger = Substitute.For<ILogger>();
+        var serverInfo = new ServerHostInfo(serverUrl, serverUrl);
+        TelemetryUtils.AddTelemetry(logger, serverInfo);
+        logger.AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
+        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server");
+        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.serverUrl", telemetryValue);
+    }
+
+    [DataTestMethod]
+    [DataRow("https://sonarcloud.io", "", "https://sonarcloud.io", "default")]
+    [DataRow("https://sonarcloud.io", "region", "https://sonarcloud.io", "region")]
+    [DataRow("https://sonarqube.us", "us", "https://sonarqube.us", "us")]
+    [DataRow("private/server", "region", "custom_url", "region")]
+    public void LoggedTelemetryFromHostInfoSqCloud(string serverUrl, string region, string telemetryUrlValue, string telemetryRegionValue)
+    {
+        var logger = Substitute.For<ILogger>();
+        var serverInfo = new CloudHostInfo(serverUrl, serverUrl, region);
+        TelemetryUtils.AddTelemetry(logger, serverInfo);
+        logger.AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
+        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Cloud");
+        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.serverUrl", telemetryUrlValue);
+        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.region", telemetryRegionValue);
+    }
+
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
     {
         var logger = Substitute.For<ILogger>();

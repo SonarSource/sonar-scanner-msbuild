@@ -30,6 +30,28 @@ public static class TelemetryUtils
         }
     }
 
+    public static void AddTelemetry(ILogger logger, HostInfo serverInfo)
+    {
+        if (serverInfo is null)
+        {
+            return;
+        }
+
+        string serverUrl;
+        if (serverInfo is CloudHostInfo cloudServerInfo)
+        {
+            logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.region", string.IsNullOrWhiteSpace(cloudServerInfo.Region) ? "default" : cloudServerInfo.Region);
+            serverUrl = CloudHostInfo.IsKnownUrl(cloudServerInfo.ServerUrl) ? cloudServerInfo.ServerUrl : "custom_url";
+        }
+        else
+        {
+            serverUrl = serverInfo.ServerUrl == "http://localhost:9000" ? "localhost" : "custom_url";
+        }
+
+        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.product", serverInfo.IsSonarCloud ? "SQ_Cloud" : "SQ_Server");
+        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.serverUrl", serverUrl);
+    }
+
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {
         var property = argument.Key;
