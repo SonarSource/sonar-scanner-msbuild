@@ -31,11 +31,14 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     public const string ReportFilePathsVbNetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
     public const string ProjectOutPathsCsharpPropertyKey = "sonar.cs.analyzer.projectOutPaths";
     public const string ProjectOutPathsVbNetPropertyKey = "sonar.vbnet.analyzer.projectOutPaths";
-    private const string ProjectPropertiesFileName = "sonar-project.properties";
+    public const string TelemetryPathsCsharpPropertyKey = "sonar.cs.scanner.telemetry";
+    public const string TelemetryPathsVbNetPropertyKey = "sonar.vbnet.scanner.telemetry";
 
     // This delimiter needs to be the same as the one used in the Integration.targets
     internal const char RoslynReportPathsDelimiter = '|';
     internal const char AnalyzerOutputPathsDelimiter = ',';
+
+    private const string ProjectPropertiesFileName = "sonar-project.properties";
 
     private readonly AnalysisConfig analysisConfig;
     private readonly ILogger logger;
@@ -78,6 +81,9 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
 
     public static bool IsProjectOutPaths(string propertyKey) =>
         propertyKey == ProjectOutPathsCsharpPropertyKey || propertyKey == ProjectOutPathsVbNetPropertyKey;
+
+    public static bool IsTelemetryPaths(string propertyKey) =>
+        propertyKey == TelemetryPathsCsharpPropertyKey || propertyKey == TelemetryPathsVbNetPropertyKey;
 
     /// <summary>
     /// Locates the ProjectInfo.xml files and uses the information in them to generate a sonar-project.properties file.
@@ -292,6 +298,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
                     Array.ForEach(project.GetAllAnalysisFiles(logger), x => projectData.ReferencedFiles.Add(x));
                     AddRoslynOutputFilePaths(project, projectData);
                     AddAnalyzerOutputFilePaths(project, projectData);
+                    AddTelemetryFilePaths(project, projectData);
                 }
             }
 
@@ -404,6 +411,14 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
             {
                 projectData.RoslynReportFilePaths.Add(new FileInfo(filePath));
             }
+        }
+    }
+
+    private static void AddTelemetryFilePaths(ProjectInfo project, ProjectData projectData)
+    {
+        foreach (var property in project.AnalysisSettings.Where(x => IsTelemetryPaths(x.Id)))
+        {
+            projectData.TelemetryPaths.Add(new FileInfo(property.Value));
         }
     }
 

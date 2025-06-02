@@ -132,7 +132,10 @@ public class PropertiesWriter
 
         if (projectData.Project.AnalysisSettings is not null && projectData.Project.AnalysisSettings.Any())
         {
-            foreach (var setting in projectData.Project.AnalysisSettings.Where(x => !PropertiesFileGenerator.IsProjectOutPaths(x.Id) && !PropertiesFileGenerator.IsReportFilePaths(x.Id)))
+            foreach (var setting in projectData.Project.AnalysisSettings.Where(x =>
+                !PropertiesFileGenerator.IsProjectOutPaths(x.Id)
+                && !PropertiesFileGenerator.IsReportFilePaths(x.Id)
+                && !PropertiesFileGenerator.IsTelemetryPaths(x.Id)))
             {
                 sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
                 sb.AppendLine();
@@ -140,7 +143,7 @@ public class PropertiesWriter
 
             WriteAnalyzerOutputPaths(projectData);
             WriteRoslynReportPaths(projectData);
-
+            WriteTelemetryPaths(projectData);
             sb.AppendLine();
         }
 
@@ -149,6 +152,30 @@ public class PropertiesWriter
 
         var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"); // zero-based index of projectData.Guid
         AppendKeyValue(projectData.Guid, SonarProperties.WorkingDirectory, moduleWorkdir);
+    }
+
+    public void WriteTelemetryPaths(ProjectData project)
+    {
+        if (project.TelemetryPaths.Count == 0)
+        {
+            return;
+        }
+
+        string property;
+        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
+        {
+            property = PropertiesFileGenerator.TelemetryPathsCsharpPropertyKey;
+        }
+        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
+        {
+            property = PropertiesFileGenerator.TelemetryPathsVbNetPropertyKey;
+        }
+        else
+        {
+            return;
+        }
+
+        AppendKeyValue(project.Guid, property, project.TelemetryPaths);
     }
 
     public void WriteAnalyzerOutputPaths(ProjectData project)

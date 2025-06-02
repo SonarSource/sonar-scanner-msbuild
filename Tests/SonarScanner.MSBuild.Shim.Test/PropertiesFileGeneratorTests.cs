@@ -1007,6 +1007,54 @@ public class PropertiesFileGeneratorTests
         results[3].FullName.Should().Be(new FileInfo("1").FullName);
     }
 
+    [DataTestMethod]
+    [DataRow("cs")]
+    [DataRow("vbnet")]
+    public void Telemetry_Multitargeting(string languageKey)
+    {
+        var guid = Guid.NewGuid();
+        var propertyKey = $"sonar.{languageKey}.scanner.telemetry";
+        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "foo");
+        var fullPath = Path.Combine(TestContext.TestRunDirectory, "foo");
+        var projectInfos = new[]
+        {
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = new() { new(propertyKey, "1.json") },
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                TargetFramework = "net46",
+                AnalysisSettings = new() { new(propertyKey, "2.json") },
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Release",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = new()
+                {
+                    new(propertyKey, "3.json"),
+                    new(propertyKey, "4.json"),
+                },
+                FullPath = fullPath,
+            },
+        };
+
+        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
+        var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
+        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single()).TelemetryPaths.ToList();
+
+        results.Should().BeEquivalentTo([new FileInfo("2.json"), new("1.json"), new("3.json"), new("4.json")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
+    }
+
     [TestMethod]
     public void ToProjectData_ProjectsWithDuplicateGuid()
     {

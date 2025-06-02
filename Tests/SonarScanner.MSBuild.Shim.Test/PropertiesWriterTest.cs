@@ -258,6 +258,59 @@ sonar.modules=
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
+    public void Telemetry_ForUnexpectedLanguage_DoNotWritePaths()
+    {
+        var config = new AnalysisConfig();
+        var propertiesWriter = new PropertiesWriter(config, new TestLogger());
+        var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
+
+        var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = "unexpected" };
+        var projectData = new ProjectData(projectInfo);
+        projectData.TelemetryPaths.Add(new FileInfo(@"c:\dir1\dir2\Telemetry.json"));
+
+        propertiesWriter.WriteTelemetryPaths(projectData);
+
+        propertiesWriter.Flush().Should().Be(
+            """
+            sonar.modules=
+
+
+            """);
+    }
+
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [DataTestMethod]
+    [DataRow(ProjectLanguages.CSharp, "sonar.cs.scanner.telemetry")]
+    [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.scanner.telemetry")]
+    public void Telmetry_WritesEncodedPaths(string language, string expectedPropertyKey)
+    {
+        var config = new AnalysisConfig();
+        var propertiesWriter = new PropertiesWriter(config, new TestLogger());
+        var someGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9");
+
+        var projectData = new ProjectData(new ProjectInfo { ProjectGuid = someGuid, ProjectLanguage = language })
+        {
+            TelemetryPaths =
+            {
+                new FileInfo(@"c:\dir1\first\Telemetry.json"),
+                new FileInfo(@"c:\dir1\second\Telemetry.json"),
+            }
+        };
+        propertiesWriter.WriteTelemetryPaths(projectData);
+
+        propertiesWriter.Flush().Should().Be(
+            $"""
+            5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
+            c:\\dir1\\first\\Telemetry.json,\
+            c:\\dir1\\second\\Telemetry.json
+            sonar.modules=
+
+
+            """);
+    }
+
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestMethod]
     public void PropertiesWriterToString()
     {
         var productBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "PropertiesWriterTest_ProductBaseDir");
