@@ -1007,6 +1007,50 @@ public class PropertiesFileGeneratorTests
         results[3].FullName.Should().Be(new FileInfo("1").FullName);
     }
 
+
+    [DataTestMethod]
+    [DataRow("cs")]
+    [DataRow("vbnet")]
+    public void Telemetry_Multitargeting(string languageKey)
+    {
+        var guid = Guid.NewGuid();
+        var propertyKey = $"sonar.{languageKey}.scanner.telemetry";
+        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "foo");
+        var fullPath = Path.Combine(TestContext.TestRunDirectory, "foo");
+        var projectInfos = new[]
+        {
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = new() { new(propertyKey, "1") },
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                TargetFramework = "net46",
+                AnalysisSettings = new() { new(propertyKey, "2") },
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                Platform = "x86",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = new() { new(propertyKey, "3") },
+                FullPath = fullPath,
+            },
+        };
+
+        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
+        var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
+        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First()).TelemetryPaths.ToList();
+
+        results.Should().BeEquivalentTo([new FileInfo("2"), new("1"), new("3")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
+    }
+
     [TestMethod]
     public void ToProjectData_ProjectsWithDuplicateGuid()
     {
