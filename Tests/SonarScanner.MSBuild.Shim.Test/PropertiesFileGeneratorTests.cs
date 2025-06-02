@@ -1023,7 +1023,7 @@ public class PropertiesFileGeneratorTests
                 ProjectGuid = guid,
                 Configuration = "Debug",
                 TargetFramework = "netstandard2.0",
-                AnalysisSettings = new() { new(propertyKey, "1") },
+                AnalysisSettings = new() { new(propertyKey, "1.json") },
                 FullPath = fullPath,
             },
             new ProjectInfo
@@ -1050,7 +1050,7 @@ public class PropertiesFileGeneratorTests
 
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
         var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
-        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First()).TelemetryPaths.ToList();
+        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single()).TelemetryPaths.ToList();
 
         results.Should().BeEquivalentTo([new FileInfo("2"), new("1"), new("3"), new("4")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }
