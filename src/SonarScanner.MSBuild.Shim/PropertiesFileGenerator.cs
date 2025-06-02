@@ -38,7 +38,6 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     // This delimiter needs to be the same as the one used in the Integration.targets
     internal const char RoslynReportPathsDelimiter = '|';
     internal const char AnalyzerOutputPathsDelimiter = ',';
-    internal const char TelemeterPathsDelimiter = ',';
 
     private readonly AnalysisConfig analysisConfig;
     private readonly ILogger logger;
@@ -416,12 +415,9 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
 
     private static void AddTelemetryFilePaths(ProjectInfo project, ProjectData projectData)
     {
-        if (project.AnalysisSettings.FirstOrDefault(x => IsTelemetryPaths(x.Id)) is { } property)
+        foreach (var property in project.AnalysisSettings.Where(x => IsTelemetryPaths(x.Id)))
         {
-            foreach (var filePath in property.Value.Split(TelemeterPathsDelimiter))
-            {
-                projectData.TelemetryPaths.Add(new FileInfo(filePath));
-            }
+            projectData.TelemetryPaths.Add(new FileInfo(property.Value));
         }
     }
 

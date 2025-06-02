@@ -1039,7 +1039,11 @@ public class PropertiesFileGeneratorTests
                 Configuration = "Debug",
                 Platform = "x86",
                 TargetFramework = "netstandard2.0",
-                AnalysisSettings = new() { new(propertyKey, "3") },
+                AnalysisSettings = new()
+                {
+                    new(propertyKey, "3"),
+                    new(propertyKey, "4"),
+                },
                 FullPath = fullPath,
             },
         };
@@ -1048,7 +1052,7 @@ public class PropertiesFileGeneratorTests
         var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
         var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First()).TelemetryPaths.ToList();
 
-        results.Should().BeEquivalentTo([new FileInfo("2"), new("1"), new("3")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
+        results.Should().BeEquivalentTo([new FileInfo("2"), new("1"), new("3"), new("4")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }
 
     [TestMethod]
