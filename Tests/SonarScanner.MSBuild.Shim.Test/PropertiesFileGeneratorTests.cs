@@ -1007,7 +1007,6 @@ public class PropertiesFileGeneratorTests
         results[3].FullName.Should().Be(new FileInfo("1").FullName);
     }
 
-
     [DataTestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
@@ -1022,6 +1021,7 @@ public class PropertiesFileGeneratorTests
             new ProjectInfo
             {
                 ProjectGuid = guid,
+                Configuration = "Debug",
                 TargetFramework = "netstandard2.0",
                 AnalysisSettings = new() { new(propertyKey, "1") },
                 FullPath = fullPath,
@@ -1029,6 +1029,7 @@ public class PropertiesFileGeneratorTests
             new ProjectInfo
             {
                 ProjectGuid = guid,
+                Configuration = "Debug",
                 TargetFramework = "net46",
                 AnalysisSettings = new() { new(propertyKey, "2") },
                 FullPath = fullPath,
@@ -1036,8 +1037,7 @@ public class PropertiesFileGeneratorTests
             new ProjectInfo
             {
                 ProjectGuid = guid,
-                Configuration = "Debug",
-                Platform = "x86",
+                Configuration = "Release",
                 TargetFramework = "netstandard2.0",
                 AnalysisSettings = new()
                 {
@@ -1050,7 +1050,7 @@ public class PropertiesFileGeneratorTests
 
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
         var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
-        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First()).TelemetryPaths.ToList();
+        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First()).TelemetryPaths.ToList();
 
         results.Should().BeEquivalentTo([new FileInfo("2"), new("1"), new("3"), new("4")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }
