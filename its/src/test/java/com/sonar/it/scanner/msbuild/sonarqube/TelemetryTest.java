@@ -70,7 +70,7 @@ class TelemetryTest {
     assertThat(readContents(sonarQubeOutDirectory.resolve("Telemetry.Targets.S4NET.json")))
       .satisfiesExactly(
         x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.visual_studio_version\":"),
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.msbuild_tools_version\":")
+        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.msbuild_version\":")
       );
 
     for (int i = 0; i < 3; i++) {
