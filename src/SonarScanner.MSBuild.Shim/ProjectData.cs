@@ -59,4 +59,9 @@ public class ProjectData
     /// The folders where the protobuf files are generated
     /// </summary>
     public ICollection<FileInfo> AnalyzerOutPaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
+
+    /// <summary>
+    /// The files where the Telemetry.json files are generated.
+    /// </summary>
+    public ICollection<FileInfo> TelemetryPaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 }
