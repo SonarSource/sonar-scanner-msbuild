@@ -139,7 +139,8 @@
   <Target Name="WriteSonarTelemetry" Condition ="$(SonarTelemetryFilePath) != ''" BeforeTargets="Build">
     <ItemGroup>
       <SonarTelemetry Condition="$(VisualStudioVersion) != ''" Include="dotnetenterprise.s4net.build.visual_studio_version" Value="$(VisualStudioVersion)" />
-      <SonarTelemetry Include="dotnetenterprise.s4net.build.msbuild_tools_version" Value="$(MSBuildToolsVersion)" />
+      <!-- Version of MSBuild. Preferred over MSBuildToolsVersion which defaults to just "Current" https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-reserved-and-well-known-properties?view=vs-2022 -->
+      <SonarTelemetry Condition="$(MSBuildVersion) != ''" Include="dotnetenterprise.s4net.build.msbuild_version" Value="$(MSBuildVersion)" />
     </ItemGroup>
 
     <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" CreateNew="true" Telemetry="@(SonarTelemetry)"/>
