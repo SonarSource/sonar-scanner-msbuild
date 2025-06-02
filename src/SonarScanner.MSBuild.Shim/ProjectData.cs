@@ -29,11 +29,6 @@ namespace SonarScanner.MSBuild.Shim;
 /// </summary>
 public class ProjectData
 {
-    public ProjectData(ProjectInfo project)
-    {
-        Project = project;
-    }
-
     public string Guid => Project.GetProjectGuidAsString();
 
     public ProjectInfoValidity Status { get; set; }
@@ -64,4 +59,9 @@ public class ProjectData
     /// The files where the Telemetry.json files are generated.
     /// </summary>
     public ICollection<FileInfo> TelemetryPaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
+
+    public ProjectData(ProjectInfo project)
+    {
+        Project = project;
+    }
 }
