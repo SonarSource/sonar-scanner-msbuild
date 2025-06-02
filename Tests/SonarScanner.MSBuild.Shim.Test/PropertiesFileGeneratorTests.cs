@@ -1031,7 +1031,7 @@ public class PropertiesFileGeneratorTests
                 ProjectGuid = guid,
                 Configuration = "Debug",
                 TargetFramework = "net46",
-                AnalysisSettings = new() { new(propertyKey, "2") },
+                AnalysisSettings = new() { new(propertyKey, "2.json") },
                 FullPath = fullPath,
             },
             new ProjectInfo
@@ -1041,8 +1041,8 @@ public class PropertiesFileGeneratorTests
                 TargetFramework = "netstandard2.0",
                 AnalysisSettings = new()
                 {
-                    new(propertyKey, "3"),
-                    new(propertyKey, "4"),
+                    new(propertyKey, "3.json"),
+                    new(propertyKey, "4.json"),
                 },
                 FullPath = fullPath,
             },
@@ -1052,7 +1052,7 @@ public class PropertiesFileGeneratorTests
         var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
         var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single()).TelemetryPaths.ToList();
 
-        results.Should().BeEquivalentTo([new FileInfo("2"), new("1"), new("3"), new("4")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
+        results.Should().BeEquivalentTo([new FileInfo("2.json"), new("1.json"), new("3.json"), new("4.json")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }
 
     [TestMethod]
