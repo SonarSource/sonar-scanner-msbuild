@@ -33,11 +33,12 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     public const string ProjectOutPathsVbNetPropertyKey = "sonar.vbnet.analyzer.projectOutPaths";
     public const string TelemetryPathsCsharpPropertyKey = "sonar.cs.scanner.telemetry";
     public const string TelemetryPathsVbNetPropertyKey = "sonar.vbnet.scanner.telemetry";
-    private const string ProjectPropertiesFileName = "sonar-project.properties";
 
     // This delimiter needs to be the same as the one used in the Integration.targets
     internal const char RoslynReportPathsDelimiter = '|';
     internal const char AnalyzerOutputPathsDelimiter = ',';
+
+    private const string ProjectPropertiesFileName = "sonar-project.properties";
 
     private readonly AnalysisConfig analysisConfig;
     private readonly ILogger logger;
