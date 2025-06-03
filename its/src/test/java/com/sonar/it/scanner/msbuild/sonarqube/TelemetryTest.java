@@ -46,8 +46,22 @@ import static org.assertj.core.api.Assertions.tuple;
 class TelemetryTest {
 
   @Test
-  void telemetry_telemetryFiles_areCorrect() throws IOException {
-    var context = AnalysisContext.forServer("Telemetry");
+  void telemetry_telemetryFiles_areCorrect_CS() throws IOException {
+    AssertTelemetry("Telemetry");
+  }
+
+  @Test
+  void telemetry_telemetryFiles_areCorrect_VB() throws IOException {
+    AssertTelemetry("TelemetryVB");
+  }
+
+  @Test
+  void telemetry_telemetryFiles_areCorrect_CSVB_Mixed() throws IOException {
+    AssertTelemetry("TelemetryCSVBMixed");
+  }
+
+  private void AssertTelemetry(String projectName) throws IOException {
+    var context = AnalysisContext.forServer(Paths.get("Telemetry", projectName).toString());
     context.begin.setProperty(
       new Property("sonar.scanner.scanAll", "false"),
       new Property("s", context.projectDir.resolve("SonarQube.Analysis.xml").toAbsolutePath().toString()));
