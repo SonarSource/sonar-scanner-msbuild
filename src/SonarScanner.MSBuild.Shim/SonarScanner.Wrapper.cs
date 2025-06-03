@@ -35,7 +35,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     private const string CmdLineArgPrefix = "-D";
 
     // This version needs to be in sync with version in scripts\variables.ps1.
-    private const string SonarScannerVersion = "5.0.1.3006";
+    private const string SonarScannerVersion = "5.0.2.4997";
 
     private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IOperatingSystemProvider operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
