@@ -12,3 +12,4 @@ $env:WS_PROJECTNAME = "$env:WS_PRODUCTNAME $(Get-Version)"
 
 Write-Host "Running the Mend unified agent for $env:WS_PROJECTNAME..."
 & "$env:JAVA_HOME\bin\java.exe" -jar $env:MEND_AGENT_PATH -c "$PSScriptRoot\wss-unified-agent.config"
+exit $LASTEXITCODE
