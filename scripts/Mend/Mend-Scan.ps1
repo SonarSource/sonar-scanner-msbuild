@@ -8,7 +8,7 @@ function Get-Version {
 # - WS_PRODUCTNAME
 # - WS_PROJECTNAME
 
-$env:WS_PROJECTNAME = "$env:WS_PRODUCTNAME $(Get-Version)"
+$env:WS_PROJECTNAME = "$env:WS_PRODUCTNAME $(Get-Version).Test"
 
 Write-Host "Running the Mend unified agent for $env:WS_PROJECTNAME..."
 & "$env:JAVA_HOME\bin\java.exe" -jar $env:MEND_AGENT_PATH -c "$PSScriptRoot\wss-unified-agent.config"
