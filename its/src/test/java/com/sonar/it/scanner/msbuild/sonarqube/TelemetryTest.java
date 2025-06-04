@@ -58,8 +58,7 @@ class TelemetryTest {
   void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() throws IOException {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
 
-    context.begin.setProperty(
-      new Property("sonar.verbose", "true"));
+    context.begin.setDebugLogs();
     context.runAnalysis();
 
     var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
@@ -77,10 +76,10 @@ class TelemetryTest {
 
     var result = context.end.execute(ORCHESTRATOR);
     var logLines = Arrays.asList(result.getLogs().split("\n"));
-    // guid.sonar.cs.scanner.telemetry should exist once per project
+    // guid.sonar.cs.scanner.telemetry should exist once per project in the content of sonar-project.properties (dumped to the logs)
     assertThat(logLines.stream().filter(x -> x.matches(".*\\.sonar\\.cs\\.scanner\\.telemetry=\\\\"))).hasSize(2);
-    // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework
-    assertThat(logLines.stream().filter(x -> x.matches(".*\\\\\\\\[0-9]\\\\\\\\Telemetry\\.json\".?\\\\?"))).hasSize(4);
+    // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework in the content of sonar-project.properties (dumped to the logs)
+    assertThat(logLines.stream().filter(x -> x.matches(".*\\\\\\\\[0-9]\\\\\\\\Telemetry\\.json\",?\\\\?"))).hasSize(4);
   }
 
   private void AssertTelemetry(String projectName) throws IOException {
