@@ -22,6 +22,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -34,10 +36,11 @@ import java.util.List;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.spliterator;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class TelemetryTest {
-
+  private static final Logger LOG = LoggerFactory.getLogger(TelemetryTest.class);
   @Test
   void telemetry_telemetryFiles_areCorrect_CS() throws IOException {
     AssertTelemetry("Telemetry");
@@ -75,7 +78,8 @@ class TelemetryTest {
       "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v9.0\"}");
 
     var result = context.end.execute(ORCHESTRATOR);
-    var logLines = Arrays.asList(result.getLogs().split(System.lineSeparator()));
+    var logLines = Arrays.asList(result.getLogs().split("\n"));
+    LOG.warn(result.getLogs());
     // guid.sonar.cs.scanner.telemetry should exist once per project in the content of sonar-project.properties (dumped to the logs)
     assertThat(logLines.stream().filter(x -> x.matches(".*\\.sonar\\.cs\\.scanner\\.telemetry=\\\\"))).hasSize(2);
     // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework in the content of sonar-project.properties (dumped to the logs)
