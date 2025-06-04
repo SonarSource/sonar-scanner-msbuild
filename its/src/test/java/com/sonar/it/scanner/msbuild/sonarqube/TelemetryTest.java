@@ -56,7 +56,6 @@ class TelemetryTest {
   @Test
   @MSBuildMinVersion(17)
   void telemetry_telemetryFiles_areCorrect_multiTargetFramework() throws IOException {
-
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
 
     context.begin.setProperty(
@@ -88,7 +87,7 @@ class TelemetryTest {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", projectName).toString());
     context.begin.setProperty(
       new Property("sonar.scanner.scanAll", "false"),
-      new Property("s", context.projectDir.resolve(Paths.get("SonarQube.Analysis.xml")).toAbsolutePath().toString()));
+      new Property("s", context.projectDir.resolve("SonarQube.Analysis.xml").toAbsolutePath().toString()));
     context.runAnalysis();
 
     var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
