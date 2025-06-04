@@ -55,7 +55,7 @@ class TelemetryTest {
 
   @Test
   @MSBuildMinVersion(17)
-  void telemetry_telemetryFiles_areCorrect_multiTargetFramework() throws IOException {
+  void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() throws IOException {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
 
     context.begin.setProperty(
