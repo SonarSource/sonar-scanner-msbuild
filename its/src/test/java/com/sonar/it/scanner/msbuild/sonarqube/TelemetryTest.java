@@ -75,7 +75,7 @@ class TelemetryTest {
       "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v9.0\"}");
 
     var result = context.end.execute(ORCHESTRATOR);
-    var logLines = Arrays.asList(result.getLogs().split("\n"));
+    var logLines = Arrays.asList(result.getLogs().split(System.lineSeparator()));
     // guid.sonar.cs.scanner.telemetry should exist once per project in the content of sonar-project.properties (dumped to the logs)
     assertThat(logLines.stream().filter(x -> x.matches(".*\\.sonar\\.cs\\.scanner\\.telemetry=\\\\"))).hasSize(2);
     // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework in the content of sonar-project.properties (dumped to the logs)
