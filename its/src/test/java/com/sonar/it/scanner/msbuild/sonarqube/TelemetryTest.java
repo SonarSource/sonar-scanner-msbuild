@@ -22,13 +22,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.sonarqube.ws.Components;
-import org.sonarqube.ws.Issues.Issue;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,11 +31,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class TelemetryTest {
@@ -60,11 +53,42 @@ class TelemetryTest {
     AssertTelemetry("TelemetryCSVBMixed");
   }
 
+  @Test
+  @MSBuildMinVersion(17)
+  void telemetry_telemetryFiles_areCorrect_multiTargetFramework() throws IOException {
+
+    var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
+
+    context.begin.setProperty(
+      new Property("sonar.verbose", "true"));
+    context.runAnalysis();
+
+    var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
+
+    ArrayList<String> projectMonikers = new ArrayList<>();
+    for (int i=0; i<4; i++) {
+      projectMonikers.addAll(readContents(sonarQubeOutDirectory.resolve(String.valueOf(i)).resolve("Telemetry.json")));
+    }
+
+    assertThat(projectMonikers).containsExactlyInAnyOrder(
+      "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v8.0\"}",
+      "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v8.0\"}",
+      "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v9.0\"}",
+      "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v9.0\"}");
+
+    var result = context.end.execute(ORCHESTRATOR);
+    var logLines = Arrays.asList(result.getLogs().split("\n"));
+    // guid.sonar.cs.scanner.telemetry should exist once per project
+    assertThat(logLines.stream().filter(x -> x.matches(".*\\.sonar\\.cs\\.scanner\\.telemetry=\\\\"))).hasSize(2);
+    // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework
+    assertThat(logLines.stream().filter(x -> x.matches(".*\\\\\\\\[0-9]\\\\\\\\Telemetry\\.json\".?\\\\?"))).hasSize(4);
+  }
+
   private void AssertTelemetry(String projectName) throws IOException {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", projectName).toString());
     context.begin.setProperty(
       new Property("sonar.scanner.scanAll", "false"),
-      new Property("s", context.projectDir.resolve("SonarQube.Analysis.xml").toAbsolutePath().toString()));
+      new Property("s", context.projectDir.resolve(Paths.get("SonarQube.Analysis.xml")).toAbsolutePath().toString()));
     context.runAnalysis();
 
     var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
