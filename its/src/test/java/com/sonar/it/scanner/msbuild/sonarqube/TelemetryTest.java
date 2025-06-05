@@ -36,26 +36,30 @@ import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
-@ServerMinVersion("LATEST_RELEASE")
 class TelemetryTest {
 
+
   @Test
+  @ServerMinVersion("LATEST_RELEASE")
   void telemetry_telemetryFiles_areCorrect_CS() throws IOException {
     AssertTelemetry("Telemetry");
   }
 
   @Test
+  @ServerMinVersion("LATEST_RELEASE")
   void telemetry_telemetryFiles_areCorrect_VB() throws IOException {
     AssertTelemetry("TelemetryVB");
   }
 
   @Test
+  @ServerMinVersion("LATEST_RELEASE")
   void telemetry_telemetryFiles_areCorrect_CSVB_Mixed() throws IOException {
     AssertTelemetry("TelemetryCSVBMixed");
   }
 
   @Test
   @MSBuildMinVersion(17)
+  @ServerMinVersion("LATEST_RELEASE")
   void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() throws IOException {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
 
