@@ -97,7 +97,7 @@ class TelemetryTest {
 
     var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
 
-    assertThat(readContents(sonarQubeOutDirectory.resolve(("Telemetry.S4NET.json"))))
+    assertThat(readContents(sonarQubeOutDirectory.resolve(("rTelemetry.S4NET.json"))))
       .satisfiesExactly(
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source\":\"CLI\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source\":\"CLI\"}"),
@@ -109,7 +109,7 @@ class TelemetryTest {
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.serverUrl\":\"custom_url\"}")
       );
 
-    assertThat(readContents(sonarQubeOutDirectory.resolve("Telemetry.Targets.S4NET.json")))
+    assertThat(readContents(sonarQubeOutDirectory.resolve("rTelemetry.Targets.S4NET.json")))
       .satisfiesExactly(
         x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.visual_studio_version\":"),
         x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.msbuild_version\":")
