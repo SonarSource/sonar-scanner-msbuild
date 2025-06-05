@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,11 +80,11 @@ class TelemetryTest {
 
     var result = context.end.execute(ORCHESTRATOR);
     var logLines = Arrays.asList(result.getLogs().split("\n"));
-    LOG.warn(result.getLogs());
+    var pathPattern = OSPlatform.isMacOS() ? ".*/[0-9]/Telemetry\\.json\",?\\\\?" : ".*\\\\\\\\[0-9]\\\\\\\\Telemetry\\.json\",?\\\\?";
     // guid.sonar.cs.scanner.telemetry should exist once per project in the content of sonar-project.properties (dumped to the logs)
     assertThat(logLines.stream().filter(x -> x.matches(".*\\.sonar\\.cs\\.scanner\\.telemetry=\\\\"))).hasSize(2);
     // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework in the content of sonar-project.properties (dumped to the logs)
-    assertThat(logLines.stream().filter(x -> x.matches(".*\\\\\\\\[0-9]\\\\\\\\Telemetry\\.json\",?\\\\?"))).hasSize(4);
+    assertThat(logLines.stream().filter(x -> x.matches(pathPattern))).hasSize(4);
   }
 
   private void AssertTelemetry(String projectName) throws IOException {
