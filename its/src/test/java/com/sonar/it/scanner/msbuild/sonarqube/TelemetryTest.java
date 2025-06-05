@@ -21,10 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.*;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -37,11 +34,11 @@ import java.util.List;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.spliterator;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
+@ServerMinVersion("LATEST_RELEASE")
 class TelemetryTest {
-  private static final Logger LOG = LoggerFactory.getLogger(TelemetryTest.class);
+
   @Test
   void telemetry_telemetryFiles_areCorrect_CS() throws IOException {
     AssertTelemetry("Telemetry");
