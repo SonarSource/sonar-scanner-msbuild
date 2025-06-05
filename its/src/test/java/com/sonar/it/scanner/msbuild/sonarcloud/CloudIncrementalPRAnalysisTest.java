@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({CloudTests.class, ContextExtension.class})
-class IncrementalPRAnalysisTest {
-  private final static Logger LOG = LoggerFactory.getLogger(IncrementalPRAnalysisTest.class);
+class CloudIncrementalPRAnalysisTest {
+  private final static Logger LOG = LoggerFactory.getLogger(CloudIncrementalPRAnalysisTest.class);
   private final static String DIRECTORY_NAME = "IncrementalPRAnalysis";
   private final static Property[] prArguments = {
     new Property("sonar.pullrequest.base", "master"),
