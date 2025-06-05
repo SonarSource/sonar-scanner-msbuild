@@ -40,26 +40,26 @@ class TelemetryTest {
 
 
   @Test
-  @ServerMinVersion("LATEST_RELEASE")
+  @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CS() throws IOException {
     AssertTelemetry("Telemetry");
   }
 
   @Test
-  @ServerMinVersion("LATEST_RELEASE")
+  @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_VB() throws IOException {
     AssertTelemetry("TelemetryVB");
   }
 
   @Test
-  @ServerMinVersion("LATEST_RELEASE")
+  @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CSVB_Mixed() throws IOException {
     AssertTelemetry("TelemetryCSVBMixed");
   }
 
   @Test
   @MSBuildMinVersion(17)
-  @ServerMinVersion("LATEST_RELEASE")
+  @ServerMinVersion("2025.3")
   void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() throws IOException {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
 
