@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith({CloudTests.class, ContextExtension.class})
-class JreProvisioningTest {
+class CloudJreProvisioningTest {
   private static final String DIRECTORY_NAME = "JreProvisioning";
   private static final Property activateProvisioning = new Property("sonar.scanner.skipJreProvisioning", null); // Default ScannerCommand behavior turns it off
 
