@@ -56,8 +56,4 @@ public class OSPlatform {
   public static boolean isWindows() {
     return current() == OperatingSystem.Windows;
   }
-
-  public static boolean isMacOS() {
-    return current() == OperatingSystem.MacOS;
-  }
 }

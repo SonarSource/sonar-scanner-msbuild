@@ -80,7 +80,8 @@ class TelemetryTest {
 
     var result = context.end.execute(ORCHESTRATOR);
     var logLines = Arrays.asList(result.getLogs().split("\n"));
-    var pathPattern = OSPlatform.isMacOS() ? ".*/[0-9]/Telemetry\\.json\",?\\\\?" : ".*\\\\\\\\[0-9]\\\\\\\\Telemetry\\.json\",?\\\\?";
+    var pathSeparator = "(?:/|\\\\{2})"; // Either a / or two \\;
+    var pathPattern = ".*" + pathSeparator+ "[0-9]" + pathSeparator + "Telemetry\\.json\",?\\\\?";
     // guid.sonar.cs.scanner.telemetry should exist once per project in the content of sonar-project.properties (dumped to the logs)
     assertThat(logLines.stream().filter(x -> x.matches(".*\\.sonar\\.cs\\.scanner\\.telemetry=\\\\"))).hasSize(2);
     // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework in the content of sonar-project.properties (dumped to the logs)
