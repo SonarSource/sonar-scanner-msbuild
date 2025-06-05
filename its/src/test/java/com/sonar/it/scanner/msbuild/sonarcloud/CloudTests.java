@@ -24,14 +24,26 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CloudTests implements BeforeAllCallback {
 
+  private static final Logger LOG = LoggerFactory.getLogger(CloudTests.class);
   private static volatile boolean isFirstTry = true;
   private static volatile boolean isStarted;
 
   @Override
   public void beforeAll(ExtensionContext extensionContext) {
+    if (CloudConstants.SONARCLOUD_ORGANIZATION == null) {
+      failCloudTests("SONARCLOUD_ORGANIZATION");
+    }
+    if (CloudConstants.SONARCLOUD_URL == null) {
+      failCloudTests("SONARCLOUD_URL");
+    }
+    if (CloudConstants.SONARCLOUD_API_URL == null) {
+      failCloudTests("SONARCLOUD_API_URL");
+    }
     synchronized (CloudTests.class) {
       if (!isStarted) {
         if (isFirstTry) {
@@ -50,5 +62,11 @@ public class CloudTests implements BeforeAllCallback {
     ContextExtension.init("CloudTests.Startup." + Thread.currentThread().getName() + "." + OSPlatform.current().toString());
     AnalysisContext.forCloud("Empty").runAnalysis();
     ContextExtension.cleanup();
+  }
+
+  private void failCloudTests(String envVariable)
+  {
+    LOG.error("Missing environment variable{}", envVariable);
+    throw new IllegalStateException("Missing environment variable: " + envVariable);
   }
 }
