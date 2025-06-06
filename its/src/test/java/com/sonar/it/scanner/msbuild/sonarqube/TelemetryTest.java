@@ -38,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class TelemetryTest {
 
-
   @Test
   @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CS() throws IOException {
