@@ -59,11 +59,11 @@ public class CloudTests implements BeforeAllCallback {
     ContextExtension.cleanup();
   }
 
-  private void ensureEnvironment(String envVariable, String envVariableValue)
+  private void ensureEnvironment(String name, String value)
   {
-    if (envVariableValue == null) {
-      LOG.error("Missing environment variable{}", envVariable);
-      throw new IllegalStateException("Missing environment variable: " + envVariable);
+    if (value == null) {
+      LOG.error("Missing environment variable{}", name);
+      throw new IllegalStateException("Missing environment variable: " + name);
     }
   }
 }
