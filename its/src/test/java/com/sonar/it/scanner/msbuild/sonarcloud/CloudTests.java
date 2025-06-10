@@ -35,15 +35,10 @@ public class CloudTests implements BeforeAllCallback {
 
   @Override
   public void beforeAll(ExtensionContext extensionContext) {
-    if (CloudConstants.SONARCLOUD_ORGANIZATION == null) {
-      failCloudTests("SONARCLOUD_ORGANIZATION");
-    }
-    if (CloudConstants.SONARCLOUD_URL == null) {
-      failCloudTests("SONARCLOUD_URL");
-    }
-    if (CloudConstants.SONARCLOUD_API_URL == null) {
-      failCloudTests("SONARCLOUD_API_URL");
-    }
+    ensureEnvironment("SONARCLOUD_ORGANIZATION", CloudConstants.SONARCLOUD_ORGANIZATION);
+    ensureEnvironment("SONARCLOUD_URL", CloudConstants.SONARCLOUD_URL);
+    ensureEnvironment("SONARCLOUD_API_URL", CloudConstants.SONARCLOUD_API_URL);
+
     synchronized (CloudTests.class) {
       if (!isStarted) {
         if (isFirstTry) {
@@ -64,9 +59,11 @@ public class CloudTests implements BeforeAllCallback {
     ContextExtension.cleanup();
   }
 
-  private void failCloudTests(String envVariable)
+  private void ensureEnvironment(String envVariable, String envVariableValue)
   {
-    LOG.error("Missing environment variable{}", envVariable);
-    throw new IllegalStateException("Missing environment variable: " + envVariable);
+    if (envVariableValue == null) {
+      LOG.error("Missing environment variable{}", envVariable);
+      throw new IllegalStateException("Missing environment variable: " + envVariable);
+    }
   }
 }
