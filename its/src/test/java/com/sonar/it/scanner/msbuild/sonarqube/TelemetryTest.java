@@ -21,10 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.*;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -37,28 +34,31 @@ import java.util.List;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.spliterator;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class TelemetryTest {
-  private static final Logger LOG = LoggerFactory.getLogger(TelemetryTest.class);
+
   @Test
+  @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CS() throws IOException {
     AssertTelemetry("Telemetry");
   }
 
   @Test
+  @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_VB() throws IOException {
     AssertTelemetry("TelemetryVB");
   }
 
   @Test
+  @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CSVB_Mixed() throws IOException {
     AssertTelemetry("TelemetryCSVBMixed");
   }
 
   @Test
   @MSBuildMinVersion(17)
+  @ServerMinVersion("2025.3")
   void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() throws IOException {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
 
@@ -97,7 +97,7 @@ class TelemetryTest {
 
     var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
 
-    assertThat(readContents(sonarQubeOutDirectory.resolve(("Telemetry.S4NET.json"))))
+    assertThat(readContents(sonarQubeOutDirectory.resolve(("rTelemetry.S4NET.json"))))
       .satisfiesExactly(
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source\":\"CLI\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source\":\"CLI\"}"),
@@ -109,7 +109,7 @@ class TelemetryTest {
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.serverUrl\":\"custom_url\"}")
       );
 
-    assertThat(readContents(sonarQubeOutDirectory.resolve("Telemetry.Targets.S4NET.json")))
+    assertThat(readContents(sonarQubeOutDirectory.resolve("rTelemetry.Targets.S4NET.json")))
       .satisfiesExactly(
         x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.visual_studio_version\":"),
         x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.msbuild_version\":")
