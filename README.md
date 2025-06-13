@@ -13,7 +13,6 @@ SonarScanner for .NET is distributed as a
 * [Azure DevOps extension](https://github.com/SonarSource/sonar-scanner-azdo)
 * [Jenkins plugin](https://github.com/SonarSource/sonar-scanner-jenkins)
 
-For more info please look at our documentation page
 
 * [On SonarQube](https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/)
 * [On SonarCloud](https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/)
