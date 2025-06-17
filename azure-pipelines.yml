@@ -15,7 +15,9 @@ trigger:
   - master
   - branch-*
 
-pool: .net-bubble-aws-re-team-prod
+pool:
+  name: .net-bubble-aws-re-team-dev
+  demands: EnvName -equals pr-234
 
 variables:
   - group: sonarsource-build-variables
@@ -278,12 +280,6 @@ stages:
         workspace:
           clean: all
         steps:
-          - task: DownloadPipelineArtifact@2    # Mend needs the Scanner CLI Jar on the disk at the time of scan
-            inputs:
-              buildType: 'current'
-              targetPath: '$(Build.SourcesDirectory)/build'
-              artifactName: build
-
           - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
             displayName: "NuGet Restore"
             env:
