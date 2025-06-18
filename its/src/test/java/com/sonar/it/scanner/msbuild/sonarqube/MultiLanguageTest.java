@@ -336,7 +336,7 @@ class MultiLanguageTest {
   // This is required for the sonar-text-plugin to work correctly.
   // For file extensions that are not owned by a specific plugin to be analyzed by the sonar-text-plugin,
   // it is required them to be part of a git repository.
-  // See https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/languages/secrets/#adding-files-based-on-pathmatching-patterns
+  // See https://docs.sonarsource.com/sonarqube-server/2025.2/analyzing-source-code/languages/secrets/#adding-files-based-on-pathmatching-patterns
   public class CreateGitFolder implements AutoCloseable {
     Path gitDir;
 
