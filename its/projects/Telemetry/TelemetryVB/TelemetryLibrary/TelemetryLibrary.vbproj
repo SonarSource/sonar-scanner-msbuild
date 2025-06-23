@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>TelemetryLibrary</RootNamespace>
+    <TargetFramework>netstandard1.6</TargetFramework>
+  </PropertyGroup>
+
+</Project>

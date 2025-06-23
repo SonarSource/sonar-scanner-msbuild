@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryMultiTarget", "TelemetryMultiTarget\TelemetryMultiTarget.csproj", "{36C75B13-1E13-459A-B452-B7E64F5347FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryUtilsMultiTarget", "TelemetryUtilsMultiTarget\TelemetryUtilsMultiTarget.csproj", "{847A98CA-174B-4F21-A33A-605F3D9462A3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{36C75B13-1E13-459A-B452-B7E64F5347FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36C75B13-1E13-459A-B452-B7E64F5347FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36C75B13-1E13-459A-B452-B7E64F5347FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36C75B13-1E13-459A-B452-B7E64F5347FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{847A98CA-174B-4F21-A33A-605F3D9462A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{847A98CA-174B-4F21-A33A-605F3D9462A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{847A98CA-174B-4F21-A33A-605F3D9462A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{847A98CA-174B-4F21-A33A-605F3D9462A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {29CCE3E6-01B3-439D-877F-E01BB67E730F}
+	EndGlobalSection
+EndGlobal
