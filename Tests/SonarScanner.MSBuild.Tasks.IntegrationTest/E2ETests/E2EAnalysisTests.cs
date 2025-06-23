@@ -657,6 +657,7 @@ public class E2EAnalysisTests
         var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
         var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
         var filesToAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
+        var telemetryPath = Path.Combine(defaultProjectOutPaths, @"Telemetry.json");
         var projectXml = $"""
                           <?xml version='1.0' encoding='utf-8'?>
                           <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
@@ -718,8 +719,8 @@ public class E2EAnalysisTests
         File.Exists(razorProjectInfoPath).Should().BeTrue();
         var defaultProjectInfo = ProjectInfo.Load(defaultProjectInfoPath);
         var razorProjectInfo = ProjectInfo.Load(razorProjectInfoPath);
-        AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filesToAnalyzePath);
-        AssertProjectInfoContent(razorProjectInfo, razorReportFilePaths, razorProjectOutPaths, filesToAnalyzePath);
+        AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filesToAnalyzePath, telemetryPath);
+        AssertProjectInfoContent(razorProjectInfo, razorReportFilePaths, razorProjectOutPaths, filesToAnalyzePath, null);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -736,6 +737,7 @@ public class E2EAnalysisTests
         var razorProjectInfoPath = Path.Combine(rootOutputFolder, @"0.Razor\ProjectInfo.xml");
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
         var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
+        var telemetryPath = Path.Combine(rootOutputFolder, @"0\Telemetry.json");
         var projectGuid = Guid.NewGuid();
         var projectXml = $"""
                           <?xml version='1.0' encoding='utf-8'?>
@@ -794,7 +796,7 @@ public class E2EAnalysisTests
         File.Exists(razorProjectInfoPath).Should().BeFalse();
         File.Exists(razorReportFilePaths).Should().BeFalse();
         var defaultProjectInfo = ProjectInfo.Load(defaultProjectInfoPath);
-        AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filesToAnalyzePath);
+        AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filesToAnalyzePath, telemetryPath);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -1004,13 +1006,21 @@ public class E2EAnalysisTests
         }
     }
 
-    private static void AssertProjectInfoContent(ProjectInfo projectInfo, string expectedReportFilePaths, string expectedProjectOutPaths, string expectedFilesToAnalyzePath)
+    private static void AssertProjectInfoContent(ProjectInfo projectInfo, string expectedReportFilePaths, string expectedProjectOutPaths, string expectedFilesToAnalyzePath, string expectedTelemetryPath)
     {
         projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
         projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
-        projectInfo.AnalysisResults.Single(x => x.Id.Equals(TestUtils.FilesToAnalyze)).Location.Should().Be(expectedFilesToAnalyzePath);
-        projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Value.Should().Be(expectedReportFilePaths);
-        projectInfo.AnalysisSettings.Single(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Value.Should().Be(expectedProjectOutPaths);
+        projectInfo.AnalysisResults.Should().ContainSingle(x => x.Id.Equals(TestUtils.FilesToAnalyze)).Which.Location.Should().Be(expectedFilesToAnalyzePath);
+        projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Which.Value.Should().Be(expectedReportFilePaths);
+        projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Which.Value.Should().Be(expectedProjectOutPaths);
+        if (expectedTelemetryPath is null)
+        {
+            projectInfo.AnalysisSettings.Should().NotContain(x => x.Id.Equals("sonar.cs.scanner.telemetry"));
+        }
+        else
+        {
+            projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Which.Value.Should().Be(expectedTelemetryPath);
+        }
     }
 
     private class Context(TestContext testContext, string inputFolderName)
