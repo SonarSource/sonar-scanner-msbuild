@@ -26,6 +26,8 @@ import com.sonar.it.scanner.msbuild.utils.GeneralCommand;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.Workload;
+import com.sonar.it.scanner.msbuild.utils.WorkloadPrerequisite;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
@@ -48,6 +50,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ExtendWith({ServerTests.class, ContextExtension.class})
 @EnabledOnOs(OS.WINDOWS)
+@WorkloadPrerequisite(Workload.VC_TOOLS)
 class CppTest {
 
   @Test

@@ -20,10 +20,18 @@
 
 package com.sonar.it.scanner.msbuild.utils;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public enum Workload {
-  XAMARIN_BUILD_TOOLS("Microsoft.VisualStudio.Workload.XamarinBuildTools", "Xamarin\\iOS\\Xamarin.iOS.CSharp.targets"),
+  // When using glob patterns, Windows requires escaping backslashes, so we use double backslashes.
+  // Path differ depending on the MSBuild version:
+  // - MSBuild 2017: Common7\IDE\VC\VCTargets\Microsoft.Cpp.Default.props
+  // - MSBuild 2019: MSBuild\Microsoft\VC\v160\Microsoft.Cpp.Default.props
+  // - MSBuild 2022: MSBuild\Microsoft\VC\v170\Microsoft.Cpp.Default.props
+  VC_TOOLS("Microsoft.VisualStudio.Workload.VCTools", "**\\\\Microsoft.Cpp.Default.props"),
+  XAMARIN_BUILD_TOOLS("Microsoft.VisualStudio.Workload.XamarinBuildTools", "MSBuild\\Xamarin\\iOS\\Xamarin.iOS.CSharp.targets"),
   ;
 
   private final String id;
@@ -33,11 +41,28 @@ public enum Workload {
     this.id = id;
     this.checkFile = checkFile;
   }
-  
+
   public boolean isInstalled() {
     var msBuildPath = BuildCommand.msBuildPath();
-    var path = Paths.get(msBuildPath, "..", "..", "..", checkFile);
-    return path.toFile().exists();
+    // Searching from MSBuild parent folder, e.g.: C:\Program Files\Microsoft Visual Studio\2022\Community\
+    var basePath = Paths.get(msBuildPath).getParent().getParent().getParent().getParent();
+    if (!basePath.toFile().exists()) {
+      return false;
+    }
+    if (!checkFile.contains("*")) {
+      var file = basePath.resolve(checkFile).toFile();
+      return file.exists();
+    }
+    try {
+      var matcher = basePath.getFileSystem().getPathMatcher("glob:" + checkFile);
+      try (var stream = Files.walk(basePath, 5)) {
+        return stream
+          .filter(Files::isRegularFile)
+          .anyMatch(path -> matcher.matches(basePath.relativize(path)));
+      }
+    } catch (IOException e) {
+      return false;
+    }
   }
 
   public String id() {
