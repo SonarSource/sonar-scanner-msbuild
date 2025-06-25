@@ -51,6 +51,7 @@ class SolutionKindTest {
   // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
   // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
   @MSBuildMinVersion(16)
+  @WorkloadPrerequisite(Workload.XAMARIN_BUILD_TOOLS)
   void xaml() {
     var context = AnalysisContext.forServer("XamarinApplication");
     context.runAnalysis();
