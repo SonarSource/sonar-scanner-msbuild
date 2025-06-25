@@ -37,10 +37,10 @@ public enum Workload {
   public boolean isInstalled() {
     var msBuildPath = BuildCommand.msBuildPath();
     var path = Paths.get(msBuildPath, "..", "..", "..", checkFile);
-    return path.toFile().exists() && path.toFile().isFile();
+    return path.toFile().exists();
   }
 
-  public String getId() {
+  public String id() {
     return id;
   }
 }

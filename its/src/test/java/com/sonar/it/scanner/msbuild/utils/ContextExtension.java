@@ -92,7 +92,7 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
       // If needed, this can be extended to other OSes in the future
       verifyWindowsOnly(context);
       if (!prerequisite.value().isInstalled()) {
-        throw new IllegalStateException("Required workload not installed: " + prerequisite.value().getId());
+        throw new IllegalStateException("Required workload not installed: " + prerequisite.value().id());
       }
     });
   }
@@ -104,13 +104,13 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
 
     if (enabledOnOs.isEmpty()) {
       throw new IllegalStateException("WorkloadPrerequisite annotation requires tests to be Windows-only, " +
-        "add @EnabledOnOs(OS.WINDOWS) to the test class or method.");
+        "add @EnabledOnOs(OS.WINDOWS) to the test class or method. Or extend WorkloadPrerequisite logic.");
     }
 
     EnabledOnOs annotation = enabledOnOs.get();
     // EnableOnOs should always contain at least one OS, so no need to for empty
     if (annotation.value().length != 1 || annotation.value()[0] != OS.WINDOWS) {
-      throw new IllegalStateException("WorkloadPrerequisite annotation requires tests to be Windows-only");
+      throw new IllegalStateException("WorkloadPrerequisite annotation requires tests to be Windows-only. Or extend WorkloadPrerequisite logic.");
     }
   }
 }
