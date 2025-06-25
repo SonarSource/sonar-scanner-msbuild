@@ -1092,6 +1092,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using cache base path: {0}.
+        /// </summary>
+        internal static string MSG_PullRequestCacheBasePath {
+            get {
+                return ResourceManager.GetString("MSG_PullRequestCacheBasePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Response received from {0}....
         /// </summary>
         internal static string MSG_ResponseReceived {

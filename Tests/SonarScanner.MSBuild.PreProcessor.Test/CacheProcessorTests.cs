@@ -153,7 +153,6 @@ public class CacheProcessorTests
     public async Task Execute_PullRequest_NoBasePath()
     {
         using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Substitute.For<IBuildSettings>(), logger);
-
         await sut.Execute();
 
         logger.AssertSingleInfoMessageExists("Cannot determine project base path. Incremental PR analysis is disabled.");
@@ -166,7 +165,6 @@ public class CacheProcessorTests
         var settings = Substitute.For<IBuildSettings>();
         settings.SourcesDirectory.Returns(@"C:\Sources");
         using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
-
         await sut.Execute();
 
         logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
@@ -177,7 +175,6 @@ public class CacheProcessorTests
     public async Task Execute_PullRequest_CacheEmpty()
     {
         var context = new CacheContext(this, "/k:key-no-cache /d:sonar.pullrequest.base=TARGET_BRANCH");
-
         await context.Sut.Execute();
 
         logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
@@ -188,9 +185,9 @@ public class CacheProcessorTests
     public async Task Execute_PullRequest_CacheHappyFlow()
     {
         var context = new CacheContext(this, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
-
         await context.Sut.Execute();
 
+        logger.AssertDebugLogged($"Using cache base path: {context.Root}");
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
     }
 
