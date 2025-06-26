@@ -3,6 +3,8 @@
   "extends": [
     "github>SonarSource/renovate-config"
   ],
+  "rebaseWhen": "auto",
+  "minimumReleaseAge": "3 days",
   "enabledManagers": [
     "nuget",
     "maven",
@@ -12,7 +14,6 @@
     "description": "ignorePaths in the root does not work due to higher-precedence built-in counter-intuitive nuget-specifc defaults",
     "ignorePaths": [ "its/projects/**" ]
   },
-  "minimumReleaseAge": "3 days",
   "packageRules": [
     {
       "description": "Do not update SonarSource GH actions, we want the branch-version. Only external actions must have commit ID.",
@@ -32,7 +33,7 @@
     {
       "description": "Do not update Build dependency. It provides backward compatibility with MsBuild 14+",
       "matchPackageNames": [ "Microsoft.Build**" ],
-      "enabled":  false
+      "enabled": false
     },
     {
       "description": "Do not update FluentAssertions above v7 due to license change",
