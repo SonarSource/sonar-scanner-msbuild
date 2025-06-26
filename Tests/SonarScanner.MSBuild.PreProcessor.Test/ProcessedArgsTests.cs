@@ -318,7 +318,7 @@ public class ProcessedArgsTests
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, hostUrl)]));
 
-        sut.IsValid.Should().BeTrue();
+        sut.IsValid.Should().BeTrue();  // Internal property can't be asserted via the anonymous object below
         sut.Should().BeEquivalentTo(new
         {
             ServerInfo = new
