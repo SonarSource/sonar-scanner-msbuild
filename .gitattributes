@@ -11,4 +11,4 @@
 
 # Java projects should have LF
 *.java eol=lf
-*.pom eol=lf
+pom.xml eol=lf
