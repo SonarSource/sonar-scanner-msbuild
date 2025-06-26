@@ -318,9 +318,9 @@ public class ProcessedArgsTests
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, hostUrl)]));
 
+        sut.IsValid.Should().BeTrue();
         sut.Should().BeEquivalentTo(new
         {
-            IsValid = true,
             ServerInfo = new
             {
                 IsSonarCloud = true,
