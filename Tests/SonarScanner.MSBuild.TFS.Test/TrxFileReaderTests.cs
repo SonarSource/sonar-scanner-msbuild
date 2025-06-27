@@ -268,6 +268,74 @@ public class TrxFileReaderTests
         logger.AssertDebugMessageExists(@"Absolute path to coverage file: x:\dir1\dir2\xxx.coverage");
     }
 
+    [TestMethod]
+    [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path with an alternative deployment root")]
+    public void TrxReader_SingleAttachment_AlternativePath()
+    {
+        // Arrange
+        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+
+        var relativeCoveragePath = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var fullCoveragePath = Path.Combine(resultsDir, "alternative folder name", "In", relativeCoveragePath);
+        CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
+
+        CreateFiles(resultsDir, ("single attachment.trx", GetTrxContentWithDeploymentRoot("alternative folder name", relativeCoveragePath)));
+
+        // Act
+        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
+
+        // Assert
+        coverageFilePaths.Should().BeEquivalentTo(fullCoveragePath);
+
+        logger.AssertDebugMessageExists(relativeCoveragePath);
+    }
+
+    [TestMethod]
+    [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path with an alternative wrong deployment root")]
+    public void TrxReader_SingleAttachment_AlternativeWrongPath()
+    {
+        // Arrange
+        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+
+        var relativeCoveragePath = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var fullCoveragePath = Path.Combine(resultsDir, "wrong folder name", "In", relativeCoveragePath);
+        CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
+
+        CreateFiles(resultsDir, ("single_attachment.trx", GetTrxContentWithDeploymentRoot("alternative folder name", relativeCoveragePath)));
+
+        // Act
+        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
+
+        // Assert
+        coverageFilePaths.Should().BeEmpty();
+
+        logger.Warnings.Should().HaveCount(1);
+        logger.Warnings[0].Should().Match(@"None of the following coverage attachments could be found: MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\alternative folder name\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage. Trx file: *\TestResults\single_attachment.trx");
+    }
+
+    [TestMethod]
+    [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path with an alternative empty deployment root")]
+    public void TrxReader_SingleAttachment_AlternativeEmptyPath()
+    {
+        // Arrange
+        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+
+        var relativeCoveragePath = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var fullCoveragePath = Path.Combine(resultsDir, "alternative folder name", "In", relativeCoveragePath);
+        CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
+
+        CreateFiles(resultsDir, ("single_attachment.trx", GetTrxContentWithDeploymentRoot(string.Empty, relativeCoveragePath)));
+
+        // Act
+        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
+
+        // Assert
+        coverageFilePaths.Should().BeEmpty();
+
+        logger.Warnings.Should().HaveCount(1);
+        logger.Warnings[0].Should().Match(@"None of the following coverage attachments could be found: MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage. Trx file: *\TestResults\single_attachment.trx");
+    }
+
     private string[] CreateDirectories(string path, params string[] names)
     {
         var subdirs = names.Select(name => Path.Combine(path, name)).ToArray();
@@ -316,6 +384,35 @@ public class TrxFileReaderTests
 <TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
     name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
     xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+  <ResultSummary outcome=""Completed"">
+    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
+    <RunInfos />
+    <CollectorDataEntries>
+      {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
+    </CollectorDataEntries>
+  </ResultSummary>
+</TestRun>";
+
+        string FormatCollectorElement(string uri) =>
+            $@"<Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
+        <UriAttachments>
+          <UriAttachment>
+            <A href=""{uri}"">
+            </A>
+          </UriAttachment>
+        </UriAttachments>
+      </Collector>";
+    }
+
+    private static string GetTrxContentWithDeploymentRoot(string runDeploymentRoot, params string[] attachmentUris)
+    {
+        return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
+    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
+    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
+  <TestSettings name=""default"" >
+    <Deployment runDeploymentRoot=""{runDeploymentRoot}"" />
+  </TestSettings>
   <ResultSummary outcome=""Completed"">
     <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
     <RunInfos />
