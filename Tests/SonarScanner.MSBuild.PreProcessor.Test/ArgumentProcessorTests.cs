@@ -930,14 +930,13 @@ public class ArgumentProcessorTests
     [DataTestMethod]
     [DataRow(typeof(ArgumentException))]
     [DataRow(typeof(ArgumentNullException))]
-    [DataRow(typeof(PathTooLongException))]
-    [DataRow(typeof(DirectoryNotFoundException))]
-    [DataRow(typeof(IOException))]
-    [DataRow(typeof(FileNotFoundException))]
-    [DataRow(typeof(UnauthorizedAccessException))]
     [DataRow(typeof(ArgumentOutOfRangeException))]
+    [DataRow(typeof(DirectoryNotFoundException))]
     [DataRow(typeof(FileNotFoundException))]
+    [DataRow(typeof(IOException))]
     [DataRow(typeof(NotSupportedException))]
+    [DataRow(typeof(PathTooLongException))]
+    [DataRow(typeof(UnauthorizedAccessException))]
     public void PreArgProc_TruststorePathAndPassword_DefaultValuesTruststoreCannotOpen(Type exceptionType)
     {
         var exception = (Exception)Activator.CreateInstance(exceptionType);

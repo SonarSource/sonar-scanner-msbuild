@@ -221,7 +221,7 @@ public class SonarScannerWrapperTests
         // Assert
         VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
 
-        mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
+        mockRunner.SuppliedArguments.EnvironmentVariables.Should().ContainSingle();
 
         // #656: Check that the JVM size is not set by default
         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/656
@@ -253,7 +253,7 @@ public class SonarScannerWrapperTests
         }
 
         CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Xmx2048m -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
-        mockRunner.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
+        mockRunner.SuppliedArguments.EnvironmentVariables.Should().ContainSingle();
         logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
         logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
     }

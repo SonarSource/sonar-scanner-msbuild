@@ -169,7 +169,6 @@ public class AdditionalFilesServiceTest
     [DataRow(" .js, .jsx")]
     [DataRow(" .js,.jsx")]
     [DataRow(".js,.jsx ")]
-    [DataRow(".js,.jsx ")]
     [DataRow("js,jsx")]
     [DataRow(" js , jsx ")]
     public void AdditionalFiles_ExtensionsFound_AllExtensionPermutations(string propertyValue)

@@ -490,7 +490,6 @@ public class AnalysisConfigGeneratorTests
     [DataRow("foo,bar", "foo,foo/**,bar,bar/**")]
     [DataRow("foo.bar.html", "foo.bar.html,foo.bar/**")]
     [DataRow("foo.bar.baz.html", "foo.bar.baz.html,foo.bar.baz/**")]
-    [DataRow("foo.bar.baz.html", "foo.bar.baz.html,foo.bar.baz/**")]
     [DataRow(".html", ".html")]
     [DataRow(".", ".")]
     [DataRow("foo.", "foo.,foo/**")]
