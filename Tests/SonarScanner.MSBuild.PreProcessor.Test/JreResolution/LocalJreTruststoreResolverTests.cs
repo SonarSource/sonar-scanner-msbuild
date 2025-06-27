@@ -35,7 +35,7 @@ public class LocalJreTruststoreResolverTests
         globalEnvScope.SetVariable("PATH", string.Join($"{Path.PathSeparator}", paths));
     }
 
-    [ClassCleanup]
+    [ClassCleanup(ClassCleanupBehavior.EndOfClass)]
     public static void Cleanup() =>
         globalEnvScope?.Dispose();
 
