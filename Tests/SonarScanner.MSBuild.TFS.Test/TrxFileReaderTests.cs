@@ -302,27 +302,31 @@ public class TrxFileReaderTests
 
     private static string GetTrxContent(params string[] attachmentUris)
     {
-        return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-  <ResultSummary outcome=""Completed"">
-    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
-    <RunInfos />
-    <CollectorDataEntries>
-      {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
-    </CollectorDataEntries>
-  </ResultSummary>
-</TestRun>";
+        return $"""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <TestRun id="eb906034-f363-4bf0-ac6a-29fa47645f67"
+                name="LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39" runUser="NT AUTHORITY\LOCAL SERVICE"
+                xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+              <ResultSummary outcome="Completed">
+                <Counters total="123" executed="123" passed="123" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+                <RunInfos />
+                <CollectorDataEntries>
+                  {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
+                </CollectorDataEntries>
+              </ResultSummary>
+            </TestRun>
+            """;
 
         string FormatCollectorElement(string uri) =>
-            $@"<Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
-        <UriAttachments>
-          <UriAttachment>
-            <A href=""{uri}"">
-            </A>
-          </UriAttachment>
-        </UriAttachments>
-      </Collector>";
+            $"""
+            <Collector agentName="MACHINENAME" uri="datacollector://microsoft/CodeCoverage/2.0" collectorDisplayName="Code Coverage">
+                <UriAttachments>
+                  <UriAttachment>
+                    <A href="{uri}">
+                    </A>
+                  </UriAttachment>
+                </UriAttachments>
+            </Collector>
+            """;
     }
 }
