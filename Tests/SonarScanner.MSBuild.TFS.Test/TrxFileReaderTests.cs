@@ -282,7 +282,7 @@ public class TrxFileReaderTests
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    [Description("Tests handling of a trx file that contain a single code coverage attachment with a path specified by the runDeploymentRoot attribute")]
+    [Description("Tests handling of a trx file that contain a single code coverage attachment with an invalid path specified by the runDeploymentRoot attribute")]
     public void TrxReader_RunDeploymentRoot_Invalid()
     {
         // Arrange
