@@ -140,16 +140,8 @@ public partial class PreProcessorTests
         var success = await preProcessor.Execute(args);
         success.Should().BeTrue("Expecting the pre-processing to complete successfully");
 
-        if (scanAll)
-        {
-            factory.Logger.AssertUIWarningLogged("Multi-Language analysis is enabled. " +
-                "If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
-        }
-        else
-        {
-            factory.Logger.AssertNoWarningsLogged();
-            factory.Logger.AssertNoUIWarningsLogged();
-        }
+        factory.Logger.AssertNoWarningsLogged();
+        factory.Logger.AssertNoUIWarningsLogged();
     }
 
     [TestMethod]
@@ -453,7 +445,6 @@ public partial class PreProcessorTests
     private AnalysisConfig AssertAnalysisConfig(string filePath, int noAnalyzers, TestLogger logger)
     {
         logger.AssertNoErrorsLogged();
-        logger.AssertUIWarningLogged("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
         logger.AssertVerbosity(LoggerVerbosity.Debug);
 
         AssertConfigFileExists(filePath);

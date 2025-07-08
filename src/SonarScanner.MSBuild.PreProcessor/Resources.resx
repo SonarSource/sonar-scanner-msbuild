@@ -516,9 +516,6 @@ If you already have a compatible java version installed, please add either the p
   <data name="WARN_UI_SonarQubeNearEndOfSupport" xml:space="preserve">
     <value>Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.</value>
   </data>
-  <data name="WARN_UI_ScanAllAnalysisEnabled" xml:space="preserve">
-    <value>Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set "/d:sonar.scanner.scanAll=false" in the begin step.</value>
-  </data>
   <data name="WARN_SourcesAndTestsDeprecated" xml:space="preserve">
     <value>The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.</value>
   </data>
