@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Text.Json.Nodes;
+
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -308,7 +310,6 @@ public class ILoggerTests
         recorder.AssertExpectedLastOutput($"{prefixRegex}  error 2", ConsoleLogger.ErrorColor, true);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ConsoleLogger_WriteUIWarnings_GenerateFile()
     {
@@ -326,22 +327,17 @@ public class ILoggerTests
         output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn3 xxx");
 
         const string outputDir = "outputDir";
+        var expected = """
+            [
+                { "text": "uiWarn1" },
+                { "text": "uiWarn2" },
+                { "text": "uiWarn3 xxx" }
+            ]
+            """;
         logger.WriteUIWarnings(outputDir); // this should not contain any timestamps.
         fileWrapper.Received(1).WriteAllText(
-             Path.Combine(outputDir, FileConstants.UIWarningsFileName),
-             """
-             [
-               {
-                 "text": "uiWarn1"
-               },
-               {
-                 "text": "uiWarn2"
-               },
-               {
-                 "text": "uiWarn3 xxx"
-               }
-             ]
-             """);
+            Path.Combine(outputDir, FileConstants.UIWarningsFileName),
+            Arg.Is<string>(x => IsMatchingJson(expected, x)));
     }
 
     [TestMethod]
@@ -458,4 +454,7 @@ public class ILoggerTests
             .ThrowExactly<NotSupportedException>()
             .WithMessage("Unsupported telemetry message value type: System.Collections.Generic.Dictionary`2[System.String,System.String]");
     }
+
+    private static bool IsMatchingJson(string expected, string actual) =>
+        JsonNode.DeepEquals(JsonNode.Parse(expected), JsonNode.Parse(actual));
 }
