@@ -190,9 +190,9 @@ public class TrxFileReader
                 // The deployment root is used in the path for the attachments. It is read by Microsoft's implementation here:
                 // https://github.com/microsoft/testfx/blob/718e38b4558d39afde8bd4a9e6b3566336867c67/src/Platform/Microsoft.Testing.Extensions.TrxReport/TrxReportEngine.cs#L241-L250
                 var deploymentRoot = doc.SelectSingleNode("/x:TestRun/x:TestSettings/x:Deployment", nsmgr) is { } runDeploymentRootNode
-                    && runDeploymentRootNode.Attributes["runDeploymentRoot"] is { Value: { } runDeploymentRootAttributeValue }
-                        ? runDeploymentRootAttributeValue
-                        : string.Empty;
+                                        && runDeploymentRootNode.Attributes["runDeploymentRoot"] is { Value: { } runDeploymentRootAttributeValue }
+                                            ? runDeploymentRootAttributeValue
+                                            : string.Empty;
                 foreach (XmlNode attachmentNode in attachmentNodes)
                 {
                     var att = attachmentNode.Attributes["href"];
@@ -224,16 +224,16 @@ public class TrxFileReader
         var trxFileName = Path.GetFileNameWithoutExtension(trx);
 
         IReadOnlyCollection<string> possibleCoveragePaths =
-            [
-                attachmentUri,
-                Path.Combine(trxDirectoryName, trxFileName, "In", attachmentUri),
-                // https://jira.sonarsource.com/browse/SONARMSBRU-361
-                // With VSTest task the coverage file name uses underscore instead of spaces.
-                Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentUri),
-                // The deployment root, specified ion the trx header, is used in the path for the attachments.
-                // https://github.com/microsoft/testfx/blob/718e38b4558d39afde8bd4a9e6b3566336867c67/src/Platform/Microsoft.Testing.Extensions.TrxReport/TrxReportEngine.cs#L378
-                .. !string.IsNullOrEmpty(deploymentRoot) ? (IReadOnlyCollection<string>)[Path.Combine(trxDirectoryName, deploymentRoot, "In", attachmentUri)] : [],
-            ];
+        [
+            attachmentUri,
+            Path.Combine(trxDirectoryName, trxFileName, "In", attachmentUri),
+            // https://jira.sonarsource.com/browse/SONARMSBRU-361
+            // With VSTest task the coverage file name uses underscore instead of spaces.
+            Path.Combine(trxDirectoryName, trxFileName.Replace(' ', '_'), "In", attachmentUri),
+            // The deployment root, specified ion the trx header, is used in the path for the attachments.
+            // https://github.com/microsoft/testfx/blob/718e38b4558d39afde8bd4a9e6b3566336867c67/src/Platform/Microsoft.Testing.Extensions.TrxReport/TrxReportEngine.cs#L378
+            .. string.IsNullOrEmpty(deploymentRoot) ? [] : (IReadOnlyCollection<string>)[Path.Combine(trxDirectoryName, deploymentRoot, "In", attachmentUri)],
+        ];
         var firstFoundCoveragePath = possibleCoveragePaths.FirstOrDefault(path => this.fileWrapper.Exists(path));
 
         if (firstFoundCoveragePath != null)
