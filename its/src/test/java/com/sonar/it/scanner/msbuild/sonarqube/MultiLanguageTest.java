@@ -207,6 +207,11 @@ class MultiLanguageTest {
           tuple("secrets:S6702", context.projectKey + ":src/script.ksh"),
           tuple("secrets:S6702", context.projectKey + ":src/script.ps1"),
           tuple("secrets:S6702", context.projectKey + ":src/script.zsh")));
+          if(version.isGreaterThan(2025,0))
+          {
+            expectedIssues.addAll(List.of(
+              tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
+        }
       }
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
