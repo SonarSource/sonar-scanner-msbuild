@@ -363,7 +363,7 @@ stages:
               IAC_VERSION: "NONE"               # No release brefore SQ 9.9, the plug-in should not be loaded
               JAVA_VERSION: "NONE"              # Not required in our ITs for SQ 8.9
               JAVASCRIPT_VERSION: "7.4.4.15624" # Bundled version with SQ 8.9
-              JAVASCRIPT_CLASSIFIER: null       # NodeJS only bundled since SQ 10.4
+              JAVASCRIPT_CLASSIFIER: null       # Node.js only bundled since SQ 10.4
               PHP_VERSION: "3.17.0.7439"        # Bundled version with SQ 8.9
               PLSQL_VERSION: "3.6.1.3873"       # Bundled version with SQ 8.9
               PYTHON_VERSION: "3.4.1.8066"      # Bundled version with SQ 8.9
@@ -382,7 +382,7 @@ stages:
               IAC_VERSION: "1.11.0.2847"         # Bundled version with SQ 9.9
               JAVA_VERSION: "NONE"               # Not required in our ITs for SQ 9.9
               JAVASCRIPT_VERSION: "9.13.0.20537" # Bundled version with SQ 9.9
-              JAVASCRIPT_CLASSIFIER: null        # NodeJS only bundled since SQ 10.4
+              JAVASCRIPT_CLASSIFIER: null        # Node.js only bundled since SQ 10.4
               PHP_VERSION: "3.27.1.9352"         # Bundled version with SQ 9.9
               PLSQL_VERSION: "3.8.0.4948"        # Bundled version with SQ 9.9
               PYTHON_VERSION: "3.24.0.10784"     # Bundled version with SQ 9.9

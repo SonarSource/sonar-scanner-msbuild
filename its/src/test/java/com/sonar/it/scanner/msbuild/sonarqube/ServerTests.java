@@ -97,7 +97,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
       return;
     }
     var classifier = System.getProperty(classifierProperty, null);
-    if(classifier == null || classifier.isEmpty()) {
+    if (classifier == null || classifier.isEmpty()) {
       orchestrator.addPlugin(MavenLocation.of(groupId, artifactId, version));
     } else {
       orchestrator.addPlugin(MavenLocation.create(groupId, artifactId, version, classifier));
