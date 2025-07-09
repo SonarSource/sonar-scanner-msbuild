@@ -64,19 +64,19 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
       .setServerProperty("sonar.telemetry.enable", "false"); // Disabling telemetry to avoid polluting our own data.
     // Plugin versions are defined in https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/azure-pipelines.yml
     // Set the version to NONE to disable the plugin.
-    addPlugin(orchestrator, "com.sonarsource.cpp", "sonar-cfamily-plugin", "sonar.cfamilyplugin.version");
-    addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.css", "sonar-css-plugin", "sonar.css.version", "NONE");
-    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-csharp-plugin", "sonar.csharpplugin.version", "DEV");
-    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-vbnet-plugin", "sonar.vbnetplugin.version", "DEV");
-    addPlugin(orchestrator, "org.sonarsource.iac", "sonar-iac-plugin", "sonar.iacplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.java", "sonar-java-plugin", "sonar.javaplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.javascript", "sonar-javascript-plugin", "sonar.javascriptplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.php", "sonar-php-plugin", "sonar.phpplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.python", "sonar-python-plugin", "sonar.pythonplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.text", "sonar-text-plugin", "sonar.textplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version");
-    addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version");
+    addPlugin(orchestrator, "com.sonarsource.cpp", "sonar-cfamily-plugin", "sonar.cfamilyplugin.version", "sonar.cfamilyplugin.classifier");
+    addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version", "sonar.plsqlplugin.classifier");
+    addPlugin(orchestrator, "org.sonarsource.css", "sonar-css-plugin", "sonar.css.version", "NONE", "sonar.css.classifier");
+    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-csharp-plugin", "sonar.csharpplugin.version", "DEV", "sonar.csharpplugin.classifier");
+    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-vbnet-plugin", "sonar.vbnetplugin.version", "DEV", "sonar.vbnetplugin.classifier");
+    addPlugin(orchestrator, "org.sonarsource.iac", "sonar-iac-plugin", "sonar.iacplugin.version", "sonar.iacplugin.classifier");
+    addPlugin(orchestrator, "org.sonarsource.java", "sonar-java-plugin", "sonar.javaplugin.version", "sonar.javaplugin.classifier");
+    addPlugin(orchestrator, "org.sonarsource.javascript", "sonar-javascript-plugin", "sonar.javascriptplugin.version", "sonar.javascriptplugin.classifier");
+    addPlugin(orchestrator, "org.sonarsource.php", "sonar-php-plugin", "sonar.phpplugin.version", "sonar.phpplugin.classifier");
+    addPlugin(orchestrator, "org.sonarsource.python", "sonar-python-plugin", "sonar.pythonplugin.version", "sonar.pythonplugin.classifier");
+    addPlugin(orchestrator, "org.sonarsource.text", "sonar-text-plugin", "sonar.textplugin.version", "sonar.textplugin.classifier");
+    addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version", "sonar.xmlplugin.classifier");
+    addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version", "sonar.goplugin.classifier");
 
     // DO NOT add any additional plugin loading logic here. Everything must be in the YML
     if (!version.contains("8.9")) {
@@ -87,16 +87,21 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     return orchestrator.activateLicense().build();
   }
 
-  private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty) {
-    addPlugin(orchestrator, groupId, artifactId, versionProperty, "LATEST_RELEASE");
+  private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty, String classifierProperty) {
+    addPlugin(orchestrator, groupId, artifactId, versionProperty, "LATEST_RELEASE", classifierProperty);
   }
 
-  private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty, String defaultVersion) {
+  private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty, String defaultVersion, String classifierProperty) {
     var version = System.getProperty(versionProperty, defaultVersion);
     if (version == null || version.isEmpty() || version.equals("NONE")) {
       return;
     }
-    orchestrator.addPlugin(MavenLocation.of(groupId, artifactId, version));
+    var classifier = System.getProperty(classifierProperty, null);
+    if(classifier == null || classifier.isEmpty()) {
+      orchestrator.addPlugin(MavenLocation.of(groupId, artifactId, version));
+    } else {
+      orchestrator.addPlugin(MavenLocation.create(groupId, artifactId, version, classifier));
+    }
   }
 
   private static Path customRoslynPlugin() {

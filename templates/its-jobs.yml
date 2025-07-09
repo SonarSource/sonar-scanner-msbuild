@@ -28,6 +28,7 @@ jobs:
       IAC_VERSION: "LATEST_RELEASE"
       JAVA_VERSION: "LATEST_RELEASE"
       JAVASCRIPT_VERSION: "LATEST_RELEASE"
+      JAVASCRIPT_CLASSIFIER: "multi"      # Node.Js bundled since 10.4
       PHP_VERSION: "LATEST_RELEASE"
       PLSQL_VERSION: "LATEST_RELEASE"
       PYTHON_VERSION: "LATEST_RELEASE"
@@ -98,6 +99,7 @@ jobs:
             -Dsonar.xmlplugin.version=$(XML_VERSION)
             -Dsonar.css.version=$(CSS_VERSION)
             -Dsonar.javascriptplugin.version=$(JAVASCRIPT_VERSION)
+            -Dsonar.javascriptplugin.classifier=$(JAVASCRIPT_CLASSIFIER)
             -Dsonar.plsqlplugin.version=$(PLSQL_VERSION)
             -Dsonar.pythonplugin.version=$(PYTHON_VERSION)
             -Dsonar.phpplugin.version=$(PHP_VERSION)
