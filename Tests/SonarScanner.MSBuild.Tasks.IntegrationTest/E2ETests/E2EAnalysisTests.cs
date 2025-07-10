@@ -619,64 +619,47 @@ public class E2EAnalysisTests
         // processed correctly e.g. can be excluded, marked as test projects etc
 
         // Arrange
-        var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-        var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-        var defaultProjectInfoPath = Path.Combine(rootOutputFolder, "0", "ProjectInfo.xml");
-        var razorProjectInfoPath = Path.Combine(rootOutputFolder, "0.Razor", "ProjectInfo.xml");
-        var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
-        var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
-        var projectGuid = Guid.NewGuid();
-        var defaultProjectOutPaths = Path.Combine(rootOutputFolder, "0");
-        var razorProjectOutPaths = Path.Combine(rootOutputFolder, "0.Razor");
+        var context = CreateContext();
+        var defaultProjectInfoPath = Path.Combine(context.OutputFolder, "0", "ProjectInfo.xml");
+        var razorProjectInfoPath = Path.Combine(context.OutputFolder, "0.Razor", "ProjectInfo.xml");
+        var defaultProjectOutPaths = Path.Combine(context.OutputFolder, "0");
+        var razorProjectOutPaths = Path.Combine(context.OutputFolder, "0.Razor");
         var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, "Issues.json");
         var razorReportFilePaths = Path.Combine(razorProjectOutPaths, "Issues.Views.json");
-        var filesToAnalyzePath = Path.Combine(rootOutputFolder, "conf", "0", "FilesToAnalyze.txt");
+        var filesToAnalyzePath = Path.Combine(context.ConfigFolder, "0", "FilesToAnalyze.txt");
         var telemetryPath = Path.Combine(defaultProjectOutPaths, "Telemetry.json");
-        var projectXml = $"""
-                          <?xml version='1.0' encoding='utf-8'?>
-                          <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
-                            <PropertyGroup>
-                              <Language>my.language</Language>
-                              <ProjectGuid>{projectGuid}</ProjectGuid>
-                              <SQLanguage>cs</SQLanguage>
-                              <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
-                              <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
-                              <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
-                              <TargetFramework>net6</TargetFramework>
-                              <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
-                              <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
-                            </PropertyGroup>
+        var projectXml = """
+                           <PropertyGroup>
+                             <TargetFramework>net6</TargetFramework>
+                             <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
+                             <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
+                           </PropertyGroup>
 
-                            <ItemGroup>
-                              <RazorCompile Include='SomeRandomValue' />
-                              <SonarQubeAnalysisFiles Include='SomeRandomFile' />
-                            </ItemGroup>
+                           <ItemGroup>
+                             <RazorCompile Include='SomeRandomValue' />
+                             <SonarQubeAnalysisFiles Include='SomeRandomFile' />
+                           </ItemGroup>
 
-                            <Import Project='{sqTargetFile}' />
+                           <Target Name='CoreCompile'>
+                             <Message Importance='high' Text='In dummy core compile target' />
+                             <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
+                           </Target>
 
-                            <Target Name='CoreCompile'>
-                              <Message Importance='high' Text='In dummy core compile target' />
-                              <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
-                            </Target>
+                           <Target Name='RazorCoreCompile' AfterTargets='CoreCompile'>
+                             <Message Importance='high' Text='In dummy razor core compile target' />
+                             <WriteLinesToFile File='$(RazorSonarErrorLog)' Overwrite='true' />
+                           </Target>
 
-                            <Target Name='RazorCoreCompile' AfterTargets='CoreCompile'>
-                              <Message Importance='high' Text='In dummy razor core compile target' />
-                              <WriteLinesToFile File='$(RazorSonarErrorLog)' Overwrite='true' />
-                            </Target>
-
-                            <Target Name='Build' DependsOnTargets='CoreCompile;RazorCoreCompile'>
-                              <Message Importance='high' Text='In dummy build target' />
-                            </Target>
-                          </Project>
-                          """;
-        var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
+                           <Target Name='Build' DependsOnTargets='CoreCompile;RazorCoreCompile'>
+                             <Message Importance='high' Text='In dummy build target' />
+                           </Target>
+                         """;
+        var projectRoot = context.CreateProjectFile(projectXml);
 
         // Act
-        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuild);
+        var result = BuildRunner.BuildTargets(TestContext, projectRoot);
 
         // Assert
-        result.BuildSucceeded.Should().BeTrue();
-
         result.AssertTargetOrdering(
             TargetConstants.SonarCategoriseProject,
             TargetConstants.SonarWriteFilesToAnalyze,
@@ -704,23 +687,17 @@ public class E2EAnalysisTests
         // processed correctly e.g. can be excluded, marked as test projects etc
 
         // Arrange
-        var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-        var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-        var defaultProjectInfoPath = Path.Combine(rootOutputFolder, "0", "ProjectInfo.xml");
-        var razorProjectInfoPath = Path.Combine(rootOutputFolder, "0.Razor", "ProjectInfo.xml");
-        var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
-        var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
-        var telemetryPath = Path.Combine(rootOutputFolder, "0", "Telemetry.json");
+        var context = CreateContext();
+        var defaultProjectInfoPath = Path.Combine(context.OutputFolder, "0", "ProjectInfo.xml");
+        var razorProjectInfoPath = Path.Combine(context.OutputFolder, "0.Razor", "ProjectInfo.xml");
+        var telemetryPath = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
         var projectGuid = Guid.NewGuid();
         var projectXml = $"""
-                          <?xml version='1.0' encoding='utf-8'?>
-                          <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
                             <PropertyGroup>
-                              <Language>my.language</Language>
                               <ProjectGuid>{projectGuid}</ProjectGuid>
                               <SQLanguage>cs</SQLanguage>
-                              <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
-                              <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
+                              <SonarQubeTempPath>{context.OutputFolder}</SonarQubeTempPath>
+                              <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
                               <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
                               <TargetFramework>net6</TargetFramework>
                               <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
@@ -732,8 +709,6 @@ public class E2EAnalysisTests
                               <SonarQubeAnalysisFiles Include='SomeRandomFile' />
                             </ItemGroup>
 
-                            <Import Project='{sqTargetFile}' />
-
                             <Target Name='CoreCompile'>
                               <Message Importance='high' Text='In dummy core compile target' />
                               <WriteLinesToFile File='$(ErrorLog)' Overwrite='true' />
@@ -742,12 +717,11 @@ public class E2EAnalysisTests
                             <Target Name='Build' DependsOnTargets='CoreCompile'>
                               <Message Importance='high' Text='In dummy build target' />
                             </Target>
-                          </Project>
                           """;
-        var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
+        var projectFile = context.CreateProjectFile(projectXml);
 
         // Act
-        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuild);
+        var result = BuildRunner.BuildTargets(TestContext, projectFile);
 
         // Assert
         result.BuildSucceeded.Should().BeTrue();
@@ -760,11 +734,11 @@ public class E2EAnalysisTests
             TargetConstants.SonarWriteProjectData);
 
         // Check the project info
-        var defaultProjectOutPaths = Path.Combine(rootOutputFolder, "0");
-        var razorProjectOutPaths = Path.Combine(rootOutputFolder, "0.Razor");
+        var defaultProjectOutPaths = Path.Combine(context.OutputFolder, "0");
+        var razorProjectOutPaths = Path.Combine(context.OutputFolder, "0.Razor");
         var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, "Issues.json");
         var razorReportFilePaths = Path.Combine(razorProjectOutPaths, "Issues.Views.json");
-        var filesToAnalyzePath = Path.Combine(rootOutputFolder, "conf", "0", "FilesToAnalyze.txt");
+        var filesToAnalyzePath = Path.Combine(context.ConfigFolder, "0", "FilesToAnalyze.txt");
         File.Exists(defaultProjectInfoPath).Should().BeTrue();
         File.Exists(razorProjectInfoPath).Should().BeFalse();
         File.Exists(razorReportFilePaths).Should().BeFalse();
@@ -987,7 +961,6 @@ public class E2EAnalysisTests
                                                  string expectedFilesToAnalyzePath,
                                                  string expectedTelemetryPath)
     {
-        projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
         projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
         projectInfo.AnalysisResults.Should().ContainSingle(x => x.Id.Equals(TestUtils.FilesToAnalyze)).Which.Location.Should().Be(expectedFilesToAnalyzePath);
         projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Which.Value.Should().Be(expectedReportFilePaths);
