@@ -48,7 +48,7 @@ public static class BuildRunner
         ];
         Console.WriteLine("Project Directory: " + Path.GetDirectoryName(projectFile));
 
-        msbuildArgs.Add($"/t:{(targets is null || targets.Length is 0 ? "Restore;Build" : string.Join(";", targets))}");
+        msbuildArgs.Add($"/t:{(targets is null || targets.Length is 0 ? $"{TargetConstants.Restore};{TargetConstants.DefaultBuild}" : string.Join(";", targets))}");
 
         // Run the build
         var args = new ProcessRunnerArguments(exePath, false)

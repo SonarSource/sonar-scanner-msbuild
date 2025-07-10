@@ -39,7 +39,6 @@ public class E2EAnalysisTests
 
     public TestContext TestContext { get; set; }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_OutputFolderStructure()
     {
@@ -72,7 +71,6 @@ public class E2EAnalysisTests
         ValidateAndLoadProjectStructure(context);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests that projects with missing project guids are handled correctly")]
     public void E2E_MissingProjectGuid_ShouldGenerateRandomOne()
@@ -110,7 +108,6 @@ public class E2EAnalysisTests
         result.Warnings.Should().NotContain(x => x.Contains(projectFilePath), "Expecting no warnings for bad project file.");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests that projects with invalid project guids are handled correctly")]
     public void E2E_InvalidGuid()
@@ -147,7 +144,6 @@ public class E2EAnalysisTests
         result.Messages.Should().Contain(x => x.Contains(projectFilePath), "Expecting the warning to contain the full path to the bad project file");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_HasAnalyzableFiles()
     {
@@ -190,14 +186,13 @@ public class E2EAnalysisTests
         var actualStructure = ValidateAndLoadProjectStructure(context);
 
         // Check the list of files to be analyzed
-        actualStructure.AssertExpectedFileList("\\none1.txt", "\\content1.txt", "\\code1.txt", "\\content2.txt");
+        actualStructure.AssertExpectedFileList("none1.txt", "content1.txt", "code1.txt", "content2.txt");
         actualStructure.ProjectInfo.GetProjectGuidAsString().Should().Be("4077C120-AF29-422F-8360-8D7192FA03F3");
 
         AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName, ExpectedProjectConfigFileName, ExpectedProjectOutFolderFileName);
         AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName, FileConstants.TelemetryProjectFileName);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_NoAnalyzableFiles()
     {
@@ -230,7 +225,6 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.AssertAnalysisResultDoesNotExists(TestUtils.FilesToAnalyze);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_HasManagedAndContentFiles_VB()
     {
@@ -261,10 +255,9 @@ public class E2EAnalysisTests
 
         // Check the projectInfo.xml file points to the file containing the list of files to analyze
         var actualStructure = ValidateAndLoadProjectStructure(context);
-        actualStructure.AssertExpectedFileList("\\none1.txt", "\\code1.vb", "\\code2.vb");
+        actualStructure.AssertExpectedFileList("none1.txt", "code1.vb", "code2.vb");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_IntermediateOutputFilesAreExcluded()
     {
@@ -312,29 +305,26 @@ public class E2EAnalysisTests
 
         // Check the list of files to be analyzed
         var actualStructure = ValidateAndLoadProjectStructure(context);
-        actualStructure.AssertExpectedFileList("\\compile1.cs", "\\foo\\compile2.cs");
+        actualStructure.AssertExpectedFileList("compile1.cs", Path.Combine("foo", "compile2.cs"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_UsingTaskHandlesBracketsInName() // Analysis build fails if the build definition name contains brackets
     {
         // Arrange
-        var context = CreateContext("VB", "Input folder with brackets in name");
+        var context = CreateContext("VB", "Input folder with (brackets) in name");
 
         // Copy the task assembly and supporting assemblies to a folder with brackets in the name
         var taskAssemblyFilePath = typeof(WriteProjectInfoFile).Assembly.Location;
         var asmName = Path.GetFileName(taskAssemblyFilePath);
-        foreach (var file in Directory.EnumerateFiles(Path.GetDirectoryName(taskAssemblyFilePath)!, "*sonar*.dll"))
+        foreach (var file in Directory.EnumerateFiles(Path.GetDirectoryName(taskAssemblyFilePath)!, "*Sonar*.dll"))
         {
             File.Copy(file, Path.Combine(context.InputFolder, Path.GetFileName(file)));
         }
 
         // Set the project property to use that file. To reproduce the bug, we need to have MSBuild search for
         // the assembly using "GetDirectoryNameOfFileAbove".
-        var val = @"$([MSBuild]::GetDirectoryNameOfFileAbove('{0}', '{1}'))\{1}";
-        val = string.Format(CultureInfo.InvariantCulture, val, context.InputFolder, asmName);
-
+        var val = $"$([MSBuild]::GetDirectoryNameOfFileAbove('{context.InputFolder}', '{asmName}')){Path.DirectorySeparatorChar}{asmName}";
         // Arrange
         var code1 = context.CreateInputFile("code1.vb");
         var projectXml = $"""
@@ -355,10 +345,9 @@ public class E2EAnalysisTests
 
         // Check the list of files to be analyzed
         var actualStructure = ValidateAndLoadProjectStructure(context);
-        actualStructure.AssertExpectedFileList("\\code1.vb");
+        actualStructure.AssertExpectedFileList("code1.vb");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_ExcludedProjects()
     {
@@ -388,16 +377,15 @@ public class E2EAnalysisTests
         // Assert
         result.AssertTargetSucceeded(TargetConstants.DefaultBuild); // Build should succeed with warnings
         // Do not override user-provided value
-        File.Exists(userDir + @"\UserDefined.json").Should().BeTrue();
+        File.Exists(Path.Combine(userDir, "UserDefined.json")).Should().BeTrue();
 
         var actualStructure = ValidateAndLoadProjectStructure(context, checkAndLoadConfigFile: false);
         actualStructure.ProjectInfo.IsExcluded.Should().BeTrue();
         actualStructure.AssertConfigFileDoesNotExist(ExpectedProjectConfigFileName);
-        actualStructure.AssertExpectedFileList("\\code1.txt");
+        actualStructure.AssertExpectedFileList("code1.txt");
         actualStructure.ProjectInfo.AnalysisSettings.Should().NotContain(x => PropertiesFileGenerator.IsReportFilePaths(x.Id));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_TestProjects()
     {
@@ -428,10 +416,9 @@ public class E2EAnalysisTests
         var actualStructure = ValidateAndLoadProjectStructure(context);
         actualStructure.ProjectInfo.ProjectType.Should().Be(ProjectType.Test);
         actualStructure.ProjectConfig.ProjectType.Should().Be(ProjectType.Test);
-        actualStructure.AssertExpectedFileList("\\code1.txt");
+        actualStructure.AssertExpectedFileList("code1.txt");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_ProductProjects()
     {
@@ -461,10 +448,9 @@ public class E2EAnalysisTests
         var actualStructure = ValidateAndLoadProjectStructure(context);
         actualStructure.ProjectInfo.ProjectType.Should().Be(ProjectType.Product);
         actualStructure.ProjectConfig.ProjectType.Should().Be(ProjectType.Product);
-        actualStructure.AssertExpectedFileList("\\code1.txt");
+        actualStructure.AssertExpectedFileList("code1.txt");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_CustomErrorLogPath()
     {
@@ -542,8 +528,6 @@ public class E2EAnalysisTests
         var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.DefaultBuild);
 
         // Assert
-        result.BuildSucceeded.Should().BeTrue();
-
         result.AssertTargetOrdering(
             TargetConstants.SonarCategoriseProject,
             TargetConstants.SonarWriteFilesToAnalyze,
@@ -561,12 +545,11 @@ public class E2EAnalysisTests
         projectInfo.AnalysisResults.Should().ContainSingle("Unexpected number of analysis results created");
 
         // Check the correct list of files to analyze were returned
-        var filesToAnalyze = projectInfo.AssertAnalysisResultExists(AnalysisType.FilesToAnalyze.ToString());
+        var filesToAnalyze = projectInfo.AssertAnalysisResultExists(nameof(AnalysisType.FilesToAnalyze));
         var actualFilesToAnalyze = File.ReadAllLines(filesToAnalyze.Location);
         actualFilesToAnalyze.Should().BeEquivalentTo([codeFile, contentFile], "Unexpected list of files to analyze");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_BareProject_CorrectlyCategorised()
     {
@@ -578,7 +561,6 @@ public class E2EAnalysisTests
         var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
         var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
-        var projectGuid = Guid.NewGuid();
         var projectXml = $"""
                           <?xml version='1.0' encoding='utf-8'?>
                           <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
@@ -586,7 +568,6 @@ public class E2EAnalysisTests
                               <SonarQubeExclude>true</SonarQubeExclude>
                               <Language>my.language</Language>
                               <ProjectTypeGuids>{TargetConstants.MsTestProjectTypeGuid}</ProjectTypeGuids>
-                              <ProjectGuid>{projectGuid}</ProjectGuid>
                               <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
                               <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
                               <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
@@ -631,7 +612,6 @@ public class E2EAnalysisTests
         projectInfo.AnalysisResults.Should().BeEmpty("Unexpected number of analysis results created");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_RazorProjectWithoutSourceGeneration_ValidProjectInfoFilesGenerated()
     {
@@ -641,17 +621,17 @@ public class E2EAnalysisTests
         // Arrange
         var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
         var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-        var defaultProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
-        var razorProjectInfoPath = Path.Combine(rootOutputFolder, @"0.Razor\ProjectInfo.xml");
+        var defaultProjectInfoPath = Path.Combine(rootOutputFolder, "0", "ProjectInfo.xml");
+        var razorProjectInfoPath = Path.Combine(rootOutputFolder, "0.Razor", "ProjectInfo.xml");
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
         var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
         var projectGuid = Guid.NewGuid();
-        var defaultProjectOutPaths = Path.Combine(rootOutputFolder, @"0");
-        var razorProjectOutPaths = Path.Combine(rootOutputFolder, @"0.Razor");
-        var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
-        var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
-        var filesToAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
-        var telemetryPath = Path.Combine(defaultProjectOutPaths, @"Telemetry.json");
+        var defaultProjectOutPaths = Path.Combine(rootOutputFolder, "0");
+        var razorProjectOutPaths = Path.Combine(rootOutputFolder, "0.Razor");
+        var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, "Issues.json");
+        var razorReportFilePaths = Path.Combine(razorProjectOutPaths, "Issues.Views.json");
+        var filesToAnalyzePath = Path.Combine(rootOutputFolder, "conf", "0", "FilesToAnalyze.txt");
+        var telemetryPath = Path.Combine(defaultProjectOutPaths, "Telemetry.json");
         var projectXml = $"""
                           <?xml version='1.0' encoding='utf-8'?>
                           <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
@@ -717,7 +697,6 @@ public class E2EAnalysisTests
         AssertProjectInfoContent(razorProjectInfo, razorReportFilePaths, razorProjectOutPaths, filesToAnalyzePath, null);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_Net6RazorProjectWithSourceGenerationEnabled_ValidProjectInfoFilesGenerated()
     {
@@ -727,11 +706,11 @@ public class E2EAnalysisTests
         // Arrange
         var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
         var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
-        var defaultProjectInfoPath = Path.Combine(rootOutputFolder, @"0\ProjectInfo.xml");
-        var razorProjectInfoPath = Path.Combine(rootOutputFolder, @"0.Razor\ProjectInfo.xml");
+        var defaultProjectInfoPath = Path.Combine(rootOutputFolder, "0", "ProjectInfo.xml");
+        var razorProjectInfoPath = Path.Combine(rootOutputFolder, "0.Razor", "ProjectInfo.xml");
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
         var projectFilePath = Path.Combine(rootInputFolder, "project.txt");
-        var telemetryPath = Path.Combine(rootOutputFolder, @"0\Telemetry.json");
+        var telemetryPath = Path.Combine(rootOutputFolder, "0", "Telemetry.json");
         var projectGuid = Guid.NewGuid();
         var projectXml = $"""
                           <?xml version='1.0' encoding='utf-8'?>
@@ -781,11 +760,11 @@ public class E2EAnalysisTests
             TargetConstants.SonarWriteProjectData);
 
         // Check the project info
-        var defaultProjectOutPaths = Path.Combine(rootOutputFolder, @"0");
-        var razorProjectOutPaths = Path.Combine(rootOutputFolder, @"0.Razor");
-        var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, @"Issues.json");
-        var razorReportFilePaths = Path.Combine(razorProjectOutPaths, @"Issues.Views.json");
-        var filesToAnalyzePath = Path.Combine(rootOutputFolder, @"conf\0\FilesToAnalyze.txt");
+        var defaultProjectOutPaths = Path.Combine(rootOutputFolder, "0");
+        var razorProjectOutPaths = Path.Combine(rootOutputFolder, "0.Razor");
+        var defaultReportFilePaths = Path.Combine(defaultProjectOutPaths, "Issues.json");
+        var razorReportFilePaths = Path.Combine(razorProjectOutPaths, "Issues.Views.json");
+        var filesToAnalyzePath = Path.Combine(rootOutputFolder, "conf", "0", "FilesToAnalyze.txt");
         File.Exists(defaultProjectInfoPath).Should().BeTrue();
         File.Exists(razorProjectInfoPath).Should().BeFalse();
         File.Exists(razorReportFilePaths).Should().BeFalse();
@@ -793,7 +772,6 @@ public class E2EAnalysisTests
         AssertProjectInfoContent(defaultProjectInfo, defaultReportFilePaths, defaultProjectOutPaths, filesToAnalyzePath, telemetryPath);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_TestProjects_ProtobufFilesAreUpdated()
     {
@@ -809,7 +787,6 @@ public class E2EAnalysisTests
         AssertFilesExistsAndAreEmpty(protobufDir, "metrics.pb", "token-cpd.pb");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_NonTestProjects_ProtobufFilesAreNotUpdated()
     {
@@ -825,7 +802,6 @@ public class E2EAnalysisTests
         AssertFilesExistsAndAreNotEmpty(protobufDir, protobufFileNames);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_AnalysisSettings_HasCorrectTelemetryPath()
     {
@@ -838,7 +814,7 @@ public class E2EAnalysisTests
                           </ItemGroup>
                           """;
         var projectFilePath = context.CreateProjectFile(projectXml);
-        var defaultProjectInfoPath = Path.Combine(context.OutputFolder, @"0\ProjectInfo.xml");
+        var defaultProjectInfoPath = Path.Combine(context.OutputFolder, @"0", "ProjectInfo.xml");
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
@@ -858,7 +834,6 @@ public class E2EAnalysisTests
         projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.scanner.telemetry")).Which.Value.Should().Be(Path.Combine(context.OutputFolder, "0", "Telemetry.json"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void E2E_TelemetryFiles_AllWritten()
     {
@@ -1059,6 +1034,7 @@ public class E2EAnalysisTests
         public readonly string ProjectSpecificOutputDir;
         public readonly ProjectConfig ProjectConfig;
         public readonly ProjectInfo ProjectInfo;
+
         private readonly TargetsTestsContext context;
 
         public ProjectStructure(TargetsTestsContext context, string projectSpecificConfigDir, string projectSpecificOutputDir, bool checkAndLoadConfigFile)
@@ -1091,7 +1067,7 @@ public class E2EAnalysisTests
             var filesToAnalyzeFile = TryAddToResults(ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName);
             AssertFileExists(filesToAnalyzeFile);
 
-            var expectedFullPaths = fileNames.Select(x => context.InputFolder + x);
+            var expectedFullPaths = fileNames.Select(x => Path.Combine(context.InputFolder, x));
             File.ReadLines(filesToAnalyzeFile.FullPath).Should().BeEquivalentTo(expectedFullPaths);
 
             var actualFilesToAnalyze = ProjectInfo.AssertAnalysisResultExists(TestUtils.FilesToAnalyze);

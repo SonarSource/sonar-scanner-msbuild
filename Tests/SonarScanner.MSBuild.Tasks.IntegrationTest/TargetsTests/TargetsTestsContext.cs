@@ -57,7 +57,12 @@ public class TargetsTestsContext
             config.Save(configFilePath);
         }
         var targetFramework = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "net48" : "net9";
-        var projectExt = language is "VB" ? ".vbproj" : ".csproj";
+        var projectExt = language switch
+        {
+            "C#" => ".csproj",
+            "VB" => ".vbproj",
+            _ => throw new InvalidOperationException($"{language}: unknown language.")
+        };
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContext);
         File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
         TestContext.AddResultFile(sqTargetFile);
@@ -81,7 +86,7 @@ public class TargetsTestsContext
             .Replace("TARGET_FRAMEWORK", targetFramework)
             .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
             .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml)
-            .Replace("LANGUAGE", language);
+            .Replace("LANGUAGE", language ?? string.Empty);
 
         var projectFilePath = Path.Combine(ProjectFolder, TestContext.TestName + projectExt);
         File.WriteAllText(projectFilePath, projectData);
