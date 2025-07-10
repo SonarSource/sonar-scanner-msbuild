@@ -116,7 +116,8 @@ public class MsBuildPathSettingsTests
             Path.Combine("c:\\app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GetImportBeforePaths_Windows_System_Account()
     {
@@ -155,7 +156,8 @@ public class MsBuildPathSettingsTests
             Path.Combine("c:\\windows\\Sysnative\\app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GetImportBeforePaths_Windows_System_Account_WOW64_Missing()
     {
@@ -251,9 +253,10 @@ public class MsBuildPathSettingsTests
         testSubject2.GetGlobalTargetsPaths().Should().BeEmpty();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    public void GetGlobalTargetsPaths_WhenProgramFilesNotEmpty_ReturnsExpectedPaths()
+    public void GetGlobalTargetsPaths_Windows_WhenProgramFilesNotEmpty_ReturnsExpectedPaths()
     {
         var paths = new[]
         {
