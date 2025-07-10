@@ -77,7 +77,6 @@ public class SerializerTests
         reloaded.Value2.Should().Be(original.Value2);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Serializer_ToString_Succeeds()
     {
@@ -85,7 +84,7 @@ public class SerializerTests
         var inputData = new MyDataClass() { Value1 = "val1", Value2 = 22 };
 
         // Act
-        var actual = Serializer.ToString(inputData);
+        var actual = Serializer.ToString(inputData).NormalizeLineEndings();
 
         // Assert
 #if NETFRAMEWORK
@@ -106,7 +105,7 @@ public class SerializerTests
             """;
 #endif
 
-        actual.Should().Be(expected);
+        actual.Should().Be(expected.NormalizeLineEndings());
     }
 
 #endregion Tests
