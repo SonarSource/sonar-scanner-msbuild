@@ -28,7 +28,6 @@ public class WildcardPatternMatcherTest
     /// <summary>
     /// Based on https://github.com/SonarSource/sonar-plugin-api/blob/master/plugin-api/src/test/java/org/sonar/api/utils/WildcardPatternTest.java.
     /// </summary>
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow("Foo", "Foo", true)]
     [DataRow("foo", "FOO", false)]
@@ -99,8 +98,7 @@ public class WildcardPatternMatcherTest
     public void IsMatch_MatchesPatternsAsExpected(string pattern, string input, bool expectedResult)
     {
         // The test cases are copied from the plugin-api and the directory separators need replacing as Roslyn will not give us the paths with '/'.
-        input = input.Replace("/", Path.DirectorySeparatorChar.ToString());
-
+        input = input.Replace("/", $"{Path.DirectorySeparatorChar}").Replace("\\", $"{Path.DirectorySeparatorChar}");
         WildcardPatternMatcher.IsMatch(pattern, input, false).Should().Be(expectedResult);
     }
 
