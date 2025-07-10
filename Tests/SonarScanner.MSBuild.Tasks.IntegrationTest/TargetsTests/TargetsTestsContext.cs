@@ -25,6 +25,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 public class TargetsTestsContext
 {
     private readonly string language;
+    private readonly Dictionary<string, string> placeholders = new();
 
     public TestContext TestContext { get; }
     public string ProjectFolder { get; }
@@ -42,6 +43,9 @@ public class TargetsTestsContext
         OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
     }
 
+    public void Replace(string placeholder, string value) =>
+        placeholders.Add(placeholder, value);
+
     public string CreateInputFile(string fileName)
     {
         var filePath = Path.Combine(InputFolder, fileName);
@@ -49,7 +53,7 @@ public class TargetsTestsContext
         return filePath;
     }
 
-    public string CreateProjectFile(string testSpecificProjectXml, string sqProperties = null, AnalysisConfig config = null)
+    public string CreateProjectFile(string testSpecificProjectXml, string sqProperties = null, AnalysisConfig config = null, string template = null)
     {
         if (config is not null)
         {
@@ -76,12 +80,18 @@ public class TargetsTestsContext
             """;
         testSpecificProjectXml ??= "<!-- none -->";
 
-        var projectData = Resources.TargetTestsProjectTemplate.Replace("PROJECT_DIRECTORY_PATH", ProjectFolder)
+        template ??= Resources.TargetTestsProjectTemplate;
+        var projectData = template.Replace("PROJECT_DIRECTORY_PATH", ProjectFolder)
             .Replace("TARGET_FRAMEWORK", targetFramework)
             .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
             .Replace("SONARQUBE_PROPERTIES", sqProperties)
             .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml)
             .Replace("LANGUAGE", language ?? string.Empty);
+
+        foreach (var placeholder in placeholders)
+        {
+            projectData = projectData.Replace(placeholder.Key, placeholder.Value);
+        }
 
         var projectFilePath = Path.Combine(ProjectFolder, TestContext.TestName + projectExt);
         File.WriteAllText(projectFilePath, projectData);

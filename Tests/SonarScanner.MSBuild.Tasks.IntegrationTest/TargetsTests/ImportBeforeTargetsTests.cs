@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
-
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 
 [TestClass]
@@ -39,7 +37,6 @@ public class ImportBeforeTargetsTests
 
     #region Tests
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the properties are not set if SonarQubeTargetsPath is missing")]
     public void ImportsBefore_SonarQubeTargetsPathNotSet()
@@ -62,7 +59,6 @@ public class ImportBeforeTargetsTests
         result.AssertErrorCount(0);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks the properties are not set if the project is building inside Visual Studio")]
     public void ImportsBefore_BuildingInsideVS_NotImported()
@@ -85,7 +81,6 @@ public class ImportBeforeTargetsTests
         result.AssertErrorCount(0);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks what happens if the analysis targets cannot be located")]
     public void ImportsBefore_MissingAnalysisTargets()
@@ -102,18 +97,19 @@ public class ImportBeforeTargetsTests
         var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
 
         AssertAnalysisTargetsAreNotImported(result); // Targets should not be imported
-        result.AssertPropertyValue(TargetProperties.SonarQubeTargetsPath, @"nonExistentPath\bin\targets");
-        result.AssertPropertyValue(TargetProperties.SonarQubeTargetFilePath, @"nonExistentPath\bin\targets\SonarQube.Integration.targets");
+        result.AssertPropertyValue(TargetProperties.SonarQubeTargetsPath, Path.Combine("nonExistentPath", "bin", "targets"));
+        // The before targets is setting the SonarQubeTargetFilePath property like this: $(SonarQubeTargetsPath)\SonarQube.Integration.targets
+        // So we need to keep the last backslash in the path, even on Unix systems.
+        result.AssertPropertyValue(TargetProperties.SonarQubeTargetFilePath, Path.Combine("nonExistentPath", "bin", @"targets\SonarQube.Integration.targets"));
         result.BuildSucceeded.Should().BeTrue();
         result.AssertTargetExecuted(TargetConstants.ImportBeforeInfo);
         result.AssertErrorCount(0);
 
         var projectName = Path.GetFileName(projectFilePath);
         result.Messages.Should().Contain($"Sonar: ({projectName}) SonarQube analysis targets imported: ");
-        result.Messages.Should().Contain($@"Sonar: ({projectName}) The analysis targets file not found: nonExistentPath\bin\targets\SonarQube.Integration.targets");
+        result.Messages.Should().Contain($@"Sonar: ({projectName}) The analysis targets file not found: {Path.Combine("nonExistentPath", "bin", @"targets\SonarQube.Integration.targets")}");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Checks that the targets are imported if the properties are set correctly and the targets can be found")]
     public void ImportsBefore_TargetsExist()
@@ -172,13 +168,13 @@ public class ImportBeforeTargetsTests
 
     private string CreateProjectFile(string testSpecificProjectXml)
     {
-        var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var importsBeforeTargets = Path.Combine(projectDirectory, TargetConstants.ImportsBeforeFile);
+        var context = new TargetsTestsContext(TestContext);
+        var importsBeforeTargets = Path.Combine(context.ProjectFolder, TargetConstants.ImportsBeforeFile);
+        context.Replace("SQ_IMPORTS_BEFORE", importsBeforeTargets);
         // Locate the real "ImportsBefore" target file
         File.Exists(importsBeforeTargets).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
-        var projectData = Resources.ImportBeforeTargetTestsTemplate.Replace("SQ_IMPORTS_BEFORE", importsBeforeTargets).Replace("TEST_SPECIFIC_XML", testSpecificProjectXml);
-        return new TargetsTestsUtils(TestContext).CreateProjectFile(projectDirectory, projectData);
+        return context.CreateProjectFile(testSpecificProjectXml, emptySqProperties: true, template: Resources.ImportBeforeTargetTestsTemplate);
     }
 
     #endregion Private methods
