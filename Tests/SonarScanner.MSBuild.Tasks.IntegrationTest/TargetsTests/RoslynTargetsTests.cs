@@ -23,7 +23,6 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
 using SonarScanner.MSBuild.Common;
 using TestUtilities;
 
@@ -52,10 +51,10 @@ public class RoslynTargetsTests
     public void Settings_ValidSetup_ForAnalyzedProject(string msBuildLanguage, bool isTestProject, string excludeTestProjects)
     {
         // Arrange and Act
-        var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var dummyCSQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "C#-dummyQp");
-        var dummyVBQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "VB-dummyQp");
-        var result = Execute_Settings_ValidSetup(msBuildLanguage, isTestProject, excludeTestProjects, dummyCSQpRulesetPath, dummyVBQpRulesetPath);
+        var context = new TargetsTestsContext(TestContext, msBuildLanguage);
+        var dummyCSQpRulesetPath = TestUtils.CreateValidEmptyRuleset(context.ConfigFolder, "C#-dummyQp");
+        var dummyVBQpRulesetPath = TestUtils.CreateValidEmptyRuleset(context.ConfigFolder, "VB-dummyQp");
+        var result = Execute_Settings_ValidSetup(context, isTestProject, excludeTestProjects, dummyCSQpRulesetPath, dummyVBQpRulesetPath);
 
         // Assert
         var actualProjectSpecificConfFolder = result.GetPropertyValue(TargetProperties.ProjectSpecificConfDir);
@@ -85,7 +84,8 @@ public class RoslynTargetsTests
     public void Settings_ValidSetup_ForExcludedTestProject(string msBuildLanguage)
     {
         // Arrange and Act
-        var result = Execute_Settings_ValidSetup(msBuildLanguage, true, "true", @"foo-cs.ruleset", @"foo-vb.ruleset");
+        var context = new TargetsTestsContext(TestContext, msBuildLanguage);
+        var result = Execute_Settings_ValidSetup(context, true, "true", @"foo-cs.ruleset", @"foo-vb.ruleset");
 
         // Assert
         AssertExpectedResolvedRuleset(result, $@"d:\{msBuildLanguage}-deactivated.ruleset");
@@ -106,7 +106,7 @@ public class RoslynTargetsTests
     public void Settings_ValidSetup_LegacyServer_Override_Analyzers()
     {
         // Arrange
-        var outDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
+        var context = new TargetsTestsContext(TestContext);
 
         // Create a valid config containing analyzer settings
         var config = new AnalysisConfig
@@ -129,11 +129,10 @@ public class RoslynTargetsTests
             }
         };
 
-        var testSpecificProjectXml = $@"
+        var testSpecificProjectXml = @"
   <PropertyGroup>
     <ResolvedCodeAnalysisRuleSet>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleSet>
     <Language>C#</Language>
-    <SonarQubeOutputPath>{outDir}</SonarQubeOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -153,7 +152,7 @@ public class RoslynTargetsTests
   </ItemGroup>
 ";
 
-        var filePath = CreateProjectFile(config, testSpecificProjectXml);
+        var filePath = context.CreateProjectFile(testSpecificProjectXml, config);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarOverrideRunAnalyzers, TargetConstants.OverrideRoslynAnalysis);
@@ -179,9 +178,8 @@ public class RoslynTargetsTests
     public void Settings_ValidSetup_NonLegacyServer_MergeSettings()
     {
         // Arrange
-        var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
-        var outDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
+        var context = new TargetsTestsContext(TestContext);
+        var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(context.ProjectFolder, "dummyQp");
 
         // Create a valid config containing analyzer settings
         var config = new AnalysisConfig
@@ -203,11 +201,9 @@ public class RoslynTargetsTests
             }
         };
 
-        var testSpecificProjectXml = $@"
+        var testSpecificProjectXml = @"
   <PropertyGroup>
     <ResolvedCodeAnalysisRuleSet>c:\original.ruleset</ResolvedCodeAnalysisRuleSet>
-    <Language>C#</Language>
-    <SonarQubeOutputPath>{outDir}</SonarQubeOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -234,7 +230,7 @@ public class RoslynTargetsTests
   </ItemGroup>
 ";
 
-        var filePath = CreateProjectFile(config, testSpecificProjectXml);
+        var filePath = context.CreateProjectFile(testSpecificProjectXml, config);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarOverrideRunAnalyzers, TargetConstants.OverrideRoslynAnalysis);
@@ -275,19 +271,18 @@ public class RoslynTargetsTests
     {
         // Arrange
         // Set the config directory so the targets know where to look for the analysis config file
-        var confDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "config");
-        var outDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
+        var context = new TargetsTestsContext(TestContext);
 
         // Create a valid config file that does not contain analyzer settings
         var config = new AnalysisConfig();
-        var configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
+        var configFilePath = Path.Combine(context.ConfigFolder, FileConstants.ConfigFileName);
         config.Save(configFilePath);
 
         // Create the project
         var projectSnippet = $@"
 <PropertyGroup>
-  <SonarQubeConfigPath>{confDir}</SonarQubeConfigPath>
-  <SonarQubeOutputPath>{outDir}</SonarQubeOutputPath>
+  <SonarQubeConfigPath>{context.ConfigFolder}</SonarQubeConfigPath>
+  <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
   <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
   <Language />
 </PropertyGroup>
@@ -297,7 +292,7 @@ public class RoslynTargetsTests
   <AdditionalFiles Include='should.be.preserved.additional1.txt' />
 </ItemGroup>
 ";
-        var filePath = CreateProjectFile(config, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet, config);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
@@ -330,19 +325,18 @@ public class RoslynTargetsTests
     {
         // Arrange
         // Set the config directory so the targets know where to look for the analysis config file
-        var confDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "config");
-        var outDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
+        var context = new TargetsTestsContext(TestContext);
 
         // Create a valid config file that does not contain analyzer settings
         var config = new AnalysisConfig();
-        var configFilePath = Path.Combine(confDir, FileConstants.ConfigFileName);
+        var configFilePath = Path.Combine(context.ConfigFolder, FileConstants.ConfigFileName);
         config.Save(configFilePath);
 
         // Create the project
         var projectSnippet = $@"
 <PropertyGroup>
-  <SonarQubeConfigPath>{confDir}</SonarQubeConfigPath>
-  <SonarQubeOutputPath>{outDir}</SonarQubeOutputPath>
+  <SonarQubeConfigPath>{context.ConfigFolder}</SonarQubeConfigPath>
+  <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
   <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
 </PropertyGroup>
 
@@ -351,7 +345,7 @@ public class RoslynTargetsTests
   <AdditionalFiles Include='should.be.preserved.additional1.txt' />
 </ItemGroup>
 ";
-        var filePath = CreateProjectFile(config, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet, config);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
@@ -378,6 +372,7 @@ public class RoslynTargetsTests
     public void Settings_TempFolderIsNotSet()
     {
         // Arrange
+        var context = new TargetsTestsContext(TestContext);
         var projectSnippet = @"
 <PropertyGroup>
   <ErrorLog>pre-existing.log</ErrorLog>
@@ -392,7 +387,7 @@ public class RoslynTargetsTests
 </PropertyGroup>
 ";
 
-        var filePath = CreateProjectFile(null, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
@@ -420,13 +415,14 @@ public class RoslynTargetsTests
     public void Settings_ErrorLogAlreadySet()
     {
         // Arrange
+        var context = new TargetsTestsContext(TestContext);
         var projectSnippet = @"
 <PropertyGroup>
   <ErrorLog>already.set.txt</ErrorLog>
 </PropertyGroup>
 ";
 
-        var filePath = CreateProjectFile(null, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
@@ -446,6 +442,7 @@ public class RoslynTargetsTests
     public void Settings_NotRunForExcludedProject()
     {
         // Arrange
+        var context = new TargetsTestsContext(TestContext);
         var projectSnippet = @"
 <PropertyGroup>
   <SonarQubeExclude>TRUE</SonarQubeExclude>
@@ -455,7 +452,7 @@ public class RoslynTargetsTests
   <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
 </PropertyGroup>
 ";
-        var filePath = CreateProjectFile(null, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
@@ -482,13 +479,14 @@ public class RoslynTargetsTests
     public void SetResults_TempFolderIsNotSet()
     {
         // Arrange
+        var context = new TargetsTestsContext(TestContext);
         var projectSnippet = @"
 <PropertyGroup>
   <SonarQubeTempPath />
 </PropertyGroup>
 ";
 
-        var filePath = CreateProjectFile(null, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
@@ -503,17 +501,16 @@ public class RoslynTargetsTests
     public void SetResults_ResultsFileDoesNotExist()
     {
         // Arrange
-        var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-        var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+        var context = new TargetsTestsContext(TestContext);
 
         var projectSnippet = $@"
 <PropertyGroup>
-  <ProjectSpecificOutDir>{rootOutputFolder}</ProjectSpecificOutDir>
-  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <ProjectSpecificOutDir>{context.OutputFolder}</ProjectSpecificOutDir>
+  <SonarQubeTempPath>{context.InputFolder}</SonarQubeTempPath>
 </PropertyGroup>
 ";
 
-        var filePath = CreateProjectFile(null, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
@@ -530,16 +527,16 @@ public class RoslynTargetsTests
     public void SetResults_ResultsFileExists()
     {
         // Arrange
-        var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-        var resultsFile = TestUtils.CreateTextFile(rootInputFolder, "error.report.txt", "dummy report content");
+        var context = new TargetsTestsContext(TestContext);
+        var resultsFile = TestUtils.CreateTextFile(context.InputFolder, "error.report.txt", "dummy report content");
 
         var projectSnippet = $@"
 <PropertyGroup>
-  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
+  <SonarQubeTempPath>{context.InputFolder}</SonarQubeTempPath>
   <SonarErrorLog>{resultsFile}</SonarErrorLog>
 </PropertyGroup>
 ";
-        var filePath = CreateProjectFile(null, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarCreateProjectSpecificDirs, TargetConstants.InvokeSonarWriteProjectData_NonRazorProject);
@@ -564,18 +561,17 @@ public class RoslynTargetsTests
     public void TargetExecutionOrder()
     {
         // Arrange
-        var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
-        var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+        var context = new TargetsTestsContext(TestContext);
 
         // We need to set the CodeAnalyisRuleSet property if we want ResolveCodeAnalysisRuleSet
         // to be executed. See test bug https://github.com/SonarSource/sonar-scanner-msbuild/issues/776
-        var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(rootInputFolder, "dummyQp");
+        var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(context.InputFolder, "dummyQp");
 
         var projectSnippet = $@"
 <PropertyGroup>
-  <SonarQubeTempPath>{rootInputFolder}</SonarQubeTempPath>
-  <SonarQubeOutputPath>{rootInputFolder}</SonarQubeOutputPath>
-  <SonarQubeConfigPath>{rootOutputFolder}</SonarQubeConfigPath>
+  <SonarQubeTempPath>{context.InputFolder}</SonarQubeTempPath>
+  <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
+  <SonarQubeConfigPath>{context.ConfigFolder}</SonarQubeConfigPath>
   <CodeAnalysisRuleSet>{dummyQpRulesetPath}</CodeAnalysisRuleSet>
 </PropertyGroup>
 
@@ -586,10 +582,10 @@ public class RoslynTargetsTests
 </ItemGroup>
 ";
 
-        var filePath = CreateProjectFile(null, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet);
 
         // Act
-        var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuild);
+        var result = BuildRunner.BuildTargets(TestContext, filePath);
 
         // Assert
         // Checks that should succeed irrespective of the MSBuild version
@@ -733,9 +729,8 @@ public class RoslynTargetsTests
 
     #region Setup
 
-    private BuildLog Execute_Settings_ValidSetup(string msBuildLanguage, bool isTestProject, string excludeTestProject, string csRuleSetPath, string vbRulesetPath)
+    private BuildLog Execute_Settings_ValidSetup(TargetsTestsContext context, bool isTestProject, string excludeTestProject, string csRuleSetPath, string vbRulesetPath)
     {
-        var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out");
         // Create a valid config file containing analyzer settings for both VB and C#
         var config = new AnalysisConfig
         {
@@ -782,9 +777,8 @@ public class RoslynTargetsTests
         // Create the project
         var projectSnippet = $@"
 <PropertyGroup>
-    <Language>{msBuildLanguage}</Language>
     <SonarQubeTestProject>{isTestProject}</SonarQubeTestProject>
-    <ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>
+    <ProjectSpecificOutDir>{context.OutputFolder}</ProjectSpecificOutDir>
     <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
     <!-- These should be overriden by the targets file -->
     <RunAnalyzers>false</RunAnalyzers>
@@ -799,7 +793,7 @@ public class RoslynTargetsTests
 </ItemGroup>
 ";
 
-        var filePath = CreateProjectFile(config, projectSnippet);
+        var filePath = context.CreateProjectFile(projectSnippet, config);
 
         // Act
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarOverrideRunAnalyzers, TargetConstants.OverrideRoslynAnalysis);
@@ -818,14 +812,6 @@ public class RoslynTargetsTests
         result.Messages.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {capturedProjectSpecificConfDir}\SonarProjectConfig.xml.");
 
         return result;
-    }
-
-    private string CreateProjectFile(AnalysisConfig config, string projectSnippet)
-    {
-        var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var targetTestUtils = new TargetsTestsUtils(TestContext);
-        var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet);
-        return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
     }
 
     private static AnalyzerPlugin CreateAnalyzerPlugin(params string[] fileList) =>
