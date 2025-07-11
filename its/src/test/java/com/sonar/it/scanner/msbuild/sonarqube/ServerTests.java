@@ -96,6 +96,9 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     if (version == null || version.isEmpty() || version.equals("NONE")) {
       return;
     }
+    if(artifactId.equals("sonar-javascript-plugin") && !version.contains("7.4") && !version.contains("9.13")) { // dont look for multi in SQ 8.9 & 9.9
+      orchestrator.addPlugin(MavenLocation.create(groupId, artifactId, version, "multi"));
+    }
     orchestrator.addPlugin(MavenLocation.of(groupId, artifactId, version));
   }
 

@@ -24,6 +24,7 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
+import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.nio.file.Path;
@@ -80,6 +81,12 @@ class MultiLanguageTest {
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
+
+    try (var userHome = new TempDirectory("junit-esproj-vue-")) {
+      context.begin
+        .setProperty("sonar.userHome", userHome.toString());
+    }
+
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
@@ -129,6 +136,12 @@ class MultiLanguageTest {
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
+
+    try (var userHome = new TempDirectory("junit-sdkFormat")) {
+      context.begin
+        .setProperty("sonar.userHome", userHome.toString());
+    }
+
     // Begin step runs in MultiLanguageSupport
     // Build step runs in MultiLanguageSupport/src
     context.build.addArgument("src/MultiLanguageSupport.sln");
@@ -225,7 +238,14 @@ class MultiLanguageTest {
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   void react() {
+
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
+
+    try (var userHome = new TempDirectory("junit-react")) {
+      context.begin
+        .setProperty("sonar.userHome", userHome.toString());
+    }
+
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
@@ -254,6 +274,12 @@ class MultiLanguageTest {
   @MSBuildMinVersion(17)
   void angular() {
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
+
+    try (var userHome = new TempDirectory("junit-angular")) {
+      context.begin
+        .setProperty("sonar.userHome", userHome.toString());
+    }
+
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
@@ -323,6 +349,12 @@ class MultiLanguageTest {
   @EnabledOnOs(OS.WINDOWS)
   void nonSdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
+
+    try (var userHome = new TempDirectory("junit-nonSdkFormat")) {
+      context.begin
+        .setProperty("sonar.userHome", userHome.toString());
+    }
+
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
