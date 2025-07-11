@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Runtime.InteropServices;
+
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 
 [TestClass]
@@ -25,6 +27,8 @@ public class RoslynTargetsTests
 {
     private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePaths";
     private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.projectOutPaths";
+
+    private readonly string OverriddenRulset = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "c:\\should.be.overridden.ruleset" : "/tmp/should.be.overridden.ruleset";
 
     public TestContext TestContext { get; set; }
 
@@ -50,7 +54,7 @@ public class RoslynTargetsTests
 
         var expectedMergedRuleSetFilePath = Path.Combine(actualProjectSpecificConfFolder, "merged.ruleset");
         AssertExpectedResolvedRuleset(result, expectedMergedRuleSetFilePath);
-        RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder, @"c:\should.be.overridden.ruleset");
+        RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder, OverriddenRulset);
 
         // Expecting all analyzers from the config file, but none from the project file
         AssertExpectedAnalyzers(
@@ -111,9 +115,9 @@ public class RoslynTargetsTests
             ]
         };
 
-        var testSpecificProjectXml = """
+        var testSpecificProjectXml = $"""
               <PropertyGroup>
-                <ResolvedCodeAnalysisRuleSet>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleSet>
+                <ResolvedCodeAnalysisRuleSet>{OverriddenRulset}</ResolvedCodeAnalysisRuleSet>
                 <Language>C#</Language>
               </PropertyGroup>
 
@@ -255,7 +259,7 @@ public class RoslynTargetsTests
             <PropertyGroup>
               <SonarQubeConfigPath>{context.ConfigFolder}</SonarQubeConfigPath>
               <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
-              <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
+              <ResolvedCodeAnalysisRuleset>{OverriddenRulset}</ResolvedCodeAnalysisRuleset>
               <Language />
             </PropertyGroup>
 
@@ -305,7 +309,7 @@ public class RoslynTargetsTests
             <PropertyGroup>
               <SonarQubeConfigPath>{context.ConfigFolder}</SonarQubeConfigPath>
               <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
-              <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
+              <ResolvedCodeAnalysisRuleset>{OverriddenRulset}</ResolvedCodeAnalysisRuleset>
             </PropertyGroup>
 
             <ItemGroup>
@@ -717,7 +721,7 @@ public class RoslynTargetsTests
             <PropertyGroup>
                 <SonarQubeTestProject>{isTestProject}</SonarQubeTestProject>
                 <ProjectSpecificOutDir>{context.OutputFolder}</ProjectSpecificOutDir>
-                <ResolvedCodeAnalysisRuleset>c:\should.be.overridden.ruleset</ResolvedCodeAnalysisRuleset>
+                <ResolvedCodeAnalysisRuleset>{OverriddenRulset}</ResolvedCodeAnalysisRuleset>
                 <!-- These should be overriden by the targets file -->
                 <RunAnalyzers>false</RunAnalyzers>
                 <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
@@ -746,7 +750,7 @@ public class RoslynTargetsTests
         AssertRunAnalyzersIsEnabled(result);
 
         var capturedProjectSpecificConfDir = result.GetPropertyValue(TargetProperties.ProjectSpecificConfDir);
-        result.Messages.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {capturedProjectSpecificConfDir}\SonarProjectConfig.xml.");
+        result.Messages.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {Path.Combine(capturedProjectSpecificConfDir, "SonarProjectConfig.xml")}.");
 
         return result;
     }
