@@ -188,7 +188,6 @@ class MultiLanguageTest {
       }
       if (version.isGreaterThan(9, 9)) {
         expectedIssues.addAll(List.of(
-          tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx"),
           tuple("azureresourcemanager:S1135", context.projectKey + ":main.bicep"),
           tuple("azureresourcemanager:S4423", context.projectKey + ":main.bicep"),
           tuple("cloudformation:S1135", context.projectKey + ":cloudformation.yaml"),
@@ -208,6 +207,11 @@ class MultiLanguageTest {
           tuple("secrets:S6702", context.projectKey + ":src/script.ksh"),
           tuple("secrets:S6702", context.projectKey + ":src/script.ps1"),
           tuple("secrets:S6702", context.projectKey + ":src/script.zsh")));
+      }
+      if(version.getMajor() == 2025 && version.getMinor() == 1)
+      {
+        expectedIssues.addAll(List.of(
+          tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
       }
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
