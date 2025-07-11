@@ -1,6 +1,7 @@
 ﻿<Project Sdk='Microsoft.NET.Sdk'>
 
     <PropertyGroup>
+        <ImplicitUsings>false</ImplicitUsings>
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
         <TargetFramework>TARGET_FRAMEWORK</TargetFramework>
     </PropertyGroup>
