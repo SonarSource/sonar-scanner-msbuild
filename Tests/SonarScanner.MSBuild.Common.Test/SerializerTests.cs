@@ -26,19 +26,26 @@ public class SerializerTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void Serializer_ArgumentValidation()
+    public void Serializer_ArgumentValidation_LoadModel()
     {
-        Action[] nullArgumentCalls =
-        [
-            () => Serializer.LoadModel<MyDataClass>(null),
-            () => Serializer.SaveModel<MyDataClass>(null, "c:\\data.txt"),
-            () => Serializer.SaveModel(new MyDataClass(), null),
-            () => Serializer.ToString<MyDataClass>(null)
-        ];
-        foreach (var action in nullArgumentCalls)
-        {
-            action.Should().Throw<ArgumentNullException>();
-        }
+        Action act = () => Serializer.LoadModel<MyDataClass>(null);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [TestMethod]
+    public void Serializer_ArgumentValidation_ToString()
+    {
+        Action act = () => Serializer.ToString<MyDataClass>(null);
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [DataRow(false, "c:\\data.txt")]
+    [DataRow(true, null)]
+    [DataTestMethod]
+    public void Serializer_ArgumentValidation_SaveModel_NullFileName(bool newModel, string fileName)
+    {
+        Action act = () => Serializer.SaveModel<MyDataClass>(newModel ? new MyDataClass() : null, fileName);
+        act.Should().Throw<ArgumentNullException>();
     }
 
     [TestMethod]
@@ -60,7 +67,7 @@ public class SerializerTests
     public void Serializer_ToString_Succeeds()
     {
         var inputData = new MyDataClass() { Value1 = "val1", Value2 = 22 };
-        var actual = Serializer.ToString(inputData).NormalizeLineEndings();
+        var actual = Serializer.ToString(inputData);
 
 #if NETFRAMEWORK
         var expected = """
@@ -80,7 +87,7 @@ public class SerializerTests
             """;
 #endif
 
-        actual.Should().Be(expected.NormalizeLineEndings());
+        actual.Should().BeIgnoringLineEndings(expected);
     }
 
     public class MyDataClass
