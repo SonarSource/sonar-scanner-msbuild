@@ -220,12 +220,11 @@ class MultiLanguageTest {
           tuple("secrets:S6702", context.projectKey + ":src/script.ksh"),
           tuple("secrets:S6702", context.projectKey + ":src/script.ps1"),
           tuple("secrets:S6702", context.projectKey + ":src/script.zsh")));
-      }
-      if(version.getMajor() == 2025 && version.getMinor() == 1)
-      {
-        expectedIssues.addAll(List.of(
-          tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
-      }
+        if (!version.isGreaterThan(2025, 1)) {
+            expectedIssues.addAll(List.of(
+              tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
+          }
+        }
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
