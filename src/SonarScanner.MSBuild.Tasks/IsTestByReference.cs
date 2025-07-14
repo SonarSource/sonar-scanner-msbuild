@@ -47,6 +47,7 @@ public sealed class IsTestByReference : Task
         "TechTalk.SpecFlow",
         "xunit", // Legacy Xunit (v1.x)
         "xunit.core",
+        "xunit.v3.core",
         // Assertion
         "FluentAssertions",
         "Shouldly",
