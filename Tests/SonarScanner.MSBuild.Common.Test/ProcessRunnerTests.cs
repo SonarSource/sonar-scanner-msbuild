@@ -27,8 +27,6 @@ public class ProcessRunnerTests
 {
     public TestContext TestContext { get; set; }
 
-    #region Tests
-
     [TestMethod]
     public void Constructor_NullLogger_ThrowsArgumentNullException()
     {
@@ -45,25 +43,15 @@ public class ProcessRunnerTests
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    public void ProcRunner_ExecutionFailed()
-    {
-        var exeName = TestUtils.WriteBatchFileForTest(TestContext, "exit -2");
-
-        var logger = new TestLogger();
-        var args = new ProcessRunnerArguments(exeName, true);
-        var runner = new ProcessRunner(logger);
-
-        var result = runner.Execute(args);
-
-        result.Succeeded.Should().BeFalse("Expecting the process to have failed");
-        runner.ExitCode.Should().Be(-2, "Unexpected exit code");
-    }
+    public void ProcRunner_ExecutionFailed() =>
+        new ProcessRunnerContext(TestContext, "exit -2", null, false, -2);
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_ExecutionSucceeded()
     {
-        var exeName = TestUtils.WriteBatchFileForTest(TestContext,
+        var context = new ProcessRunnerContext(
+            TestContext,
             """
             @echo off
             @echo Hello world
@@ -71,19 +59,10 @@ public class ProcessRunnerTests
             @echo Testing 1,2,3...>&2
             """);
 
-        var logger = new TestLogger();
-        var args = new ProcessRunnerArguments(exeName, true);
-        var runner = new ProcessRunner(logger);
-
-        var result = runner.Execute(args);
-
-        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
-        runner.ExitCode.Should().Be(0, "Unexpected exit code");
-
-        logger.AssertInfoLogged("Hello world"); // Check output message are passed to the logger
-        logger.AssertErrorLogged("Testing 1,2,3..."); // Check error messages are passed to the logger
-        result.StandardOutput.Should().Be("Hello world" + Environment.NewLine);
-        result.ErrorOutput.Should().Be("""
+        context.Logger.AssertInfoLogged("Hello world");
+        context.Logger.AssertErrorLogged("Testing 1,2,3...");
+        context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
+        context.ResultErrorOutputShouldBe("""
             'xxx' is not recognized as an internal or external command,
             operable program or batch file.
             Testing 1,2,3...
@@ -95,24 +74,14 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_ErrorAsWarningMessage_LogAsWarning()
     {
-        var exeName = TestUtils.WriteBatchFileForTest(TestContext,
-            """
+        var context = new ProcessRunnerContext(TestContext, """
             @echo off
             @echo WARN: Hello world>&2
             """);
 
-        var logger = new TestLogger();
-        var args = new ProcessRunnerArguments(exeName, true);
-        var runner = new ProcessRunner(logger);
-
-        var result = runner.Execute(args);
-
-        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
-        runner.ExitCode.Should().Be(0, "Unexpected exit code");
-
-        logger.AssertWarningLogged("WARN: Hello world"); // Check output message are passed to the logger
-        result.StandardOutput.Should().BeEmpty();
-        result.ErrorOutput.Should().Be("""
+        context.Logger.AssertWarningLogged("WARN: Hello world");
+        context.ResultStandardOutputShouldBe(string.Empty);
+        context.ResultErrorOutputShouldBe("""
             WARN: Hello world
 
             """);
@@ -122,170 +91,154 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_LogOutputFalse_ExecutionSucceeded()
     {
-        var exeName = TestUtils.WriteBatchFileForTest(TestContext,
+        var context = new ProcessRunnerContext(
+            TestContext,
             """
             @echo off
             @echo Hello world
             xxx yyy
             @echo Testing 1,2,3...>&2
+            """,
+            null,
+            success: true,
+            exitCode: 0,
+            waitToExecute: true);
+        context.ProcessArgs.LogOutput = false;
+
+        context.ExecuteAndAssert();
+        context.Logger.AssertMessageNotLogged("Hello world");
+        context.Logger.AssertErrorNotLogged("Testing 1,2,3...");
+        context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
+        context.ResultErrorOutputShouldBe("""
+            'xxx' is not recognized as an internal or external command,
+            operable program or batch file.
+            Testing 1,2,3...
+
             """);
-
-        var logger = new TestLogger();
-        var args = new ProcessRunnerArguments(exeName, true)
-        {
-            LogOutput = false
-        };
-        var runner = new ProcessRunner(logger);
-
-        var result = runner.Execute(args);
-
-        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
-        runner.ExitCode.Should().Be(0, "Unexpected exit code");
-
-        logger.AssertMessageNotLogged("Hello world");
-        logger.AssertErrorNotLogged("Testing 1,2,3...");
-        result.StandardOutput.Should().Be("Hello world" + Environment.NewLine);
-        result.ErrorOutput.Should().Be("""
-        'xxx' is not recognized as an internal or external command,
-        operable program or batch file.
-        Testing 1,2,3...
-
-        """);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_FailsOnTimeout()
     {
-        var exeName = TestUtils.WriteBatchFileForTest(TestContext,
+        var context = new ProcessRunnerContext(
+            TestContext,
             """
             powershell -Command "Start-Sleep -Seconds 2"
             @echo Hello world
-            """);
+            """,
+            null,
+            success: false,
+            exitCode: ProcessRunner.ErrorCode,
+            waitToExecute: true);
 
-        var logger = new TestLogger();
-        var args = new ProcessRunnerArguments(exeName, true) { TimeoutInMilliseconds = 250 };
-        var runner = new ProcessRunner(logger);
+        context.ProcessArgs.TimeoutInMilliseconds = 250;
 
         var timer = Stopwatch.StartNew();
-
-        var result = runner.Execute(args);
-
+        context.Execute();
         timer.Stop(); // Sanity check that the process actually timed out
-        logger.LogInfo("Test output: test ran for {0}ms", timer.ElapsedMilliseconds);
+        context.Logger.LogInfo("Test output: test ran for {0}ms", timer.ElapsedMilliseconds);
         // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms)
         // timer.ElapsedMilliseconds >= 100.Should().BeTrue("Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds)
-
-        result.Succeeded.Should().BeFalse("Expecting the process to have failed");
-        runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
-        logger.AssertMessageNotLogged("Hello world");
-        logger.AssertWarningsLogged(1); // expecting a warning about the timeout
-        logger.Warnings.Single().Contains("has been terminated").Should().BeTrue();
+        context.AssertExpected();
+        context.Logger.AssertMessageNotLogged("Hello world");
+        context.Logger.AssertWarningsLogged(1); // expecting a warning about the timeout
+        context.Logger.Warnings.Single().Contains("has been terminated").Should().BeTrue();
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_PassesEnvVariables()
     {
-        var logger = new TestLogger();
-        var runner = new ProcessRunner(logger);
-
-        var exeName = TestUtils.WriteBatchFileForTest(TestContext,
+        var envVariables = new Dictionary<string, string> { { "PROCESS_VAR", "PROCESS_VAR value" }, { "PROCESS_VAR2", "PROCESS_VAR2 value" }, { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
+        var context = new ProcessRunnerContext(
+            TestContext,
             """
             echo %PROCESS_VAR%
             @echo %PROCESS_VAR2%
             @echo %PROCESS_VAR3%
-            """);
-        var envVariables = new Dictionary<string, string> { { "PROCESS_VAR", "PROCESS_VAR value" }, { "PROCESS_VAR2", "PROCESS_VAR2 value" }, { "PROCESS_VAR3", "PROCESS_VAR3 value" } };
+            """,
+            null,
+            success: true,
+            exitCode: 0,
+            waitToExecute: true);
+        context.ProcessArgs.EnvironmentVariables = envVariables;
 
-        var args = new ProcessRunnerArguments(exeName, true) { EnvironmentVariables = envVariables };
-
-        var result = runner.Execute(args);
-
-        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
-        runner.ExitCode.Should().Be(0, "Unexpected exit code");
-
-        logger.AssertInfoLogged("PROCESS_VAR value");
-        logger.AssertInfoLogged("PROCESS_VAR2 value");
-        logger.AssertInfoLogged("PROCESS_VAR3 value");
+        context.ExecuteAndAssert();
+        context.Logger.AssertInfoLogged("PROCESS_VAR value");
+        context.Logger.AssertInfoLogged("PROCESS_VAR2 value");
+        context.Logger.AssertInfoLogged("PROCESS_VAR3 value");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_PassesEnvVariables_OverrideExisting()
     {
-        // Tests that existing environment variables will be overwritten successfully
-        var logger = new TestLogger();
-        var runner = new ProcessRunner(logger);
-
+        var context = new ProcessRunnerContext(
+            TestContext,
+            """
+            @echo file: %proc.runner.test.machine%
+            @echo file: %proc.runner.test.process%
+            @echo file: %proc.runner.test.user%
+            """,
+            null,
+            success: true,
+            exitCode: 0,
+            waitToExecute: true);
         try
         {
             // It's possible the user won't be have permissions to set machine level variables
             // (e.g. when running on a build agent). Carry on with testing the other variables.
-            SafeSetEnvironmentVariable("proc.runner.test.machine", "existing machine value", EnvironmentVariableTarget.Machine, logger);
+            SafeSetEnvironmentVariable("proc.runner.test.machine", "existing machine value", EnvironmentVariableTarget.Machine, context.Logger);
             Environment.SetEnvironmentVariable("proc.runner.test.process", "existing process value", EnvironmentVariableTarget.Process);
             Environment.SetEnvironmentVariable("proc.runner.test.user", "existing user value", EnvironmentVariableTarget.User);
-
-            var exeName = TestUtils.WriteBatchFileForTest(TestContext,
-                """
-                @echo file: %proc.runner.test.machine%
-                @echo file: %proc.runner.test.process%
-                @echo file: %proc.runner.test.user%
-                """);
-
-            var envVariables = new Dictionary<string, string>
+            context.ProcessArgs.EnvironmentVariables = new Dictionary<string, string>
             {
                 { "proc.runner.test.machine", "machine override" },
                 { "proc.runner.test.process", "process override" },
                 { "proc.runner.test.user", "user override" }
             };
 
-            var args = new ProcessRunnerArguments(exeName, true) { EnvironmentVariables = envVariables };
-
-            var result = runner.Execute(args);
-
-            result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
-            runner.ExitCode.Should().Be(0, "Unexpected exit code");
+            context.ExecuteAndAssert();
         }
         finally
         {
-            SafeSetEnvironmentVariable("proc.runner.test.machine", null, EnvironmentVariableTarget.Machine, logger);
+            SafeSetEnvironmentVariable("proc.runner.test.machine", null, EnvironmentVariableTarget.Machine, context.Logger);
             Environment.SetEnvironmentVariable("proc.runner.test.process", null, EnvironmentVariableTarget.Process);
             Environment.SetEnvironmentVariable("proc.runner.test.user", null, EnvironmentVariableTarget.User);
         }
 
         // Check the child process used expected values
-        logger.AssertInfoLogged("file: machine override");
-        logger.AssertInfoLogged("file: process override");
-        logger.AssertInfoLogged("file: user override");
+        context.Logger.AssertInfoLogged("file: machine override");
+        context.Logger.AssertInfoLogged("file: process override");
+        context.Logger.AssertInfoLogged("file: user override");
 
         // Check the runner reported it was overwriting existing variables
         // Note: the existing non-process values won't be visible to the child process
         // unless they were set *before* the test host launched, which won't be the case.
-        logger.AssertSingleDebugMessageExists("proc.runner.test.process", "existing process value", "process override");
+        context.Logger.AssertSingleDebugMessageExists("proc.runner.test.process", "existing process value", "process override");
     }
 
     [TestMethod]
     public void ProcRunner_MissingExe()
     {
-        var logger = new TestLogger();
-        var args = new ProcessRunnerArguments("missingExe.foo", false);
-        var runner = new ProcessRunner(logger);
+        var context = new ProcessRunnerContext(
+            TestContext,
+            string.Empty,
+            success: false,
+            exitCode: ProcessRunner.ErrorCode,
+            waitToExecute: true);
+        context.ProcessArgs = new ProcessRunnerArguments("missingExe.foo", false);
 
-        var result = runner.Execute(args);
-
-        result.Succeeded.Should().BeFalse("Expecting the process to have failed");
-        runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
-        logger.AssertSingleErrorExists("missingExe.foo");
+        context.ExecuteAndAssert();
+        context.Logger.AssertSingleErrorExists("missingExe.foo");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_ArgumentQuoting()
     {
-        // Checks arguments passed to the child process are correctly quoted
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var runner = new ProcessRunner(new TestLogger());
         var expected = new[]
         {
             "unquoted",
@@ -302,23 +255,22 @@ public class ProcessRunnerTests
             "injection \" & echo haha",
             "double escaping \\\" > foo.txt"
         };
-        var args = new ProcessRunnerArguments(LogArgsPath(), false) { CmdLineArgs = expected, WorkingDirectory = testDir };
-        var result = runner.Execute(args);
 
-        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
-        runner.ExitCode.Should().Be(0, "Unexpected exit code");
+        var context = new ProcessRunnerContext(
+            TestContext,
+            commands: string.Empty,
+            args: new ProcessRunnerArguments(LogArgsPath(), false) { CmdLineArgs = expected, WorkingDirectory = testDir });
+
         // Check that the public and private arguments are passed to the child process
-        AssertExpectedLogContents(testDir, expected);
+        context.AssertExpectedLogContents(TestContext, expected);
     }
 
+    // Checks arguments passed to a batch script which itself passes them on are correctly escaped
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
     {
-        // Checks arguments passed to a batch script which itself passes them on are correctly escaped
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var batchName = TestUtils.WriteBatchFileForTest(TestContext, "\"" + LogArgsPath() + "\" %*");
-        var runner = new ProcessRunner(new TestLogger());
         var expected = new[]
         {
             "unquoted",
@@ -335,13 +287,16 @@ public class ProcessRunnerTests
             "injection \" & echo haha",
             "double escaping \\\" > foo.txt"
         };
-        var args = new ProcessRunnerArguments(batchName, true) { CmdLineArgs = expected, WorkingDirectory = testDir };
-        var result = runner.Execute(args);
+        var context = new ProcessRunnerContext(
+            TestContext,
+            "\"" + LogArgsPath() + "\" %*",
+            success: true,
+            exitCode: 0,
+            waitToExecute: true,
+            cmdLineArgs: expected);
 
-        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
-        runner.ExitCode.Should().Be(0, "Unexpected exit code");
-        // Check that the public and private arguments are passed to the child process
-        AssertExpectedLogContents(testDir, expected);
+        context.ExecuteAndAssert();
+        context.AssertExpectedLogContents(TestContext, expected);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -349,10 +304,19 @@ public class ProcessRunnerTests
     [WorkItem(1706)] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
     public void ProcRunner_ArgumentQuotingScanner()
     {
-        // Checks arguments passed to a batch script which itself passes them on are correctly escaped
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var batchName = TestUtils.WriteBatchFileForTest(TestContext,
-            """
+
+        var expected = new[]
+        {
+            @"-Dsonar.scanAllFiles=true",
+            @"-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties",
+            @"--from=ScannerMSBuild/5.13.1",
+            @"--debug"
+        };
+
+        var context = new ProcessRunnerContext(
+            TestContext,
+            commands: """
             @echo off
             REM The sonar-scanner.bat uses %* to pass the argument to javac.exe
             echo %*
@@ -369,23 +333,16 @@ public class ProcessRunnerTests
             echo %4
 
 
-            """);
-        var logger = new TestLogger();
-        var runner = new ProcessRunner(logger);
-        var expected = new[]
-        {
-            @"-Dsonar.scanAllFiles=true",
-            @"-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties",
-            @"--from=ScannerMSBuild/5.13.1",
-            @"--debug"
-        };
-        var args = new ProcessRunnerArguments(batchName, true) { CmdLineArgs = expected, WorkingDirectory = testDir };
-        var result = runner.Execute(args);
+            """,
+            args: null,
+            success: true,
+            exitCode: 0,
+            waitToExecute: true,
+            cmdLineArgs: expected);
 
-        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
-        runner.ExitCode.Should().Be(0, "Unexpected exit code");
+        context.ExecuteAndAssert();
         // Check that the public and private arguments are passed to the child process
-        logger.InfoMessages.Should().BeEquivalentTo(
+        context.Logger.InfoMessages.Should().BeEquivalentTo(
             @"""-Dsonar.scanAllFiles=true"" ""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties"" ""--from=ScannerMSBuild/5.13.1"" ""--debug""",
             @"""-Dsonar.scanAllFiles=true""",
             string.Empty,
@@ -401,9 +358,6 @@ public class ProcessRunnerTests
     [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
     public void ProcRunner_DoNotLogSensitiveData()
     {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var logger = new TestLogger();
-        var runner = new ProcessRunner(logger);
         // Public args - should appear in the log
         var publicArgs = new[]
         {
@@ -430,46 +384,46 @@ public class ProcessRunnerTests
             "/dsonar.token =secret data token typo",
         };
         var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
-        var runnerArgs = new ProcessRunnerArguments(LogArgsPath(), false)
-        {
-            CmdLineArgs = allArgs,
-            WorkingDirectory = testDir,
-            EnvironmentVariables = new Dictionary<string, string>
+        var context = new ProcessRunnerContext(
+            TestContext,
+            null,
+            new ProcessRunnerArguments(LogArgsPath(), false)
             {
-                { "SENSITIVE_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
-                { "OVERWRITING_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
-                { "EXISTING_SENSITIVE_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
-                { "NOT_SENSITIVE", "Something" },
-                { "MIXED_DATA", "-DBefore=true -Djavax.net.ssl.trustStorePassword=changeit -DAfter=false" }
-            }
-        };
+                CmdLineArgs = allArgs,
+                EnvironmentVariables = new Dictionary<string, string>
+                {
+                    { "SENSITIVE_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
+                    { "OVERWRITING_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
+                    { "EXISTING_SENSITIVE_DATA", "-Djavax.net.ssl.trustStorePassword=changeit" },
+                    { "NOT_SENSITIVE", "Something" },
+                    { "MIXED_DATA", "-DBefore=true -Djavax.net.ssl.trustStorePassword=changeit -DAfter=false" }
+                },
+                WorkingDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
+            },
+            success: true,
+            exitCode: 0,
+            waitToExecute: true);
+
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable("OVERWRITING_DATA", "Not sensitive");
         scope.SetVariable("EXISTING_SENSITIVE_DATA", "-Djavax.net.ssl.trustStorePassword=password");
 
-        var result = runner.Execute(runnerArgs);
-
-        result.Succeeded.Should().BeTrue("Expecting the process to have succeeded");
-        runner.ExitCode.Should().Be(0, "Unexpected exit code");
+        context.ExecuteAndAssert();
         // Check public arguments are logged but private ones are not
         foreach (var arg in publicArgs)
         {
-            logger.AssertSingleDebugMessageExists(arg);
+            context.Logger.AssertSingleDebugMessageExists(arg);
         }
-        logger.AssertSingleDebugMessageExists("Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>");
-        logger.AssertSingleDebugMessageExists("Setting environment variable 'NOT_SENSITIVE'. Value: Something");
-        logger.AssertSingleDebugMessageExists("Setting environment variable 'MIXED_DATA'. Value: -DBefore=true -D<sensitive data removed>");
-        logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
-        logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'EXISTING_SENSITIVE_DATA'. Old value: -D<sensitive data removed>, new value: -D<sensitive data removed>");
-        logger.AssertSingleDebugMessageExists("Args: public1 public2 /dmy.key=value /d:sonar.projectKey=my.key <sensitive data removed>");
-        AssertTextDoesNotAppearInLog("secret", logger);
+        context.Logger.AssertSingleDebugMessageExists("Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>");
+        context.Logger.AssertSingleDebugMessageExists("Setting environment variable 'NOT_SENSITIVE'. Value: Something");
+        context.Logger.AssertSingleDebugMessageExists("Setting environment variable 'MIXED_DATA'. Value: -DBefore=true -D<sensitive data removed>");
+        context.Logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
+        context.Logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'EXISTING_SENSITIVE_DATA'. Old value: -D<sensitive data removed>, new value: -D<sensitive data removed>");
+        context.Logger.AssertSingleDebugMessageExists("Args: public1 public2 /dmy.key=value /d:sonar.projectKey=my.key <sensitive data removed>");
+        context.AssertTextDoesNotAppearInLog("secret");
         // Check that the public and private arguments are passed to the child process
-        AssertExpectedLogContents(testDir, allArgs);
+        context.AssertExpectedLogContents(TestContext, allArgs);
     }
-
-#endregion Tests
-
-    #region Private methods
 
     private static void SafeSetEnvironmentVariable(string key, string value, EnvironmentVariableTarget target, ILogger logger)
     {
@@ -479,8 +433,11 @@ public class ProcessRunnerTests
         }
         catch (SecurityException)
         {
-            logger.LogWarning("Test setup error: user running the test doesn't have the permissions to set the environment variable. Key: {0}, value: {1}, target: {2}",
-                key, value, target);
+            logger.LogWarning(
+                "Test setup error: user running the test doesn't have the permissions to set the environment variable. Key: {0}, value: {1}, target: {2}",
+                key,
+                value,
+                target);
         }
     }
 
@@ -488,27 +445,89 @@ public class ProcessRunnerTests
         // Replace to change this project directory to LogArgs project directory while keeping the same build configuration (Debug/Release)
         Path.Combine(Path.GetDirectoryName(typeof(ProcessRunnerTests).Assembly.Location).Replace("SonarScanner.MSBuild.Common.Test", "LogArgs"), "LogArgs.exe");
 
-    private void AssertExpectedLogContents(string logDir, params string[] expected)
+    private class ProcessRunnerContext
     {
-        var logFile = Path.Combine(logDir, "LogArgs.log");
-        File.Exists(logFile).Should().BeTrue("Expecting the argument log file to exist. File: {0}", logFile);
-        TestContext.AddResultFile(logFile);
-        var actualArgs = File.ReadAllLines(logFile);
-        actualArgs.Should().BeEquivalentTo(expected, "Log file does not have the expected content");
-    }
+        public TestLogger Logger;
+        public ProcessRunnerArguments ProcessArgs;
 
-    private static void AssertTextDoesNotAppearInLog(string text, TestLogger logger)
-    {
-        AssertTextDoesNotAppearInLog(text, logger.InfoMessages);
-        AssertTextDoesNotAppearInLog(text, logger.Errors);
-        AssertTextDoesNotAppearInLog(text, logger.Warnings);
-    }
+        private readonly ProcessRunner runner;
+        private readonly bool expectSuccess;
+        private readonly int expectedExitCode;
+        private readonly string testDir;
+        private readonly string exePath;
 
-    private static void AssertTextDoesNotAppearInLog(string text, IList<string> logEntries)
-    {
-        logEntries.Should().NotContain(x => x.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1,
-            "Specified text should not appear anywhere in the log file: {0}", text);
-    }
+        private ProcessResult result;
 
-    #endregion Private methods
+        public ProcessRunnerContext(TestContext testContext,
+                                    string commands,
+                                    ProcessRunnerArguments args = null,
+                                    bool success = true,
+                                    int exitCode = 0,
+                                    bool waitToExecute = false,
+                                    string[] cmdLineArgs = null)
+        {
+            testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
+            exePath = TestUtils.WriteBatchFileForTest(testContext, commands);
+            Logger = new TestLogger();
+            ProcessArgs = args ?? new ProcessRunnerArguments(exePath, true) { CmdLineArgs = cmdLineArgs, WorkingDirectory = testDir };
+            runner = new ProcessRunner(Logger);
+            expectSuccess = success;
+            expectedExitCode = exitCode;
+            if (!waitToExecute)
+            {
+                ExecuteAndAssert();
+            }
+        }
+
+        public void ExecuteAndAssert()
+        {
+            Execute();
+            AssertExpected();
+        }
+
+        public void Execute() =>
+            result = runner.Execute(ProcessArgs);
+
+        public void AssertExpected()
+        {
+            var expectSuccessString = expectSuccess ? "succeeded" : "failed";
+            result.Succeeded.Should().Be(expectSuccess, $"Expecting the process to have {expectSuccessString}");
+            runner.ExitCode.Should().Be(expectedExitCode, "Unexpected exit code");
+        }
+
+        public void ResultStandardOutputShouldBe(string expected)
+        {
+            if (string.IsNullOrEmpty(expected))
+            {
+                result.StandardOutput.Should().BeEmpty("Expected standard output to be empty");
+                return;
+            }
+            result.StandardOutput.Should().Be(expected, "Unexpected standard output");
+        }
+
+        public void ResultErrorOutputShouldBe(string expected) =>
+            result.ErrorOutput.Should().Be(expected, "Unexpected error output");
+
+        public void AssertExpectedLogContents(TestContext testContext, params string[] expected)
+        {
+            var logFile = Path.Combine(testDir, "LogArgs.log");
+            File.Exists(logFile).Should().BeTrue("Expecting the argument log file to exist. File: {0}", logFile);
+            testContext.AddResultFile(logFile);
+            var actualArgs = File.ReadAllLines(logFile);
+            actualArgs.Should().BeEquivalentTo(expected, "Log file does not have the expected content");
+        }
+
+        public void AssertTextDoesNotAppearInLog(string text)
+        {
+            AssertTextDoesNotAppearInLog(text, Logger.InfoMessages);
+            AssertTextDoesNotAppearInLog(text, Logger.Errors);
+            AssertTextDoesNotAppearInLog(text, Logger.Warnings);
+        }
+
+        private static void AssertTextDoesNotAppearInLog(string text, IList<string> logEntries) =>
+            logEntries.Should().NotContain(
+                x => x.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1,
+                "Specified text should not appear anywhere in the log file: {0}",
+                text);
+    }
 }
