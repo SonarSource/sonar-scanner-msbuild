@@ -238,6 +238,11 @@ class MultiLanguageTest {
   @MSBuildMinVersion(17)
   void react() {
 
+    // TODO: re-enable (https://sonarsource.atlassian.net/browse/SCAN4NET-659)
+    if(ORCHESTRATOR.getServer().version().isGreaterThan(2025, 1)) {
+      return;
+    }
+
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
 
     try (var userHome = new TempDirectory("junit-react")) {
@@ -272,6 +277,11 @@ class MultiLanguageTest {
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   void angular() {
+
+    // TODO: re-enable (https://sonarsource.atlassian.net/browse/SCAN4NET-659)
+    if(ORCHESTRATOR.getServer().version().isGreaterThan(2025, 1)) {
+      return;
+    }
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
 
     try (var userHome = new TempDirectory("junit-angular")) {
