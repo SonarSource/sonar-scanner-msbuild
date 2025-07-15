@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -31,63 +25,50 @@ public class SerializerTests
 {
     public TestContext TestContext { get; set; }
 
-    public class MyDataClass
+    [TestMethod]
+    public void Serializer_ArgumentValidation_LoadModel()
     {
-        public string Value1 { get; set; }
-        public int Value2 { get; set; }
+        Action act = () => Serializer.LoadModel<MyDataClass>(null);
+        act.Should().Throw<ArgumentNullException>();
     }
 
-    #region Tests
-
     [TestMethod]
-    public void Serializer_ArgumentValidation()
+    public void Serializer_ArgumentValidation_ToString()
     {
-        // Load
-        Action act1 = () => Serializer.LoadModel<MyDataClass>(null);
-        act1.Should().ThrowExactly<ArgumentNullException>();
+        Action act = () => Serializer.ToString<MyDataClass>(null);
+        act.Should().Throw<ArgumentNullException>();
+    }
 
-        // Save
-        Action act2 = () => Serializer.SaveModel<MyDataClass>(null, "c:\\data.txt");
-        act2.Should().ThrowExactly<ArgumentNullException>();
-
-        Action act3 = () => Serializer.SaveModel<MyDataClass>(new MyDataClass(), null);
-        act3.Should().ThrowExactly<ArgumentNullException>();
-
-        // ToString
-        Action act4 = () => Serializer.ToString<MyDataClass>(null);
-        act4.Should().ThrowExactly<ArgumentNullException>();
+    [DataRow(false, "c:\\data.txt")]
+    [DataRow(true, null)]
+    [DataTestMethod]
+    public void Serializer_ArgumentValidation_SaveModel_NullFileName(bool newModel, string fileName)
+    {
+        Action act = () => Serializer.SaveModel<MyDataClass>(newModel ? new MyDataClass() : null, fileName);
+        act.Should().Throw<ArgumentNullException>();
     }
 
     [TestMethod]
     public void Serializer_RoundTrip_Succeeds()
     {
-        // Arrange
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var filePath = Path.Combine(testDir, "file1.txt");
+        var inputData = new MyDataClass() { Value1 = "val1", Value2 = 22 };
 
-        var original = new MyDataClass() { Value1 = "val1", Value2 = 22 };
-
-        // Act - save and reload
-        Serializer.SaveModel(original, filePath);
+        Serializer.SaveModel(inputData, filePath);
         var reloaded = Serializer.LoadModel<MyDataClass>(filePath);
 
-        // Assert
         reloaded.Should().NotBeNull();
-        reloaded.Value1.Should().Be(original.Value1);
-        reloaded.Value2.Should().Be(original.Value2);
+        reloaded.Value1.Should().Be(inputData.Value1);
+        reloaded.Value2.Should().Be(inputData.Value2);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Serializer_ToString_Succeeds()
     {
-        // Arrange
         var inputData = new MyDataClass() { Value1 = "val1", Value2 = 22 };
-
-        // Act
         var actual = Serializer.ToString(inputData);
 
-        // Assert
 #if NETFRAMEWORK
         var expected = """
             <?xml version="1.0" encoding="utf-16"?>
@@ -106,8 +87,12 @@ public class SerializerTests
             """;
 #endif
 
-        actual.Should().Be(expected);
+        actual.Should().BeIgnoringLineEndings(expected);
     }
 
-#endregion Tests
+    public class MyDataClass
+    {
+        public string Value1 { get; set; }
+        public int Value2 { get; set; }
+    }
 }
