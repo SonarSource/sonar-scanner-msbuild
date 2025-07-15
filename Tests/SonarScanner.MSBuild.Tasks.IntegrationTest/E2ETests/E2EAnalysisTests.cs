@@ -630,7 +630,7 @@ public class E2EAnalysisTests
         var telemetryPath = Path.Combine(defaultProjectOutPaths, "Telemetry.json");
         var projectXml = """
                            <PropertyGroup>
-                             <TargetFramework>net6</TargetFramework>
+                             <TargetFramework>net5</TargetFramework>
                              <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
                              <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
                            </PropertyGroup>
@@ -681,7 +681,7 @@ public class E2EAnalysisTests
     }
 
     [TestMethod]
-    public void E2E_Net6RazorProjectWithSourceGenerationEnabled_ValidProjectInfoFilesGenerated()
+    public void E2E_RazorProjectWithSourceGenerationEnabled_ValidProjectInfoFilesGenerated()
     {
         // Checks that projects that don't include the standard managed targets are still
         // processed correctly e.g. can be excluded, marked as test projects etc
@@ -699,7 +699,7 @@ public class E2EAnalysisTests
                               <SonarQubeTempPath>{context.OutputFolder}</SonarQubeTempPath>
                               <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
                               <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
-                              <TargetFramework>net6</TargetFramework>
+                              <TargetFramework>net5</TargetFramework>
                               <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
                               <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
                             </PropertyGroup>
