@@ -454,7 +454,7 @@ public class RazorTargetTests
               <CodeAnalysisRuleSet>{dummyQpRulesetPath}</CodeAnalysisRuleSet>
               <ImportMicrosoftCSharpTargets>false</ImportMicrosoftCSharpTargets>
               <UseRazorSourceGenerator>false</UseRazorSourceGenerator>
-              <TargetFramework>net9</TargetFramework>
+              <TargetFramework>net5</TargetFramework>
               <!-- Prevent references resolution -->
               <DesignTimeBuild>true</DesignTimeBuild>
               <GenerateDependencyFile>false</GenerateDependencyFile>
