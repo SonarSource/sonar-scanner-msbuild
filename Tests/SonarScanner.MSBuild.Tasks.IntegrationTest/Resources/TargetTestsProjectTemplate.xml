@@ -3,6 +3,7 @@
     <PropertyGroup>
         <!-- Prevent MSBuild to load source files automatically -->
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+        <ImplicitUsings>false</ImplicitUsings>
         <Language>LANGUAGE</Language>
         <TargetFramework>TARGET_FRAMEWORK</TargetFramework>
     </PropertyGroup>
