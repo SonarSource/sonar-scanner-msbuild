@@ -18,16 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Text;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.TFS.Tests;
 
 [TestClass]
@@ -129,7 +119,7 @@ public class TrxFileReaderTests
     {
         // Arrange
         var testResults = CreateDirectories(RootDirectory, "Dummy\\TestResults")[0];
-        CreateFiles(testResults, ("no_attachments.trx", GetTrxContent()));
+        CreateFiles(testResults, ("no_attachments.trx", TrxContent()));
 
         // Act
         var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
@@ -148,7 +138,7 @@ public class TrxFileReaderTests
     {
         // Arrange
         var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
-        CreateFiles(resultsDir, ("no_attachments.trx", GetTrxContent()));
+        CreateFiles(resultsDir, ("no_attachments.trx", TrxContent()));
 
         // Act
         var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
@@ -169,7 +159,7 @@ public class TrxFileReaderTests
     {
         // Arrange
         var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
-        CreateFiles(resultsDir, ("multiple_attachments.trx", GetTrxContent("MACHINENAME\\AAA.coverage", "XXX.coverage")));
+        CreateFiles(resultsDir, ("multiple_attachments.trx", TrxContent("MACHINENAME\\AAA.coverage", "XXX.coverage")));
 
         // Act
         var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
@@ -192,7 +182,7 @@ public class TrxFileReaderTests
         var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
         var coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
 
-        CreateFiles(resultsDir, ("single_attachment.trx", GetTrxContent(coverageFileName)));
+        CreateFiles(resultsDir, ("single_attachment.trx", TrxContent(coverageFileName)));
 
         // Act
         var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
@@ -215,7 +205,7 @@ public class TrxFileReaderTests
         var fullCoveragePath = Path.Combine(resultsDir, "single attachment", "In", relativeCoveragePath);
         CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
 
-        CreateFiles(resultsDir, ("single attachment.trx", GetTrxContent(relativeCoveragePath)));
+        CreateFiles(resultsDir, ("single attachment.trx", TrxContent(relativeCoveragePath)));
 
         // Act
         var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
@@ -237,7 +227,7 @@ public class TrxFileReaderTests
         var fullCoveragePath = Path.Combine(resultsDir, "single_attachment", "In", relativeCoveragePath);
         CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
 
-        CreateFiles(resultsDir, ("single attachment.trx", GetTrxContent(relativeCoveragePath)));
+        CreateFiles(resultsDir, ("single attachment.trx", TrxContent(relativeCoveragePath)));
 
         // Act
         var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
@@ -258,7 +248,7 @@ public class TrxFileReaderTests
         var coverageFileName = CreateFiles(coverageResults, ("xxx.coverage", string.Empty))[0];
 
         var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
-        CreateFiles(testResults, ("single_attachment.trx", GetTrxContent(coverageFileName)));
+        CreateFiles(testResults, ("single_attachment.trx", TrxContent(coverageFileName)));
 
         // Act
         var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
@@ -266,6 +256,46 @@ public class TrxFileReaderTests
         // Assert
         coverageFilePaths.Should().BeEquivalentTo(coverageFileName);
         logger.AssertDebugMessageExists(@"Absolute path to coverage file: x:\dir1\dir2\xxx.coverage");
+    }
+
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestMethod]
+    [Description("Tests handling of a trx file that contain a single code coverage attachment with a path specified by the runDeploymentRoot attribute")]
+    public void TrxReader_RunDeploymentRoot_Valid()
+    {
+        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+        var relativeCoveragePath = @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var coverageFileName = Path.Combine(resultsDir, "pathFromDeploymentRoot", "In", relativeCoveragePath);
+        var coverageFiles = CreateFiles(Path.GetDirectoryName(coverageFileName), (Path.GetFileName(coverageFileName), string.Empty));
+        var trxfiles = CreateFiles(resultsDir, ("single_attachment.trx", TrxContentWithDeploymentRoot("pathFromDeploymentRoot", relativeCoveragePath)));
+
+        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
+
+        coverageFilePaths.Should().ContainSingle()
+            .Which.Should().EndWith(@"TestResults\pathFromDeploymentRoot\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")
+            .And.Be(coverageFileName);
+        logger.AssertDebugLogged($@"Absolute path to coverage file: {coverageFileName}");
+    }
+
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestMethod]
+    [Description("Tests handling of a trx file that contain a single code coverage attachment with an invalid path specified by the runDeploymentRoot attribute")]
+    public void TrxReader_RunDeploymentRoot_Invalid()
+    {
+        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+        var relativeCoveragePath = @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var coverageFileName = Path.Combine(resultsDir, "pathFromDeploymentRoot", "In", relativeCoveragePath);
+        var coverageFiles = CreateFiles(Path.GetDirectoryName(coverageFileName), (Path.GetFileName(coverageFileName), string.Empty));
+        var trxfiles = CreateFiles(resultsDir, ("single_attachment.trx", TrxContentWithDeploymentRoot("invalidRoot", relativeCoveragePath)));
+
+        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
+
+        coverageFilePaths.Should().BeEmpty();
+        logger.AssertWarningLogged(@"None of the following coverage attachments could be found: MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
+            + $@"{resultsDir}\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
+            + $@"{resultsDir}\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
+            + $@"{resultsDir}\invalidRoot\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage. "
+            + $@"Trx file: {resultsDir}\single_attachment.trx");
     }
 
     private string[] CreateDirectories(string path, params string[] names)
@@ -310,29 +340,48 @@ public class TrxFileReaderTests
         return filePaths;
     }
 
-    private static string GetTrxContent(params string[] attachmentUris)
-    {
-        return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-  <ResultSummary outcome=""Completed"">
-    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
-    <RunInfos />
-    <CollectorDataEntries>
-      {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
-    </CollectorDataEntries>
-  </ResultSummary>
-</TestRun>";
+    private static string TrxContent(params string[] attachmentUris) =>
+        $"""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <TestRun id="eb906034-f363-4bf0-ac6a-29fa47645f67"
+            name="LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39" runUser="NT AUTHORITY\LOCAL SERVICE"
+            xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+            <ResultSummary outcome="Completed">
+                <Counters total="123" executed="123" passed="123" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+                <RunInfos />
+                <CollectorDataEntries>
+                    {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
+                </CollectorDataEntries>
+            </ResultSummary>
+        </TestRun>
+        """;
 
-        string FormatCollectorElement(string uri) =>
-            $@"<Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
-        <UriAttachments>
-          <UriAttachment>
-            <A href=""{uri}"">
-            </A>
-          </UriAttachment>
-        </UriAttachments>
-      </Collector>";
-    }
+    private static string TrxContentWithDeploymentRoot(string deploymentRoot, params string[] attachmentUris) =>
+        $"""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010"
+            id="eb906034-f363-4bf0-ac6a-29fa47645f67" name="LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39" runUser="NT AUTHORITY\LOCAL SERVICE">
+            <TestSettings name="default" >
+              <Deployment runDeploymentRoot="{deploymentRoot}" />
+            </TestSettings>
+            <ResultSummary outcome="Completed">
+                <RunInfos />
+                <CollectorDataEntries>
+                    {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
+                </CollectorDataEntries>
+            </ResultSummary>
+        </TestRun>
+        """;
+
+    private static string FormatCollectorElement(string uri) =>
+        $"""
+        <Collector agentName="MACHINENAME" uri="datacollector://microsoft/CodeCoverage/2.0" collectorDisplayName="Code Coverage">
+            <UriAttachments>
+                <UriAttachment>
+                    <A href="{uri}">
+                    </A>
+                </UriAttachment>
+            </UriAttachments>
+        </Collector>
+        """;
 }
