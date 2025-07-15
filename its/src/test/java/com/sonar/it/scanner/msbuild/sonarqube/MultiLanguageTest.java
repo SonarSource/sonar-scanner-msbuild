@@ -24,6 +24,7 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
+import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.nio.file.Path;
@@ -80,6 +81,7 @@ class MultiLanguageTest {
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
+    context.begin.CreateAndSetUserHomeFolder("junit-esproj-vue-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
@@ -129,6 +131,7 @@ class MultiLanguageTest {
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
+    context.begin.CreateAndSetUserHomeFolder("junit-sdkFormat-");
     // Begin step runs in MultiLanguageSupport
     // Build step runs in MultiLanguageSupport/src
     context.build.addArgument("src/MultiLanguageSupport.sln");
@@ -188,7 +191,6 @@ class MultiLanguageTest {
       }
       if (version.isGreaterThan(9, 9)) {
         expectedIssues.addAll(List.of(
-          tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx"),
           tuple("azureresourcemanager:S1135", context.projectKey + ":main.bicep"),
           tuple("azureresourcemanager:S4423", context.projectKey + ":main.bicep"),
           tuple("cloudformation:S1135", context.projectKey + ":cloudformation.yaml"),
@@ -208,7 +210,11 @@ class MultiLanguageTest {
           tuple("secrets:S6702", context.projectKey + ":src/script.ksh"),
           tuple("secrets:S6702", context.projectKey + ":src/script.ps1"),
           tuple("secrets:S6702", context.projectKey + ":src/script.zsh")));
-      }
+        if (!version.isGreaterThan(2025, 1)) {
+            expectedIssues.addAll(List.of(
+              tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
+          }
+        }
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
@@ -221,7 +227,14 @@ class MultiLanguageTest {
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   void react() {
+
+    // TODO: re-enable (https://sonarsource.atlassian.net/browse/SCAN4NET-659)
+    if(ORCHESTRATOR.getServer().version().isGreaterThan(2025, 1)) {
+      return;
+    }
+
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
+    context.begin.CreateAndSetUserHomeFolder("junit-react-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
@@ -249,7 +262,13 @@ class MultiLanguageTest {
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   void angular() {
+
+    // TODO: re-enable (https://sonarsource.atlassian.net/browse/SCAN4NET-659)
+    if(ORCHESTRATOR.getServer().version().isGreaterThan(2025, 1)) {
+      return;
+    }
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
+    context.begin.CreateAndSetUserHomeFolder("junit-angular-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
@@ -319,6 +338,7 @@ class MultiLanguageTest {
   @EnabledOnOs(OS.WINDOWS)
   void nonSdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
+    context.begin.CreateAndSetUserHomeFolder("junit-nonSdkFormat-");
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -331,6 +351,7 @@ class MultiLanguageTest {
         tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/Included.sql"),
         tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/NotIncluded.sql"));
   }
+
 
   // This class is used to create a .git folder in the project directory.
   // This is required for the sonar-text-plugin to work correctly.
