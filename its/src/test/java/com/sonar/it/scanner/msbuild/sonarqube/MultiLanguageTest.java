@@ -333,7 +333,7 @@ class MultiLanguageTest {
   }
 
   @Test
-  // Multi-language unsupported in SQ99§
+  // Multi-language unsupported in SQ99
   @ServerMinVersion("10.0")
   @EnabledOnOs(OS.WINDOWS)
   void nonSdkFormat() {

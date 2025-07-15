@@ -105,7 +105,7 @@ public sealed class PreProcessor : IPreProcessor
             { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
             { SonarProperties.PullRequestCacheBasePath, cache.PullRequestCacheBasePath }
         };
-        var config = AnalysisConfigGenerator.GenerateFile(
+        AnalysisConfigGenerator.GenerateFile(
             localSettings,
             buildSettings,
             additionalSettings,
@@ -114,11 +114,6 @@ public sealed class PreProcessor : IPreProcessor
             server.ServerVersion.ToString(),
             resolvedJavaExePath,
             logger);
-
-        if (config.ScanAllAnalysis)
-        {
-            logger.LogUIWarning(Resources.WARN_UI_ScanAllAnalysisEnabled);
-        }
 
         logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
         logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
