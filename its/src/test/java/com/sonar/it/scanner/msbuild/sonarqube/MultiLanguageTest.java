@@ -81,12 +81,7 @@ class MultiLanguageTest {
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
-
-    try (var userHome = new TempDirectory("junit-esproj-vue-")) {
-      context.begin
-        .setProperty("sonar.userHome", userHome.toString());
-    }
-
+    context.begin.CreateAndSetUserHomeFolder("junit-esproj-vue-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
@@ -136,12 +131,7 @@ class MultiLanguageTest {
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
-
-    try (var userHome = new TempDirectory("junit-sdkFormat")) {
-      context.begin
-        .setProperty("sonar.userHome", userHome.toString());
-    }
-
+    context.begin.CreateAndSetUserHomeFolder("junit-sdkFormat-");
     // Begin step runs in MultiLanguageSupport
     // Build step runs in MultiLanguageSupport/src
     context.build.addArgument("src/MultiLanguageSupport.sln");
@@ -244,12 +234,7 @@ class MultiLanguageTest {
     }
 
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
-
-    try (var userHome = new TempDirectory("junit-react")) {
-      context.begin
-        .setProperty("sonar.userHome", userHome.toString());
-    }
-
+    context.begin.CreateAndSetUserHomeFolder("junit-react-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
@@ -283,12 +268,7 @@ class MultiLanguageTest {
       return;
     }
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
-
-    try (var userHome = new TempDirectory("junit-angular")) {
-      context.begin
-        .setProperty("sonar.userHome", userHome.toString());
-    }
-
+    context.begin.CreateAndSetUserHomeFolder("junit-angular-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
@@ -358,12 +338,7 @@ class MultiLanguageTest {
   @EnabledOnOs(OS.WINDOWS)
   void nonSdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
-
-    try (var userHome = new TempDirectory("junit-nonSdkFormat")) {
-      context.begin
-        .setProperty("sonar.userHome", userHome.toString());
-    }
-
+    context.begin.CreateAndSetUserHomeFolder("junit-nonSdkFormat-");
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -376,6 +351,7 @@ class MultiLanguageTest {
         tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/Included.sql"),
         tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/NotIncluded.sql"));
   }
+
 
   // This class is used to create a .git folder in the project directory.
   // This is required for the sonar-text-plugin to work correctly.
