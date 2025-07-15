@@ -100,6 +100,13 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     return setProperty("sonar.verbose", "true");
   }
 
+  public ScannerCommand CreateAndSetUserHomeFolder(String userHome) {
+    // Create a temporary user home directory for the analysis
+    try (var path = new TempDirectory(userHome)) {
+      return setProperty("sonar.userHome", path.toString());
+    }
+  }
+
   public ScannerCommand setOrganization(String organization) {
     this.organization = organization;
     return this;
