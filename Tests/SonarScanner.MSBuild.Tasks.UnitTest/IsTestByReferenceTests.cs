@@ -83,6 +83,7 @@ public class IsTestByReferenceTests
             "TechTalk.SpecFlow",
             "xunit",
             "xunit.core",
+            "xunit.v3.core",
             "FluentAssertions",
             "Shouldly",
             "FakeItEasy",

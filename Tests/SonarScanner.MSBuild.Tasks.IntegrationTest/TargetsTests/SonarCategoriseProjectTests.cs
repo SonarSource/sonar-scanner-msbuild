@@ -294,6 +294,37 @@ public class SonarCategoriseProjectTests
         result.Messages.Should().NotContain("Sonar: (foo.proj) project is evaluated as a test project based on the 'Microsoft.VisualStudio.TestPlatform.TestFramework' reference.");
     }
 
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [DataTestMethod]
+    [DataRow("dotMemory.Unit")]
+    [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework")]
+    [DataRow("Microsoft.VisualStudio.QualityTools.UnitTestFramework")]
+    [DataRow("Machine.Specifications")]
+    [DataRow("nunit.framework")]
+    [DataRow("nunitlite")]
+    [DataRow("TechTalk.SpecFlow")]
+    [DataRow("xunit")]
+    [DataRow("xunit.core")]
+    [DataRow("xunit.v3.core")]
+    [DataRow("FluentAssertions")]
+    [DataRow("Shouldly")]
+    [DataRow("FakeItEasy")]
+    [DataRow("Moq")]
+    [DataRow("NSubstitute")]
+    [DataRow("Rhino.Mocks")]
+    [DataRow("Telerik.JustMock")]
+    public void References_IsTest_AllLibraries(string testAssemblyName)
+    {
+        var projectXmlSnippet = $"""
+            <ItemGroup>
+              <SonarResolvedReferences Include='{testAssemblyName}' />
+            </ItemGroup>
+            """;
+        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
+
+        AssertIsTestProject(result, $"Sonar: (foo.proj) project is evaluated as a test project based on the '{testAssemblyName}' reference.");
+    }
+
     #endregion Detection of test projects
 
     #region SQL Server projects tests
