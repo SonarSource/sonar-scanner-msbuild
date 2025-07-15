@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Runtime.InteropServices;
 using System.Security;
 
 namespace SonarScanner.MSBuild.Common.Test;
@@ -41,33 +42,54 @@ public class ProcessRunnerTests
         action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("runnerArgs");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    public void ProcRunner_ExecutionFailed() =>
-        new ProcessRunnerContext(TestContext, "exit -2", null, false, -2);
+    public void ProcRunner_ExecutionFailed()
+    {
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "exit 9"
+            : """
+            #!/bin/sh 
+            exit 9
+            """;
+        new ProcessRunnerContext(TestContext, content, null, false, 9);
+    }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_ExecutionSucceeded()
     {
-        var context = new ProcessRunnerContext(
-            TestContext,
-            """
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? """
             @echo off
             @echo Hello world
             xxx yyy
             @echo Testing 1,2,3...>&2
-            """);
+            """
+            : """
+            #!/bin/sh
+            echo "Hello world"
+            xxx yyy
+            echo "Testing 1,2,3..." 1>&2
+            """;
 
-        context.Logger.AssertInfoLogged("Hello world");
-        context.Logger.AssertErrorLogged("Testing 1,2,3...");
-        context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
-        context.ResultErrorOutputShouldBe("""
+        var context = new ProcessRunnerContext(
+            TestContext,
+            content);
+
+        var expected = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? """
             'xxx' is not recognized as an internal or external command,
             operable program or batch file.
             Testing 1,2,3...
 
-            """);
+            """
+            : $"""
+            {context.ExePath}: 3: xxx: not found{Environment.NewLine}Testing 1,2,3...
+            """;
+
+        context.Logger.AssertInfoLogged("Hello world");
+        context.Logger.AssertErrorLogged("Testing 1,2,3...");
+        context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
+        context.ResultErrorOutputShouldBe(expected);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -449,12 +471,12 @@ public class ProcessRunnerTests
     {
         public TestLogger Logger;
         public ProcessRunnerArguments ProcessArgs;
+        public string ExePath;
 
         private readonly ProcessRunner runner;
         private readonly bool expectSuccess;
         private readonly int expectedExitCode;
         private readonly string testDir;
-        private readonly string exePath;
 
         private ProcessResult result;
 
@@ -467,9 +489,9 @@ public class ProcessRunnerTests
                                     string[] cmdLineArgs = null)
         {
             testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
-            exePath = TestUtils.WriteBatchFileForTest(testContext, commands);
+            ExePath = TestUtils.WriteExecutableScriptForTest(testContext, commands);
+            ProcessArgs = args ?? new ProcessRunnerArguments(ExePath, RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) { CmdLineArgs = cmdLineArgs, WorkingDirectory = testDir };
             Logger = new TestLogger();
-            ProcessArgs = args ?? new ProcessRunnerArguments(exePath, true) { CmdLineArgs = cmdLineArgs, WorkingDirectory = testDir };
             runner = new ProcessRunner(Logger);
             expectSuccess = success;
             expectedExitCode = exitCode;
@@ -505,8 +527,11 @@ public class ProcessRunnerTests
             result.StandardOutput.Should().Be(expected, "Unexpected standard output");
         }
 
-        public void ResultErrorOutputShouldBe(string expected) =>
+        public void ResultErrorOutputShouldBe(string expected)
+        {
+            Console.WriteLine(result.ErrorOutput);
             result.ErrorOutput.Should().Be(expected, "Unexpected error output");
+        }
 
         public void AssertExpectedLogContents(TestContext testContext, params string[] expected)
         {

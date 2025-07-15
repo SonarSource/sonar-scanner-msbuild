@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace TestUtilities;
 
@@ -155,12 +156,33 @@ public static class TestUtils
     /// Creates a batch file with the name of the current test
     /// </summary>
     /// <returns>Returns the full file name of the new file</returns>
-    public static string WriteBatchFileForTest(TestContext context, string content)
+    public static string WriteExecutableScriptForTest(TestContext context, string content)
     {
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        var fileExtension = isWindows ? ".bat" : ".sh";
         var testPath = CreateTestSpecificFolder(context);
-        var fileName = Path.Combine(testPath, context.TestName + ".bat");
-        File.Exists(fileName).Should().BeFalse("Not expecting a batch file to already exist: {0}", fileName);
+        var fileName = Path.Combine(testPath, context.TestName + fileExtension);
+        File.Exists(fileName).Should().BeFalse("Not expecting a script file to already exist: {0}", fileName);
         File.WriteAllText(fileName, content);
+
+        if (!isWindows)
+        {
+            // Make the file executable on non-Windows platforms
+            using var process = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "chmod",
+                    Arguments = $"+x \"{fileName}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            process.Start();
+            process.WaitForExit();
+        }
         return fileName;
     }
 
