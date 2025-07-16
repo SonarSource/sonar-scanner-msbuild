@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PostProcessor;
@@ -48,16 +49,16 @@ public class TargetsUninstallerTests
         context.Logger.AssertDebugLogged("Uninstalling target: " + context.TargetsFilePath);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Log_MissingFile()
     {
         var context = new UninstallContext(TestContext, false);
         context.UninstallTargets();
-        context.Logger.AssertDebugLogged(context.BinDir + @"\targets\SonarQube.Integration.targets does not exist");
+        context.Logger.AssertDebugLogged(context.BinDir + $@"{Path.DirectorySeparatorChar}targets{Path.DirectorySeparatorChar}SonarQube.Integration.targets does not exist");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void Log_OnIOException()
     {
@@ -70,12 +71,12 @@ public class TargetsUninstallerTests
         context.Logger.AssertDebugLogged("Could not delete " + context.TargetsFilePath);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Log_OnUnauthorizedAccessException()
     {
         var context = new UninstallContext(TestContext, true);
-        File.SetAttributes(context.TargetsFilePath, FileAttributes.ReadOnly);   // Make readonly to cause UnauthorizedAccessException
+        var lockPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? context.TargetsFilePath : Path.GetDirectoryName(context.TargetsFilePath);
+        File.SetAttributes(lockPath, FileAttributes.ReadOnly);   // Make readonly to cause UnauthorizedAccessException
         try
         {
             context.UninstallTargets();
