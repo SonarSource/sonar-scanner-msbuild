@@ -52,7 +52,7 @@ public class TargetsTestsUtils
         var sqTargetFile = TestUtils.EnsureAnalysisTargetsExists(TestContextInstance);
         File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
         TestContextInstance.AddResultFile(sqTargetFile);
-        return Resources.TargetTestsProjectTemplate;
+        return Resources.TargetTestsProjectTemplateOld;
     }
 
     public string GetProjectTemplate(AnalysisConfig analysisConfig, string projectDirectory, string testProperties, string testXml, string sqOutputPath = null) =>
