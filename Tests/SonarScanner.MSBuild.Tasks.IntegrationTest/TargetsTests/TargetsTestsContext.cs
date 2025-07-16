@@ -74,7 +74,7 @@ public class TargetsTestsContext
         testSpecificProjectXml ??= "<!-- none -->";
         if (!emptySqProperties)
         {
-            //NetAnalyzers disabled as they are picked up by MsBuild in test context on Linux, but not on Windows.
+            // NetAnalyzers disabled as they are picked up by MsBuild in test context on Linux, but not on Windows.
             testSpecificProjectXml = $"""
                 <PropertyGroup>
                     <SonarQubeTempPath>{ProjectFolder}</SonarQubeTempPath>
