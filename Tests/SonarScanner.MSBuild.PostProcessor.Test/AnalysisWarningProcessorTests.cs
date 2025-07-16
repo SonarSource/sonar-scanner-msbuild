@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 using static FluentAssertions.FluentActions;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test;
@@ -38,17 +31,21 @@ public class AnalysisWarningProcessorTests
     [TestMethod]
     public void AnalysisWarningProcessor_Constructor()
     {
-        Invoking(() => AnalysisWarningProcessor.Process(null, null, null, null)).Should()
-            .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("warnings");
+        Invoking(() => AnalysisWarningProcessor.Process(null, null, null, null))
+            .Should().ThrowExactly<ArgumentNullException>()
+            .And.ParamName.Should().Be("warnings");
 
-        Invoking(() => AnalysisWarningProcessor.Process([], null, null, null)).Should()
-            .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("outputPath");
+        Invoking(() => AnalysisWarningProcessor.Process([], null, null, null))
+            .Should().ThrowExactly<ArgumentNullException>()
+            .And.ParamName.Should().Be("outputPath");
 
-        Invoking(() => AnalysisWarningProcessor.Process([], string.Empty, null, null)).Should()
-            .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileWrapper");
+        Invoking(() => AnalysisWarningProcessor.Process([], string.Empty, null, null))
+            .Should().ThrowExactly<ArgumentNullException>()
+            .And.ParamName.Should().Be("fileWrapper");
 
-        Invoking(() => AnalysisWarningProcessor.Process([], string.Empty, Substitute.For<IFileWrapper>(), null)).Should()
-            .ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        Invoking(() => AnalysisWarningProcessor.Process([], string.Empty, Substitute.For<IFileWrapper>(), null))
+            .Should().ThrowExactly<ArgumentNullException>()
+            .And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -57,7 +54,7 @@ public class AnalysisWarningProcessorTests
         AnalysisWarningProcessor.Process([], string.Empty, fileWrapper, logger);
 
         logger.AssertNoWarningsLogged();
-        fileWrapper.DidNotReceiveWithAnyArgs().WriteAllText(default, default);
+        fileWrapper.DidNotReceiveWithAnyArgs().WriteAllText(null, null);
     }
 
     [TestMethod]

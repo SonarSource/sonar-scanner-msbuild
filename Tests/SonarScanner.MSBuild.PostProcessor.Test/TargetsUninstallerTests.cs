@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using System.Runtime.InteropServices;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.PostProcessor;
-using TestUtilities;
 
 namespace MSBuild.SonarQube.Internal.PostProcess.Tests;
 
@@ -113,5 +108,4 @@ public class TargetsUninstallerTests
         public void UninstallTargets() =>
             Uninstaller.UninstallTargets(BinDir);
     }
-
 }
