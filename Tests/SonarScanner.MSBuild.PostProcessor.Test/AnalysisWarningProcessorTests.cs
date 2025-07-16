@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Runtime.InteropServices;
 using static FluentAssertions.FluentActions;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test;
@@ -62,8 +63,8 @@ public class AnalysisWarningProcessorTests
     {
         AnalysisWarningProcessor.Process(["exploding", "whale"], string.Empty, fileWrapper, logger);
 
-        logger.Warnings.Should().BeEquivalentTo("exploding", "whale");
-        fileWrapper.Received(1).WriteAllText(string.Empty, """
+        var expected =
+            """
             [
               {
                 "text": "exploding"
@@ -72,7 +73,14 @@ public class AnalysisWarningProcessorTests
                 "text": "whale"
               }
             ]
-            """
-            .NormalizeLineEndings());
+            """;
+
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            expected = expected.NormalizeLineEndings();
+        }
+
+        logger.Warnings.Should().BeEquivalentTo("exploding", "whale");
+        fileWrapper.Received(1).WriteAllText(string.Empty, expected);
     }
 }
