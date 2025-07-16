@@ -29,28 +29,23 @@ public class SonarCategoriseProjectTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void SimpleProject_NoTestMarkers_IsNotATestProject()
-    {
-        var result = BuildAndRunTarget("foo.proj", string.Empty);
-        AssertIsNotTestProject(result);
-    }
+    public void SimpleProject_NoTestMarkers_IsNotATestProject() =>
+        ExecuteTest("foo.proj", projXml: string.Empty);
 
     [TestMethod]
-    public void ExplicitMarking_IsTrue()
-    {
-        var result = BuildAndRunTarget("foo.proj", """
+    public void ExplicitMarking_IsTrue() =>
+        ExecuteTest(
+            "foo.proj", """
             <PropertyGroup>
               <SonarQubeTestProject>true</SonarQubeTestProject>
             </PropertyGroup>
-            """);
-        AssertIsTestProject(result, $"Sonar: (foo.proj) SonarQubeTestProject has been set explicitly to true.");
-        AssertProjectIsNotExcluded(result);
-    }
+            """,
+            testProjMessage: "Sonar: (foo.proj) SonarQubeTestProject has been set explicitly to true.");
 
     [TestMethod]
+    // If the project is explicitly marked as not a test then the other conditions should be ignored
     public void ExplicitMarking_IsFalse()
     {
-        // If the project is explicitly marked as not a test then the other conditions should be ignored
         const string projectXmlSnippet = """
             <PropertyGroup>
               <ProjectTypeGuids>D1C3357D-82B4-43D2-972C-4D5455F0A7DB;3AC096D0-A1C2-E12C-1390-A8335801FDAB;BF3D2153-F372-4432-8D43-09B24D530F20</ProjectTypeGuids>
@@ -62,227 +57,170 @@ public class SonarCategoriseProjectTests
               <ProjectCapability Include='TestContainer' />
             </ItemGroup>
             """;
-        var configFilePath = CreateAnalysisConfigWithRegEx("*");
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet, configFilePath);
-
-        AssertIsNotTestProject(result);
-        AssertProjectIsNotExcluded(result);
-        result.Messages.Should().Contain($"Sonar: (foo.proj) SonarQubeTestProject has been set explicitly to false.");
+        var result = ExecuteTest("foo.proj", projectXmlSnippet, CreateAnalysisConfigWithRegEx("*"));
+        result.Messages.Should().Contain("Sonar: (foo.proj) SonarQubeTestProject has been set explicitly to false.");
     }
+
     [DataRow("MyTests.csproj", null)]
     [DataRow("foo.proj", null)]
     [DataRow("TestafoXB.proj", ".*foo.*")]
     [DataTestMethod]
-    public void WildcardMatch_NoMatch(string projectName, string regex)
-    {
-        var configFilePath = CreateAnalysisConfigWithRegEx(regex);
-
-        var result = BuildAndRunTarget(projectName, string.Empty, configFilePath);
-
-        AssertIsNotTestProject(result, projectName);
-        AssertProjectIsNotExcluded(result);
-    }
+    public void WildcardMatch_NoMatch(string projectName, string regex) =>
+        ExecuteTest(projectName, projXml: string.Empty, analysisConfigDir: CreateAnalysisConfigWithRegEx(regex));
 
     [TestMethod]
-    public void WildcardMatch_UserSpecified_Match()
-    {
-        // Check user-specified wildcard matching
-        var configFilePath = CreateAnalysisConfigWithRegEx(".*foo.*");
-
-        var result = BuildAndRunTarget("foo.proj", string.Empty, configFilePath);
-
-        AssertIsTestProject(result, "Sonar: (foo.proj) project is evaluated as a test project based on the project name.");
-        AssertProjectIsNotExcluded(result);
-    }
+    // Check user-specified wildcard matching
+    public void WildcardMatch_UserSpecified_Match() =>
+        ExecuteTest(
+            "foo.proj",
+            projXml: string.Empty,
+            analysisConfigDir: CreateAnalysisConfigWithRegEx(".*foo.*"),
+            testProjMessage: "Sonar: (foo.proj) project is evaluated as a test project based on the project name.");
 
     [TestMethod]
-    public void ProjectTypeGuids_IsRecognized()
-    {
-        // Snippet with the Test Project Type Guid between two other Guids
-        const string projectXmlSnippet = """
+    // Snippet with the Test Project Type Guid between two other Guids
+    public void ProjectTypeGuids_IsRecognized() =>
+        ExecuteTest(
+            "foo.proj", """
             <PropertyGroup>
               <ProjectTypeGuids>D1C3357D-82B4-43D2-972C-4D5455F0A7DB;3AC096D0-A1C2-E12C-1390-A8335801FDAB;BF3D2153-F372-4432-8D43-09B24D530F20</ProjectTypeGuids>
             </PropertyGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsTestProject(result, "Sonar: (foo.proj) project has the MSTest project type guid -> test project.");
-    }
+            """,
+            testProjMessage: "Sonar: (foo.proj) project has the MSTest project type guid -> test project.");
 
     [TestMethod]
-    public void ProjectTypeGuids_IsRecognized_CaseInsensitive()
-    {
-        const string projectXmlSnippet = """
+    public void ProjectTypeGuids_IsRecognized_CaseInsensitive() =>
+        ExecuteTest(
+            "foo.proj", """
             <PropertyGroup>
               <ProjectTypeGuids>3AC096D0-A1C2-E12C-1390-A8335801fdab</ProjectTypeGuids>
             </PropertyGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsTestProject(result, "Sonar: (foo.proj) project has the MSTest project type guid -> test project.");
-    }
+            """,
+            testProjMessage: "Sonar: (foo.proj) project has the MSTest project type guid -> test project.");
 
     [TestMethod]
-    public void ServiceGuid_IsRecognized()
-    {
-        const string projectXmlSnippet = """
+    public void ServiceGuid_IsRecognized() =>
+        ExecuteTest(
+            "foo.proj", """
             <ItemGroup>
               <Service Include='{D1C3357D-82B4-43D2-972C-4D5455F0A7DB}' />
               <Service Include='{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}' />
               <Service Include='{BF3D2153-F372-4432-8D43-09B24D530F20}' />
             </ItemGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsTestProject(result, "Sonar: (foo.proj) project has the legacy Test Explorer Service tag {82A7F48D-3B50-4B1E-B82E-3ADA8210C358} -> test project.");
-    }
+            """,
+            testProjMessage: "Sonar: (foo.proj) project has the legacy Test Explorer Service tag {82A7F48D-3B50-4B1E-B82E-3ADA8210C358} -> test project.");
 
     [TestMethod]
-    public void ServiceGuid_IsRecognized_CaseInsensitive()
-    {
-        const string projectXmlSnippet = """
+    public void ServiceGuid_IsRecognized_CaseInsensitive() =>
+        ExecuteTest(
+            "foo.proj", """
             <ItemGroup>
               <Service Include='{82a7f48d-3b50-4b1e-b82e-3ada8210c358}' />
             </ItemGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsTestProject(result, "Sonar: (foo.proj) project has the legacy Test Explorer Service tag {82A7F48D-3B50-4B1E-B82E-3ADA8210C358} -> test project.");
-    }
+            """,
+            testProjMessage: "Sonar: (foo.proj) project has the legacy Test Explorer Service tag {82A7F48D-3B50-4B1E-B82E-3ADA8210C358} -> test project.");
 
     [TestMethod]
-    public void ProjectCapability_IsRecognized()
-    {
-        const string projectXmlSnippet = """
+    public void ProjectCapability_IsRecognized() =>
+        ExecuteTest(
+            "foo.proj", """
             <ItemGroup>
               <ProjectCapability Include='Foo' />
               <ProjectCapability Include='TestContainer' />
               <ProjectCapability Include='Something else' />
             </ItemGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsTestProject(result, "Sonar: (foo.proj) project has the ProjectCapability 'TestContainer' -> test project.");
-    }
+            """,
+            testProjMessage: "Sonar: (foo.proj) project has the ProjectCapability 'TestContainer' -> test project.");
 
     [TestMethod]
-    public void ProjectCapability_IsRecognized_CaseInsensitive()
-    {
-        const string projectXmlSnippet = """
+    public void ProjectCapability_IsRecognized_CaseInsensitive() =>
+        ExecuteTest(
+            "foo.proj", """
             <ItemGroup>
               <ProjectCapability Include='testcontainer' />
             </ItemGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsTestProject(result, "Sonar: (foo.proj) project has the ProjectCapability 'TestContainer' -> test project.");
-    }
+            """,
+            testProjMessage: "Sonar: (foo.proj) project has the ProjectCapability 'TestContainer' -> test project.");
 
     [TestMethod]
-    public void References_IsProduct()
-    {
-        const string projectXmlSnippet = """
+    public void References_IsProduct() =>
+        ExecuteTest("foo.proj", """
             <ItemGroup>
               <SonarResolvedReferences Include='mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' />
               <SonarResolvedReferences Include='SimpleName' />
             </ItemGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
+            """);
 
-        AssertIsNotTestProject(result);
-    }
-
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void References_IsTest()
     {
-        const string projectXmlSnippet = """
+        var result = ExecuteTest(
+            "foo.proj", """
             <ItemGroup>
               <SonarResolvedReferences Include='mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' />
               <SonarResolvedReferences Include='SimpleName' />
               <SonarResolvedReferences Include='Moq, Version=4.16.0.0, Culture=neutral, PublicKeyToken=69f491c39445e920' />
               <SonarResolvedReferences Include='Microsoft.VisualStudio.TestPlatform.TestFramework' />
             </ItemGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsTestProject(result, "Sonar: (foo.proj) project is evaluated as a test project based on the 'Moq' reference.");
+            """,
+            testProjMessage: "Sonar: (foo.proj) project is evaluated as a test project based on the 'Moq' reference.");
         // Only first match is reported in the log
         result.Messages.Should().NotContain("Sonar: (foo.proj) project is evaluated as a test project based on the 'Microsoft.VisualStudio.TestPlatform.TestFramework' reference.");
     }
 
     [TestMethod]
-    public void SqlServerProjectsAreNotExcluded()
-    {
-        const string projectXmlSnippet = """
+    public void SqlServerProjectsAreNotExcluded() =>
+        ExecuteTest("foo.sqproj", """
             <PropertyGroup>
               <SqlTargetName>non-empty</SqlTargetName>
             </PropertyGroup>
-            """;
-        var result = BuildAndRunTarget("foo.sqproj", projectXmlSnippet);
-
-        AssertIsNotTestProject(result, "foo.sqproj");
-        AssertProjectIsNotExcluded(result);
-    }
+            """);
 
     [TestMethod] // SONARMSBRU-26: MS Fakes should be excluded from analysis
-    public void FakesProjects_AreExcluded_WhenNoExplicitSonarProperties()
-    {
-        const string projectXmlSnippet = """
+    public void FakesProjects_AreExcluded_WhenNoExplicitSonarProperties() =>
+        ExecuteTest(
+            "foo.proj", """
             <PropertyGroup>
               <AssemblyName>f.fAKes</AssemblyName>
             </PropertyGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsTestProject(result, "Sonar: (foo.proj) project is a temporary project generated by Microsoft Fakes and will be ignored.");
-        AssertProjectIsExcluded(result);
-    }
+            """,
+            testProjMessage: "Sonar: (foo.proj) categorized as TEST project (test code).",
+            exclusionMessage: "Sonar: (foo.proj) project is a temporary project generated by Microsoft Fakes and will be ignored.");
 
     [TestMethod]
-    public void FakesProjects_FakesInName_AreNotExcluded()
-    {
-        // Checks that projects with ".fakes" in the name are not excluded
-        const string projectXmlSnippet = """
+    public void FakesProjects_FakesInName_AreNotExcluded() =>
+        ExecuteTest("foo.proj", """
             <PropertyGroup>
               <AssemblyName>f.fAKes.proj</AssemblyName>
             </PropertyGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsNotTestProject(result);
-        AssertProjectIsNotExcluded(result);
-    }
+            """);
 
     [TestMethod]
-    public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty() // @odalet - Issue #844
-    {
-        // Checks that fakes projects are not marked as test if the project
-        // says otherwise.
-        const string projectXmlSnippet = """
+    // Checks that fakes projects are not marked as test if the project
+    // says otherwise.
+    public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty() => // @odalet - Issue #844
+        ExecuteTest(
+            "foo.proj", """
             <PropertyGroup>
-              <SonarQubeTestProject>false</SonarQubeTestProject>
-              <AssemblyName>MyFakeProject.fakes</AssemblyName>
+                <SonarQubeTestProject>false</SonarQubeTestProject>
+                <AssemblyName>MyFakeProject.fakes</AssemblyName>
             </PropertyGroup>
-            """;
-        var result = BuildAndRunTarget("foo.proj", projectXmlSnippet);
-
-        AssertIsNotTestProject(result);
-    }
+            """,
+            exclusionMessage: "Sonar: (foo.proj) project is a temporary project generated by Microsoft Fakes and will be ignored.");
 
     [TestMethod]
+    // Checks that fakes projects are not excluded if the project
+    // says otherwise.
     public void FakesProjects_AreNotExcluded_WhenExplicitSonarExcludeProperty() // @odalet - Issue #844
     {
-        // Checks that fakes projects are not excluded if the project
-        // says otherwise.
-        const string projectXmlSnippet = """
+        var result = ExecuteTest(
+            "f.proj", """
             <PropertyGroup>
               <SonarQubeExclude>false</SonarQubeExclude>
               <AssemblyName>MyFakeProject.fakes</AssemblyName>
             </PropertyGroup>
-            """;
-        var result = BuildAndRunTarget("f.proj", projectXmlSnippet);
-
+            """,
+            skipAssertions: true);
         AssertProjectIsNotExcluded(result);
     }
 
@@ -297,20 +235,43 @@ public class SonarCategoriseProjectTests
     [DataTestMethod]
     public void WpfTemporaryProjects_AreExcluded(string projectName, bool expectedExclusionState)
     {
-        var result = BuildAndRunTarget(projectName, string.Empty);
-        AssertIsNotTestProject(result, projectName);
-        if (expectedExclusionState)
+        var exclusionMessage = expectedExclusionState ? $"Sonar: ({projectName}) project is a temporary project and will be excluded." : string.Empty;
+        ExecuteTest(
+            projectName,
+            projXml: string.Empty,
+            exclusionMessage: exclusionMessage);
+    }
+
+    private BuildLog ExecuteTest(string projName, string projXml, string analysisConfigDir = "c:\\dummy", string testProjMessage = null, string exclusionMessage = null, bool skipAssertions = false)
+    {
+        var result = BuildAndRunTarget(projName, projXml, analysisConfigDir);
+
+        if (skipAssertions)
         {
-            AssertProjectIsExcluded(result);
-            result.Messages.Should().Contain($"Sonar: ({projectName}) project is a temporary project and will be excluded.");
+            return result;
+        }
+
+        if (string.IsNullOrEmpty(testProjMessage))
+        {
+            AssertIsNotTestProject(result, projName);
         }
         else
         {
+            AssertIsTestProject(result, testProjMessage);
+        }
+        if (string.IsNullOrEmpty(exclusionMessage))
+        {
             AssertProjectIsNotExcluded(result);
         }
+        else
+        {
+            AssertProjectIsExcluded(result);
+            result.Messages.Should().Contain(exclusionMessage);
+        }
+        return result;
     }
 
-    private BuildLog BuildAndRunTarget(string projectFileName, string projectXmlSnippet, string analysisConfigDir = "c:\\dummy")
+    private BuildLog BuildAndRunTarget(string projectFileName, string projectXmlSnippet, string analysisConfigDir)
     {
         var projectFilePath = CreateProjectFile(projectFileName, projectXmlSnippet, analysisConfigDir);
         var result = BuildRunner.BuildTargets(TestContext, projectFilePath, TargetConstants.SonarCategoriseProject);
@@ -343,9 +304,9 @@ public class SonarCategoriseProjectTests
     /// <summary>
     /// Creates an analysis config file, replacing one if it already exists.
     /// If the supplied "regExExpression" is not null then the appropriate setting
-    /// entry will be created in the file
+    /// entry will be created in the file.
     /// </summary>
-    /// <returns>The directory containing the config file</returns>
+    /// <returns>The directory containing the config file.</returns>
     private string CreateAnalysisConfigWithRegEx(string regExExpression)
     {
         var config = new AnalysisConfig();
