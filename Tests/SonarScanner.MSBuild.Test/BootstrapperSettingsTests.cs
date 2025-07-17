@@ -42,16 +42,15 @@ public class BootstrapperSettingsTests
         act.Should().ThrowExactly<ArgumentNullException>();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void BootSettings_Properties()
     {
         // Check the properties values and that relative paths are turned into absolute paths
         var logger = new TestLogger();
-        using var envScope = new EnvironmentVariableScope().SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
+        using var envScope = new EnvironmentVariableScope().SetVariable(BootstrapperSettings.BuildDirectory_Legacy, $@"c:{Path.DirectorySeparatorChar}temp");
 
         // Default value -> relative to download dir
         var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
-        sut.TempDirectory.Should().Be(@"c:\temp\.sonarqube");
+        sut.TempDirectory.Should().Be($@"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
     }
 }
