@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Tasks.IntegrationTest;
-using TestUtilities;
+using SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 
 namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
 
@@ -34,33 +32,21 @@ public class SonarResolveReferencesTests
     [TestMethod]
     public void BuildIntegration_ResolvesReferences()
     {
-        // Arrange
-        var rootFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var projectSnippet = $@"
-<PropertyGroup>
-    <SonarQubeTempPath>{rootFolder}</SonarQubeTempPath>
-</PropertyGroup>";
+        var context = new TargetsTestsContext(TestContext);
+        var projectSnippet = $"""
+            <PropertyGroup>
+                <SonarQubeTempPath>{context.ProjectFolder}</SonarQubeTempPath>
+            </PropertyGroup>
+            """;
+        var filePath = context.CreateProjectFile(projectSnippet, emptySqProperties: true, template: Resources.TargetTestsProjectTemplate);
 
-        var filePath = CreateProjectFile(projectSnippet);
+        var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.Restore, TargetConstants.DefaultBuild);
 
-        // Act
-        var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.DefaultBuild);
-
-        // Assert
         result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
         result.AssertTargetExecuted(TargetConstants.SonarResolveReferences);
         result.AssertTargetExecuted(TargetConstants.SonarCategoriseProject);
-
         var sonarResolvedReferences = result.GetItem(TargetProperties.SonarResolvedReferences);
         sonarResolvedReferences.Should().NotBeEmpty();
         sonarResolvedReferences.Should().Contain(x => x.Text.Contains("mscorlib"));
-    }
-
-    private string CreateProjectFile(string projectSnippet)
-    {
-        var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var targetTestUtils = new TargetsTestsUtils(TestContext);
-        var projectTemplate = targetTestUtils.GetProjectTemplate(null, projectDirectory, null, projectSnippet);
-        return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
     }
 }
