@@ -33,14 +33,12 @@ public class WriteProjectInfoFileTargetTests
 
     public TestContext TestContext { get; set; }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_NoFiles() =>
         ExecuteFileListTest(null);
 
     // The analysis file list should be created with the expected files
     // Note: the included/excluded files don't actually have to exist
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_HasFiles() =>
         ExecuteFileListTest("""
@@ -66,12 +64,11 @@ public class WriteProjectInfoFileTargetTests
               </Compile>
             </ItemGroup>
             """,
-            "\\included1.txt",
-            "\\included2.txt",
-            "\\included3.txt");
+            "included1.txt",
+            "included2.txt",
+            "included3.txt");
 
     // The content file list should not include items with <AutoGen>true</AutoGen> metadata
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_AutoGenFilesIgnored() =>
         ExecuteFileListTest("""
@@ -101,13 +98,12 @@ public class WriteProjectInfoFileTargetTests
               </Compile>
             </ItemGroup>
             """,
-            "\\included1.txt",
-            "\\included2.txt",
-            "\\included3.txt",
-            "\\included4.txt");
+            "included1.txt",
+            "included2.txt",
+            "included3.txt",
+            "included4.txt");
 
     // Check that all default item types are included for analysis
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_Defaults() =>
         ExecuteFileListTest("""
@@ -131,16 +127,15 @@ public class WriteProjectInfoFileTargetTests
               <TypeScriptCompile Include='tsfile.ts' />
             </ItemGroup>
             """,
-            "\\compile.txt",
-            "\\content.txt",
-            "\\resource.res",
-            "\\none.none",
-            "\\code.cpp",
-            "\\tsfile.ts",
-            "\\page.page");
+            "compile.txt",
+            "content.txt",
+            "resource.res",
+            "none.none",
+            "code.cpp",
+            "tsfile.ts",
+            "page.page");
 
     // Check that all default item types are included for analysis
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_PageAndApplicationDefinition() =>
         ExecuteFileListTest("""
@@ -164,12 +159,11 @@ public class WriteProjectInfoFileTargetTests
                 </Compile>
             </ItemGroup>
             """,
-            "\\MyApp.xaml",
-            "\\MyApp.cs",
-            "\\HomePage.xaml",
-            "\\HomePage.cs");
+            "MyApp.xaml",
+            "MyApp.cs",
+            "HomePage.xaml",
+            "HomePage.cs");
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_OnlySpecified() =>
         ExecuteFileListTest("""
@@ -187,10 +181,9 @@ public class WriteProjectInfoFileTargetTests
               <Content Include='content.txt' />
             </ItemGroup>
             """,
-            "\\foo.foo",
-            "\\xxxType.xxx");
+            "foo.foo",
+            "xxxType.xxx");
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_SpecifiedPlusDefaults() =>
         ExecuteFileListTest("""
@@ -209,14 +202,13 @@ public class WriteProjectInfoFileTargetTests
               <Content Include='content.txt' />
             </ItemGroup>
             """,
-            "\\foo.foo",
-            "\\xxxType.xxx",
-            "\\compile.txt",
-            "\\content.txt");
+            "foo.foo",
+            "xxxType.xxx",
+            "compile.txt",
+            "content.txt");
 
     // Check that SonarQubeTestProject and SonarQubeExclude are
     // correctly set for "normal" projects
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_IsNotTestAndNotExcluded()
     {
@@ -228,7 +220,6 @@ public class WriteProjectInfoFileTargetTests
         AssertProjectIsNotExcluded(projectInfo);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     // Check that SonarQubeTestProject and SonarQubeExclude are
     // correctly serialized. We'll test using a fakes project since
@@ -244,7 +235,6 @@ public class WriteProjectInfoFileTargetTests
         AssertProjectIsExcluded(projectInfo);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_ProjectWithCodePage()
     {
@@ -256,7 +246,6 @@ public class WriteProjectInfoFileTargetTests
         projectInfo.Encoding.Should().Be("windows-1250");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_ProjectWithNoCodePage()
     {
@@ -268,7 +257,6 @@ public class WriteProjectInfoFileTargetTests
         projectInfo.Encoding.Should().BeNull();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_AnalysisSettings()
     {
@@ -307,7 +295,6 @@ public class WriteProjectInfoFileTargetTests
     // Checks the WriteProjectInfo target handles non-VB/C# project types
     // that don't import the standard targets or set the expected properties
     // As this specifically tests projects that dont use C#/VB we dont use TargetsTestsContext
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_BareProject()
     {
@@ -342,7 +329,6 @@ public class WriteProjectInfoFileTargetTests
 
     // Checks the WriteProjectInfo target handles projects with unrecognized languages
     // As this specifically tests projects that dont use C#/VB we dont use TargetsTestsContext
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void WriteProjectInfo_UnrecognisedLanguage()
     {
@@ -385,7 +371,7 @@ public class WriteProjectInfoFileTargetTests
         }
         else
         {
-            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, [.. expectedFiles.Select(x => projectDir + x)]);
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, [.. expectedFiles.Select(x => projectDir + Path.DirectorySeparatorChar + x)]);
         }
     }
 
