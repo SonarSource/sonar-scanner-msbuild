@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
-
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 
 [TestClass]
@@ -216,10 +214,10 @@ public class WriteProjectInfoFileTargetTests
             "\\compile.txt",
             "\\content.txt");
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [TestMethod]
     // Check that SonarQubeTestProject and SonarQubeExclude are
     // correctly set for "normal" projects
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestMethod]
     public void WriteProjectInfo_IsNotTestAndNotExcluded()
     {
         var projectInfo = ExecuteProjectInfoTest(null, new AnalysisConfig
@@ -306,11 +304,11 @@ public class WriteProjectInfoFileTargetTests
         // Additional settings might be added by other targets so we won't check the total number of settings
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [TestMethod]
     // Checks the WriteProjectInfo target handles non-VB/C# project types
     // that don't import the standard targets or set the expected properties
     // As this specifically tests projects that dont use C#/VB we dont use TargetsTestsContext
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestMethod]
     public void WriteProjectInfo_BareProject()
     {
         var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
@@ -321,7 +319,9 @@ public class WriteProjectInfoFileTargetTests
             <?xml version='1.0' encoding='utf-8'?>
             <Project ToolsVersion='12.0' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
               <PropertyGroup>
+                <SonarQubeTempPath>{rootOutputFolder}</SonarQubeTempPath>
                 <ProjectGuid>{projectGuid}</ProjectGuid>
+                <SonarQubeOutputPath>{rootOutputFolder}</SonarQubeOutputPath>
                 <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
               </PropertyGroup>
               <Import Project='{sqTargetFile}' />
@@ -329,8 +329,7 @@ public class WriteProjectInfoFileTargetTests
             """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
-        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-            TargetConstants.SonarWriteProjectData);
+        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.SonarWriteProjectData);
 
         result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectData);
         var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
@@ -341,10 +340,10 @@ public class WriteProjectInfoFileTargetTests
         projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [TestMethod]
     // Checks the WriteProjectInfo target handles projects with unrecognized languages
     // As this specifically tests projects that dont use C#/VB we dont use TargetsTestsContext
+    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestMethod]
     public void WriteProjectInfo_UnrecognisedLanguage()
     {
         var rootInputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Inputs");
@@ -366,8 +365,7 @@ public class WriteProjectInfoFileTargetTests
             """;
         var projectRoot = BuildUtilities.CreateProjectFromTemplate(projectFilePath, TestContext, projectXml);
 
-        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath,
-            TargetConstants.SonarWriteProjectData);
+        var result = BuildRunner.BuildTargets(TestContext, projectRoot.FullPath, TargetConstants.SonarWriteProjectData);
 
         result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectData);
         var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
@@ -400,85 +398,56 @@ public class WriteProjectInfoFileTargetTests
 
     private ProjectInfo ExecuteWriteProjectInfo(string projectFilePath, string rootOutputFolder, bool noErrors = true)
     {
-        // Act
-        var result = BuildRunner.BuildTargets(TestContext, projectFilePath,
+        var result = BuildRunner.BuildTargets(
+            TestContext,
+            projectFilePath,
             // The "write" target depends on a couple of other targets having executed first to set properties appropriately
             TargetConstants.SonarCategoriseProject,
             TargetConstants.SonarCreateProjectSpecificDirs,
             TargetConstants.SonarWriteFilesToAnalyze,
             TargetConstants.SonarWriteProjectData);
 
-        // Assert
         result.AssertTargetSucceeded(TargetConstants.SonarCreateProjectSpecificDirs);
         result.AssertTargetSucceeded(TargetConstants.SonarWriteFilesToAnalyze);
         result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectData);
         result.AssertTargetExecuted(TargetConstants.SonarWriteProjectData);
-
         if (noErrors)
         {
             result.AssertErrorCount(0);
         }
-
-        // Check expected project outputs
-        Directory.EnumerateDirectories(rootOutputFolder).Should().HaveCount(1, "Only expecting one child directory to exist under the root analysis output folder");
-        var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectFilePath);
-
-        return projectInfo;
+        Directory.EnumerateDirectories(rootOutputFolder).Should().ContainSingle("Only expecting one child directory to exist under the root analysis output folder");
+        return ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectFilePath);
     }
 
-    private string CreateProjectFile(AnalysisConfig config, string projectSnippet, string sqOutputPath)
-    {
-        var projectDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var targetTestUtils = new TargetsTestsUtils(TestContext);
-
-        var projectTemplate = targetTestUtils.GetProjectTemplate(config, projectDirectory, TestSpecificProperties, projectSnippet, sqOutputPath);
-
-        return targetTestUtils.CreateProjectFile(projectDirectory, projectTemplate);
-    }
-
-    private static void AssertIsProductProject(ProjectInfo projectInfo)
-    {
+    private static void AssertIsProductProject(ProjectInfo projectInfo) =>
         projectInfo.ProjectType.Should().Be(ProjectType.Product, "Should be a product (i.e. non-test) project");
-    }
 
-    private static void AssertIsTestProject(ProjectInfo projectInfo)
-    {
+    private static void AssertIsTestProject(ProjectInfo projectInfo) =>
         projectInfo.ProjectType.Should().Be(ProjectType.Test, "Should be a test project");
-    }
 
-    private static void AssertProjectIsExcluded(ProjectInfo projectInfo)
-    {
+    private static void AssertProjectIsExcluded(ProjectInfo projectInfo) =>
         projectInfo.IsExcluded.Should().BeTrue("Expecting the project to be excluded");
-    }
 
-    private static void AssertProjectIsNotExcluded(ProjectInfo projectInfo)
-    {
+    private static void AssertProjectIsNotExcluded(ProjectInfo projectInfo) =>
         projectInfo.IsExcluded.Should().BeFalse("Not expecting the project to be excluded");
-    }
 
     private void AssertResultFileDoesNotExist(ProjectInfo projectInfo, AnalysisType resultType)
     {
-        var found = projectInfo.TryGetAnalyzerResult(resultType, out AnalysisResult result);
-
+        var found = projectInfo.TryGetAnalyzerResult(resultType, out var result);
         if (found)
         {
             TestContext.AddResultFile(result.Location);
         }
-
         found.Should().BeFalse("Analysis result found unexpectedly. Result type: {0}", resultType);
     }
 
     private void AssertResultFileExists(ProjectInfo projectInfo, AnalysisType resultType, params string[] expected)
     {
-        var found = projectInfo.TryGetAnalyzerResult(resultType, out AnalysisResult result);
-
+        var found = projectInfo.TryGetAnalyzerResult(resultType, out var result);
         found.Should().BeTrue("Analysis result not found: {0}", resultType);
         File.Exists(result.Location).Should().BeTrue("Analysis result file not found");
-
         TestContext.AddResultFile(result.Location);
-
         var actualFiles = File.ReadAllLines(result.Location);
-
         try
         {
             actualFiles.Should().BeEquivalentTo(expected, "The analysis result file does not contain the expected entries");
@@ -491,15 +460,12 @@ public class WriteProjectInfoFileTargetTests
         }
     }
 
-    private void AssertSettingExists(ProjectInfo projectInfo, string expectedId, string expectedValue)
+    private static void AssertSettingExists(ProjectInfo projectInfo, string expectedId, string expectedValue)
     {
-        var found = projectInfo.TryGetAnalysisSetting(expectedId, out Property actualSetting);
+        var found = projectInfo.TryGetAnalysisSetting(expectedId, out var actualSetting);
         found.Should().BeTrue("Expecting the analysis setting to be found. Id: {0}", expectedId);
-
-        // Check the implementation of TryGetAnalysisSetting
         actualSetting.Should().NotBeNull("The returned setting should not be null if the function returned true");
         actualSetting.Id.Should().Be(expectedId, "TryGetAnalysisSetting returned a setting with an unexpected id");
-
         actualSetting.Value.Should().Be(expectedValue, "Setting has an unexpected value. Id: {0}", expectedId);
     }
 }
