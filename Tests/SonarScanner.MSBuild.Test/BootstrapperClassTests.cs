@@ -50,7 +50,7 @@ public class BootstrapperClassTests
     [TestMethod]
     public void Exe_PreProcFails()
     {
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             MockProcessors(false, true);
@@ -78,7 +78,7 @@ public class BootstrapperClassTests
     [TestMethod]
     public void CopyDlls_WhenFileDoNotExist_FilesAreCopied()
     {
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeFalse();
@@ -96,7 +96,7 @@ public class BootstrapperClassTests
     [TestMethod]
     public void CopyDlls_WhenFileExistButAreNotLocked_FilesAreCopied()
     {
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
@@ -115,7 +115,7 @@ public class BootstrapperClassTests
     [TestMethod]
     public void CopyDlls_WhenFileExistAndAreLockedButSameVersion_DoNothing()
     {
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
@@ -139,7 +139,7 @@ public class BootstrapperClassTests
     [TestMethod]
     public void CopyDlls_WhenFileExistAndAreLockedButDifferentVersion_Fails()
     {
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        EnsureDefaultPropertiesFileDoesNotExist();
 
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
@@ -182,7 +182,7 @@ public class BootstrapperClassTests
     [TestMethod]
     public void Exe_PreProcSucceeds()
     {
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
@@ -196,7 +196,7 @@ public class BootstrapperClassTests
     [TestMethod]
     public void Exe_PreProcCleansTemp()
     {
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             var filePath = Path.Combine(tempDir, "myfile");
@@ -276,6 +276,23 @@ public class BootstrapperClassTests
         Directory.CreateDirectory(Path.GetDirectoryName(filePath));
         var config = new AnalysisConfig();
         config.Save(filePath);
+    }
+
+    private static void EnsureDefaultPropertiesFileDoesNotExist()
+    {
+        var defaultPropertiesFilePath = DefaultPropertiesFilePath();
+        if (File.Exists(defaultPropertiesFilePath))
+        {
+            File.Delete(defaultPropertiesFilePath);
+        }
+    }
+
+    private static string DefaultPropertiesFilePath()
+    {
+        var defaultPropertiesFilePath = Path.Combine(
+            Path.GetDirectoryName(typeof(SonarScanner.MSBuild.Program).Assembly.Location),
+            FilePropertyProvider.DefaultFileName);
+        return defaultPropertiesFilePath;
     }
 
     private void MockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
