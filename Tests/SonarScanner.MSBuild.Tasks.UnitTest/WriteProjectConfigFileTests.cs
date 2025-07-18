@@ -33,7 +33,6 @@ public class WriteProjectConfigFileTests
     [Description("Tests that the project config file is created when the task is executed.")]
     public void Execute_FileCreated()
     {
-        // Arrange
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var task = new WriteProjectConfigFile
         {
@@ -46,10 +45,8 @@ public class WriteProjectConfigFileTests
             TargetFramework = "target-42"
         };
 
-        // Act
         var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
 
-        // Assert
         reloadedConfig.AnalysisConfigPath.Should().Be(@"c:\fullPath\config.xml");
         reloadedConfig.ProjectPath.Should().Be(@"c:\fullPath\project.xproj");
         reloadedConfig.OutPath.Should().Be(@"c:\fullPath\out\42\");
@@ -62,7 +59,6 @@ public class WriteProjectConfigFileTests
     [Description("Tests that all existing config properties are filled from the task.")]
     public void Execute_AllPropertiesAreSet()
     {
-        // Arrange
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var task = new WriteProjectConfigFile
         {
@@ -75,59 +71,36 @@ public class WriteProjectConfigFileTests
             TargetFramework = "not empty"
         };
 
-        // Act
         var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
 
-        // Assert
-        foreach(var property in reloadedConfig.GetType().GetProperties())
+        foreach (var property in reloadedConfig.GetType().GetProperties())
         {
             var value = property.GetValue(reloadedConfig)?.ToString();
             value.Should().NotBeNullOrEmpty($"property '{property.Name}' should have value");
         }
     }
 
+    [DataRow(true, ProjectType.Test)]
+    [DataRow(false, ProjectType.Product)]
     [TestMethod]
-    public void Execute_IsTest_FalseReturnsTypeProduct()
+    public void Execute_IsTest_ReturnsTypeTest(bool isTest, ProjectType expectedType)
     {
-        // Arrange
-        var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, isTest ? "test" : "product");
         var task = new WriteProjectConfigFile
         {
             ConfigDir = testFolder,
-            IsTest = false,
+            IsTest = isTest,
         };
-
-        // Act
-        var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
-
-        // Assert
-        reloadedConfig.ProjectType.Should().Be(ProjectType.Product);
+        ExecuteAndReloadConfig(task, testFolder).ProjectType
+            .Should().Be(expectedType);
     }
 
-    [TestMethod]
-    public void Execute_IsTest_TrueReturnsTypeTest()
-    {
-        // Arrange
-        var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var task = new WriteProjectConfigFile
-        {
-            ConfigDir = testFolder,
-            IsTest = true,
-        };
-
-        // Act
-        var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
-
-        // Assert
-        reloadedConfig.ProjectType.Should().Be(ProjectType.Test);
-    }
-
-    private ProjectConfig ExecuteAndReloadConfig(Task task, string testFolder)
+    private ProjectConfig ExecuteAndReloadConfig(WriteProjectConfigFile writeProjectConfigFile, string testFolder)
     {
         var expectedFile = Path.Combine(testFolder, ExpectedProjectConfigFileName);
         File.Exists(expectedFile).Should().BeFalse("Test error: output file should not exist before the task is executed");
 
-        var result = task.Execute();
+        var result = writeProjectConfigFile.Execute();
 
         result.Should().BeTrue("Expecting the task execution to succeed");
         File.Exists(expectedFile).Should().BeTrue("Expected output file was not created by the task. Expected: {0}", expectedFile);
