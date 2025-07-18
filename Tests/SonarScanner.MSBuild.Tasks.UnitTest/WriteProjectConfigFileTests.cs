@@ -83,9 +83,9 @@ public class WriteProjectConfigFileTests
     [DataRow(true, ProjectType.Test)]
     [DataRow(false, ProjectType.Product)]
     [TestMethod]
-    public void Execute_IsTest_TrueReturnsTypeTest(bool isTest, ProjectType expectedType)
+    public void Execute_IsTest_ReturnsTypeTest(bool isTest, ProjectType expectedType)
     {
-        var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, isTest ? "test" : "product");
         var task = new WriteProjectConfigFile
         {
             ConfigDir = testFolder,
