@@ -208,12 +208,12 @@ public class GetAnalyzerSettingsTests
         testSubject.OriginalAnalyzers =
         [
             Path.Combine("c:", "original.should.be.preserved", "analyzer1.DLL"),
-            Path.Combine("f:","original.should.be.preserved", "analyzer3.dll"),
-            Path.Combine("c:","SonarAnalyzer", "should.be.preserved.SomeAnalyzer.dll"),
+            Path.Combine("f:", "original.should.be.preserved", "analyzer3.dll"),
+            Path.Combine("c:", "SonarAnalyzer", "should.be.preserved.SomeAnalyzer.dll"),
             Path.Combine("c:", "should.be.removed", "SonarAnalyzer.Fake.DLL"), // We consider all analyzers starting with 'SonarAnalyzer' as ours, this will be removed as a duplicate reference
             Path.Combine("c:", "should.be.removed", "SonarAnalyzer.CFG.dll"),
-            Path.Combine("c:","should.be.removed", "SonarAnalyzer.dll"),
-            Path.Combine("c:","should.be.removed", "SonarAnalyzer.CSharp.dll"),
+            Path.Combine("c:", "should.be.removed", "SonarAnalyzer.dll"),
+            Path.Combine("c:", "should.be.removed", "SonarAnalyzer.CSharp.dll"),
             Path.Combine("c:", "should.be.removed", "SonarAnalyzer.vIsUaLbAsIc.dll"),
             Path.Combine("c:", "should.be.removed", "sOnAranaLYZer.Security.dll")
         ];
