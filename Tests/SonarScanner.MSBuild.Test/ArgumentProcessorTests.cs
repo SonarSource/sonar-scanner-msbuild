@@ -40,7 +40,7 @@ public class ArgumentProcessorTests
         // the default properties file does not exist so we'll ensure it doesn't.
         // Any tests that do require default properties file should re-create it
         // with known content.
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        TestUtils.EnsureDefaultPropertiesFileDoesNotExist();
     }
 
     public TestContext TestContext { get; set; }
