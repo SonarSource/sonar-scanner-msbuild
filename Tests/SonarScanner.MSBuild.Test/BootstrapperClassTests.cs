@@ -136,6 +136,8 @@ public class BootstrapperClassTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
+    // Windows uses mandatory locking, enforced at the OS level so this correctly throws,
+    // Unix uses advisory locking, the convention is to use a .lock file, which we do not do, so we do not throw on unix
     [TestMethod]
     public void CopyDlls_WhenFileExistAndAreLockedButDifferentVersion_Fails()
     {
