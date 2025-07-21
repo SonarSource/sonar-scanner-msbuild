@@ -46,9 +46,9 @@ public static class BuildRunner
             projectFile,
             "/bl:" + binaryLogPath
         ];
-        Console.WriteLine("Project Directory: " + Path.GetDirectoryName(projectFile));
+        Console.WriteLine("Project Directory: " + projectDir);
 
-        msbuildArgs.Add($"/t:{(targets is null || targets.Length is 0 ? $"{TargetConstants.Restore};{TargetConstants.DefaultBuild}" : string.Join(";", targets))}");
+        msbuildArgs.Add($"/t:{(targets?.Length > 0 ? string.Join(";", targets) : $"{TargetConstants.Restore};{TargetConstants.DefaultBuild}")}");
 
         // Run the build
         var args = new ProcessRunnerArguments(exePath, false)

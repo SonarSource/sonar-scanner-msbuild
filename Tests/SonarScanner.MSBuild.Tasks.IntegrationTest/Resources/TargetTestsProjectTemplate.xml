@@ -20,7 +20,10 @@
     <ItemGroup>
         <None Remove="**\*" />
     </ItemGroup>
-
+    
+    <!--SonarQube Properties-->
+    SONARQUBE_PROPERTIES
+    
     <!-- Test-specific data -->
     TEST_SPECIFIC_XML
 

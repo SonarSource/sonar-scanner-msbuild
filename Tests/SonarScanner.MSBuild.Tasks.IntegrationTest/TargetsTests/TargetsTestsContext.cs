@@ -49,7 +49,7 @@ public class TargetsTestsContext
         return filePath;
     }
 
-    public string CreateProjectFile(string testSpecificProjectXml, AnalysisConfig config = null, bool emptySqProperties = false)
+    public string CreateProjectFile(string testSpecificProjectXml, string sqProperties = null, AnalysisConfig config = null)
     {
         if (config is not null)
         {
@@ -67,24 +67,19 @@ public class TargetsTestsContext
         File.Exists(sqTargetFile).Should().BeTrue("Test error: the SonarQube analysis targets file could not be found. Full path: {0}", sqTargetFile);
         TestContext.AddResultFile(sqTargetFile);
 
+        sqProperties ??= $"""
+            <PropertyGroup>
+                <SonarQubeTempPath>{ProjectFolder}</SonarQubeTempPath>
+                <SonarQubeOutputPath>{OutputFolder}</SonarQubeOutputPath>
+                <SonarQubeConfigPath>{ConfigFolder}</SonarQubeConfigPath>
+            </PropertyGroup>
+            """;
         testSpecificProjectXml ??= "<!-- none -->";
-        if (!emptySqProperties)
-        {
-            testSpecificProjectXml = $"""
-                <PropertyGroup>
-                    <SonarQubeTempPath>{ProjectFolder}</SonarQubeTempPath>
-                    <SonarQubeOutputPath>{OutputFolder}</SonarQubeOutputPath>
-                    <SonarQubeConfigPath>{ConfigFolder}</SonarQubeConfigPath>
-                </PropertyGroup>
-
-                """
-                // Provided testSpecificProjectXml must be appended so it can override these properties.
-                + testSpecificProjectXml;
-        }
 
         var projectData = Resources.TargetTestsProjectTemplate.Replace("PROJECT_DIRECTORY_PATH", ProjectFolder)
             .Replace("TARGET_FRAMEWORK", targetFramework)
             .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
+            .Replace("SONARQUBE_PROPERTIES", sqProperties)
             .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml)
             .Replace("LANGUAGE", language ?? string.Empty);
 

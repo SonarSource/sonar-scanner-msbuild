@@ -695,10 +695,6 @@ public class E2EAnalysisTests
         var projectXml = $"""
                             <PropertyGroup>
                               <ProjectGuid>{projectGuid}</ProjectGuid>
-                              <SQLanguage>cs</SQLanguage>
-                              <SonarQubeTempPath>{context.OutputFolder}</SonarQubeTempPath>
-                              <SonarQubeOutputPath>{context.OutputFolder}</SonarQubeOutputPath>
-                              <SonarQubeBuildTasksAssemblyFile>{typeof(WriteProjectInfoFile).Assembly.Location}</SonarQubeBuildTasksAssemblyFile>
                               <TargetFramework>net5</TargetFramework>
                               <RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>
                               <UseRazorSourceGenerator>true</UseRazorSourceGenerator>
