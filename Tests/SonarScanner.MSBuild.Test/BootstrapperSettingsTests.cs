@@ -18,14 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Test;
 
 [TestClass]
@@ -36,22 +28,15 @@ public class BootstrapperSettingsTests
     [TestMethod]
     public void BootSettings_InvalidArguments()
     {
-        IList<string> validArgs = null;
-
-        Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null);
+        Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, null);
         act.Should().ThrowExactly<ArgumentNullException>();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    public void BootSettings_Properties()
+    public void BootSettings_Properties_RelativePathsConvertToAbsolute()
     {
-        // Check the properties values and that relative paths are turned into absolute paths
-        var logger = new TestLogger();
-        using var envScope = new EnvironmentVariableScope().SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
-
-        // Default value -> relative to download dir
-        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
-        sut.TempDirectory.Should().Be(@"c:\temp\.sonarqube");
+        using var envScope = new EnvironmentVariableScope().SetVariable(BootstrapperSettings.BuildDirectory_Legacy, $@"c:{Path.DirectorySeparatorChar}temp");
+        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestLogger());
+        sut.TempDirectory.Should().Be($@"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
     }
 }

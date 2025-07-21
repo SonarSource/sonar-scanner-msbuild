@@ -266,6 +266,15 @@ public static class TestUtils
         projectInfo.Save(projectInfoFile);
     }
 
+    public static void EnsureDefaultPropertiesFileDoesNotExist()
+    {
+        var defaultPropertiesFilePath = DefaultPropertiesFilePath();
+        if (File.Exists(defaultPropertiesFilePath))
+        {
+            File.Delete(defaultPropertiesFilePath);
+        }
+    }
+
     #endregion Public methods
 
     #region Private methods
@@ -288,6 +297,14 @@ public static class TestUtils
         {
             File.WriteAllText(filePath, reader.ReadToEnd());
         }
+    }
+
+    private static string DefaultPropertiesFilePath()
+    {
+        var defaultPropertiesFilePath = Path.Combine(
+            Path.GetDirectoryName(typeof(SonarScanner.MSBuild.Common.AnalysisConfig).Assembly.Location),
+            FilePropertyProvider.DefaultFileName);
+        return defaultPropertiesFilePath;
     }
 
     #endregion Private methods
