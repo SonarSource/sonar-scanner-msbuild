@@ -471,16 +471,16 @@ public class WriteProjectInfoFileTests
     [TestMethod]
     public void GetProjectGuid_WhenSolutionConfigurationContentsHasValueAndProjectFound_ReturnsProjectGuidInSolution()
     {
-        var netStdAppPath = $"C:{Path.DirectorySeparatorChar}NetStdApp";
+        var netStdAppPath = Path.Combine("C:", "NetStdApp");
         var projPath = Path.Combine(netStdAppPath, "NetStdApp.csproj");
         // Same paths
         AssertThatSolutionProjectGuidIsExpected(projPath, projPath);
 
         // Relative path
-        AssertThatSolutionProjectGuidIsExpected(projPath, Path.Combine($"C:{Path.DirectorySeparatorChar}", "Foo", "..", "NetStdApp", "NetStdApp.csproj"));
+        AssertThatSolutionProjectGuidIsExpected(projPath, Path.Combine("C:", "Foo", "..", "NetStdApp", "NetStdApp.csproj"));
 
         // Different case
-        AssertThatSolutionProjectGuidIsExpected(projPath, $@"C:{Path.DirectorySeparatorChar}NETSTDAPP{Path.DirectorySeparatorChar}NetStdApp.csproj");
+        AssertThatSolutionProjectGuidIsExpected(projPath, Path.Combine("C:", "NETSTDAPP", "NetStdApp.csproj"));
     }
 
     private void AssertThatSolutionProjectGuidIsExpected(string fullProjectPath, string solutionProjectPath)

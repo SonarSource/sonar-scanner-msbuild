@@ -96,16 +96,16 @@ public class GetAnalyzerSettingsTests
     {
         var filesInConfig = new List<AnalyzerPlugin>
         {
-            CreateAnalyzerPlugin(Path.Combine("c", "analyzer1.dll")),
+            CreateAnalyzerPlugin(Path.Combine("c:", "analyzer1.dll")),
             CreateAnalyzerPlugin(
-                Path.Combine("c", "not_an_assembly.exe"),
-                Path.Combine("c", "not_an_assembly.zip"),
-                Path.Combine("c", "not_an_assembly.txt"),
-                Path.Combine("d", "analyzer2.dll")),
+                Path.Combine("c:", "not_an_assembly.exe"),
+                Path.Combine("c:", "not_an_assembly.zip"),
+                Path.Combine("c:", "not_an_assembly.txt"),
+                Path.Combine("d:", "analyzer2.dll")),
             CreateAnalyzerPlugin(
-                Path.Combine("c", "not_an_assembly.dll.foo"),
-                Path.Combine("c", "not_an_assembly.winmd")),
-            CreateAnalyzerPlugin(Path.Combine("e", "analyzer3.dll"))
+                Path.Combine("c:", "not_an_assembly.dll.foo"),
+                Path.Combine("c:", "not_an_assembly.winmd")),
+            CreateAnalyzerPlugin(Path.Combine("e:", "analyzer3.dll"))
         };
         var config = new AnalysisConfig
         {
@@ -121,17 +121,17 @@ public class GetAnalyzerSettingsTests
                 new AnalyzerSettings
                 {
                     Language = "cs",
-                    RulesetPath = Path.Combine("f", "yyy.ruleset"),
+                    RulesetPath = Path.Combine("f:", "yyy.ruleset"),
                     AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = [Path.Combine("c", "add1.txt"), Path.Combine("d", "add2.txt"), Path.Combine("e", "subdir", "add3.txt")]
+                    AdditionalFilePaths = [Path.Combine("c:", "add1.txt"), Path.Combine("d:", "add2.txt"), Path.Combine("e:", "subdir", "add3.txt")]
                 },
 
                 new AnalyzerSettings
                 {
                     Language = "cobol",
-                    RulesetPath = Path.Combine("f", "xxx.ruleset"),
+                    RulesetPath = Path.Combine("f:", "xxx.ruleset"),
                     AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = [Path.Combine("e", "cobol", "add1.txt"), Path.Combine("d", "cobol", "add2.txt")]
+                    AdditionalFilePaths = [Path.Combine("e:", "cobol", "add1.txt"), Path.Combine("d:", "cobol", "add2.txt")]
                 }
             ]
         };
@@ -140,17 +140,17 @@ public class GetAnalyzerSettingsTests
         [
             "original.should.be.preserved.txt",
             Path.Combine("original.should.be.removed", "add2.txt"),
-            Path.Combine("e", "foo", "should.be.removed", "add3.txt")
+            Path.Combine("e:", "foo", "should.be.removed", "add3.txt")
         ];
 
         ExecuteAndCheckSuccess(testSubject);
 
-        testSubject.RuleSetFilePath.Should().Be(Path.Combine("f", "yyy.ruleset"));
-        testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine("c", "analyzer1.dll"), Path.Combine("d", "analyzer2.dll"), Path.Combine("e", "analyzer3.dll"));
+        testSubject.RuleSetFilePath.Should().Be(Path.Combine("f:", "yyy.ruleset"));
+        testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine("c:", "analyzer1.dll"), Path.Combine("d:", "analyzer2.dll"), Path.Combine("e:", "analyzer3.dll"));
         testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
-            Path.Combine("c", "add1.txt"),
-            Path.Combine("d", "add2.txt"),
-            Path.Combine("e", "subdir", "add3.txt"),
+            Path.Combine("c:", "add1.txt"),
+            Path.Combine("d:", "add2.txt"),
+            Path.Combine("e:", "subdir", "add3.txt"),
             "original.should.be.preserved.txt");
     }
 
@@ -239,16 +239,41 @@ public class GetAnalyzerSettingsTests
     }
 
     [DataTestMethod]
-    [DataRow("7.3", "cs", DisplayName = "Legacy CS")]
-    [DataRow("7.3", "vbnet", DisplayName = "Legacy VB")]
-    [DataRow("7.4", "cs", DisplayName = "CS")]
-    [DataRow("7.4", "vbnet", DisplayName = "VB")]
-    public void ConfigExists_ForLegacyProductProject_SonarAnalyzersAndConfigurationUsed(string sonarQubeVersion, string language) =>
-        Execute_ConfigExists(sonarQubeVersion, language, false, null);
+    [DataRow("7.3", "cs", null, "wintellect1", "Google.Protobuf", DisplayName = "Legacy CS - Sonar Config used")]
+    [DataRow("7.3", "vbnet", null, "wintellect1", "Google.Protobuf", DisplayName = "Legacy VB - Sonar Config used")]
+    [DataRow("7.4", "cs", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved", DisplayName = "CS - Merged with user provided")]
+    [DataRow("7.4", "vbnet", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved", DisplayName = "VB - Merged with user provided")]
+    public void ConfigExists_ForProductProject(string sonarQubeVersion, string language, string excludeTestProject, params string[] additionalDlls)
+    {
+        var alwaysPresentAnalyzers = new[] { $"sonar.{language}", "Google.Protobuf" };
+        var expectedAnalyzers = alwaysPresentAnalyzers.Concat(additionalDlls).Select(x => Path.Combine("c:", $"{x}.dll"));
+
+        var sut = Execute_ConfigExists(sonarQubeVersion, language, false, null);
+
+        sut.RuleSetFilePath.Should().Be(Path.Combine("c:", $"{language}-normal.ruleset"));
+        sut.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
+        sut.AdditionalFilePaths.Should().BeEquivalentTo(Path.Combine("c:", $"add1.{language}.txt"), Path.Combine("d:", "replaced1.txt"), "original.should.be.preserved.for.product.txt");
+    }
+
+    [DataTestMethod]
+    [DataRow("8.0.0.18955", "cs", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
+    [DataRow("8.9", "cs", "true", DisplayName = "SQ 8.9 - needs exclusion parameter CS")]
+    [DataRow("9.0", "cs", "TRUE", DisplayName = "SQ 9.0 - needs exclusion parameter CS")]
+    [DataRow("10.0", "cs", "tRUE", DisplayName = "SQ 10.0 - needs exclusion parameter CS")]
+    [DataRow("8.0.0.18955", "vbnet", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
+    [DataRow("8.9", "vbnet", "true", DisplayName = "SQ 8.9 - needs exclusion parameter VB")]
+    public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string excludeTestProject)
+    {
+        var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
+
+        executedTask.RuleSetFilePath.Should().Be(Path.Combine("c:", $"{language}-deactivated.ruleset"));
+        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine("c:", $"sonar.{language}.dll"), Path.Combine("c:", "Google.Protobuf.dll"));
+        executedTask.AdditionalFilePaths.Should().BeEquivalentTo(Path.Combine("c:", $"add1.{language}.txt"), Path.Combine("d:", "replaced1.txt"));
+    }
 
     [DataTestMethod]
     [DataRow("8.0.0.18955", "cs", null, DisplayName = "SonarCloud build version CS")]
-    [DataRow("8.9", "cs",  null)]
+    [DataRow("8.9", "cs", null)]
     [DataRow("8.9", "cs", "false")]
     [DataRow("9.0", "cs", "FALSE")]
     [DataRow("10.0", "cs", "UnexpectedParamValue")]
@@ -257,15 +282,30 @@ public class GetAnalyzerSettingsTests
     [DataRow("8.9", "vbnet", "false")]
     [DataRow("9.0", "vbnet", "FALSE")]
     [DataRow("10.0", "vbnet", "UnexpectedParamValue")]
-    [DataRow("8.0.0.18955", "cs", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
-    [DataRow("8.9", "cs", "true", DisplayName = "SQ 8.9 - needs exclusion parameter CS")]
-    [DataRow("9.0", "cs", "TRUE", DisplayName = "SQ 9.0 - needs exclusion parameter CS")]
-    [DataRow("10.0", "cs", "tRUE", DisplayName = "SQ 10.0 - needs exclusion parameter CS")]
-    [DataRow("8.0.0.18955", "vbnet", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
-    [DataRow("8.9", "vbnet", "true", DisplayName = "SQ 8.9 - needs exclusion parameter VB")]
-    [DataRow("7.4", "unknownLang", null, DisplayName = "Unknown Language")]
-    public void ConfigExists_ForTestProject_SonarAnalyzersAndConfigurationMergedWithUserProvided(string sonarQubeVersion, string language, string excludeTestProject) =>
-        Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
+    public void ConfigExists_ForTestProject_SonarAnalyzersAndConfigurationMergedWithUserProvided(string sonarQubeVersion, string language, string excludeTestProject)
+    {
+        var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
+
+        executedTask.RuleSetFilePath.Should().Be(Path.Combine("c:", $"{language}-normal.ruleset"));
+        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(
+            Path.Combine("c:", "wintellect1.dll"),
+            Path.Combine("c:", "Google.Protobuf.dll"),
+            Path.Combine("c:", $"sonar.{language}.dll"),
+            Path.Combine("c:", "analyzer1.should.be.preserved.dll"),
+            Path.Combine("c:", "analyzer2.should.be.preserved.dll"));
+        // This TestProject is not excluded => additional file "original.should.be.removed.for.excluded.test.txt" should be preserved
+        executedTask.AdditionalFilePaths.Should().BeEquivalentTo(Path.Combine("c:", $"add1.{language}.txt"), Path.Combine("d:", "replaced1.txt"), "original.should.be.removed.for.excluded.test.txt");
+    }
+
+    [TestMethod]
+    public void ConfigExists_ForTestProject_WhenUnknownLanguage_SonarAnalyzersAndConfigurationUsed()
+    {
+        var executedTask = Execute_ConfigExists("7.4", "unknownLang", true, null);
+
+        executedTask.RuleSetFilePath.Should().BeNull();
+        executedTask.AnalyzerFilePaths.Should().BeNull();
+        executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", Path.Combine("original.should.be.preserved", "replaced1.txt"));
+    }
 
     // The "importAllValue" setting should be ignored for old server versions
     [DataTestMethod]
@@ -326,13 +366,13 @@ public class GetAnalyzerSettingsTests
         var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
         var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
-        testSubject.CurrentProjectDirectoryPath = $"{rootDir}solution.folder{Path.DirectorySeparatorChar}project.folder";
+        testSubject.CurrentProjectDirectoryPath = Path.Combine(rootDir, "solution.folder", "project.folder");
         testSubject.OriginalRulesetFilePath = originalRulesetFilePath.Replace('\\', Path.DirectorySeparatorChar);
         testSubject.ProjectSpecificConfigDirectory = testSubject.AnalysisConfigDir;
 
         ExecuteAndCheckSuccess(testSubject);
 
-        CheckMergedRulesetFile(testSubject, $"{rootDir}solution.folder{Path.DirectorySeparatorChar}originalRuleset.txt");
+        CheckMergedRulesetFile(testSubject, Path.Combine(rootDir, "solution.folder", "originalRuleset.txt"));
     }
 
     [TestMethod]
@@ -399,26 +439,26 @@ public class GetAnalyzerSettingsTests
                 new AnalyzerSettings
                 {
                     Language = "cs",
-                    RulesetPath = @"c:\cs-normal.ruleset",
-                    DeactivatedRulesetPath = @"c:\cs-deactivated.ruleset",
+                    RulesetPath = Path.Combine("c:", "cs-normal.ruleset"),
+                    DeactivatedRulesetPath = Path.Combine("c:", "cs-deactivated.ruleset"),
                     AnalyzerPlugins =
                     [
-                        new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", [@"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll"]),
-                        new AnalyzerPlugin("csharp", "1.1", "dummy resource2", [@"c:\sonar.cs.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll"]),
+                        new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", [Path.Combine("c:", "wintellect1.dll"), @"c:\wintellect\bar.ps1", Path.Combine("c:", "Google.Protobuf.dll")]),
+                        new AnalyzerPlugin("csharp", "1.1", "dummy resource2", [Path.Combine("c:", "sonar.cs.dll"), @"c:\foo.ps1", Path.Combine("c:", "Google.Protobuf.dll")]),
                     ],
-                    AdditionalFilePaths = [@"c:\add1.cs.txt", @"d:\replaced1.txt"]
+                    AdditionalFilePaths = [Path.Combine("c:", "add1.cs.txt"), Path.Combine("d:", "replaced1.txt")]
                 },
                 new AnalyzerSettings
                 {
                     Language = "vbnet",
-                    RulesetPath = @"c:\vbnet-normal.ruleset",
-                    DeactivatedRulesetPath = @"c:\vbnet-deactivated.ruleset",
+                    RulesetPath = Path.Combine("c:", "vbnet-normal.ruleset"),
+                    DeactivatedRulesetPath = Path.Combine("c:", "vbnet-deactivated.ruleset"),
                     AnalyzerPlugins =
                     [
-                        new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", [@"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll"]),
-                        new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", [@"c:\sonar.vbnet.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll"]),
+                        new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", [Path.Combine("c:", "wintellect1.dll"), @"c:\wintellect\bar.ps1", Path.Combine("c:", "Google.Protobuf.dll")]),
+                        new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", [Path.Combine("c:", "sonar.vbnet.dll"), @"c:\foo.ps1", Path.Combine("c:", "Google.Protobuf.dll")]),
                     ],
-                    AdditionalFilePaths = [@"c:\add1.vbnet.txt", @"d:\replaced1.txt"]
+                    AdditionalFilePaths = [Path.Combine("c:", "add1.vbnet.txt"), Path.Combine("d:", "replaced1.txt")]
                 },
                 new AnalyzerSettings // Settings for a different language
                 {
@@ -429,7 +469,7 @@ public class GetAnalyzerSettingsTests
                     [
                         new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource", [@"c:\cobol1.dll", @"c:\cobol2.dll"])
                     ],
-                    AdditionalFilePaths = [@"c:\cobol.\add1.txt", @"d:\cobol\add2.txt"]
+                    AdditionalFilePaths = [Path.Combine("c:", "cobol.", "add1.txt"), Path.Combine("d:", "cobol", "add2.txt")]
                 }
             ]
         };
