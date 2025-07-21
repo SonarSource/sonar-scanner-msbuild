@@ -174,7 +174,7 @@ public class ImportBeforeTargetsTests
         // Locate the real "ImportsBefore" target file
         File.Exists(importsBeforeTargets).Should().BeTrue("Test error: the SonarQube imports before target file does not exist. Path: {0}", importsBeforeTargets);
 
-        return context.CreateProjectFile(testSpecificProjectXml, emptySqProperties: true, template: Resources.ImportBeforeTargetTestsTemplate);
+        return context.CreateProjectFile(testSpecificProjectXml, sqProperties: string.Empty, template: Resources.ImportBeforeTargetTestsTemplate);
     }
 
     #endregion Private methods
