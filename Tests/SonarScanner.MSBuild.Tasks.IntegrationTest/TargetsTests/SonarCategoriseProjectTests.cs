@@ -30,11 +30,11 @@ public class SonarCategoriseProjectTests
 
     [TestMethod]
     public void SimpleProject_NoTestMarkers_IsNotATestProject() =>
-        ExecuteTest("foo.proj", projXml: string.Empty);
+        AssertBuildAndTargets("foo.proj", projXml: string.Empty);
 
     [TestMethod]
     public void ExplicitMarking_IsTrue() =>
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj", """
             <PropertyGroup>
               <SonarQubeTestProject>true</SonarQubeTestProject>
@@ -57,7 +57,7 @@ public class SonarCategoriseProjectTests
               <ProjectCapability Include='TestContainer' />
             </ItemGroup>
             """;
-        var result = ExecuteTest("foo.proj", projectXmlSnippet, CreateAnalysisConfigWithRegEx("*"));
+        var result = AssertBuildAndTargets("foo.proj", projectXmlSnippet, CreateAnalysisConfigWithRegEx("*"));
         result.Messages.Should().Contain("Sonar: (foo.proj) SonarQubeTestProject has been set explicitly to false.");
     }
 
@@ -66,12 +66,12 @@ public class SonarCategoriseProjectTests
     [DataRow("TestafoXB.proj", ".*foo.*")]
     [DataTestMethod]
     public void WildcardMatch_NoMatch(string projectName, string regex) =>
-        ExecuteTest(projectName, projXml: string.Empty, analysisConfigDir: CreateAnalysisConfigWithRegEx(regex));
+        AssertBuildAndTargets(projectName, projXml: string.Empty, analysisConfigDir: CreateAnalysisConfigWithRegEx(regex));
 
     [TestMethod]
     // Check user-specified wildcard matching
     public void WildcardMatch_UserSpecified_Match() =>
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj",
             projXml: string.Empty,
             analysisConfigDir: CreateAnalysisConfigWithRegEx(".*foo.*"),
@@ -80,7 +80,7 @@ public class SonarCategoriseProjectTests
     [TestMethod]
     // Snippet with the Test Project Type Guid between two other Guids
     public void ProjectTypeGuids_IsRecognized() =>
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj", """
             <PropertyGroup>
               <ProjectTypeGuids>D1C3357D-82B4-43D2-972C-4D5455F0A7DB;3AC096D0-A1C2-E12C-1390-A8335801FDAB;BF3D2153-F372-4432-8D43-09B24D530F20</ProjectTypeGuids>
@@ -90,7 +90,7 @@ public class SonarCategoriseProjectTests
 
     [TestMethod]
     public void ProjectTypeGuids_IsRecognized_CaseInsensitive() =>
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj", """
             <PropertyGroup>
               <ProjectTypeGuids>3AC096D0-A1C2-E12C-1390-A8335801fdab</ProjectTypeGuids>
@@ -100,7 +100,7 @@ public class SonarCategoriseProjectTests
 
     [TestMethod]
     public void ServiceGuid_IsRecognized() =>
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj", """
             <ItemGroup>
               <Service Include='{D1C3357D-82B4-43D2-972C-4D5455F0A7DB}' />
@@ -112,7 +112,7 @@ public class SonarCategoriseProjectTests
 
     [TestMethod]
     public void ServiceGuid_IsRecognized_CaseInsensitive() =>
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj", """
             <ItemGroup>
               <Service Include='{82a7f48d-3b50-4b1e-b82e-3ada8210c358}' />
@@ -122,7 +122,7 @@ public class SonarCategoriseProjectTests
 
     [TestMethod]
     public void ProjectCapability_IsRecognized() =>
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj", """
             <ItemGroup>
               <ProjectCapability Include='Foo' />
@@ -134,7 +134,7 @@ public class SonarCategoriseProjectTests
 
     [TestMethod]
     public void ProjectCapability_IsRecognized_CaseInsensitive() =>
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj", """
             <ItemGroup>
               <ProjectCapability Include='testcontainer' />
@@ -144,7 +144,7 @@ public class SonarCategoriseProjectTests
 
     [TestMethod]
     public void References_IsProduct() =>
-        ExecuteTest("foo.proj", """
+        AssertBuildAndTargets("foo.proj", """
             <ItemGroup>
               <SonarResolvedReferences Include='mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' />
               <SonarResolvedReferences Include='SimpleName' />
@@ -154,7 +154,7 @@ public class SonarCategoriseProjectTests
     [TestMethod]
     public void References_IsTest()
     {
-        var result = ExecuteTest(
+        var result = AssertBuildAndTargets(
             "foo.proj", """
             <ItemGroup>
               <SonarResolvedReferences Include='mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' />
@@ -170,7 +170,7 @@ public class SonarCategoriseProjectTests
 
     [TestMethod]
     public void SqlServerProjectsAreNotExcluded() =>
-        ExecuteTest("foo.sqproj", """
+        AssertBuildAndTargets("foo.sqproj", """
             <PropertyGroup>
               <SqlTargetName>non-empty</SqlTargetName>
             </PropertyGroup>
@@ -178,7 +178,7 @@ public class SonarCategoriseProjectTests
 
     [TestMethod] // SONARMSBRU-26: MS Fakes should be excluded from analysis
     public void FakesProjects_AreExcluded_WhenNoExplicitSonarProperties() =>
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj", """
             <PropertyGroup>
               <AssemblyName>f.fAKes</AssemblyName>
@@ -189,7 +189,7 @@ public class SonarCategoriseProjectTests
 
     [TestMethod]
     public void FakesProjects_FakesInName_AreNotExcluded() =>
-        ExecuteTest("foo.proj", """
+        AssertBuildAndTargets("foo.proj", """
             <PropertyGroup>
               <AssemblyName>f.fAKes.proj</AssemblyName>
             </PropertyGroup>
@@ -199,7 +199,7 @@ public class SonarCategoriseProjectTests
     // Checks that fakes projects are not marked as test if the project
     // says otherwise.
     public void FakesProjects_AreNotTestProjects_WhenExplicitSonarTestProperty() => // @odalet - Issue #844
-        ExecuteTest(
+        AssertBuildAndTargets(
             "foo.proj", """
             <PropertyGroup>
                 <SonarQubeTestProject>false</SonarQubeTestProject>
@@ -213,14 +213,14 @@ public class SonarCategoriseProjectTests
     // says otherwise.
     public void FakesProjects_AreNotExcluded_WhenExplicitSonarExcludeProperty() // @odalet - Issue #844
     {
-        var result = ExecuteTest(
+        var result = BuildAndRunTarget(
             "f.proj", """
             <PropertyGroup>
               <SonarQubeExclude>false</SonarQubeExclude>
               <AssemblyName>MyFakeProject.fakes</AssemblyName>
             </PropertyGroup>
             """,
-            skipAssertions: true);
+            "c:\\dummy");
         AssertProjectIsNotExcluded(result);
     }
 
@@ -235,23 +235,18 @@ public class SonarCategoriseProjectTests
     [DataTestMethod]
     public void WpfTemporaryProjects_AreExcluded(string projectName, bool expectedExclusionState)
     {
-        var exclusionMessage = expectedExclusionState ? $"Sonar: ({projectName}) project is a temporary project and will be excluded." : string.Empty;
-        ExecuteTest(
+        var exclusionMessage = expectedExclusionState ? $"Sonar: ({projectName}) project is a temporary project and will be excluded." : null;
+        AssertBuildAndTargets(
             projectName,
             projXml: string.Empty,
             exclusionMessage: exclusionMessage);
     }
 
-    private BuildLog ExecuteTest(string projName, string projXml, string analysisConfigDir = "c:\\dummy", string testProjMessage = null, string exclusionMessage = null, bool skipAssertions = false)
+    private BuildLog AssertBuildAndTargets(string projName, string projXml, string analysisConfigDir = "c:\\dummy", string testProjMessage = null, string exclusionMessage = null)
     {
         var result = BuildAndRunTarget(projName, projXml, analysisConfigDir);
 
-        if (skipAssertions)
-        {
-            return result;
-        }
-
-        if (string.IsNullOrEmpty(testProjMessage))
+        if (testProjMessage is null)
         {
             AssertIsNotTestProject(result, projName);
         }
@@ -259,7 +254,7 @@ public class SonarCategoriseProjectTests
         {
             AssertIsTestProject(result, testProjMessage);
         }
-        if (string.IsNullOrEmpty(exclusionMessage))
+        if (exclusionMessage is null)
         {
             AssertProjectIsNotExcluded(result);
         }
