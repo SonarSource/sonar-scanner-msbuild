@@ -48,11 +48,7 @@ public static class BuildRunner
         ];
         Console.WriteLine("Project Directory: " + projectDir);
 
-        // Specify the targets to be executed, if any
-        if (targets?.Length > 0)
-        {
-            msbuildArgs.Add($"/t:" + string.Join(";", targets.ToArray()));
-        }
+        msbuildArgs.Add($"/t:{(targets?.Length > 0 ? string.Join(";", targets) : $"{TargetConstants.Restore};{TargetConstants.DefaultBuild}")}");
 
         // Run the build
         var args = new ProcessRunnerArguments(exePath, false)
