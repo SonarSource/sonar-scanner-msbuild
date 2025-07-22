@@ -133,7 +133,7 @@ public class RoslynTargetsTests
               </ItemGroup>
             """;
 
-        var filePath = context.CreateProjectFile(testSpecificProjectXml, config);
+        var filePath = context.CreateProjectFile(testSpecificProjectXml, config: config);
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarOverrideRunAnalyzers, TargetConstants.OverrideRoslynAnalysis);
 
@@ -202,7 +202,7 @@ public class RoslynTargetsTests
                 <AdditionalFiles Include='d:\duplicate.should.be.removed\config.2.TXT' />
               </ItemGroup>
             """;
-        var filePath = context.CreateProjectFile(testSpecificProjectXml, config);
+        var filePath = context.CreateProjectFile(testSpecificProjectXml, config: config);
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarOverrideRunAnalyzers, TargetConstants.OverrideRoslynAnalysis);
 
@@ -251,7 +251,7 @@ public class RoslynTargetsTests
               <AdditionalFiles Include='should.be.preserved.additional1.txt' />
             </ItemGroup>
             """;
-        var filePath = context.CreateProjectFile(projectSnippet, config);
+        var filePath = context.CreateProjectFile(projectSnippet, config: config);
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
 
@@ -295,7 +295,7 @@ public class RoslynTargetsTests
               <AdditionalFiles Include='should.be.preserved.additional1.txt' />
             </ItemGroup>
             """;
-        var filePath = context.CreateProjectFile(projectSnippet, config);
+        var filePath = context.CreateProjectFile(projectSnippet, config: config);
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
 
@@ -683,7 +683,7 @@ public class RoslynTargetsTests
                 <AdditionalFiles Include='{someFolder}project.additional.file.2.txt' />
             </ItemGroup>
             """;
-        var filePath = context.CreateProjectFile(projectSnippet, config);
+        var filePath = context.CreateProjectFile(projectSnippet, config: config);
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarOverrideRunAnalyzers, TargetConstants.OverrideRoslynAnalysis);
 
