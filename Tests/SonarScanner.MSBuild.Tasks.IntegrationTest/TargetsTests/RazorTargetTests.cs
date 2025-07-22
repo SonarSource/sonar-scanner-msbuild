@@ -34,7 +34,7 @@ public class RazorTargetTests
     public void SonarPrepareRazorProjectCodeAnalysis_WhenNoSonarErrorLog_NoPropertiesAreSet()
     {
         var context = new TargetsTestsContext(TestContext);
-        var filePath = context.CreateProjectFile(CreateProjectSnippet(razorCompilationErrorLog: null, sonarQubeExclude: null));
+        var filePath = context.CreateProjectFile(CreateProjectSnippet(razorCompilationErrorLog: null, additionalProperties: "<RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>"));
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
@@ -55,7 +55,6 @@ public class RazorTargetTests
             CreateProjectSnippet(
                 sonarErrorLog: "OriginalValueFromFirstBuild.json",
                 razorCompilationErrorLog: null,
-                sonarQubeExclude: null,
                 additionalProperties: "<RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>"));
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
@@ -76,7 +75,7 @@ public class RazorTargetTests
                 sonarErrorLog: sonarErrorLogValue,
                 razorCompilationErrorLog: null,
                 useRazorSourceGenerator: "true",
-                sonarQubeExclude: null));
+                additionalProperties: "<RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>"));
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
@@ -92,7 +91,7 @@ public class RazorTargetTests
                 sonarErrorLog: "OriginalValueFromFirstBuild.json",
                 razorCompilationErrorLog: @"C:\UserDefined.json",
                 useRazorSourceGenerator: null,
-                sonarQubeExclude: null));
+                additionalProperties: "<RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>"));
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
@@ -115,7 +114,7 @@ public class RazorTargetTests
             sonarErrorLog: sonarErrorLogValue,
             razorCompilationErrorLog: null,
             useRazorSourceGenerator: null,
-            sonarQubeExclude: null);
+            additionalProperties: "<RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>");
 
         projectSnippet += $"""
             <Target Name="{testTargetName}" AfterTargets="SonarCreateProjectSpecificDirs" BeforeTargets="SonarPrepareRazorProjectCodeAnalysis">
@@ -161,10 +160,9 @@ public class RazorTargetTests
         TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
         var filePath = new TargetsTestsContext(TestContext).CreateProjectFile(
             CreateProjectSnippet(
-                sonarErrorLog: "OriginalValueFromFirstBuild.json",
+                sonarErrorLog: null,
                 useRazorSourceGenerator: "true",
                 razorCompilationErrorLog: null,
-                sonarQubeExclude: null,
                 razorCompile: "SomeRandomValue",
                 "<RazorSonarErrorLogName>Issues.FromRazorBuild.json</RazorSonarErrorLogName>",
                 $"<ProjectSpecificOutDir>{projectSpecificOutDir}</ProjectSpecificOutDir>",
@@ -184,10 +182,9 @@ public class RazorTargetTests
         var razorSpecificOutDir = Path.Combine(root, "0.Razor");
         var filePath = new TargetsTestsContext(TestContext).CreateProjectFile(
             CreateProjectSnippet(
-                sonarErrorLog: null,
+                sonarErrorLog: string.Empty,
                 useRazorSourceGenerator: null,
                 razorCompilationErrorLog: null,
-                sonarQubeExclude: null,
                 razorCompile: "SomeRandomValue",
                 "<RazorSonarErrorLog></RazorSonarErrorLog>",        // This should not happen as long as SonarPrepareRazorProjectCodeAnalysis works as expected
                 "<RazorSonarErrorLogName></RazorSonarErrorLogName>",
@@ -233,7 +230,6 @@ public class RazorTargetTests
             sonarErrorLog: null,
             useRazorSourceGenerator: null,
             razorCompilationErrorLog: null,
-            sonarQubeExclude: null,
             razorCompile: "SomeRandomValue",
             "<RazorSonarErrorLog></RazorSonarErrorLog>",
             "<RazorSonarErrorLogName>Issues.FromRazorBuild.json</RazorSonarErrorLogName>",
@@ -295,7 +291,6 @@ public class RazorTargetTests
                 sonarErrorLog: null,
                 useRazorSourceGenerator: null,
                 razorCompilationErrorLog: null,
-                sonarQubeExclude: null,
                 razorCompile: "SomeRandomValue",
                 $"<RazorSonarErrorLog>{userDefinedErrorLog}</RazorSonarErrorLog>",
                 "<RazorSonarErrorLogName></RazorSonarErrorLogName> <!-- make it explicit in test that this won't be set when the RazorSonarErrorLog is set -->",
@@ -329,7 +324,8 @@ public class RazorTargetTests
                 sonarErrorLog: "OriginalValueFromFirstBuild.json",
                 useRazorSourceGenerator: null,
                 razorCompilationErrorLog: null,
-                sonarQubeExclude: "true"));
+                razorCompile: "razorCompile",
+                "<SonarQubeExclude>true</SonarQubeExclude>"));
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
         result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
         AssertExpectedErrorLog(result, null);
@@ -343,8 +339,8 @@ public class RazorTargetTests
                 sonarErrorLog: "OriginalValueFromFirstBuild.json",
                 useRazorSourceGenerator: null,
                 razorCompilationErrorLog: @"C:\UserDefined.json",
-                sonarQubeExclude: "true",
-                razorCompile: null));
+                razorCompile: null,
+                "<SonarQubeExclude>true</SonarQubeExclude>"));
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
 
@@ -372,7 +368,6 @@ public class RazorTargetTests
                 sonarErrorLog: null,
                 useRazorSourceGenerator: "false",
                 razorCompilationErrorLog: null,
-                sonarQubeExclude: null,
                 razorCompile: null,
                 "<EnableDefaultCompileItems>true</EnableDefaultCompileItems>",
                 $"<CodeAnalysisRuleSet>{dummyQpRulesetPath}</CodeAnalysisRuleSet>",
@@ -418,7 +413,6 @@ public class RazorTargetTests
         string sonarErrorLog = "",
         string useRazorSourceGenerator = "false",
         string razorCompilationErrorLog = "",
-        string sonarQubeExclude = "false",
         string razorCompile = "SomeRandomValue",
         params string[] additionalProperties)
     {
@@ -431,10 +425,6 @@ public class RazorTargetTests
         if (razorCompilationErrorLog is not null)
         {
             sb.AppendLine($"  <RazorCompilationErrorLog>{razorCompilationErrorLog}</RazorCompilationErrorLog>");
-        }
-        if (sonarQubeExclude is not null)
-        {
-            sb.AppendLine($"  <SonarQubeExclude>{sonarQubeExclude}</SonarQubeExclude>");
         }
         if (useRazorSourceGenerator is not null)
         {
