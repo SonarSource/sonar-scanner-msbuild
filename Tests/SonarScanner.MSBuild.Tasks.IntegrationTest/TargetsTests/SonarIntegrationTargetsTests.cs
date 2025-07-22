@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
-
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 
 [TestClass]
@@ -55,15 +53,17 @@ public class SonarIntegrationTargetsTests
     [Description("Checks the SonarQube paths are set correctly when the legacy TeamBuild directory is provided")]
     public void IntTargets_SonarPaths_TeamBuildPropertySet_Legacy()
     {
-        var legacyTeamBuildDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"t:\TeamBuildDir_Legacy\" : @"t:/TeamBuildDir_Legacy/";
+        var legacyTeamBuildDir = $"t:{Path.DirectorySeparatorChar}TeamBuildDir_Legacy{Path.DirectorySeparatorChar}";
         var projectXml = $"""
             <PropertyGroup>
               <SonarQubeTempPath>{legacyTeamBuildDir}.sonarqube</SonarQubeTempPath>
-              <TF_BUILD_BUILDDIRECTORY>t:{Path.DirectorySeparatorChar}TeamBuildDir_Legacy</TF_BUILD_BUILDDIRECTORY>
+              <TF_BUILD_BUILDDIRECTORY>{legacyTeamBuildDir}</TF_BUILD_BUILDDIRECTORY>
               <AGENT_BUILDDIRECTORY />
             </PropertyGroup>
             """;
         var result = CreateProjectAndLoad(projectXml);
+
+        // the `\out` and `\conf` paths do not vary by OS as they are added by SonarQube.Integration.targets and handled by MSBuild not the scanner.
         result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, $@"{legacyTeamBuildDir}.sonarqube\out");
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, $@"{legacyTeamBuildDir}.sonarqube\conf");
         result.AssertPropertyValue(TargetProperties.SonarTelemetryFilePath, $@"{legacyTeamBuildDir}.sonarqube\out\Telemetry.Targets.S4NET.json");
@@ -73,12 +73,12 @@ public class SonarIntegrationTargetsTests
     [Description("Checks the SonarQube paths are set correctly when the new TeamBuild build directory is provided")]
     public void IntTargets_SonarPaths_TeamBuildPropertySet_NonLegacy()
     {
-        var teamBuildDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"t:\TeamBuildDir_NonLegacy\" : @"t:/TeamBuildDir_NonLegacy/";
+        var teamBuildDir = $"t:{Path.DirectorySeparatorChar}TeamBuildDir_NonLegacy{Path.DirectorySeparatorChar}";
         var projectXml = $"""
             <PropertyGroup>
               <SonarQubeTempPath>{teamBuildDir}.sonarqube</SonarQubeTempPath>
               <TF_BUILD_BUILDDIRECTORY></TF_BUILD_BUILDDIRECTORY>
-              <AGENT_BUILDDIRECTORY>t:{Path.DirectorySeparatorChar}TeamBuildDir_NonLegacy</AGENT_BUILDDIRECTORY>
+              <AGENT_BUILDDIRECTORY>{teamBuildDir}</AGENT_BUILDDIRECTORY>
             </PropertyGroup>
             """;
         var result = CreateProjectAndLoad(projectXml);
@@ -128,9 +128,8 @@ public class SonarIntegrationTargetsTests
 
     private BuildLog CreateProjectAndLoad(string projectSnippet)
     {
-        var x = new TargetsTestsContext(TestContext);
         projectSnippet += @"<Target Name=""DoNothing""/>";
-        var projectFile = x.CreateProjectFile(projectSnippet, sqProperties: string.Empty);
+        var projectFile = new TargetsTestsContext(TestContext).CreateProjectFile(projectSnippet, sqProperties: string.Empty);
         return BuildRunner.BuildTargets(TestContext, projectFile, "DoNothing");
     }
 }
