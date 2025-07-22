@@ -3,5 +3,6 @@
   <RunConfiguration>
     <!-- 0 will run all Test DLL in parallel locally -->
     <MaxCpuCount>0</MaxCpuCount>
+    <TestCaseFilter>TestCategory!=NoWindows</TestCaseFilter>
   </RunConfiguration>
 </RunSettings>
