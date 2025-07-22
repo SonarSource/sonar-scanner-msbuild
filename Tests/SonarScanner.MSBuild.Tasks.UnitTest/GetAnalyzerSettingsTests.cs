@@ -19,6 +19,7 @@
  */
 
 using System.Runtime.InteropServices;
+using static TestUtilities.TestUtils;
 using MSCA = Microsoft.CodeAnalysis;
 
 namespace SonarScanner.MSBuild.Tasks.UnitTest;
@@ -44,7 +45,7 @@ public class GetAnalyzerSettingsTests
     {
         var testSubject = new GetAnalyzerSettings
         {
-            AnalysisConfigDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
+            AnalysisConfigDir = CreateTestSpecificFolderWithSubPaths(TestContext)
         };
         ExecuteAndCheckSuccess(testSubject);
         CheckNoAnalyzerSettings(testSubject);
@@ -72,8 +73,8 @@ public class GetAnalyzerSettingsTests
                 {
                     Language = "cs",
                     RulesetPath = "f:\\yyy.ruleset",
-                    AnalyzerPlugins = [CreateAnalyzerPlugin(Path.Combine("c:", "local_analyzer.dll"))],
-                    AdditionalFilePaths = [Path.Combine("c:", "add1.txt"), Path.Combine("d:", "add2.txt"), Path.Combine("e:", "subdir", "add3.txt")]
+                    AnalyzerPlugins = [CreateAnalyzerPlugin(Path.Combine(DriveRoot(), "local_analyzer.dll"))],
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "add1.txt"), Path.Combine(DriveRoot("d"), "add2.txt"), Path.Combine(DriveRoot("e"), "subdir", "add3.txt")]
                 }
             ]
         };
@@ -96,16 +97,16 @@ public class GetAnalyzerSettingsTests
     {
         var filesInConfig = new List<AnalyzerPlugin>
         {
-            CreateAnalyzerPlugin(Path.Combine("c:", "analyzer1.dll")),
+            CreateAnalyzerPlugin(Path.Combine(DriveRoot(), "analyzer1.dll")),
             CreateAnalyzerPlugin(
-                Path.Combine("c:", "not_an_assembly.exe"),
-                Path.Combine("c:", "not_an_assembly.zip"),
-                Path.Combine("c:", "not_an_assembly.txt"),
-                Path.Combine("d:", "analyzer2.dll")),
+                Path.Combine(DriveRoot(), "not_an_assembly.exe"),
+                Path.Combine(DriveRoot(), "not_an_assembly.zip"),
+                Path.Combine(DriveRoot(), "not_an_assembly.txt"),
+                Path.Combine(DriveRoot("d"), "analyzer2.dll")),
             CreateAnalyzerPlugin(
-                Path.Combine("c:", "not_an_assembly.dll.foo"),
-                Path.Combine("c:", "not_an_assembly.winmd")),
-            CreateAnalyzerPlugin(Path.Combine("e:", "analyzer3.dll"))
+                Path.Combine(DriveRoot(), "not_an_assembly.dll.foo"),
+                Path.Combine(DriveRoot(), "not_an_assembly.winmd")),
+            CreateAnalyzerPlugin(Path.Combine(DriveRoot("e"), "analyzer3.dll"))
         };
         var config = new AnalysisConfig
         {
@@ -121,17 +122,17 @@ public class GetAnalyzerSettingsTests
                 new AnalyzerSettings
                 {
                     Language = "cs",
-                    RulesetPath = Path.Combine("f:", "yyy.ruleset"),
+                    RulesetPath = Path.Combine(DriveRoot("f"), "yyy.ruleset"),
                     AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = [Path.Combine("c:", "add1.txt"), Path.Combine("d:", "add2.txt"), Path.Combine("e:", "subdir", "add3.txt")]
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "add1.txt"), Path.Combine(DriveRoot("d"), "add2.txt"), Path.Combine(DriveRoot("e"), "subdir", "add3.txt")]
                 },
 
                 new AnalyzerSettings
                 {
                     Language = "cobol",
-                    RulesetPath = Path.Combine("f:", "xxx.ruleset"),
+                    RulesetPath = Path.Combine(DriveRoot("f"), "xxx.ruleset"),
                     AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = [Path.Combine("e:", "cobol", "add1.txt"), Path.Combine("d:", "cobol", "add2.txt")]
+                    AdditionalFilePaths = [Path.Combine(DriveRoot("e"), "cobol", "add1.txt"), Path.Combine(DriveRoot("d"), "cobol", "add2.txt")]
                 }
             ]
         };
@@ -140,17 +141,17 @@ public class GetAnalyzerSettingsTests
         [
             "original.should.be.preserved.txt",
             Path.Combine("original.should.be.removed", "add2.txt"),
-            Path.Combine("e:", "foo", "should.be.removed", "add3.txt")
+            Path.Combine(DriveRoot("e"), "foo", "should.be.removed", "add3.txt")
         ];
 
         ExecuteAndCheckSuccess(testSubject);
 
-        testSubject.RuleSetFilePath.Should().Be(Path.Combine("f:", "yyy.ruleset"));
-        testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine("c:", "analyzer1.dll"), Path.Combine("d:", "analyzer2.dll"), Path.Combine("e:", "analyzer3.dll"));
+        testSubject.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot("f"), "yyy.ruleset"));
+        testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine(DriveRoot(), "analyzer1.dll"), Path.Combine(DriveRoot("d"), "analyzer2.dll"), Path.Combine(DriveRoot("e"), "analyzer3.dll"));
         testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
-            Path.Combine("c:", "add1.txt"),
-            Path.Combine("d:", "add2.txt"),
-            Path.Combine("e:", "subdir", "add3.txt"),
+            Path.Combine(DriveRoot(), "add1.txt"),
+            Path.Combine(DriveRoot("d"), "add2.txt"),
+            Path.Combine(DriveRoot("e"), "subdir", "add3.txt"),
             "original.should.be.preserved.txt");
     }
 
@@ -164,19 +165,19 @@ public class GetAnalyzerSettingsTests
             {
                 AssemblyPaths =
                 [
-                    Path.Combine("c:", "config", "analyzer1.DLL"),
-                    Path.Combine("c:", "not_an_assembly.exe"),
-                    Path.Combine("c:", "not_an_assembly.zip"),
+                    Path.Combine(DriveRoot(), "config", "analyzer1.DLL"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.exe"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.zip"),
                 ]
             },
             new()
             {
                 AssemblyPaths =
                 [
-                    Path.Combine("c:", "config", "analyzer2.dll"),
-                    Path.Combine("c:", "not_an_assembly.txt"),
-                    Path.Combine("c:", "not_an_assembly.dll.foo"),
-                    Path.Combine("c:", "not_an_assembly.winmd")
+                    Path.Combine(DriveRoot(), "config", "analyzer2.dll"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.txt"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.dll.foo"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.winmd")
                 ]
             }
         };
@@ -190,32 +191,32 @@ public class GetAnalyzerSettingsTests
                 new AnalyzerSettings
                 {
                     Language = "cs",
-                    RulesetPath = Path.Combine("f:", "yyy.ruleset"),
+                    RulesetPath = Path.Combine(DriveRoot("f"), "yyy.ruleset"),
                     AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = [Path.Combine("c:", "config", "add1.txt"), Path.Combine("d:", "config", "add2.txt")]
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "config", "add1.txt"), Path.Combine(DriveRoot("d"), "config", "add2.txt")]
                 },
 
                 new AnalyzerSettings
                 {
                     Language = "cobol",
-                    RulesetPath = Path.Combine("f:", "xxx.ruleset"),
+                    RulesetPath = Path.Combine(DriveRoot("f"), "xxx.ruleset"),
                     AnalyzerPlugins = [],
-                    AdditionalFilePaths = [Path.Combine("c:", "cobol.", "add1.txt"), Path.Combine("d:", "cobol", "add2.txt")]
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "cobol.", "add1.txt"), Path.Combine(DriveRoot("d"), "cobol", "add2.txt")]
                 }
             ]
         };
         var testSubject = CreateConfiguredTestSubject(config, "cs", TestContext);
         testSubject.OriginalAnalyzers =
         [
-            Path.Combine("c:", "original.should.be.preserved", "analyzer1.DLL"),
-            Path.Combine("f:", "original.should.be.preserved", "analyzer3.dll"),
-            Path.Combine("c:", "SonarAnalyzer", "should.be.preserved.SomeAnalyzer.dll"),
-            Path.Combine("c:", "should.be.removed", "SonarAnalyzer.Fake.DLL"), // We consider all analyzers starting with 'SonarAnalyzer' as ours, this will be removed as a duplicate reference
-            Path.Combine("c:", "should.be.removed", "SonarAnalyzer.CFG.dll"),
-            Path.Combine("c:", "should.be.removed", "SonarAnalyzer.dll"),
-            Path.Combine("c:", "should.be.removed", "SonarAnalyzer.CSharp.dll"),
-            Path.Combine("c:", "should.be.removed", "SonarAnalyzer.vIsUaLbAsIc.dll"),
-            Path.Combine("c:", "should.be.removed", "sOnAranaLYZer.Security.dll")
+            Path.Combine(DriveRoot(), "original.should.be.preserved", "analyzer1.DLL"),
+            Path.Combine(DriveRoot("f"), "original.should.be.preserved", "analyzer3.dll"),
+            Path.Combine(DriveRoot(), "SonarAnalyzer", "should.be.preserved.SomeAnalyzer.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.Fake.DLL"), // We consider all analyzers starting with 'SonarAnalyzer' as ours, this will be removed as a duplicate reference
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.CFG.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.CSharp.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.vIsUaLbAsIc.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "sOnAranaLYZer.Security.dll")
         ];
         testSubject.OriginalAdditionalFiles =
         [
@@ -225,16 +226,16 @@ public class GetAnalyzerSettingsTests
 
         ExecuteAndCheckSuccess(testSubject);
 
-        testSubject.RuleSetFilePath.Should().Be(Path.Combine("f:", "yyy.ruleset"));
+        testSubject.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot("f"), "yyy.ruleset"));
         testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(
-            Path.Combine("c:", "config", "analyzer1.DLL"),
-            Path.Combine("c:", "config", "analyzer2.dll"),
-            Path.Combine("c:", "original.should.be.preserved", "analyzer1.DLL"),
-            Path.Combine("f:", "original.should.be.preserved", "analyzer3.dll"),
-            Path.Combine("c:", "SonarAnalyzer", "should.be.preserved.SomeAnalyzer.dll"));
+            Path.Combine(DriveRoot(), "config", "analyzer1.DLL"),
+            Path.Combine(DriveRoot(), "config", "analyzer2.dll"),
+            Path.Combine(DriveRoot(), "original.should.be.preserved", "analyzer1.DLL"),
+            Path.Combine(DriveRoot("f"), "original.should.be.preserved", "analyzer3.dll"),
+            Path.Combine(DriveRoot(), "SonarAnalyzer", "should.be.preserved.SomeAnalyzer.dll"));
         testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
-            Path.Combine("c:", "config", "add1.txt"),
-            Path.Combine("d:", "config", "add2.txt"),
+            Path.Combine(DriveRoot(), "config", "add1.txt"),
+            Path.Combine(DriveRoot("d"), "config", "add2.txt"),
             "original.should.be.preserved.txt");
     }
 
@@ -246,13 +247,16 @@ public class GetAnalyzerSettingsTests
     public void ConfigExists_ForProductProject(string sonarQubeVersion, string language, string excludeTestProject, params string[] additionalDlls)
     {
         var alwaysPresentAnalyzers = new[] { $"sonar.{language}", "Google.Protobuf" };
-        var expectedAnalyzers = alwaysPresentAnalyzers.Concat(additionalDlls).Select(x => Path.Combine("c:", $"{x}.dll"));
+        var expectedAnalyzers = alwaysPresentAnalyzers.Concat(additionalDlls).Select(x => Path.Combine(DriveRoot(), $"{x}.dll"));
 
         var sut = Execute_ConfigExists(sonarQubeVersion, language, false, null);
 
-        sut.RuleSetFilePath.Should().Be(Path.Combine("c:", $"{language}-normal.ruleset"));
+        sut.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-normal.ruleset"));
         sut.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
-        sut.AdditionalFilePaths.Should().BeEquivalentTo(Path.Combine("c:", $"add1.{language}.txt"), Path.Combine("d:", "replaced1.txt"), "original.should.be.preserved.for.product.txt");
+        sut.AdditionalFilePaths.Should().BeEquivalentTo(
+            Path.Combine(DriveRoot(), $"add1.{language}.txt"),
+            Path.Combine(DriveRoot("d"), "replaced1.txt"),
+            "original.should.be.preserved.for.product.txt");
     }
 
     [DataTestMethod]
@@ -266,9 +270,9 @@ public class GetAnalyzerSettingsTests
     {
         var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
 
-        executedTask.RuleSetFilePath.Should().Be(Path.Combine("c:", $"{language}-deactivated.ruleset"));
-        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine("c:", $"sonar.{language}.dll"), Path.Combine("c:", "Google.Protobuf.dll"));
-        executedTask.AdditionalFilePaths.Should().BeEquivalentTo(Path.Combine("c:", $"add1.{language}.txt"), Path.Combine("d:", "replaced1.txt"));
+        executedTask.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-deactivated.ruleset"));
+        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine(DriveRoot(), $"sonar.{language}.dll"), Path.Combine(DriveRoot(), "Google.Protobuf.dll"));
+        executedTask.AdditionalFilePaths.Should().BeEquivalentTo(Path.Combine(DriveRoot(), $"add1.{language}.txt"), Path.Combine(DriveRoot("d"), "replaced1.txt"));
     }
 
     [DataTestMethod]
@@ -286,15 +290,18 @@ public class GetAnalyzerSettingsTests
     {
         var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
 
-        executedTask.RuleSetFilePath.Should().Be(Path.Combine("c:", $"{language}-normal.ruleset"));
+        executedTask.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-normal.ruleset"));
         executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(
-            Path.Combine("c:", "wintellect1.dll"),
-            Path.Combine("c:", "Google.Protobuf.dll"),
-            Path.Combine("c:", $"sonar.{language}.dll"),
-            Path.Combine("c:", "analyzer1.should.be.preserved.dll"),
-            Path.Combine("c:", "analyzer2.should.be.preserved.dll"));
+            Path.Combine(DriveRoot(), "wintellect1.dll"),
+            Path.Combine(DriveRoot(), "Google.Protobuf.dll"),
+            Path.Combine(DriveRoot(), $"sonar.{language}.dll"),
+            Path.Combine(DriveRoot(), "analyzer1.should.be.preserved.dll"),
+            Path.Combine(DriveRoot(), "analyzer2.should.be.preserved.dll"));
         // This TestProject is not excluded => additional file "original.should.be.removed.for.excluded.test.txt" should be preserved
-        executedTask.AdditionalFilePaths.Should().BeEquivalentTo(Path.Combine("c:", $"add1.{language}.txt"), Path.Combine("d:", "replaced1.txt"), "original.should.be.removed.for.excluded.test.txt");
+        executedTask.AdditionalFilePaths.Should().BeEquivalentTo(
+            Path.Combine(DriveRoot(), $"add1.{language}.txt"),
+            Path.Combine(DriveRoot("d"), "replaced1.txt"),
+            "original.should.be.removed.for.excluded.test.txt");
     }
 
     [TestMethod]
@@ -361,8 +368,8 @@ public class GetAnalyzerSettingsTests
         {
             originalRulesetFilePath = Path.Combine(rootDir, originalRulesetFilePath);
         }
-        var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
+        var dir = CreateTestSpecificFolderWithSubPaths(TestContext);
+        var dummyQpRulesetPath = CreateValidEmptyRuleset(dir, "dummyQp");
         var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
         var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
@@ -439,26 +446,26 @@ public class GetAnalyzerSettingsTests
                 new AnalyzerSettings
                 {
                     Language = "cs",
-                    RulesetPath = Path.Combine("c:", "cs-normal.ruleset"),
-                    DeactivatedRulesetPath = Path.Combine("c:", "cs-deactivated.ruleset"),
+                    RulesetPath = Path.Combine(DriveRoot(), "cs-normal.ruleset"),
+                    DeactivatedRulesetPath = Path.Combine(DriveRoot(), "cs-deactivated.ruleset"),
                     AnalyzerPlugins =
                     [
-                        new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", [Path.Combine("c:", "wintellect1.dll"), @"c:\wintellect\bar.ps1", Path.Combine("c:", "Google.Protobuf.dll")]),
-                        new AnalyzerPlugin("csharp", "1.1", "dummy resource2", [Path.Combine("c:", "sonar.cs.dll"), @"c:\foo.ps1", Path.Combine("c:", "Google.Protobuf.dll")]),
+                        new("roslyn.wintellect", "2.0", "dummy resource", [Path.Combine(DriveRoot(), "wintellect1.dll"), @"c:\wintellect\bar.ps1", Path.Combine(DriveRoot(), "Google.Protobuf.dll")]),
+                        new("csharp", "1.1", "dummy resource2", [Path.Combine(DriveRoot(), "sonar.cs.dll"), @"c:\foo.ps1", Path.Combine(DriveRoot(), "Google.Protobuf.dll")]),
                     ],
-                    AdditionalFilePaths = [Path.Combine("c:", "add1.cs.txt"), Path.Combine("d:", "replaced1.txt")]
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "add1.cs.txt"), Path.Combine(DriveRoot("d"), "replaced1.txt")]
                 },
                 new AnalyzerSettings
                 {
                     Language = "vbnet",
-                    RulesetPath = Path.Combine("c:", "vbnet-normal.ruleset"),
-                    DeactivatedRulesetPath = Path.Combine("c:", "vbnet-deactivated.ruleset"),
+                    RulesetPath = Path.Combine(DriveRoot(), "vbnet-normal.ruleset"),
+                    DeactivatedRulesetPath = Path.Combine(DriveRoot(), "vbnet-deactivated.ruleset"),
                     AnalyzerPlugins =
                     [
-                        new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", [Path.Combine("c:", "wintellect1.dll"), @"c:\wintellect\bar.ps1", Path.Combine("c:", "Google.Protobuf.dll")]),
-                        new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", [Path.Combine("c:", "sonar.vbnet.dll"), @"c:\foo.ps1", Path.Combine("c:", "Google.Protobuf.dll")]),
+                        new("roslyn.wintellect", "2.0", "dummy resource", [Path.Combine(DriveRoot(), "wintellect1.dll"), @"c:\wintellect\bar.ps1", Path.Combine(DriveRoot(), "Google.Protobuf.dll")]),
+                        new("vbnet", "1.1", "dummy resource2", [Path.Combine(DriveRoot(), "sonar.vbnet.dll"), @"c:\foo.ps1", Path.Combine(DriveRoot(), "Google.Protobuf.dll")]),
                     ],
-                    AdditionalFilePaths = [Path.Combine("c:", "add1.vbnet.txt"), Path.Combine("d:", "replaced1.txt")]
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "add1.vbnet.txt"), Path.Combine(DriveRoot("d"), "replaced1.txt")]
                 },
                 new AnalyzerSettings // Settings for a different language
                 {
@@ -469,7 +476,7 @@ public class GetAnalyzerSettingsTests
                     [
                         new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource", [@"c:\cobol1.dll", @"c:\cobol2.dll"])
                     ],
-                    AdditionalFilePaths = [Path.Combine("c:", "cobol.", "add1.txt"), Path.Combine("d:", "cobol", "add2.txt")]
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "cobol.", "add1.txt"), Path.Combine(DriveRoot("d"), "cobol", "add2.txt")]
                 }
             ]
         };
@@ -477,9 +484,9 @@ public class GetAnalyzerSettingsTests
         testSubject.IsTestProject = isTestProject;
         testSubject.OriginalAnalyzers =
         [
-            Path.Combine("c:", "analyzer1.should.be.preserved.dll"),
-            Path.Combine("c:", "analyzer2.should.be.preserved.dll"),
-            Path.Combine("c:", "Google.Protobuf.dll"), // same name as an assembly in the csharp plugin (above)
+            Path.Combine(DriveRoot(), "analyzer1.should.be.preserved.dll"),
+            Path.Combine(DriveRoot(), "analyzer2.should.be.preserved.dll"),
+            Path.Combine(DriveRoot(), "Google.Protobuf.dll"), // same name as an assembly in the csharp plugin (above)
         ];
         testSubject.OriginalAdditionalFiles =
         [
@@ -514,7 +521,7 @@ public class GetAnalyzerSettingsTests
 
     private static GetAnalyzerSettings CreateConfiguredTestSubject(AnalysisConfig config, string language, TestContext testContext)
     {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
+        var testDir = CreateTestSpecificFolderWithSubPaths(testContext);
         var testSubject = new GetAnalyzerSettings
         {
             Language = language,
@@ -542,8 +549,8 @@ public class GetAnalyzerSettingsTests
 
     private string CreateRuleset(string fileNameWithoutExtension, string content)
     {
-        var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var filePath = TestUtils.CreateTextFile(dir, fileNameWithoutExtension + ".ruleset", content);
+        var dir = CreateTestSpecificFolderWithSubPaths(TestContext);
+        var filePath = CreateTextFile(dir, fileNameWithoutExtension + ".ruleset", content);
         return filePath;
     }
 

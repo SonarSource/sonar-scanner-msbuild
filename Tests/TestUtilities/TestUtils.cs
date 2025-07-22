@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace TestUtilities;
 
@@ -274,6 +275,12 @@ public static class TestUtils
             File.Delete(defaultPropertiesFilePath);
         }
     }
+
+    /// <summary>
+    /// Returns a OS specific drive root for a path. It returns <c>c:\</c> on Windows and <c>/mnt/c/</c> on Linux/MacOS. It can be used to build OS-independent drive rooted paths.
+    /// </summary>
+    public static string DriveRoot(string driveLetter = "c") =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @$"{driveLetter}:\" : @$"/mnt/{driveLetter}/";
 
     #endregion Public methods
 
