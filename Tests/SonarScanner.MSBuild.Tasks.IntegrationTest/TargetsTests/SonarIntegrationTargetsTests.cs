@@ -130,7 +130,7 @@ public class SonarIntegrationTargetsTests
     {
         var x = new TargetsTestsContext(TestContext);
         projectSnippet += @"<Target Name=""DoNothing""/>";
-        var projectFile = x.CreateProjectFile(projectSnippet, emptySqProperties: true);
+        var projectFile = x.CreateProjectFile(projectSnippet, sqProperties: string.Empty);
         return BuildRunner.BuildTargets(TestContext, projectFile, "DoNothing");
     }
 }
