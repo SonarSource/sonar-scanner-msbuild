@@ -39,7 +39,7 @@ public class SonarResolveReferencesTests
             """;
         var filePath = context.CreateProjectFile(projectSnippet, emptySqProperties: true, template: Resources.TargetTestsProjectTemplate);
 
-        var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.Restore, TargetConstants.DefaultBuild);
+        var result = BuildRunner.BuildTargets(TestContext, filePath);
 
         result.AssertTargetSucceeded(TargetConstants.DefaultBuild);
         result.AssertTargetExecuted(TargetConstants.SonarResolveReferences);
