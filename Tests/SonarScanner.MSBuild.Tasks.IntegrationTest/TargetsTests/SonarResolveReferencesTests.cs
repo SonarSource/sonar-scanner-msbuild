@@ -37,7 +37,7 @@ public class SonarResolveReferencesTests
                 <SonarQubeTempPath>{context.ProjectFolder}</SonarQubeTempPath>
             </PropertyGroup>
             """;
-        var filePath = context.CreateProjectFile(projectSnippet, emptySqProperties: true, template: Resources.TargetTestsProjectTemplate);
+        var filePath = context.CreateProjectFile(projectSnippet, sqProperties: string.Empty, template: Resources.TargetTestsProjectTemplate);
 
         var result = BuildRunner.BuildTargets(TestContext, filePath);
 
