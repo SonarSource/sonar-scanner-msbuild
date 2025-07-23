@@ -378,7 +378,7 @@ public class WriteProjectInfoFileTargetTests
     private ProjectInfo ExecuteProjectInfoTest(string projectXml = null, AnalysisConfig analysisConfig = null)
     {
         var context = new TargetsTestsContext(TestContext);
-        var projectFile = context.CreateProjectFile(projectXml, analysisConfig);
+        var projectFile = context.CreateProjectFile(projectXml, null, analysisConfig);
         return ExecuteWriteProjectInfo(projectFile, context.OutputFolder);
     }
 
