@@ -284,7 +284,8 @@ public class SonarScannerWrapperTests
         logger.InfoMessages.Should().NotContain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"changeit\""));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [DataTestMethod]
     [DataRow(@"C:\Program Files\Java\jdk-17\bin\java.exe", @"C:\Program Files\Java\jdk-17")]
     [DataRow(@"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
@@ -301,21 +302,29 @@ public class SonarScannerWrapperTests
              @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
              @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
              @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path")]
-    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(string path, string expected)
-    {
-        var logger = new TestLogger();
-        var mockRunner = new MockProcessRunner(executeResult: true);
-        var config = new AnalysisConfig { JavaExePath = path };
+    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Windows(string path, string expected)
+        => SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
-        using (new EnvironmentVariableScope())
-        {
-            var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
-            result.Should().BeTrue();
-        }
-
-        CheckEnvVarExists("JAVA_HOME", expected, mockRunner);
-        logger.DebugMessages.Should().Contain(x => x.Contains($@"Setting the JAVA_HOME for the scanner cli to {expected}."));
-    }
+    [TestCategory(TestCategories.NoWindows)]
+    [DataTestMethod]
+    [DataRow(@"/usr/bin/java", @"/usr")]
+    [DataRow(@"/usr/lib/jvm/java-21-openjdk-amd64/bin/java", @"/usr/lib/jvm/java-21-openjdk-amd64")]
+    [DataRow(@"/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/bin/java",
+             @"/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
+             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path")]
+    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Unix(string path, string expected)
+        => SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
     [DataTestMethod]
     [DataRow(null)]
@@ -740,5 +749,21 @@ public class SonarScannerWrapperTests
         public bool DirectoryExists(string path) => throw new NotSupportedException();
 
         public bool IsUnix() => throw new NotImplementedException();
+    }
+
+    private void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(string path, string expected)
+    {
+        var logger = new TestLogger();
+        var mockRunner = new MockProcessRunner(executeResult: true);
+        var config = new AnalysisConfig { JavaExePath = path };
+
+        using (new EnvironmentVariableScope())
+        {
+            var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
+            result.Should().BeTrue();
+        }
+
+        CheckEnvVarExists("JAVA_HOME", expected, mockRunner);
+        logger.DebugMessages.Should().Contain(x => x.Contains($@"Setting the JAVA_HOME for the scanner cli to {expected}."));
     }
 }
