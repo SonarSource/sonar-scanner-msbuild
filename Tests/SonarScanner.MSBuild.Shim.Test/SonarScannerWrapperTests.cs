@@ -549,7 +549,6 @@ public class SonarScannerWrapperTests
         CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Djavax.net.ssl.trustStore={truststoreFile.FileName} -Djavax.net.ssl.trustStorePassword={SurroundByQuotes(defaultPassword)}", mockRunner);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_NoCmdTruststorePasswordAndNotInEnv_UseDefault()
     {
@@ -562,10 +561,9 @@ public class SonarScannerWrapperTests
         var result = ExecuteJavaRunnerIgnoringAsserts(config, EmptyPropertyProvider.Instance, logger, "exe file path", "properties file path", mockRunner);
 
         result.Should().BeTrue();
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Djavax.net.ssl.trustStorePassword={QuoteEnvironmentValue("changeit")}", mockRunner);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_CmdTruststorePasswordAndInEnv_ShouldUseCmd()
     {
@@ -581,10 +579,9 @@ public class SonarScannerWrapperTests
         var result = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "exe file path", "properties file path", mockRunner);
 
         result.Should().BeTrue();
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another -Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Djavax.net.ssl.trustStorePassword=another -Dsome.property=value -Djavax.net.ssl.trustStorePassword={QuoteEnvironmentValue("password")}", mockRunner);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_ScannerOptsSettingsAndTruststorePasswordSonarScannerOptsNotEmpty_ShouldBeInEnv()
     {
@@ -600,7 +597,7 @@ public class SonarScannerWrapperTests
         var result = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "exe file path", "properties file path", mockRunner);
 
         result.Should().BeTrue();
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Dsonar.anything.config=existing -Dsome.property=value -Djavax.net.ssl.trustStorePassword=\"password\"", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Dsonar.anything.config=existing -Dsome.property=value -Djavax.net.ssl.trustStorePassword={QuoteEnvironmentValue("password")}", mockRunner);
     }
 
     [TestMethod]
@@ -635,14 +632,18 @@ public class SonarScannerWrapperTests
     public void WrapperError_Fail_StdErr() =>
         TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: true, expectedOutcome: false);
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    public void FindScannerExe_ReturnsScannerCliBat()
-    {
-        var scannerCliScriptPath = new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(Substitute.For<IFileWrapper>(), new TestLogger())).FindScannerExe();
+    public void FindScannerExe_ReturnsScannerCliBat_Windows() =>
+        new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(Substitute.For<IFileWrapper>(), new TestLogger()))
+            .FindScannerExe().Should().EndWith(@"\bin\sonar-scanner.bat");
 
-        scannerCliScriptPath.Should().EndWithEquivalentOf(@"\bin\sonar-scanner.bat");
-    }
+    [TestCategory(TestCategories.NoWindows)]
+    [TestMethod]
+    public void FindScannerExe_ReturnsScannerCliBat_Unix() =>
+        new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(Substitute.For<IFileWrapper>(), new TestLogger()))
+            .FindScannerExe().Should().EndWith(@"/bin/sonar-scanner");
 
     [TestMethod]
     public void FindScannerExe_WhenNonWindows_ReturnsNoExtension()
