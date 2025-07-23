@@ -162,7 +162,6 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(".js,.jsx")]
     [DataRow(".js, .jsx")]
@@ -179,8 +178,8 @@ public class AdditionalFilesServiceTest
             "valid.JSX",
             "invalid.ajs",
             "invalidjs",
-            @"C:\.js",
-            @"C:\.jsx"
+            ".js",
+            ".jsx"
         };
         wrapper
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
@@ -385,7 +384,6 @@ public class AdditionalFilesServiceTest
         logger.AssertSingleWarningExists($"Failed to get directories from: '{ProjectBaseDir}'.");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AdditionalFiles_FileAccessFail()
     {
