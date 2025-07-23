@@ -157,6 +157,7 @@ public class SonarScannerWrapperTests
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
+    // Test is propably wrong: https://sonarsource.atlassian.net/browse/SCAN4NET-677
     public void SonarScanner_SensitiveArgsPassedOnCommandLine()
     {
         // Check that sensitive arguments from the config are passed on the command line
