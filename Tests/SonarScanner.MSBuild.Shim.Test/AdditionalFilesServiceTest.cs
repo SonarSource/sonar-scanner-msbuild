@@ -197,7 +197,8 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     [DataRow("build-wrapper-dump.json")]
     [DataRow("./compile_commands.json")]
@@ -206,28 +207,19 @@ public class AdditionalFilesServiceTest
     [DataRow("C:\\dev\\cOmpile_commAnDs.json")]
     [DataRow("C:\\dev/whatever/compile_commands.json")]
     [DataRow("C:\\dev/whatever\\build-wrapper-dump.json")]
-    public void AdditionalFiles_ExcludedFilesIgnored(string excluded)
-    {
-        wrapper
-            .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
-            .Returns(
-            [
-                new("valid.json"),
-                new(excluded)
-            ]);
+    public void AdditionalFiles_ExcludedFilesIgnored_Windows(string excluded) =>
+        AdditionalFiles_ExcludedFilesIgnored(excluded);
 
-        var config = new AnalysisConfig
-        {
-            ScanAllAnalysis = true,
-            LocalSettings = [],
-            ServerSettings = [new("sonar.json.file.suffixes", ".json")]
-        };
-
-        var files = sut.AdditionalFiles(config, ProjectBaseDir);
-
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.json");
-        files.Tests.Should().BeEmpty();
-    }
+    [TestCategory(TestCategories.NoWindows)]
+    [DataTestMethod]
+    [DataRow("build-wrapper-dump.json")]
+    [DataRow("./compile_commands.json")]
+    [DataRow("/dev/BUILD-WRAPPER-DUMP.json")]
+    [DataRow("/dev/cOmpile_commAnDs.json")]
+    [DataRow("dev/whatever/compile_commands.json")]
+    [DataRow("dev/whatever/build-wrapper-dump.json")]
+    public void AdditionalFiles_ExcludedFilesIgnored_Unix(string excluded) =>
+        AdditionalFiles_ExcludedFilesIgnored(excluded);
 
     [DataTestMethod]
     [DataRow("sonar.tsql.file.suffixes")]
@@ -702,6 +694,29 @@ public class AdditionalFilesServiceTest
             Path.Combine(nested.FullName, "file.properties"),
             Path.Combine(nested.FullName, "file.config"),
             Path.Combine(aws.FullName, "config"));
+        files.Tests.Should().BeEmpty();
+    }
+
+    private void AdditionalFiles_ExcludedFilesIgnored(string excluded)
+    {
+        wrapper
+            .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
+            .Returns(
+            [
+                new("valid.json"),
+                new(excluded)
+            ]);
+
+        var config = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.json.file.suffixes", ".json")]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.json");
         files.Tests.Should().BeEmpty();
     }
 }
