@@ -63,7 +63,7 @@ public class SonarIntegrationTargetsTests
             """;
         var result = CreateProjectAndLoad(projectXml);
 
-        // the `\out` and `\conf` paths do not vary by OS as they are added by SonarQube.Integration.targets and handled by MSBuild not the scanner.
+        // the `\out` and `\conf` paths do not vary by OS as they are added by SonarQube.Integration.targets and MsBuild will handle the conversion.
         result.AssertPropertyValue(TargetProperties.SonarQubeOutputPath, $@"{legacyTeamBuildDir}.sonarqube\out");
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, $@"{legacyTeamBuildDir}.sonarqube\conf");
         result.AssertPropertyValue(TargetProperties.SonarTelemetryFilePath, $@"{legacyTeamBuildDir}.sonarqube\out\Telemetry.Targets.S4NET.json");
