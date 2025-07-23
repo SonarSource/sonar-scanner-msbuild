@@ -20,6 +20,7 @@
 
 using SonarScanner.MSBuild.Tasks.IntegrationTest;
 using SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
+using static TestUtilities.TestUtils;
 
 namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
 
@@ -60,7 +61,7 @@ public class RazorTargetTests
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
         result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
-        AssertExpectedErrorLog(result, context.OutputFolder + $@"{Separator}0{Separator}Issues.Views.json");
+        AssertExpectedErrorLog(result, context.OutputFolder + $"{Separator}0{Separator}Issues.Views.json");
         result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, $"{context.OutputFolder}{Separator}0.tmp");
         result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 2); // ProjectInfo.xml and Telemetry.S4NET.Targets.json
     }
@@ -89,14 +90,14 @@ public class RazorTargetTests
         var filePath = context.CreateProjectFile(
             CreateProjectSnippet(
                 sonarErrorLog: "OriginalValueFromFirstBuild.json",
-                razorCompilationErrorLog: @"C:\UserDefined.json",
+                razorCompilationErrorLog: $"{DriveRoot()}UserDefined.json",
                 useRazorSourceGenerator: null,
                 additionalProperties: "<RazorTargetNameSuffix>.Views</RazorTargetNameSuffix>"));
 
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
 
         result.AssertTargetExecuted(TargetConstants.SonarPrepareRazorProjectCodeAnalysis);
-        AssertExpectedErrorLog(result, @"C:\UserDefined.json");
+        AssertExpectedErrorLog(result, $"{DriveRoot()}UserDefined.json");
         result.AssertPropertyValue(TargetProperties.SonarTemporaryProjectSpecificOutDir, $"{context.OutputFolder}{Separator}0.tmp");
         result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 2); // ProjectInfo.xml and Telemetry.S4NET.Targets.json
     }
@@ -149,15 +150,15 @@ public class RazorTargetTests
         // the dir and file should have been moved as well
         File.Exists(Path.Combine(temporaryProjectSpecificOutDir, subDirName, subDirFileName)).Should().BeTrue();
         result.Messages.Should()
-            .ContainMatch($@"Sonar: Preparing for Razor compilation, moved files (*{Separator}foo{Separator}bar.txt;*{Separator}ProjectInfo.xml*{Separator}Telemetry.json) to *{Separator}0.tmp.");
+            .ContainMatch($"Sonar: Preparing for Razor compilation, moved files (*{Separator}foo{Separator}bar.txt;*{Separator}ProjectInfo.xml*{Separator}Telemetry.json) to *{Separator}0.tmp.");
     }
 
     [TestMethod]
     public void SonarFinishRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted()
     {
-        var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
-        var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0.tmp");
-        TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
+        var projectSpecificOutDir = CreateTestSpecificFolderWithSubPaths(TestContext, "0");
+        var temporaryProjectSpecificOutDir = CreateTestSpecificFolderWithSubPaths(TestContext, "0.tmp");
+        CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
         var filePath = new TargetsTestsContext(TestContext).CreateProjectFile(
             CreateProjectSnippet(
                 sonarErrorLog: null,
@@ -176,9 +177,9 @@ public class RazorTargetTests
     [TestMethod]
     public void SonarFinishRazorProjectCodeAnalysis_WhenRazorSonarErrorLogOrLogNameAreNotSet_DoesNotCreateAnalysisSettings()
     {
-        var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
-        var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
+        var root = CreateTestSpecificFolderWithSubPaths(TestContext);
+        var projectSpecificOutDir = CreateTestSpecificFolderWithSubPaths(TestContext, "0");
+        var temporaryProjectSpecificOutDir = CreateTestSpecificFolderWithSubPaths(TestContext, "0.tmp");
         var razorSpecificOutDir = Path.Combine(root, "0.Razor");
         var filePath = new TargetsTestsContext(TestContext).CreateProjectFile(
             CreateProjectSnippet(
@@ -212,12 +213,12 @@ public class RazorTargetTests
     [TestMethod]
     public void SonarFinishRazorProjectCodeAnalysis_RazorSpecificOutputAndProjectInfo_AreCopiedToCorrectFolders()
     {
-        var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
-        var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0.tmp");
+        var root = CreateTestSpecificFolderWithSubPaths(TestContext);
+        var projectSpecificOutDir = CreateTestSpecificFolderWithSubPaths(TestContext, "0");
+        var temporaryProjectSpecificOutDir = CreateTestSpecificFolderWithSubPaths(TestContext, "0.tmp");
         var razorSpecificOutDir = Path.Combine(root, "0.Razor");
-        TestUtils.CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
-        TestUtils.CreateEmptyFile(projectSpecificOutDir, "Issues.FromRazorBuild.json");
+        CreateEmptyFile(temporaryProjectSpecificOutDir, "Issues.FromMainBuild.json");
+        CreateEmptyFile(projectSpecificOutDir, "Issues.FromRazorBuild.json");
         var razorIssuesPath = Path.Combine(razorSpecificOutDir, "Issues.FromRazorBuild.json");
 
         var testTargetName = "CreateDirectoryAndFile";
@@ -258,11 +259,11 @@ public class RazorTargetTests
         // testing with substrings because the order of the files might differ
         result.Messages.Should().Contain(x =>
             x.Contains("Sonar: After Razor compilation, moved files (")
-            && x.Contains($@"{Separator}0{Separator}foo{Separator}bar.txt")
-            && x.Contains($@"{Separator}0{Separator}Issues.FromRazorBuild.json")
-            && x.Contains($@"{Separator}0.Razor."));
+            && x.Contains($"{Separator}0{Separator}foo{Separator}bar.txt")
+            && x.Contains($"{Separator}0{Separator}Issues.FromRazorBuild.json")
+            && x.Contains($"{Separator}0.Razor."));
         result.Messages.Should()
-            .ContainMatch($@"Sonar: After Razor compilation, moved files (*{Separator}0.tmp{Separator}Issues.FromMainBuild.json) to *{Separator}0 and will remove the temporary folder.");
+            .ContainMatch($"Sonar: After Razor compilation, moved files (*{Separator}0.tmp{Separator}Issues.FromMainBuild.json) to *{Separator}0 and will remove the temporary folder.");
         result.Messages.Should().ContainMatch($"""Removing directory "*{Separator}0.tmp".""");
 
         result.AssertPropertyValue(TargetProperties.RazorSonarProjectSpecificOutDir, razorSpecificOutDir);
@@ -278,11 +279,11 @@ public class RazorTargetTests
     [TestMethod]
     public void SonarFinishRazorProjectCodeAnalysis_WithRazorSpecificOutputAndProjectInfo_PreserveUserDefinedErrorLogValue()
     {
-        var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var projectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "0");
-        var temporaryProjectSpecificOutDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, @"0.tmp");
+        var root = CreateTestSpecificFolderWithSubPaths(TestContext);
+        var projectSpecificOutDir = CreateTestSpecificFolderWithSubPaths(TestContext, "0");
+        var temporaryProjectSpecificOutDir = CreateTestSpecificFolderWithSubPaths(TestContext, "0.tmp");
         var razorSpecificOutDir = Path.Combine(root, "0.Razor");
-        var userDefinedErrorLog = TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "User"), "UserDefined.FromRazorBuild.json");
+        var userDefinedErrorLog = CreateEmptyFile(CreateTestSpecificFolderWithSubPaths(TestContext, "User"), "UserDefined.FromRazorBuild.json");
 
         // RazorSonarErrorLog is set to the MSBuild $(RazorCompilationErrorLog) value
         // RazorSonarErrorLogName is set when the $(RazorCompilationErrorLog) is not set / empty
@@ -324,7 +325,7 @@ public class RazorTargetTests
                 sonarErrorLog: "OriginalValueFromFirstBuild.json",
                 useRazorSourceGenerator: null,
                 razorCompilationErrorLog: null,
-                razorCompile: "razorCompile",
+                razorCompile: "SomeRandomValue",
                 "<SonarQubeExclude>true</SonarQubeExclude>"));
         var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.OverrideRoslynAnalysis);
         result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
@@ -338,7 +339,7 @@ public class RazorTargetTests
             CreateProjectSnippet(
                 sonarErrorLog: "OriginalValueFromFirstBuild.json",
                 useRazorSourceGenerator: null,
-                razorCompilationErrorLog: @"C:\UserDefined.json",
+                razorCompilationErrorLog: $"{DriveRoot()}UserDefined.json",
                 razorCompile: null,
                 "<SonarQubeExclude>true</SonarQubeExclude>"));
 
@@ -349,7 +350,7 @@ public class RazorTargetTests
         result.AssertPropertyValue(TargetProperties.SonarErrorLog, "OriginalValueFromFirstBuild.json");
         result.AssertPropertyValue(TargetProperties.ErrorLog, null);
         result.AssertPropertyValue(TargetProperties.RazorSonarErrorLog, null);
-        result.AssertPropertyValue(TargetProperties.RazorCompilationErrorLog, @"C:\UserDefined.json");
+        result.AssertPropertyValue(TargetProperties.RazorCompilationErrorLog, $"{DriveRoot()}UserDefined.json");
     }
 
     [TestMethod]
@@ -358,11 +359,11 @@ public class RazorTargetTests
     {
         var context = new TargetsTestsContext(TestContext);
         var program = context.CreateInputFile("Program.cs");
-        File.WriteAllText(program, """System.Console.WriteLine("Hello World!");""");
+        File.WriteAllText(program, "System.Console.WriteLine();");
         context.CreateInputFile("Index.cshtml");
         // We need to set the CodeAnalysisRuleSet property if we want ResolveCodeAnalysisRuleSet
         // to be executed. See test bug https://github.com/SonarSource/sonar-scanner-msbuild/issues/776
-        var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(context.InputFolder, "dummyQp");
+        var dummyQpRulesetPath = CreateValidEmptyRuleset(context.InputFolder, "dummyQp");
         var csprojFilePath = context.CreateProjectFile(
             CreateProjectSnippet(
                 sonarErrorLog: null,
