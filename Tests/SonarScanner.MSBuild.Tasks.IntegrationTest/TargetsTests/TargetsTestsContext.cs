@@ -33,14 +33,14 @@ public class TargetsTestsContext
     public string InputFolder { get; }
     public string OutputFolder { get; }
 
-    public TargetsTestsContext(TestContext testContext, string language = "C#", string inputFolder = "Inputs")
+    public TargetsTestsContext(TestContext testContext, string language = "C#", string inputFolder = "Inputs", string outputFolder = "Outputs")
     {
         this.language = language;
         TestContext = testContext;
         ProjectFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         ConfigFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Config");
         InputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, inputFolder);
-        OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
+        OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, outputFolder);
     }
 
     public void Replace(string placeholder, string value) =>
@@ -76,6 +76,7 @@ public class TargetsTestsContext
                 <SonarQubeTempPath>{ProjectFolder}</SonarQubeTempPath>
                 <SonarQubeOutputPath>{OutputFolder}</SonarQubeOutputPath>
                 <SonarQubeConfigPath>{ConfigFolder}</SonarQubeConfigPath>
+                <EnableNETAnalyzers>false</EnableNETAnalyzers> <!-- NetAnalyzers disabled as they are picked up by MsBuild in test context on Linux, but not on Windows. -->
             </PropertyGroup>
             """;
         testSpecificProjectXml ??= "<!-- none -->";
@@ -86,7 +87,7 @@ public class TargetsTestsContext
             .Replace("SONARSCANNER_MSBUILD_TASKS_DLL", typeof(WriteProjectInfoFile).Assembly.Location)
             .Replace("SONARQUBE_PROPERTIES", sqProperties)
             .Replace("TEST_SPECIFIC_XML", testSpecificProjectXml)
-            .Replace("LANGUAGE", language ?? string.Empty);
+            .Replace("LANGUAGE", language);
 
         foreach (var placeholder in placeholders)
         {

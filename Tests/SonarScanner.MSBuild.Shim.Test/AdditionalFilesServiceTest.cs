@@ -180,6 +180,8 @@ public class AdditionalFilesServiceTest
             "invalidjs",
             ".js",
             ".jsx"
+            $"{TestUtils.DriveRoot()}.js",
+            $"{TestUtils.DriveRoot()}.jsx",
         };
         wrapper
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
