@@ -25,7 +25,7 @@ namespace SonarScanner.MSBuild.Shim.Test;
 [TestClass]
 public class AdditionalFilesServiceTest
 {
-    private static readonly DirectoryInfo ProjectBaseDir = new("C:\\dev");
+    private static readonly DirectoryInfo ProjectBaseDir = new(Path.Combine(TestUtils.DriveRoot(), "dev"));
 
     private readonly IDirectoryWrapper wrapper;
     private readonly TestLogger logger = new();
@@ -409,18 +409,20 @@ public class AdditionalFilesServiceTest
         wrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
         wrapper.Received(3).EnumerateFiles(Arg.Any<DirectoryInfo>(), "*", SearchOption.TopDirectoryOnly);
 
-        logger.DebugMessages.Should().HaveCount(8);
-        logger.DebugMessages[0].Should().Be(@"Reading directories from: 'C:\dev'.");
-        logger.DebugMessages[1].Should().Be(@"Found 2 directories in: 'C:\dev'.");
-        logger.DebugMessages[2].Should().Be(@"Reading files from: 'C:\dev\first directory'.");
-        logger.DebugMessages[3].Should().MatchEquivalentOf(@"HResult: -2147024690, Exception: System.IO.PathTooLongException: Error message
-   at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *");
-        logger.DebugMessages[4].Should().Be(@"Reading files from: 'C:\dev\second directory'.");
-        logger.DebugMessages[5].Should().Be(@"Found 1 files in: 'C:\dev\second directory'.");
-        logger.DebugMessages[6].Should().Be(@"Reading files from: 'C:\dev'.");
-        logger.DebugMessages[7].Should().Be(@"Found 1 files in: 'C:\dev'.");
+        logger.DebugMessages.Should().SatisfyRespectively(
+            x => x.Should().Be(@$"Reading directories from: '{ProjectBaseDir}'."),
+            x => x.Should().Be(@$"Found 2 directories in: '{ProjectBaseDir}'."),
+            x => x.Should().Be(@$"Reading files from: '{Path.Combine(ProjectBaseDir.FullName, "first directory")}'."),
+            x => x.Should().MatchEquivalentOf("""
+                HResult: -2147024690, Exception: System.IO.PathTooLongException: Error message
+                   at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *
+                """),
+            x => x.Should().Be(@$"Reading files from: '{Path.Combine(ProjectBaseDir.FullName, "second directory")}'."),
+            x => x.Should().Be(@$"Found 1 files in: '{Path.Combine(ProjectBaseDir.FullName, "second directory")}'."),
+            x => x.Should().Be(@$"Reading files from: '{ProjectBaseDir}'."),
+            x => x.Should().Be(@$"Found 1 files in: '{ProjectBaseDir}'."));
 
-        logger.AssertSingleWarningExists(@"Failed to get files from: 'C:\dev\first directory'.");
+        logger.AssertSingleWarningExists(@$"Failed to get files from: '{Path.Combine(ProjectBaseDir.FullName, "first directory")}'.");
     }
 
     [TestMethod]
