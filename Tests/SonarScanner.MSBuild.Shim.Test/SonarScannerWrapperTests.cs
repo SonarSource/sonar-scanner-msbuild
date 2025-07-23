@@ -228,7 +228,6 @@ public class SonarScannerWrapperTests
         logger.InfoMessages.Should().NotContain(x => x.Contains("SONAR_SCANNER_OPTS"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_UserSpecifiedEnvVars_OnlySONARSCANNEROPTSIsPassed()
     {
@@ -252,10 +251,9 @@ public class SonarScannerWrapperTests
             VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
         }
 
-        CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Xmx2048m -Djavax.net.ssl.trustStorePassword=\"changeit\"", mockRunner);
+        CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Xmx2048m -Djavax.net.ssl.trustStorePassword={(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"""changeit""" : "changeit")}", mockRunner);
         mockRunner.SuppliedArguments.EnvironmentVariables.Should().ContainSingle();
-        logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
-        logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
+        logger.InfoMessages.Should().Contain("Using the supplied value for SONAR_SCANNER_OPTS. Value: -Xmx2048m");
     }
 
     [TestMethod]
