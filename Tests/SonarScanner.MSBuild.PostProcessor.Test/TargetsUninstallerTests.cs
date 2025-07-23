@@ -49,9 +49,11 @@ public class TargetsUninstallerTests
     {
         var context = new UninstallContext(TestContext, false);
         context.UninstallTargets();
-        context.Logger.AssertDebugLogged(context.BinDir + $@"{Path.DirectorySeparatorChar}targets{Path.DirectorySeparatorChar}SonarQube.Integration.targets does not exist");
+        context.Logger.AssertDebugLogged(context.BinDir + $"{Path.DirectorySeparatorChar}targets{Path.DirectorySeparatorChar}SonarQube.Integration.targets does not exist");
     }
 
+    // Windows enforces file locks at the OS level resulting in IOException.
+    // Unix does not enforce file locks at the OS level, so no exception is thrown.
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
