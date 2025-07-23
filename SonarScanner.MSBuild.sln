@@ -36,14 +36,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{950DD8E7-A950-4598-82E0-932E31075F68}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.runsettings = .runsettings
 		azure-pipelines.yml = azure-pipelines.yml
 		src\Directory.Build.props = src\Directory.Build.props
 		src\Directory.Build.targets = src\Directory.Build.targets
 		src\DotnetVersions.props = src\DotnetVersions.props
+		templates\its-jobs.yml = templates\its-jobs.yml
 		NuGet.Config = NuGet.Config
 		README.md = README.md
 		StylingAnalyzers.targets = StylingAnalyzers.targets
-		templates\its-jobs.yml = templates\its-jobs.yml
 		templates\unix-qa-stage.yml = templates\unix-qa-stage.yml
 	EndProjectSection
 EndProject
