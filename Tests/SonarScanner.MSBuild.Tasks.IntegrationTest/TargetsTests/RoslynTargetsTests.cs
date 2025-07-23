@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
+using static TestUtilities.TestUtils;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 
@@ -28,10 +28,10 @@ public class RoslynTargetsTests
     private const string RoslynAnalysisResultsSettingName = "sonar.cs.roslyn.reportFilePaths";
     private const string AnalyzerWorkDirectoryResultsSettingName = "sonar.cs.analyzer.projectOutPaths";
 
-    private readonly string baseDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"c:\" : @"/tmp/";
-    private readonly string otherDrive = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"d:\" : @"d:/";
-    private readonly string defaultFolder = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"c:\1\" : @"/tmp/1/";
-    private readonly string someFolder = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"x:\aaa\" : @"/x:/aaa/";
+    private readonly string baseDir = DriveRoot();
+    private readonly string otherDrive = DriveRoot("d");
+    private readonly string defaultFolder = $"{DriveRoot()}1{Path.DirectorySeparatorChar}";
+    private readonly string someFolder = $"{DriveRoot("x")}aaa{Path.DirectorySeparatorChar}";
 
     public TestContext TestContext { get; set; }
 
@@ -57,15 +57,15 @@ public class RoslynTargetsTests
         // Expecting all analyzers from the config file, but none from the project file
         AssertExpectedAnalyzers(
             result,
-            $@"{defaultFolder}SonarAnalyzer.{msBuildLanguage}.dll",
-            $@"{defaultFolder}SonarAnalyzer.dll",
-            $@"{defaultFolder}Google.Protobuf.dll",
-            $@"{baseDir}external.analyzer.{msBuildLanguage}.dll",
+            $"{defaultFolder}SonarAnalyzer.{msBuildLanguage}.dll",
+            $"{defaultFolder}SonarAnalyzer.dll",
+            $"{defaultFolder}Google.Protobuf.dll",
+            $"{baseDir}external.analyzer.{msBuildLanguage}.dll",
             "project.additional.analyzer1.dll",
-            $@"{baseDir}project.additional.analyzer2.dll");
+            $"{baseDir}project.additional.analyzer2.dll");
 
         // Expecting additional files from both config and project file
-        AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", $@"{someFolder}project.additional.file.2.txt");
+        AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", $"{someFolder}project.additional.file.2.txt");
     }
 
     [DataTestMethod]
@@ -74,16 +74,16 @@ public class RoslynTargetsTests
     public void Settings_ValidSetup_ForExcludedTestProject(string msBuildLanguage)
     {
         var context = new TargetsTestsContext(TestContext, msBuildLanguage);
-        var result = Execute_Settings_ValidSetup(context, true, "true", @"foo-cs.ruleset", @"foo-vb.ruleset");
+        var result = Execute_Settings_ValidSetup(context, true, "true", "foo-cs.ruleset", "foo-vb.ruleset");
 
-        AssertExpectedResolvedRuleset(result, $@"{otherDrive}{msBuildLanguage}-deactivated.ruleset");
+        AssertExpectedResolvedRuleset(result, $"{otherDrive}{msBuildLanguage}-deactivated.ruleset");
 
         // Expecting only the SonarC# analyzer
         AssertExpectedAnalyzers(
             result,
-            $@"{defaultFolder}SonarAnalyzer.{msBuildLanguage}.dll",
-            $@"{defaultFolder}SonarAnalyzer.dll",
-            $@"{defaultFolder}Google.Protobuf.dll");
+            $"{defaultFolder}SonarAnalyzer.{msBuildLanguage}.dll",
+            $"{defaultFolder}SonarAnalyzer.dll",
+            $"{defaultFolder}Google.Protobuf.dll");
 
         // Expecting only the additional files from the config file
         AssertExpectedAdditionalFiles(result);
@@ -103,9 +103,9 @@ public class RoslynTargetsTests
                 new AnalyzerSettings
                 {
                     Language = "cs",
-                    RulesetPath = $@"{otherDrive}my.ruleset",
-                    AnalyzerPlugins = [CreateAnalyzerPlugin($@"{dataFolder}new.analyzer1.dll"), CreateAnalyzerPlugin($@"{baseDir}new.analyzer2.dll")],
-                    AdditionalFilePaths = [$@"{baseDir}config.1.txt", $@"{baseDir}config.2.txt"]
+                    RulesetPath = $"{otherDrive}my.ruleset",
+                    AnalyzerPlugins = [CreateAnalyzerPlugin($"{dataFolder}new.analyzer1.dll"), CreateAnalyzerPlugin($"{baseDir}new.analyzer2.dll")],
+                    AdditionalFilePaths = [$"{baseDir}config.1.txt", $"{baseDir}config.2.txt"]
                 }
             ]
         };
@@ -142,9 +142,9 @@ public class RoslynTargetsTests
         result.BuildSucceeded.Should().BeTrue();
 
         AssertErrorLogIsSetBySonarQubeTargets(result);
-        AssertExpectedResolvedRuleset(result, $@"{otherDrive}my.ruleset");
+        AssertExpectedResolvedRuleset(result, $"{otherDrive}my.ruleset");
         AssertExpectedAdditionalFiles(result, "should.be.preserved.additional1.txt", "should.be.preserved.additional2.txt");
-        AssertExpectedAnalyzers(result, $@"{dataFolder}new.analyzer1.dll", $@"{baseDir}new.analyzer2.dll");
+        AssertExpectedAnalyzers(result, $"{dataFolder}new.analyzer1.dll", $"{baseDir}new.analyzer2.dll");
         AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         AssertRunAnalyzersIsEnabled(result);
     }
@@ -165,8 +165,8 @@ public class RoslynTargetsTests
                 {
                     Language = "cs",
                     RulesetPath = dummyQpRulesetPath,
-                    AnalyzerPlugins = [CreateAnalyzerPlugin($@"{baseDir}data\new\analyzer1.dll", $@"{baseDir}new.analyzer2.dll")],
-                    AdditionalFilePaths = [$@"{baseDir}config.1.txt", $@"{baseDir}config.2.txt"]
+                    AnalyzerPlugins = [CreateAnalyzerPlugin($@"{baseDir}data\new\analyzer1.dll", $"{baseDir}new.analyzer2.dll")],
+                    AdditionalFilePaths = [$"{baseDir}config.1.txt", $"{baseDir}config.2.txt"]
                 }
             ]
         };
@@ -215,16 +215,16 @@ public class RoslynTargetsTests
         Directory.Exists(actualProjectSpecificConfFolder).Should().BeTrue();
         var expectedMergedRuleSetFilePath = Path.Combine(actualProjectSpecificConfFolder, "merged.ruleset");
         AssertExpectedResolvedRuleset(result, expectedMergedRuleSetFilePath);
-        RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder, $@"{baseDir}original.ruleset");
+        RuleSetAssertions.CheckMergedRulesetFile(actualProjectSpecificConfFolder, $"{baseDir}original.ruleset");
         AssertExpectedAdditionalFiles(result, "should.be.preserved.additional1.txt", "should.be.preserved.additional2.txt");
         AssertExpectedAnalyzers(
             result,
-            $@"{baseDir}data{Path.DirectorySeparatorChar}new{Path.DirectorySeparatorChar}analyzer1.dll",
-            $@"{baseDir}new.analyzer2.dll",
-            $@"{origDir}{preservedDir}analyzer3.dll",
-            $@"{baseDir}{origDir}{preservedDir}analyzer1.dll",
-            @"should.be.preserved.SonarAnalyzer.Fake.dll",
-            $@"{baseDir}SonarAnalyzer{Path.DirectorySeparatorChar}should.be.preserved.SomeAnalyzer.dll");
+            $"{baseDir}data{Path.DirectorySeparatorChar}new{Path.DirectorySeparatorChar}analyzer1.dll",
+            $"{baseDir}new.analyzer2.dll",
+            $"{origDir}{preservedDir}analyzer3.dll",
+            $"{baseDir}{origDir}{preservedDir}analyzer1.dll",
+            "should.be.preserved.SonarAnalyzer.Fake.dll",
+            $"{baseDir}SonarAnalyzer{Path.DirectorySeparatorChar}should.be.preserved.SomeAnalyzer.dll");
         AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         AssertRunAnalyzersIsEnabled(result);
     }
@@ -391,7 +391,7 @@ public class RoslynTargetsTests
         result.AssertPropertyValue(TargetProperties.RunAnalyzers, "false");             // We don't embed analyzers => we don't need to override this
         result.AssertPropertyValue(TargetProperties.RunAnalyzersDuringBuild, "false");
         result.AssertPropertyValue(TargetProperties.SonarErrorLog, null);
-        result.AssertPropertyValue(TargetProperties.ErrorLog, $@"{baseDir}UserDefined.json");  // Do not override
+        result.AssertPropertyValue(TargetProperties.ErrorLog, $"{baseDir}UserDefined.json");  // Do not override
     }
 
     [TestMethod]
@@ -514,7 +514,7 @@ public class RoslynTargetsTests
 
     private void AssertExpectedAdditionalFiles(BuildLog result, params string[] testSpecificAdditionalFiles)
     {
-        var projectSetupAdditionalFiles = new[] { $@"{baseDir}config.1.txt", $@"{baseDir}config.2.txt" };
+        var projectSetupAdditionalFiles = new[] { $"{baseDir}config.1.txt", $"{baseDir}config.2.txt" };
         var projectSpecificOutFolderFilePath = result.GetPropertyValue(TargetProperties.SonarProjectOutFolderFilePath);
         var projectSpecificConfigFilePath = result.GetPropertyValue(TargetProperties.SonarProjectConfigFilePath);
         var allExpectedAdditionalFiles = projectSetupAdditionalFiles.Concat(testSpecificAdditionalFiles).Concat([projectSpecificOutFolderFilePath, projectSpecificConfigFilePath]);
@@ -615,13 +615,13 @@ public class RoslynTargetsTests
                 {
                     Language = "cs",
                     RulesetPath = csRuleSetPath,
-                    DeactivatedRulesetPath = $@"{otherDrive}C#-deactivated.ruleset",
+                    DeactivatedRulesetPath = $"{otherDrive}C#-deactivated.ruleset",
                     AnalyzerPlugins =
                     [
-                        new AnalyzerPlugin("csharp", "v1", "resName", [$@"{defaultFolder}SonarAnalyzer.C#.dll", $@"{defaultFolder}SonarAnalyzer.dll", $@"{defaultFolder}Google.Protobuf.dll"]),
-                        new AnalyzerPlugin("external-cs", "v1", "resName", [$@"{baseDir}external.analyzer.C#.dll"])
+                        new AnalyzerPlugin("csharp", "v1", "resName", [$"{defaultFolder}SonarAnalyzer.C#.dll", $"{defaultFolder}SonarAnalyzer.dll", $"{defaultFolder}Google.Protobuf.dll"]),
+                        new AnalyzerPlugin("external-cs", "v1", "resName", [$"{baseDir}external.analyzer.C#.dll"])
                     ],
-                    AdditionalFilePaths = [$@"{baseDir}config.1.txt", $@"{baseDir}config.2.txt"]
+                    AdditionalFilePaths = [$"{baseDir}config.1.txt", $"{baseDir}config.2.txt"]
                 },
 
                 // VB
@@ -629,13 +629,13 @@ public class RoslynTargetsTests
                 {
                     Language = "vbnet",
                     RulesetPath = vbRulesetPath,
-                    DeactivatedRulesetPath = $@"{otherDrive}VB-deactivated.ruleset",
+                    DeactivatedRulesetPath = $"{otherDrive}VB-deactivated.ruleset",
                     AnalyzerPlugins =
                     [
-                        new AnalyzerPlugin("vbnet", "v1", "resName", [$@"{defaultFolder}SonarAnalyzer.VB.dll", $@"{defaultFolder}SonarAnalyzer.dll", $@"{defaultFolder}Google.Protobuf.dll"]),
-                        new AnalyzerPlugin("external-vb", "v1", "resName", [$@"{baseDir}external.analyzer.VB.dll"])
+                        new AnalyzerPlugin("vbnet", "v1", "resName", [$"{defaultFolder}SonarAnalyzer.VB.dll", $"{defaultFolder}SonarAnalyzer.dll", $"{defaultFolder}Google.Protobuf.dll"]),
+                        new AnalyzerPlugin("external-vb", "v1", "resName", [$"{baseDir}external.analyzer.VB.dll"])
                     ],
-                    AdditionalFilePaths = [$@"{baseDir}config.1.txt", $@"{baseDir}config.2.txt"]
+                    AdditionalFilePaths = [$"{baseDir}config.1.txt", $"{baseDir}config.2.txt"]
                 }
             ]
         };
@@ -670,7 +670,7 @@ public class RoslynTargetsTests
         AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
         AssertRunAnalyzersIsEnabled(result);
         var capturedProjectSpecificConfDir = result.GetPropertyValue(TargetProperties.ProjectSpecificConfDir);
-        result.Messages.Should().Contain($@"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {Path.Combine(capturedProjectSpecificConfDir, "SonarProjectConfig.xml")}.");
+        result.Messages.Should().Contain($"Sonar: ({Path.GetFileName(filePath)}) Analysis configured successfully with {Path.Combine(capturedProjectSpecificConfDir, "SonarProjectConfig.xml")}.");
 
         return result;
     }
