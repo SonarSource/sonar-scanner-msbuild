@@ -25,7 +25,7 @@ namespace SonarScanner.MSBuild.Shim.Test;
 [TestClass]
 public class AdditionalFilesServiceTest
 {
-    private static readonly DirectoryInfo ProjectBaseDir = new("C:\\dev");
+    private static readonly DirectoryInfo ProjectBaseDir = new(Path.Combine(TestUtils.DriveRoot(), "dev"));
 
     private readonly IDirectoryWrapper wrapper;
     private readonly TestLogger logger = new();
@@ -162,7 +162,6 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DataRow(".js,.jsx")]
     [DataRow(".js, .jsx")]
@@ -179,8 +178,10 @@ public class AdditionalFilesServiceTest
             "valid.JSX",
             "invalid.ajs",
             "invalidjs",
-            @"C:\.js",
-            @"C:\.jsx"
+            ".js",
+            ".jsx",
+            $"{TestUtils.DriveRoot()}.js",
+            $"{TestUtils.DriveRoot()}.jsx",
         };
         wrapper
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
@@ -198,7 +199,8 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     [DataRow("build-wrapper-dump.json")]
     [DataRow("./compile_commands.json")]
@@ -207,28 +209,19 @@ public class AdditionalFilesServiceTest
     [DataRow("C:\\dev\\cOmpile_commAnDs.json")]
     [DataRow("C:\\dev/whatever/compile_commands.json")]
     [DataRow("C:\\dev/whatever\\build-wrapper-dump.json")]
-    public void AdditionalFiles_ExcludedFilesIgnored(string excluded)
-    {
-        wrapper
-            .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
-            .Returns(
-            [
-                new("valid.json"),
-                new(excluded)
-            ]);
+    public void AdditionalFiles_ExcludedFilesIgnored_Windows(string excluded) =>
+        AdditionalFiles_ExcludedFilesIgnored(excluded);
 
-        var config = new AnalysisConfig
-        {
-            ScanAllAnalysis = true,
-            LocalSettings = [],
-            ServerSettings = [new("sonar.json.file.suffixes", ".json")]
-        };
-
-        var files = sut.AdditionalFiles(config, ProjectBaseDir);
-
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.json");
-        files.Tests.Should().BeEmpty();
-    }
+    [TestCategory(TestCategories.NoWindows)]
+    [DataTestMethod]
+    [DataRow("build-wrapper-dump.json")]
+    [DataRow("./compile_commands.json")]
+    [DataRow("/dev/BUILD-WRAPPER-DUMP.json")]
+    [DataRow("/dev/cOmpile_commAnDs.json")]
+    [DataRow("dev/whatever/compile_commands.json")]
+    [DataRow("dev/whatever/build-wrapper-dump.json")]
+    public void AdditionalFiles_ExcludedFilesIgnored_Unix(string excluded) =>
+        AdditionalFiles_ExcludedFilesIgnored(excluded);
 
     [DataTestMethod]
     [DataRow("sonar.tsql.file.suffixes")]
@@ -385,7 +378,6 @@ public class AdditionalFilesServiceTest
         logger.AssertSingleWarningExists($"Failed to get directories from: '{ProjectBaseDir}'.");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AdditionalFiles_FileAccessFail()
     {
@@ -409,18 +401,20 @@ public class AdditionalFilesServiceTest
         wrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
         wrapper.Received(3).EnumerateFiles(Arg.Any<DirectoryInfo>(), "*", SearchOption.TopDirectoryOnly);
 
-        logger.DebugMessages.Should().HaveCount(8);
-        logger.DebugMessages[0].Should().Be(@"Reading directories from: 'C:\dev'.");
-        logger.DebugMessages[1].Should().Be(@"Found 2 directories in: 'C:\dev'.");
-        logger.DebugMessages[2].Should().Be(@"Reading files from: 'C:\dev\first directory'.");
-        logger.DebugMessages[3].Should().MatchEquivalentOf(@"HResult: -2147024690, Exception: System.IO.PathTooLongException: Error message
-   at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *");
-        logger.DebugMessages[4].Should().Be(@"Reading files from: 'C:\dev\second directory'.");
-        logger.DebugMessages[5].Should().Be(@"Found 1 files in: 'C:\dev\second directory'.");
-        logger.DebugMessages[6].Should().Be(@"Reading files from: 'C:\dev'.");
-        logger.DebugMessages[7].Should().Be(@"Found 1 files in: 'C:\dev'.");
+        logger.DebugMessages.Should().SatisfyRespectively(
+            x => x.Should().Be(@$"Reading directories from: '{ProjectBaseDir}'."),
+            x => x.Should().Be(@$"Found 2 directories in: '{ProjectBaseDir}'."),
+            x => x.Should().Be(@$"Reading files from: '{Path.Combine(ProjectBaseDir.FullName, "first directory")}'."),
+            x => x.Should().MatchEquivalentOf("""
+                HResult: -2147024690, Exception: System.IO.PathTooLongException: Error message
+                   at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *
+                """),
+            x => x.Should().Be(@$"Reading files from: '{Path.Combine(ProjectBaseDir.FullName, "second directory")}'."),
+            x => x.Should().Be(@$"Found 1 files in: '{Path.Combine(ProjectBaseDir.FullName, "second directory")}'."),
+            x => x.Should().Be(@$"Reading files from: '{ProjectBaseDir}'."),
+            x => x.Should().Be(@$"Found 1 files in: '{ProjectBaseDir}'."));
 
-        logger.AssertSingleWarningExists(@"Failed to get files from: 'C:\dev\first directory'.");
+        logger.AssertSingleWarningExists(@$"Failed to get files from: '{Path.Combine(ProjectBaseDir.FullName, "first directory")}'.");
     }
 
     [TestMethod]
@@ -702,6 +696,29 @@ public class AdditionalFilesServiceTest
             Path.Combine(nested.FullName, "file.properties"),
             Path.Combine(nested.FullName, "file.config"),
             Path.Combine(aws.FullName, "config"));
+        files.Tests.Should().BeEmpty();
+    }
+
+    private void AdditionalFiles_ExcludedFilesIgnored(string excluded)
+    {
+        wrapper
+            .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
+            .Returns(
+            [
+                new("valid.json"),
+                new(excluded)
+            ]);
+
+        var config = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.json.file.suffixes", ".json")]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.json");
         files.Tests.Should().BeEmpty();
     }
 }
