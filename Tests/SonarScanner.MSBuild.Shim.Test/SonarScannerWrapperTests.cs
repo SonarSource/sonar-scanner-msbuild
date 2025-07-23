@@ -287,44 +287,44 @@ public class SonarScannerWrapperTests
     [TestCategory(TestCategories.NoMacOS)]
     [DataTestMethod]
     [DataRow(@"C:\Program Files\Java\jdk-17\bin\java.exe", @"C:\Program Files\Java\jdk-17")]
-    [DataRow(@"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\bin\java.exe",
-             @"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\" +
-             @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path")]
-    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Windows(string path, string expected)
-        => SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
+    [DataRow(@"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\bin\java.exe",
+             @"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path")]
+    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Windows(string path, string expected) =>
+        SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
     [TestCategory(TestCategories.NoWindows)]
     [DataTestMethod]
     [DataRow(@"/usr/bin/java", @"/usr")] // e.g. a symbolic link to /etc/alternatives/java which is a symlink to the actual Java executable /usr/lib/jvm/java-21-openjdk-amd64/bin/java
                                          // We assume the symbolic links are already resolved here.
     [DataRow(@"/usr/lib/jvm/java-21-openjdk-amd64/bin/java", @"/usr/lib/jvm/java-21-openjdk-amd64")]
-    [DataRow(@"/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/bin/java",
-             @"/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
-             @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path")]
-    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Unix(string path, string expected)
-        => SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
+    [DataRow(@"/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/bin/java",
+             @"/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path")]
+    public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Unix(string path, string expected) =>
+        SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
     [DataTestMethod]
     [DataRow(null)]
@@ -638,13 +638,17 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void FindScannerExe_ReturnsScannerCliBat_Windows() =>
         new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(Substitute.For<IFileWrapper>(), new TestLogger()))
-            .FindScannerExe().Should().EndWith(@"\bin\sonar-scanner.bat");
+            .FindScannerExe()
+            .Should()
+            .EndWith(@"\bin\sonar-scanner.bat");
 
     [TestCategory(TestCategories.NoWindows)]
     [TestMethod]
     public void FindScannerExe_ReturnsScannerCliBat_Unix() =>
         new SonarScannerWrapper(new TestLogger(), new OperatingSystemProvider(Substitute.For<IFileWrapper>(), new TestLogger()))
-            .FindScannerExe().Should().EndWith(@"/bin/sonar-scanner");
+            .FindScannerExe()
+            .Should()
+            .EndWith(@"/bin/sonar-scanner");
 
     [TestMethod]
     public void FindScannerExe_WhenNonWindows_ReturnsNoExtension()
@@ -737,18 +741,7 @@ public class SonarScannerWrapperTests
             ? $"\"{value}\""
             : value;
 
-    private sealed class UnixTestOperatingSystemProvider : IOperatingSystemProvider
-    {
-        public PlatformOS OperatingSystem() => PlatformOS.Linux;
-
-        public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotSupportedException();
-
-        public bool DirectoryExists(string path) => throw new NotSupportedException();
-
-        public bool IsUnix() => throw new NotImplementedException();
-    }
-
-    private void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(string path, string expected)
+    private static void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(string path, string expected)
     {
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
@@ -766,4 +759,15 @@ public class SonarScannerWrapperTests
 
     private static string QuoteEnvironmentValue(string value) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @$"""{value}""" : value;
+
+    private sealed class UnixTestOperatingSystemProvider : IOperatingSystemProvider
+    {
+        public PlatformOS OperatingSystem() => PlatformOS.Linux;
+
+        public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => throw new NotSupportedException();
+
+        public bool DirectoryExists(string path) => throw new NotSupportedException();
+
+        public bool IsUnix() => throw new NotImplementedException();
+    }
 }

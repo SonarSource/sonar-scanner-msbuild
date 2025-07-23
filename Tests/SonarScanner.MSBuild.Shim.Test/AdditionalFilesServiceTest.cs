@@ -179,7 +179,7 @@ public class AdditionalFilesServiceTest
             "invalid.ajs",
             "invalidjs",
             ".js",
-            ".jsx"
+            ".jsx",
             $"{TestUtils.DriveRoot()}.js",
             $"{TestUtils.DriveRoot()}.jsx",
         };
