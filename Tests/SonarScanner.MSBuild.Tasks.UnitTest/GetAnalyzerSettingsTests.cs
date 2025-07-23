@@ -363,7 +363,7 @@ public class GetAnalyzerSettingsTests
     [DataRow(@"solution.folder\originalRuleset.txt", true, DisplayName = "Absolute path")]
     public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulesetUsed(string originalRulesetFilePath, bool absolutePath)
     {
-        var rootDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "c:\\" : "/";
+        var rootDir = DriveRoot();
         if (absolutePath)
         {
             originalRulesetFilePath = Path.Combine(rootDir, originalRulesetFilePath);
