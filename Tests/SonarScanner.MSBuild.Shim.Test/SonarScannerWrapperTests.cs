@@ -307,7 +307,8 @@ public class SonarScannerWrapperTests
 
     [TestCategory(TestCategories.NoWindows)]
     [DataTestMethod]
-    [DataRow(@"/usr/bin/java", @"/usr")]
+    [DataRow(@"/usr/bin/java", @"/usr")] // e.g. a symbolic link to /etc/alternatives/java which is a symlink to the actual Java executable /usr/lib/jvm/java-21-openjdk-amd64/bin/java
+                                         // We assume the symbolic links are already resolved here.
     [DataRow(@"/usr/lib/jvm/java-21-openjdk-amd64/bin/java", @"/usr/lib/jvm/java-21-openjdk-amd64")]
     [DataRow(@"/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
              @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/" +
