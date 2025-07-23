@@ -35,13 +35,13 @@ public class WriteProjectInfoFileTargetTests
 
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_NoFiles() =>
-        ExecuteFileListTest(null);
+        AssertWriteProjectInfo(null);
 
     // The analysis file list should be created with the expected files
     // Note: the included/excluded files don't actually have to exist
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_HasFiles() =>
-        ExecuteFileListTest("""
+        AssertWriteProjectInfo("""
             <ItemGroup>
               <Content Include='included1.txt'>
                 <SonarQubeExclude>false</SonarQubeExclude>
@@ -71,7 +71,7 @@ public class WriteProjectInfoFileTargetTests
     // The content file list should not include items with <AutoGen>true</AutoGen> metadata
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_AutoGenFilesIgnored() =>
-        ExecuteFileListTest("""
+        AssertWriteProjectInfo("""
             <ItemGroup>
               <!-- Files we expect to be excluded -->
               <Content Include='excluded1.txt'>
@@ -106,7 +106,7 @@ public class WriteProjectInfoFileTargetTests
     // Check that all default item types are included for analysis
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_Defaults() =>
-        ExecuteFileListTest("""
+        AssertWriteProjectInfo("""
             <ItemGroup>
               <!-- Files we expect to be excluded -->
               <fooType Include='xfile1.txt' />
@@ -138,7 +138,7 @@ public class WriteProjectInfoFileTargetTests
     // Check that all default item types are included for analysis
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_PageAndApplicationDefinition() =>
-        ExecuteFileListTest("""
+        AssertWriteProjectInfo("""
             <ItemGroup>
               <!-- Files we expect to be included -->
               <ApplicationDefinition Include='MyApp.xaml'>
@@ -166,7 +166,7 @@ public class WriteProjectInfoFileTargetTests
 
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_OnlySpecified() =>
-        ExecuteFileListTest("""
+        AssertWriteProjectInfo("""
             <PropertyGroup>
               <!-- Set the file types to be included -->
               <SQAnalysisFileItemTypes>fooType;xxxType</SQAnalysisFileItemTypes>
@@ -186,7 +186,7 @@ public class WriteProjectInfoFileTargetTests
 
     [TestMethod]
     public void WriteProjectInfo_AnalysisFileList_FilesTypes_SpecifiedPlusDefaults() =>
-        ExecuteFileListTest("""
+        AssertWriteProjectInfo("""
             <PropertyGroup>
               <!-- Specify some additional types to be included -->
               <SQAdditionalAnalysisFileItemTypes>fooType;xxxType</SQAdditionalAnalysisFileItemTypes>
@@ -207,12 +207,11 @@ public class WriteProjectInfoFileTargetTests
             "compile.txt",
             "content.txt");
 
-    // Check that SonarQubeTestProject and SonarQubeExclude are
-    // correctly set for "normal" projects
+    // Check that SonarQubeTestProject and SonarQubeExclude are correctly set for "normal" projects
     [TestMethod]
     public void WriteProjectInfo_IsNotTestAndNotExcluded()
     {
-        var projectInfo = ExecuteProjectInfoTest(null, new AnalysisConfig
+        var projectInfo = ExecuteWriteProjectInfo(null, new AnalysisConfig
         {
             LocalSettings = [new(IsTestFileByName.TestRegExSettingId, "pattern that won't match anything")]
         });
@@ -221,12 +220,11 @@ public class WriteProjectInfoFileTargetTests
     }
 
     [TestMethod]
-    // Check that SonarQubeTestProject and SonarQubeExclude are
-    // correctly serialized. We'll test using a fakes project since
-    // both values should be set to true.
+    // Check that SonarQubeTestProject and SonarQubeExclude are correctly serialized.
+    // We'll test using a fakes project since both values should be set to true.
     public void WriteProjectInfo_IsTestAndIsExcluded()
     {
-        var projectInfo = ExecuteProjectInfoTest("""
+        var projectInfo = ExecuteWriteProjectInfo("""
             <PropertyGroup>
               <AssemblyName>f.fAKes</AssemblyName>
             </PropertyGroup>
@@ -238,7 +236,7 @@ public class WriteProjectInfoFileTargetTests
     [TestMethod]
     public void WriteProjectInfo_ProjectWithCodePage()
     {
-        var projectInfo = ExecuteProjectInfoTest("""
+        var projectInfo = ExecuteWriteProjectInfo("""
             <PropertyGroup>
               <CodePage>1250</CodePage>
             </PropertyGroup>
@@ -249,7 +247,7 @@ public class WriteProjectInfoFileTargetTests
     [TestMethod]
     public void WriteProjectInfo_ProjectWithNoCodePage()
     {
-        var projectInfo = ExecuteProjectInfoTest("""
+        var projectInfo = ExecuteWriteProjectInfo("""
             <PropertyGroup>
               <CodePage />
             </PropertyGroup>
@@ -260,7 +258,7 @@ public class WriteProjectInfoFileTargetTests
     [TestMethod]
     public void WriteProjectInfo_AnalysisSettings()
     {
-        var projectInfo = ExecuteProjectInfoTest("""
+        var projectInfo = ExecuteWriteProjectInfo("""
             <ItemGroup>
               <!-- Items that should not produce settings in the projectInfo.xml -->
               <UnrelatedItemType Include='irrelevantItem' />
@@ -292,9 +290,8 @@ public class WriteProjectInfoFileTargetTests
         // Additional settings might be added by other targets so we won't check the total number of settings
     }
 
-    // Checks the WriteProjectInfo target handles non-VB/C# project types
-    // that don't import the standard targets or set the expected properties
-    // As this specifically tests projects that dont use C#/VB we dont use TargetsTestsContext
+    // Checks the WriteProjectInfo target handles non-VB/C# project types that don't import the standard targets or set the expected properties.
+    // As this specifically tests projects that don't use C#/VB we don't use TargetsTestsContext
     [TestMethod]
     public void WriteProjectInfo_BareProject()
     {
@@ -327,8 +324,8 @@ public class WriteProjectInfoFileTargetTests
         projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");
     }
 
-    // Checks the WriteProjectInfo target handles projects with unrecognized languages
-    // As this specifically tests projects that dont use C#/VB we dont use TargetsTestsContext
+    // Checks the WriteProjectInfo target handles projects with unrecognized languages.
+    // As this specifically tests projects that don't use C#/VB we don't use TargetsTestsContext
     [TestMethod]
     public void WriteProjectInfo_UnrecognisedLanguage()
     {
@@ -359,11 +356,10 @@ public class WriteProjectInfoFileTargetTests
         projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");
     }
 
-    private void ExecuteFileListTest(string projectXml, params string[] expectedFiles)
+    private void AssertWriteProjectInfo(string projectXml, params string[] expectedFiles)
     {
         var context = new TargetsTestsContext(TestContext);
         var filePath = context.CreateProjectFile(projectXml);
-        var projectDir = Path.GetDirectoryName(filePath);
         var projectInfo = ExecuteWriteProjectInfo(filePath, context.OutputFolder);
         if (expectedFiles.Length == 0)
         {
@@ -371,15 +367,14 @@ public class WriteProjectInfoFileTargetTests
         }
         else
         {
-            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, [.. expectedFiles.Select(x => projectDir + Path.DirectorySeparatorChar + x)]);
+            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, [.. expectedFiles.Select(x => Path.GetDirectoryName(filePath) + Path.DirectorySeparatorChar + x)]);
         }
     }
 
-    private ProjectInfo ExecuteProjectInfoTest(string projectXml = null, AnalysisConfig analysisConfig = null)
+    private ProjectInfo ExecuteWriteProjectInfo(string projectXml = null, AnalysisConfig analysisConfig = null)
     {
         var context = new TargetsTestsContext(TestContext);
-        var projectFile = context.CreateProjectFile(projectXml, null, analysisConfig);
-        return ExecuteWriteProjectInfo(projectFile, context.OutputFolder);
+        return ExecuteWriteProjectInfo(context.CreateProjectFile(projectXml, null, analysisConfig), context.OutputFolder);
     }
 
     private ProjectInfo ExecuteWriteProjectInfo(string projectFilePath, string rootOutputFolder, bool noErrors = true)
