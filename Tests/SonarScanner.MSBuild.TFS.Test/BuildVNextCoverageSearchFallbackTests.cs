@@ -58,16 +58,18 @@ public class BuildVNextCoverageSearchFallbackTests
 
         TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");              // wrong file extension
         TestUtils.CreateTextFile(dir, "abc.trx", "2");                      // wrong file extension
-        var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
-        var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
-
         TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
-        TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");           // duplicate
-        var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
+        var lowerCasePath = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
+        var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
+        var duplicate1FilePath = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
+        var duplicate2FilePath = TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");
 
         using var envVars = new EnvironmentVariableScope();
         envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
-        testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2, expected3);
+        testSubject.FindCoverageFiles().Should().Satisfy(
+            x => x == lowerCasePath,
+            x => x == upperCasePath,
+            x => x == duplicate1FilePath || x == duplicate2FilePath);
     }
 
     [TestCategory(TestCategories.NoWindows)]
@@ -81,16 +83,17 @@ public class BuildVNextCoverageSearchFallbackTests
 
         TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");              // wrong file extension
         TestUtils.CreateTextFile(dir, "abc.trx", "2");                      // wrong file extension
-        var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
-        var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
-
         TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
-        TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");           // duplicate
-        var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
+        var lowerCasePath = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
+        var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
+        var duplicate1FilePath = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
+        var duplicate2FilePath = TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");
 
         using var envVars = new EnvironmentVariableScope();
         envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
-        testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2);  // should also find expected3 but does not due to case-sensitivity
+        testSubject.FindCoverageFiles().Should().Satisfy(
+            x => x == lowerCasePath,    // should also find upperCasePath but does not due to case-sensitivity
+            x => x == duplicate1FilePath || x == duplicate2FilePath);
     }
 
     [TestMethod]
@@ -101,9 +104,9 @@ public class BuildVNextCoverageSearchFallbackTests
         var subDir = Path.Combine(dir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
 
-        var file1 = "fileName1.coverage";
-        var file2 = "fileName2.coverage";
-        var file3 = "fileName3.coverage";
+        var file1 = "file1.coverage";
+        var file2 = "file2.coverage";
+        var file3 = "file3.coverage";
         var file1Duplicate = "file1Duplicate.coverage";
         var filePath1 = TestUtils.CreateTextFile(dir, file1, file1);
         var filePath2 = TestUtils.CreateTextFile(dir, file2, file2);
