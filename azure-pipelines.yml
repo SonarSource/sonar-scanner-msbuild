@@ -424,6 +424,7 @@ stages:
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              IAC_VERSION: "1.47.0.15287"         # Previous latest release :)
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
