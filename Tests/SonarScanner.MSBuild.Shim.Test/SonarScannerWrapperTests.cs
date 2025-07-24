@@ -155,7 +155,6 @@ public class SonarScannerWrapperTests
         propertiesFileIndex.Should().BeGreaterThan(tokenIndex, "User arguments should appear first");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void SonarScanner_SensitiveArgsPassedOnCommandLine()
     {
@@ -169,10 +168,11 @@ public class SonarScannerWrapperTests
         // Create a config file containing sensitive arguments
         var fileSettings = new AnalysisProperties
         {
-            new(SonarProperties.ClientCertPassword, "client certificate password"),
-            new(SonarProperties.SonarPassword, "file.password - should not be returned"),
-            new(SonarProperties.SonarUserName, "file.username - should not be returned"),
-            new(SonarProperties.SonarToken, "token - should not be returned"),
+            // Sensitive values are not expected to be in this file. We test what would happen if. See SonarProperties.SensitivePropertyKeys
+            new(SonarProperties.ClientCertPassword, "file.clientCertificatePassword"), // Sensitive
+            new(SonarProperties.SonarPassword, "file.password"),                       // Sensitive
+            new(SonarProperties.SonarUserName, "file.username"),                       // Sensitive
+            new(SonarProperties.SonarToken, "file.token"),                             // Sensitive
             new("file.not.sensitive.key", "not sensitive value")
         };
 
@@ -183,28 +183,25 @@ public class SonarScannerWrapperTests
         var config = new AnalysisConfig { SonarScannerWorkingDirectory = testDir };
         config.SetSettingsFilePath(settingsFilePath);
 
-        // Act
         var success = ExecuteJavaRunnerIgnoringAsserts(config, userArgs, logger, "c:\\foo.exe", "c:\\foo.props", mockRunner);
 
-        // Assert
         VerifyProcessRunOutcome(mockRunner, logger, testDir, success, true);
-
         CheckStandardArgsPassed(mockRunner, "c:\\foo.props");
 
         // Non-sensitive values from the file should not be passed on the command line
         CheckArgDoesNotExist("file.not.sensitive.key", mockRunner);
         mockRunner.SuppliedArguments.CmdLineArgs.Should().BeEquivalentTo(
             "-Dxxx=yyy",
-            "-Dsonar.password=cmdline.password",                       // sensitive value from cmd line: overrides file value
-            "-Dsonar.clientcert.password=client certificate password", // sensitive value from file
-            "-Dsonar.login=file.username - should not be returned",
-            "-Dsonar.token=token - should not be returned",
+            "-Dsonar.password=cmdline.password",                          // sensitive value from cmd line: overrides file value
+            "-Dsonar.clientcert.password=file.clientCertificatePassword", // sensitive value from file
+            "-Dsonar.login=file.username",
+            "-Dsonar.token=file.token",
             "-Dproject.settings=c:\\foo.props",
             $"--from=ScannerMSBuild/{Utilities.ScannerVersion}",
             "--debug",
             "-Dsonar.scanAllFiles=true");
 
-        var clientCertPwdIndex = CheckArgExists("-Dsonar.clientcert.password=client certificate password", mockRunner);
+        var clientCertPwdIndex = CheckArgExists("-Dsonar.clientcert.password=file.clientCertificatePassword", mockRunner);
         var userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", mockRunner);
 
         var propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, mockRunner);
