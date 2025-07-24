@@ -23,8 +23,11 @@ import com.sonar.orchestrator.util.NetworkUtils;
 import java.net.InetAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.http.HttpVersion;
-import org.eclipse.jetty.proxy.ProxyServlet;
+import org.eclipse.jetty.ee10.proxy.ProxyServlet;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -32,10 +35,6 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
@@ -78,7 +77,7 @@ public class HttpsReverseProxy implements AutoCloseable {
     httpConfig.setSendDateHeader(false);
 
     // Handler Structure
-    HandlerCollection handlers = new HandlerCollection();
+    var handlers = new Handler.Sequence();
     handlers.setHandlers(new Handler[]{proxyHandler(), new DefaultHandler()});
     server.setHandler(handlers);
 

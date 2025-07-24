@@ -31,10 +31,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.proxy.ProxyServlet;
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.client.Request;
+import org.eclipse.jetty.ee10.proxy.ProxyServlet;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHandler;
+import org.eclipse.jetty.ee10.servlet.security.ConstraintMapping;
+import org.eclipse.jetty.ee10.servlet.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.ee9.security.Authenticator;
+import org.eclipse.jetty.security.Constraint;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.security.UserStore;
@@ -44,10 +48,6 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHandler;
-import org.eclipse.jetty.util.security.Constraint;
 import org.eclipse.jetty.util.security.Credential;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.junit.jupiter.api.AfterEach;
@@ -125,7 +125,7 @@ class ProxyTest {
     httpConfig.setSendDateHeader(false);
 
     // Handler Structure
-    HandlerCollection handlers = new HandlerCollection();
+    Handler.Sequence handlers =  new Handler.Sequence();
     handlers.setHandlers(new Handler[]{proxyHandler(needProxyAuth), new DefaultHandler()});
     server.setHandler(handlers);
 
@@ -154,10 +154,10 @@ class ProxyTest {
     l.setUserStore(userStore);
     l.setName(realm);
 
-    Constraint constraint = new Constraint();
-    constraint.setName(Constraint.__BASIC_AUTH);
-    constraint.setRoles(new String[]{"user"});
-    constraint.setAuthenticate(true);
+    Constraint constraint = new Constraint.Builder()
+      .name(Authenticator.BASIC_AUTH)
+      .roles(new String[]{"user"})
+      .build();
 
     ConstraintMapping cm = new ConstraintMapping();
     cm.setConstraint(constraint);
@@ -186,7 +186,7 @@ class ProxyTest {
       super.service(request, response);
     }
 
-    @Override
+   @Override
     protected void sendProxyRequest(HttpServletRequest clientRequest, HttpServletResponse proxyResponse, Request proxyRequest) {
       super.sendProxyRequest(clientRequest, proxyResponse, proxyRequest);
     }
