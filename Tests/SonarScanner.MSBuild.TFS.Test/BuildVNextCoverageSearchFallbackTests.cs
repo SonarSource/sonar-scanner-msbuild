@@ -46,9 +46,10 @@ public class BuildVNextCoverageSearchFallbackTests
         testSubject.GetAgentTempDirectory().Should().Be(envDir);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    public void Fallback_FilesLocatedCorrectly()
+    public void Fallback_FilesLocatedCorrectly_Windows()
     {
         var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
         var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
@@ -67,6 +68,29 @@ public class BuildVNextCoverageSearchFallbackTests
         using var envVars = new EnvironmentVariableScope();
         envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
         testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2, expected3);
+    }
+
+    [TestCategory(TestCategories.NoWindows)]
+    [TestMethod]
+    public void Fallback_FilesLocatedCorrectly_Unix()
+    {
+        var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
+        var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
+        var subDir = Path.Combine(dir, "subDir", "subDir2");
+        Directory.CreateDirectory(subDir);
+
+        TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");
+        TestUtils.CreateTextFile(dir, "abc.trx", "2");
+        var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
+        var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
+
+        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);
+        TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4"); // appears in both places - only one should be returned
+        var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5"); // should be found
+
+        using var envVars = new EnvironmentVariableScope();
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
+        testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2);
     }
 
     [TestMethod]
