@@ -18,7 +18,7 @@
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
     <junit.version>6.0.2</junit.version>
-    <jetty.version>11.0.26</jetty.version>
+    <jetty.version>12.0.23</jetty.version>
     <testInclude>**/*</testInclude>
     <failIfNoTests>true</failIfNoTests>
   </properties>
