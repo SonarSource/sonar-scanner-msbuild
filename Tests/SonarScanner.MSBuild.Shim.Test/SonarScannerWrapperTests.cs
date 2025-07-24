@@ -243,7 +243,7 @@ public class SonarScannerWrapperTests
 
         var result = wrapper.ExecuteJavaRunnerIgnoringAsserts();
         result.VerifyProcessRunOutcome("C:\\working\\dir", true);
-        result.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
+        result.SuppliedArguments.EnvironmentVariables.Should().ContainSingle();
         result.Logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
         result.Logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
         result.Logger.InfoMessages.Should().Contain(x => x.Contains("-D<sensitive data removed>"));
