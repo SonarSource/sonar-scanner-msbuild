@@ -725,8 +725,8 @@ public class SonarScannerWrapperTests
     private static void CheckArgDoesNotExist(string argToCheck, MockProcessRunner mockRunner)
     {
         var allArgs = mockRunner.SuppliedArguments.CmdLineArgs;
-        var found = allArgs.Any(x => x.IndexOf(argToCheck, StringComparison.Ordinal) is not -1);
-        found.Should().BeFalse(
+        allArgs.Should().NotContainMatch(
+            $"*{argToCheck}*",
             "Not expecting to find the argument. Arg: '{0}', all args: '{1}'",
             argToCheck,
             allArgs.Aggregate(new StringBuilder(), (sb, x) => sb.AppendFormat("{0} | ", x), x => x.ToString()));
