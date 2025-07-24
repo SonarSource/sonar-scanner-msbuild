@@ -56,14 +56,14 @@ public class BuildVNextCoverageSearchFallbackTests
         var subDir = Path.Combine(dir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
 
-        TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");
-        TestUtils.CreateTextFile(dir, "abc.trx", "2");
+        TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");              // wrong file extension
+        TestUtils.CreateTextFile(dir, "abc.trx", "2");                      // wrong file extension
         var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
         var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
 
-        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);
-        TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4"); // appears in both places - only one should be returned
-        var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5"); // should be found
+        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
+        TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");           // duplicate
+        var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
 
         using var envVars = new EnvironmentVariableScope();
         envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
@@ -79,18 +79,18 @@ public class BuildVNextCoverageSearchFallbackTests
         var subDir = Path.Combine(dir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
 
-        TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");
-        TestUtils.CreateTextFile(dir, "abc.trx", "2");
+        TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");              // wrong file extension
+        TestUtils.CreateTextFile(dir, "abc.trx", "2");                      // wrong file extension
         var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
         var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
 
-        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);
-        TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4"); // appears in both places - only one should be returned
-        var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5"); // should be found
+        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
+        TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");           // duplicate
+        var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
 
         using var envVars = new EnvironmentVariableScope();
         envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
-        testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2);
+        testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2);  // should also find expected3 but does not due to case-sensitivity
     }
 
     [TestMethod]
