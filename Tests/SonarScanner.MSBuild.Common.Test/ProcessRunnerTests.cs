@@ -218,9 +218,7 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_MissingExe()
     {
-        var context = new ProcessRunnerContext(
-            TestContext,
-            string.Empty)
+        var context = new ProcessRunnerContext(TestContext, string.Empty)
         {
             ExpectedExitCode = ProcessRunner.ErrorCode,
             ProcessArgs = new ProcessRunnerArguments("missingExe.foo", false)
@@ -252,9 +250,7 @@ public class ProcessRunnerTests
             "double escaping \\\" > foo.txt"
         };
 
-        var context = new ProcessRunnerContext(
-            TestContext,
-            commands: string.Empty)
+        var context = new ProcessRunnerContext(TestContext)
         {
             ProcessArgs =  new ProcessRunnerArguments(LogArgsPath(), false)
             {
@@ -291,10 +287,8 @@ public class ProcessRunnerTests
             "injection \" & echo haha",
             "double escaping \\\" > foo.txt"
         };
-        var context = new ProcessRunnerContext(
-            TestContext,
-            "\"" + LogArgsPath() + "\" %*");
-        context.SetCmdLineArgs(expected);
+        var context = new ProcessRunnerContext(TestContext, "\"" + LogArgsPath() + "\" %*");
+        context.ProcessArgs.CmdLineArgs = expected;
 
         context.ExecuteAndAssert();
         context.AssertExpectedLogContents(expected);
@@ -317,7 +311,7 @@ public class ProcessRunnerTests
 
         var context = new ProcessRunnerContext(
             TestContext,
-            commands: """
+            """
             @echo off
             REM The sonar-scanner.bat uses %* to pass the argument to javac.exe
             echo %*
@@ -335,7 +329,7 @@ public class ProcessRunnerTests
 
 
             """);
-        context.SetCmdLineArgs(expected);
+        context.ProcessArgs.CmdLineArgs = expected;
 
         context.ExecuteAndAssert();
         // Check that the public and private arguments are passed to the child process
@@ -381,9 +375,7 @@ public class ProcessRunnerTests
             "/dsonar.token =secret data token typo",
         };
         var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
-        var context = new ProcessRunnerContext(
-            TestContext,
-            null)
+        var context = new ProcessRunnerContext(TestContext)
         {
             ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
             {
@@ -448,11 +440,11 @@ public class ProcessRunnerTests
         private readonly string exePath;
         private ProcessResult result;
 
-        public TestLogger Logger { get; private set; }
+        public TestLogger Logger { get; }
         public int ExpectedExitCode { get; init; }
         public ProcessRunnerArguments ProcessArgs { get; init; }
 
-        public ProcessRunnerContext(TestContext testContext, string commands)
+        public ProcessRunnerContext(TestContext testContext, string commands = null)
         {
             testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             exePath = TestUtils.WriteBatchFileForTest(testContext, commands);
@@ -463,9 +455,6 @@ public class ProcessRunnerTests
                 WorkingDirectory = testDir
             };
         }
-
-        public void SetCmdLineArgs(IEnumerable<string> args) =>
-            ProcessArgs.CmdLineArgs = args;
 
         public void ExecuteAndAssert()
         {
