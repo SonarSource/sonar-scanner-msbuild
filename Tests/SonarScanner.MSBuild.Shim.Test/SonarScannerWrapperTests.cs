@@ -219,41 +219,35 @@ public class SonarScannerWrapperTests
     public void SonarScanner_UserSpecifiedEnvVars_OnlySONARSCANNEROPTSIsPassed()
     {
         var wrapper = new SonarScannerWrapperTestRunner();
-        using (var scope = new EnvironmentVariableScope())
-        {
-            // the SONAR_SCANNER_OPTS variable should be passed through explicitly,
-            // but not other variables
-            scope.SetVariable("Foo", "xxx");
-            scope.SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
-            scope.SetVariable("Bar", "yyy");
+        using var scope = new EnvironmentVariableScope();
+        // the SONAR_SCANNER_OPTS variable should be passed through explicitly,
+        // but not other variables
+        scope.SetVariable("Foo", "xxx");
+        scope.SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
+        scope.SetVariable("Bar", "yyy");
 
-            var result = wrapper.ExecuteJavaRunnerIgnoringAsserts();
+        var result = wrapper.ExecuteJavaRunnerIgnoringAsserts();
 
-            result.VerifyProcessRunOutcome("C:\\working\\dir", true);
-            result.CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Xmx2048m -Djavax.net.ssl.trustStorePassword={QuoteEnvironmentValue("changeit")}");
-            result.SuppliedArguments.EnvironmentVariables.Should().ContainSingle();
-            result.Logger.InfoMessages.Should().Contain("Using the supplied value for SONAR_SCANNER_OPTS. Value: -Xmx2048m");
-        }
-
-
+        result.VerifyProcessRunOutcome("C:\\working\\dir", true);
+        result.CheckEnvVarExists("SONAR_SCANNER_OPTS", $"-Xmx2048m -Djavax.net.ssl.trustStorePassword={QuoteEnvironmentValue("changeit")}");
+        result.SuppliedArguments.EnvironmentVariables.Should().ContainSingle();
+        result.Logger.InfoMessages.Should().Contain("Using the supplied value for SONAR_SCANNER_OPTS. Value: -Xmx2048m");
     }
 
     [TestMethod]
     public void SonarScanner_TrustStorePasswordInScannerOptsEnd_ShouldBeRedacted()
     {
         var wrapper = new SonarScannerWrapperTestRunner();
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m -Djavax.net.ssl.trustStorePassword=\"changeit\"");
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("SONAR_SCANNER_OPTS", "-Xmx2048m -Djavax.net.ssl.trustStorePassword=\"changeit\"");
 
-            var result = wrapper.ExecuteJavaRunnerIgnoringAsserts();
-            result.VerifyProcessRunOutcome("C:\\working\\dir", true);
-            result.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
-            result.Logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
-            result.Logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
-            result.Logger.InfoMessages.Should().Contain(x => x.Contains("-D<sensitive data removed>"));
-            result.Logger.InfoMessages.Should().NotContain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"changeit\""));
-        }
+        var result = wrapper.ExecuteJavaRunnerIgnoringAsserts();
+        result.VerifyProcessRunOutcome("C:\\working\\dir", true);
+        result.SuppliedArguments.EnvironmentVariables.Count.Should().Be(1);
+        result.Logger.InfoMessages.Should().Contain(x => x.Contains("SONAR_SCANNER_OPTS"));
+        result.Logger.InfoMessages.Should().Contain(x => x.Contains("-Xmx2048m"));
+        result.Logger.InfoMessages.Should().Contain(x => x.Contains("-D<sensitive data removed>"));
+        result.Logger.InfoMessages.Should().NotContain(x => x.Contains("-Djavax.net.ssl.trustStorePassword=\"changeit\""));
     }
 
     [TestCategory(TestCategories.NoLinux)]
@@ -661,34 +655,35 @@ public class SonarScannerWrapperTests
         }
     }
 
-
     private sealed class ExecuteJavaRunnerResult
     {
+        private readonly SonarScannerWrapperTestRunner testRunner;
+
         public bool Success { get; }
 
-        public TestLogger Logger => TestRunner.Logger;
-        public ProcessRunnerArguments SuppliedArguments => TestRunner.Runner.SuppliedArguments;
+        public TestLogger Logger => testRunner.Logger;
+        public ProcessRunnerArguments SuppliedArguments => testRunner.Runner.SuppliedArguments;
 
         public ExecuteJavaRunnerResult(SonarScannerWrapperTestRunner sonarScannerWrapperTestRunner, bool success)
         {
-            TestRunner = sonarScannerWrapperTestRunner;
+            testRunner = sonarScannerWrapperTestRunner;
             Success = success;
         }
 
         public void VerifyProcessRunOutcome(string expectedWorkingDir, bool expectedOutcome)
         {
             Success.Should().Be(expectedOutcome);
-            TestRunner.Runner.SuppliedArguments.WorkingDirectory.Should().Be(expectedWorkingDir);
+            testRunner.Runner.SuppliedArguments.WorkingDirectory.Should().Be(expectedWorkingDir);
             if (Success)
             {
                 // Errors can still be logged when the process completes successfully, so
                 // we don't check the error log in this case
-                TestRunner.Logger.AssertInfoMessageExists(Resources.MSG_SonarScannerCompleted);
+                testRunner.Logger.AssertInfoMessageExists(Resources.MSG_SonarScannerCompleted);
             }
             else
             {
-                TestRunner.Logger.AssertErrorsLogged();
-                TestRunner.Logger.AssertErrorLogged(Resources.ERR_SonarScannerExecutionFailed);
+                testRunner.Logger.AssertErrorsLogged();
+                testRunner.Logger.AssertErrorLogged(Resources.ERR_SonarScannerExecutionFailed);
             }
         }
 
@@ -701,7 +696,7 @@ public class SonarScannerWrapperTests
         /// </summary>
         public int CheckArgExists(string expectedArg)
         {
-            var allArgs = string.Join(" ", TestRunner.Runner.SuppliedArguments.CmdLineArgs);
+            var allArgs = string.Join(" ", testRunner.Runner.SuppliedArguments.CmdLineArgs);
             var index = allArgs.IndexOf(expectedArg, StringComparison.Ordinal);
             index.Should().BeGreaterThan(-1, "Expected argument was not found. Arg: '{0}', all args: '{1}'", expectedArg, allArgs);
             return index;
@@ -709,14 +704,12 @@ public class SonarScannerWrapperTests
 
         public void CheckArgDoesNotExist(string argToCheck)
         {
-            var allArgs = TestRunner.Runner.SuppliedArguments.EscapedArguments;
+            var allArgs = testRunner.Runner.SuppliedArguments.EscapedArguments;
             var index = allArgs.IndexOf(argToCheck, StringComparison.Ordinal);
             index.Should().Be(-1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
         }
 
         public void CheckEnvVarExists(string varName, string expectedValue) =>
-            TestRunner.Runner.SuppliedArguments.EnvironmentVariables.Should().ContainKey(varName).WhoseValue.Should().Be(expectedValue);
-
-        private SonarScannerWrapperTestRunner TestRunner { get; }
+            testRunner.Runner.SuppliedArguments.EnvironmentVariables.Should().ContainKey(varName).WhoseValue.Should().Be(expectedValue);
     }
 }
