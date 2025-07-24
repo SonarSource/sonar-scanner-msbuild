@@ -282,7 +282,10 @@ public class UtilitiesTests
         logger.Errors.Should().BeEmpty();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Windows enforces file locks at the OS level resulting in IOException.
+    // Unix does not enforce file locks at the OS level, so no exception is thrown.
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void TryEnsureEmptyDirectories_WhenIOException_ReturnsFalse()
     {
