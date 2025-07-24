@@ -17,15 +17,6 @@ stages:
         displayName: "Run UTs"
         steps:
           - task: DotNetCoreCLI@2
-            displayName: 'Build test pre-requisites'
-            inputs:
-              command: 'publish'
-              arguments: './Tests/LogArgs/LogArgs.csproj --framework net9.0 --self-contained -p:PublishSingleFile=true --output ./Tests/LogArgs/bin/Debug/net9.0/Unix'
-            env:
-              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-
-          - task: DotNetCoreCLI@2
             displayName: 'Run dotnet test'
             inputs:
               command: 'test'
