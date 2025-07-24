@@ -182,7 +182,7 @@ public class ListPropertiesProviderTests
         provider.AddProperty("b", "2");
         var enumerator = (provider as System.Collections.IEnumerable).GetEnumerator();
         enumerator.MoveNext().Should().BeTrue();
-        ((Property)enumerator.Current).Should().BeEquivalentTo(new Property("a", "1"));
+        enumerator.Current.Should().BeEquivalentTo(new Property("a", "1"));
     }
 
     private static void CheckPropertyExists(IAnalysisPropertyProvider provider, string id, string value)
