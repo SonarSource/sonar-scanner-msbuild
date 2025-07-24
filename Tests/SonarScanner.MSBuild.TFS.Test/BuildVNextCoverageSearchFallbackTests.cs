@@ -18,14 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.TFS.Tests;
 
 [TestClass]
@@ -36,32 +28,28 @@ public class BuildVNextCoverageSearchFallbackTests
     [TestMethod]
     public void Fallback_AgentDirectory_CalculatedCorrectly()
     {
-        // Arrange
         var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
-        var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(this.TestContext);
+        var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var envDir = Path.Combine(rootDir, "DirSpecifiedInEnvDir");
 
-        using (var envVars = new EnvironmentVariableScope())
-        {
-            // 1) env var not specified -> null
-            envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, null);
-            testSubject.GetAgentTempDirectory().Should().BeNull();
+        using var envVars = new EnvironmentVariableScope();
+        // 1) env var not specified -> null
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, null);
+        testSubject.GetAgentTempDirectory().Should().BeNull();
 
-            // 2) Env var set but dir does not exist -> null
-            envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, envDir);
-            testSubject.GetAgentTempDirectory().Should().Be(null);
+        // 2) Env var set but dir does not exist -> null
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, envDir);
+        testSubject.GetAgentTempDirectory().Should().Be(null);
 
-            // 3) Env var set and dir exists -> dir returned
-            Directory.CreateDirectory(envDir);
-            testSubject.GetAgentTempDirectory().Should().Be(envDir);
-        }
+        // 3) Env var set and dir exists -> dir returned
+        Directory.CreateDirectory(envDir);
+        testSubject.GetAgentTempDirectory().Should().Be(envDir);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Fallback_FilesLocatedCorrectly()
     {
-        // Arrange
         var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
         var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
         var subDir = Path.Combine(dir, "subDir", "subDir2");
@@ -72,27 +60,19 @@ public class BuildVNextCoverageSearchFallbackTests
         var expected1 = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
         var expected2 = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
 
-        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", "");
+        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);
         TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4"); // appears in both places - only one should be returned
         var expected3 = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5"); // should be found
 
-        using (var envVars = new EnvironmentVariableScope())
-        {
-            envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
-
-            // Act
-            var actual = testSubject.FindCoverageFiles();
-
-            // Assert
-            actual.Should().BeEquivalentTo(expected1, expected2, expected3);
-        }
+        using var envVars = new EnvironmentVariableScope();
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
+        testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2, expected3);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Fallback_CalculatesAndDeDupesOnContentCorrectly()
     {
-        // Arrange
         var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
         var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
         var subDir = Path.Combine(dir, "subDir", "subDir2");
@@ -108,18 +88,10 @@ public class BuildVNextCoverageSearchFallbackTests
         TestUtils.CreateTextFile(dir, fileOneDuplicate, fileOne); // Same content as fileOne, should not be expected
         TestUtils.CreateTextFile(subDir, fileOne, fileOne); // Same content and filename, but in other dir, as fileOne, should not be expected
 
-        using (var envVars = new EnvironmentVariableScope())
-        {
-            envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
-
-            // Act
-            var actual = testSubject.FindCoverageFiles();
-
-            // Assert
-            actual.Should().BeEquivalentTo(expected1, expected2, expected3);
-        }
+        using var envVars = new EnvironmentVariableScope();
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
+        testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2, expected3);
     }
-
 
     [TestMethod]
     public void Fallback_FileHashComparer_SimpleComparisons()
@@ -128,48 +100,40 @@ public class BuildVNextCoverageSearchFallbackTests
 
         // Identical content hash, identical file name -> same
         testSubject.Equals(
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[] { 1, 2 }),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[] { 1, 2 })
-        ).Should().BeTrue();
+            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", [1, 2]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", [1, 2]))
+            .Should().BeTrue();
 
         // Identical content hash, different file name -> same
         testSubject.Equals(
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[] { 1, 2 }),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[] { 1, 2 })
-        ).Should().BeTrue();
+            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", [1, 2]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", [1, 2]))
+            .Should().BeTrue();
 
         // Different content hash, identical file name -> different
         testSubject.Equals(
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", new byte[] { 1, 2 }),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", new byte[] { 1, 3 })
-        ).Should().BeFalse();
+            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", [1, 2]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", [1, 3]))
+            .Should().BeFalse();
     }
 
     [TestMethod]
     public void Fallback_FileHashComparer_CorrectlyDeDupesList()
     {
-        // Arrange
         var comparer = new BuildVNextCoverageSearchFallback.FileHashComparer();
-        BuildVNextCoverageSearchFallback.FileWithContentHash[] input = {
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 }),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 })
-        };
+        BuildVNextCoverageSearchFallback.FileWithContentHash[] input =
+        [
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(string.Empty, [1]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(string.Empty, [1]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(string.Empty, [1, 2]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(string.Empty, [1, 2]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(string.Empty, [1, 2, 3]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(string.Empty, [1, 2, 3])
+        ];
 
-        // Act
-        var actual = input.Distinct(comparer).ToArray();
-
-        // Assert
-        actual.Should().BeEquivalentTo(
-            new[]
-            {
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1 }),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2 }),
-                new BuildVNextCoverageSearchFallback.FileWithContentHash("", new byte[]{ 1, 2, 3 })
-            }
-        );
+        input.Distinct(comparer).Should().BeEquivalentTo([
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(string.Empty, [1]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(string.Empty, [1, 2]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(string.Empty, [1, 2, 3])]);
     }
 }
