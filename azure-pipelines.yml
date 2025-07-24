@@ -361,6 +361,7 @@ stages:
               GO_VERSION: "1.8.3.2219"          # Bundled version with SQ 8.9
               GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "NONE"               # No release brefore SQ 9.9, the plug-in should not be loaded
+              IAC_ENTERPRISE_VERSION: "NONE"
               JAVA_VERSION: "NONE"              # Not required in our ITs for SQ 8.9
               JAVASCRIPT_VERSION: "7.4.4.15624" # Bundled version with SQ 8.9
               PHP_VERSION: "3.17.0.7439"        # Bundled version with SQ 8.9
@@ -379,6 +380,7 @@ stages:
               GO_VERSION: "1.11.0.3905"          # Bundled version with SQ 9.9
               GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "1.11.0.2847"         # Bundled version with SQ 9.9
+              IAC_ENTERPRISE_VERSION: "NONE"     # Not present until LTA-2025
               JAVA_VERSION: "NONE"               # Not required in our ITs for SQ 9.9
               JAVASCRIPT_VERSION: "9.13.0.20537" # Bundled version with SQ 9.9
               PHP_VERSION: "3.27.1.9352"         # Bundled version with SQ 9.9
@@ -397,6 +399,7 @@ stages:
               GO_VERSION: "1.18.0.240"            # Bundled version with SQ 2025.1
               GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "1.41.0.14206"         # Bundled version with SQ 2025.1
+              IAC_ENTERPRISE_VERSION: "1.41.0.14206" # Bundled version with SQ 2025.1
               JAVA_VERSION: "8.9.0.37768"         # Bundled version with SQ 2025.1, required by sonar-text to analyse .properties files
               JAVASCRIPT_VERSION: "10.20.0.29356" # Bundled version with SQ 2025.1
               PHP_VERSION: "3.42.0.12795"         # Bundled version with SQ 2025.1
