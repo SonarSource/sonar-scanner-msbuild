@@ -150,46 +150,69 @@ public class UtilitiesTests
         action.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be(expected);
     }
 
-    [DataRow(false, "logger")]
-    [DataRow(true, "op")]
-    [DataTestMethod]
-    public void Retry_NullParams_ThrowsArgumentNullException(bool loggerOrOp, string expected)
+    [TestMethod]
+    public void Retry_NullLogger_ThrowsArgumentNullException()
     {
-        Action action = () => Utilities.Retry(1, 1, loggerOrOp ? new TestLogger() : null, loggerOrOp ? null : (() => true));
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
+        Action action = () => Utilities.Retry(1, 1,  null, () => true);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
-    [DataRow("directory", false, "logger")]
+    [TestMethod]
+    public void Retry_NullOp_ThrowsArgumentNullException()
+    {
+        Action action = () => Utilities.Retry(1, 1, new TestLogger(), null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("op");
+    }
+
+    [TestMethod]
+    public void EnsureDirectoryExists_NullLogger_ThrowsArgumentNullException()
+    {
+        Action action = () => Utilities.EnsureDirectoryExists("directory", null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
     [DataRow(null)]
     [DataRow("")]
     [DataRow("   ")]
     [DataTestMethod]
-    public void EnsureDirectoryExists_ThrowsArgumentNullException(string directory, bool useLogger = true, string expected = "directory")
+    public void EnsureDirectoryExists_InvalidDirectory_ThrowsArgumentNullException(string directory)
     {
-        Action action = () => Utilities.EnsureDirectoryExists(directory, useLogger ? new TestLogger() : null);
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
+        Action action = () => Utilities.EnsureDirectoryExists(directory, new TestLogger());
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
     }
 
-    [DataRow("foo", false, "logger")]
+    [TestMethod]
+    public void EnsureEmptyDirectory_NullLogger_ThrowsArgumentNullException()
+    {
+        Action action = () => Utilities.EnsureEmptyDirectory("directory", null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
     [DataRow(null)]
     [DataRow("")]
     [DataRow("   ")]
     [DataTestMethod]
-    public void EnsureEmptyDirectory_ThrowsArgumentNullException(string directory, bool logger = true, string expected = "directory")
+    public void EnsureEmptyDirectory_InvalidDirectory_ThrowsArgumentNullException(string directory)
     {
-        Action action = () => Utilities.EnsureEmptyDirectory(directory, logger ? new TestLogger() : null);
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
+        Action action = () => Utilities.EnsureEmptyDirectory(directory, new TestLogger());
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
     }
 
-    [DataRow("foo", false, "logger")]
+    [TestMethod]
+    public void LogAssemblyVersion_NullLogger_ThrowsArgumentNullException()
+    {
+        Action action = () => Utilities.LogAssemblyVersion(null, "description");
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
     [DataRow(null)]
     [DataRow("")]
     [DataRow("  ")]
     [DataTestMethod]
-    public void LogAssemblyVersion_ThrowsArgumentNullException(string description, bool useLogger = true, string expected = "description")
+    public void LogAssemblyVersion_InvaliDescription_ThrowsArgumentNullException(string description)
     {
-        Action action = () => Utilities.LogAssemblyVersion(useLogger ? new TestLogger() : null, description);
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
+        Action action = () => Utilities.LogAssemblyVersion(new TestLogger(), description);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
     }
 
     [TestMethod]
