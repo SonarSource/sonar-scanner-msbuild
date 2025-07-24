@@ -26,6 +26,7 @@ jobs:
       GO_VERSION: "LATEST_RELEASE"
       GO_GROUP_ID: "org.sonarsource.go"
       IAC_VERSION: "LATEST_RELEASE"
+      IAC_ENTERPRISE_VERSION: "LATEST_RELEASE"
       JAVA_VERSION: "LATEST_RELEASE"
       JAVASCRIPT_VERSION: "LATEST_RELEASE"
       PHP_VERSION: "LATEST_RELEASE"
@@ -102,6 +103,7 @@ jobs:
             -Dsonar.pythonplugin.version=$(PYTHON_VERSION)
             -Dsonar.phpplugin.version=$(PHP_VERSION)
             -Dsonar.iacplugin.version=$(IAC_VERSION)
+            -Dsonar.iacplugin-enterprise.version=$(IAC_ENTERPRISE_VERSION)
             -Dsonar.javaplugin.version=$(JAVA_VERSION)
             -Dsonar.textplugin.version=$(TEXT_VERSION)
             -Dsonar.goplugin.version=$(GO_VERSION)
