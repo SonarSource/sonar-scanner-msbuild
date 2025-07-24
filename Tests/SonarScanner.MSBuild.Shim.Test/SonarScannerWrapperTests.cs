@@ -193,13 +193,19 @@ public class SonarScannerWrapperTests
 
         // Non-sensitive values from the file should not be passed on the command line
         CheckArgDoesNotExist("file.not.sensitive.key", mockRunner);
-        CheckArgDoesNotExist(SonarProperties.SonarUserName, mockRunner);
-        CheckArgDoesNotExist(SonarProperties.SonarPassword, mockRunner);
-        CheckArgDoesNotExist(SonarProperties.ClientCertPassword, mockRunner);
-        CheckArgDoesNotExist(SonarProperties.SonarToken, mockRunner);
+        mockRunner.SuppliedArguments.CmdLineArgs.Should().BeEquivalentTo(
+            "-Dxxx=yyy",
+            "-Dsonar.password=cmdline.password",                       // sensitive value from cmd line: overrides file value
+            "-Dsonar.clientcert.password=client certificate password", // sensitive value from file
+            "-Dsonar.login=file.username - should not be returned",
+            "-Dsonar.token=token - should not be returned",
+            "-Dproject.settings=c:\\foo.props",
+            $"--from=ScannerMSBuild/{Utilities.ScannerVersion}",
+            "--debug",
+            "-Dsonar.scanAllFiles=true");
 
-        var clientCertPwdIndex = CheckArgExists("-Dsonar.clientcert.password=client certificate password", mockRunner); // sensitive value from file
-        var userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", mockRunner); // sensitive value from cmd line: overrides file value
+        var clientCertPwdIndex = CheckArgExists("-Dsonar.clientcert.password=client certificate password", mockRunner);
+        var userPwdIndex = CheckArgExists("-Dsonar.password=cmdline.password", mockRunner);
 
         var propertiesFileIndex = CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName, mockRunner);
 
@@ -718,9 +724,12 @@ public class SonarScannerWrapperTests
 
     private static void CheckArgDoesNotExist(string argToCheck, MockProcessRunner mockRunner)
     {
-        var allArgs = mockRunner.SuppliedArguments.EscapedArguments;
-        var index = allArgs.IndexOf(argToCheck, StringComparison.Ordinal);
-        index.Should().Be(-1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
+        var allArgs = mockRunner.SuppliedArguments.CmdLineArgs;
+        var found = allArgs.Any(x => x.IndexOf(argToCheck, StringComparison.Ordinal) is not -1);
+        found.Should().BeFalse(
+            "Not expecting to find the argument. Arg: '{0}', all args: '{1}'",
+            argToCheck,
+            allArgs.Aggregate(new StringBuilder(), (sb, x) => sb.AppendFormat("{0} | ", x), x => x.ToString()));
     }
 
     private static void CheckEnvVarExists(string varName, string expectedValue, MockProcessRunner mockRunner) =>
