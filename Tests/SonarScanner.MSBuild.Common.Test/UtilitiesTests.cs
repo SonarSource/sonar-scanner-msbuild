@@ -164,7 +164,7 @@ public class UtilitiesTests
     [DataRow("")]
     [DataRow("   ")]
     [DataTestMethod]
-    public void EnsureDirectoryExists_WhenLoggerIsNull_ThrowsArgumentNullException(string directory, bool useLogger = true, string expected = "directory")
+    public void EnsureDirectoryExists_ThrowsArgumentNullException(string directory, bool useLogger = true, string expected = "directory")
     {
         Action action = () => Utilities.EnsureDirectoryExists(directory, useLogger ? new TestLogger() : null);
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
@@ -175,7 +175,7 @@ public class UtilitiesTests
     [DataRow("")]
     [DataRow("   ")]
     [DataTestMethod]
-    public void EnsureEmptyDirectory_WhenDirectoryIsInvalid_ThrowsArgumentNullException(string directory, bool logger = true, string expected = "directory")
+    public void EnsureEmptyDirectory_ThrowsArgumentNullException(string directory, bool logger = true, string expected = "directory")
     {
         Action action = () => Utilities.EnsureEmptyDirectory(directory, logger ? new TestLogger() : null);
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
@@ -186,7 +186,7 @@ public class UtilitiesTests
     [DataRow("")]
     [DataRow("  ")]
     [DataTestMethod]
-    public void LogAssemblyVersion_WhenLoggerIsNull_ThrowsArgumentNullException(string description, bool useLogger = true, string expected = "description")
+    public void LogAssemblyVersion_ThrowsArgumentNullException(string description, bool useLogger = true, string expected = "description")
     {
         Action action = () => Utilities.LogAssemblyVersion(useLogger ? new TestLogger() : null, description);
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
