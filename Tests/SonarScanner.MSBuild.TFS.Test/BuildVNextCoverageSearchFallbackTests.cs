@@ -47,9 +47,8 @@ public class BuildVNextCoverageSearchFallbackTests
     }
 
     [TestCategory(TestCategories.NoLinux)]
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    public void Fallback_FilesLocatedCorrectly_Windows()
+    public void Fallback_FilesLocatedCorrectly_Windows_Mac()
     {
         var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
         var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
@@ -73,8 +72,9 @@ public class BuildVNextCoverageSearchFallbackTests
     }
 
     [TestCategory(TestCategories.NoWindows)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    public void Fallback_FilesLocatedCorrectly_Unix()
+    public void Fallback_FilesLocatedCorrectly_Linux()
     {
         var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
         var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
