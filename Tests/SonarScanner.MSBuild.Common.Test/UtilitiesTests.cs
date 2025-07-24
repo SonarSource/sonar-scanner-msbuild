@@ -37,36 +37,6 @@ public class UtilitiesTests
     public void VersionDisplayString(string version, string expectedDisplayString) =>
         new Version(version).ToDisplayString().Should().Be(expectedDisplayString);
 
-
-    [DataRow(0, 1, "timeoutInMilliseconds")]
-    [DataRow(1, 0, "pauseBetweenTriesInMilliseconds")]
-    [DataTestMethod]
-    public void Retry_ThrowsArgumentOutOfRangeException(int timeout, int pause, string expected)
-    {
-        Action action = () => Utilities.Retry(timeout, pause, new TestLogger(), () => true);
-        action.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be(expected);
-    }
-
-    [DataRow(false, "logger")]
-    [DataRow(true, "op")]
-    [DataTestMethod]
-    public void Retry_NullParams_ThrowsArgumentNullException(bool loggerOrOp, string expected)
-    {
-        Action action = () => Utilities.Retry(1, 1, loggerOrOp ? new TestLogger() : null, loggerOrOp ? null : (() => true));
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
-    }
-
-    [DataRow("directory", false, "logger")]
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow("   ")]
-    [DataTestMethod]
-    public void EnsureDirectoryExists_WhenLoggerIsNull_ThrowsArgumentNullException(string directory, bool useLogger = true, string expected = "directory")
-    {
-        Action action = () => Utilities.EnsureDirectoryExists(directory, useLogger ? new TestLogger() : null);
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
-    }
-
     [TestMethod]
     public void EnsureDirectoryExists_WhenDirectoryMissing_IsCreated()
     {
@@ -91,17 +61,6 @@ public class UtilitiesTests
         Directory.Exists(baseDir).Should().BeTrue();
         logger.Warnings.Should().BeEmpty();
         logger.Errors.Should().BeEmpty();
-    }
-
-    [DataRow("c:\\foo", false, "logger")]
-    [DataRow(null)]
-    [DataRow("")]
-    [DataRow("   ")]
-    [DataTestMethod]
-    public void EnsureEmptyDirectory_WhenDirectoryIsInvalid_ThrowsArgumentNullException(string directory, bool logger = true, string expected = "directory")
-    {
-        Action action = () => Utilities.EnsureEmptyDirectory(directory, logger ? new TestLogger() : null);
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
     }
 
     [TestMethod]
@@ -131,13 +90,6 @@ public class UtilitiesTests
         Directory.GetFiles(baseDir).Should().BeEmpty();
         logger.Warnings.Should().BeEmpty();
         logger.Errors.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void TryEnsureEmptyDirectory_WhenLoggerIsInvalid_ThrowsArgumentNullException()
-    {
-        Action action = () => Utilities.TryEnsureEmptyDirectories(null, "c:\\foo");
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -189,6 +141,46 @@ public class UtilitiesTests
         logger.AssertSingleErrorExists(dirWithFile); // expecting the directory name to be in the message
     }
 
+    [DataRow(0, 1, "timeoutInMilliseconds")]
+    [DataRow(1, 0, "pauseBetweenTriesInMilliseconds")]
+    [DataTestMethod]
+    public void Retry_ThrowsArgumentOutOfRangeException(int timeout, int pause, string expected)
+    {
+        Action action = () => Utilities.Retry(timeout, pause, new TestLogger(), () => true);
+        action.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be(expected);
+    }
+
+    [DataRow(false, "logger")]
+    [DataRow(true, "op")]
+    [DataTestMethod]
+    public void Retry_NullParams_ThrowsArgumentNullException(bool loggerOrOp, string expected)
+    {
+        Action action = () => Utilities.Retry(1, 1, loggerOrOp ? new TestLogger() : null, loggerOrOp ? null : (() => true));
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
+    }
+
+    [DataRow("directory", false, "logger")]
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("   ")]
+    [DataTestMethod]
+    public void EnsureDirectoryExists_WhenLoggerIsNull_ThrowsArgumentNullException(string directory, bool useLogger = true, string expected = "directory")
+    {
+        Action action = () => Utilities.EnsureDirectoryExists(directory, useLogger ? new TestLogger() : null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
+    }
+
+    [DataRow("foo", false, "logger")]
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("   ")]
+    [DataTestMethod]
+    public void EnsureEmptyDirectory_WhenDirectoryIsInvalid_ThrowsArgumentNullException(string directory, bool logger = true, string expected = "directory")
+    {
+        Action action = () => Utilities.EnsureEmptyDirectory(directory, logger ? new TestLogger() : null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
+    }
+
     [DataRow("foo", false, "logger")]
     [DataRow(null)]
     [DataRow("")]
@@ -197,8 +189,14 @@ public class UtilitiesTests
     public void LogAssemblyVersion_WhenLoggerIsNull_ThrowsArgumentNullException(string description, bool useLogger = true, string expected = "description")
     {
         Action action = () => Utilities.LogAssemblyVersion(useLogger ? new TestLogger() : null, description);
-
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be(expected);
+    }
+
+    [TestMethod]
+    public void TryEnsureEmptyDirectory_WhenLoggerIsInvalid_ThrowsArgumentNullException()
+    {
+        Action action = () => Utilities.TryEnsureEmptyDirectories(null, "foo");
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     private string CreateDirectoryWithFile(string directoryName)
