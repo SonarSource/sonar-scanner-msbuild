@@ -18,15 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
+using System.Collections;
 
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
 /// Simple settings provider that returns values from a list
 /// </summary>
-public class ListPropertiesProvider : IAnalysisPropertyProvider
+public class ListPropertiesProvider : IAnalysisPropertyProvider, IEnumerable<Property>
 {
     private readonly IList<Property> properties;
 
@@ -93,4 +92,17 @@ public class ListPropertiesProvider : IAnalysisPropertyProvider
             : Property.TryGetProperty(key, properties, out property);
 
     #endregion IAnalysisProperiesProvider interface
+
+    #region Dictionary initalizer support
+
+    public Property Add(string key, string value) =>
+        AddProperty(key, value);
+
+    public IEnumerator<Property> GetEnumerator() =>
+        properties.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() =>
+        GetEnumerator();
+
+    #endregion
 }
