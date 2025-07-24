@@ -65,7 +65,7 @@ public class ListPropertyProviderTests
     {
         var dict = new Dictionary<string, string> { { "a", "1" }, { "b", "2" } };
         var provider = new ListPropertiesProvider(dict, PropertyProviderKind.CLI);
-        provider.GetAllProperties().Select(p => p.Id).Should().BeEquivalentTo(dict.Keys);
+        provider.GetAllProperties().Select(x => x.Id).Should().BeEquivalentTo(dict.Keys);
         provider.ProviderType.Should().Be(PropertyProviderKind.CLI);
     }
 
@@ -76,7 +76,7 @@ public class ListPropertyProviderTests
         var prop = provider.AddProperty("key", "val");
         prop.Id.Should().Be("key");
         prop.Value.Should().Be("val");
-        provider.GetAllProperties().Should().ContainSingle(p => p.Id == "key" && p.Value == "val");
+        provider.GetAllProperties().Should().ContainSingle(x => x.Id == "key" && x.Value == "val");
     }
 
     [TestMethod]
