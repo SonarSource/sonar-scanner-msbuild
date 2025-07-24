@@ -69,7 +69,6 @@ public class BuildVNextCoverageSearchFallbackTests
         testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2, expected3);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Fallback_CalculatesAndDeDupesOnContentCorrectly()
     {
@@ -78,19 +77,22 @@ public class BuildVNextCoverageSearchFallbackTests
         var subDir = Path.Combine(dir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
 
-        var fileOne = "fileNameOne.coverage";
-        var fileTwo = "fileNameTwo.coverage";
-        var fileThree = "fileNameThree.coverage";
-        var fileOneDuplicate = "fileNameOneDuplicate.coverage";
-        var expected1 = TestUtils.CreateTextFile(dir, fileOne, fileOne);
-        var expected2 = TestUtils.CreateTextFile(dir, fileTwo, fileTwo);
-        var expected3 = TestUtils.CreateTextFile(dir, fileThree, fileThree);
-        TestUtils.CreateTextFile(dir, fileOneDuplicate, fileOne); // Same content as fileOne, should not be expected
-        TestUtils.CreateTextFile(subDir, fileOne, fileOne); // Same content and filename, but in other dir, as fileOne, should not be expected
+        var file1 = "fileName1.coverage";
+        var file2 = "fileName2.coverage";
+        var file3 = "fileName3.coverage";
+        var file1Duplicate = "file1Duplicate.coverage";
+        var filePath1 = TestUtils.CreateTextFile(dir, file1, file1);
+        var filePath2 = TestUtils.CreateTextFile(dir, file2, file2);
+        var filePath3 = TestUtils.CreateTextFile(dir, file3, file3);
+        var filePath1Duplicate = TestUtils.CreateTextFile(dir, file1Duplicate, file1);
+        var filePath1SubDir = TestUtils.CreateTextFile(subDir, file1, file1);
 
         using var envVars = new EnvironmentVariableScope();
         envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
-        testSubject.FindCoverageFiles().Should().BeEquivalentTo(expected1, expected2, expected3);
+        testSubject.FindCoverageFiles().Should().Satisfy(
+            x => x == filePath1 || x == filePath1Duplicate || x == filePath1SubDir,
+            x => x == filePath2,
+            x => x == filePath3);
     }
 
     [TestMethod]
