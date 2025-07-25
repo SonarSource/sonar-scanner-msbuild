@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Runtime.InteropServices;
 using System.Security;
 
 namespace SonarScanner.MSBuild.Common.Test;
@@ -41,68 +42,104 @@ public class ProcessRunnerTests
         action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("runnerArgs");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    public void ProcRunner_ExecutionFailed() =>
-        new ProcessRunnerContext(TestContext, "exit -2") { ExpectedExitCode = -2 }.ExecuteAndAssert();
+    public void ProcRunner_ExecutionFailed()
+    {
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "exit 9"
+            : """
+            #!/bin/sh 
+            exit 9
+            """;
+        new ProcessRunnerContext(TestContext, content) { ExpectedExitCode = 9 }.ExecuteAndAssert();
+    }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_ExecutionSucceeded()
     {
-        var context = new ProcessRunnerContext(
-            TestContext,
-            """
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? """
             @echo off
             @echo Hello world
             xxx yyy
             @echo Testing 1,2,3...>&2
-            """);
+            """
+            : """
+            #!/bin/sh
+            echo "Hello world"
+            xxx yyy
+            echo "Testing 1,2,3..." 1>&2
+            """;
+
+        var context = new ProcessRunnerContext(
+            TestContext,
+            content);
 
         context.ExecuteAndAssert();
+
+        var expected = string.Empty;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            expected = """
+                'xxx' is not recognized as an internal or external command,
+                operable program or batch file.
+                Testing 1,2,3...
+
+                """;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            expected = $"{context.ExePath}: line 3: xxx: command not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            expected = $"{context.ExePath}: 3: xxx: not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
+        }
 
         context.Logger.AssertInfoLogged("Hello world");
         context.Logger.AssertErrorLogged("Testing 1,2,3...");
         context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
-        context.ResultErrorOutputShouldBe("""
-            'xxx' is not recognized as an internal or external command,
-            operable program or batch file.
-            Testing 1,2,3...
-
-            """);
+        context.ResultErrorOutputShouldBe(expected);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_ErrorAsWarningMessage_LogAsWarning()
     {
-        var context = new ProcessRunnerContext(TestContext, """
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? """
             @echo off
             @echo WARN: Hello world>&2
-            """);
+            """
+            : """
+            #!/bin/sh
+            echo "WARN: Hello world" >&2
+            """;
+        var context = new ProcessRunnerContext(TestContext, content);
 
         context.ExecuteAndAssert();
 
         context.Logger.AssertWarningLogged("WARN: Hello world");
         context.ResultStandardOutputShouldBe(string.Empty);
-        context.ResultErrorOutputShouldBe("""
-            WARN: Hello world
-
-            """);
+        context.ResultErrorOutputShouldBe("WARN: Hello world" + Environment.NewLine);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_LogOutputFalse_ExecutionSucceeded()
     {
-        var context = new ProcessRunnerContext(
-            TestContext,
-            """
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? """
             @echo off
             @echo Hello world
             xxx yyy
             @echo Testing 1,2,3...>&2
-            """);
+            """
+            : """
+            #!/bin/sh
+            echo "Hello world"
+            xxx yyy
+            echo "Testing 1,2,3..." 1>&2
+            """;
+        var context = new ProcessRunnerContext(TestContext, content);
         context.ProcessArgs.LogOutput = false;
 
         context.ExecuteAndAssert();
@@ -110,24 +147,43 @@ public class ProcessRunnerTests
         context.Logger.AssertMessageNotLogged("Hello world");
         context.Logger.AssertErrorNotLogged("Testing 1,2,3...");
         context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
-        context.ResultErrorOutputShouldBe("""
-            'xxx' is not recognized as an internal or external command,
-            operable program or batch file.
-            Testing 1,2,3...
 
-            """);
+        var expected = string.Empty;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            expected = """
+                'xxx' is not recognized as an internal or external command,
+                operable program or batch file.
+                Testing 1,2,3...
+
+                """;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            expected = $"{context.ExePath}: line 3: xxx: command not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            expected = $"{context.ExePath}: 3: xxx: not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
+        }
+        context.ResultErrorOutputShouldBe(expected);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_FailsOnTimeout()
     {
-        var context = new ProcessRunnerContext(
-            TestContext,
-            """
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? """
+            @echo off
             powershell -Command "Start-Sleep -Seconds 2"
             @echo Hello world
-            """)
+            """
+            : """
+            #!/bin/sh
+            sleep 2
+            echo "Hello world"
+            """;
+        var context = new ProcessRunnerContext(TestContext, content)
         {
             ExpectedExitCode = ProcessRunner.ErrorCode
         };
@@ -146,17 +202,23 @@ public class ProcessRunnerTests
         context.Logger.Warnings.Single().Contains("has been terminated").Should().BeTrue();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_PassesEnvVariables()
     {
-        var context = new ProcessRunnerContext(
-            TestContext,
-            """
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? """
+            @echo off
             echo %PROCESS_VAR%
             @echo %PROCESS_VAR2%
             @echo %PROCESS_VAR3%
-            """);
+            """
+            : """
+            #!/bin/sh
+            echo "$PROCESS_VAR"
+            echo "$PROCESS_VAR2"
+            echo "$PROCESS_VAR3"
+            """;
+        var context = new ProcessRunnerContext(TestContext, content);
         context.ProcessArgs.EnvironmentVariables = new Dictionary<string, string>
         {
             { "PROCESS_VAR", "PROCESS_VAR value" },
@@ -170,38 +232,44 @@ public class ProcessRunnerTests
         context.Logger.AssertInfoLogged("PROCESS_VAR3 value");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcRunner_PassesEnvVariables_OverrideExisting()
     {
-        var context = new ProcessRunnerContext(
-            TestContext,
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? """
+            @echo off
+            @echo file: %proc_runner_test_machine%
+            @echo file: %proc_runner_test_process%
+            @echo file: %proc_runner_test_user%
             """
-            @echo file: %proc.runner.test.machine%
-            @echo file: %proc.runner.test.process%
-            @echo file: %proc.runner.test.user%
-            """);
+            : """
+            #!/bin/bash
+            echo "file: $proc_runner_test_machine"
+            echo "file: $proc_runner_test_process"
+            echo "file: $proc_runner_test_user"
+            """;
+        var context = new ProcessRunnerContext(TestContext, content);
         try
         {
             // It's possible the user won't be have permissions to set machine level variables
             // (e.g. when running on a build agent). Carry on with testing the other variables.
-            SafeSetEnvironmentVariable("proc.runner.test.machine", "existing machine value", EnvironmentVariableTarget.Machine, context.Logger);
-            Environment.SetEnvironmentVariable("proc.runner.test.process", "existing process value", EnvironmentVariableTarget.Process);
-            Environment.SetEnvironmentVariable("proc.runner.test.user", "existing user value", EnvironmentVariableTarget.User);
+            SafeSetEnvironmentVariable("proc_runner_test_machine", "existing machine value", EnvironmentVariableTarget.Machine, context.Logger);
+            Environment.SetEnvironmentVariable("proc_runner_test_process", "existing process value", EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable("proc_runner_test_user", "existing user value", EnvironmentVariableTarget.User);
             context.ProcessArgs.EnvironmentVariables = new Dictionary<string, string>
             {
-                { "proc.runner.test.machine", "machine override" },
-                { "proc.runner.test.process", "process override" },
-                { "proc.runner.test.user", "user override" }
+                { "proc_runner_test_machine", "machine override" },
+                { "proc_runner_test_process", "process override" },
+                { "proc_runner_test_user", "user override" }
             };
 
             context.ExecuteAndAssert();
         }
         finally
         {
-            SafeSetEnvironmentVariable("proc.runner.test.machine", null, EnvironmentVariableTarget.Machine, context.Logger);
-            Environment.SetEnvironmentVariable("proc.runner.test.process", null, EnvironmentVariableTarget.Process);
-            Environment.SetEnvironmentVariable("proc.runner.test.user", null, EnvironmentVariableTarget.User);
+            SafeSetEnvironmentVariable("proc_runner_test_machine", null, EnvironmentVariableTarget.Machine, context.Logger);
+            Environment.SetEnvironmentVariable("proc_runner_test_process", null, EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable("proc_runner_test_user", null, EnvironmentVariableTarget.User);
         }
 
         // Check the child process used expected values
@@ -212,7 +280,7 @@ public class ProcessRunnerTests
         // Check the runner reported it was overwriting existing variables
         // Note: the existing non-process values won't be visible to the child process
         // unless they were set *before* the test host launched, which won't be the case.
-        context.Logger.AssertSingleDebugMessageExists("proc.runner.test.process", "existing process value", "process override");
+        context.Logger.AssertSingleDebugMessageExists("proc_runner_test_process", "existing process value", "process override");
     }
 
     [TestMethod]
@@ -228,7 +296,9 @@ public class ProcessRunnerTests
         context.Logger.AssertSingleErrorExists("missingExe.foo");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Relies on LogArgs, which is difficult to test in a cross-platform way
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ProcRunner_ArgumentQuoting()
     {
@@ -265,12 +335,13 @@ public class ProcessRunnerTests
         context.AssertExpectedLogContents(expected);
     }
 
-    // Checks arguments passed to a batch script which itself passes them on are correctly escaped
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Checks arguments passed to a script which itself passes them on are correctly escaped
+    // Relies on LogArgs, which is difficult to test in a cross-platform way
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
     {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var expected = new[]
         {
             "unquoted",
@@ -294,7 +365,6 @@ public class ProcessRunnerTests
         context.AssertExpectedLogContents(expected);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [WorkItem(1706)] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
     public void ProcRunner_ArgumentQuotingScanner()
@@ -309,9 +379,8 @@ public class ProcessRunnerTests
             @"--debug"
         };
 
-        var context = new ProcessRunnerContext(
-            TestContext,
-            """
+        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? """
             @echo off
             REM The sonar-scanner.bat uses %* to pass the argument to javac.exe
             echo %*
@@ -328,23 +397,47 @@ public class ProcessRunnerTests
             echo %4
 
 
-            """);
+            """
+            : """
+            #!/bin/sh
+            echo "$*"
+            echo "$1"
+            echo "$2"
+            echo "$3"
+            echo "$4"
+            """;
+
+        var context = new ProcessRunnerContext(TestContext, content);
         context.ProcessArgs.CmdLineArgs = expected;
 
         context.ExecuteAndAssert();
         // Check that the public and private arguments are passed to the child process
-        context.Logger.InfoMessages.Should().BeEquivalentTo(
-            @"""-Dsonar.scanAllFiles=true"" ""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties"" ""--from=ScannerMSBuild/5.13.1"" ""--debug""",
-            @"""-Dsonar.scanAllFiles=true""",
-            string.Empty,
-            @"""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties""",
-            string.Empty,
-            @"""--from=ScannerMSBuild/5.13.1""",
-            string.Empty,
-            @"""--debug""");
+        var expectedLogMessages = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? new[]
+            {
+                @"""-Dsonar.scanAllFiles=true"" ""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties"" ""--from=ScannerMSBuild/5.13.1"" ""--debug""",
+                @"""-Dsonar.scanAllFiles=true""",
+                string.Empty,
+                @"""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties""",
+                string.Empty,
+                @"""--from=ScannerMSBuild/5.13.1""",
+                string.Empty,
+                @"""--debug"""
+            }
+            : [
+            @"-Dsonar.scanAllFiles=true -Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties --from=ScannerMSBuild/5.13.1 --debug",
+            @"-Dsonar.scanAllFiles=true",
+            @"-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties",
+            @"--from=ScannerMSBuild/5.13.1",
+            @"--debug"
+            ];
+
+        context.Logger.InfoMessages.Should().BeEquivalentTo(expectedLogMessages);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Relies on LogArgs, which is difficult to test in a cross-platform way
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
     public void ProcRunner_DoNotLogSensitiveData()
@@ -435,9 +528,10 @@ public class ProcessRunnerTests
 
     private class ProcessRunnerContext
     {
+        public string ExePath;
+
         private readonly ProcessRunner runner;
         private readonly string testDir;
-        private readonly string exePath;
         private ProcessResult result;
 
         public TestLogger Logger { get; }
@@ -446,11 +540,12 @@ public class ProcessRunnerTests
 
         public ProcessRunnerContext(TestContext testContext, string commands = null)
         {
+            commands ??= string.Empty;
             testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
-            exePath = TestUtils.WriteBatchFileForTest(testContext, commands);
+            ExePath = TestUtils.WriteExecutableScriptForTest(testContext, commands);
             Logger = new TestLogger();
             runner = new ProcessRunner(Logger);
-            ProcessArgs = new ProcessRunnerArguments(exePath, true)
+            ProcessArgs = new ProcessRunnerArguments(ExePath, RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 WorkingDirectory = testDir
             };
@@ -481,8 +576,11 @@ public class ProcessRunnerTests
             result.StandardOutput.Should().Be(expected, "Unexpected standard output");
         }
 
-        public void ResultErrorOutputShouldBe(string expected) =>
+        public void ResultErrorOutputShouldBe(string expected)
+        {
+            Console.WriteLine(result.ErrorOutput);
             result.ErrorOutput.Should().Be(expected, "Unexpected error output");
+        }
 
         public void AssertExpectedLogContents(params string[] expected)
         {
