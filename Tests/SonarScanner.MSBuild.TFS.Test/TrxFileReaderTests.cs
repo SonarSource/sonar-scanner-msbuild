@@ -96,7 +96,10 @@ public class TrxFileReaderTests
     [TestMethod]
     public void TrxReader_SingleTrxFileInSubfolder()
     {
-        var testResults = CreateDirectories(RootDirectory, "Dummy\\TestResults")[0];
+        var testResults = CreateDirectories(Path.Combine(RootDirectory, "Dummy"), "TestResults")[0];
+        directoryMock
+            .GetDirectories(Arg.Is<string>(x => RootDirectory.Equals(x, StringComparison.InvariantCultureIgnoreCase)), "TestResults", SearchOption.AllDirectories)
+            .Returns([testResults]);
         CreateFiles(testResults, ("no_attachments.trx", TrxContent()));
 
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
