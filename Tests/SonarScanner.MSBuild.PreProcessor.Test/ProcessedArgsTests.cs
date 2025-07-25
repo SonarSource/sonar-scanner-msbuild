@@ -443,33 +443,31 @@ public class ProcessedArgsTests
         logger.AssertNoWarningsLogged();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcArgs_UserHome_Default()
     {
         var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
-        operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(@"C:\Users\user");
+        operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(true);
+        directoryWrapper.Exists(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")).Returns(true);
         var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
-        sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
+        sut.UserHome.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
         sut.IsValid.Should().BeTrue();
         logger.AssertNoErrorsLogged();
         logger.AssertNoWarningsLogged();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ProcArgs_UserHome_Default_CreatedOnDemand()
     {
         var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
-        operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(@"C:\Users\user");
+        operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(false);
+        directoryWrapper.Exists(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")).Returns(false);
         var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
-        sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
+        sut.UserHome.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
         sut.IsValid.Should().BeTrue();
-        directoryWrapper.Received().CreateDirectory(@"C:\Users\user\.sonar");
+        directoryWrapper.Received().CreateDirectory(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
         logger.AssertNoErrorsLogged();
         logger.AssertNoWarningsLogged();
     }
@@ -481,15 +479,15 @@ public class ProcessedArgsTests
     {
         var exception = (Exception)Activator.CreateInstance(exceptionType);
         var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
-        operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(@"C:\Users\user");
+        operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(@"C:\Users\user\.sonar").Returns(false);
-        directoryWrapper.When(x => x.CreateDirectory(@"C:\Users\user\.sonar")).Throw(exception);
+        directoryWrapper.Exists(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")).Returns(false);
+        directoryWrapper.When(x => x.CreateDirectory(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"))).Throw(exception);
         var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
         sut.UserHome.Should().BeNull();
         sut.IsValid.Should().BeTrue();
-        directoryWrapper.Received().CreateDirectory(@"C:\Users\user\.sonar");
-        logger.AssertWarningLogged(@$"Failed to create the default user home directory 'C:\Users\user\.sonar' with exception '{exception.Message}'.");
+        directoryWrapper.Received().CreateDirectory(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
+        logger.AssertWarningLogged(@$"Failed to create the default user home directory '{Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")}' with exception '{exception.Message}'.");
         logger.AssertNoErrorsLogged();
     }
 
