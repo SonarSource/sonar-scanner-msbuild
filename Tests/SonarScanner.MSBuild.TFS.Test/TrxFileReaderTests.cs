@@ -51,14 +51,9 @@ public class TrxFileReaderTests
     }
 
     [TestMethod]
-    public void TrxReader_TestsResultsDirectoryMissing()
-    {
+    public void TrxReader_TestsResultsDirectoryMissing() =>
         // With no call to CreateDirectories, Directory.GetDirectories(RootDirectory) will return an empty array.
-        trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
-        // Not expecting errors or warnings: we assume it means that tests have not been executed
-        logger.AssertErrorsLogged(0);
-        logger.AssertWarningsLogged(0);
-    }
+        AssertFindCodeCoverageFiles();
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
@@ -81,11 +76,9 @@ public class TrxFileReaderTests
         directoryMock.GetFiles(Arg.Is<string>(x => testResults.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>())
             .Returns([file1, file2]);
 
-        trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
+        AssertFindCodeCoverageFiles();
         logger.DebugMessages.Should().BeEmpty();
         logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
     }
 
     [TestMethod]
@@ -96,9 +89,7 @@ public class TrxFileReaderTests
             .GetDirectories(Arg.Is<string>(x => RootDirectory.Equals(x, StringComparison.InvariantCultureIgnoreCase)), "TestResults", SearchOption.AllDirectories)
             .Returns([testResults]);
 
-        trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
-        logger.AssertErrorsLogged(0);
-        logger.AssertWarningsLogged(0);
+        AssertFindCodeCoverageFiles();
         logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
     }
 
@@ -106,9 +97,7 @@ public class TrxFileReaderTests
     public void TrxReader_TrxWithNoAttachments()
     {
         CreateDirectory(RootDirectory, "no_attachments.trx", TrxContent());
-        trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
-        logger.AssertErrorsLogged(0);
-        logger.AssertWarningsLogged(0);
+        AssertFindCodeCoverageFiles();
         logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
     }
 
@@ -297,4 +286,11 @@ public class TrxFileReaderTests
             </UriAttachments>
         </Collector>
         """;
+
+    private void AssertFindCodeCoverageFiles()
+    {
+        trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
+        logger.AssertErrorsLogged(0);
+        logger.AssertWarningsLogged(0);
+    }
 }
