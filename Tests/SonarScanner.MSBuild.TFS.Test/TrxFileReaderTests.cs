@@ -245,7 +245,7 @@ public class TrxFileReaderTests
     {
         var subdir = Path.Combine(path, "TestResults");
         directoryMock.Exists(Arg.Is<string>(x => subdir.Equals(x, StringComparison.InvariantCultureIgnoreCase))).Returns(true);
-        directoryMock.GetDirectories(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>(), Arg.Any<SearchOption>())
+        directoryMock.GetDirectories(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), "TestResults", Arg.Any<SearchOption>())
             .Returns([subdir]);
         return subdir;
     }
