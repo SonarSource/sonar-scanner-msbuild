@@ -60,7 +60,10 @@ public partial class PreProcessorTests
         """);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Windows enforces file locks at the OS level.
+    // Unix does not enforce file locks at the OS level, so this doesn't work.
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task Execute_CannotCreateDirectories_ReturnsFalseAndLogsError()
     {
