@@ -77,14 +77,24 @@ public class ProcessRunnerTests
 
         context.ExecuteAndAssert();
 
-        var expected = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? """
-            'xxx' is not recognized as an internal or external command,
-            operable program or batch file.
-            Testing 1,2,3...
+        var expected = string.Empty;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            expected = """
+                'xxx' is not recognized as an internal or external command,
+                operable program or batch file.
+                Testing 1,2,3...
 
-            """
-            : $"{context.ExePath}: 3: xxx: not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
+                """;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            expected = $"{context.ExePath}: line 3: xxx: command not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            expected = $"{context.ExePath}: 3: xxx: not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
+        }
 
         context.Logger.AssertInfoLogged("Hello world");
         context.Logger.AssertErrorLogged("Testing 1,2,3...");
@@ -138,15 +148,24 @@ public class ProcessRunnerTests
         context.Logger.AssertErrorNotLogged("Testing 1,2,3...");
         context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
 
-        var expected = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? """
-            'xxx' is not recognized as an internal or external command,
-            operable program or batch file.
-            Testing 1,2,3...
+        var expected = string.Empty;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            expected = """
+                'xxx' is not recognized as an internal or external command,
+                operable program or batch file.
+                Testing 1,2,3...
 
-            """
-            : $"{context.ExePath}: 3: xxx: not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
-
+                """;
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            expected = $"{context.ExePath}: line 3: xxx: command not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            expected = $"{context.ExePath}: 3: xxx: not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
+        }
         context.ResultErrorOutputShouldBe(expected);
     }
 
