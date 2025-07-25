@@ -53,11 +53,8 @@ public class TrxFileReaderTests
     [TestMethod]
     public void TrxReader_TestsResultsDirectoryMissing()
     {
-        // No subdirectories, we call CreateDirectories to setup Directory.GetDirectories(RootDirectory)
-        // to return empty array and avoid throwing.
-        CreateDirectories(RootDirectory);
+        // With no call to CreateDirectories, Directory.GetDirectories(RootDirectory) will return an empty array.
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
-
         // Not expecting errors or warnings: we assume it means that tests have not been executed
         logger.AssertErrorsLogged(0);
         logger.AssertWarningsLogged(0);
@@ -67,7 +64,7 @@ public class TrxFileReaderTests
     [TestMethod]
     public void TrxReader_InvalidTrxFile()
     {
-        var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
+        var testResults = CreateDirectory(RootDirectory);
         CreateFiles(testResults, ("dummy.trx", "this is not a trx file"));
 
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
@@ -80,7 +77,7 @@ public class TrxFileReaderTests
     [TestMethod]
     public void TrxReader_MultipleTrxFiles()
     {
-        var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
+        var testResults = CreateDirectory(RootDirectory);
         CreateFiles(
             testResults,
             ("mytrx1.trx", "<TestRun />"),
@@ -96,7 +93,7 @@ public class TrxFileReaderTests
     [TestMethod]
     public void TrxReader_SingleTrxFileInSubfolder()
     {
-        var testResults = CreateDirectories(Path.Combine(RootDirectory, "Dummy"), "TestResults")[0];
+        var testResults = CreateDirectory(Path.Combine(RootDirectory, "Dummy"));
         directoryMock
             .GetDirectories(Arg.Is<string>(x => RootDirectory.Equals(x, StringComparison.InvariantCultureIgnoreCase)), "TestResults", SearchOption.AllDirectories)
             .Returns([testResults]);
@@ -111,7 +108,7 @@ public class TrxFileReaderTests
     [TestMethod]
     public void TrxReader_TrxWithNoAttachments()
     {
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+        var resultsDir = CreateDirectory(RootDirectory);
         CreateFiles(resultsDir, ("no_attachments.trx", TrxContent()));
 
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
@@ -125,7 +122,7 @@ public class TrxFileReaderTests
     [Description("Tests handling of a trx file that contains information about multiple code coverage runs (i.e. an error case, as we're not expecting this)")]
     public void TrxReader_TrxWithMultipleAttachments()
     {
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+        var resultsDir = CreateDirectory(RootDirectory);
         CreateFiles(resultsDir, ("multiple_attachments.trx", TrxContent("MACHINENAME\\AAA.coverage", "XXX.coverage")));
 
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
@@ -150,7 +147,7 @@ public class TrxFileReaderTests
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a non existing file")]
     public void TrxReader_SingleAttachment_PathDoesNotExist()
     {
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+        var resultsDir = CreateDirectory(RootDirectory);
         var coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
         CreateFiles(resultsDir, ("single_attachment.trx", TrxContent(coverageFileName)));
 
@@ -167,7 +164,7 @@ public class TrxFileReaderTests
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
     public void TrxReader_SingleAttachment_Path1()
     {
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+        var resultsDir = CreateDirectory(RootDirectory);
         var relativeCoveragePath = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
         var fullCoveragePath = Path.Combine(resultsDir, "single attachment", "In", relativeCoveragePath);
         CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
@@ -181,7 +178,7 @@ public class TrxFileReaderTests
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
     public void TrxReader_SingleAttachment_Path2()
     {
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+        var resultsDir = CreateDirectory(RootDirectory);
         var relativeCoveragePath = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
         // With VSTest task the coverage file name uses underscore instead of spaces.
         var fullCoveragePath = Path.Combine(resultsDir, "single_attachment", "In", relativeCoveragePath);
@@ -197,13 +194,13 @@ public class TrxFileReaderTests
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a rooted path")]
     public void TrxReader_SingleAttachment_AbsolutePath()
     {
-        var coverageResults = CreateDirectories("x:\\dir1", "dir2")[0];
+        var coverageResults = CreateDirectory("x:\\dir1");
         var coverageFileName = CreateFiles(coverageResults, ("xxx.coverage", string.Empty))[0];
-        var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
+        var testResults = CreateDirectory(RootDirectory);
         CreateFiles(testResults, ("single_attachment.trx", TrxContent(coverageFileName)));
 
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEquivalentTo(coverageFileName);
-        logger.AssertDebugMessageExists(@"Absolute path to coverage file: x:\dir1\dir2\xxx.coverage");
+        logger.AssertDebugMessageExists(@"Absolute path to coverage file: x:\dir1\TestResults\xxx.coverage");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -211,7 +208,7 @@ public class TrxFileReaderTests
     [Description("Tests handling of a trx file that contain a single code coverage attachment with a path specified by the runDeploymentRoot attribute")]
     public void TrxReader_RunDeploymentRoot_Valid()
     {
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+        var resultsDir = CreateDirectory(RootDirectory);
         var relativeCoveragePath = @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
         var coverageFileName = Path.Combine(resultsDir, "pathFromDeploymentRoot", "In", relativeCoveragePath);
         CreateFiles(Path.GetDirectoryName(coverageFileName), (Path.GetFileName(coverageFileName), string.Empty));
@@ -228,7 +225,7 @@ public class TrxFileReaderTests
     [Description("Tests handling of a trx file that contain a single code coverage attachment with an invalid path specified by the runDeploymentRoot attribute")]
     public void TrxReader_RunDeploymentRoot_Invalid()
     {
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
+        var resultsDir = CreateDirectory(RootDirectory);
         var relativeCoveragePath = @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
         var coverageFileName = Path.Combine(resultsDir, "pathFromDeploymentRoot", "In", relativeCoveragePath);
         CreateFiles(Path.GetDirectoryName(coverageFileName), (Path.GetFileName(coverageFileName), string.Empty));
@@ -244,17 +241,13 @@ public class TrxFileReaderTests
             + $@"Trx file: {resultsDir}\single_attachment.trx");
     }
 
-    private string[] CreateDirectories(string path, params string[] names)
+    private string CreateDirectory(string path)
     {
-        var subdirs = names.Select(x => Path.Combine(path, x)).ToArray();
-        foreach (var subdir in subdirs)
-        {
-            directoryMock.Exists(Arg.Is<string>(s => subdir.Equals(s, StringComparison.InvariantCultureIgnoreCase))).Returns(true);
-        }
-        directoryMock
-            .GetDirectories(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>(), Arg.Any<SearchOption>())
-            .Returns(subdirs);
-        return subdirs;
+        var subdir = Path.Combine(path, "TestResults");
+        directoryMock.Exists(Arg.Is<string>(x => subdir.Equals(x, StringComparison.InvariantCultureIgnoreCase))).Returns(true);
+        directoryMock.GetDirectories(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>(), Arg.Any<SearchOption>())
+            .Returns([subdir]);
+        return subdir;
     }
 
     private string[] CreateFiles(string path, params (string Name, string Content)[] files)
