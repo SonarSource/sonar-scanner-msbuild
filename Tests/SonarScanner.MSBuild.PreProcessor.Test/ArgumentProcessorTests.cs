@@ -272,7 +272,7 @@ public class ArgumentProcessorTests
         CheckProcessingSucceeds("/k:key", parameter).OperatingSystem.Should().Be(expectedValue);
 
     [TestMethod]
-    public void PreArgProc_OperatingSystem_NotSet_Windows()
+    public void PreArgProc_OperatingSystem_NotSet()
     {
         var expected = "windows";
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -334,8 +334,8 @@ public class ArgumentProcessorTests
         logger.AssertSingleErrorExists("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.");
     }
 
-    [DataRow("unrecog2", "unrecog1", "/p:key=value", "")]
-    [DataRow("/key=k1", "/name=n1", "/version=v1")]
+    [DataRow("unrecog2", "unrecog1", "/p:key=value", "")]   // /p: is no longer supported - should be /d:
+    [DataRow("/key=k1", "/name=n1", "/version=v1")]         // Arguments using the wrong separator i.e. /k=k1 instead of /k:k1
     [DataTestMethod]
     public void PreArgProc_UnrecognisedArguments(params string[] args)
     {
@@ -382,6 +382,7 @@ public class ArgumentProcessorTests
     public void ArgProc_InstallTargets_Duplicate()
     {
         var logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:true", "/install:false");
+        // we expect the error to include the first value and the duplicate argument
         logger.AssertErrorsLogged(1);
         logger.AssertSingleErrorExists("/install");
     }
@@ -404,8 +405,12 @@ public class ArgumentProcessorTests
     }
 
     [TestMethod]
-    public void PreArgProc_PropertiesFileSpecifiedOnCommandLine_DoesNotExist() =>
-        CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:some/File/Path").AssertErrorsLogged(1);
+    public void PreArgProc_PropertiesFileSpecifiedOnCommandLine_DoesNotExist()
+    {
+        var logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:some/File/Path");
+        logger.AssertErrorsLogged(1);
+        logger.AssertSingleErrorExists("Unable to find the analysis settings file", "Please fix the path to this settings file.");
+    }
 
     [TestMethod]
     public void PreArgProc_With_PropertiesFileSpecifiedOnCommandLine_Organization_Set_Only_In_It_Should_Fail()
@@ -418,7 +423,9 @@ public class ArgumentProcessorTests
         };
         properties.Save(propertiesFilePath);
 
-        CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath).AssertErrorsLogged(1);
+        var logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
+        logger.AssertErrorsLogged(1);
+        logger.AssertSingleErrorExists("sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag");
     }
 
     [DataRow("/key:my.key", "/name:my name", "/version:1.0")]
