@@ -109,7 +109,7 @@ public class TrxFileReaderTests
         logger.Warnings.OrderBy(x => x).Should().SatisfyRespectively(
             x => x.Should().Match(
                     "None of the following coverage attachments could be found: "
-                    + "MACHINENAME\AAA.coverage, "
+                    + @"MACHINENAME\AAA.coverage, "
                     + $"*{Path.Combine("TestResults", "multiple_attachments", "In", @"MACHINENAME\AAA.coverage")}, "
                     + $"*{Path.Combine("TestResults", "multiple_attachments", "In", @"MACHINENAME\AAA.coverage")}. "
                     + $"Trx file: *{Path.Combine("TestResults", "multiple_attachments.trx")}"),
@@ -130,7 +130,7 @@ public class TrxFileReaderTests
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
         logger.Warnings.Should().ContainSingle().Which.Should().Match(
             "None of the following coverage attachments could be found: "
-            + "MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
+            + @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
             + $"*{Path.Combine("TestResults", "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}, "
             + $"*{Path.Combine("TestResults", "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}. "
             + $"Trx file: *{Path.Combine("TestResults", "single_attachment.trx")}");
