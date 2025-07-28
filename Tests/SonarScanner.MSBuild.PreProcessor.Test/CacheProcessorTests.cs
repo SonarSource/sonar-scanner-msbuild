@@ -105,27 +105,25 @@ public class CacheProcessorTests
         sut.PullRequestCacheBasePath.Should().Be(Path.Combine(workingDirectory, "Custom"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void PullRequestCacheBasePath_NoProjectBaseDir_UsesSourcesDirectory()
     {
         var buildSettings = Substitute.For<IBuildSettings>();
-        buildSettings.SourcesDirectory.Returns(@"C:\Sources\Directory");
-        buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
+        buildSettings.SourcesDirectory.Returns(Path.Combine(TestUtils.DriveRoot(), "Sources", "Directory"));
+        buildSettings.SonarScannerWorkingDirectory.Returns(TestUtils.DriveRoot(), "SonarScanner", "WorkingDirectory");
         using var sut = CreateSut(buildSettings);
 
-        sut.PullRequestCacheBasePath.Should().Be(@"C:\Sources\Directory");
+        sut.PullRequestCacheBasePath.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Sources", "Directory"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void PullRequestCacheBasePath_NoSourcesDirectory_UsesSonarScannerWorkingDirectory()
     {
         var buildSettings = Substitute.For<IBuildSettings>();
-        buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
+        buildSettings.SonarScannerWorkingDirectory.Returns(TestUtils.DriveRoot(), "SonarScanner", "WorkingDirectory");
         using var sut = CreateSut(buildSettings);
 
-        sut.PullRequestCacheBasePath.Should().Be(@"C:\SonarScanner\WorkingDirectory");
+        sut.PullRequestCacheBasePath.Should().Be(TestUtils.DriveRoot(), "SonarScanner", "WorkingDirectory");
     }
 
     [TestMethod]

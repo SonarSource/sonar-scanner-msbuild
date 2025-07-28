@@ -146,7 +146,6 @@ public class SonarScannerWrapperTests
         propertiesFileIndex.Should().BeGreaterThan(tokenIndex, "User arguments should appear first");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     // Test is propably wrong: https://sonarsource.atlassian.net/browse/SCAN4NET-677
     public void SonarScanner_SensitiveArgsPassedOnCommandLine()
@@ -156,10 +155,11 @@ public class SonarScannerWrapperTests
         // Create a config file containing sensitive arguments
         var fileSettings = new AnalysisProperties
         {
-            new(SonarProperties.ClientCertPassword, "client certificate password"),
-            new(SonarProperties.SonarPassword, "file.password - should not be returned"),
-            new(SonarProperties.SonarUserName, "file.username - should not be returned"),
-            new(SonarProperties.SonarToken, "token - should not be returned"),
+            // Sensitive values are not expected to be in this file. We test what would happen if. See SonarProperties.SensitivePropertyKeys
+            new(SonarProperties.ClientCertPassword, "file.clientCertificatePassword"), // Sensitive
+            new(SonarProperties.SonarPassword, "file.password"),                       // Sensitive
+            new(SonarProperties.SonarUserName, "file.username"),                       // Sensitive
+            new(SonarProperties.SonarToken, "file.token"),                             // Sensitive
             new("file.not.sensitive.key", "not sensitive value")
         };
 
@@ -185,11 +185,17 @@ public class SonarScannerWrapperTests
         result.CheckStandardArgsPassed("c:\\foo.props");
 
         // Non-sensitive values from the file should not be passed on the command line
-        result.CheckArgDoesNotExist("file.not.sensitive.key");
-        result.CheckArgDoesNotExist(SonarProperties.SonarUserName);
-        result.CheckArgDoesNotExist(SonarProperties.SonarPassword);
-        result.CheckArgDoesNotExist(SonarProperties.ClientCertPassword);
-        result.CheckArgDoesNotExist(SonarProperties.SonarToken);
+        CheckArgDoesNotExist("file.not.sensitive.key", mockRunner);
+        mockRunner.SuppliedArguments.CmdLineArgs.Should().BeEquivalentTo(
+            "-Dxxx=yyy",
+            "-Dsonar.password=cmdline.password",                          // sensitive value from cmd line: overrides file value
+            "-Dsonar.clientcert.password=file.clientCertificatePassword", // sensitive value from file
+            "-Dsonar.login=file.username",
+            "-Dsonar.token=file.token",
+            "-Dproject.settings=c:\\foo.props",
+            $"--from=ScannerMSBuild/{Utilities.ScannerVersion}",
+            "--debug",
+            "-Dsonar.scanAllFiles=true");
 
         var clientCertPwdIndex = result.CheckArgExists("-Dsonar.clientcert.password=client certificate password"); // sensitive value from file
         var userPwdIndex = result.CheckArgExists("-Dsonar.password=cmdline.password"); // sensitive value from cmd line: overrides file value
@@ -702,12 +708,18 @@ public class SonarScannerWrapperTests
             return index;
         }
 
-        public void CheckArgDoesNotExist(string argToCheck)
-        {
-            var allArgs = testRunner.Runner.SuppliedArguments.EscapedArguments;
-            var index = allArgs.IndexOf(argToCheck, StringComparison.Ordinal);
-            index.Should().Be(-1, "Not expecting to find the argument. Arg: '{0}', all args: '{1}'", argToCheck, allArgs);
-        }
+    private static void CheckStandardArgsPassed(MockProcessRunner mockRunner, string expectedPropertiesFilePath) =>
+        CheckArgExists("-Dproject.settings=" + expectedPropertiesFilePath, mockRunner); // should always be passing the properties file
+
+    private static void CheckArgDoesNotExist(string argToCheck, MockProcessRunner mockRunner)
+    {
+        var allArgs = mockRunner.SuppliedArguments.CmdLineArgs;
+        allArgs.Should().NotContainMatch(
+            $"*{argToCheck}*",
+            "Not expecting to find the argument. Arg: '{0}', all args: '{1}'",
+            argToCheck,
+            allArgs.Aggregate(new StringBuilder(), (sb, x) => sb.AppendFormat("{0} | ", x), x => x.ToString()));
+    }
 
         public void CheckEnvVarExists(string varName, string expectedValue) =>
             testRunner.Runner.SuppliedArguments.EnvironmentVariables.Should().ContainKey(varName).WhoseValue.Should().Be(expectedValue);
