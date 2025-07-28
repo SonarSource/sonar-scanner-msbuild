@@ -176,7 +176,6 @@ public class TrxFileReaderTests
         logger.AssertDebugMessageExists(@$"Absolute path to coverage file: {Path.Combine(@"x:\dir1", "TestResults", "xxx.coverage")}");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contain a single code coverage attachment with a path specified by the runDeploymentRoot attribute")]
     public void TrxReader_RunDeploymentRoot_Valid()
@@ -187,12 +186,11 @@ public class TrxFileReaderTests
         CreateFile(Path.GetDirectoryName(coverageFileName), Path.GetFileName(coverageFileName));
 
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().ContainSingle()
-            .Which.Should().EndWith(@"TestResults\pathFromDeploymentRoot\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")
+            .Which.Should().EndWith(@$"{Path.Combine("TestResults", "pathFromDeploymentRoot", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}")
             .And.Be(coverageFileName);
         logger.AssertDebugLogged($@"Absolute path to coverage file: {coverageFileName}");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contain a single code coverage attachment with an invalid path specified by the runDeploymentRoot attribute")]
     public void TrxReader_RunDeploymentRoot_Invalid()
@@ -206,10 +204,10 @@ public class TrxFileReaderTests
         logger.AssertWarningLogged(
             "None of the following coverage attachments could be found: "
             + @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
-            + $@"{resultsDir}\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
-            + $@"{resultsDir}\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
-            + $@"{resultsDir}\invalidRoot\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage. "
-            + $@"Trx file: {resultsDir}\single_attachment.trx");
+            + $@"{Path.Combine(resultsDir, "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}, "
+            + $@"{Path.Combine(resultsDir, "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}, "
+            + $@"{Path.Combine(resultsDir, "invalidRoot", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}. "
+            + $@"Trx file: {Path.Combine(resultsDir, "single_attachment.trx")}");
     }
 
     private string CreateDirectory(string path, string fileName = null, string fileContent = "")
