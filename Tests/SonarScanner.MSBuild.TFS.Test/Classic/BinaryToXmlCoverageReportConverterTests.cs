@@ -18,16 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Globalization;
-using System.IO;
 using System.Xml.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS.Classic;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.TFS.Tests;
 
@@ -175,56 +168,48 @@ Check that the downloaded code coverage file ({inputFilePath}) is valid by openi
         }
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    [DeploymentItem(@"Resources\Sample.coverage")]
-    [DeploymentItem(@"Resources\Expected.xmlcoverage")]
+    // DeploymentItem does not work on Linux for relative files: https://github.com/microsoft/testfx/issues/1460
+    [DeploymentItem(@"Resources")] // Copy whole directory. Contains: Sample.coverage and Expected.xmlcoverage
     public void Conv_ConvertToXml_ToolConvertsSampleFile()
     {
-        // Arrange
         var logger = new TestLogger();
         var reporter = new BinaryToXmlCoverageReportConverter(logger);
-        var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
-        var outputFilePath = $"{Environment.CurrentDirectory}\\{nameof(Conv_ConvertToXml_ToolConvertsSampleFile)}.xmlcoverage";
-        var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
+        var inputFilePath = Path.Combine(Environment.CurrentDirectory, "Sample.coverage");
+        var outputFilePath = Path.Combine(Environment.CurrentDirectory, $"{nameof(Conv_ConvertToXml_ToolConvertsSampleFile)}.xmlcoverage");
+        var expectedOutputFilePath = Path.Combine(Environment.CurrentDirectory, "Expected.xmlcoverage");
         File.Exists(inputFilePath).Should().BeTrue();
         File.Exists(outputFilePath).Should().BeFalse();
         File.Exists(expectedOutputFilePath).Should().BeTrue();
 
-        // Act
         var actual = reporter.ConvertToXml(inputFilePath, outputFilePath);
 
-        // Assert
         actual.Should().BeTrue();
         File.Exists(outputFilePath).Should().BeTrue();
         var actualContent = XDocument.Load(outputFilePath);
         var expectedContent = XDocument.Load(expectedOutputFilePath);
         // All tags and attributes must appear in actual and expected. Comments, whitespace, ordering, and the like is ignored in the assertion.
         actualContent.Should().BeEquivalentTo(expectedContent);
-        logger.DebugMessages.Should().ContainSingle().Which.Should().Match(@"Converting coverage file '*\Sample.coverage' to '*\Conv_ConvertToXml_ToolConvertsSampleFile.xmlcoverage'.");
+        logger.DebugMessages.Should().ContainSingle().Which.Should().Match(@"Converting coverage file '*Sample.coverage' to '*Conv_ConvertToXml_ToolConvertsSampleFile.xmlcoverage'.");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    [DeploymentItem(@"Resources\Sample.coverage")]
-    [DeploymentItem(@"Resources\Expected.xmlcoverage")]
+    // DeploymentItem does not work on Linux for relative files: https://github.com/microsoft/testfx/issues/1460
+    [DeploymentItem(@"Resources")] // Copy whole directory. Contains: Sample.coverage and Expected.xmlcoverage
     public void Conv_ConvertToXml_ToolConvertsSampleFile_ProblematicCulture()
     {
-        // Arrange
         var logger = new TestLogger();
         var reporter = new BinaryToXmlCoverageReportConverter(logger);
-        var inputFilePath = $"{Environment.CurrentDirectory}\\Sample.coverage";
-        var outputFilePath = $"{Environment.CurrentDirectory}\\{nameof(Conv_ConvertToXml_ToolConvertsSampleFile_ProblematicCulture)}.xmlcoverage";
-        var expectedOutputFilePath = $"{Environment.CurrentDirectory}\\Expected.xmlcoverage";
+        var inputFilePath = Path.Combine(Environment.CurrentDirectory, "Sample.coverage");
+        var outputFilePath = Path.Combine(Environment.CurrentDirectory, $"{nameof(Conv_ConvertToXml_ToolConvertsSampleFile_ProblematicCulture)}.xmlcoverage");
+        var expectedOutputFilePath = Path.Combine(Environment.CurrentDirectory, "Expected.xmlcoverage");
         File.Exists(inputFilePath).Should().BeTrue();
         File.Exists(outputFilePath).Should().BeFalse();
         File.Exists(expectedOutputFilePath).Should().BeTrue();
         using var _ = new ApplicationCultureInfo(CultureInfo.GetCultureInfo("de-DE")); // Serializes block_coverage="33.33" as block_coverage="33,33"
 
-        // Act
         var actual = reporter.ConvertToXml(inputFilePath, outputFilePath);
 
-        // Assert
         actual.Should().BeTrue();
         File.Exists(outputFilePath).Should().BeTrue();
         var actualContent = XDocument.Load(outputFilePath);
