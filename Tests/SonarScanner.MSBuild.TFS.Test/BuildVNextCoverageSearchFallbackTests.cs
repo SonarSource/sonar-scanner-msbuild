@@ -132,34 +132,46 @@ public class BuildVNextCoverageSearchFallbackTests
 
         using var envVars = new EnvironmentVariableScope();
         envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
-        testSubject.FindCoverageFiles().Should().Satisfy(
+        var result = testSubject.FindCoverageFiles().ToList();
+        result.Should().HaveCount(3, "the 5 files should be de-duped based on content hash.");
+        result.Should().Satisfy(
             x => x == filePath1 || x == filePath1Duplicate || x == filePath1SubDir,
             x => x == filePath2,
             x => x == filePath3);
     }
 
-    [TestMethod]
-    public void Fallback_FileHashComparer_SimpleComparisons()
+    [DataTestMethod]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2 }, true)]
+    [DataRow(new byte[] { 1, 2, 3 }, new byte[] { 1, 2 }, false)]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2, 3 }, false)]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 3 }, false)]
+    [DataRow(new byte[] { }, new byte[] { 1 }, false)]
+    public void Fallback_FileHashComparer_SimpleComparisons_DifferentHashes(byte[] hash1, byte[] hash2, bool expected)
+    {
+        var testSubject = new BuildVNextCoverageSearchFallback.FileHashComparer();
+        testSubject.Equals(
+            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", hash1),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", hash2))
+            .Should().Be(expected);
+    }
+
+    [DataTestMethod]
+    [DataRow("File.txt", "File.txt")]
+    [DataRow("File.txt", "FileOther.txt")]
+    [DataRow("FileOther.txt", "File.txt")]
+    [DataRow("File.txt", null)]
+    [DataRow("File.txt", "")]
+    [DataRow("", "File.txt")]
+    [DataRow(null, "File.txt")]
+    public void Fallback_FileHashComparer_SimpleComparisons_SameHash_Filenames(string fileName1, string fileName2)
     {
         var testSubject = new BuildVNextCoverageSearchFallback.FileHashComparer();
 
-        // Identical content hash, identical file name -> same
+        // file name is not considered by the FileHashComparer, only the hash
         testSubject.Equals(
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", [1, 2]),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", [1, 2]))
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(fileName1, [1, 2]),
+            new BuildVNextCoverageSearchFallback.FileWithContentHash(fileName2, [1, 2]))
             .Should().BeTrue();
-
-        // Identical content hash, different file name -> same
-        testSubject.Equals(
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", [1, 2]),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", [1, 2]))
-            .Should().BeTrue();
-
-        // Different content hash, identical file name -> different
-        testSubject.Equals(
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path1.txt", [1, 2]),
-            new BuildVNextCoverageSearchFallback.FileWithContentHash("c:\\path2.txt", [1, 3]))
-            .Should().BeFalse();
     }
 
     [TestMethod]
