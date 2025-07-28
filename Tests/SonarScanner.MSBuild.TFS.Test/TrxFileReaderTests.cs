@@ -55,7 +55,6 @@ public class TrxFileReaderTests
         // With no call to CreateDirectories, Directory.GetDirectories(RootDirectory) will return an empty array.
         AssertFindCodeCoverageFiles();
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TrxReader_InvalidTrxFile()
     {
@@ -63,7 +62,7 @@ public class TrxFileReaderTests
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
         logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
         logger.Warnings.Should().ContainSingle().Which.Should()
-            .Match(@"Located trx file is not a valid xml file. File: *\TestResults\dummy.trx. File load error: Data at the root level is invalid. Line 1, position 1.");
+            .Match(@$"Located trx file is not a valid xml file. File: *{Path.Combine("TestResults", "dummy.trx")}. File load error: Data at the root level is invalid. Line 1, position 1.");
         logger.AssertErrorsLogged(0); // should be a warning, not an error
     }
 
