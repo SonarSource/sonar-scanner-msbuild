@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using NSubstitute.ReceivedExtensions;
 
@@ -86,11 +88,18 @@ public class TargetsInstallerTests
         // When a 32-bit process tries to use this folder on a 64-bit machine, it is redirected to %windir%\SysWOW64.
         // In that case the scanner needs to deploy ImportBefore.targets to both locations, doubling the number of destination directories (14 instead of 7).
         // On Linux/MacOS, two additional directories are considered (see DotnetImportBeforePathsLinuxMac).
-        var validCount = Environment.OSVersion.Platform == PlatformID.Win32NT
-            ? (int[])[7, 14]
-            : [9];
+        int[] validCount = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows), RuntimeInformation.IsOSPlatform(OSPlatform.Linux), RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) switch
+        {
+            (true, _, _) => [7, 14], // Windows
+            (_, true, _) => [9], // Linux
+            (_, _, true) => [16], // MacOS
+            _ => [],
+        };
         var actualCount = msBuildPathSettings.GetImportBeforePaths().Count();
-        validCount.Should().Contain(actualCount, "Expecting 7 destination directories (or 14 if the local application data folder is located in %windir%)");
+        validCount.Should().Contain(actualCount,
+            "Expecting ({0}) destination directories but found {1}.",
+            string.Join(", ", validCount),
+            string.Join(Environment.NewLine, msBuildPathSettings.GetImportBeforePaths()));
 
         var path = Path.Combine(msBuildPathSettings.GetImportBeforePaths().First(), FileConstants.ImportBeforeTargetsName);
         File.Delete(path);
