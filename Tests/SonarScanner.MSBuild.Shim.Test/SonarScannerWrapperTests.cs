@@ -91,7 +91,7 @@ public class SonarScannerWrapperTests
         using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerHomeVariableName, null);
         var wrapper = new SonarScannerWrapperTestRunner();
 
-        var result = wrapper.ExecuteJavaRunnerIgnoringAsserts();
+        var result = new SonarScannerWrapperTestRunner().ExecuteJavaRunnerIgnoringAsserts();
 
         result.VerifyProcessRunOutcome("C:\\working\\dir", true);
         result.Logger.AssertMessageNotLogged(Resources.MSG_SonarScannerHomeIsSet);
@@ -103,7 +103,7 @@ public class SonarScannerWrapperTests
         using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerHomeVariableName, "some_path");
         var wrapper = new SonarScannerWrapperTestRunner();
 
-        var result = wrapper.ExecuteJavaRunnerIgnoringAsserts();
+        var result = new SonarScannerWrapperTestRunner().ExecuteJavaRunnerIgnoringAsserts();
 
         result.VerifyProcessRunOutcome("C:\\working\\dir", true);
         result.Logger.AssertInfoMessageExists(Resources.MSG_SonarScannerHomeIsSet);
@@ -115,7 +115,7 @@ public class SonarScannerWrapperTests
         var wrapper = new SonarScannerWrapperTestRunner();
         var result = wrapper.ExecuteJavaRunnerIgnoringAsserts();
 
-        result.VerifyProcessRunOutcome("C:\\working\\dir", true);
+new SonarScannerWrapperTestRunner().ExecuteJavaRunnerIgnoringAsserts().VerifyProcessRunOutcome("C:\\working\\dir", true)
     }
 
     [TestMethod]
@@ -147,7 +147,6 @@ public class SonarScannerWrapperTests
     }
 
     [TestMethod]
-    // Test is propably wrong: https://sonarsource.atlassian.net/browse/SCAN4NET-677
     public void SonarScanner_SensitiveArgsPassedOnCommandLine()
     {
         // Check that sensitive arguments from the config are passed on the command line
