@@ -312,7 +312,9 @@ public class ArgumentProcessorTests
     [DataRow("my-other_Project")]
     [DataTestMethod]
     public void PreArgProc_ProjectKey_Valid(string projectKey) =>
-        CheckProjectKeyIsValid(projectKey);
+        CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid")
+            .ProjectKey
+            .Should().Be(projectKey, "Unexpected project key");
 
     [DataRow("spaces in name")]
     [DataRow("a\tb")]
@@ -325,36 +327,28 @@ public class ArgumentProcessorTests
     [DataRow("0")]          // single numeric is not ok
     [DataRow("0123456789")] // all numeric is not ok
     [DataTestMethod]
-    public void PreArgProc_ProjectKey_Invalid(string projectKey) =>
-        CheckProjectKeyIsInvalid(projectKey);
-
-    [TestMethod]
-    public void PreArgProc_UnrecognisedArguments()
+    public void PreArgProc_ProjectKey_Invalid(string projectKey)
     {
-        TestLogger logger;
+        var logger = CheckProcessingFails("/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl");
+        logger.AssertErrorsLogged(1);
+        logger.AssertSingleErrorExists("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.");
+    }
 
-        // 1. Additional unrecognized arguments
-        logger = CheckProcessingFails("unrecog2", "/key:k1", "/name:n1", "/version:v1", "unrecog1", "/p:key=value", string.Empty);
+    [DataRow("unrecog2", "unrecog1", "/p:key=value", "")]
+    [DataRow("/key=k1", "/name=n1", "/version=v1")]
+    [DataTestMethod]
+    public void PreArgProc_UnrecognisedArguments(params string[] args)
+    {
+        var logger = CheckProcessingFails([.. args, "/key:k1", "/name:n1", "/version:v1"]);
 
         logger.AssertNoErrorsLogged("/key:");
         logger.AssertNoErrorsLogged("/name:");
         logger.AssertNoErrorsLogged("/version:");
-
-        logger.AssertSingleErrorExists("unrecog1");
-        logger.AssertSingleErrorExists("unrecog2");
-        logger.AssertSingleErrorExists("/p:key=value"); // /p: is no longer supported - should be /d:
-        logger.AssertErrorsLogged(4); // unrecog1, unrecog2, /p: and the empty string
-
-        // 2. Arguments using the wrong separator i.e. /k=k1  instead of /k:k1
-        logger = CheckProcessingFails("/key=k1", "/name=n1", "/version=v1");
-
-        // Expecting errors for the unrecognized arguments...
-        logger.AssertSingleErrorExists("/key=k1");
-        logger.AssertSingleErrorExists("/name=n1");
-        logger.AssertSingleErrorExists("/version=v1");
-        // ... and errors for the missing required arguments
-        logger.AssertSingleErrorExists("/key:");
-        logger.AssertErrorsLogged(4);
+        foreach (var arg in args.Where(x => x is not "")) // we still log an error for "", but we cannot match on it
+        {
+            logger.AssertSingleErrorExists(arg);
+        }
+        logger.AssertErrorsLogged(args.Length);
     }
 
     [DataRow(TargetsInstaller.DefaultInstallSetting, null)]
@@ -365,12 +359,12 @@ public class ArgumentProcessorTests
     [DataTestMethod]
     public void ArgProc_InstallTargets_Valid(bool expected, string installValue)
     {
-        var args = new[] { "/key:my.key", "/name:my name", "/version:1.0", };
+        var args = new[] { "/key:my.key", "/name:my name", "/version:1.0", "/d:sonar.host.url=foo" };
         if (installValue is not null)
         {
             args = [.. args, $"/install:{installValue}"];
         }
-        AssertExpectedInstallTargets(expected, CheckProcessingSucceeds(args));
+        CheckProcessingSucceeds(args).InstallLoaderTargets.Should().Be(expected);
     }
 
     [DataRow("1")]
@@ -960,19 +954,6 @@ public class ArgumentProcessorTests
         return logger;
     }
 
-    private static void CheckProjectKeyIsInvalid(string projectKey)
-    {
-        var logger = CheckProcessingFails("/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl");
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.");
-    }
-
-    private static void CheckProjectKeyIsValid(string projectKey)
-    {
-        var result = CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
-        result.ProjectKey.Should().Be(projectKey, "Unexpected project key");
-    }
-
     private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs) =>
         CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), commandLineArgs);
 
@@ -1004,9 +985,6 @@ public class ArgumentProcessorTests
         match.Should().NotBeNull("Returned property should not be null. Key: {0}", key);
         match.Value.Should().Be(value, "Property does not have the expected value");
     }
-
-    private static void AssertExpectedInstallTargets(bool expected, ProcessedArgs actual) =>
-        actual.InstallLoaderTargets.Should().Be(expected);
 
     private static ProcessedArgs TryProcessArgsIsolatedFromEnvironment(string[] commandLineArgs, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, ILogger logger)
     {
