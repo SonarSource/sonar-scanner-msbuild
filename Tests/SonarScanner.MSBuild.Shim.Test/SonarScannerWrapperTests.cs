@@ -125,7 +125,6 @@ public class SonarScannerWrapperTests
                 { "sonar.password", "my.pwd" },
                 { "sonar.token", "token" }
             },
-            ExeFileName = "c:\\dummy.exe",
             PropertiesFileName = "c:\\foo.properties",
         }.ExecuteJavaRunnerIgnoringAsserts();
 
@@ -616,10 +615,11 @@ public class SonarScannerWrapperTests
 
     private sealed class SonarScannerWrapperTestRunner
     {
+        private const string ExeFileName = "c:\\foo.exe";
+
         public AnalysisConfig Config { get; set; } = new() { SonarScannerWorkingDirectory = "C:\\working\\dir" };
         public ListPropertiesProvider UserCmdLineArguments { get; set; } = new();
         public TestLogger Logger { get; } = new();
-        public string ExeFileName { get; set; } = "c:\\foo.exe";
         public string PropertiesFileName { get; set; } = "c:\\foo.props";
         public MockProcessRunner Runner { get; set; } = new MockProcessRunner(executeResult: true);
         public IOperatingSystemProvider OsProvider { get; set; }
@@ -648,6 +648,7 @@ public class SonarScannerWrapperTests
 
         public TestLogger Logger => testRunner.Logger;
         public ProcessRunnerArguments SuppliedArguments => testRunner.Runner.SuppliedArguments;
+        public string ExeName => testRunner.Runner.SuppliedArguments.ExeName;
 
         public ExecuteJavaRunnerResult(SonarScannerWrapperTestRunner sonarScannerWrapperTestRunner, bool success)
         {
