@@ -96,7 +96,8 @@ public class TargetsInstallerTests
             _ => [],
         };
         var actualCount = msBuildPathSettings.GetImportBeforePaths().Count();
-        validCount.Should().Contain(actualCount,
+        validCount.Should().Contain(
+            actualCount,
             "Expecting ({0}) destination directories but found {1}.",
             string.Join(", ", validCount),
             string.Join(Environment.NewLine, msBuildPathSettings.GetImportBeforePaths()));
