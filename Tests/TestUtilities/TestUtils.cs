@@ -164,27 +164,16 @@ public static class TestUtils
         var testPath = CreateTestSpecificFolder(context);
         var fileName = Path.Combine(testPath, context.TestName + fileExtension);
         File.Exists(fileName).Should().BeFalse("Not expecting a script file to already exist: {0}", fileName);
-        File.WriteAllText(fileName, isWindows ? content : content.NormalizeLineEndings());
+        File.WriteAllText(fileName, content.NormalizeLineEndings());
+#if NET
 
         if (!isWindows)
         {
-            // Make the file executable on non-Windows platforms
-            using var process = new Process
-            {
-                StartInfo = new()
-                {
-                    FileName = "chmod",
-                    Arguments = $"""+x "{fileName}" """,
-                    RedirectStandardOutput = false,
-                    RedirectStandardError = false,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                }
-            };
-            process.Start();
-            process.WaitForExit();
+            File.SetUnixFileMode(fileName, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
+                | UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute
+                | UnixFileMode.OtherRead | UnixFileMode.OtherWrite | UnixFileMode.OtherExecute);
         }
+#endif
         return fileName;
     }
 

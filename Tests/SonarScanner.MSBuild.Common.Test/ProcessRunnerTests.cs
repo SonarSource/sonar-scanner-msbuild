@@ -43,32 +43,16 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
-    public void ProcRunner_ExecutionFailed()
-    {
-        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? "exit 9"
-            : """
-            #!/bin/sh 
-            exit 9
-            """;
-        new ProcessRunnerContext(TestContext, content) { ExpectedExitCode = 9 }.ExecuteAndAssert();
-    }
+    public void ProcRunner_ExecutionFailed() =>
+        new ProcessRunnerContext(TestContext, "exit 9") { ExpectedExitCode = 9 }.ExecuteAndAssert();
 
     [TestMethod]
     public void ProcRunner_ExecutionSucceeded()
     {
-        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? """
-            @echo off
-            @echo Hello world
+        var content = $"""
+            {EchoCommand("Hello world")}
             xxx yyy
-            @echo Testing 1,2,3...>&2
-            """
-            : """
-            #!/bin/sh
-            echo "Hello world"
-            xxx yyy
-            echo "Testing 1,2,3..." 1>&2
+            {EchoCommand("Testing 1,2,3...")}>&2
             """;
 
         var context = new ProcessRunnerContext(
@@ -105,14 +89,8 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_ErrorAsWarningMessage_LogAsWarning()
     {
-        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? """
-            @echo off
-            @echo WARN: Hello world>&2
-            """
-            : """
-            #!/bin/sh
-            echo "WARN: Hello world" >&2
+        var content = $"""
+            {EchoCommand("WARN: Hello world")}>&2
             """;
         var context = new ProcessRunnerContext(TestContext, content);
 
@@ -126,18 +104,10 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_LogOutputFalse_ExecutionSucceeded()
     {
-        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? """
-            @echo off
-            @echo Hello world
+        var content = $"""
+            {EchoCommand("Hello world")}
             xxx yyy
-            @echo Testing 1,2,3...>&2
-            """
-            : """
-            #!/bin/sh
-            echo "Hello world"
-            xxx yyy
-            echo "Testing 1,2,3..." 1>&2
+            {EchoCommand("Testing 1,2,3...")}>&2
             """;
         var context = new ProcessRunnerContext(TestContext, content);
         context.ProcessArgs.LogOutput = false;
@@ -172,16 +142,9 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_FailsOnTimeout()
     {
-        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? """
-            @echo off
-            powershell -Command "Start-Sleep -Seconds 2"
-            @echo Hello world
-            """
-            : """
-            #!/bin/sh
-            sleep 2
-            echo "Hello world"
+        var content = $"""
+            {(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "powershell -Command \"Start-Sleep -Seconds 2\"" : "sleep 2")}
+            {EchoCommand("Hello world")}
             """;
         var context = new ProcessRunnerContext(TestContext, content)
         {
@@ -205,18 +168,10 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_PassesEnvVariables()
     {
-        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? """
-            @echo off
-            echo %PROCESS_VAR%
-            @echo %PROCESS_VAR2%
-            @echo %PROCESS_VAR3%
-            """
-            : """
-            #!/bin/sh
-            echo "$PROCESS_VAR"
-            echo "$PROCESS_VAR2"
-            echo "$PROCESS_VAR3"
+        var content = $"""
+            {EchoCommand("PROCESS_VAR", isEnvVar: true)}
+            {EchoCommand("PROCESS_VAR2", isEnvVar: true)}
+            {EchoCommand("PROCESS_VAR3", isEnvVar: true)}
             """;
         var context = new ProcessRunnerContext(TestContext, content);
         context.ProcessArgs.EnvironmentVariables = new Dictionary<string, string>
@@ -235,18 +190,10 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_PassesEnvVariables_OverrideExisting()
     {
-        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? """
-            @echo off
-            @echo file: %proc_runner_test_machine%
-            @echo file: %proc_runner_test_process%
-            @echo file: %proc_runner_test_user%
-            """
-            : """
-            #!/bin/bash
-            echo "file: $proc_runner_test_machine"
-            echo "file: $proc_runner_test_process"
-            echo "file: $proc_runner_test_user"
+        var content = $"""
+            {EchoCommand("proc_runner_test_machine", isEnvVar: true)}
+            {EchoCommand("proc_runner_test_process", isEnvVar: true)}
+            {EchoCommand("proc_runner_test_user", isEnvVar: true)}
             """;
         var context = new ProcessRunnerContext(TestContext, content);
         try
@@ -273,9 +220,9 @@ public class ProcessRunnerTests
         }
 
         // Check the child process used expected values
-        context.Logger.AssertInfoLogged("file: machine override");
-        context.Logger.AssertInfoLogged("file: process override");
-        context.Logger.AssertInfoLogged("file: user override");
+        context.Logger.AssertInfoLogged("machine override");
+        context.Logger.AssertInfoLogged("process override");
+        context.Logger.AssertInfoLogged("user override");
 
         // Check the runner reported it was overwriting existing variables
         // Note: the existing non-process values won't be visible to the child process
@@ -369,8 +316,6 @@ public class ProcessRunnerTests
     [WorkItem(1706)] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
     public void ProcRunner_ArgumentQuotingScanner()
     {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
         var expected = new[]
         {
             @"-Dsonar.scanAllFiles=true",
@@ -379,32 +324,23 @@ public class ProcessRunnerTests
             @"--debug"
         };
 
-        var content = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? """
-            @echo off
-            REM The sonar-scanner.bat uses %* to pass the argument to javac.exe
-            echo %*
-            REM Because of the escaping, the single arguments are somewhat broken on echo. A workaround is to add some new lines for some reason.
-            echo %1
+        // The sonar-scanner.bat uses %* to pass the argument to javac.exe
+        // Because of the escaping, the single arguments are somewhat broken on echo. A workaround is to add some new lines for some reason.
+        var content = $"""
+            {ScriptInit()}
+            {EchoCommand("%*")}
+            {EchoCommand("%1")}
+            
 
+            {EchoCommand("%2")}
+            
 
-            echo %2
+            {EchoCommand("%3")}
+            
 
+            {EchoCommand("%4")}
+            
 
-            echo %3
-
-
-            echo %4
-
-
-            """
-            : """
-            #!/bin/sh
-            echo "$*"
-            echo "$1"
-            echo "$2"
-            echo "$3"
-            echo "$4"
             """;
 
         var context = new ProcessRunnerContext(TestContext, content);
@@ -522,25 +458,52 @@ public class ProcessRunnerTests
         }
     }
 
+    private static string EchoCommand(string text, bool isEnvVar = false)
+    {
+        string content;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            if (isEnvVar)
+            {
+                text = $"%{text}%";
+            }
+            content = $"@echo {text}";
+        }
+        else
+        {
+            if (isEnvVar)
+            {
+                text = $"${text}";
+            }
+            content = $"echo \"{text.Replace('%', '$')}\"";
+        }
+        return content;
+    }
+
+    private static string ScriptInit() =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "@echo off" : "#!/bin/sh";
+
     private static string LogArgsPath() =>
         // Replace to change this project directory to LogArgs project directory while keeping the same build configuration (Debug/Release)
         Path.Combine(Path.GetDirectoryName(typeof(ProcessRunnerTests).Assembly.Location).Replace("SonarScanner.MSBuild.Common.Test", "LogArgs"), "LogArgs.exe");
 
     private class ProcessRunnerContext
     {
-        public string ExePath;
-
         private readonly ProcessRunner runner;
         private readonly string testDir;
         private ProcessResult result;
 
         public TestLogger Logger { get; }
+        public string ExePath { get; }
         public int ExpectedExitCode { get; init; }
         public ProcessRunnerArguments ProcessArgs { get; init; }
 
         public ProcessRunnerContext(TestContext testContext, string commands = null)
         {
-            commands ??= string.Empty;
+            commands = $"""
+                {ScriptInit()}
+                {commands}
+                """;
             testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             ExePath = TestUtils.WriteExecutableScriptForTest(testContext, commands);
             Logger = new TestLogger();
@@ -576,11 +539,8 @@ public class ProcessRunnerTests
             result.StandardOutput.Should().Be(expected, "Unexpected standard output");
         }
 
-        public void ResultErrorOutputShouldBe(string expected)
-        {
-            Console.WriteLine(result.ErrorOutput);
+        public void ResultErrorOutputShouldBe(string expected) =>
             result.ErrorOutput.Should().Be(expected, "Unexpected error output");
-        }
 
         public void AssertExpectedLogContents(params string[] expected)
         {
