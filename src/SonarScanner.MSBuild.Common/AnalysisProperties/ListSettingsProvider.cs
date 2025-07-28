@@ -31,8 +31,6 @@ public class ListPropertiesProvider : IAnalysisPropertyProvider, IEnumerable<Pro
 
     public PropertyProviderKind ProviderType { get; }
 
-    #region Public methods
-
     public ListPropertiesProvider(PropertyProviderKind propertyProvider = PropertyProviderKind.UNKNOWN)
     {
         properties = [];
@@ -79,8 +77,6 @@ public class ListPropertiesProvider : IAnalysisPropertyProvider, IEnumerable<Pro
         properties.Add(newProperty);
         return newProperty;
     }
-
-    #endregion Public methods
 
     #region IAnalysisProperiesProvider interface
 
