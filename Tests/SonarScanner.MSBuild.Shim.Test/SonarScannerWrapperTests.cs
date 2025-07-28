@@ -185,8 +185,8 @@ public class SonarScannerWrapperTests
         result.CheckStandardArgsPassed("c:\\foo.props");
 
         // Non-sensitive values from the file should not be passed on the command line
-        CheckArgDoesNotExist("file.not.sensitive.key", mockRunner);
-        mockRunner.SuppliedArguments.CmdLineArgs.Should().BeEquivalentTo(
+        result.CheckArgDoesNotExist("file.not.sensitive.key");
+        result.SuppliedArguments.CmdLineArgs.Should().BeEquivalentTo(
             "-Dxxx=yyy",
             "-Dsonar.password=cmdline.password",                          // sensitive value from cmd line: overrides file value
             "-Dsonar.clientcert.password=file.clientCertificatePassword", // sensitive value from file
@@ -197,7 +197,7 @@ public class SonarScannerWrapperTests
             "--debug",
             "-Dsonar.scanAllFiles=true");
 
-        var clientCertPwdIndex = result.CheckArgExists("-Dsonar.clientcert.password=client certificate password"); // sensitive value from file
+        var clientCertPwdIndex = result.CheckArgExists("-Dsonar.clientcert.password=file.clientCertificatePassword"); // sensitive value from file
         var userPwdIndex = result.CheckArgExists("-Dsonar.password=cmdline.password"); // sensitive value from cmd line: overrides file value
 
         var propertiesFileIndex = result.CheckArgExists(SonarScannerWrapper.ProjectSettingsFileArgName);
@@ -708,18 +708,15 @@ public class SonarScannerWrapperTests
             return index;
         }
 
-    private static void CheckStandardArgsPassed(MockProcessRunner mockRunner, string expectedPropertiesFilePath) =>
-        CheckArgExists("-Dproject.settings=" + expectedPropertiesFilePath, mockRunner); // should always be passing the properties file
-
-    private static void CheckArgDoesNotExist(string argToCheck, MockProcessRunner mockRunner)
-    {
-        var allArgs = mockRunner.SuppliedArguments.CmdLineArgs;
-        allArgs.Should().NotContainMatch(
-            $"*{argToCheck}*",
-            "Not expecting to find the argument. Arg: '{0}', all args: '{1}'",
-            argToCheck,
-            allArgs.Aggregate(new StringBuilder(), (sb, x) => sb.AppendFormat("{0} | ", x), x => x.ToString()));
-    }
+        public void CheckArgDoesNotExist(string argToCheck)
+        {
+            var allArgs = testRunner.Runner.SuppliedArguments.CmdLineArgs;
+            allArgs.Should().NotContainMatch(
+                $"*{argToCheck}*",
+                "Not expecting to find the argument. Arg: '{0}', all args: '{1}'",
+                argToCheck,
+                allArgs.Aggregate(new StringBuilder(), (sb, x) => sb.AppendFormat("{0} | ", x), x => x.ToString()));
+        }
 
         public void CheckEnvVarExists(string varName, string expectedValue) =>
             testRunner.Runner.SuppliedArguments.EnvironmentVariables.Should().ContainKey(varName).WhoseValue.Should().Be(expectedValue);
