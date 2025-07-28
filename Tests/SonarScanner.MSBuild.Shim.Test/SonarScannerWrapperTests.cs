@@ -587,7 +587,6 @@ public class SonarScannerWrapperTests
 
     private static void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(string path, string expected)
     {
-
         using var scope = new EnvironmentVariableScope();
         var result = new SonarScannerWrapperTestRunner
         {
