@@ -164,17 +164,16 @@ public class TrxFileReaderTests
         logger.AssertDebugMessageExists(relativeCoveragePath);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a rooted path")]
     public void TrxReader_SingleAttachment_AbsolutePath()
     {
-        var coverageResults = CreateDirectory("x:\\dir1");
+        var coverageResults = CreateDirectory(@"x:\dir1");
         var coverageFileName = CreateFile(coverageResults, "xxx.coverage");
         CreateDirectory(RootDirectory, "single_attachment.trx", TrxContent(coverageFileName));
 
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEquivalentTo(coverageFileName);
-        logger.AssertDebugMessageExists(@"Absolute path to coverage file: x:\dir1\TestResults\xxx.coverage");
+        logger.AssertDebugMessageExists(@$"Absolute path to coverage file: {Path.Combine(@"x:\dir1", "TestResults", "xxx.coverage")}");
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
