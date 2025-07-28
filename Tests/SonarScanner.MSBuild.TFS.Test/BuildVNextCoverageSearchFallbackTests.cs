@@ -26,23 +26,39 @@ public class BuildVNextCoverageSearchFallbackTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void Fallback_AgentDirectory_CalculatedCorrectly()
+    public void Fallback_AgentDirectory_CalculatedCorrectly_Null()
+    {
+        var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
+        using var envVars = new EnvironmentVariableScope();
+        // env var not specified -> null
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, null);
+        testSubject.GetAgentTempDirectory().Should().BeNull();
+    }
+
+    [TestMethod]
+    public void Fallback_AgentDirectory_CalculatedCorrectly_NonExisting()
     {
         var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
         var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var envDir = Path.Combine(rootDir, "DirSpecifiedInEnvDir");
 
         using var envVars = new EnvironmentVariableScope();
-        // 1) env var not specified -> null
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, null);
-        testSubject.GetAgentTempDirectory().Should().BeNull();
-
-        // 2) Env var set but dir does not exist -> null
+        // Env var set but dir does not exist -> null
         envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, envDir);
-        testSubject.GetAgentTempDirectory().Should().Be(null);
+        testSubject.GetAgentTempDirectory().Should().BeNull();
+    }
 
-        // 3) Env var set and dir exists -> dir returned
+    [TestMethod]
+    public void Fallback_AgentDirectory_CalculatedCorrectly_Existing()
+    {
+        var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
+        var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var envDir = Path.Combine(rootDir, "DirSpecifiedInEnvDir");
+
+        using var envVars = new EnvironmentVariableScope();
+        // Env var set and dir exists -> dir returned
         Directory.CreateDirectory(envDir);
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, envDir);
         testSubject.GetAgentTempDirectory().Should().Be(envDir);
     }
 
