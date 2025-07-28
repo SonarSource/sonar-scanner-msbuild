@@ -101,7 +101,6 @@ public class TrxFileReaderTests
         logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contains information about multiple code coverage runs (i.e. an error case, as we're not expecting this)")]
     public void TrxReader_TrxWithMultipleAttachments()
@@ -124,7 +123,6 @@ public class TrxFileReaderTests
         logger.AssertErrorsLogged(0);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a non existing file")]
     public void TrxReader_SingleAttachment_PathDoesNotExist()
@@ -134,9 +132,9 @@ public class TrxFileReaderTests
         logger.Warnings.Should().ContainSingle().Which.Should().Match(
             "None of the following coverage attachments could be found: "
             + @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
-            + @"*\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
-            + @"*\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage. "
-            + @"Trx file: *\TestResults\single_attachment.trx");
+            + @$"*{Path.Combine("TestResults", "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}, "
+            + @$"*{Path.Combine("TestResults", "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}. "
+            + @$"Trx file: *{Path.Combine("TestResults", "single_attachment.trx")}");
     }
 
     [TestMethod]
