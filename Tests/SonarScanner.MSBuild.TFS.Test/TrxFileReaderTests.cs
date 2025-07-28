@@ -108,19 +108,19 @@ public class TrxFileReaderTests
     {
         CreateDirectory(RootDirectory, "multiple_attachments.trx", TrxContent("MACHINENAME\\AAA.coverage", "XXX.coverage"));
         trxReader.FindCodeCoverageFiles(RootDirectory).Should().BeEmpty();
-        logger.Warnings.Should().SatisfyRespectively(
+        logger.Warnings.OrderBy(x => x).Should().SatisfyRespectively(
             x => x.Should().Match(
                     "None of the following coverage attachments could be found: "
                     + @"MACHINENAME\AAA.coverage, "
-                    + @"*\TestResults\multiple_attachments\In\MACHINENAME\AAA.coverage, "
-                    + @"*\TestResults\multiple_attachments\In\MACHINENAME\AAA.coverage. "
-                    + @"Trx file: *\TestResults\multiple_attachments.trx"),
+                    + @$"*{Path.Combine("TestResults", "multiple_attachments", "In", @"MACHINENAME\AAA.coverage")}, "
+                    + @$"*{Path.Combine("TestResults", "multiple_attachments", "In", @"MACHINENAME\AAA.coverage")}. "
+                    + @$"Trx file: *{Path.Combine("TestResults", "multiple_attachments.trx")}"),
             x => x.Should().Match(
                     "None of the following coverage attachments could be found: "
                     + "XXX.coverage, "
-                    + @"*\TestResults\multiple_attachments\In\XXX.coverage, "
-                    + @"*\TestResults\multiple_attachments\In\XXX.coverage. "
-                    + @"Trx file: *\TestResults\multiple_attachments.trx"));
+                    + @$"*{Path.Combine("TestResults", "multiple_attachments", "In", "XXX.coverage")}, "
+                    + @$"*{Path.Combine("TestResults", "multiple_attachments", "In", "XXX.coverage")}. "
+                    + @$"Trx file: *{Path.Combine("TestResults", "multiple_attachments.trx")}"));
         logger.AssertErrorsLogged(0);
     }
 
