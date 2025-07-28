@@ -472,7 +472,6 @@ public class ProcessedArgsTests
         logger.AssertNoWarningsLogged();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [DataTestMethod]
     [DynamicData(nameof(DirectoryCreateExceptions))]
     public void ProcArgs_UserHome_Default_CreationFails(Type exceptionType)
