@@ -783,59 +783,64 @@ public class PropertiesFileGeneratorTests
     public void GenerateFile_ComputeProjectBaseDir()
     {
         VerifyProjectBaseDir(
-            expectedValue: @"d:\work\mysources", // if there is a user value, use it
-            teamBuildValue: @"d:\work",
-            userValue: @"d:\work\mysources",
-            projectPaths: [@"d:\work\proj1.csproj"]);
+            expectedValue: Path.Combine(TestUtils.DriveRoot("d"), "work", "mysources"), // if there is a user value, use it
+            teamBuildValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),
+            userValue: Path.Combine(TestUtils.DriveRoot("d"), "work", "mysources"),
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("d"), "work", "proj1.csproj")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"d:\work",  // if no user value, use the team build value
-            teamBuildValue: @"d:\work",
+            expectedValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),  // if no user value, use the team build value
+            teamBuildValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),
             userValue: null,
-            projectPaths: [@"e:\work"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work", @"e:\work"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work"), Path.Combine(TestUtils.DriveRoot("e"), "work")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work\A", @"e:\work\B\C"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work", "A"), Path.Combine(TestUtils.DriveRoot("e"), "work", "B", "C")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work\A", @"e:\work\B", @"e:\work\C"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work", "A"), Path.Combine(TestUtils.DriveRoot("e"), "work", "B"), Path.Combine(TestUtils.DriveRoot("e"), "work", "C")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work", "A"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work\A\X", @"e:\work\A", @"e:\work\A"]);
-
-        VerifyProjectBaseDir(
-            expectedValue: null,  // if no common root exists, return null
-            teamBuildValue: null,
-            userValue: string.Empty,
-            projectPaths: [@"f:\work\A", @"e:\work\B"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work", "A", "X"), Path.Combine(TestUtils.DriveRoot("e"), "work", "A"), Path.Combine(TestUtils.DriveRoot("e"), "work", "A")]);
 
         // Support relative paths
         VerifyProjectBaseDir(
             expectedValue: Path.Combine(Directory.GetCurrentDirectory(), "src"),
             teamBuildValue: null,
-            userValue: @".\src",
+            userValue: Path.Combine(".", "src"),
             projectPaths: [@"d:\work\proj1.csproj"]);
+    }
+
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void GenerateFile_ComputeProjectBaseDir_Windows()
+    {
+        VerifyProjectBaseDir(
+            expectedValue: null,  // if no common root exists, return null
+            teamBuildValue: null,
+            userValue: string.Empty,
+            projectPaths: [@"f:\work\A", @"e:\work\B"]);
 
         // Support short name paths
         var result = ComputeProjectBaseDir(
@@ -1148,13 +1153,13 @@ public class PropertiesFileGeneratorTests
         // Arrange
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "D:\\foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "~foo\\bar.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\foobar.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("D"), "foo.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~foo", "bar.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("C"), "foobar.csproj") }),
         };
 
         // Act
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("E:\\foo"), projects);
+        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("E"), "foo")), projects);
 
         // Assert
         actual.Should().BeNull();
