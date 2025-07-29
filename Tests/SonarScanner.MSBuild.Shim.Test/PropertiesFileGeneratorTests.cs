@@ -1361,7 +1361,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    // Case sensitive tests mdon't apply to Unix.
+    // Case sensitive tests don't apply to Unix.
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
