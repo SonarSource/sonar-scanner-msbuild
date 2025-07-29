@@ -19,7 +19,6 @@
  */
 
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim.Test;
@@ -1509,13 +1508,12 @@ public class PropertiesFileGeneratorTests
         AssertExpectedPathsAddedToModuleFiles(project1, project1Sources);
         AssertExpectedPathsAddedToModuleFiles(project2, project2Sources);
 
-        // Multiline string literal doesn't work here because of environment-specific line ending.
-        var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
-        PropertiesValues(propertiesFile, "sonar.sources").Should().BeEquivalentTo(rootSources.Select(x => x.Replace(@"\", @"\\")));
-        PropertiesValues(propertiesFile, "sonar.tests").Should().BeEquivalentTo(rootTests.Select(x => x.Replace(@"\", @"\\")));
+        var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+        properties.GetProperty("sonar.sources").Split(',').Should().BeEquivalentTo(rootSources);
+        properties.GetProperty("sonar.tests").Split(',').Should().BeEquivalentTo(rootTests);
 
         void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
-         expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
+            expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
     }
 
     [TestMethod]
@@ -1545,9 +1543,8 @@ public class PropertiesFileGeneratorTests
         AssertPropertiesFilesCreated(result, logger);
         AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
 
-        // Multiline string literal doesn't work here because of environment-specific line ending.
-        var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
-        PropertiesValues(propertiesFile, "sonar.tests").Should().BeEquivalentTo(testFiles.Select(x => x.Replace(@"\", @"\\")));
+        var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+        properties.GetProperty("sonar.tests").Split(',').Should().BeEquivalentTo(testFiles);
     }
 
     [DataTestMethod]
@@ -1738,12 +1735,4 @@ public class PropertiesFileGeneratorTests
         additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance, logger);
         return new(analysisConfig, logger, sarifFixer, runtimeInformationWrapper, additionalFileService);
     }
-
-    // https://regex101.com/r/BTyGeP/1
-    private static IReadOnlyCollection<string> PropertiesValues(string properties, string key) =>
-        Regex
-            .Match(properties, $@"^{Regex.Escape(key)}=\\\r?\n(?<values>(?:.*,\\\r?\n)*[^\r\n]*)", RegexOptions.Multiline)
-            .Groups["values"]
-            .Value
-            .Split([@$",\{Environment.NewLine}", Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
 }
