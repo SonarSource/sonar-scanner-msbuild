@@ -66,7 +66,7 @@ public static class PathHelper
         }
     }
 
-    public static string[] GetParts(DirectoryInfo directory)
+    public static string[] GetParts(this DirectoryInfo directory)
     {
         _ = directory ?? throw new ArgumentNullException(nameof(directory));
         var parts = new List<string>();
