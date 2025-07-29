@@ -316,7 +316,8 @@ public class PropertiesWriterTest
             actual = writer.Flush();
         }
 
-        var expected = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+        var expected = string.Format(
+            System.Globalization.CultureInfo.InvariantCulture,
             """
             DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF
             DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D
@@ -428,13 +429,15 @@ public class PropertiesWriterTest
     [TestMethod]
     public void Flush_WhenCalledTwice_ThrowsInvalidOperationException()
     {
-        var writer = new PropertiesWriter(new AnalysisConfig
-        {
-            SonarProjectKey = "key",
-            SonarProjectName = "name",
-            SonarProjectVersion = "1.0",
-            SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
-        }, new TestLogger());
+        var writer = new PropertiesWriter(
+            new AnalysisConfig
+            {
+                SonarProjectKey = "key",
+                SonarProjectName = "name",
+                SonarProjectVersion = "1.0",
+                SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
+            },
+            new TestLogger());
         writer.Flush();
 
         Action act = () => writer.Flush();
@@ -444,13 +447,15 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteSettingsForProject_WhenFlushed_ThrowsInvalidOperationException()
     {
-        var writer = new PropertiesWriter(new AnalysisConfig
-        {
-            SonarProjectKey = "key",
-            SonarProjectName = "name",
-            SonarProjectVersion = "1.0",
-            SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
-        }, new TestLogger());
+        var writer = new PropertiesWriter(
+            new AnalysisConfig
+            {
+                SonarProjectKey = "key",
+                SonarProjectName = "name",
+                SonarProjectVersion = "1.0",
+                SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
+            },
+            new TestLogger());
         writer.Flush();
 
         using (new AssertIgnoreScope())
@@ -602,18 +607,6 @@ public class PropertiesWriterTest
     public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndNoInvalidPath_JoinPaths() =>
         EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("foo");
 
-    private static void EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(string sonarqubeVersion) =>
-        new PropertiesWriter(new AnalysisConfig
-        {
-            SonarOutputDir = @"C:\my_folder",
-            SonarQubeVersion = sonarqubeVersion
-        }, new TestLogger())
-            .EncodeAsMultiValueProperty([@"C:\foo.cs", @"C:\foobar.cs"])
-                .Should().BeIgnoringLineEndings("""
-                    C:\foo.cs,\
-                    C:\foobar.cs
-                    """);
-
     [TestMethod]
     public void EncodeAsMultiValueProperty_WhenSQLessThan65AndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
         EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("6.0");
@@ -626,14 +619,30 @@ public class PropertiesWriterTest
     public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
         EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("foo");
 
+    private static void EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(string sonarqubeVersion) =>
+        new PropertiesWriter(
+                new AnalysisConfig
+                {
+                    SonarOutputDir = @"C:\my_folder",
+                    SonarQubeVersion = sonarqubeVersion
+                },
+                new TestLogger())
+            .EncodeAsMultiValueProperty([@"C:\foo.cs", @"C:\foobar.cs"])
+            .Should().BeIgnoringLineEndings("""
+            C:\foo.cs,\
+            C:\foobar.cs
+            """);
+
     private static void EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(string sonarqubeVersion)
     {
         var logger = new TestLogger();
-        var testSubject = new PropertiesWriter(new AnalysisConfig
-        {
-            SonarOutputDir = @"C:\my_folder",
-            SonarQubeVersion = sonarqubeVersion
-        }, logger);
+        var testSubject = new PropertiesWriter(
+            new AnalysisConfig
+            {
+                SonarOutputDir = @"C:\my_folder",
+                SonarQubeVersion = sonarqubeVersion
+            },
+            logger);
         var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs" };
 
         testSubject.EncodeAsMultiValueProperty(paths).Should().Be(@"C:\foo.cs");
@@ -644,8 +653,16 @@ public class PropertiesWriterTest
     private static string PropertiesPath(params string[] paths) =>
         Path.Combine(paths).Replace(@"\", @"\\"); // We escape `\` when we write the properties file
 
-    private static ProjectInfo CreateProjectInfo(string name, string projectId, FileInfo fullFilePath, bool isTest, IEnumerable<FileInfo> files,
-        string fileListFilePath, string coverageReportPath, string language, string encoding)
+    private static ProjectInfo CreateProjectInfo(
+        string name,
+        string projectId,
+        FileInfo fullFilePath,
+        bool isTest,
+        IEnumerable<FileInfo> files,
+        string fileListFilePath,
+        string coverageReportPath,
+        string language,
+        string encoding)
     {
         var projectInfo = new ProjectInfo
         {
@@ -657,11 +674,11 @@ public class PropertiesWriterTest
             ProjectLanguage = language,
             Encoding = encoding
         };
-        if (coverageReportPath != null)
+        if (coverageReportPath is not null)
         {
             projectInfo.AddAnalyzerResult(AnalysisType.VisualStudioCodeCoverage, coverageReportPath);
         }
-        if (files != null && files.Any())
+        if (files is not null && files.Any())
         {
             fileListFilePath.Should().NotBeNullOrWhiteSpace("Test setup error: must supply the managedFileListFilePath as a list of files has been supplied");
             File.WriteAllLines(fileListFilePath, files.Select(x => x.FullName));
