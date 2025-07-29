@@ -353,7 +353,6 @@ public class AdditionalFilesServiceTest
         logger.AssertNoWarningsLogged();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void AdditionalFiles_DirectoryAccessFail()
     {
