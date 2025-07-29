@@ -536,6 +536,9 @@ public class PropertiesFileGeneratorTests
     }
 
     // SONARMSBRU-335
+    // Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_SharedFiles_CaseInsensitive()
     {
