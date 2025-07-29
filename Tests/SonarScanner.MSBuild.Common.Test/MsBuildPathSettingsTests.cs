@@ -192,7 +192,6 @@ public class MsBuildPathSettingsTests
         (Environment.SpecialFolder, string)[] paths = null,
         Func<string, bool> directoryExistsFunc = null)
     {
-
         paths ??= [(Environment.SpecialFolder.LocalApplicationData, "c:\\windows\\system32\\app data"),
             (Environment.SpecialFolder.System, "c:\\windows\\system32"),
             (Environment.SpecialFolder.SystemX86, "c:\\windows\\sysWOW64")];
