@@ -19,6 +19,7 @@
  */
 
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim.Test;
@@ -1507,10 +1508,8 @@ public class PropertiesFileGeneratorTests
 
         // Multiline string literal doesn't work here because of environment-specific line ending.
         var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
-        propertiesFile.Should()
-            .Contain($@"sonar.sources=\{Environment.NewLine}{string.Join($@",\{Environment.NewLine}", rootSources.Select(x => x.Replace(@"\", @"\\")))}");
-        propertiesFile.Should()
-            .Contain($@"sonar.tests=\{Environment.NewLine}{string.Join($@",\{Environment.NewLine}", rootTests.Select(x => x.Replace(@"\", @"\\")))}");
+        PropertiesValues(propertiesFile, "sonar.sources").Should().Contain(rootSources.Select(x => x.Replace(@"\", @"\\")));
+        PropertiesValues(propertiesFile, "sonar.tests").Should().Contain(rootTests.Select(x => x.Replace(@"\", @"\\")));
 
         void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
          expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
@@ -1545,8 +1544,7 @@ public class PropertiesFileGeneratorTests
 
         // Multiline string literal doesn't work here because of environment-specific line ending.
         var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
-        propertiesFile.Should()
-            .Contain($"sonar.tests=\\{Environment.NewLine}{string.Join($",\\{Environment.NewLine}", testFiles.Select(x => x.Replace("\\", "\\\\")))}");
+        PropertiesValues(propertiesFile, "sonar.tests").Should().Contain(testFiles.Select(x => x.Replace(@"\", @"\\")));
     }
 
     [DataTestMethod]
@@ -1737,4 +1735,11 @@ public class PropertiesFileGeneratorTests
         additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance, logger);
         return new(analysisConfig, logger, sarifFixer, runtimeInformationWrapper, additionalFileService);
     }
+
+    private IEnumerable<string> PropertiesValues(string properties, string key) =>
+        Regex
+            .Match(properties, $@"^{Regex.Escape(key)}=\\(?<values>(.|\n)*?)\n\n", RegexOptions.Multiline)
+            .Groups["values"]
+            .Value
+            .Split([@$",\{Environment.NewLine}", Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
 }
