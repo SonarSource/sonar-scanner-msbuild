@@ -150,6 +150,9 @@ public class PropertiesFileGeneratorTests
         AssertExpectedProjectCount(1, result);
     }
 
+    // Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_Duplicate_SameGuid_DifferentCase_ShouldNotIgnoreCase()
     {
