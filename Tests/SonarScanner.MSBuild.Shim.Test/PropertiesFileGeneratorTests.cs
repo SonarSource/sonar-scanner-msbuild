@@ -1740,7 +1740,7 @@ public class PropertiesFileGeneratorTests
     }
 
     // https://regex101.com/r/BTyGeP/1
-    private IEnumerable<string> PropertiesValues(string properties, string key) =>
+    private static IReadOnlyCollection<string> PropertiesValues(string properties, string key) =>
         Regex
             .Match(properties, $@"^{Regex.Escape(key)}=\\\r?\n(?<values>(?:.*,\\\r?\n)*[^\r\n]*)", RegexOptions.Multiline)
             .Groups["values"]
