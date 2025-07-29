@@ -537,7 +537,6 @@ public class PropertiesFileGeneratorTests
     }
 
     // SONARMSBRU-335
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GenerateFile_SharedFiles_CaseInsensitive()
     {
@@ -780,7 +779,6 @@ public class PropertiesFileGeneratorTests
         logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GenerateFile_ComputeProjectBaseDir()
     {
@@ -872,7 +870,6 @@ public class PropertiesFileGeneratorTests
         }
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TryWriteProperties_WhenThereIsNoCommonPath_LogsError()
     {
@@ -1145,7 +1142,6 @@ public class PropertiesFileGeneratorTests
         actual.Should().BeNull();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenNoMatch_ReturnsNull()
     {
@@ -1179,7 +1175,6 @@ public class PropertiesFileGeneratorTests
         actual.Should().Be(projects[2]);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentCase_ReturnsProject()
     {
