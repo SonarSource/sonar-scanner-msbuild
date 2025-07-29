@@ -1638,7 +1638,7 @@ public class PropertiesFileGeneratorTests
         result.FullPropertiesFilePath.Should().NotBeNull("Expecting the sonar-scanner properties file to have been set");
 
         AssertValidProjectsExist(result);
-        //TestContext.AddResultFile(result.FullPropertiesFilePath);
+        TestContext.AddResultFile(result.FullPropertiesFilePath);
 
         logger.AssertErrorsLogged(0);
     }
