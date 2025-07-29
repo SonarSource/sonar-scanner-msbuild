@@ -689,6 +689,9 @@ public class PropertiesWriterTest
 
     private static ProjectData CreateTestProjectDataWithPaths(string language, string[] analyzerOutPaths = null, string[] roslynOutPaths = null, string[] telemetryPaths = null)
     {
+        analyzerOutPaths ??= [];
+        roslynOutPaths ??= [];
+        telemetryPaths ??= [];
         var projectData = new ProjectData(new ProjectInfo
         {
             ProjectGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9"),
