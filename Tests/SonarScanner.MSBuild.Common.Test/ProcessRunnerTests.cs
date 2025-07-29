@@ -169,9 +169,9 @@ public class ProcessRunnerTests
     public void ProcRunner_PassesEnvVariables()
     {
         var content = $"""
-            {EchoCommand("PROCESS_VAR", isEnvVar: true)}
-            {EchoCommand("PROCESS_VAR2", isEnvVar: true)}
-            {EchoCommand("PROCESS_VAR3", isEnvVar: true)}
+            {EchoEnvVar("PROCESS_VAR")}
+            {EchoEnvVar("PROCESS_VAR2")}
+            {EchoEnvVar("PROCESS_VAR3")}
             """;
         var context = new ProcessRunnerContext(TestContext, content);
         context.ProcessArgs.EnvironmentVariables = new Dictionary<string, string>
@@ -191,9 +191,9 @@ public class ProcessRunnerTests
     public void ProcRunner_PassesEnvVariables_OverrideExisting()
     {
         var content = $"""
-            {EchoCommand("proc_runner_test_machine", isEnvVar: true)}
-            {EchoCommand("proc_runner_test_process", isEnvVar: true)}
-            {EchoCommand("proc_runner_test_user", isEnvVar: true)}
+            {EchoEnvVar("proc_runner_test_machine")}
+            {EchoEnvVar("proc_runner_test_process")}
+            {EchoEnvVar("proc_runner_test_user")}
             """;
         var context = new ProcessRunnerContext(TestContext, content);
         try
@@ -458,27 +458,11 @@ public class ProcessRunnerTests
         }
     }
 
-    private static string EchoCommand(string text, bool isEnvVar = false)
-    {
-        string content;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            if (isEnvVar)
-            {
-                text = $"%{text}%";
-            }
-            content = $"@echo {text}";
-        }
-        else
-        {
-            if (isEnvVar)
-            {
-                text = $"${text}";
-            }
-            content = $"echo \"{text.Replace('%', '$')}\"";
-        }
-        return content;
-    }
+    private static string EchoEnvVar(string text) =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? EchoCommand($"%{text}%") : EchoCommand($"${text}");
+
+    private static string EchoCommand(string text) =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"@echo {text}" : $"echo \"{text.Replace('%', '$')}\"";
 
     private static string ScriptInit() =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "@echo off" : "#!/bin/sh";
