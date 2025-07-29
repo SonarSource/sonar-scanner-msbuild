@@ -81,13 +81,6 @@ public class ListPropertiesProviderTests
         CheckPropertyExists(listPropertiesProvider, "id2", "value2");
     }
 
-    private static void CheckPropertyExists(IAnalysisPropertyProvider provider, string id, string value)
-    {
-        provider.TryGetProperty(id, out Property foundProp).Should().BeTrue();
-        foundProp.Id.Should().Be(id);
-        foundProp.Value.Should().Be(value);
-    }
-
     [TestMethod]
     public void AddProperty_WhenKeyIsNull_ThrowsArgumentNullException()
     {
@@ -159,5 +152,43 @@ public class ListPropertiesProviderTests
 
         // Act & Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("key");
+    }
+
+    [TestMethod]
+    public void Add_DictionaryInitializer_Works()
+    {
+        var provider = new ListPropertiesProvider
+        {
+            { "a", "1" },
+            { "b", "2" }
+        };
+        provider.GetAllProperties().Should().BeEquivalentTo([new Property("a", "1"), new("b", "2")]);
+    }
+
+    [TestMethod]
+    public void GenericEnumeration_Works()
+    {
+        var provider = new ListPropertiesProvider();
+        provider.AddProperty("a", "1");
+        provider.AddProperty("b", "2");
+        provider.Should().BeEquivalentTo([new Property("a", "1"), new("b", "2")]);
+    }
+
+    [TestMethod]
+    public void Enumeration_Works()
+    {
+        var provider = new ListPropertiesProvider();
+        provider.AddProperty("a", "1");
+        provider.AddProperty("b", "2");
+        var enumerator = (provider as System.Collections.IEnumerable).GetEnumerator();
+        enumerator.MoveNext().Should().BeTrue();
+        enumerator.Current.Should().BeEquivalentTo(new Property("a", "1"));
+    }
+
+    private static void CheckPropertyExists(IAnalysisPropertyProvider provider, string id, string value)
+    {
+        provider.TryGetProperty(id, out Property foundProp).Should().BeTrue();
+        foundProp.Id.Should().Be(id);
+        foundProp.Value.Should().Be(value);
     }
 }
