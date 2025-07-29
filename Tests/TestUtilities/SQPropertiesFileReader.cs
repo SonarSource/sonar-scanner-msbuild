@@ -74,14 +74,14 @@ public class SQPropertiesFileReader
         found.Should().BeFalse("Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
     }
 
-    public string GetProperty(string key) =>
+    public string PropertyValue(string key) =>
         Properties.GetProperty(key);
 
     #endregion Public methods
 
     #region FilePropertiesProvider
 
-    private JavaProperties ExtractProperties(string fullPath)
+    private static JavaProperties ExtractProperties(string fullPath)
     {
         Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
 

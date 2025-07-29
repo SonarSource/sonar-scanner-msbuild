@@ -1512,8 +1512,8 @@ public class PropertiesFileGeneratorTests
         AssertExpectedPathsAddedToModuleFiles(project2, project2Sources);
 
         var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        properties.GetProperty("sonar.sources").Split(',').Should().BeEquivalentTo(rootSources);
-        properties.GetProperty("sonar.tests").Split(',').Should().BeEquivalentTo(rootTests);
+        properties.PropertyValue("sonar.sources").Split(',').Should().BeEquivalentTo(rootSources);
+        properties.PropertyValue("sonar.tests").Split(',').Should().BeEquivalentTo(rootTests);
 
         void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
             expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
@@ -1547,7 +1547,7 @@ public class PropertiesFileGeneratorTests
         AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
 
         var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        properties.GetProperty("sonar.tests").Split(',').Should().BeEquivalentTo(testFiles);
+        properties.PropertyValue("sonar.tests").Split(',').Should().BeEquivalentTo(testFiles);
     }
 
     [DataTestMethod]
