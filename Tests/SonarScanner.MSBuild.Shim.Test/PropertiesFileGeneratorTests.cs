@@ -1508,8 +1508,8 @@ public class PropertiesFileGeneratorTests
 
         // Multiline string literal doesn't work here because of environment-specific line ending.
         var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
-        PropertiesValues(propertiesFile, "sonar.sources").Should().Contain(rootSources.Select(x => x.Replace(@"\", @"\\")));
-        PropertiesValues(propertiesFile, "sonar.tests").Should().Contain(rootTests.Select(x => x.Replace(@"\", @"\\")));
+        PropertiesValues(propertiesFile, "sonar.sources").Should().BeEquivalentTo(rootSources.Select(x => x.Replace(@"\", @"\\")));
+        PropertiesValues(propertiesFile, "sonar.tests").Should().BeEquivalentTo(rootTests.Select(x => x.Replace(@"\", @"\\")));
 
         void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
          expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
@@ -1544,7 +1544,7 @@ public class PropertiesFileGeneratorTests
 
         // Multiline string literal doesn't work here because of environment-specific line ending.
         var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
-        PropertiesValues(propertiesFile, "sonar.tests").Should().Contain(testFiles.Select(x => x.Replace(@"\", @"\\")));
+        PropertiesValues(propertiesFile, "sonar.tests").Should().BeEquivalentTo(testFiles.Select(x => x.Replace(@"\", @"\\")));
     }
 
     [DataTestMethod]
@@ -1635,7 +1635,7 @@ public class PropertiesFileGeneratorTests
         result.FullPropertiesFilePath.Should().NotBeNull("Expecting the sonar-scanner properties file to have been set");
 
         AssertValidProjectsExist(result);
-        TestContext.AddResultFile(result.FullPropertiesFilePath);
+        //TestContext.AddResultFile(result.FullPropertiesFilePath);
 
         logger.AssertErrorsLogged(0);
     }
@@ -1736,9 +1736,10 @@ public class PropertiesFileGeneratorTests
         return new(analysisConfig, logger, sarifFixer, runtimeInformationWrapper, additionalFileService);
     }
 
+    // https://regex101.com/r/Wo8jSm/2
     private IEnumerable<string> PropertiesValues(string properties, string key) =>
         Regex
-            .Match(properties, $@"^{Regex.Escape(key)}=\\(?<values>(.|\n)*?)\n\n", RegexOptions.Multiline)
+            .Match(properties, $@"^{Regex.Escape(key)}=\\\n(?<values>(?:^.*,\\$\n)*.*)", RegexOptions.Multiline)
             .Groups["values"]
             .Value
             .Split([@$",\{Environment.NewLine}", Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
