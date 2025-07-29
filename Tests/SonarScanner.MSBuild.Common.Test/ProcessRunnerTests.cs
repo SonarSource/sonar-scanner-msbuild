@@ -243,9 +243,6 @@ public class ProcessRunnerTests
         context.Logger.AssertSingleErrorExists("missingExe.foo");
     }
 
-    // Relies on LogArgs, which is difficult to test in a cross-platform way
-    [TestCategory(TestCategories.NoLinux)]
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ProcRunner_ArgumentQuoting()
     {
@@ -282,10 +279,6 @@ public class ProcessRunnerTests
         context.AssertExpectedLogContents(expected);
     }
 
-    // Checks arguments passed to a script which itself passes them on are correctly escaped
-    // Relies on LogArgs, which is difficult to test in a cross-platform way
-    [TestCategory(TestCategories.NoLinux)]
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
     {
@@ -305,7 +298,9 @@ public class ProcessRunnerTests
             "injection \" & echo haha",
             "double escaping \\\" > foo.txt"
         };
-        var context = new ProcessRunnerContext(TestContext, "\"" + LogArgsPath() + "\" %*");
+
+        var listArgs = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "%*" : "\"$@\"";
+        var context = new ProcessRunnerContext(TestContext, "\"" + LogArgsPath() + "\" " + listArgs);
         context.ProcessArgs.CmdLineArgs = expected;
 
         context.ExecuteAndAssert();
@@ -371,9 +366,6 @@ public class ProcessRunnerTests
         context.Logger.InfoMessages.Should().BeEquivalentTo(expectedLogMessages);
     }
 
-    // Relies on LogArgs, which is difficult to test in a cross-platform way
-    [TestCategory(TestCategories.NoLinux)]
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
     public void ProcRunner_DoNotLogSensitiveData()
@@ -467,9 +459,22 @@ public class ProcessRunnerTests
     private static string ScriptInit() =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "@echo off" : "#!/bin/sh";
 
-    private static string LogArgsPath() =>
-        // Replace to change this project directory to LogArgs project directory while keeping the same build configuration (Debug/Release)
-        Path.Combine(Path.GetDirectoryName(typeof(ProcessRunnerTests).Assembly.Location).Replace("SonarScanner.MSBuild.Common.Test", "LogArgs"), "LogArgs.exe");
+    private static string LogArgsPath()
+    {
+        var basePath = Path.GetDirectoryName(typeof(ProcessRunnerTests).Assembly.Location).Replace("SonarScanner.MSBuild.Common.Test", "LogArgs");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return Path.Combine(basePath, "LogArgs.exe");
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return Path.Combine(basePath.Replace("Debug", "Release"), "linux-x64", "LogArgs");
+        }
+        else // MacOs
+        {
+            return Path.Combine(basePath.Replace("Debug", "Release"), "osx-x64", "LogArgs");
+        }
+    }
 
     private class ProcessRunnerContext
     {
