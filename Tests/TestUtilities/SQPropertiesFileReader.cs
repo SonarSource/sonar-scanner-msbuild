@@ -85,11 +85,9 @@ public class SQPropertiesFileReader
     {
         Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
 
+        using var stream = File.Open(fullPath, FileMode.Open);
         var properties = new JavaProperties();
-        using (var stream = File.Open(fullPath, FileMode.Open))
-        {
-            properties.Load(stream);
-        }
+        properties.Load(stream);
         return properties;
     }
 
