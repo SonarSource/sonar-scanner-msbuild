@@ -1739,10 +1739,10 @@ public class PropertiesFileGeneratorTests
         return new(analysisConfig, logger, sarifFixer, runtimeInformationWrapper, additionalFileService);
     }
 
-    // https://regex101.com/r/Wo8jSm/2
+    // https://regex101.com/r/BTyGeP/1
     private IEnumerable<string> PropertiesValues(string properties, string key) =>
         Regex
-            .Match(properties, $@"^{Regex.Escape(key)}=\\\n(?<values>(?:^.*,\\$\n)*.*)", RegexOptions.Multiline)
+            .Match(properties, $@"^{Regex.Escape(key)}=\\\r?\n(?<values>(?:.*,\\\r?\n)*[^\r\n]*)", RegexOptions.Multiline)
             .Groups["values"]
             .Value
             .Split([@$",\{Environment.NewLine}", Environment.NewLine], StringSplitOptions.RemoveEmptyEntries);
