@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -71,7 +72,7 @@ public class PropertiesWriterTest
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
         ]);
-        propertiesWriter.Flush().Should().Be("""
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings("""
             sonar.host.url=http://example.org
 
             sonar.modules=
@@ -104,7 +105,7 @@ public class PropertiesWriterTest
     {
         var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
         propertiesWriter.WriteSharedFiles(new([], []));
-        propertiesWriter.Flush().Should().Be("""
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings("""
 
             sonar.modules=
 
@@ -117,11 +118,11 @@ public class PropertiesWriterTest
     public void WriteSharedProperties_WithSources_EmptyTests()
     {
         var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
-        propertiesWriter.WriteSharedFiles(new([new("C:/dev/main.hs"), new("C:/dev/lambdas.hs")], []));
-        propertiesWriter.Flush().Should().Be("""
+        propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings($"""
             sonar.sources=\
-            C:\\dev\\main.hs,\
-            C:\\dev\\lambdas.hs
+            {PropertiesPath(TestUtils.DriveRoot(), "dev", "main.hs")},\
+            {PropertiesPath(TestUtils.DriveRoot(), "dev", "lambdas.hs")}
 
             sonar.modules=
 
@@ -134,11 +135,11 @@ public class PropertiesWriterTest
     public void WriteSharedProperties_EmptySources_WithTests()
     {
         var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
-        propertiesWriter.WriteSharedFiles(new([], [new("C:/dev/test.hs"), new("C:/dev/test2.hs")]));
-        propertiesWriter.Flush().Should().Be("""
+        propertiesWriter.WriteSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings($"""
             sonar.tests=\
-            C:\\dev\\test.hs,\
-            C:\\dev\\test2.hs
+            {PropertiesPath(TestUtils.DriveRoot(), "dev", "test.hs")},\
+            {PropertiesPath(TestUtils.DriveRoot(), "dev", "test2.hs")}
 
             sonar.modules=
 
@@ -151,12 +152,12 @@ public class PropertiesWriterTest
     public void WriteSharedProperties_WithSources_WithTests()
     {
         var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
-        propertiesWriter.WriteSharedFiles(new([new("C:/dev/main.hs")], [new("C:/dev/test.hs")]));
-        propertiesWriter.Flush().Should().Be("""
+        propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings($"""
             sonar.sources=\
-            C:\\dev\\main.hs
+            {PropertiesPath(TestUtils.DriveRoot(), "dev", "main.hs")}
             sonar.tests=\
-            C:\\dev\\test.hs
+            {PropertiesPath(TestUtils.DriveRoot(), "dev", "test.hs")}
 
             sonar.modules=
 
@@ -178,10 +179,12 @@ public class PropertiesWriterTest
 
         propertiesWriter.WriteAnalyzerOutputPaths(projectData);
 
-        propertiesWriter.Flush().Should().Be(
-@"sonar.modules=
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings(
+            """
+            sonar.modules=
 
-");
+
+            """);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -196,18 +199,21 @@ public class PropertiesWriterTest
 
         var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = language };
         var projectData = new ProjectData(projectInfo);
-        projectData.AnalyzerOutPaths.Add(new FileInfo(@"c:\dir1\first"));
-        projectData.AnalyzerOutPaths.Add(new FileInfo(@"c:\dir1\second"));
+
+        projectData.AnalyzerOutPaths.Add(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "dir1", "first")));
+        projectData.AnalyzerOutPaths.Add(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "dir1", "second")));
 
         propertiesWriter.WriteAnalyzerOutputPaths(projectData);
 
-        propertiesWriter.Flush().Should().Be(
-$@"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
-c:\\dir1\\first,\
-c:\\dir1\\second
-sonar.modules=
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings(
+            $"""
+            5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
+            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "first")},\
+            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "second")}
+            sonar.modules=
 
-");
+
+            """);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -224,10 +230,12 @@ sonar.modules=
 
         propertiesWriter.WriteRoslynReportPaths(projectData);
 
-        propertiesWriter.Flush().Should().Be(
-@"sonar.modules=
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings(
+            """
+            sonar.modules=
 
-");
+
+            """);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -242,18 +250,21 @@ sonar.modules=
 
         var projectInfo = new ProjectInfo() { ProjectGuid = someGuid, ProjectLanguage = language };
         var projectData = new ProjectData(projectInfo);
-        projectData.RoslynReportFilePaths.Add(new FileInfo(@"c:\dir1\first"));
-        projectData.RoslynReportFilePaths.Add(new FileInfo(@"c:\dir1\second"));
+
+        projectData.RoslynReportFilePaths.Add(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "dir1", "first")));
+        projectData.RoslynReportFilePaths.Add(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "dir1", "second")));
 
         propertiesWriter.WriteRoslynReportPaths(projectData);
 
-        propertiesWriter.Flush().Should().Be(
-$@"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
-c:\\dir1\\first,\
-c:\\dir1\\second
-sonar.modules=
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings(
+            $"""
+            5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
+            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "first")},\
+            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "second")}
+            sonar.modules=
 
-");
+
+            """);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -270,7 +281,7 @@ sonar.modules=
 
         propertiesWriter.WriteTelemetryPaths(projectData);
 
-        propertiesWriter.Flush().Should().Be(
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings(
             """
             sonar.modules=
 
@@ -292,17 +303,17 @@ sonar.modules=
         {
             TelemetryPaths =
             {
-                new FileInfo(@"c:\dir1\first\Telemetry.json"),
-                new FileInfo(@"c:\dir1\second\Telemetry.json"),
+                new FileInfo(Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json")),
+                new FileInfo(Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")),
             }
         };
         propertiesWriter.WriteTelemetryPaths(projectData);
 
-        propertiesWriter.Flush().Should().Be(
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings(
             $"""
             5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
-            c:\\dir1\\first\\Telemetry.json,\
-            c:\\dir1\\second\\Telemetry.json
+            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json")},\
+            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")}
             sonar.modules=
 
 
@@ -372,46 +383,49 @@ sonar.modules=
         }
 
         var expected = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-@"DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF
-DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D
-DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir={0}
-DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sourceEncoding=utf-8
-DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.tests=
-DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
-{0}\\File.cs,\
-{0}\\\u4F60\u597D.cs,\
-{2}
+            """
+            DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey=my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF
+            DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName=\u4F60\u597D
+            DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir={0}
+            DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sourceEncoding=utf-8
+            DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.tests=
+            DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
+            {0}{3}File.cs,\
+            {0}{3}\u4F60\u597D.cs,\
+            {2}
 
-DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.working.directory=C:\\my_folder\\.sonar\\mod0
-B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey=my_project_key:B51622CF-82F4-48C9-9F38-FB981FAFAF3A
-B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectName=vbProject
-B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectBaseDir={0}
-B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sourceEncoding=utf-8
-B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.tests=
-B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources=\
-{0}\\File.cs
+            DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.working.directory=C:\\my_folder{3}.sonar{3}mod0
+            B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey=my_project_key:B51622CF-82F4-48C9-9F38-FB981FAFAF3A
+            B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectName=vbProject
+            B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectBaseDir={0}
+            B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sourceEncoding=utf-8
+            B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.tests=
+            B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources=\
+            {0}{3}File.cs
 
-B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.working.directory=C:\\my_folder\\.sonar\\mod1
-DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey=my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B
-DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName=my_test_project
-DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir={1}
-DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding=utf-8
-DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=
-DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
-{1}\\File.cs
+            B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.working.directory=C:\\my_folder{3}.sonar{3}mod1
+            DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey=my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B
+            DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName=my_test_project
+            DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir={1}
+            DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding=utf-8
+            DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=
+            DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
+            {1}{3}File.cs
 
-DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.working.directory=C:\\my_folder\\.sonar\\mod2
-sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981FAFAF3A,DA0FCD82-9C5C-4666-9370-C7388281D49B
+            DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.working.directory=C:\\my_folder{3}.sonar{3}mod2
+            sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981FAFAF3A,DA0FCD82-9C5C-4666-9370-C7388281D49B
 
-",
-PropertiesWriter.Escape(productBaseDir),
-PropertiesWriter.Escape(testBaseDir),
-PropertiesWriter.Escape(missingFileOutsideProjectDir.FullName));
+
+            """,
+            PropertiesWriter.Escape(productBaseDir),
+            PropertiesWriter.Escape(testBaseDir),
+            PropertiesWriter.Escape(missingFileOutsideProjectDir.FullName),
+            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"\\" : "/"); // On windows the path separator is an escaped '\'
 
         SaveToResultFile(productBaseDir, "Expected.txt", expected.ToString());
         SaveToResultFile(productBaseDir, "Actual.txt", actual);
 
-        actual.Should().Be(expected);
+        actual.Should().BeIgnoringLineEndings(expected);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -427,18 +441,21 @@ PropertiesWriter.Escape(missingFileOutsideProjectDir.FullName));
         };
         config.SetConfigValue(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
         var writer = new PropertiesWriter(config, Substitute.For<ILogger>());
-        writer.WriteSonarProjectInfo(new DirectoryInfo(@"C:\ProjectBaseDir"));
+        writer.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
 
-        writer.Flush().Should().Be(
-@"sonar.projectKey=my_project_key
-sonar.projectName=my_project_name
-sonar.projectVersion=4.2
-sonar.working.directory=C:\\OutpuDir\\.sonar
-sonar.projectBaseDir=C:\\ProjectBaseDir
-sonar.pullrequest.cache.basepath=C:\\PullRequest\\Cache\\BasePath
-sonar.modules=
 
-");
+        writer.Flush().Should().BeIgnoringLineEndings(
+            $"""
+            sonar.projectKey=my_project_key
+            sonar.projectName=my_project_name
+            sonar.projectVersion=4.2
+            sonar.working.directory=C:\\OutpuDir{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"\\" : "/")}.sonar
+            sonar.projectBaseDir={PropertiesPath(TestUtils.DriveRoot(), "ProjectBaseDir")}
+            sonar.pullrequest.cache.basepath=C:\\PullRequest\\Cache\\BasePath
+            sonar.modules=
+
+
+            """);
     }
 
     [TestCategory(TestCategories.NoUnixNeedsReview)]
@@ -447,16 +464,18 @@ sonar.modules=
     {
         var config = new AnalysisConfig() { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
         var writer = new PropertiesWriter(config, Substitute.For<ILogger>());
-        writer.WriteSonarProjectInfo(new DirectoryInfo(@"C:\ProjectBaseDir"));
+        writer.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
 
-        writer.Flush().Should().Be(
-@"sonar.projectKey=
-sonar.working.directory=C:\\OutputDir\\CannotBeEmpty\\.sonar
-sonar.projectBaseDir=C:\\ProjectBaseDir
-sonar.pullrequest.cache.basepath=
-sonar.modules=
+        writer.Flush().Should().BeIgnoringLineEndings(
+            $"""
+            sonar.projectKey=
+            sonar.working.directory=C:\\OutputDir\\CannotBeEmpty{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"\\" : "/")}.sonar
+            sonar.projectBaseDir={PropertiesPath(TestUtils.DriveRoot(), "ProjectBaseDir")}
+            sonar.pullrequest.cache.basepath=
+            sonar.modules=
 
-");
+
+            """);
     }
 
     [TestMethod]
@@ -651,7 +670,6 @@ sonar.modules=
         propertyReader.AssertSettingExists("sonar.branch", "aBranch");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void EncodeAsMultiValueProperty_WhenSQGreaterThanOrEqualTo65_EscapeAndJoinPaths()
     {
@@ -677,9 +695,11 @@ sonar.modules=
         var actual66 = testSubject66.EncodeAsMultiValueProperty(paths);
 
         // Assert
-        actual65.Should().Be(@"""C:\foo.cs"",\
-""C:\foo,bar.cs"",\
-""C:\foo""""bar.cs""");
+        actual65.Should().BeIgnoringLineEndings("""
+            "C:\foo.cs",\
+            "C:\foo,bar.cs",\
+            "C:\foo""bar.cs"
+            """);
         actual66.Should().Be(actual65);
     }
 
@@ -714,8 +734,10 @@ sonar.modules=
         var actual = testSubject.EncodeAsMultiValueProperty(paths);
 
         // Assert
-        actual.Should().Be(@"C:\foo.cs,\
-C:\foobar.cs");
+        actual.Should().BeIgnoringLineEndings("""
+            C:\foo.cs,\
+            C:\foobar.cs
+            """);
     }
 
     [TestMethod]
@@ -751,6 +773,9 @@ C:\foobar.cs");
         logger.Warnings.Should().HaveCount(1);
         logger.Warnings[0].Should().Be("The following paths contain invalid characters and will be excluded from this analysis: C:\\foo,bar.cs");
     }
+
+    private static string PropertiesPath(params string[] paths) =>
+        Path.Combine(paths).Replace(@"\", @"\\"); // We escape `\` when we write the properties file
 
     private static ProjectInfo CreateProjectInfo(string name, string projectId, FileInfo fullFilePath, bool isTest, IEnumerable<FileInfo> files,
         string fileListFilePath, string coverageReportPath, string language, string encoding)
