@@ -17,6 +17,17 @@ stages:
         displayName: "Run UTs"
         steps:
           - task: DotNetCoreCLI@2
+            displayName: 'Build test pre-requisites' # Required in ProcessRunnerTests
+            inputs:
+              command: 'publish'
+              projects: './Tests/LogArgs/LogArgs.csproj'
+              publishWebProjects: false
+              zipAfterPublish: false
+              arguments: '--framework net9.0 --self-contained'
+            env:
+              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+          - task: DotNetCoreCLI@2
             displayName: 'Run dotnet test'
             inputs:
               command: 'test'

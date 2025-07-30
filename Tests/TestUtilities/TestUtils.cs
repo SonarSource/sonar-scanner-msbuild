@@ -156,12 +156,24 @@ public static class TestUtils
     /// Creates a batch file with the name of the current test
     /// </summary>
     /// <returns>Returns the full file name of the new file</returns>
-    public static string WriteBatchFileForTest(TestContext context, string content)
+    public static string WriteExecutableScriptForTest(TestContext context, string content)
     {
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        var fileExtension = isWindows ? ".bat" : ".sh";
         var testPath = CreateTestSpecificFolder(context);
-        var fileName = Path.Combine(testPath, context.TestName + ".bat");
-        File.Exists(fileName).Should().BeFalse("Not expecting a batch file to already exist: {0}", fileName);
-        File.WriteAllText(fileName, content);
+        var fileName = Path.Combine(testPath, context.TestName + fileExtension);
+        File.Exists(fileName).Should().BeFalse("Not expecting a script file to already exist: {0}", fileName);
+        File.WriteAllText(fileName, content.NormalizeLineEndings());
+#if NET
+
+        if (!isWindows)
+        {
+            File.SetUnixFileMode(fileName, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
+                | UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute
+                | UnixFileMode.OtherRead | UnixFileMode.OtherWrite | UnixFileMode.OtherExecute);
+        }
+#endif
         return fileName;
     }
 
