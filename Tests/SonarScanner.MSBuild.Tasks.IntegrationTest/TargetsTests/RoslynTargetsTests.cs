@@ -35,7 +35,7 @@ public class RoslynTargetsTests
 
     public TestContext TestContext { get; set; }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("C#", false, "false")]
     [DataRow("C#", false, "true")]
     [DataRow("C#", true, "false")]
@@ -68,7 +68,7 @@ public class RoslynTargetsTests
         AssertExpectedAdditionalFiles(result, "project.additional.file.1.txt", $"{someFolder}project.additional.file.2.txt");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("C#")]
     [DataRow("VB")]
     public void Settings_ValidSetup_ForExcludedTestProject(string msBuildLanguage)

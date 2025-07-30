@@ -64,7 +64,7 @@ public class SonarCategoriseProjectTests
     [DataRow("MyTests.csproj", null)]
     [DataRow("foo.proj", null)]
     [DataRow("TestafoXB.proj", ".*foo.*")]
-    [DataTestMethod]
+    [TestMethod]
     public void WildcardMatch_NoMatch(string projectName, string regex) =>
         AssertBuildAndTargets(projectName, projXml: string.Empty, analysisConfigDir: CreateAnalysisConfigWithRegEx(regex));
 
@@ -232,7 +232,7 @@ public class SonarCategoriseProjectTests
     [DataRow("WpfApplication.csproj", false)]
     [DataRow("ftmp_proj.csproj", false)]
     [DataRow("wpftmp.csproj", false)]
-    [DataTestMethod]
+    [TestMethod]
     public void WpfTemporaryProjects_AreExcluded(string projectName, bool expectedExclusionState)
     {
         var exclusionMessage = expectedExclusionState ? $"Sonar: ({projectName}) project is a temporary project and will be excluded." : null;

@@ -45,7 +45,7 @@ public class OperatingSystemProviderTests
         sut.DirectoryExists(Environment.CurrentDirectory).Should().BeTrue();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/etc/os-release", "alpine", true)]
     [DataRow("/etc/os-release", "ubuntu", false)]
     [DataRow("/etc/os-release", "\"rocky\"", false)] // https://github.com/which-distro/os-release/blob/main/rocky/8.6

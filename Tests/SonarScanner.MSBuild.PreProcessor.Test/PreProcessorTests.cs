@@ -126,7 +126,7 @@ public partial class PreProcessorTests
         factory.Logger.AssertErrorLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public async Task Execute_ExplicitScanAllParameter_ReturnsTrue(bool scanAll)

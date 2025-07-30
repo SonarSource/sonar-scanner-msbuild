@@ -86,7 +86,7 @@ public class ArgumentProcessorTests
         provider.AssertExpectedPropertyValue("sonar.password", "pwd");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(new[] { "/d:sonar.visualstudio.enable=false" }, new[] { "sonar.visualstudio.enable" })] // 1. Valid /d: arguments, but not the permitted ones
     [DataRow(new[] { "/d:aaa=bbb", "/d:xxx=yyy" }, new[] { "aaa", "xxx" })]
     [DataRow(new[] { "/D:sonar.token=token" }, new[] { "sonar.token" })] // wrong case for "/d:"

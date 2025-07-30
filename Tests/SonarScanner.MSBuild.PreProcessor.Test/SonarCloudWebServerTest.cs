@@ -172,7 +172,7 @@ public class SonarCloudWebServerTest
         logger.AssertSingleInfoMessageExists(infoMessage);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Jenkins", "ghprbTargetBranch")]
     [DataRow("Jenkins", "gitlabTargetBranch")]
     [DataRow("Jenkins", "BITBUCKET_TARGET_BRANCH")]
@@ -195,7 +195,7 @@ public class SonarCloudWebServerTest
         handler.Requests.Should().NotBeEmpty();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("ghprbTargetBranch")]
     [DataRow("gitlabTargetBranch")]
     [DataRow("BITBUCKET_TARGET_BRANCH")]
@@ -238,7 +238,7 @@ public class SonarCloudWebServerTest
         handler.Requests.Should().NotBeEmpty();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(SonarProperties.SonarUserName)]
     [DataRow(SonarProperties.SonarToken)]
     public async Task DownloadCache_CacheHit(string tokenKey)

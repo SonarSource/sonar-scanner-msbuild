@@ -247,7 +247,7 @@ public class SonarScannerWrapperTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Program Files\Java\jdk-17\bin\java.exe", @"C:\Program Files\Java\jdk-17")]
     [DataRow(@"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
@@ -267,7 +267,7 @@ public class SonarScannerWrapperTests
         SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
     [TestCategory(TestCategories.NoWindows)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"/usr/bin/java", @"/usr")] // e.g. a symbolic link to /etc/alternatives/java which is a symlink to the actual Java executable /usr/lib/jvm/java-21-openjdk-amd64/bin/java
                                          // We assume the symbolic links are already resolved here.
     [DataRow(@"/usr/lib/jvm/java-21-openjdk-amd64/bin/java", @"/usr/lib/jvm/java-21-openjdk-amd64")]
@@ -288,7 +288,7 @@ public class SonarScannerWrapperTests
     public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Unix(string path, string expected) =>
         SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     [DataRow("   ")]
@@ -306,7 +306,7 @@ public class SonarScannerWrapperTests
         result.Logger.Errors.Should().BeEmpty();
     }
 
-    [DataTestMethod]
+    [TestMethod]
 #if NETFRAMEWORK
     [DataRow("java.exe", "Path cannot be the empty string or all whitespace.")]
 #else
@@ -449,7 +449,7 @@ public class SonarScannerWrapperTests
         result.CheckEnvVarExists("SONAR_SCANNER_OPTS", "-Djavax.net.ssl.trustStorePassword=another");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("changeit")]
     [DataRow("sonar")]
     public void SonarScanner_NoCmdTruststorePasswordAndProvidedTruststore_UseDefaultPassword(string defaultPassword)

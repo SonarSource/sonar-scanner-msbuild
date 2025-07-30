@@ -161,7 +161,7 @@ public class LocalJreTruststoreResolverTests
         AssertDebugLogged(logger, "Java home '/usr/lib/jvm/java-17-openjdk-amd64' does not exist.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/", "")]
     [DataRow("/java", "")]
     public void UnixTruststorePath_NothingSetJavaPathTooShort_ShouldBeNull(string resolvedPath, string expectedHomePath)
@@ -191,7 +191,7 @@ public class LocalJreTruststoreResolverTests
         AssertDebugLogged(logger, $"Java home '{expectedHomePath}' does not exist.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("")]
     [DataRow("  ")]
     public void UnixTruststorePath_NothingSetJavaResolvedPathEmpty_ShouldBeNull(string resolvedPath)

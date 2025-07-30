@@ -78,7 +78,7 @@ public class JreCacheTests
         directoryWrapper.Received(1).CreateDirectory(cache);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public void CacheHomeCreationFails(Type exceptionType)
     {
@@ -158,7 +158,7 @@ public class JreCacheTests
         result.Should().BeOfType<JreCacheFailure>().Which.Message.Should().Be($"The Java runtime environment cache directory in '{sha}' could not be created.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_ShaDirectoryCanNotBeCreated(Type exception)
     {
@@ -315,7 +315,7 @@ public class JreCacheTests
         }
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_DownloadFileNew_Failure_FileCreate(Type exceptionType)
     {
@@ -338,7 +338,7 @@ public class JreCacheTests
         fileWrapper.DidNotReceive().Delete(Path.Combine(sha, "xFirst.rnd"));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_DownloadFileNew_Failure_TempFileDeleteOnFailure(Type exceptionType)
     {
@@ -440,7 +440,7 @@ public class JreCacheTests
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_DownloadFileNew_Failure_Move(Type exceptionType)
     {
@@ -495,7 +495,7 @@ public class JreCacheTests
         testLogger.AssertDebugLogged(@"The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sha256", "sha256")]
     [DataRow("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")]
     [DataRow("b5dffd0be08c464d9c3903e2947508c1a5c21804ea1cff5556991a2a47d617d8", "B5DFFD0BE08C464D9C3903E2947508C1A5C21804EA1CFF5556991A2A47D617D8")]
@@ -532,7 +532,7 @@ public class JreCacheTests
         checksum.Received(1).ComputeHash(fileStream);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("fileHash", "expectedHash")]
     [DataRow("e3b0c ", "e3b0c")]
     [DataRow("e3b0c", "e3b0c ")]

@@ -323,7 +323,7 @@ public class PropertiesFileGeneratorTests
         provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, mockReturnPath);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(ProjectLanguages.CSharp, PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, RoslynV1SarifFixer.CSharpLanguage)]
     [DataRow(ProjectLanguages.VisualBasic, PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey, RoslynV1SarifFixer.VBNetLanguage)]
     public void GenerateFile_ValidFiles_WithFixableSarif(string projectLanguage, string propertyKey, string expectedSarifLanguage)
@@ -456,7 +456,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "foo.cs")}' is not located under the base directory");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(new string[] { ".nuget", "packages" }, false)]
     [DataRow(new string[] { "packages" }, true)]
     [DataRow(new string[] { ".nugetpackages" }, true)]
@@ -852,7 +852,7 @@ public class PropertiesFileGeneratorTests
         result.Should().BeOneOf(@"C:\Program Files", @"C:\Program Files (x86)");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"d:\work", @"d:\work\mysources", new[] { @"d:\work\proj1.csproj" }, false)]
     [DataRow(@"d:\work", null, new[] { @"e:\work" }, false)]
     [DataRow(null, "", new[] { @"e:\work" }, true)]
@@ -946,7 +946,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertErrorLogged("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
     public void ProjectData_Orders_AnalyzerOutPaths(string languageKey)
@@ -1006,7 +1006,7 @@ public class PropertiesFileGeneratorTests
         results[3].FullName.Should().Be(new FileInfo("1").FullName);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
     public void Telemetry_Multitargeting(string languageKey)
@@ -1411,7 +1411,7 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    [DataTestMethod] // the priority is local > scannerEnv > server.
+    [TestMethod] // the priority is local > scannerEnv > server.
     [DataRow("local", null, null, "local")]
     [DataRow("local", "scannerEnv", null, "local")]
     [DataRow("local", null, "server", "local")]
@@ -1550,7 +1550,7 @@ public class PropertiesFileGeneratorTests
         properties.PropertyValue("sonar.tests").Split(',').Should().BeEquivalentTo(testFiles);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("https://sonarcloud.io")]
     [DataRow("https://sonarqube.us")]
     [DataRow("https://sonarqqqq.whale")]    // Any value, as long as it was auto-computed by the default URL mechanism and stored in SonarQubeAnalysisConfig.xml

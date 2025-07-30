@@ -33,7 +33,7 @@ public class UtilitiesTests
     [DataRow("1.2.3.4", "1.2.3.4")]
     [DataRow("0.2.3.4", "0.2.3.4")]
     [DataRow("0.0.3.4", "0.0.3.4")]
-    [DataTestMethod]
+    [TestMethod]
     public void VersionDisplayString(string version, string expectedDisplayString) =>
         new Version(version).ToDisplayString().Should().Be(expectedDisplayString);
 
@@ -143,7 +143,7 @@ public class UtilitiesTests
 
     [DataRow(0, 1, "timeoutInMilliseconds")]
     [DataRow(1, 0, "pauseBetweenTriesInMilliseconds")]
-    [DataTestMethod]
+    [TestMethod]
     public void Retry_ThrowsArgumentOutOfRangeException(int timeout, int pause, string expected)
     {
         Action action = () => Utilities.Retry(timeout, pause, new TestLogger(), () => true);
@@ -174,7 +174,7 @@ public class UtilitiesTests
     [DataRow(null)]
     [DataRow("")]
     [DataRow("   ")]
-    [DataTestMethod]
+    [TestMethod]
     public void EnsureDirectoryExists_InvalidDirectory_ThrowsArgumentNullException(string directory)
     {
         Action action = () => Utilities.EnsureDirectoryExists(directory, new TestLogger());
@@ -191,7 +191,7 @@ public class UtilitiesTests
     [DataRow(null)]
     [DataRow("")]
     [DataRow("   ")]
-    [DataTestMethod]
+    [TestMethod]
     public void EnsureEmptyDirectory_InvalidDirectory_ThrowsArgumentNullException(string directory)
     {
         Action action = () => Utilities.EnsureEmptyDirectory(directory, new TestLogger());
@@ -208,7 +208,7 @@ public class UtilitiesTests
     [DataRow(null)]
     [DataRow("")]
     [DataRow("  ")]
-    [DataTestMethod]
+    [TestMethod]
     public void LogAssemblyVersion_InvaliDescription_ThrowsArgumentNullException(string description)
     {
         Action action = () => Utilities.LogAssemblyVersion(new TestLogger(), description);

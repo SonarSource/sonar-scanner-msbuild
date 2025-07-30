@@ -36,7 +36,7 @@ public class TruststoreUtilsTests
         logger.DebugMessages.Should().BeEmpty();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("doesnotexist.p12")]
     [DataRow("folder/doesnotexist.p12")]
     public void TruststoreDefaultPassword_TruststoreDoesNotExists(string path)
@@ -64,7 +64,7 @@ public class TruststoreUtilsTests
         logger.DebugMessages.Should().ContainMatch($"Could not import the truststore '{truststoreFile.FileName}' with the default password at index 1. Reason: *");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("changeit", 0)]
     [DataRow("sonar", 1)]
     public void TruststoreDefaultPassword_CorrectPassword(string password, int expectedMessagesCount)

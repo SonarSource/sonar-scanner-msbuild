@@ -27,7 +27,7 @@ public class PluginResourceCacheTests
 {
     public TestContext TestContext { get; set; }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     public void Constructor_NullOrWhiteSpaceCacheDirectory_ThrowsArgumentNullException(string basedir) =>

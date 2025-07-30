@@ -28,7 +28,7 @@ public class MsBuildPathSettingsTests
     [DataRow(PlatformOS.Windows)]
     [DataRow(PlatformOS.Linux)]
     [DataRow(PlatformOS.MacOSX)]
-    [DataTestMethod]
+    [TestMethod]
     public void GetImportBeforePaths_AppData_Is_NullOrEmpty(PlatformOS platformOS)
     {
         var action = new Action(() => MsBuildPathSettings(string.Empty, platformOS, DirectoryAlwaysExists).GetImportBeforePaths());
@@ -152,7 +152,7 @@ public class MsBuildPathSettingsTests
             Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
             Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/Users/runner/.local/share", DisplayName = "NET 7.0 and earlier")]
     [DataRow("/Users/runner/Library/Application Support", DisplayName = "NET 8.0")]
     [DataRow("/Users/runner/Something/Different", DisplayName = "Future value")]

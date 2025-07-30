@@ -41,7 +41,7 @@ public class SerializerTests
 
     [DataRow(false, "c:\\data.txt")]
     [DataRow(true, null)]
-    [DataTestMethod]
+    [TestMethod]
     public void Serializer_ArgumentValidation_SaveModel_NullFileName(bool newModel, string fileName)
     {
         Action act = () => Serializer.SaveModel<MyDataClass>(newModel ? new MyDataClass() : null, fileName);

@@ -277,7 +277,7 @@ public class ProcessedArgsTests
         sut.IsValid.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("")]
     [DataRow("   ")]
     public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlEmpty(string empty)
@@ -303,7 +303,7 @@ public class ProcessedArgsTests
         sut.IsValid.Should().BeTrue();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("https://sonarcloud.io", "https://api.sonarcloud.io", "")]
     [DataRow("https://SonarCloud.io", "https://api.sonarcloud.io", "")]
     [DataRow("https://SONARCLOUD.IO", "https://api.sonarcloud.io", "")]
@@ -347,7 +347,7 @@ public class ProcessedArgsTests
         sut.IsValid.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true, true, true, true, 4)]
     [DataRow(true, true, true, false, 3)]
     [DataRow(true, true, false, true, 3)]
@@ -389,7 +389,7 @@ public class ProcessedArgsTests
         sut.OperatingSystem.Should().Be("windows");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(PlatformOS.Windows, "windows")]
     [DataRow(PlatformOS.MacOSX, "macos")]
     [DataRow(PlatformOS.Alpine, "alpine")]
@@ -472,7 +472,7 @@ public class ProcessedArgsTests
         logger.AssertNoWarningsLogged();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(DirectoryCreateExceptions))]
     public void ProcArgs_UserHome_Default_CreationFails(Type exceptionType)
     {

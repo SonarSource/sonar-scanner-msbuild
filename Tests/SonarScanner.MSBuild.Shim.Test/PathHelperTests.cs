@@ -29,7 +29,7 @@ public class PathHelperTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\SomeDirectory", @"C:\SomeDirectory\")]
     [DataRow(@"C:\SomeDirectory\", @"C:\SomeDirectory\")]
     [DataRow(@"C:\SomeDirectory/", @"C:\SomeDirectory\")]
@@ -37,7 +37,7 @@ public class PathHelperTests
         new DirectoryInfo(directory).WithTrailingDirectorySeparator().Should().Be(expected);
 
     [TestCategory(TestCategories.NoWindows)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"/mnt/c/SomeDirectory", @"/mnt/c/SomeDirectory/")]
     [DataRow(@"/mnt/c/SomeDirectory/", @"/mnt/c/SomeDirectory/")]
     [DataRow(@"/mnt/c/SomeDirectory\", @"/mnt/c/SomeDirectory\/")]
@@ -82,7 +82,7 @@ public class PathHelperTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Src\File.cs", @"C:\Src\")]
     [DataRow(@"C:\Src\File.cs", @"C:\Src")]
     [DataRow(@"C:\Src\File.cs", @"C:\")]
@@ -97,14 +97,14 @@ public class PathHelperTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\SrcFile.cs", @"C:\Src")]
     [DataRow(@"C:\Src\File.cs", @"C:\Src\Bar")]
     public void IsInDirectory_Windows_False(string file, string directory) =>
         new FileInfo(file).IsInDirectory(new DirectoryInfo(directory)).Should().BeFalse();
 
     [TestCategory(TestCategories.NoWindows)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"/mnt/c/Src/File.cs", @"/mnt/c/Src/")]
     [DataRow(@"/mnt/c/Src/File.cs", @"/mnt/c/Src")]
     [DataRow(@"/mnt/c/Src/File.cs", @"/mnt/c/")]
@@ -116,7 +116,7 @@ public class PathHelperTests
         new FileInfo(file).IsInDirectory(new DirectoryInfo(directory)).Should().BeTrue();
 
     [TestCategory(TestCategories.NoWindows)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"/mnt/c/SrcFile.cs", @"/mnt/c/Src")]
     [DataRow(@"/mnt/c/Src/File.cs", @"/mnt/c/Src/Bar")]
     public void IsInDirectory_Unix_False(string file, string directory) =>
@@ -136,7 +136,7 @@ public class PathHelperTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, @"C:\", @"D:\Dir")]
     [DataRow(
         null,
@@ -185,7 +185,7 @@ public class PathHelperTests
             .BeEquivalentTo(commonPrefix is null ? null : new { FullName = commonPrefix });
 
     [TestCategory(TestCategories.NoWindows)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/", @"/C/", @"/D/Dir")]
     [DataRow(
         @"/mnt",
@@ -235,7 +235,7 @@ public class PathHelperTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(CommonPrefixCasing_Windows))]
     public void BestCommonPrefix_Comparer_Windows(string[] paths, StringComparer comparer, string expected) =>
         PathHelper
@@ -252,7 +252,7 @@ public class PathHelperTests
         ];
 
     [TestCategory(TestCategories.NoWindows)]
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(CommonPrefixCasing_Unix))]
     public void BestCommonPrefix_Comparer_Unix(string[] paths, StringComparer comparer, string expected) =>
         PathHelper
@@ -274,7 +274,7 @@ public class PathHelperTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\", @"C:\")]
     [DataRow(@"C:\Foo\Bar", @"C:\", "Foo", "Bar")]
     [DataRow(@"C:\Foo\Bar\File.cs", @"C:\", "Foo", "Bar", "File.cs")]
@@ -282,7 +282,7 @@ public class PathHelperTests
         new DirectoryInfo(directory).GetParts().Should().BeEquivalentTo(parts);
 
     [TestCategory(TestCategories.NoWindows)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/mnt/c/", "/", "mnt", "c")]
     [DataRow("/mnt/c/Foo/Bar", "/", "mnt", "c", "Foo", "Bar")]
     [DataRow("/mnt/c/Foo/Bar/File.cs", "/", "mnt", "c", "Foo", "Bar", "File.cs")]

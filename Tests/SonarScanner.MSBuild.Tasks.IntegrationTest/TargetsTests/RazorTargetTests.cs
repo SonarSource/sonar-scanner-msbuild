@@ -66,7 +66,7 @@ public class RazorTargetTests
         result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 2); // ProjectInfo.xml and Telemetry.S4NET.Targets.json
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("OriginalValueFromFirstBuild.json")]
     public void SonarPrepareRazorProjectCodeAnalysis_WithSourceGenerators_NotExecuted(string sonarErrorLogValue)
@@ -102,7 +102,7 @@ public class RazorTargetTests
         result.AssertItemGroupCount(TargetItemGroups.CoreCompileOutFiles, 2); // ProjectInfo.xml and Telemetry.S4NET.Targets.json
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(0, null)]
     [DataRow(1, "OriginalValueFromFirstBuild.json")]
     public void SonarPrepareRazorProjectCodeAnalysis_CreatesTempFolderAndPreservesMainFolder(int index, string sonarErrorLogValue)

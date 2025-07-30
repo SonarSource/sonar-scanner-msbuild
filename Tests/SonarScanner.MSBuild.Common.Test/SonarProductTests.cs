@@ -23,7 +23,7 @@ namespace SonarScanner.MSBuild.Common.Test;
 [TestClass]
 public class SonarProductTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("8.0", true)]
     [DataRow("8.0.0.18955", true)]
     [DataRow("8.0.1", true)]

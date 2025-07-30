@@ -30,7 +30,7 @@ public class WildcardPatternMatcherTest
     /// </summary>
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Foo", "Foo", true)]
     [DataRow("foo", "FOO", false)]
     [DataRow("Foo", "Foot", false)]
@@ -100,7 +100,7 @@ public class WildcardPatternMatcherTest
         WildcardPatternMatcher.IsMatch(pattern, input, false).Should().Be(expectedResult);
 
     [TestCategory(TestCategories.NoWindows)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Foo", "Foo", true)]
     [DataRow("foo", "FOO", false)]
     [DataRow("Foo", "Foot", false)]
@@ -169,7 +169,7 @@ public class WildcardPatternMatcherTest
     public void IsMatch_MatchesPatternsAsExpected_UnixPaths(string pattern, string input, bool expectedResult) =>
         WildcardPatternMatcher.IsMatch(pattern, input, false).Should().Be(expectedResult);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("")]
     [DataRow("  ")]
     [DataRow("/")]
@@ -177,7 +177,7 @@ public class WildcardPatternMatcherTest
     public void IsMatch_InvalidPattern_ReturnsFalse(string pattern) =>
         WildcardPatternMatcher.IsMatch(pattern, "foo", false).Should().BeFalse();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, "foo")]
     [DataRow("foo", null)]
     [DataRow("", "foo")]

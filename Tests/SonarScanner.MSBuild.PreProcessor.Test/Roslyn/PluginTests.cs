@@ -32,7 +32,7 @@ public class PluginTests
         plugin.IsValid.Should().BeTrue();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("pluginKey", "42", null)]
     [DataRow("pluginKey", null, "test.zip")]
     [DataRow(null, "42", "test.zip")]
