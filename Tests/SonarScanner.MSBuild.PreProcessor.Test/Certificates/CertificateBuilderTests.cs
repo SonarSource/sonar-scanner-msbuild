@@ -31,6 +31,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 [DoNotParallelize]
 public partial class CertificateBuilderTests
 {
+    public TestContext TestContext { get; }
+
+    public CertificateBuilderTests(TestContext testContext) =>
+        TestContext = testContext;
+
     [TestMethod]
     public async Task MockServerReturnsSelfSignedCertificate()
     {
