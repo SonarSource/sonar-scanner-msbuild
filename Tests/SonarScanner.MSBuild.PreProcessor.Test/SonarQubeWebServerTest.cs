@@ -41,7 +41,7 @@ public class SonarQubeWebServerTest
         logger.AssertInfoMessageExists("Using SonarQube v9.9.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("7.9.0.5545")]
     [DataRow("8.0.0.18670")]
     [DataRow("8.8.9.999")]
@@ -54,7 +54,7 @@ public class SonarQubeWebServerTest
         logger.AssertErrorLogged("SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (< 6.0.0), to be able to run the analysis.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("8.9.0.0")]
     [DataRow("9.0.0.1121")]
     [DataRow("9.8.9.999")]
@@ -68,7 +68,7 @@ public class SonarQubeWebServerTest
         logger.AssertNoErrorsLogged();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("9.9.0.0")]
     [DataRow("10.15.0.1121")]
     public void IsServerVersionSupported_EqualOrGreaterThan99_NoLogs(string sqVersion)
@@ -81,7 +81,7 @@ public class SonarQubeWebServerTest
         logger.AssertNoErrorsLogged();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("{ }")]
     [DataRow(@"{ ""isValidLicense"": false }")]
     public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid(string responseContent)
@@ -178,7 +178,7 @@ public class SonarQubeWebServerTest
         await downloader.Received().DownloadResource("api/editions/is_valid_license");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("7.9.0.5545", false)]
     [DataRow("8.0.0.18670", false)]
     [DataRow("8.8.0.1121", false)]
@@ -459,7 +459,7 @@ public class SonarQubeWebServerTest
         logger.AssertSingleInfoMessageExists(debugMessage);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Jenkins", "ghprbTargetBranch")]
     [DataRow("Jenkins", "gitlabTargetBranch")]
     [DataRow("Jenkins", "BITBUCKET_TARGET_BRANCH")]
@@ -480,7 +480,7 @@ public class SonarQubeWebServerTest
         logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("ghprbTargetBranch")]
     [DataRow("gitlabTargetBranch")]
     [DataRow("BITBUCKET_TARGET_BRANCH")]

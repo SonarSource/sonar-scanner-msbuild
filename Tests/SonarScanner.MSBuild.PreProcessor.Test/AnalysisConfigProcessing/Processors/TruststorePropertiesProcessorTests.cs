@@ -105,7 +105,7 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, null, null)]
     [DataRow("https://sonarcloud.io", null, null)]
     [DataRow("https://SonarCloud.io", null, null)]
@@ -179,7 +179,7 @@ public class TruststorePropertiesProcessorTests
         config.HasBeginStepCommandLineTruststorePassword.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(SonarProperties.Verbose, "true")]
     [DataRow(SonarProperties.Organization, "org")]
     [DataRow(SonarProperties.HostUrl, "http://localhost:9000")]
@@ -200,7 +200,7 @@ public class TruststorePropertiesProcessorTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\path\to\truststore.pfx", @"""C:/path/to/truststore.pfx""")]
     [DataRow(@"C:\path\to\My trustore.pfx", @"""C:/path/to/My trustore.pfx""")]
     public void Update_MapsTruststorePathToScannerOpts_Windows(string input, string expected)
@@ -226,7 +226,7 @@ public class TruststorePropertiesProcessorTests
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("itchange", @"""itchange""")]
     [DataRow("it change", @"""it change""")]
     [DataRow(@"""itchange""", @"""itchange""")]
@@ -257,7 +257,7 @@ public class TruststorePropertiesProcessorTests
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", @"""some/path""", config);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/path/to/truststore.pfx", "/path/to/truststore.pfx")]
     [DataRow("/path/to/my trustore.pfx", "/path/to/my trustore.pfx")]
     public void Update_MapsTruststorePathToScannerOpts_Linux(string input, string expected)
@@ -281,7 +281,7 @@ public class TruststorePropertiesProcessorTests
         Property.TryGetProperty(SonarProperties.TruststorePassword, config.LocalSettings, out _).Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("itchange", "itchange")]
     [DataRow("it change", "it change")]
     public void Update_MapsTruststorePasswordToScannerOpts_Linux(string input, string expected)

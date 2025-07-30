@@ -31,7 +31,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
 [TestClass]
 public class UnpackerFactoryTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("File.zip", typeof(ZipUnpacker))]
     [DataRow("File.ZIP", typeof(ZipUnpacker))]
     [DataRow(@"c:\test\File.ZIP", typeof(ZipUnpacker))]
@@ -49,7 +49,7 @@ public class UnpackerFactoryTests
         unpacker.Should().BeOfType(expectedUnpacker);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("File.rar")]
     [DataRow("File.7z")]
     [DataRow("File.gz")]

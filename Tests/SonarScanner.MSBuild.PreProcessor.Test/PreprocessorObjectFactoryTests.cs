@@ -83,7 +83,7 @@ public class PreprocessorObjectFactoryTests
         logger.AssertNoWarningsLogged();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("https://sonarcloud.io", "8.0", typeof(SonarCloudWebServer))]
     [DataRow("https://sonarcloud.io/", "8.0", typeof(SonarCloudWebServer))]
     [DataRow("https://sonarcloud.io//", "8.0", typeof(SonarCloudWebServer))]
@@ -101,7 +101,7 @@ public class PreprocessorObjectFactoryTests
         service.Should().BeOfType(serviceType);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("https://sonarcloud.io", "8.9", true)]
     [DataRow("https://sonarqube.gr", "8.0", false)]
     [DataRow("http://localhost:4242", "8.0", false)]
@@ -120,7 +120,7 @@ public class PreprocessorObjectFactoryTests
         logger.AssertErrorLogged($"Detected {detected} but server was found to be {real}. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("8.9", "10.3", 8)]
     [DataRow("10.3", "8.9", 10)]
     [DataRow(null, "8.3", 8)]
@@ -174,7 +174,7 @@ public class PreprocessorObjectFactoryTests
 
     [DataRow(HttpStatusCode.Forbidden)]
     [DataRow(HttpStatusCode.Unauthorized)]
-    [DataTestMethod]
+    [TestMethod]
     public async Task CreateSonarWebService_WithFailedAuthentication_ReturnsNullAndLogsWarning(HttpStatusCode status)
     {
         var downloader = Substitute.For<IDownloader>();

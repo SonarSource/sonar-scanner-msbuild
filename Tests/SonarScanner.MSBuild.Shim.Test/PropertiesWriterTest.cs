@@ -31,7 +31,7 @@ public class PropertiesWriterTest
     [DataRow(@"C:\File.cs", @"C:\\File.cs")]
     [DataRow("你好", @"\u4F60\u597D")]
     [DataRow("\n", @"\u000A")]
-    [DataTestMethod]
+    [TestMethod]
     public void PropertiesWriterEscape(string escape, string expected) =>
         PropertiesWriter.Escape(escape).Should().Be(expected);
 
@@ -164,7 +164,7 @@ public class PropertiesWriterTest
             """);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(ProjectLanguages.CSharp, "sonar.cs.analyzer.projectOutPaths")]
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.analyzer.projectOutPaths")]
     public void WriteAnalyzerOutputPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
@@ -198,7 +198,7 @@ public class PropertiesWriterTest
             """);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(ProjectLanguages.CSharp, "sonar.cs.roslyn.reportFilePaths")]
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths")]
     public void WriteRoslynReportPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
@@ -234,7 +234,7 @@ public class PropertiesWriterTest
             """);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(ProjectLanguages.CSharp, "sonar.cs.scanner.telemetry")]
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.scanner.telemetry")]
     public void Telmetry_WritesEncodedPaths(string language, string expectedPropertyKey)

@@ -140,7 +140,7 @@ public class BuildVNextCoverageSearchFallbackTests
             x => x == filePath3);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2 }, true)]
     [DataRow(new byte[] { 1, 2, 3 }, new byte[] { 1, 2 }, false)]
     [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2, 3 }, false)]
@@ -155,7 +155,7 @@ public class BuildVNextCoverageSearchFallbackTests
             .Should().Be(expected);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("File.txt", "File.txt")]
     [DataRow("File.txt", "FileOther.txt")]
     [DataRow("FileOther.txt", "File.txt")]

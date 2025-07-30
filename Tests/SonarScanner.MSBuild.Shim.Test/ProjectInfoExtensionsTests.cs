@@ -35,7 +35,7 @@ public class ProjectInfoExtensionsTests
     [TestInitialize]
     public void InitializeTests() => isLogActionInvoked = false;
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("FOO")]
     public void FixEncoding_WithNullEncoding_NullGlobalEncoding_NotSupportedProject_DoesNothing(string projectLanguage)
@@ -52,7 +52,7 @@ public class ProjectInfoExtensionsTests
         isLogActionInvoked.Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(ProjectLanguages.CSharp)]
     [DataRow(ProjectLanguages.VisualBasic)]
     public void FixEncoding_WithNullEncoding_NullGlobalEncoding_SupportedProject_SetsUtf8WebName(string projectLanguage)

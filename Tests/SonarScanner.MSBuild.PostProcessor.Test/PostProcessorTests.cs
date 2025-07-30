@@ -231,7 +231,7 @@ public class PostProcessorTests
         context.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("javax.net.ssl.trustStorePassword=foo")]
     [DataRow("javax.net.ssl.trustStorePassword=\"foo\"")]
     [DataRow("javax.net.ssl.trustStorePassword=")]
@@ -303,7 +303,7 @@ public class PostProcessorTests
         context.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sonar.scanner.truststorePassword=")]
     [DataRow("sonar.scanner.truststorePassword")]
     public void PostProc_InvalidTruststorePasswordProvided_Fail(string truststorePasswordProperty)

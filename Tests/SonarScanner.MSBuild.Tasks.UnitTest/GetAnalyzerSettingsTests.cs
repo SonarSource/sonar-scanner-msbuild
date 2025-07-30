@@ -59,7 +59,7 @@ public class GetAnalyzerSettingsTests
         CheckNoAnalyzerSettings(testSubject);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("7.3", DisplayName = "Legacy")]
     [DataRow("7.4")]
     public void ConfigExists_NoLanguage_SettingsOverwritten(string sonarQubeVersion)
@@ -239,7 +239,7 @@ public class GetAnalyzerSettingsTests
             "original.should.be.preserved.txt");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("7.3", "cs", null, "wintellect1", "Google.Protobuf", DisplayName = "Legacy CS - Sonar Config used")]
     [DataRow("7.3", "vbnet", null, "wintellect1", "Google.Protobuf", DisplayName = "Legacy VB - Sonar Config used")]
     [DataRow("7.4", "cs", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved", DisplayName = "CS - Merged with user provided")]
@@ -259,7 +259,7 @@ public class GetAnalyzerSettingsTests
             "original.should.be.preserved.for.product.txt");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("8.0.0.18955", "cs", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
     [DataRow("8.9", "cs", "true", DisplayName = "SQ 8.9 - needs exclusion parameter CS")]
     [DataRow("9.0", "cs", "TRUE", DisplayName = "SQ 9.0 - needs exclusion parameter CS")]
@@ -275,7 +275,7 @@ public class GetAnalyzerSettingsTests
         executedTask.AdditionalFilePaths.Should().BeEquivalentTo(Path.Combine(DriveRoot(), $"add1.{language}.txt"), Path.Combine(DriveRoot("d"), "replaced1.txt"));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("8.0.0.18955", "cs", null, DisplayName = "SonarCloud build version CS")]
     [DataRow("8.9", "cs", null)]
     [DataRow("8.9", "cs", "false")]
@@ -315,20 +315,20 @@ public class GetAnalyzerSettingsTests
     }
 
     // The "importAllValue" setting should be ignored for old server versions
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
     public void ShouldMerge_OldServerVersion_ReturnsFalse(string language) =>
         CheckShouldMerge("7.3.1", language, ignoreExternalIssues: "true", expected: false)
             .AssertInfoMessageExists("External issues are not supported on this version of SonarQube. Version 7.4+ is required.");
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
     public void ShouldMerge_NewServerVersion_ReturnsTrue(string language) =>
         CheckShouldMerge("7.4.1", language, ignoreExternalIssues: "true", expected: true);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
     public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsTrue(string language) =>
@@ -358,7 +358,7 @@ public class GetAnalyzerSettingsTests
         testSubject.RuleSetFilePath.Should().Be("firstGeneratedRuleset.txt");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@".\..\originalRuleset.txt", false, DisplayName = "Relative path")]
     [DataRow(@"solution.folder\originalRuleset.txt", true, DisplayName = "Absolute path")]
     public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulesetUsed(string originalRulesetFilePath, bool absolutePath)

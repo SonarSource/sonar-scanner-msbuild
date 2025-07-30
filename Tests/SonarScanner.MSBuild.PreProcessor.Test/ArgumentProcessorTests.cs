@@ -98,7 +98,7 @@ public class ArgumentProcessorTests
         logger.AssertDebugLogged("Is SonarCloud: True");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("test")]
     [DataRow("https://sonarcloud.io")]
     [DataRow("https://sonar-test.io")]
@@ -119,7 +119,7 @@ public class ArgumentProcessorTests
         logger.AssertDebugLogged("Is SonarCloud: True");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("http://host", "http://host/api/v2")]
     [DataRow("http://host/", "http://host/api/v2")]
     [DataRow("http://host ", "http://host /api/v2")]
@@ -142,7 +142,7 @@ public class ArgumentProcessorTests
         logger.AssertDebugLogged("Is SonarCloud: False");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("us")]
     [DataRow("US")]
     [DataRow("uS")]
@@ -163,7 +163,7 @@ public class ArgumentProcessorTests
         logger.AssertDebugLogged("Is SonarCloud: True");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(" ")]          // "" is PreArgProc_Region_Invalid
     [DataRow("  ")]
     public void PreArgProc_Region_EU(string region)
@@ -182,7 +182,7 @@ public class ArgumentProcessorTests
         logger.AssertDebugLogged("Is SonarCloud: True");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("eu")]
     [DataRow("default")]
     [DataRow("global")]
@@ -198,7 +198,7 @@ public class ArgumentProcessorTests
         CheckProcessingFails("/k:key", "/d:sonar.region=")
             .AssertErrorLogged("The format of the analysis property sonar.region= is invalid");
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("us", null, null, null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
     [DataRow("us", null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api",
         @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
@@ -264,7 +264,7 @@ public class ArgumentProcessorTests
         logger.Warnings.Should().BeEquivalentTo(expectedWarnings);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/d:sonar.scanner.os=macos", "macos")]
     [DataRow("/d:sonar.scanner.os=Something", "Something")]
     [DataRow("/d:sonar.scanner.os=1", "1")]
@@ -286,7 +286,7 @@ public class ArgumentProcessorTests
         CheckProcessingSucceeds("/k:key").OperatingSystem.Should().Be(expected);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/d:sonar.scanner.arch=a1", "a1")]
     [DataRow("/d:sonar.scanner.arch=b2", "b2")]
     public void PreArgProc_Architecture_Set(string parameter, string expectedValue) =>
@@ -310,7 +310,7 @@ public class ArgumentProcessorTests
     [DataRow("my.Project")]
     [DataRow("my_second_Project")]
     [DataRow("my-other_Project")]
-    [DataTestMethod]
+    [TestMethod]
     public void PreArgProc_ProjectKey_Valid(string projectKey) =>
         CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid")
             .ProjectKey
@@ -326,7 +326,7 @@ public class ArgumentProcessorTests
     [DataRow("d,")]
     [DataRow("0")]          // single numeric is not ok
     [DataRow("0123456789")] // all numeric is not ok
-    [DataTestMethod]
+    [TestMethod]
     public void PreArgProc_ProjectKey_Invalid(string projectKey)
     {
         var logger = CheckProcessingFails("/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl");
@@ -336,7 +336,7 @@ public class ArgumentProcessorTests
 
     [DataRow("unrecog2", "unrecog1", "/p:key=value", "")]   // /p: is no longer supported - should be /d:
     [DataRow("/key=k1", "/name=n1", "/version=v1")]         // Arguments using the wrong separator i.e. /k=k1 instead of /k:k1
-    [DataTestMethod]
+    [TestMethod]
     public void PreArgProc_UnrecognisedArguments(params string[] args)
     {
         var logger = CheckProcessingFails([.. args, "/key:k1", "/name:n1", "/version:v1"]);
@@ -356,7 +356,7 @@ public class ArgumentProcessorTests
     [DataRow(true, "TrUe")]
     [DataRow(false, "false")]
     [DataRow(false, "falSE")]
-    [DataTestMethod]
+    [TestMethod]
     public void ArgProc_InstallTargets_Valid(bool expected, string installValue)
     {
         var args = new[] { "/key:my.key", "/name:my name", "/version:1.0", "/d:sonar.host.url=foo" };
@@ -370,7 +370,7 @@ public class ArgumentProcessorTests
     [DataRow("1")]
     [DataRow("")]
     [DataRow("\" \"")]
-    [DataTestMethod]
+    [TestMethod]
     public void ArgProc_InstallTargets_Invalid(string installValue)
     {
         var logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", $"/install:{installValue}");
@@ -431,7 +431,7 @@ public class ArgumentProcessorTests
     [DataRow("/key:my.key", "/name:my name", "/version:1.0")]
     [DataRow("/v:1.0", "/k:my.key", "/n:my name")]
     [DataRow("/k:my.key", "/v:1.0", "/n:my name")]
-    [DataTestMethod]
+    [TestMethod]
     public void PreArgProc_Aliases_Valid(params string[] args) =>
         AssertExpectedValues("my.key", "my name", "1.0", CheckProcessingSucceeds([.. args, "/d:sonar.host.url=foo"]));
 
@@ -448,7 +448,7 @@ public class ArgumentProcessorTests
     [DataRow(new string[] { "/key:my.key", "/name:my name", "/version:1.2", "/k:key2" }, new string[] { "/k:key2", "my.key" })]
     [DataRow(new string[] { "/key:my.key", "/name:my name", "/version:1.2", "/name:dupName" }, new string[] { "/name:dupName", "my name" })]
     [DataRow(new string[] { "/key:my.key", "/name:my name", "/version:1.2", "/v:version2.0" }, new string[] { "/v:version2.0", "1.2" })]
-    [DataTestMethod]
+    [TestMethod]
     public void PreArgProc_SingleDuplicate_ProcessingFails(string[] args, string[] expectedError)
     {
         var logger = CheckProcessingFails(args);
@@ -560,13 +560,13 @@ public class ArgumentProcessorTests
     [DataRow(new string[] { "/d:sonar.projectVersion=value1" }, new string[] { SonarProperties.ProjectVersion, "/v" })]
     [DataRow(new string[] { "/organization:my_org", "/d:sonar.organization=value1" }, new string[] { SonarProperties.Organization, "/o" })]
     [DataRow(new string[] { "/key:my.key", "/name:my name", "/version:1.2", "/d:sonar.working.directory=value1" }, new string[] { SonarProperties.WorkingDirectory })]
-    [DataTestMethod]
+    [TestMethod]
     public void PreArgProc_Disallowed_DynamicSettings_ProcessingFails(string[] args, string[] errors) =>
         CheckProcessingFails([.. args, "/key:my.key", "/name:my name", "/version:1.2"]).AssertSingleErrorExists(errors);
 
     [DataRow("/organization:my_org", "my_org")]
     [DataRow("/o:my_org", "my_org")]
-    [DataTestMethod]
+    [TestMethod]
     public void PreArgProc_Organization(string arg, string expected) =>
         CheckProcessingSucceeds("/key:my.key", arg).Organization.Should().Be(expected);
 
@@ -574,7 +574,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_Organization_NotSet() =>
         CheckProcessingSucceeds("/key:my.key").Organization.Should().BeNullOrEmpty();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(new string[] { }, 100, null)]
     [DataRow(new[] { "/d:sonar.http.timeout=1" }, 1, null)]
     [DataRow(new[] { "/d:sonar.http.timeout=2" }, 2, null)]
@@ -609,7 +609,7 @@ public class ArgumentProcessorTests
         }
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Program Files\Java\jdk1.6.0_30\bin\java.exe")]
     [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java.exe")]
     [DataRow(@"\jdk1.6.0_30\bin\java.exe")]
@@ -620,7 +620,7 @@ public class ArgumentProcessorTests
         CheckProcessingSucceeds(new TestLogger(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(javaExePath);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"jdk1.6.0_30\bin\java.exe")]
     [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java")]
     [DataRow(@"not a path")]
@@ -637,7 +637,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_JavaExePath_NotSet() =>
         CheckProcessingSucceeds("/k:key").JavaExePath.Should().BeNull();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("true", true)]
     [DataRow("True", true)]
     [DataRow("false", false)]
@@ -645,7 +645,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_SkipJreProvisioning_SetValid(string skipJreProvisioning, bool result) =>
         CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}").SkipJreProvisioning.Should().Be(result);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("gibberish")]
     [DataRow(" ")]
     public void PreArgProc_SkipJreProvisioning_SetInvalid(string skipJreProvisioning)
@@ -658,7 +658,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_SkipJreProvisioning_NotSet() =>
         CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("true", true)]
     [DataRow("True", true)]
     [DataRow("false", false)]
@@ -666,7 +666,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_ScanAllAnalysis_SetValid(string scanAll, bool result) =>
         CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.scanAll={scanAll}").ScanAllAnalysis.Should().Be(result);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("gibberish")]
     [DataRow(" ")]
     public void PreArgProc_ScanAllAnalysis_SetInvalid(string scanAll)
@@ -706,7 +706,7 @@ public class ArgumentProcessorTests
         logger.AssertWarningLogged($"Failed to create the default user home directory '{defaultUserHome}' with exception 'Directory can not be created.'.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Test")]
     [DataRow(@"""Test""")]
     [DataRow("'Test'")]
@@ -719,7 +719,7 @@ public class ArgumentProcessorTests
         CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(path);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Test")]
     [DataRow(@"""Test""")]
     [DataRow("'Test'")]
@@ -735,7 +735,7 @@ public class ArgumentProcessorTests
         logger.AssertDebugLogged($"Created the sonar.userHome directory at '{path}'.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Test")]
     [DataRow(@"""Test""")]
     [DataRow("'Test'")]
@@ -752,7 +752,7 @@ public class ArgumentProcessorTests
             + "Provide a valid path for 'sonar.userHome' to a directory that can be created.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Test.pfx", "changeit")]
     [DataRow(@"""Test.p12""", " ")]
     [DataRow("'Test.pfx'", @"""changeit""")]
@@ -791,7 +791,7 @@ public class ArgumentProcessorTests
         logger.Errors.Should().Contain("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"/d:sonar.scanner.truststorePassword=changeit", "changeit")]
     [DataRow(@"/d:sonar.scanner.truststorePassword=changeit now", "changeit now")]
     // https://sonarsource.atlassian.net/browse/SCAN4NET-204
@@ -851,7 +851,7 @@ public class ArgumentProcessorTests
         result.TruststorePassword.Should().BeNull();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(typeof(ArgumentException))]
     [DataRow(typeof(ArgumentNullException))]
     [DataRow(typeof(ArgumentOutOfRangeException))]
@@ -888,7 +888,7 @@ public class ArgumentProcessorTests
         logger.AssertErrorLogged("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\sonar")]
     [DataRow(@"""C:\sonar""")]
     [DataRow(@"'C:\sonar'")]
@@ -908,7 +908,7 @@ public class ArgumentProcessorTests
         result.TruststorePassword.Should().Be("changeit");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\sonar")]
     [DataRow(@"""C:\sonar""")]
     [DataRow(@"'C:\sonar'")]

@@ -27,7 +27,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 [TestClass]
 public class AutomaticBaseBranchDetectionTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Jenkins", "ghprbTargetBranch")]
     [DataRow("Jenkins", "gitlabTargetBranch")]
     [DataRow("Jenkins", "BITBUCKET_TARGET_BRANCH")]

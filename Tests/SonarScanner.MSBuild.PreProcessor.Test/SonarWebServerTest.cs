@@ -262,7 +262,7 @@ public class SonarWebServerTest
         await act.Should().ThrowAsync<AnalysisException>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public async Task DownloadQualityProfile_SpecificProfileRequestUrl_QualityProfileFound()
     {
         var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""key"":""p1"", ""name"":""p1"", ""language"":""cs"", ""isDefault"": false } ] }");
@@ -275,7 +275,7 @@ public class SonarWebServerTest
         qualityProfile.Should().Be("p1");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     public async Task DownloadQualityProfile_DefaultProfileRequestUrl_QualityProfileFound()
     {
         downloader
@@ -812,7 +812,7 @@ public class SonarWebServerTest
         logger.AssertWarningLogged("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow("")]
     [DataRow("{broken json")]

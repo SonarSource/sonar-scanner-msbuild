@@ -136,7 +136,7 @@ public class CmdLineArgsPropertiesProviderTests
         logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sonar.projectBaseDir=value1")]
     [DataRow($"{SonarProperties.SonarcloudUrl}=value1")]
     [DataRow($"{SonarProperties.JavaExePath}=value1")]

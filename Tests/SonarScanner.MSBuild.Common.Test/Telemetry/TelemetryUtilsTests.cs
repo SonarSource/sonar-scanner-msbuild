@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.Common.Test;
 public class TelemetryUtilsTests
 {
 #pragma warning disable S103 // Lines should not be too long
-    [DataTestMethod]
+    [TestMethod]
     // Sensitive data
     [DataRow(SonarProperties.SonarToken, "secret")]
     [DataRow("SONAR.TOKEN", "secret")]
@@ -75,12 +75,12 @@ public class TelemetryUtilsTests
         AssertTelemetry(propertyId, value, exepectedTelemetry);
 
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(SonarProperties.JavaExePath, "invalidFileName.exe;*>\0//", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
     public void LoggedTelemetryFromPropertiesNoMacOS(string propertyId, string value, params string[] exepectedTelemetry) =>
         AssertTelemetry(propertyId, value, exepectedTelemetry);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("http://localhost:9000", "localhost")]
     [DataRow("private.com", "custom_url")]
     public void LoggedTelemetryFromHostInfoSqServer(string serverUrl, string telemetryValue)
@@ -93,7 +93,7 @@ public class TelemetryUtilsTests
         logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.serverUrl", telemetryValue);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("https://sonarcloud.io", "", "https://sonarcloud.io", "default")]
     [DataRow("https://sonarcloud.io", "region", "https://sonarcloud.io", "region")]
     [DataRow("https://sonarqube.us", "us", "https://sonarqube.us", "us")]

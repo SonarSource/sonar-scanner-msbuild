@@ -101,7 +101,7 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("localhost", false)]
     [DataRow(null, true)]
     [DataRow("error.org", true)]

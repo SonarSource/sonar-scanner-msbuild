@@ -259,7 +259,7 @@ public class AnalysisConfigGeneratorTests
         config.SonarQubeVersion.Should().Be("1.2.3.4");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("java1.exe", "", "java1.exe")]
     [DataRow("java1.exe", " ", "java1.exe")]
     [DataRow("java1.exe", null, "java1.exe")]
@@ -318,7 +318,7 @@ public class AnalysisConfigGeneratorTests
             .Which.Value.Should().Be("foo.js");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sonar.cs.vscoveragexml.reportsPaths", "foo.js,coverage.xml")]
     [DataRow("sonar.cs.opencover.reportsPaths", "foo.js,coverage.xml")]
     [DataRow("sonar.cs.dotcover.reportsPaths", "foo.js,coverage.xml,coverage/**")]
@@ -340,7 +340,7 @@ public class AnalysisConfigGeneratorTests
             .Which.Value.Should().Be(expectedExclusions);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sonar.cs.vscoveragexml.reportsPaths", "coverage.xml")]
     [DataRow("sonar.cs.opencover.reportsPaths", "coverage.xml")]
     [DataRow("sonar.cs.dotcover.reportsPaths", "coverage.xml,coverage/**")]
@@ -379,7 +379,7 @@ public class AnalysisConfigGeneratorTests
             .Which.Value.Should().Be("coverage1.xml,coverage2.xml,coverage3.xml,coverage4.xml,coverage4/**");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("coverage.xml", "", "", "", "coverage.xml", "")]
     [DataRow("coverage.xml", "", "local.cs,local.js", "", "local.cs,local.js,coverage.xml", "")]
     [DataRow("coverage.xml", "", "", "server.cs,server.js", "server.cs,server.js,coverage.xml", "server.cs,server.js")]
@@ -439,7 +439,7 @@ public class AnalysisConfigGeneratorTests
         }
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("", "", "", "", "", "", "")]
     [DataRow("", "", "", "", "e", "f", "e,f,f/**")]
     [DataRow("a", "b", "c", "", "e", "", "a,b,c,c/**")]
@@ -483,7 +483,7 @@ public class AnalysisConfigGeneratorTests
         }
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("", "")]
     [DataRow("foo", "foo,foo/**")]
     [DataRow("foo.html", "foo.html,foo/**")]
@@ -516,7 +516,7 @@ public class AnalysisConfigGeneratorTests
         }
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("foo/", "")]
     [DataRow("", "bar/")]
     [DataRow("foo/", "bar/")]
@@ -578,7 +578,7 @@ public class AnalysisConfigGeneratorTests
         Property.TryGetProperty("javax.net.ssl.trustStorePassword", config.ScannerOptsSettings, out _).Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(SonarProperties.Verbose, "true")]
     [DataRow(SonarProperties.Organization, "org")]
     [DataRow(SonarProperties.HostUrl, "http://localhost:9000")]

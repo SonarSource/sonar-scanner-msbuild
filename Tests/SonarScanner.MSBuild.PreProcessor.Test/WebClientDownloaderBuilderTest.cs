@@ -138,7 +138,7 @@ public partial class WebClientDownloaderBuilderTest
         action.Should().ThrowOSBased<CryptographicException, CryptographicException, FileNotFoundException>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, "something")]
     [DataRow("something", null)]
     [DataRow(null, null)]
@@ -308,7 +308,7 @@ public partial class WebClientDownloaderBuilderTest
             """);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(false)]
     [DataRow(false, "google.com")]
     [DataRow(false, "sonarsource.com", "sonarcloud.io")]

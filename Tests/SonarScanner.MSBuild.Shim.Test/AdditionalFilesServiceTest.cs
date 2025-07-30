@@ -81,7 +81,7 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(".sonarqube")]
     [DataRow(".SONARQUBE")]
     [DataRow(".SonaRQubE")]
@@ -162,7 +162,7 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(".js,.jsx")]
     [DataRow(".js, .jsx")]
     [DataRow(" .js, .jsx")]
@@ -213,7 +213,7 @@ public class AdditionalFilesServiceTest
         AdditionalFiles_ExcludedFilesIgnored(excluded);
 
     [TestCategory(TestCategories.NoWindows)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("build-wrapper-dump.json")]
     [DataRow("./compile_commands.json")]
     [DataRow("/dev/BUILD-WRAPPER-DUMP.json")]
@@ -223,7 +223,7 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_ExcludedFilesIgnored_Unix(string excluded) =>
         AdditionalFiles_ExcludedFilesIgnored(excluded);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sonar.tsql.file.suffixes")]
     [DataRow("sonar.plsql.file.suffixes")]
     [DataRow("sonar.yaml.file.suffixes")]
@@ -495,7 +495,7 @@ public class AdditionalFilesServiceTest
         files.Tests.Should().BeEmpty();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sonar.docker.file.patterns")]
     [DataRow("sonar.java.jvmframeworkconfig.file.patterns")]
     [DataRow("sonar.text.inclusions")]

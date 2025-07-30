@@ -42,13 +42,13 @@ public class StringExtensionsTests
     public void RedactSensitiveData_NoSensitiveData() =>
         "Some string with no sensitive data".RedactSensitiveData().Should().Be("Some string with no sensitive data");
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(SensitivePropertyKeys))]
     public void RedactSensitiveData_SensitiveData(string sensitiveKey) =>
         @$"Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D{sensitiveKey}=""changeit""".RedactSensitiveData()
             .Should().Be("Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D<sensitive data removed>");
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(SonarProperties.SonarToken, SonarProperties.SonarPassword)]
     [DataRow(SonarProperties.SonarPassword, SonarProperties.SonarToken)]
     public void RedactSensitiveData_MixedSensitiveData(string sensitiveKey1, string sensitiveKey2) =>

@@ -134,7 +134,7 @@ public class CacheProcessorTests
         sut.PullRequestCacheBasePath.Should().Be(null);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("", null)]
     [DataRow(null, "")]
     public void PullRequestCacheBasePath_EmptyDirectories_IsNull(string sourcesDirectory, string sonarScannerWorkingDirectory)

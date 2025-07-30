@@ -76,7 +76,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertEmptyPluginsRequested();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(RoslynAnalyzerProvider.CSharpLanguage)]
     [DataRow(RoslynAnalyzerProvider.VBNetLanguage)]
     public void RoslynConfig_ValidProfile_WithLegacy(string language)
@@ -129,7 +129,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(RoslynAnalyzerProvider.CSharpLanguage)]
     [DataRow(RoslynAnalyzerProvider.VBNetLanguage)]
     public void RoslynConfig_ValidProfile_LegacyOnly(string language)
@@ -174,7 +174,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(RoslynAnalyzerProvider.CSharpLanguage)]
     [DataRow(RoslynAnalyzerProvider.VBNetLanguage)]
     public void RoslynConfig_ValidProfile_WithoutLegacy(string language)
@@ -210,7 +210,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sonar.cs.analyzer.dotnet.missing-pluginKey", "sonar.cs.analyzer.dotnet.version", "sonar.cs.analyzer.dotnet.staticResourceName")]
     [DataRow("sonar.cs.analyzer.dotnet.pluginKey", "sonar.cs.analyzer.dotnet.missing-version", "sonar.cs.analyzer.dotnet.staticResourceName")]
     [DataRow("sonar.cs.analyzer.dotnet.pluginKey", "sonar.cs.analyzer.dotnet.version", "sonar.cs.analyzer.dotnet.missing-staticResourceName")]

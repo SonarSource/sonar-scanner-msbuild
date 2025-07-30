@@ -34,7 +34,7 @@ public class RegexExtensionsTest
     private const string TimeoutPattern =
         @"^((?<DRIVE>[a-zA-Z]):\\)*((?<DIR>[a-zA-Z0-9_]+(([a-zA-Z0-9_\s_\-\.]*[a-zA-Z0-9_]+)|([a-zA-Z0-9_]+)))\\)*(?<FILE>([a-zA-Z0-9_]+(([a-zA-Z0-9_\s_\-\.]*[a-zA-Z0-9_]+)|([a-zA-Z0-9_]+))\.(?<EXTENSION>[a-zA-Z0-9]{1,6})$))";
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(true)]
     [DataRow(false)]
     public void SafeIsMatch_Timeout_Fallback(bool timeoutFallback)
@@ -50,7 +50,7 @@ public class RegexExtensionsTest
         regex.SafeIsMatch("input").Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1, false)]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1_000_000, true)]
     [DataRow(@"äöü", 1, false)]
@@ -61,7 +61,7 @@ public class RegexExtensionsTest
         regex.SafeMatch(input).Success.Should().Be(matchSucceed);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1, 0)]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1_000_000, 1)]
     [DataRow(@"äöü", 1, 0)]
@@ -78,7 +78,7 @@ public class RegexExtensionsTest
         }
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1, false)]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1_000_000, true)]
     [DataRow(@"äöü", 1, false)]
