@@ -534,9 +534,10 @@ public class PropertiesWriterTest
         static Stream GenerateStreamFromString(string s)
         {
             var stream = new MemoryStream();
-            var writer = new StreamWriter(stream);
-            writer.Write(s);
-            writer.Flush();
+            using (var writer = new StreamWriter(stream))
+            {
+                writer.Write(s);
+            }
             stream.Position = 0;
             return stream;
         }
