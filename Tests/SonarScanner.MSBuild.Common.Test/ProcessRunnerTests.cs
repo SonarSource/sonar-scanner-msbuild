@@ -466,6 +466,7 @@ public class ProcessRunnerTests
         {
             return Path.Combine(basePath, "LogArgs.exe");
         }
+        // See also 'Build test pre-requisites' in templates/unix-qa-stage.yml
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             return Path.Combine(basePath.Replace("Debug", "Release"), "linux-x64", "LogArgs");

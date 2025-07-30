@@ -17,7 +17,7 @@ stages:
         displayName: "Run UTs"
         steps:
           - task: DotNetCoreCLI@2
-            displayName: 'Build test pre-requisites'
+            displayName: 'Build test pre-requisites' # Required in ProcessRunnerTests
             inputs:
               command: 'publish'
               projects: './Tests/LogArgs/LogArgs.csproj'
