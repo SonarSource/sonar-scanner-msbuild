@@ -48,7 +48,7 @@ public static class TestUtils
         var fullPath = CreateTestSpecificFolder(testContext);
         if (subDirNames.Length > 0)
         {
-            fullPath = Path.Combine(new[] { fullPath }.Concat(subDirNames).ToArray());
+            fullPath = Path.Combine([fullPath, .. subDirNames]);
             Directory.CreateDirectory(fullPath);
         }
 
@@ -300,7 +300,7 @@ public static class TestUtils
     private static void ExtractResourceToFile(string resourceName, string filePath)
     {
         var stream = typeof(TestUtils).Assembly.GetManifestResourceStream(resourceName);
-        using (var reader =  new StreamReader(stream))
+        using (var reader = new StreamReader(stream))
         {
             File.WriteAllText(filePath, reader.ReadToEnd());
         }

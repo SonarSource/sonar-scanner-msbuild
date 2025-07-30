@@ -18,18 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Shim.Interfaces;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -39,10 +29,10 @@ public class PropertiesFileGeneratorTests
     private const string TestSonarqubeOutputDir = @"e:\.sonarqube\out";
 
     private const string ProjectBaseDirInfoMessage =
-        "Starting with Scanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed " +
-        "and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. " +
-        "If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. " +
-        "The path may be relative (to the directory from which the analysis was started) or absolute.";
+        "Starting with Scanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed "
+        + "and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. "
+        + "If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. "
+        + "The path may be relative (to the directory from which the analysis was started) or absolute.";
 
     private readonly TestLogger logger = new();
 
@@ -159,7 +149,9 @@ public class PropertiesFileGeneratorTests
         AssertExpectedProjectCount(1, result);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_Duplicate_SameGuid_DifferentCase_ShouldNotIgnoreCase()
     {
@@ -174,8 +166,8 @@ public class PropertiesFileGeneratorTests
         runtimeInformation.IsOS(OSPlatform.Windows).Returns(false);
 
         var guid = Guid.NewGuid();
-        var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, project1Dir + "\\withoutfile.proj", "UTF-8");
-        TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName2, null, guid, ProjectType.Product, false, project1Dir + "\\withoutFile.proj", "UTF-8"); // not excluded
+        var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, Path.Combine(project1Dir, "withoutfile.proj"), "UTF-8");
+        TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName2, null, guid, ProjectType.Product, false, Path.Combine(project1Dir, "withoutFile.proj"), "UTF-8"); // not excluded
 
         // Create content / managed files if required
         var contentFile1 = TestUtils.CreateEmptyFile(project1Dir, "contentFile1.txt");
@@ -193,11 +185,13 @@ public class PropertiesFileGeneratorTests
         AssertExpectedProjectCount(1, result);
 
         logger.Warnings.Should().HaveCount(2).And.BeEquivalentTo(
-            $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{project1Dir}\\withoutfile.proj\"",
-            $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{project1Dir}\\withoutFile.proj\"");
+            $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{Path.Combine(project1Dir, "withoutfile.proj")}\"",
+            $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{Path.Combine(project1Dir, "withoutFile.proj")}\"");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_Duplicate_SameGuid_DifferentCase_ShouldIgnoreCase()
     {
@@ -542,7 +536,9 @@ public class PropertiesFileGeneratorTests
     }
 
     // SONARMSBRU-335
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_SharedFiles_CaseInsensitive()
     {
@@ -785,64 +781,68 @@ public class PropertiesFileGeneratorTests
         logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GenerateFile_ComputeProjectBaseDir()
     {
         VerifyProjectBaseDir(
-            expectedValue: @"d:\work\mysources", // if there is a user value, use it
-            teamBuildValue: @"d:\work",
-            userValue: @"d:\work\mysources",
-            projectPaths: [@"d:\work\proj1.csproj"]);
+            expectedValue: Path.Combine(TestUtils.DriveRoot("d"), "work", "mysources"), // if there is a user value, use it
+            teamBuildValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),
+            userValue: Path.Combine(TestUtils.DriveRoot("d"), "work", "mysources"),
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("d"), "work", "proj1.csproj")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"d:\work",  // if no user value, use the team build value
-            teamBuildValue: @"d:\work",
+            expectedValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),  // if no user value, use the team build value
+            teamBuildValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),
             userValue: null,
-            projectPaths: [@"e:\work"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work", @"e:\work"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work"), Path.Combine(TestUtils.DriveRoot("e"), "work")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work\A", @"e:\work\B\C"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work", "A"), Path.Combine(TestUtils.DriveRoot("e"), "work", "B", "C")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work\A", @"e:\work\B", @"e:\work\C"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work", "A"), Path.Combine(TestUtils.DriveRoot("e"), "work", "B"), Path.Combine(TestUtils.DriveRoot("e"), "work", "C")]);
 
         VerifyProjectBaseDir(
-            expectedValue: @"e:\work\A",  // if no team build value, use the common project paths root
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work", "A"),  // if no team build value, use the common project paths root
             teamBuildValue: null,
             userValue: string.Empty,
-            projectPaths: [@"e:\work\A\X", @"e:\work\A", @"e:\work\A"]);
-
-        VerifyProjectBaseDir(
-            expectedValue: null,  // if no common root exists, return null
-            teamBuildValue: null,
-            userValue: string.Empty,
-            projectPaths: [@"f:\work\A", @"e:\work\B"]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work", "A", "X"), Path.Combine(TestUtils.DriveRoot("e"), "work", "A"), Path.Combine(TestUtils.DriveRoot("e"), "work", "A")]);
 
         // Support relative paths
         VerifyProjectBaseDir(
             expectedValue: Path.Combine(Directory.GetCurrentDirectory(), "src"),
             teamBuildValue: null,
-            userValue: @".\src",
+            userValue: Path.Combine(".", "src"),
             projectPaths: [@"d:\work\proj1.csproj"]);
+    }
+
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void GenerateFile_ComputeProjectBaseDir_Windows()
+    {
+        VerifyProjectBaseDir(
+            expectedValue: null,  // if no common root exists, return null
+            teamBuildValue: null,
+            userValue: string.Empty,
+            projectPaths: [@"f:\work\A", @"e:\work\B"]);
 
         // Support short name paths
         var result = ComputeProjectBaseDir(
@@ -877,7 +877,6 @@ public class PropertiesFileGeneratorTests
         }
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TryWriteProperties_WhenThereIsNoCommonPath_LogsError()
     {
@@ -1150,139 +1149,120 @@ public class PropertiesFileGeneratorTests
         actual.Should().BeNull();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenNoMatch_ReturnsNull()
     {
         // Arrange
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "D:\\foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "~foo\\bar.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\foobar.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("D"), "foo.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~foo", "bar.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("C"), "foobar.csproj") }),
         };
 
         // Act
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("E:\\foo"), projects);
+        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("E"), "foo")), projects);
 
         // Assert
         actual.Should().BeNull();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithSameCase_ReturnsProject()
     {
-        // Arrange
         var projects = new[]
         {
             new ProjectData(new ProjectInfo { FullPath = "foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "~foo\\bar.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\foo.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~foo", "bar.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "foo.csproj") }),
         };
 
-        // Act
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\foo\\foo.cs"), projects);
+        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "foo.cs")), projects);
 
-        // Assert
         actual.Should().Be(projects[2]);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentCase_ReturnsProject()
     {
-        // Arrange
         var projects = new[]
         {
             new ProjectData(new ProjectInfo { FullPath = "foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "~foo\\bar.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\foo.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~foo", "bar.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "foo.csproj") }),
         };
 
-        // Act
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\FOO\\FOO.cs"), projects);
+        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("C"), "FOO", "FOO.cs")), projects);
 
-        // Assert
         actual.Should().Be(projects[2]);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentSeparators_ReturnsProject()
     {
-        // Arrange
         var projects = new[]
         {
             new ProjectData(new ProjectInfo { FullPath = "foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "~foo\\bar.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:/foo/foo.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~foo", "bar.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = $"{TestUtils.DriveRoot()}{Path.AltDirectorySeparatorChar}foo{Path.AltDirectorySeparatorChar}foo.csproj" }),
         };
 
-        // Act
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\foo\\foo.cs"), projects);
+        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "foo.cs")), projects);
 
-        // Assert
         actual.Should().Be(projects[2]);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenMultipleProjectsMatch_ReturnsProjectWithLongestMatch()
     {
-        // Arrange
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "C:\\foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar\\foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\xxx.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\foo\\bar\\foobar\\foo.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "bar.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "xxx.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foobar", "foo.csproj") }),
         };
 
-        // Act
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\foo\\bar\\foo.cs"), projects);
+        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.cs")), projects);
 
-        // Assert
         actual.Should().Be(projects[2]);
     }
 
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenMultipleProjectsMatchWithSameLength_ReturnsClosestProject()
     {
-        // Arrange
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "C:\\fooNet46.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\fooXamarin.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = "C:\\fooNetStd.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "fooNet46.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "fooXamarin.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "fooNetStd.csproj") }),
         };
 
-        // Act
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("C:\\foo\\foo.cs"), projects);
+        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.cs")), projects);
 
-        // Assert
         actual.Should().Be(projects[0]);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_AllInRoot_NoWarning()
     {
         var sut = new PropertiesFileGenerator(new(), logger);
         var projectPaths = new[]
         {
-            new DirectoryInfo(@"C:\Projects\Name\Lib"),
-            new DirectoryInfo(@"C:\Projects\Name\Src"),
-            new DirectoryInfo(@"C:\Projects\Name\Test"),
+            new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Lib")),
+            new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Src")),
+            new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Test")),
         };
 
-        sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
+        sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name"));
         logger.AssertNoWarningsLogged();
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // On Unix, there always is a best common root "/" and there are never projects outside of the root.
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_ProjectOutsideRoot_LogsWarning()
     {
@@ -1301,7 +1281,9 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // On Linux there always is a best common root "/".
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ComputeProjectBaseDir_NoBestCommonRoot_ReturnsNull()
     {
@@ -1319,53 +1301,52 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_AllFilesInWorkingDirectory()
     {
-        var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Projects" }, logger);
+        var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Projects") }, logger);
         var projectPaths = new[]
         {
-            new DirectoryInfo(@"C:\Projects\Name\Lib"),
-            new DirectoryInfo(@"C:\Projects\Name\Src"),
-            new DirectoryInfo(@"C:\Projects\Name\Test"),
+            new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Lib")),
+            new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Src")),
+            new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Test")),
         };
 
-        sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects");
+        sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Projects"));
         logger.AssertNoWarningsLogged();
-        logger.DebugMessages.Should().BeEquivalentTo(@"Using working directory as project base directory: 'C:\Projects'.");
+        logger.DebugMessages.Should().BeEquivalentTo($"Using working directory as project base directory: '{Path.Combine(TestUtils.DriveRoot(), "Projects")}'.");
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_FallsBackToCommonPath()
     {
-        var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Solution\Net" }, logger);
+        var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Solution", "Net") }, logger);
         var projectPaths = new[]
         {
-            new DirectoryInfo(@"C:\Solution\Net\Name\Lib"),
-            new DirectoryInfo(@"C:\Solution\Net\Name\Src"),
-            new DirectoryInfo(@"C:\Solution\JS"), // At least one directory is not below SonarScannerWorkingDirectory. We fall back to the common root logic.
+            new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Lib")),
+            new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Src")),
+            new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Solution", "JS")), // At least one directory is not below SonarScannerWorkingDirectory. We fall back to the common root logic.
         };
 
-        sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Solution");
+        sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Solution"));
         logger.AssertNoWarningsLogged();
-        logger.DebugMessages.Should().BeEquivalentTo(
-            """
-            Using longest common projects path as a base directory: 'C:\Solution'. Identified project paths:
-            C:\Solution\Net\Name\Lib
-            C:\Solution\Net\Name\Src
-            C:\Solution\JS
+        logger.DebugMessages.Should().ContainSingle().Which.Should().BeIgnoringLineEndings(
+            $"""
+            Using longest common projects path as a base directory: '{Path.Combine(TestUtils.DriveRoot(), "Solution")}'. Identified project paths:
+            {Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Lib")}
+            {Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Src")}
+            {Path.Combine(TestUtils.DriveRoot(), "Solution", "JS")}
             """);
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // On Unix, there always is a best common root "/".
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseSensitive_NoRoot_ReturnsNull()
     {
-        var logger = new TestLogger();
         var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
         runtimeInformationWrapper.IsOS(OSPlatform.Windows).Returns(false);
         var additionalFileService = Substitute.For<IAdditionalFilesService>();
@@ -1382,11 +1363,12 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Case sensitive tests don't apply to Unix.
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseInsensitive()
     {
-        var logger = new TestLogger();
         var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
         runtimeInformationWrapper.IsOS(OSPlatform.Windows).Returns(true);
         var additionalFileService = Substitute.For<IAdditionalFilesService>();
@@ -1402,7 +1384,9 @@ public class PropertiesFileGeneratorTests
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // On Unix, there always is a best common root "/".
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_NoCommonRoot()
     {
@@ -1458,7 +1442,6 @@ public class PropertiesFileGeneratorTests
         logger.DebugMessages.Should().ContainSingle(x => x.StartsWith("Using user supplied project base directory:"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GenerateFile_AdditionalFiles_EndToEnd()
     {
@@ -1528,18 +1511,14 @@ public class PropertiesFileGeneratorTests
         AssertExpectedPathsAddedToModuleFiles(project1, project1Sources);
         AssertExpectedPathsAddedToModuleFiles(project2, project2Sources);
 
-        // Multiline string literal doesn't work here because of environment-specific line ending.
-        var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
-        propertiesFile.Should()
-            .Contain($@"sonar.sources=\{Environment.NewLine}{string.Join($@",\{Environment.NewLine}", rootSources.Select(x => x.Replace(@"\", @"\\")))}");
-        propertiesFile.Should()
-            .Contain($@"sonar.tests=\{Environment.NewLine}{string.Join($@",\{Environment.NewLine}", rootTests.Select(x => x.Replace(@"\", @"\\")))}");
+        var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+        properties.PropertyValue("sonar.sources").Split(',').Should().BeEquivalentTo(rootSources);
+        properties.PropertyValue("sonar.tests").Split(',').Should().BeEquivalentTo(rootTests);
 
         void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
-         expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
+            expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void GenerateFile_AdditionalFiles_OnlyTestFiles_EndToEnd()
     {
@@ -1567,10 +1546,8 @@ public class PropertiesFileGeneratorTests
         AssertPropertiesFilesCreated(result, logger);
         AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
 
-        // Multiline string literal doesn't work here because of environment-specific line ending.
-        var propertiesFile = File.ReadAllText(result.FullPropertiesFilePath);
-        propertiesFile.Should()
-            .Contain($"sonar.tests=\\{Environment.NewLine}{string.Join($",\\{Environment.NewLine}", testFiles.Select(x => x.Replace("\\", "\\\\")))}");
+        var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+        properties.PropertyValue("sonar.tests").Split(',').Should().BeEquivalentTo(testFiles);
     }
 
     [DataTestMethod]
