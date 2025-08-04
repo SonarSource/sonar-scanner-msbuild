@@ -20,7 +20,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="MSTest.TestFramework" Version="3.10.0" />
-    <PackageReference Include="WireMock.Net" Version="1.8.17" />
+    <PackageReference Include="WireMock.Net" Version="1.8.18" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
