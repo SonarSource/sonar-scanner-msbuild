@@ -659,9 +659,9 @@ public class ArgumentProcessorTests
         CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
 
     [TestMethod]
-    [DataRow(@"C:\Program Files\Java\jdk1.6.0_30\bin\java.exe")]
-    [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java.exe")]
-    [DataRow(@"\jdk1.6.0_30\bin\java.exe")]
+    [DataRow(@"C:\Work\scanner\scanner-enterprise-10.8.0.100206-all.jar")]
+    [DataRow(@"\scanner-engine.jar")]
+    [DataRow(@"scanner-engine.jar")]
     public void PreArgProc_EngineJarPath_SetValid(string engineJarPath)
     {
         var fileWrapper = Substitute.For<IFileWrapper>();
@@ -670,8 +670,8 @@ public class ArgumentProcessorTests
     }
 
     [TestMethod]
-    [DataRow(@"jdk1.6.0_30\bin\java.exe")]
-    [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java")]
+    [DataRow(@"C:\Work\scanner\scanner-enterprise-10.8.0.100206-all.jar")]
+    [DataRow(@"\scanner-engine.jar")]
     [DataRow(@"not a path")]
     [DataRow(@" ")]
     public void PreArgProc_EngineJarPath_SetInvalid(string engineJarPath)
