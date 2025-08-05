@@ -31,7 +31,7 @@ public class BinaryToXmlCoverageReportConverterTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void Conv_Ctor_InvalidArgs_Throws()
+    public void BinaryToXmlCoverageReportConverter_InvalidArgs_Throws()
     {
         Action op = () => _ = new BinaryToXmlCoverageReportConverter(null);
 
@@ -39,7 +39,7 @@ public class BinaryToXmlCoverageReportConverterTests
     }
 
     [TestMethod]
-    public void Conv_ConvertToXml_InvalidArgs_Throws()
+    public void ConvertToXml_InvalidArgs_Throws()
     {
         var testSubject = new BinaryToXmlCoverageReportConverter(Substitute.For<ILogger>());
 
@@ -59,7 +59,7 @@ public class BinaryToXmlCoverageReportConverterTests
     }
 
     [TestMethod]
-    public void Conv_ConversionFailure_Success_False_And_ErrorLogged()
+    public void ConvertToXml_ConversionFailure_SuccessFalseAndErrorLogged()
     {
         var context = new ConverterTestContext(TestContext);
         new BinaryToXmlCoverageReportConverter(context.Logger).ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse();
@@ -72,7 +72,7 @@ public class BinaryToXmlCoverageReportConverterTests
     }
 
     [TestMethod]
-    public void Conv_FailsIfFileConverterReturnsAnErrorCode()
+    public void ConvertToXml_FileConverterReturnsAnErrorCode_Fails()
     {
         var context = new ConverterTestContext(TestContext);
         new BinaryToXmlCoverageReportConverter(context.Logger).ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
@@ -82,17 +82,17 @@ public class BinaryToXmlCoverageReportConverterTests
     }
 
     [TestMethod]
-    public void Conv_FailsIfInputFileDoesNotExists()
+    public void ConvertToXml_InputFileDoesNotExists_Fails()
     {
         var context = new ConverterTestContext(TestContext, fileContent: null);
         new BinaryToXmlCoverageReportConverter(context.Logger).ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
         context.Logger.Errors.Should().ContainSingle().Which.Should()
-            .Be(@$"The binary coverage file {context.InputFilePath} could not be found. No coverage information will be uploaded to the Sonar server.");
+            .Be($"The binary coverage file {context.InputFilePath} could not be found. No coverage information will be uploaded to the Sonar server.");
         File.Exists(context.OutputFilePath).Should().BeFalse("Not expecting the output file to exist");
     }
 
     [TestMethod]
-    public void Conv_FailsIfInputFileIsLocked()
+    public void ConvertToXml_InputFileIsLocked_Fails()
     {
         var context = new ConverterTestContext(TestContext);
         try
@@ -118,11 +118,11 @@ public class BinaryToXmlCoverageReportConverterTests
     [TestMethod]
     // DeploymentItem does not work on Linux for relative files: https://github.com/microsoft/testfx/issues/1460
     [DeploymentItem(@"Resources")] // Copy whole directory. Contains: Sample.coverage and Expected.xmlcoverage
-    public void Conv_ConvertToXml_ToolConvertsSampleFile()
+    public void ConvertToXml_ConvertsSampleFile()
     {
         var logger = new TestLogger();
         var inputFilePath = Path.Combine(Environment.CurrentDirectory, "Sample.coverage");
-        var outputFilePath = Path.Combine(Environment.CurrentDirectory, $"{nameof(Conv_ConvertToXml_ToolConvertsSampleFile)}.xmlcoverage");
+        var outputFilePath = Path.Combine(Environment.CurrentDirectory, $"{nameof(ConvertToXml_ConvertsSampleFile)}.xmlcoverage");
         var expectedOutputFilePath = Path.Combine(Environment.CurrentDirectory, "Expected.xmlcoverage");
 
         File.Exists(inputFilePath).Should().BeTrue();
@@ -132,17 +132,17 @@ public class BinaryToXmlCoverageReportConverterTests
         File.Exists(outputFilePath).Should().BeTrue();
         // All tags and attributes must appear in actual and expected. Comments, whitespace, ordering, and the like is ignored in the assertion.
         XDocument.Load(outputFilePath).Should().BeEquivalentTo(XDocument.Load(expectedOutputFilePath));
-        logger.DebugMessages.Should().ContainSingle().Which.Should().Match(@"Converting coverage file '*Sample.coverage' to '*Conv_ConvertToXml_ToolConvertsSampleFile.xmlcoverage'.");
+        logger.DebugMessages.Should().ContainSingle().Which.Should().Match($"Converting coverage file '*Sample.coverage' to '*{nameof(ConvertToXml_ConvertsSampleFile)}.xmlcoverage'.");
     }
 
     [TestMethod]
     // DeploymentItem does not work on Linux for relative files: https://github.com/microsoft/testfx/issues/1460
     [DeploymentItem(@"Resources")] // Copy whole directory. Contains: Sample.coverage and Expected.xmlcoverage
-    public void Conv_ConvertToXml_ToolConvertsSampleFile_ProblematicCulture()
+    public void ConvertToXml_ProblematicCulture_ConvertsSampleFile()
     {
         var logger = new TestLogger();
         var inputFilePath = Path.Combine(Environment.CurrentDirectory, "Sample.coverage");
-        var outputFilePath = Path.Combine(Environment.CurrentDirectory, $"{nameof(Conv_ConvertToXml_ToolConvertsSampleFile_ProblematicCulture)}.xmlcoverage");
+        var outputFilePath = Path.Combine(Environment.CurrentDirectory, $"{nameof(ConvertToXml_ProblematicCulture_ConvertsSampleFile)}.xmlcoverage");
         var expectedOutputFilePath = Path.Combine(Environment.CurrentDirectory, "Expected.xmlcoverage");
 
         File.Exists(inputFilePath).Should().BeTrue();
