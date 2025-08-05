@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
-
 namespace SonarScanner.MSBuild.TFS;
 
-public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBase
+public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBaseCopy
 {
     internal bool TrxFilesLocated { get; private set; }
 

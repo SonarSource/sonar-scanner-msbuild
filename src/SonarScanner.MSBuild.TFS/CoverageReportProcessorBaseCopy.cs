@@ -18,18 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
-
 namespace SonarScanner.MSBuild.TFS;
 
-// This abstraction is not needed anymore, because BuildVNextCoverageReportProcessor now stands alone.
-// It duplicates some logic from BuildVNextCoverageReportProcessor and should be deleted when TFS legacy support is dropped.
-public abstract class CoverageReportProcessorBase : ICoverageReportProcessor
+public abstract class CoverageReportProcessorBaseCopy : ICoverageReportProcessor
 {
     private const string XmlReportFileExtension = "coveragexml";
     private readonly ICoverageReportConverter converter;
@@ -42,7 +33,7 @@ public abstract class CoverageReportProcessorBase : ICoverageReportProcessor
 
     protected ILogger Logger { get; }
 
-    protected CoverageReportProcessorBase(ICoverageReportConverter converter, ILogger logger)
+    protected CoverageReportProcessorBaseCopy(ICoverageReportConverter converter, ILogger logger)
     {
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
