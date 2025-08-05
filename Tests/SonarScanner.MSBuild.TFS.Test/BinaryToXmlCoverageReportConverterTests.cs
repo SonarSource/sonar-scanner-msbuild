@@ -19,6 +19,7 @@
  */
 
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 
 namespace SonarScanner.MSBuild.TFS.Tests;
@@ -60,76 +61,57 @@ public class BinaryToXmlCoverageReportConverterTests
     [TestMethod]
     public void Conv_ConversionFailure_Success_False_And_ErrorLogged()
     {
-        var logger = new TestLogger();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var outputFilePath = Path.Combine(testDir, "output.txt");
-        var inputFilePath = Path.Combine(testDir, $"input_{nameof(Conv_ConversionFailure_Success_False_And_ErrorLogged)}.txt");
-        File.WriteAllText(inputFilePath, "dummy input file");
-
-        new BinaryToXmlCoverageReportConverter(logger).ConvertToXml(inputFilePath, outputFilePath).Should().BeFalse();
-        File.Exists(outputFilePath).Should().BeFalse("Conversion failed");
-        logger.AssertErrorLogged($"""
+        var context = new ConverterTestContext(TestContext);
+        new BinaryToXmlCoverageReportConverter(context.Logger).ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse();
+        File.Exists(context.OutputFilePath).Should().BeFalse("Conversion failed");
+        context.Logger.AssertErrorLogged($"""
             Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
-            Check that the downloaded code coverage file ({inputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
+            Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
             """);
-        logger.AssertNoWarningsLogged();
+        context.Logger.AssertNoWarningsLogged();
     }
 
     [TestMethod]
     public void Conv_FailsIfFileConverterReturnsAnErrorCode()
     {
-        var logger = new TestLogger();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var outputFilePath = Path.Combine(testDir, "output.txt");
-        var inputFilePath = Path.Combine(testDir, $"input_{nameof(Conv_FailsIfFileConverterReturnsAnErrorCode)}.txt");
-        File.WriteAllText(inputFilePath, "dummy input file");
-
-        new BinaryToXmlCoverageReportConverter(logger).ConvertToXml(inputFilePath, outputFilePath).Should().BeFalse("Expecting the process to fail");
-        logger.AssertErrorsLogged();
-        logger.AssertSingleErrorExists(inputFilePath); // error message should refer to the input file
-        File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
+        var context = new ConverterTestContext(TestContext);
+        new BinaryToXmlCoverageReportConverter(context.Logger).ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
+        context.Logger.AssertErrorsLogged();
+        context.Logger.AssertSingleErrorExists(context.InputFilePath); // error message should refer to the input file
+        File.Exists(context.OutputFilePath).Should().BeFalse("Not expecting the output file to exist");
     }
 
     [TestMethod]
     public void Conv_FailsIfInputFileDoesNotExists()
     {
-        var logger = new TestLogger();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var outputFilePath = Path.Combine(testDir, "output.txt");
-        var inputFilePath = Path.Combine(testDir, $"input_{nameof(Conv_FailsIfInputFileDoesNotExists)}.txt");
-
-        new BinaryToXmlCoverageReportConverter(logger).ConvertToXml(inputFilePath, outputFilePath).Should().BeFalse("Expecting the process to fail");
-        logger.Errors.Should().ContainSingle().Which.Should().Be(@$"The binary coverage file {inputFilePath} could not be found. No coverage information will be uploaded to the Sonar server.");
-        File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
+        var context = new ConverterTestContext(TestContext, fileContent: null);
+        new BinaryToXmlCoverageReportConverter(context.Logger).ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
+        context.Logger.Errors.Should().ContainSingle().Which.Should()
+            .Be(@$"The binary coverage file {context.InputFilePath} could not be found. No coverage information will be uploaded to the Sonar server.");
+        File.Exists(context.OutputFilePath).Should().BeFalse("Not expecting the output file to exist");
     }
 
     [TestMethod]
     public void Conv_FailsIfInputFileIsLocked()
     {
-        var logger = new TestLogger();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var outputFilePath = Path.Combine(testDir, "output.txt");
-        var inputFilePath = Path.Combine(testDir, $"input_{nameof(Conv_FailsIfInputFileIsLocked)}.txt");
-        File.WriteAllText(inputFilePath, "Some content");
-
+        var context = new ConverterTestContext(TestContext);
         try
         {
-            using var fs = new FileStream(inputFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None); // lock the file with FileShare.None
-
+            using var fs = new FileStream(context.InputFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None); // lock the file with FileShare.None
             // FileShare.None will cause nested inner exceptions: AggregateException -> CoverageFileException -> IOException with messages
             // AggregateException: One or more errors occurred.
             // CoverageFileException: Failed to open coverage file "C:\Fullpath\input.txt".
             // IOException: The process cannot access the file 'C:\Fullpath\input.txt' because it is being used by another process.
-            new BinaryToXmlCoverageReportConverter(logger).ConvertToXml(inputFilePath, outputFilePath).Should().BeFalse("Expecting the process to fail");
-            logger.Errors.Should().ContainSingle().Which.Should().Match("Failed to convert the binary code coverage reports to XML. "
+            new BinaryToXmlCoverageReportConverter(context.Logger).ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
+            context.Logger.Errors.Should().ContainSingle().Which.Should().Match("Failed to convert the binary code coverage reports to XML. "
                 + "No code coverage information will be uploaded to the server (SonarQube/SonarCloud)."
-                + $"*Check that the downloaded code coverage file ({inputFilePath}) is valid by opening it in Visual Studio. "
+                + $"*Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. "
                 + "If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.");
-            File.Exists(outputFilePath).Should().BeFalse("Not expecting the output file to exist");
+            File.Exists(context.OutputFilePath).Should().BeFalse("Not expecting the output file to exist");
         }
         finally
         {
-            File.Delete(inputFilePath);
+            File.Delete(context.InputFilePath);
         }
     }
 
@@ -171,5 +153,24 @@ public class BinaryToXmlCoverageReportConverterTests
         File.Exists(outputFilePath).Should().BeTrue();
         // All tags and attributes must appear in actual and expected. Comments, whitespace, ordering, and the like is ignored in the assertion.
         XDocument.Load(outputFilePath).Should().BeEquivalentTo(XDocument.Load(expectedOutputFilePath));
+    }
+
+    private class ConverterTestContext
+    {
+        public TestLogger Logger { get; }
+        public string InputFilePath { get; }
+        public string OutputFilePath { get; }
+
+        public ConverterTestContext(TestContext testContext, string fileContent = "dummy input file", [CallerMemberName]string testMethodName = null)
+        {
+            Logger = new TestLogger();
+            var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
+            InputFilePath = Path.Combine(testDir, $"input_{testMethodName}.txt");
+            OutputFilePath = Path.Combine(testDir, "output.txt");
+            if (fileContent is not null)
+            {
+                File.WriteAllText(InputFilePath, fileContent);
+            }
+        }
     }
 }
