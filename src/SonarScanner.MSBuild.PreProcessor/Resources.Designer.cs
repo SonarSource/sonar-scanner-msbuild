@@ -613,6 +613,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using local sonar engine provided by sonar.scanner.engineJarPath={0}.
+        /// </summary>
+        internal static string MSG_EngineResolver_UsingLocalEngine {
+            get {
+                return ResourceManager.GetString("MSG_EngineResolver_UsingLocalEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extracting files to {0}....
         /// </summary>
         internal static string MSG_ExtractingFiles {
