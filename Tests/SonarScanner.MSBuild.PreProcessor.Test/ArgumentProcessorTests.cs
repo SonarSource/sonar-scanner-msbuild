@@ -684,7 +684,7 @@ public class ArgumentProcessorTests
 
     [TestMethod]
     public void PreArgProc_EngineJarPath_NotSet() =>
-        CheckProcessingSucceeds("/k:key").JavaExePath.Should().BeNull();
+        CheckProcessingSucceeds("/k:key").EngineJarPath.Should().BeNull();
 
     [TestMethod]
     [DataRow("true", true)]
