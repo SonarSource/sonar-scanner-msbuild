@@ -659,6 +659,34 @@ public class ArgumentProcessorTests
         CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
 
     [TestMethod]
+    [DataRow(@"C:\Program Files\Java\jdk1.6.0_30\bin\java.exe")]
+    [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java.exe")]
+    [DataRow(@"\jdk1.6.0_30\bin\java.exe")]
+    public void PreArgProc_EngineJarPath_SetValid(string engineJarPath)
+    {
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(engineJarPath).Returns(true);
+        CheckProcessingSucceeds(new TestLogger(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.engineJarPath={engineJarPath}").EngineJarPath.Should().Be(engineJarPath);
+    }
+
+    [TestMethod]
+    [DataRow(@"jdk1.6.0_30\bin\java.exe")]
+    [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java")]
+    [DataRow(@"not a path")]
+    [DataRow(@" ")]
+    public void PreArgProc_EngineJarPath_SetInvalid(string engineJarPath)
+    {
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(engineJarPath).Returns(false);
+        var logger = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.engineJarPath={engineJarPath}");
+        logger.AssertErrorLogged("The argument 'sonar.scanner.engineJarPath' contains an invalid path. Please make sure the path is correctly pointing to the scanner engine jar.");
+    }
+
+    [TestMethod]
+    public void PreArgProc_EngineJarPath_NotSet() =>
+        CheckProcessingSucceeds("/k:key").JavaExePath.Should().BeNull();
+
+    [TestMethod]
     [DataRow("true", true)]
     [DataRow("True", true)]
     [DataRow("false", false)]

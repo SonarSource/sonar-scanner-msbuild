@@ -80,6 +80,11 @@ public class ProcessedArgs
     public virtual bool SkipJreProvisioning { get; }
 
     /// <summary>
+    /// Path to the Java executable.
+    /// </summary>
+    public virtual string EngineJarPath { get; }
+
+    /// <summary>
     /// The sonar.userHome base directory for caching. Default value: ~/.sonar
     /// </summary>
     public string UserHome { get; }
@@ -196,6 +201,15 @@ public class ProcessedArgs
                 logger.LogError(Resources.ERROR_InvalidSkipJreProvisioning);
             }
             SkipJreProvisioning = result;
+        }
+        if (AggregateProperties.TryGetProperty(SonarProperties.EngineJarPath, out var engineJarPath))
+        {
+            if (!fileWrapper.Exists(engineJarPath.Value))
+            {
+                IsValid = false;
+                logger.LogError(Resources.ERROR_InvalidEngineJarPath);
+            }
+            EngineJarPath = engineJarPath.Value;
         }
         if (AggregateProperties.TryGetProperty(SonarProperties.ScanAllAnalysis, out var scanAllAnalysisString))
         {
