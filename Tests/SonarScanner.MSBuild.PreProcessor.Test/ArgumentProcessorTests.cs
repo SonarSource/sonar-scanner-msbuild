@@ -673,7 +673,7 @@ public class ArgumentProcessorTests
     {
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists("scanner-engine.jar").Returns(false);
-        var logger = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.engineJarPath=scanner-engine.jar");
+        var logger = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", "/d:sonar.scanner.engineJarPath=scanner-engine.jar");
         logger.AssertErrorLogged("The argument 'sonar.scanner.engineJarPath' contains an invalid path. Please make sure the path is correctly pointing to the scanner engine jar.");
     }
 
