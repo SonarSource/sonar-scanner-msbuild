@@ -64,7 +64,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             // Fetch all of the report URLs
             this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-            if (TryGetTrxFiles(settings, out var trxPaths) && trxPaths.Any())
+            if (TryGetTrxFiles(out var trxPaths) && trxPaths.Any())
             {
                 WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxPaths.ToArray());
             }
@@ -74,7 +74,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             this.logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
         }
 
-        var success = TryGetVsCoverageFiles(settings, out var vsCoverageFilePaths);
+        var success = TryGetVsCoverageFiles(out var vsCoverageFilePaths);
         if (success
             && vsCoverageFilePaths.Any()
             && TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths)
@@ -87,7 +87,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         return success;
     }
 
-    internal bool TryGetVsCoverageFiles(IBuildSettings settings, out IEnumerable<string> binaryFilePaths)
+    internal bool TryGetVsCoverageFiles(out IEnumerable<string> binaryFilePaths)
     {
         binaryFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(settings.BuildDirectory);
         // Fallback to workaround SONARAZDO-179: if the standard searches for .trx/.converage failed
@@ -104,7 +104,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         return true; // there aren't currently any conditions under which we'd want to stop processing
     }
 
-    internal bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths)
+    internal bool TryGetTrxFiles(out IEnumerable<string> trxFilePaths)
     {
         trxFilePaths = new TrxFileReader(logger).FindTrxFiles(settings.BuildDirectory);
         TrxFilesLocated = trxFilePaths is not null && trxFilePaths.Any();

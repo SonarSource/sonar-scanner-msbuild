@@ -55,16 +55,17 @@ public class BuildVNextCoverageReportProcessorTests
         {
             BuildDirectory = testDir
         };
+        testSubject.Initialize(new AnalysisConfig(), settings, "something");
 
         IEnumerable<string> trxFilePaths = null;
-        bool result = testSubject.TryGetTrxFiles(settings, out trxFilePaths);
+        bool result = testSubject.TryGetTrxFiles(out trxFilePaths);
 
         // Assert
         result.Should().BeTrue(); // expecting true i.e. carry on even if nothing found
         testSubject.TrxFilesLocated.Should().BeFalse();
 
         IEnumerable<string> binaryFilePaths = null;
-        result = testSubject.TryGetVsCoverageFiles(settings, out binaryFilePaths);
+        result = testSubject.TryGetVsCoverageFiles(out binaryFilePaths);
         result.Should().BeTrue();
         binaryFilePaths.Should().BeEquivalentTo("file1.txt", "file2.txt");
 
@@ -86,9 +87,10 @@ public class BuildVNextCoverageReportProcessorTests
         {
             BuildDirectory = testDir
         };
+        testSubject.Initialize(new AnalysisConfig(), settings, "something");
 
         IEnumerable<string> trxFilePaths = null;
-        bool result = testSubject.TryGetTrxFiles(settings, out trxFilePaths);
+        bool result = testSubject.TryGetTrxFiles(out trxFilePaths);
 
         // 1) Search for TRX files -> results found
         result.Should().BeTrue();
@@ -96,7 +98,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         // 2) Now search for .coverage files
         IEnumerable<string> binaryFilePaths = null;
-        result = testSubject.TryGetVsCoverageFiles(settings, out binaryFilePaths);
+        result = testSubject.TryGetVsCoverageFiles(out binaryFilePaths);
         result.Should().BeTrue();
         binaryFilePaths.Should().BeEmpty();
 
