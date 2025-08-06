@@ -59,8 +59,23 @@ public class EngineResolverTests
         var result = await resolver.ResolveEngine(args, "sonarHome");
 
         result.Should().BeNull();
-        logger.Received(1).LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
+        logger.Received(1).LogDebug("EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
         await server.DidNotReceive().DownloadEngineMetadataAsync();
+    }
+
+    [TestMethod]
+    public async Task ResolveEngine_DownloadsEngineMetadata_WhenMetadaDownloadFails()
+    {
+        server.SupportsJreProvisioning.Returns(true);
+        server.DownloadEngineMetadataAsync().Returns(Task.FromResult<EngineMetadata>(null));
+        var args = Substitute.For<ProcessedArgs>();
+        args.EngineJarPath.ReturnsNull();
+
+        var result = await resolver.ResolveEngine(args, "sonarHome");
+
+        result.Should().BeNull();
+        logger.Received(1).LogDebug("EngineResolver: Metadata could not be retrieved.");
+        await server.Received(1).DownloadEngineMetadataAsync();
     }
 
     [TestMethod]
