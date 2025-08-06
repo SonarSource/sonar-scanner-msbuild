@@ -103,10 +103,7 @@ public class BinaryToXmlCoverageReportConverterTests
             // CoverageFileException: Failed to open coverage file "C:\Fullpath\input.txt".
             // IOException: The process cannot access the file 'C:\Fullpath\input.txt' because it is being used by another process.
             new BinaryToXmlCoverageReportConverter(context.Logger).ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
-            context.Logger.Errors.Should().ContainSingle().Which.Should().Match("Failed to convert the binary code coverage reports to XML. "
-                + "No code coverage information will be uploaded to the server (SonarQube/SonarCloud)."
-                + $"*Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. "
-                + "If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.");
+            context.Logger.Errors.Should().ContainSingle().Which.Should().Match($"Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).*Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.");
             File.Exists(context.OutputFilePath).Should().BeFalse("Not expecting the output file to exist");
         }
         finally
