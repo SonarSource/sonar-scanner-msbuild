@@ -82,20 +82,26 @@ public class EngineResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveEngine_DownloadsEngineMetadata_WhenEngineJarPathIsNull()
+    public async Task ResolveEngine_DownloadsEngineMetadata_CacheHit()
     {
         server.SupportsJreProvisioning.Returns(true);
         server.DownloadEngineMetadataAsync().Returns(Task.FromResult(new EngineMetadata(
             "engine.jar",
             "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
             new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"))));
+        fileCache.IsFileCached("sonarHome", Arg.Is<FileDescriptor>(x =>
+            x.Filename == "engine.jar"
+            && x.Sha256 == "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b")).Returns(new CacheHit("sonarHome/.cache/engine.jar"));
         var args = Substitute.For<ProcessedArgs>();
         args.EngineJarPath.ReturnsNull();
 
         var result = await resolver.ResolveEngine(args, "sonarHome");
 
-        result.Should().BeNull();
+        result.Should().Be("sonarHome/.cache/engine.jar");
         await server.Received(1).DownloadEngineMetadataAsync();
+        fileCache.Received(1).IsFileCached("sonarHome", Arg.Is<FileDescriptor>(x =>
+            x.Filename == "engine.jar"
+            && x.Sha256 == "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b"));
         logger.DidNotReceiveWithAnyArgs().LogDebug(null, null);
     }
 }
