@@ -25,21 +25,17 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
     private const string XmlReportFileExtension = "coveragexml";
     private readonly ICoverageReportConverter converter;
     private readonly ILogger logger;
-    private readonly IBuildVNextCoverageSearchFallback searchFallback;
+    private readonly BuildVNextCoverageSearchFallback searchFallback;
     private AnalysisConfig config;
     private IBuildSettings settings;
     private string propertiesFilePath;
     private bool successfullyInitialized;
 
     public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, ILogger logger)
-        : this(converter, logger, new BuildVNextCoverageSearchFallback(logger))
-    { }
-
-    internal /* for testing */ BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, ILogger logger, IBuildVNextCoverageSearchFallback searchFallback)
     {
-        this.searchFallback = searchFallback;
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
+        searchFallback = new BuildVNextCoverageSearchFallback(logger);
     }
 
     public bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
@@ -53,11 +49,11 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
 
     public bool ProcessCoverageReports(ILogger logger)
     {
-        var trxFilesLocated = false;
         if (!successfullyInitialized)
         {
             throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialized);
         }
+        var trxFilesLocated = false;
         if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, logger) is null)
         {
             // Fetch all of the report URLs
@@ -90,7 +86,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
     private IEnumerable<string> FindVsCoverageFiles(bool trxFilesLocated)
     {
         var binaryFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(settings.BuildDirectory);
-        // Fallback to workaround SONARAZDO-179: if the standard searches for .trx/.converage failed
+        // Fallback to workaround SONARAZDO-179: if the standard searches for .trx/.coverage failed
         // then try the fallback method to find coverage files
         if (!trxFilesLocated && (binaryFilePaths is null || !binaryFilePaths.Any()))
         {

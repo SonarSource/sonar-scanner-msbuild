@@ -42,7 +42,6 @@ public class BuildVNextCoverageReportProcessorTests
         </x:TestRun>
         """;
 
-    private readonly MockSearchFallback mockSearchFallback = new();
     private readonly AnalysisConfig analysisConfig = new() { LocalSettings = [new Property(SonarProperties.VsTestReportsPaths, null)] };
     private readonly TestLogger testLogger = new();
     private readonly MockReportConverter converter = new();
@@ -65,7 +64,7 @@ public class BuildVNextCoverageReportProcessorTests
         {
             BuildDirectory = testDir
         };
-        sut = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
+        sut = new BuildVNextCoverageReportProcessor(converter, testLogger);
         sut.Initialize(analysisConfig, settings, testDir + Path.DirectorySeparatorChar + "sonar-project.properties");
     }
 
@@ -73,7 +72,8 @@ public class BuildVNextCoverageReportProcessorTests
     public void ProcessCoverageReports_NoTrxFilesFound_CallsSearchFallback()
     {
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
-        mockSearchFallback.FallbackCalled.Should().BeTrue();
+        testLogger.AssertInfoLogged("Did not find any binary coverage files in the expected location.");
+        testLogger.AssertDebugNotLogged("Not using the fallback mechanism to detect binary coverage files.");
     }
 
     [TestMethod]
@@ -82,7 +82,8 @@ public class BuildVNextCoverageReportProcessorTests
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
-        mockSearchFallback.FallbackCalled.Should().BeFalse();
+        testLogger.AssertMessageNotLogged("Did not find any binary coverage files in the expected location.");
+        testLogger.AssertDebugLogged("Not using the fallback mechanism to detect binary coverage files.");
     }
 
     [TestMethod]
@@ -105,7 +106,8 @@ public class BuildVNextCoverageReportProcessorTests
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, "not null"));
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
-        mockSearchFallback.FallbackCalled.Should().BeTrue();
+        testLogger.AssertInfoLogged("Did not find any binary coverage files in the expected location.");
+        testLogger.AssertDebugNotLogged("Not using the fallback mechanism to detect binary coverage files.");
     }
 
     [TestMethod]

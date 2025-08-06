@@ -18,12 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using SonarScanner.MSBuild.Common;
 
 // HACK: Workaround for SONARAZDO-179
 
@@ -40,13 +35,8 @@ using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.TFS;
 
-internal interface IBuildVNextCoverageSearchFallback
-{
-    IEnumerable<string> FindCoverageFiles();
-}
-
-
-internal class BuildVNextCoverageSearchFallback : IBuildVNextCoverageSearchFallback
+// This class can be rewritten to be methods of BuildVNextCoverageReportProcessor.
+internal class BuildVNextCoverageSearchFallback
 {
     internal const string AGENT_TEMP_DIRECTORY = "AGENT_TEMPDIRECTORY";
 
