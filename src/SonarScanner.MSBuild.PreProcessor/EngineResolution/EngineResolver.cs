@@ -53,25 +53,10 @@ public class EngineResolver : IEngineResolver
             logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
             return null;
         }
-        switch(fileCache.IsFileCached(sonarUserHome, metadata.ToDescriptor()))
+        return fileCache.IsFileCached(sonarUserHome, metadata.ToDescriptor()) switch
         {
-            case CacheHit hit:
-                // logger.LogDebug(Resources.MSG_EngineResolver_CacheHit, hit.FilePath);
-                return hit.FilePath;
-            case CacheMiss:
-                // logger.LogDebug(Resources.MSG_EngineResolver_CacheMiss);
-                // var result = await fileCache.DownloadFileAsync(sonarUserHome, metadata.ToDescriptor(), () => server.DownloadEngineAsync(metadata));
-                // if (result is CacheHit downloadHit)
-                // {
-                //     logger.LogDebug(Resources.MSG_EngineResolver_DownloadSuccess, downloadHit.FilePath);
-                //     return downloadHit.FilePath;
-                // }
-                // logger.LogDebug(Resources.MSG_EngineResolver_DownloadFailure, result.Message);
-                return null;
-            case CacheFailure failure:
-                // logger.LogDebug(Resources.MSG_EngineResolver_CacheFailure, failure.Message);
-                return null;
-        }
-        return null;
+            CacheHit hit => hit.FilePath,
+            _ => throw new NotImplementedException("Not yet implemented"),
+        };
     }
 }
