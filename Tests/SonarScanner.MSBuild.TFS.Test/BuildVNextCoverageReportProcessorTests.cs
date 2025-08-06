@@ -43,7 +43,7 @@ public class BuildVNextCoverageReportProcessorTests
         """;
 
     private readonly MockSearchFallback mockSearchFallback = new();
-    private readonly AnalysisConfig analysisConfig = new() { LocalSettings = [] };
+    private readonly AnalysisConfig analysisConfig = new() { LocalSettings = [new Property(SonarProperties.VsTestReportsPaths, null)] };
     private readonly TestLogger testLogger = new();
     private readonly MockReportConverter converter = new();
 
