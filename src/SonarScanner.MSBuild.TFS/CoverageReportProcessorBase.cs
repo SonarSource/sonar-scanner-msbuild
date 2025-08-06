@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
-
 namespace SonarScanner.MSBuild.TFS;
 
 // This abstraction is not needed anymore, because BuildVNextCoverageReportProcessor now stands alone.
@@ -48,7 +41,7 @@ public abstract class CoverageReportProcessorBase : ICoverageReportProcessor
         this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
     }
 
-    public bool Initialise(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
+    public bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
         this.settings = settings ?? throw new ArgumentNullException(nameof(settings));

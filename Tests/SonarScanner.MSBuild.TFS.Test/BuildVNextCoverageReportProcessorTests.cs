@@ -18,14 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.TFS.Tests;
 
@@ -64,14 +57,14 @@ public class BuildVNextCoverageReportProcessorTests
         };
 
         IEnumerable<string> trxFilePaths = null;
-        bool result = testSubject.TryGetTrxFilesAccessor(new Common.AnalysisConfig(), settings, out trxFilePaths);
+        bool result = testSubject.TryGetTrxFiles(settings, out trxFilePaths);
 
         // Assert
         result.Should().BeTrue(); // expecting true i.e. carry on even if nothing found
         testSubject.TrxFilesLocated.Should().BeFalse();
 
         IEnumerable<string> binaryFilePaths = null;
-        result = testSubject.TryGetVsCoverageFilesAccessor(new Common.AnalysisConfig(), settings, out binaryFilePaths);
+        result = testSubject.TryGetVsCoverageFiles(settings, out binaryFilePaths);
         result.Should().BeTrue();
         binaryFilePaths.Should().BeEquivalentTo("file1.txt", "file2.txt");
 
@@ -95,7 +88,7 @@ public class BuildVNextCoverageReportProcessorTests
         };
 
         IEnumerable<string> trxFilePaths = null;
-        bool result = testSubject.TryGetTrxFilesAccessor(new Common.AnalysisConfig(), settings, out trxFilePaths);
+        bool result = testSubject.TryGetTrxFiles(settings, out trxFilePaths);
 
         // 1) Search for TRX files -> results found
         result.Should().BeTrue();
@@ -103,7 +96,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         // 2) Now search for .coverage files
         IEnumerable<string> binaryFilePaths = null;
-        result = testSubject.TryGetVsCoverageFilesAccessor(new Common.AnalysisConfig(), settings, out binaryFilePaths);
+        result = testSubject.TryGetVsCoverageFiles(settings, out binaryFilePaths);
         result.Should().BeTrue();
         binaryFilePaths.Should().BeEmpty();
 
@@ -139,7 +132,7 @@ public class BuildVNextCoverageReportProcessorTests
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, coveragePathValue));
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, null));
 
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
+        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
         // Act
         var result = testSubject.ProcessCoverageReports(testLogger);
@@ -169,7 +162,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, String.Empty));
 
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
+        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
         // Act
         var result = testSubject.ProcessCoverageReports(testLogger);
@@ -208,7 +201,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, string.Empty));
 
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
+        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
         try
         {
@@ -253,7 +246,7 @@ public class BuildVNextCoverageReportProcessorTests
             BuildDirectory = testDir
         };
 
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
+        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
         // Act
         try
@@ -299,7 +292,7 @@ public class BuildVNextCoverageReportProcessorTests
             BuildDirectory = testDir
         };
 
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
+        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
         // Act
         var result = testSubject.ProcessCoverageReports(testLogger);
@@ -336,7 +329,7 @@ public class BuildVNextCoverageReportProcessorTests
             BuildDirectory = testDir
         };
 
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
+        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
         // Act
         var result = testSubject.ProcessCoverageReports(testLogger);
