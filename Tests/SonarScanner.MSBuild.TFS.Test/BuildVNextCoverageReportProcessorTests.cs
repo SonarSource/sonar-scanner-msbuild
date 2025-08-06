@@ -86,7 +86,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_VsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting()
+    public void ProcessCoverageReports_VsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_TriesConverting()
     {
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
@@ -100,7 +100,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_VsTestReportsPathsProvided_ShouldSkipSearching()
+    public void ProcessCoverageReports_VsTestReportsPathsProvided_SkipsSearching()
     {
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, "not null"));
 
@@ -109,7 +109,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_VsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_NotShouldTryConverting()
+    public void ProcessCoverageReports_VsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_DoesNotTryConverting()
     {
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
@@ -129,7 +129,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_NotShouldTryConverting()
+    public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_DoesNotTryConverting()
     {
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
@@ -150,7 +150,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting()
+    public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_TriesConverting()
     {
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
@@ -160,7 +160,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting_ConversionFailed()
+    public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ConversionFails()
     {
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
