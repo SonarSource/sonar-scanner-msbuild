@@ -87,7 +87,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         return success;
     }
 
-    internal bool TryGetVsCoverageFiles(out IEnumerable<string> binaryFilePaths)
+    private bool TryGetVsCoverageFiles(out IEnumerable<string> binaryFilePaths)
     {
         binaryFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(settings.BuildDirectory);
         // Fallback to workaround SONARAZDO-179: if the standard searches for .trx/.converage failed
@@ -104,7 +104,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         return true; // there aren't currently any conditions under which we'd want to stop processing
     }
 
-    internal bool TryGetTrxFiles(out IEnumerable<string> trxFilePaths)
+    private bool TryGetTrxFiles(out IEnumerable<string> trxFilePaths)
     {
         trxFilePaths = new TrxFileReader(logger).FindTrxFiles(settings.BuildDirectory);
         TrxFilesLocated = trxFilePaths is not null && trxFilePaths.Any();

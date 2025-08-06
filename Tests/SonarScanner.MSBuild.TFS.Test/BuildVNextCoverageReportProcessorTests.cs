@@ -70,34 +70,18 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void SearchFallbackShouldBeCalled_IfNoTrxFilesFound()
+    public void ProcessCoverageReports_NoTrxFilesFound_CallsSearchFallback()
     {
-        mockSearchFallback.SetReturnedFiles("file1.txt", "file2.txt");
-
-        var result = sut.TryGetTrxFiles(out var _);
-        result.Should().BeTrue(); // expecting true i.e. carry on even if nothing found
-        sut.TrxFilesLocated.Should().BeFalse();
-
-        result = sut.TryGetVsCoverageFiles(out var binaryFilePaths);
-        result.Should().BeTrue();
-        binaryFilePaths.Should().BeEquivalentTo("file1.txt", "file2.txt");
-
+        sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         mockSearchFallback.FallbackCalled.Should().BeTrue();
     }
 
     [TestMethod]
-    public void SearchFallbackNotShouldBeCalled_IfTrxFilesFound()
+    public void ProcessCoverageReports_TrxFilesFound_DoesNotCallSearchFallback()
     {
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
 
-        var result = sut.TryGetTrxFiles(out var _);
-        result.Should().BeTrue();
-        sut.TrxFilesLocated.Should().BeTrue();
-
-        result = sut.TryGetVsCoverageFiles(out var binaryFilePaths);
-        result.Should().BeTrue();
-        binaryFilePaths.Should().BeEmpty();
-
+        sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         mockSearchFallback.FallbackCalled.Should().BeFalse();
     }
 
