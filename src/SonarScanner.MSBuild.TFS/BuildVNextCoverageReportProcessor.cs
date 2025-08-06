@@ -31,8 +31,6 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
     private string propertiesFilePath;
     private bool successfullyInitialized;
 
-    internal bool TrxFilesLocated { get; private set; }
-
     public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, ILogger logger)
         : this(converter, logger, new BuildVNextCoverageSearchFallback(logger))
     { }
@@ -55,6 +53,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
 
     public bool ProcessCoverageReports(ILogger logger)
     {
+        var trxFilesLocated = false;
         if (!successfullyInitialized)
         {
             throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialized);
@@ -64,9 +63,11 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             // Fetch all of the report URLs
             this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
-            if (TryGetTrxFiles(out var trxPaths) && trxPaths.Any())
+            var trxFilePaths = new TrxFileReader(logger).FindTrxFiles(settings.BuildDirectory);
+            trxFilesLocated = trxFilePaths is not null && trxFilePaths.Any();
+            if (trxFilesLocated)
             {
-                WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxPaths.ToArray());
+                WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxFilePaths.ToArray());
             }
         }
         else
@@ -74,9 +75,8 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             this.logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
         }
 
-        var success = TryGetVsCoverageFiles(out var vsCoverageFilePaths);
-        if (success
-            && vsCoverageFilePaths.Any()
+        var vsCoverageFilePaths = FindVsCoverageFiles(trxFilesLocated);
+        if (vsCoverageFilePaths.Any()
             && TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths)
             && coverageReportPaths.Any()
             && config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) is null)
@@ -84,15 +84,15 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, coverageReportPaths.ToArray());
         }
 
-        return success;
+        return true;
     }
 
-    private bool TryGetVsCoverageFiles(out IEnumerable<string> binaryFilePaths)
+    private IEnumerable<string> FindVsCoverageFiles(bool trxFilesLocated)
     {
-        binaryFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(settings.BuildDirectory);
+        var binaryFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(settings.BuildDirectory);
         // Fallback to workaround SONARAZDO-179: if the standard searches for .trx/.converage failed
         // then try the fallback method to find coverage files
-        if (!TrxFilesLocated && (binaryFilePaths is null || !binaryFilePaths.Any()))
+        if (!trxFilesLocated && (binaryFilePaths is null || !binaryFilePaths.Any()))
         {
             logger.LogInfo("Did not find any binary coverage files in the expected location.");
             binaryFilePaths = searchFallback.FindCoverageFiles();
@@ -101,14 +101,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         {
             logger.LogDebug("Not using the fallback mechanism to detect binary coverage files.");
         }
-        return true; // there aren't currently any conditions under which we'd want to stop processing
-    }
-
-    private bool TryGetTrxFiles(out IEnumerable<string> trxFilePaths)
-    {
-        trxFilePaths = new TrxFileReader(logger).FindTrxFiles(settings.BuildDirectory);
-        TrxFilesLocated = trxFilePaths is not null && trxFilePaths.Any();
-        return true;
+        return binaryFilePaths;
     }
 
     private bool TryConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths)

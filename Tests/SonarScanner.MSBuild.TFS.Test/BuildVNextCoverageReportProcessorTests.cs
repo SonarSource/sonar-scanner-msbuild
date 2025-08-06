@@ -105,7 +105,7 @@ public class BuildVNextCoverageReportProcessorTests
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, "not null"));
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
-        sut.TrxFilesLocated.Should().BeFalse();
+        mockSearchFallback.FallbackCalled.Should().BeTrue();
     }
 
     [TestMethod]
