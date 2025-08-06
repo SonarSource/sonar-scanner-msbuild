@@ -38,6 +38,11 @@ public class EngineResolver : IEngineResolver
             logger.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, enginePath);
             return enginePath;
         }
+        if (!server.SupportsJreProvisioning)
+        {
+            logger.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
+            return null;
+        }
         _ = await server.DownloadEngineMetadataAsync();
         return null;
     }
