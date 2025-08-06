@@ -42,27 +42,43 @@ public class BuildVNextCoverageReportProcessorTests
         </x:TestRun>
         """;
 
+    private readonly MockSearchFallback mockSearchFallback = new();
+    private readonly AnalysisConfig analysisConfig = new() { LocalSettings = [] };
+    private readonly TestLogger testLogger = new();
+    private readonly MockReportConverter converter = new();
+
+    private string testDir;
+    private string testResultsDir;
+    private string coverageDir;
+    private MockBuildSettings settings;
+    private BuildVNextCoverageReportProcessor sut;
+
     public TestContext TestContext { get; set; }
+
+    [TestInitialize]
+    public void Initialize()
+    {
+        testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
+        testResultsDir = Directory.CreateDirectory(Path.Combine(testDir, "TestResults")).FullName;
+        coverageDir = Directory.CreateDirectory(Path.Combine(testResultsDir, "dummy", "In")).FullName;
+        settings = new MockBuildSettings
+        {
+            BuildDirectory = testDir
+        };
+        sut = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
+        sut.Initialize(analysisConfig, settings, testDir + Path.DirectorySeparatorChar + "sonar-project.properties");
+    }
 
     [TestMethod]
     public void SearchFallbackShouldBeCalled_IfNoTrxFilesFound()
     {
-        var mockSearchFallback = new MockSearchFallback();
         mockSearchFallback.SetReturnedFiles("file1.txt", "file2.txt");
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(testDir);
-        var testSubject = new BuildVNextCoverageReportProcessor(new MockReportConverter(), new TestLogger(), mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-        testSubject.Initialize(new AnalysisConfig(), settings, "something");
 
-        var result = testSubject.TryGetTrxFiles(out var _);
+        var result = sut.TryGetTrxFiles(out var _);
         result.Should().BeTrue(); // expecting true i.e. carry on even if nothing found
-        testSubject.TrxFilesLocated.Should().BeFalse();
+        sut.TrxFilesLocated.Should().BeFalse();
 
-        result = testSubject.TryGetVsCoverageFiles(out var binaryFilePaths);
+        result = sut.TryGetVsCoverageFiles(out var binaryFilePaths);
         result.Should().BeTrue();
         binaryFilePaths.Should().BeEquivalentTo("file1.txt", "file2.txt");
 
@@ -72,23 +88,13 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void SearchFallbackNotShouldBeCalled_IfTrxFilesFound()
     {
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        Directory.CreateDirectory(testResultsDir);
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
-        var testSubject = new BuildVNextCoverageReportProcessor(new MockReportConverter(), new TestLogger(), mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-        testSubject.Initialize(new AnalysisConfig(), settings, "something");
 
-        var result = testSubject.TryGetTrxFiles(out var _);
+        var result = sut.TryGetTrxFiles(out var _);
         result.Should().BeTrue();
-        testSubject.TrxFilesLocated.Should().BeTrue();
+        sut.TrxFilesLocated.Should().BeTrue();
 
-        result = testSubject.TryGetVsCoverageFiles(out var binaryFilePaths);
+        result = sut.TryGetVsCoverageFiles(out var binaryFilePaths);
         result.Should().BeTrue();
         binaryFilePaths.Should().BeEmpty();
 
@@ -98,28 +104,13 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void ProcessCoverageReports_VsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting()
     {
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = [] };
-        var testLogger = new TestLogger();
-        Directory.CreateDirectory(testResultsDir);
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
         var coveragePathValue = "ThisIsADummyPath";
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, coveragePathValue));
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, null));
-        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
-        testSubject.ProcessCoverageReports(testLogger).Should().BeTrue();
+        sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertExpectedNumberOfConversions(1);
         coveragePathValue.Should().Be(analysisConfig.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, testLogger));
     }
@@ -127,49 +118,23 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void ProcessCoverageReports_VsTestReportsPathsProvided_ShouldSkipSearching()
     {
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
-        var analysisConfig = new AnalysisConfig { LocalSettings = [] };
-        var testLogger = new TestLogger();
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, "not null"));
-        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
-        testSubject.ProcessCoverageReports(testLogger).Should().BeTrue();
-        testSubject.TrxFilesLocated.Should().BeFalse();
+        sut.ProcessCoverageReports(testLogger).Should().BeTrue();
+        sut.TrxFilesLocated.Should().BeFalse();
     }
 
     [TestMethod]
     public void ProcessCoverageReports_VsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_NotShouldTryConverting()
     {
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = [] };
-        var testLogger = new TestLogger();
-        Directory.CreateDirectory(testResultsDir);
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
         TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", string.Empty);
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
         analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, "not null"));
-        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
         try
         {
-            testSubject.ProcessCoverageReports(testLogger).Should().BeTrue();
+            sut.ProcessCoverageReports(testLogger).Should().BeTrue();
             converter.AssertConvertNotCalled();
             testLogger.AssertWarningsLogged(0);
         }
@@ -182,30 +147,15 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_NotShouldTryConverting()
     {
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = [] };
-        var testLogger = new TestLogger();
-        Directory.CreateDirectory(testResultsDir);
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
         TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", string.Empty);
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
         try
         {
             using (new AssertIgnoreScope())
             {
-                testSubject.ProcessCoverageReports(testLogger).Should().BeTrue();
+                sut.ProcessCoverageReports(testLogger).Should().BeTrue();
             }
             converter.AssertConvertNotCalled();
         }
@@ -218,50 +168,21 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting()
     {
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = [] };
-        var testLogger = new TestLogger();
-        Directory.CreateDirectory(testResultsDir);
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
 
-        testSubject.ProcessCoverageReports(testLogger).Should().BeTrue();
+        sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertConvertCalledAtLeastOnce();
     }
 
     [TestMethod]
     public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting_ConversionFailed()
     {
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = [] };
-        var testLogger = new TestLogger();
-        Directory.CreateDirectory(testResultsDir);
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
         TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TrxPayload);
         TestUtils.CreateTextFile(coverageDir, "dummy.coverage", string.Empty);
-        var converter = new MockReportConverter { ShouldNotFailConversion = false };
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-        testSubject.Initialize(analysisConfig, settings, testDir + "\\sonar-project.properties");
+        converter.ShouldNotFailConversion = false;
 
-        testSubject.ProcessCoverageReports(testLogger).Should().BeTrue();
+        sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertExpectedNumberOfConversions(1);
     }
 }
