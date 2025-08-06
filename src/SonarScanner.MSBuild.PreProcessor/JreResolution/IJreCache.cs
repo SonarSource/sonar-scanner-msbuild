@@ -21,12 +21,13 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using SonarScanner.MSBuild.PreProcessor.Caching;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 public interface IJreCache
 {
-    JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor);
+    CacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor);
 
-    Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload);
+    Task<CacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload);
 }

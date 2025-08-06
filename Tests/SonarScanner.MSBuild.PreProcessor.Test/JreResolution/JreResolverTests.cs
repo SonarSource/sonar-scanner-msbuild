@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.JreResolution;
@@ -147,7 +148,7 @@ public class JreResolverTests
     {
         cache
             .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
-            .Returns(new JreCacheFailure("Reason."));
+            .Returns(new CacheFailure("Reason."));
 
         var res = await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
@@ -165,7 +166,7 @@ public class JreResolverTests
     {
         cache
             .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
-            .Returns(new JreCacheHit("path"));
+            .Returns(new CacheHit("path"));
 
         var res = await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
@@ -181,10 +182,10 @@ public class JreResolverTests
     {
         cache
             .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
-            .Returns(new JreCacheMiss());
+            .Returns(new CacheMiss());
         cache
             .DownloadJreAsync(SonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
-            .Returns(new JreCacheHit("path"));
+            .Returns(new CacheHit("path"));
 
         var res = await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
@@ -201,10 +202,10 @@ public class JreResolverTests
     {
         cache
             .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
-            .Returns(new JreCacheMiss());
+            .Returns(new CacheMiss());
         cache
             .DownloadJreAsync(SonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
-            .Returns(new JreCacheFailure("Reason."));
+            .Returns(new CacheFailure("Reason."));
 
         var res = await sut.ResolveJrePath(GetArgs(), SonarUserHome);
 
@@ -224,7 +225,7 @@ public class JreResolverTests
     {
         cache
             .IsJreCached(SonarUserHome, Arg.Any<JreDescriptor>())
-            .Returns(new JreCacheMiss());
+            .Returns(new CacheMiss());
 
         cache
             .DownloadJreAsync(SonarUserHome, Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
@@ -330,5 +331,5 @@ public class JreResolverTests
         return args;
     }
 
-    private record class UnknownResult : JreCacheResult;
+    private record class UnknownResult : CacheResult;
 }

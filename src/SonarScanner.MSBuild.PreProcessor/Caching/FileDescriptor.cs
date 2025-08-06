@@ -18,30 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
+namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-/// <summary>
-/// A descriptor of the JRE found or not found in the cache.
-/// </summary>
-public abstract record JreCacheResult;
-
-/// <summary>
-/// Jre found in the cache.
-/// </summary>
-public sealed record JreCacheHit(string JavaExe) : JreCacheResult
+public sealed record FileDescriptor
 {
-    public string JavaExe { get; } = JavaExe;
-}
+    public string Filename { get; }
+    public string Sha256 { get; }
 
-/// <summary>
-/// Jre not found in the cache. A download of the JRE is required.
-/// </summary>
-public sealed record JreCacheMiss : JreCacheResult;
-
-/// <summary>
-/// The cache location is invalid or the Jre found in the cache is invalid. A download of the JRE is not required.
-/// </summary>
-public sealed record JreCacheFailure(string Message) : JreCacheResult
-{
-    public string Message { get; } = Message;
+    public FileDescriptor(string filename, string sha256)
+    {
+        Filename = filename;
+        Sha256 = sha256;
+    }
 }

@@ -21,6 +21,7 @@
 using System;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Caching;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
@@ -59,13 +60,13 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
         var result = cache.IsJreCached(sonarUserHome, descriptor);
         switch (result)
         {
-            case JreCacheHit hit:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.JavaExe);
-                return hit.JavaExe;
-            case JreCacheMiss:
+            case CacheHit hit:
+                logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.FilePath);
+                return hit.FilePath;
+            case CacheMiss:
                 logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
                 return await DownloadJre(metadata, descriptor, sonarUserHome);
-            case JreCacheFailure failure:
+            case CacheFailure failure:
                 logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
                 return null;
         }
@@ -76,12 +77,12 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
     private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor, string sonarUserHome)
     {
         var result = await cache.DownloadJreAsync(sonarUserHome, descriptor, () => server.DownloadJreAsync(metadata));
-        if (result is JreCacheHit hit)
+        if (result is CacheHit hit)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.JavaExe);
-            return hit.JavaExe;
+            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.FilePath);
+            return hit.FilePath;
         }
-        else if (result is JreCacheFailure failure)
+        else if (result is CacheFailure failure)
         {
             logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, failure.Message);
             return null;

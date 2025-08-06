@@ -18,16 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.PreProcessor.Caching;
+
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
 public class EngineResolver : IEngineResolver
 {
     private readonly ISonarWebServer server;
+    private readonly IFileCache fileCache;
     private readonly ILogger logger;
 
-    public EngineResolver(ISonarWebServer server, ILogger logger)
+    public EngineResolver(ISonarWebServer server, IFileCache fileCache, ILogger logger)
     {
         this.server = server;
+        this.fileCache = fileCache;
         this.logger = logger;
     }
 
@@ -48,6 +52,25 @@ public class EngineResolver : IEngineResolver
         {
             logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
             return null;
+        }
+        switch(fileCache.IsFileCached(sonarUserHome, metadata.ToDescriptor()))
+        {
+            case CacheHit hit:
+                // logger.LogDebug(Resources.MSG_EngineResolver_CacheHit, hit.FilePath);
+                return hit.FilePath;
+            case CacheMiss:
+                // logger.LogDebug(Resources.MSG_EngineResolver_CacheMiss);
+                // var result = await fileCache.DownloadFileAsync(sonarUserHome, metadata.ToDescriptor(), () => server.DownloadEngineAsync(metadata));
+                // if (result is CacheHit downloadHit)
+                // {
+                //     logger.LogDebug(Resources.MSG_EngineResolver_DownloadSuccess, downloadHit.FilePath);
+                //     return downloadHit.FilePath;
+                // }
+                // logger.LogDebug(Resources.MSG_EngineResolver_DownloadFailure, result.Message);
+                return null;
+            case CacheFailure failure:
+                // logger.LogDebug(Resources.MSG_EngineResolver_CacheFailure, failure.Message);
+                return null;
         }
         return null;
     }

@@ -19,6 +19,7 @@
  */
 
 using NSubstitute.ReturnsExtensions;
+using SonarScanner.MSBuild.PreProcessor.Caching;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution.Test;
 
@@ -27,13 +28,15 @@ public class EngineResolverTests
 {
     private readonly ISonarWebServer server;
     private readonly ILogger logger;
+    private readonly IFileCache fileCache;
     private readonly EngineResolver resolver;
 
     public EngineResolverTests()
     {
         server = Substitute.For<ISonarWebServer>();
         logger = Substitute.For<ILogger>();
-        resolver = new EngineResolver(server, logger);
+        fileCache = Substitute.For<IFileCache>();
+        resolver = new EngineResolver(server, fileCache, logger);
     }
 
     [TestMethod]
