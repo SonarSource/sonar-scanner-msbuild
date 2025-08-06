@@ -27,7 +27,7 @@ public class FileCacheTests
     public void IsFileCached_AlwaysReturnsCacheFailure_NotImplemented()
     {
         var fileCache = new FileCache();
-        var fileDescriptor = Substitute.For<FileDescriptor>();
+        var fileDescriptor = new FileDescriptor("ignored", "ignored");
 
         var result = fileCache.IsFileCached("some/home/path", fileDescriptor);
 
