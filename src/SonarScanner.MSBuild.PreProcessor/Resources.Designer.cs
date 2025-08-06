@@ -1390,6 +1390,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sonar Engine Metadata could not be retrieved from {0}..
+        /// </summary>
+        internal static string WARN_EngineMetadataNotRetrieved {
+            get {
+                return ResourceManager.GetString("WARN_EngineMetadataNotRetrieved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This version of the SonarScanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
         /// </summary>
         internal static string WARN_ExistingGlobalTargets {
