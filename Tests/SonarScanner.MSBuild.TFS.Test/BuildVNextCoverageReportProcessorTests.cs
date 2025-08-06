@@ -69,6 +69,49 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
+    public void Constructor_ConverterIsNull_ThrowsNullArgumentException()
+    {
+        var action = () => new BuildVNextCoverageReportProcessor(null, testLogger);
+        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("converter");
+    }
+
+    [TestMethod]
+    public void Constructor_LoggerIsNull_ThrowsNullArgumentException()
+    {
+        var action = () => new BuildVNextCoverageReportProcessor(converter, null);
+        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("logger");
+    }
+
+    [TestMethod]
+    public void Initializer_ConfigIsNull_ThrowsNullArgumentException()
+    {
+        var action = () => new BuildVNextCoverageReportProcessor(converter, testLogger).Initialize(null, settings, "properties file path");
+        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("config");
+    }
+
+    [TestMethod]
+    public void Initializer_SettingsAreNull_ThrowsNullArgumentException()
+    {
+        var action = () => new BuildVNextCoverageReportProcessor(converter, testLogger).Initialize(analysisConfig, null, "properties file path");
+        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("settings");
+    }
+
+    [TestMethod]
+    public void Initializer_PropertiesFilePathIsNull_ThrowsNullArgumentException()
+    {
+        var action = () => new BuildVNextCoverageReportProcessor(converter, testLogger).Initialize(analysisConfig, settings, null);
+        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("propertiesFilePath");
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_Uninitialized_InvalidOperationException()
+    {
+        var sut = new BuildVNextCoverageReportProcessor(converter, testLogger);
+        var action = () => sut.ProcessCoverageReports(testLogger);
+        action.Should().ThrowExactly<InvalidOperationException>().WithMessage("The Coverage Report Processor was not initialized before use.");
+    }
+
+    [TestMethod]
     public void ProcessCoverageReports_NoTrxFilesFound_CallsSearchFallback()
     {
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();

@@ -60,7 +60,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
 
             var trxFilePaths = new TrxFileReader(logger).FindTrxFiles(settings.BuildDirectory);
-            trxFilesLocated = trxFilePaths is not null && trxFilePaths.Any();
+            trxFilesLocated = trxFilePaths.Any();
             if (trxFilesLocated)
             {
                 WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxFilePaths.ToArray());
