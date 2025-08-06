@@ -613,6 +613,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to EngineResolver: Metadata could not be retrieved..
+        /// </summary>
+        internal static string MSG_EngineResolver_MetadataFailure {
+            get {
+                return ResourceManager.GetString("MSG_EngineResolver_MetadataFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it..
         /// </summary>
         internal static string MSG_EngineResolver_NotSupportedByServer {

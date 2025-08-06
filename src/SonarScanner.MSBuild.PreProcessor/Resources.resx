@@ -610,4 +610,7 @@ Check the certificates in the truststore file '{1}' specified via the {2} parame
   <data name="MSG_EngineResolver_NotSupportedByServer" xml:space="preserve">
     <value>EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.</value>
   </data>
+  <data name="MSG_EngineResolver_MetadataFailure" xml:space="preserve">
+    <value>EngineResolver: Metadata could not be retrieved.</value>
+  </data>
 </root>

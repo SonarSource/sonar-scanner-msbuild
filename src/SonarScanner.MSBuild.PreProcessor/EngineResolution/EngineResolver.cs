@@ -43,7 +43,12 @@ public class EngineResolver : IEngineResolver
             logger.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
             return null;
         }
-        _ = await server.DownloadEngineMetadataAsync();
+        var metadata = await server.DownloadEngineMetadataAsync();
+        if (metadata is null)
+        {
+            logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
+            return null;
+        }
         return null;
     }
 }
