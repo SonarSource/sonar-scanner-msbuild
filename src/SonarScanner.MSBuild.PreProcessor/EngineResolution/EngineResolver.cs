@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
 public class EngineResolver : IEngineResolver
@@ -39,7 +38,7 @@ public class EngineResolver : IEngineResolver
             logger.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, enginePath);
             return enginePath;
         }
-        var engineMetadata = await server.DownloadEngineMetadataAsync();
+        _ = await server.DownloadEngineMetadataAsync();
         return null;
     }
 }
