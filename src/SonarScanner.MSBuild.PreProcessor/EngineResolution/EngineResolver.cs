@@ -42,7 +42,7 @@ public class EngineResolver : IEngineResolver
             logger.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, enginePath);
             return enginePath;
         }
-        if (!server.SupportsJreProvisioning)
+        if (!server.SupportsJreProvisioning) // JRE and sonar engine provisioning were introduced by the same version of SQ  S
         {
             logger.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
             return null;
