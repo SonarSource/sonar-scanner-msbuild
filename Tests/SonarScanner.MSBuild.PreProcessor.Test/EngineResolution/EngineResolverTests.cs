@@ -42,7 +42,7 @@ public class EngineResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveEngine_DownloadsEngineMetadata_WhenEngineJarPathIsNull()
+    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata()
     {
         var server = Substitute.For<ISonarWebServer>();
         server.DownloadEngineMetadataAsync().Returns(Task.FromResult(new EngineMetadata(
