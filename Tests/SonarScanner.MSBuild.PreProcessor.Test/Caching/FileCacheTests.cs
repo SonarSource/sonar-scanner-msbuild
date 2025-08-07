@@ -65,7 +65,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void EnsureCacheRoot_Throws_WhenCreateDirectoryThrows()
+    public void EnsureCacheRoot_WhenCreateDirectoryThrows_FalseIsReturned()
     {
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
         directoryWrapper
