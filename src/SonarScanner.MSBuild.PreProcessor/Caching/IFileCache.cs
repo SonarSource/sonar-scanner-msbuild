@@ -18,16 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Caching;
+namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
-
-public sealed record EngineMetadata(string Filename, string Sha256, Uri DownloadUrl)
+public interface IFileCache
 {
-    public string Filename { get; } = Filename;
-    public string Sha256 { get; } = Sha256;
-    public Uri DownloadUrl { get; } = DownloadUrl; // Optional, only exists for SonarCloud
-
-    public FileDescriptor ToDescriptor() =>
-        new(Filename, Sha256);
+    CacheResult IsFileCached(string sonarUserHome, FileDescriptor fileDescriptor);
 }

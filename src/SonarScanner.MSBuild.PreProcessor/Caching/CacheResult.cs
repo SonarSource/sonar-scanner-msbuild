@@ -18,16 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Caching;
+namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
+public abstract record CacheResult;
 
-public sealed record EngineMetadata(string Filename, string Sha256, Uri DownloadUrl)
+/// <summary>
+/// File found in the cache. In case of the JRE, this is the path to the java executable.
+/// </summary>
+public sealed record CacheHit(string FilePath) : CacheResult
 {
-    public string Filename { get; } = Filename;
-    public string Sha256 { get; } = Sha256;
-    public Uri DownloadUrl { get; } = DownloadUrl; // Optional, only exists for SonarCloud
+    /// <summary>
+    /// Path to the cached file, which is either the JRE executable or a file downloaded from the server.
+    /// </summary>
+    public string FilePath { get; } = FilePath;
+}
 
-    public FileDescriptor ToDescriptor() =>
-        new(Filename, Sha256);
+/// <summary>
+/// File not found in the cache. A download is required.
+/// </summary>
+public sealed record CacheMiss : CacheResult;
+
+/// <summary>
+/// The cache location is invalid or the file found in the cache is invalid. A download is not required.
+/// </summary>
+public sealed record CacheFailure(string Message) : CacheResult
+{
+    public string Message { get; } = Message;
 }

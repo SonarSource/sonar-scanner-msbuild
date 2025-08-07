@@ -18,16 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Caching;
+namespace SonarScanner.MSBuild.PreProcessor.Caching.Test;
 
-namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
-
-public sealed record EngineMetadata(string Filename, string Sha256, Uri DownloadUrl)
+[TestClass]
+public class FileCacheTests
 {
-    public string Filename { get; } = Filename;
-    public string Sha256 { get; } = Sha256;
-    public Uri DownloadUrl { get; } = DownloadUrl; // Optional, only exists for SonarCloud
+    [TestMethod]
+    public void IsFileCached_AlwaysReturnsCacheFailure_NotImplemented()
+    {
+        var fileCache = new FileCache();
+        var fileDescriptor = new FileDescriptor("ignored", "ignored");
 
-    public FileDescriptor ToDescriptor() =>
-        new(Filename, Sha256);
+        var result = fileCache.IsFileCached("some/home/path", fileDescriptor);
+
+        result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("Not implemented");
+    }
 }

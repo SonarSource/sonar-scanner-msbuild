@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
+using SonarScanner.MSBuild.PreProcessor.Caching;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution.Test;
 
@@ -27,19 +29,25 @@ public class EngineResolverTests
 {
     private readonly ISonarWebServer server;
     private readonly ILogger logger;
+    private readonly IFileCache fileCache;
+    private readonly ProcessedArgs args;
     private readonly EngineResolver resolver;
 
     public EngineResolverTests()
     {
         server = Substitute.For<ISonarWebServer>();
+        server.SupportsJreProvisioning.Returns(true);
         logger = Substitute.For<ILogger>();
-        resolver = new EngineResolver(server, logger);
+        fileCache = Substitute.For<IFileCache>();
+        args = Substitute.For<ProcessedArgs>();
+        args.EngineJarPath.ReturnsNull();
+
+        resolver = new EngineResolver(server, fileCache, logger);
     }
 
     [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsSet_LocalEnginePath()
     {
-        var args = Substitute.For<ProcessedArgs>();
         args.EngineJarPath.Returns("local/path/to/engine.jar");
 
         var result = await resolver.ResolveEngine(args, "sonarHome");
@@ -53,31 +61,65 @@ public class EngineResolverTests
     public async Task ResolveEngine_JreProvisioningNotSupported_LogsAndReturnsNull()
     {
         server.SupportsJreProvisioning.Returns(false);
-        var args = Substitute.For<ProcessedArgs>();
         args.EngineJarPath.ReturnsNull();
 
         var result = await resolver.ResolveEngine(args, "sonarHome");
 
         result.Should().BeNull();
-        logger.Received(1).LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
+        logger.Received(1).LogDebug("EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
         await server.DidNotReceive().DownloadEngineMetadataAsync();
     }
 
     [TestMethod]
-    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata()
+    public async Task ResolveEngine_DownloadsEngineMetadataNull_LogsMessage()
     {
-        server.SupportsJreProvisioning.Returns(true);
-        server.DownloadEngineMetadataAsync().Returns(Task.FromResult(new EngineMetadata(
-            "engine.jar",
-            "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
-            new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"))));
-        var args = Substitute.For<ProcessedArgs>();
-        args.EngineJarPath.ReturnsNull();
+        server.DownloadEngineMetadataAsync().Returns(Task.FromResult<EngineMetadata>(null));
 
         var result = await resolver.ResolveEngine(args, "sonarHome");
 
         result.Should().BeNull();
+        logger.Received(1).LogDebug("EngineResolver: Metadata could not be retrieved.");
         await server.Received(1).DownloadEngineMetadataAsync();
+    }
+
+    [TestMethod]
+    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheHit()
+    {
+        server.DownloadEngineMetadataAsync().Returns(Task.FromResult(new EngineMetadata(
+            "engine.jar",
+            "sha256",
+            new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"))));
+        fileCache.IsFileCached("sonarHome", Arg.Is<FileDescriptor>(x =>
+            x.Filename == "engine.jar"
+            && x.Sha256 == "sha256")).Returns(new CacheHit("sonarHome/.cache/engine.jar"));
+
+        var result = await resolver.ResolveEngine(args, "sonarHome");
+
+        result.Should().Be("sonarHome/.cache/engine.jar");
+        await server.Received(1).DownloadEngineMetadataAsync();
+        fileCache.Received(1).IsFileCached("sonarHome", Arg.Is<FileDescriptor>(x =>
+            x.Filename == "engine.jar"
+            && x.Sha256 == "sha256"));
         logger.DidNotReceiveWithAnyArgs().LogDebug(null, null);
+    }
+
+    [TestMethod]
+    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheMiss()
+    {
+        server.DownloadEngineMetadataAsync().Returns(Task.FromResult(new EngineMetadata(
+            "engine.jar",
+            "sha256",
+            new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"))));
+        fileCache.IsFileCached("sonarHome", Arg.Is<FileDescriptor>(x =>
+            x.Filename == "engine.jar"
+            && x.Sha256 == "sha256")).Returns(new CacheMiss());
+
+        var act = async () => await resolver.ResolveEngine(args, "sonarHome");
+
+        await act.Should().ThrowAsync<NotImplementedException>();
+        await server.Received(1).DownloadEngineMetadataAsync();
+        fileCache.Received(1).IsFileCached("sonarHome", Arg.Is<FileDescriptor>(x =>
+            x.Filename == "engine.jar"
+            && x.Sha256 == "sha256"));
     }
 }

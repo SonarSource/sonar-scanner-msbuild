@@ -18,16 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.PreProcessor.Caching;
+
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
 public class EngineResolver : IEngineResolver
 {
     private readonly ISonarWebServer server;
+    private readonly IFileCache fileCache;
     private readonly ILogger logger;
 
-    public EngineResolver(ISonarWebServer server, ILogger logger)
+    public EngineResolver(ISonarWebServer server, IFileCache fileCache, ILogger logger)
     {
         this.server = server;
+        this.fileCache = fileCache;
         this.logger = logger;
     }
 
@@ -43,7 +47,15 @@ public class EngineResolver : IEngineResolver
             logger.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
             return null;
         }
-        _ = await server.DownloadEngineMetadataAsync();
-        return null;
+        if (await server.DownloadEngineMetadataAsync() is not { } metadata)
+        {
+            logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
+            return null;
+        }
+        return fileCache.IsFileCached(sonarUserHome, metadata.ToDescriptor()) switch
+        {
+            CacheHit hit => hit.FilePath,
+            _ => throw new NotImplementedException("Not yet implemented"),
+        };
     }
 }

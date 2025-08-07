@@ -23,6 +23,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
@@ -36,7 +37,7 @@ internal class JreCache(
     IUnpackerFactory unpackerFactory,
     IFilePermissionsWrapper filePermissionsWrapper) : IJreCache
 {
-    public JreCacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
+    public CacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
         if (EnsureCacheRoot(sonarUserHome, out var cacheRoot))
         {
@@ -45,28 +46,28 @@ internal class JreCache(
             {
                 var extractedJavaExe = Path.Combine(extractedPath, jreDescriptor.JavaPath);
                 return fileWrapper.Exists(extractedJavaExe)
-                    ? new JreCacheHit(extractedJavaExe)
-                    : new JreCacheFailure(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
+                    ? new CacheHit(extractedJavaExe)
+                    : new CacheFailure(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
             }
             else
             {
-                return new JreCacheMiss();
+                return new CacheMiss();
             }
         }
-        return new JreCacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(sonarUserHome, "cache")));
+        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(sonarUserHome, "cache")));
     }
 
-    public async Task<JreCacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
+    public async Task<CacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
         if (!EnsureCacheRoot(sonarUserHome, out var cacheRoot)
             || EnsureDirectoryExists(JreRootPath(jreDescriptor, cacheRoot)) is not { } jreDownloadPath)
         {
-            return new JreCacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, JresCacheRoot(sonarUserHome))));
+            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, JresCacheRoot(sonarUserHome))));
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
         if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is not { } unpacker)
         {
-            return new JreCacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
+            return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
         }
         var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
         if (fileWrapper.Exists(downloadTarget))
@@ -80,12 +81,12 @@ internal class JreCache(
         }
     }
 
-    private async Task<JreCacheResult> DownloadValidateAndUnpackJre(IUnpacker unpacker,
-                                                                    string jreDownloadPath,
-                                                                    string downloadTarget,
-                                                                    JreDescriptor jreDescriptor,
-                                                                    string cacheRoot,
-                                                                    Func<Task<Stream>> jreDownload)
+    private async Task<CacheResult> DownloadValidateAndUnpackJre(IUnpacker unpacker,
+                                                                 string jreDownloadPath,
+                                                                 string downloadTarget,
+                                                                 JreDescriptor jreDescriptor,
+                                                                 string cacheRoot,
+                                                                 Func<Task<Stream>> jreDownload)
     {
         if (await DownloadAndValidateJre(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } exception)
         {
@@ -95,7 +96,7 @@ internal class JreCache(
                 logger.LogDebug(Resources.MSG_JreFoundAfterFailedDownload, downloadTarget);
                 return ValidateAndUnpackJre(unpacker, downloadTarget, jreDescriptor, cacheRoot);
             }
-            return new JreCacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message));
+            return new CacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message));
         }
         else
         {
@@ -173,7 +174,7 @@ internal class JreCache(
         }
     }
 
-    private JreCacheResult ValidateAndUnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
+    private CacheResult ValidateAndUnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
     {
         if (ValidateChecksum(jreArchive, jreDescriptor.Sha256))
         {
@@ -182,11 +183,11 @@ internal class JreCache(
         else
         {
             TryDeleteFile(jreArchive);
-            return new JreCacheFailure(Resources.ERR_JreChecksumMissmatch);
+            return new CacheFailure(Resources.ERR_JreChecksumMissmatch);
         }
     }
 
-    private JreCacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
+    private CacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
         var tempExtractionPath = Path.Combine(JreRootPath(jreDescriptor, cacheRoot), directoryWrapper.GetRandomFileName());
@@ -202,7 +203,7 @@ internal class JreCache(
                 logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, finalExtractionPath);
                 directoryWrapper.Move(tempExtractionPath, finalExtractionPath);
                 logger.LogDebug(Resources.MSG_JreExtractedSucessfully, finalExtractionPath);
-                return new JreCacheHit(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
+                return new CacheHit(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
             }
             else
             {
@@ -213,7 +214,7 @@ internal class JreCache(
         {
             logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
             CleanupFolder(tempExtractionPath);
-            return new JreCacheFailure(Resources.ERR_JreExtractionFailed);
+            return new CacheFailure(Resources.ERR_JreExtractionFailed);
         }
     }
 
