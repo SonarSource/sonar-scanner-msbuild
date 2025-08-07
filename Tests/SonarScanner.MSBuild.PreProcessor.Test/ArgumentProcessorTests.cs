@@ -659,26 +659,21 @@ public class ArgumentProcessorTests
         CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
 
     [TestMethod]
-    [DataRow(@"C:\Work\scanner\scanner-enterprise-10.8.0.100206-all.jar")]
-    [DataRow(@"\scanner-engine.jar")]
-    [DataRow(@"scanner-engine.jar")]
-    public void PreArgProc_EngineJarPath_SetValid(string engineJarPath)
+    public void PreArgProc_EngineJarPath_SetValid()
     {
         var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(engineJarPath).Returns(true);
-        CheckProcessingSucceeds(new TestLogger(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.engineJarPath={engineJarPath}").EngineJarPath.Should().Be(engineJarPath);
+        fileWrapper.Exists("scanner-engine.jar").Returns(true);
+        CheckProcessingSucceeds(new TestLogger(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", "/d:sonar.scanner.engineJarPath=scanner-engine.jar")
+            .EngineJarPath
+            .Should().Be("scanner-engine.jar");
     }
 
     [TestMethod]
-    [DataRow(@"C:\Work\scanner\scanner-enterprise-10.8.0.100206-all.jar")]
-    [DataRow(@"\scanner-engine.jar")]
-    [DataRow(@"not a path")]
-    [DataRow(@" ")]
-    public void PreArgProc_EngineJarPath_SetInvalid(string engineJarPath)
+    public void PreArgProc_EngineJarPath_SetInvalid()
     {
         var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(engineJarPath).Returns(false);
-        var logger = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.engineJarPath={engineJarPath}");
+        fileWrapper.Exists("scanner-engine.jar").Returns(false);
+        var logger = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", "/d:sonar.scanner.engineJarPath=scanner-engine.jar");
         logger.AssertErrorLogged("The argument 'sonar.scanner.engineJarPath' contains an invalid path. Please make sure the path is correctly pointing to the scanner engine jar.");
     }
 

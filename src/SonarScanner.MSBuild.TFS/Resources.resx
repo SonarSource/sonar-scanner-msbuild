@@ -117,6 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CONV_DIAG_ConvertCoverageFile" xml:space="preserve">
+    <value>Converting coverage file '{0}' to '{1}'.</value>
+  </data>
+  <data name="CONV_ERROR_ConversionToolFailed" xml:space="preserve">
+    <value>Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
+Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.</value>
+  </data>
+  <data name="CONV_ERROR_InputFileNotFound" xml:space="preserve">
+    <value>The binary coverage file {0} could not be found. No coverage information will be uploaded to the Sonar server.</value>
+  </data>
   <data name="COVXML_DIAG_FileAlreadyExist_NoConversionAttempted" xml:space="preserve">
     <value>Found corresponding Binary-to-XML conversion output file for {0}, no conversion will be attempted.</value>
   </data>
