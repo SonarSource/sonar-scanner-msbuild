@@ -50,7 +50,7 @@ public class EngineResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveEngine_LogsAndReturnsNull_WhenJreProvisioningNotSupported()
+    public async Task ResolveEngine_JreProvisioningNotSupported_LogsAndReturnsNull()
     {
         server.SupportsJreProvisioning.Returns(false);
         var args = Substitute.For<ProcessedArgs>();
