@@ -25,12 +25,20 @@ namespace SonarScanner.MSBuild.PreProcessor.EngineResolution.Test;
 [TestClass]
 public class EngineResolverTests
 {
+    private readonly ISonarWebServer server;
+    private readonly ILogger logger;
+    private readonly EngineResolver resolver;
+
+    public EngineResolverTests()
+    {
+        server = Substitute.For<ISonarWebServer>();
+        logger = Substitute.For<ILogger>();
+        resolver = new EngineResolver(server, logger);
+    }
+
     [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsSet_LocalEnginePath()
     {
-        var server = Substitute.For<ISonarWebServer>();
-        var logger = Substitute.For<ILogger>();
-        var resolver = new EngineResolver(server, logger);
         var args = Substitute.For<ProcessedArgs>();
         args.EngineJarPath.Returns("local/path/to/engine.jar");
 
@@ -42,15 +50,27 @@ public class EngineResolverTests
     }
 
     [TestMethod]
+    public async Task ResolveEngine_JreProvisioningNotSupported_LogsAndReturnsNull()
+    {
+        server.SupportsJreProvisioning.Returns(false);
+        var args = Substitute.For<ProcessedArgs>();
+        args.EngineJarPath.ReturnsNull();
+
+        var result = await resolver.ResolveEngine(args, "sonarHome");
+
+        result.Should().BeNull();
+        logger.Received(1).LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
+        await server.DidNotReceive().DownloadEngineMetadataAsync();
+    }
+
+    [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata()
     {
-        var server = Substitute.For<ISonarWebServer>();
+        server.SupportsJreProvisioning.Returns(true);
         server.DownloadEngineMetadataAsync().Returns(Task.FromResult(new EngineMetadata(
             "engine.jar",
             "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
             new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"))));
-        var logger = Substitute.For<ILogger>();
-        var resolver = new EngineResolver(server, logger);
         var args = Substitute.For<ProcessedArgs>();
         args.EngineJarPath.ReturnsNull();
 
