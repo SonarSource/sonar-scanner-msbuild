@@ -22,5 +22,8 @@ namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
 public interface IFileCache
 {
+    string CacheRoot(string sonarUserHome);
+    bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation);
+    string EnsureDirectoryExists(string directory);
     CacheResult IsFileCached(string sonarUserHome, FileDescriptor fileDescriptor);
 }

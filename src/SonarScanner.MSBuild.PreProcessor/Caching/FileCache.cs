@@ -22,6 +22,60 @@ namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
 public class FileCache : IFileCache
 {
-    public CacheResult IsFileCached(string sonarUserHome, FileDescriptor fileDescriptor) =>
-        new CacheFailure("Not implemented");
+    private readonly IDirectoryWrapper directoryWrapper;
+    private readonly IFileWrapper fileWrapper;
+
+    public FileCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper)
+    {
+        this.directoryWrapper = directoryWrapper;
+        this.fileWrapper = fileWrapper;
+    }
+
+    public CacheResult IsFileCached(string sonarUserHome, FileDescriptor fileDescriptor)
+    {
+        if (EnsureCacheRoot(sonarUserHome, out var cacheRoot))
+        {
+            var cacheLocation = CacheLocation(cacheRoot, fileDescriptor);
+            return fileWrapper.Exists(cacheLocation) // We do not check the SHA256 of the found file.
+                ? new CacheHit(cacheLocation)
+                : new CacheMiss();
+        }
+        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot(sonarUserHome)));
+    }
+
+    public bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation)
+    {
+        if (EnsureDirectoryExists(CacheRoot(sonarUserHome)) is { } cacheRoot)
+        {
+            cacheRootLocation = cacheRoot;
+            return true;
+        }
+        else
+        {
+            cacheRootLocation = null;
+            return false;
+        }
+    }
+
+    public string EnsureDirectoryExists(string directory)
+    {
+        try
+        {
+            if (!directoryWrapper.Exists(directory))
+            {
+                directoryWrapper.CreateDirectory(directory);
+            }
+            return directory;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public string CacheRoot(string sonarUserHome) =>
+        Path.Combine(sonarUserHome, "cache");
+
+    private static string CacheLocation(string cacheRoot, FileDescriptor fileDescriptor) =>
+        Path.Combine(cacheRoot, fileDescriptor.Sha256, fileDescriptor.Filename);
 }
