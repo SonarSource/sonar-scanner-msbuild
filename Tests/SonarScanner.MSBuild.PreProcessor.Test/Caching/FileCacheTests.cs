@@ -39,7 +39,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void EnsureCacheRoot_CreatesDirectory_IfNotExists()
+    public void EnsureCacheRoot_CreatesDirectoryIfNotExists()
     {
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
 
@@ -52,7 +52,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void EnsureCacheRoot_DoesNotCreateDirectory_IfExists()
+    public void EnsureCacheRoot_DoesNotCreateDirectoryIfExists()
     {
         directoryWrapper.Exists(sonarUserHomeCache).Returns(true);
 
@@ -65,7 +65,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void EnsureCacheRoot_WhenCreateDirectoryThrows_FalseIsReturned()
+    public void EnsureCacheRoot_WhenCreateDirectoryThrowsFalseIsReturned()
     {
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
         directoryWrapper
@@ -82,7 +82,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void EnsureDirectoryExists_CreatesDirectory_IfNotExists()
+    public void EnsureDirectoryExists_CreatesDirectoryIfNotExists()
     {
         var dir = "some/dir";
         directoryWrapper.Exists(dir).Returns(false);
@@ -95,7 +95,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void EnsureDirectoryExists_DoesNotCreateDirectory_IfExists()
+    public void EnsureDirectoryExists_DoesNotCreateDirectoryIfExists()
     {
         var dir = "some/dir";
         directoryWrapper.Exists(dir).Returns(true);
@@ -116,7 +116,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void IsFileCached_CacheHit()
+    public void IsFileCached_CacheHit_ReturnsFile()
     {
         var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
         var file = Path.Combine(sonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
@@ -141,7 +141,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void IsFileCached_CacheMiss_Failure()
+    public void IsFileCached_CacheFailure_WhenCreateDirectoryThrows()
     {
         var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
