@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarScanner.MSBuild.PreProcessor.Caching;
 
@@ -29,20 +30,24 @@ public class EngineResolverTests
     private readonly ISonarWebServer server;
     private readonly ILogger logger;
     private readonly IFileCache fileCache;
+    private readonly ProcessedArgs args;
     private readonly EngineResolver resolver;
 
     public EngineResolverTests()
     {
         server = Substitute.For<ISonarWebServer>();
+        server.SupportsJreProvisioning.Returns(true);
         logger = Substitute.For<ILogger>();
         fileCache = Substitute.For<IFileCache>();
+        args = Substitute.For<ProcessedArgs>();
+        args.EngineJarPath.ReturnsNull();
+
         resolver = new EngineResolver(server, fileCache, logger);
     }
 
     [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsSet_LocalEnginePath()
     {
-        var args = Substitute.For<ProcessedArgs>();
         args.EngineJarPath.Returns("local/path/to/engine.jar");
 
         var result = await resolver.ResolveEngine(args, "sonarHome");
@@ -56,8 +61,6 @@ public class EngineResolverTests
     public async Task ResolveEngine_LogsAndReturnsNull_WhenJreProvisioningNotSupported()
     {
         server.SupportsJreProvisioning.Returns(false);
-        var args = Substitute.For<ProcessedArgs>();
-        args.EngineJarPath.ReturnsNull();
 
         var result = await resolver.ResolveEngine(args, "sonarHome");
 
@@ -67,12 +70,9 @@ public class EngineResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveEngine_DownloadsEngineMetadata_WhenMetadaDownloadFails()
+    public async Task ResolveEngine_DownloadsEngineMetadataNull_LogsMessage()
     {
-        server.SupportsJreProvisioning.Returns(true);
         server.DownloadEngineMetadataAsync().Returns(Task.FromResult<EngineMetadata>(null));
-        var args = Substitute.For<ProcessedArgs>();
-        args.EngineJarPath.ReturnsNull();
 
         var result = await resolver.ResolveEngine(args, "sonarHome");
 
@@ -82,9 +82,8 @@ public class EngineResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata()
+    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheHit()
     {
-        server.SupportsJreProvisioning.Returns(true);
         server.DownloadEngineMetadataAsync().Returns(Task.FromResult(new EngineMetadata(
             "engine.jar",
             "sha256",
@@ -92,8 +91,6 @@ public class EngineResolverTests
         fileCache.IsFileCached("sonarHome", Arg.Is<FileDescriptor>(x =>
             x.Filename == "engine.jar"
             && x.Sha256 == "sha256")).Returns(new CacheHit("sonarHome/.cache/engine.jar"));
-        var args = Substitute.For<ProcessedArgs>();
-        args.EngineJarPath.ReturnsNull();
 
         var result = await resolver.ResolveEngine(args, "sonarHome");
 
@@ -103,5 +100,25 @@ public class EngineResolverTests
             x.Filename == "engine.jar"
             && x.Sha256 == "sha256"));
         logger.DidNotReceiveWithAnyArgs().LogDebug(null, null);
+    }
+
+    [TestMethod]
+    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheMiss()
+    {
+        server.DownloadEngineMetadataAsync().Returns(Task.FromResult(new EngineMetadata(
+            "engine.jar",
+            "sha256",
+            new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"))));
+        fileCache.IsFileCached("sonarHome", Arg.Is<FileDescriptor>(x =>
+            x.Filename == "engine.jar"
+            && x.Sha256 == "sha256")).Returns(new CacheMiss());
+
+        var act = async () => await resolver.ResolveEngine(args, "sonarHome");
+
+        await act.Should().ThrowAsync<NotImplementedException>();
+        await server.Received(1).DownloadEngineMetadataAsync();
+        fileCache.Received(1).IsFileCached("sonarHome", Arg.Is<FileDescriptor>(x =>
+            x.Filename == "engine.jar"
+            && x.Sha256 == "sha256"));
     }
 }
