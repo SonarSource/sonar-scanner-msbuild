@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using FluentAssertions;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -137,13 +132,19 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
     Task<JreMetadata> ISonarWebServer.DownloadJreMetadataAsync(string operatingSystem, string architecture)
     {
         LogMethodCalled();
-        return null;
+        return Task.FromResult<JreMetadata>(null);
     }
 
     Task<Stream> ISonarWebServer.DownloadJreAsync(JreMetadata metadata)
     {
         LogMethodCalled();
-        return null;
+        return Task.FromResult<Stream>(null);
+    }
+
+    Task<EngineMetadata> ISonarWebServer.DownloadEngineMetadataAsync()
+    {
+        LogMethodCalled();
+        return Task.FromResult<EngineMetadata>(null);
     }
 
     private void LogMethodCalled([CallerMemberName] string methodName = null) =>

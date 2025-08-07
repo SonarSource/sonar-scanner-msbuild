@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -82,4 +79,5 @@ public interface ISonarWebServer : IDisposable
     bool IsServerVersionSupported();
 
     Task<bool> IsServerLicenseValid();
+    Task<EngineMetadata> DownloadEngineMetadataAsync();
 }

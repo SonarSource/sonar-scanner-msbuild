@@ -18,15 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -159,6 +154,20 @@ public abstract class SonarWebServer : ISonarWebServer
         catch (Exception)
         {
             logger.LogWarning(Resources.WARN_JreMetadataNotRetrieved, uri);
+            return null;
+        }
+    }
+
+    public async Task<EngineMetadata> DownloadEngineMetadataAsync()
+    {
+        const string api = "analysis/engine";
+        try
+        {
+            return JsonConvert.DeserializeObject<EngineMetadata>(await apiDownloader.Download(api));
+        }
+        catch (Exception)
+        {
+            logger.LogWarning(Resources.WARN_EngineMetadataNotRetrieved, api);
             return null;
         }
     }

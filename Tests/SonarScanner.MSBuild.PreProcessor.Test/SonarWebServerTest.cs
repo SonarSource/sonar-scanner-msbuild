@@ -18,20 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -870,6 +859,84 @@ public class SonarWebServerTest
 
         jreMetadata.Should().NotBeNull();
         jreMetadata.Id.Should().Be("first");
+        logger.AssertNoWarningsLogged();
+    }
+
+    [TestMethod]
+    public async Task DownloadEngineMetadataAsync_Throws_Warning()
+    {
+        downloader
+            .When(x => x.Download("analysis/engine"))
+            .Throw(new Exception());
+
+        (await sut.DownloadEngineMetadataAsync()).Should().BeNull();
+        logger.AssertWarningLogged("Sonar Engine Metadata could not be retrieved from analysis/engine.");
+    }
+
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("{broken json")]
+    [DataRow("[]")]
+    [DataRow("""
+        [{
+          "filename": "sonarcloud-scanner-engine-11.14.1.763.jar",
+          "sha256": "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b"
+        }]
+        """)]
+    public async Task DownloadEngineMetadataAsync_ReturnsInvalid_Warning(string jresResponse)
+    {
+        downloader
+            .Download("analysis/engine")
+            .Returns(jresResponse);
+
+        (await sut.DownloadEngineMetadataAsync()).Should().BeNull();
+        logger.AssertWarningLogged("Sonar Engine Metadata could not be retrieved from analysis/engine.");
+    }
+
+    [TestMethod]
+    public async Task DownloadEngineMetadataAsync_SonarQubeCloud_Success()
+    {
+        downloader
+            .Download("analysis/engine") // returns a downloadUrl
+            .Returns("""
+                {
+                  "filename": "sonarcloud-scanner-engine-11.14.1.763.jar",
+                  "sha256": "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
+                  "downloadUrl": "https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"
+                }
+                """);
+
+        var jreMetadata = await sut.DownloadEngineMetadataAsync();
+
+        jreMetadata.Should().BeEquivalentTo(new
+        {
+            Filename = "sonarcloud-scanner-engine-11.14.1.763.jar",
+            Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
+            DownloadUrl = new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar")
+        });
+        logger.AssertNoWarningsLogged();
+    }
+
+    [TestMethod]
+    public async Task DownloadEngineMetadataAsync_SonarQubeServer_Success()
+    {
+        downloader
+            .Download("analysis/engine") // returns no downloadUrl
+            .Returns("""
+                {
+                  "filename": "sonarcloud-scanner-engine-11.14.1.763.jar",
+                  "sha256": "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
+                }
+                """);
+
+        var jreMetadata = await sut.DownloadEngineMetadataAsync();
+
+        jreMetadata.Should().BeEquivalentTo(new
+        {
+            Filename = "sonarcloud-scanner-engine-11.14.1.763.jar",
+            Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
+            DownloadUrl = (Uri)null,
+        });
         logger.AssertNoWarningsLogged();
     }
 

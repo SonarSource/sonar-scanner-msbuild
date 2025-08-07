@@ -613,6 +613,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using local sonar engine provided by sonar.scanner.engineJarPath={0}.
+        /// </summary>
+        internal static string MSG_EngineResolver_UsingLocalEngine {
+            get {
+                return ResourceManager.GetString("MSG_EngineResolver_UsingLocalEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extracting files to {0}....
         /// </summary>
         internal static string MSG_ExtractingFiles {
@@ -1377,6 +1386,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string WARN_DefaultUserHomeCreationFailed {
             get {
                 return ResourceManager.GetString("WARN_DefaultUserHomeCreationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sonar Engine Metadata could not be retrieved from {0}..
+        /// </summary>
+        internal static string WARN_EngineMetadataNotRetrieved {
+            get {
+                return ResourceManager.GetString("WARN_EngineMetadataNotRetrieved", resourceCulture);
             }
         }
         
