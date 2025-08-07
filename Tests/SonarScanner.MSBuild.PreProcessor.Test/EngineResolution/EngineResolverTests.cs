@@ -40,7 +40,7 @@ public class EngineResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveEngine_ReturnsLocalEnginePath_WhenEngineJarPathIsSet()
+    public async Task ResolveEngine_EngineJarPathIsSet_LocalEnginePath()
     {
         var args = Substitute.For<ProcessedArgs>();
         args.EngineJarPath.Returns("local/path/to/engine.jar");
@@ -82,7 +82,7 @@ public class EngineResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveEngine_DownloadsEngineMetadata_CacheHit()
+    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata()
     {
         server.SupportsJreProvisioning.Returns(true);
         server.DownloadEngineMetadataAsync().Returns(Task.FromResult(new EngineMetadata(

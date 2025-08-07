@@ -22,7 +22,7 @@ using SonarScanner.MSBuild.PreProcessor.Caching;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
-public sealed class EngineMetadata
+public sealed record EngineMetadata
 {
     public string Filename { get; }
     public string Sha256 { get; }
