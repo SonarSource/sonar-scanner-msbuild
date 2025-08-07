@@ -163,9 +163,7 @@ public abstract class SonarWebServer : ISonarWebServer
         const string api = "analysis/engine";
         try
         {
-            var result = await apiDownloader.Download(api);
-            var engine = JsonConvert.DeserializeObject<EngineMetadata>(result);
-            return engine;
+            return JsonConvert.DeserializeObject<EngineMetadata>(await apiDownloader.Download(api));
         }
         catch (Exception)
         {
