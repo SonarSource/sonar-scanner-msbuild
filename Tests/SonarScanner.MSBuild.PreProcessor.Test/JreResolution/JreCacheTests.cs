@@ -60,7 +60,7 @@ public class JreCacheTests
         testLogger = new TestLogger();
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
         fileWrapper = Substitute.For<IFileWrapper>();
-        fileCache = Substitute.For<FileCache>(directoryWrapper, fileWrapper);
+        fileCache = new FileCache(directoryWrapper, fileWrapper);
         checksum = Substitute.For<IChecksum>();
         unpacker = Substitute.For<IUnpacker>();
         unpackerFactory = Substitute.For<IUnpackerFactory>();
