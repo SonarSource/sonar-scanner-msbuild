@@ -22,10 +22,9 @@ using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.JreResolution;
+namespace SonarScanner.MSBuild.PreProcessor.JreResolution.Test;
 
 [TestClass]
 public class JreCacheTests
