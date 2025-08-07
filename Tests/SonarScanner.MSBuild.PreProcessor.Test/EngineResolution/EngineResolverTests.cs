@@ -61,6 +61,7 @@ public class EngineResolverTests
     public async Task ResolveEngine_JreProvisioningNotSupported_LogsAndReturnsNull()
     {
         server.SupportsJreProvisioning.Returns(false);
+        args.EngineJarPath.ReturnsNull();
 
         var result = await resolver.ResolveEngine(args, "sonarHome");
 
