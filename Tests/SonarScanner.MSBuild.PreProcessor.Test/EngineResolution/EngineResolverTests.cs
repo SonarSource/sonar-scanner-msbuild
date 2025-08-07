@@ -26,7 +26,7 @@ namespace SonarScanner.MSBuild.PreProcessor.EngineResolution.Test;
 public class EngineResolverTests
 {
     [TestMethod]
-    public async Task ResolveEngine_ReturnsLocalEnginePath_WhenEngineJarPathIsSet()
+    public async Task ResolveEngine_EngineJarPathIsSet_LocalEnginePath()
     {
         var server = Substitute.For<ISonarWebServer>();
         var logger = Substitute.For<ILogger>();
