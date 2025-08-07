@@ -41,6 +41,7 @@ public class SonarPropertiesTests
         SonarProperties.ClientCertPath,
         SonarProperties.JavaExePath,
         SonarProperties.SkipJreProvisioning,
+        SonarProperties.EngineJarPath,
         SonarProperties.HostUrl,
         SonarProperties.SonarcloudUrl,
         SonarProperties.ApiBaseUrl,

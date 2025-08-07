@@ -35,6 +35,7 @@ public static class SonarProperties
 
     public const string JavaExePath = "sonar.scanner.javaExePath";
     public const string SkipJreProvisioning = "sonar.scanner.skipJreProvisioning";
+    public const string EngineJarPath = "sonar.scanner.engineJarPath";
     public const string SonarToken = "sonar.token";
     public const string SonarUserName = "sonar.login"; // Deprecated by SonarQube
     public const string SonarPassword = "sonar.password"; // Deprecated by SonarQube

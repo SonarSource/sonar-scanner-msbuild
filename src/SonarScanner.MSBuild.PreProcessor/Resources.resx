@@ -598,4 +598,7 @@ Check the certificates in the truststore file '{1}' specified via the {2} parame
   <data name="MSG_PullRequestCacheBasePath" xml:space="preserve">
     <value>Using cache base path: {0}</value>
   </data>
+  <data name="ERROR_InvalidEngineJarPath" xml:space="preserve">
+    <value>The argument 'sonar.scanner.engineJarPath' contains an invalid path. Please make sure the path is correctly pointing to the scanner engine jar.</value>
+  </data>
 </root>
