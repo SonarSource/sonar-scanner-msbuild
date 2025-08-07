@@ -20,16 +20,9 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
-public sealed record EngineMetadata
+public sealed record EngineMetadata(string Filename, string Sha256, Uri DownloadUrl)
 {
-    public string Filename { get; }
-    public string Sha256 { get; }
-    public Uri DownloadUrl { get; } // Optional, only exists for SonarCloud
-
-    public EngineMetadata(string filename, string sha256, Uri downloadUrl)
-    {
-        Filename = filename;
-        Sha256 = sha256;
-        DownloadUrl = downloadUrl;
-    }
+    public string Filename { get; } = Filename;
+    public string Sha256 { get; } = Sha256;
+    public Uri DownloadUrl { get; } = DownloadUrl; // Optional, only exists for SonarCloud
 }
