@@ -139,4 +139,16 @@ public class FileCacheTests
         result.Should().BeOfType<CacheMiss>();
         fileWrapper.Received(1).Exists(file);
     }
+
+    [TestMethod]
+    public void IsFileCached_CacheMiss_Failure()
+    {
+        var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
+        directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
+        directoryWrapper.When(x => x.CreateDirectory(sonarUserHomeCache)).Do(_ => throw new IOException("Disk full"));
+
+        var result = fileCache.IsFileCached(sonarUserHome, fileDescriptor);
+
+        result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be($"The file cache directory in '{sonarUserHomeCache}' could not be created.");
+    }
 }
