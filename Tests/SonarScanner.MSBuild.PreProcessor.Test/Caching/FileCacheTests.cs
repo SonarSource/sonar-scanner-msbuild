@@ -39,48 +39,44 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void EnsureCacheRoot_CreatesDirectoryIfNotExists()
+    public void EnsureCacheRoot_DirectoryDoesNotExist_CreatesDirectory()
     {
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
 
-        var result = fileCache.EnsureCacheRoot(sonarUserHome, out var cacheRoot);
+        var cacheRoot = fileCache.EnsureCacheRoot(sonarUserHome);
 
-        result.Should().BeTrue();
         cacheRoot.Should().Be(sonarUserHomeCache);
         directoryWrapper.Received(1).Exists(sonarUserHomeCache);
         directoryWrapper.Received(1).CreateDirectory(sonarUserHomeCache);
     }
 
     [TestMethod]
-    public void EnsureCacheRoot_DoesNotCreateDirectoryIfExists()
+    public void EnsureCacheRoot_DirectoryExists_DoesNotCreateDirectory()
     {
         directoryWrapper.Exists(sonarUserHomeCache).Returns(true);
 
-        var result = fileCache.EnsureCacheRoot(sonarUserHome, out var cacheRoot);
+        var cacheRoot = fileCache.EnsureCacheRoot(sonarUserHome);
 
-        result.Should().BeTrue();
         cacheRoot.Should().Be(sonarUserHomeCache);
         directoryWrapper.Received(1).Exists(sonarUserHomeCache);
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
     [TestMethod]
-    public void EnsureCacheRoot_WhenCreateDirectoryThrowsFalseIsReturned()
+    public void EnsureCacheRoot_CreateDirectoryThrows_ReturnsNull()
     {
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
         directoryWrapper.When(x => x.CreateDirectory(sonarUserHomeCache)).Throw<IOException>();
 
-        var result = fileCache.EnsureCacheRoot(sonarUserHome, out var path);
+        var cacheRoot = fileCache.EnsureCacheRoot(sonarUserHome);
 
-        result.Should().BeFalse();
-        path.Should().BeNull();
-
+        cacheRoot.Should().BeNull();
         directoryWrapper.Received(1).Exists(sonarUserHomeCache);
         directoryWrapper.Received(1).CreateDirectory(sonarUserHomeCache);
     }
 
     [TestMethod]
-    public void EnsureDirectoryExists_CreatesDirectoryIfNotExists()
+    public void EnsureDirectoryExists_DirectoryDoesNotExist_CreatesDirectory()
     {
         var dir = "some/dir";
         directoryWrapper.Exists(dir).Returns(false);
@@ -93,7 +89,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void EnsureDirectoryExists_DoesNotCreateDirectoryIfExists()
+    public void EnsureDirectoryExists_DirectoryExists_DoesNotCreateDirectory()
     {
         var dir = "some/dir";
         directoryWrapper.Exists(dir).Returns(true);
@@ -106,7 +102,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void EnsureDirectoryExists_ReturnsNullWhenCreateDirectoryFails()
+    public void EnsureDirectoryExists_CreateDirectoryFails_ReturnsNull()
     {
         var dir = "some/dir";
         directoryWrapper.Exists(dir).Returns(false);
@@ -120,7 +116,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void CacheRoot_ReturnsExpectedPath()
+    public void CacheRoot_ExpectedPath_IsReturned()
     {
         var result = fileCache.CacheRoot(sonarUserHome);
 
@@ -141,7 +137,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void IsFileCached_CacheMiss_FileNotExists()
+    public void IsFileCached_CacheMiss_FileDoesNotExist()
     {
         var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
         var file = Path.Combine(sonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
@@ -154,7 +150,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void IsFileCached_CacheFailure_WhenCreateDirectoryThrows()
+    public void IsFileCached_CreateDirectoryThrows_IsCacheFailure()
     {
         var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);

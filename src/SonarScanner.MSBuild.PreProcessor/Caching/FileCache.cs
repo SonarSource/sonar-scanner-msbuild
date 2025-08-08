@@ -33,7 +33,7 @@ public class FileCache : IFileCache
 
     public CacheResult IsFileCached(string sonarUserHome, FileDescriptor fileDescriptor)
     {
-        if (EnsureCacheRoot(sonarUserHome, out var cacheRoot))
+        if (EnsureCacheRoot(sonarUserHome) is { } cacheRoot)
         {
             var cacheLocation = CacheLocation(cacheRoot, fileDescriptor);
             return fileWrapper.Exists(cacheLocation) // We do not check the SHA256 of the found file.
@@ -43,19 +43,8 @@ public class FileCache : IFileCache
         return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot(sonarUserHome)));
     }
 
-    public bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation)
-    {
-        if (EnsureDirectoryExists(CacheRoot(sonarUserHome)) is { } cacheRoot)
-        {
-            cacheRootLocation = cacheRoot;
-            return true;
-        }
-        else
-        {
-            cacheRootLocation = null;
-            return false;
-        }
-    }
+    public string EnsureCacheRoot(string sonarUserHome) =>
+        EnsureDirectoryExists(CacheRoot(sonarUserHome)) is { } cacheRoot ? cacheRoot : null;
 
     public string EnsureDirectoryExists(string directory)
     {

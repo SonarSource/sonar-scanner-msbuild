@@ -36,7 +36,7 @@ internal class JreCache(
 {
     public CacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
-        if (fileCache.EnsureCacheRoot(sonarUserHome, out var cacheRoot))
+        if (fileCache.EnsureCacheRoot(sonarUserHome) is { } cacheRoot)
         {
             var extractedPath = JreExtractionPath(jreDescriptor, cacheRoot);
             if (directoryWrapper.Exists(extractedPath))
@@ -56,7 +56,7 @@ internal class JreCache(
 
     public async Task<CacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
-        if (!fileCache.EnsureCacheRoot(sonarUserHome, out var cacheRoot)
+        if (!(fileCache.EnsureCacheRoot(sonarUserHome) is { } cacheRoot)
             || fileCache.EnsureDirectoryExists(JreRootPath(jreDescriptor, cacheRoot)) is not { } jreDownloadPath)
         {
             return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, fileCache.CacheRoot(sonarUserHome))));
