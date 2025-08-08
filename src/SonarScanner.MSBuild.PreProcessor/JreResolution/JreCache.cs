@@ -18,11 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
@@ -31,6 +27,7 @@ namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 internal class JreCache(
     ILogger logger,
+    IFileCache fileCache,
     IDirectoryWrapper directoryWrapper,
     IFileWrapper fileWrapper,
     IChecksum checksum,
@@ -39,7 +36,7 @@ internal class JreCache(
 {
     public CacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
     {
-        if (EnsureCacheRoot(sonarUserHome, out var cacheRoot))
+        if (fileCache.EnsureCacheRoot(sonarUserHome) is { } cacheRoot)
         {
             var extractedPath = JreExtractionPath(jreDescriptor, cacheRoot);
             if (directoryWrapper.Exists(extractedPath))
@@ -59,10 +56,10 @@ internal class JreCache(
 
     public async Task<CacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
-        if (!EnsureCacheRoot(sonarUserHome, out var cacheRoot)
-            || EnsureDirectoryExists(JreRootPath(jreDescriptor, cacheRoot)) is not { } jreDownloadPath)
+        if (!(fileCache.EnsureCacheRoot(sonarUserHome) is { } cacheRoot)
+            || fileCache.EnsureDirectoryExists(JreRootPath(jreDescriptor, cacheRoot)) is not { } jreDownloadPath)
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, JresCacheRoot(sonarUserHome))));
+            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, fileCache.CacheRoot(sonarUserHome))));
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
         if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is not { } unpacker)
@@ -245,39 +242,6 @@ internal class JreCache(
             return false;
         }
     }
-
-    private bool EnsureCacheRoot(string sonarUserHome, out string cacheRootLocation)
-    {
-        if (EnsureDirectoryExists(JresCacheRoot(sonarUserHome)) is { } cacheRoot)
-        {
-            cacheRootLocation = cacheRoot;
-            return true;
-        }
-        else
-        {
-            cacheRootLocation = null;
-            return false;
-        }
-    }
-
-    private string EnsureDirectoryExists(string directory)
-    {
-        try
-        {
-            if (!directoryWrapper.Exists(directory))
-            {
-                directoryWrapper.CreateDirectory(directory);
-            }
-            return directory;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static string JresCacheRoot(string sonarUserHome) =>
-        Path.Combine(sonarUserHome, "cache");
 
     private static string JreRootPath(JreDescriptor jreDescriptor, string cacheRoot) =>
         Path.Combine(cacheRoot, jreDescriptor.Sha256);
