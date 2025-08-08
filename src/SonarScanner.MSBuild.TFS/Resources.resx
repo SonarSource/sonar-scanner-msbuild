@@ -157,6 +157,9 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="Report_UpdatingTeamBuildSummary" xml:space="preserve">
     <value>Updating the TeamBuild summary...</value>
   </data>
+  <data name="TRIX_DIAG_NoCoverageFilesFound" xml:space="preserve">
+    <value>Did not find any binary coverage files in the expected location.</value>
+  </data>
   <data name="TRX_DIAG_AbsoluteTrxPath" xml:space="preserve">
     <value>Absolute path to coverage file: {0}</value>
   </data>
@@ -174,6 +177,9 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   </data>
   <data name="TRX_DIAG_NoTestResultsFound" xml:space="preserve">
     <value>No test results files found</value>
+  </data>
+  <data name="TRX_DIAG_NotUsingFallback" xml:space="preserve">
+    <value>Not using the fallback mechanism to detect binary coverage files.</value>
   </data>
   <data name="TRX_DIAG_SkippingCoverageCheckPropertyProvided" xml:space="preserve">
     <value>Property 'sonar.cs.vstest.reportsPaths' provided, skipping the search for TRX files in default folders...</value>

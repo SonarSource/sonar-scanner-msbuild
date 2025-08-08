@@ -21,7 +21,7 @@
 namespace SonarScanner.MSBuild.TFS;
 
 // This abstraction is not needed anymore, because BuildVNextCoverageReportProcessor now stands alone.
-// It duplicates some logic from BuildVNextCoverageReportProcessor and should be deleted when TFS legacy support is dropped.
+// It duplicates some logic from BuildVNextCoverageReportProcessor and should be deleted when TFS legacy support is dropped. SCAN4NET-611
 public abstract class CoverageReportProcessorBase : ICoverageReportProcessor
 {
     private const string XmlReportFileExtension = "coveragexml";
