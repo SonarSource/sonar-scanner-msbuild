@@ -31,8 +31,8 @@ public class BuildVNextCoverageSearchFallbackTests
         var testSubject = new BuildVNextCoverageSearchFallback(new TestLogger());
         using var envVars = new EnvironmentVariableScope();
         // env var not specified -> null
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, null);
-        testSubject.GetAgentTempDirectory().Should().BeNull();
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, null);
+        testSubject.CheckAgentTempDirectory().Should().BeNull();
     }
 
     [TestMethod]
@@ -44,8 +44,8 @@ public class BuildVNextCoverageSearchFallbackTests
 
         using var envVars = new EnvironmentVariableScope();
         // Env var set but dir does not exist -> null
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, envDir);
-        testSubject.GetAgentTempDirectory().Should().BeNull();
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, envDir);
+        testSubject.CheckAgentTempDirectory().Should().BeNull();
     }
 
     [TestMethod]
@@ -58,8 +58,8 @@ public class BuildVNextCoverageSearchFallbackTests
         using var envVars = new EnvironmentVariableScope();
         // Env var set and dir exists -> dir returned
         Directory.CreateDirectory(envDir);
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, envDir);
-        testSubject.GetAgentTempDirectory().Should().Be(envDir);
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, envDir);
+        testSubject.CheckAgentTempDirectory().Should().Be(envDir);
     }
 
     [TestCategory(TestCategories.NoLinux)]
@@ -80,7 +80,7 @@ public class BuildVNextCoverageSearchFallbackTests
         var duplicate2FilePath = TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");
 
         using var envVars = new EnvironmentVariableScope();
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, dir);
         testSubject.FindCoverageFiles().Should().Satisfy(
             x => x == lowerCasePath,
             x => x == upperCasePath,
@@ -106,7 +106,7 @@ public class BuildVNextCoverageSearchFallbackTests
         var duplicate2FilePath = TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");
 
         using var envVars = new EnvironmentVariableScope();
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, dir);
         testSubject.FindCoverageFiles().Should().Satisfy(
             x => x == lowerCasePath,    // should also find upperCasePath but does not due to case-sensitivity
             x => x == duplicate1FilePath || x == duplicate2FilePath);
@@ -131,7 +131,7 @@ public class BuildVNextCoverageSearchFallbackTests
         var filePath1SubDir = TestUtils.CreateTextFile(subDir, file1, file1);
 
         using var envVars = new EnvironmentVariableScope();
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AGENT_TEMP_DIRECTORY, dir);
+        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, dir);
         var result = testSubject.FindCoverageFiles().ToList();
         result.Should().HaveCount(3, "the 5 files should be de-duped based on content hash.");
         result.Should().Satisfy(

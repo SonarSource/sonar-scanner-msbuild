@@ -94,6 +94,12 @@ public class TestLogger : ILogger
         found.Should().BeFalse("Not expecting the message to have been logged: '{0}'", message);
     }
 
+    public void AssertDebugNotLogged(string message)
+    {
+        var found = DebugMessages.Any(x => message.Equals(x, StringComparison.CurrentCulture));
+        found.Should().BeFalse("Not expecting the message to have been logged: '{0}'", message);
+    }
+
     public void AssertWarningNotLogged(string warning)
     {
         var found = Warnings.Any(x => warning.Equals(x, StringComparison.CurrentCulture));

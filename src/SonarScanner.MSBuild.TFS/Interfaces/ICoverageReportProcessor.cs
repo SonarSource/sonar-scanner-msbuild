@@ -29,7 +29,7 @@ public interface ICoverageReportProcessor
     /// Initializes the converter
     /// </summary>
     /// <returns>Operation success.</returns>
-    bool Initialise(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath);
+    bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath);
 
     /// <summary>
     /// Locate, download and convert the code coverage report

@@ -179,6 +179,15 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Did not find any binary coverage files in the expected location..
+        /// </summary>
+        internal static string TRIX_DIAG_NoCoverageFilesFound {
+            get {
+                return ResourceManager.GetString("TRIX_DIAG_NoCoverageFilesFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Absolute path to coverage file: {0}.
         /// </summary>
         internal static string TRX_DIAG_AbsoluteTrxPath {
@@ -229,6 +238,15 @@ namespace SonarScanner.MSBuild.TFS {
         internal static string TRX_DIAG_NoTestResultsFound {
             get {
                 return ResourceManager.GetString("TRX_DIAG_NoTestResultsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not using the fallback mechanism to detect binary coverage files..
+        /// </summary>
+        internal static string TRX_DIAG_NotUsingFallback {
+            get {
+                return ResourceManager.GetString("TRX_DIAG_NotUsingFallback", resourceCulture);
             }
         }
         

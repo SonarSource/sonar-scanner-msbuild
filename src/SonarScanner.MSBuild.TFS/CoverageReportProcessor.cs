@@ -45,7 +45,7 @@ public class CoverageReportProcessor : ICoverageReportProcessor
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public bool Initialise(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
+    public bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
     {
         if (settings == null)
         {
@@ -54,7 +54,7 @@ public class CoverageReportProcessor : ICoverageReportProcessor
 
         TryCreateCoverageReportProcessor(settings);
 
-        initializedSuccessfully = (processor != null && processor.Initialise(config, settings, propertiesFilePath));
+        initializedSuccessfully = (processor != null && processor.Initialize(config, settings, propertiesFilePath));
         return initializedSuccessfully;
     }
 

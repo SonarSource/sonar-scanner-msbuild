@@ -18,14 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.TFS.Tests;
 
@@ -88,7 +82,7 @@ public class TfsLegacyCoverageReportProcessorTests
         var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
         // Act
-        var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
+        var initResult = processor.Initialize(context, settings, testDir + "\\sonar-project.properties");
         initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
         var result = processor.ProcessCoverageReports(logger);
 
@@ -122,7 +116,7 @@ public class TfsLegacyCoverageReportProcessorTests
         var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
         // Act
-        var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
+        var initResult = processor.Initialize(context, settings, testDir + "\\sonar-project.properties");
         initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
         var result = processor.ProcessCoverageReports(logger);
 
@@ -151,7 +145,7 @@ public class TfsLegacyCoverageReportProcessorTests
         var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
         // Act
-        var initResult = processor.Initialise(context, settings, string.Empty);
+        var initResult = processor.Initialize(context, settings, string.Empty);
         initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
         var result = processor.ProcessCoverageReports(logger);
 
@@ -189,7 +183,7 @@ public class TfsLegacyCoverageReportProcessorTests
         var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
         // Act
-        var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
+        var initResult = processor.Initialize(context, settings, testDir + "\\sonar-project.properties");
         initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
         var result = processor.ProcessCoverageReports(logger);
 

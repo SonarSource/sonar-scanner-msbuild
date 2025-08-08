@@ -94,7 +94,7 @@ public static class Program
         var binaryConverter = new BinaryToXmlCoverageReportConverter(logger);
         var coverageReportProcessor = new CoverageReportProcessor(teamBuildFactory, binaryConverter, logger);
 
-        if (coverageReportProcessor.Initialise(config, buildSettings, fullPropertiesFilePath))
+        if (coverageReportProcessor.Initialize(config, buildSettings, fullPropertiesFilePath))
         {
             var success = coverageReportProcessor.ProcessCoverageReports(logger);
             if (success)
