@@ -45,8 +45,8 @@ public class FileCache : IFileCache
         return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot()));
     }
 
-    public string EnsureCacheRoot(string sonarUserHome) =>
-        EnsureDirectoryExists(CacheRoot(sonarUserHome));
+    public string EnsureCacheRoot() =>
+        EnsureDirectoryExists(CacheRoot());
 
     public string EnsureDirectoryExists(string directory)
     {
