@@ -39,7 +39,9 @@ public class BuildVNextCoverageReportProcessorTests
     private readonly MockBuildSettings settings = new();
     private readonly string testResultsDir;
     private readonly string coverageDir;
+    private readonly string alternateCoverageDir;
     private readonly string propertiesFilePath;
+    private readonly EnvironmentVariableScope environmentVariableScope = new();
 
     private BuildVNextCoverageReportProcessor sut;
 
@@ -48,11 +50,17 @@ public class BuildVNextCoverageReportProcessorTests
         var testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
         testResultsDir = Directory.CreateDirectory(Path.Combine(testDir, "TestResults")).FullName;
         coverageDir = Directory.CreateDirectory(Path.Combine(testResultsDir, "dummy", "In")).FullName;
+        alternateCoverageDir = Directory.CreateDirectory(Path.Combine(testResultsDir, "alternate", "In")).FullName;
         propertiesFilePath = testDir + Path.DirectorySeparatorChar + "sonar-project.properties";
         settings.BuildDirectory = testDir;
         sut = new BuildVNextCoverageReportProcessor(converter, testLogger);
         sut.Initialize(analysisConfig, settings, propertiesFilePath);
+        environmentVariableScope.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, alternateCoverageDir);  // setup search fallback
     }
+
+    [TestCleanup]
+    public void Cleanup() =>
+        environmentVariableScope.Dispose();
 
     [TestMethod]
     public void Constructor_ConverterIsNull_ThrowsNullArgumentException()
@@ -254,15 +262,13 @@ public class BuildVNextCoverageReportProcessorTests
     public void ProcessCoverageReports_NoTrxFilesFound_AlternateCoverageFileFound_Converts(Settings settings)
     {
         SetupSettingsAndFiles(settings, alternate: true);
-        using var envVars = new EnvironmentVariableScope(); // set up search fallback
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, testResultsDir);
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertExpectedNumberOfConversions(1);
         AssertUsesFallback();
         File.Exists(propertiesFilePath).Should().BeTrue();
         File.ReadAllText(propertiesFilePath).Should()
-            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", PathCombineWithEscape("TestResults", "alternate.coveragexml"))
+            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", PathCombineWithEscape("TestResults", "alternate", "In", "alternate.coveragexml"))
             .And.NotContain(SonarProperties.VsTestReportsPaths);
     }
 
@@ -272,8 +278,6 @@ public class BuildVNextCoverageReportProcessorTests
     public void ProcessCoverageReports_NoTrxFilesFound_AlternateCoverageFilesFound_VsCoverageXmlReportsPathsProvided_Converts_DoesNotWritePropertiesFile(Settings settings)
     {
         SetupSettingsAndFiles(settings, alternate: true);
-        using var envVars = new EnvironmentVariableScope(); // set up search fallback
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, testResultsDir);
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         AssertUsesFallback();
@@ -287,8 +291,6 @@ public class BuildVNextCoverageReportProcessorTests
     public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_DoesNotUseFallback(Settings settings)
     {
         SetupSettingsAndFiles(settings, trx: true, alternate: true);
-        using var envVars = new EnvironmentVariableScope(); // This sets up the search fallback to demonstrate that it's not used.
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, testResultsDir);
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertExpectedNumberOfConversions(0);
@@ -302,8 +304,6 @@ public class BuildVNextCoverageReportProcessorTests
     public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_TestReportsPathsProvided_UsesFallback_Converts(Settings settings)
     {
         SetupSettingsAndFiles(settings, trx: true, alternate: true);
-        using var envVars = new EnvironmentVariableScope(); // set up search fallback
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, testResultsDir);
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertExpectedNumberOfConversions(1);
@@ -317,8 +317,6 @@ public class BuildVNextCoverageReportProcessorTests
     public void ProcessCoverageReports_TrxAndCoverageAndAlternateCoverageFileFound_Converts_DoesNotUseFallback(Settings settings)
     {
         SetupSettingsAndFiles(settings, trx: true, coverage: true, alternate: true);
-        using var envVars = new EnvironmentVariableScope(); // This sets up the search fallback to demonstrate that it's not used.
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, testResultsDir);
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertExpectedNumberOfConversions(1);
@@ -335,8 +333,6 @@ public class BuildVNextCoverageReportProcessorTests
         Settings settings)
     {
         SetupSettingsAndFiles(settings, true, coverage: true, alternate: true);
-        using var envVars = new EnvironmentVariableScope(); // This sets up the search fallback to demonstrate that it's not used.
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, testResultsDir);
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertExpectedNumberOfConversions(1);
@@ -350,15 +346,13 @@ public class BuildVNextCoverageReportProcessorTests
     public void ProcessCoverageReports_AlternateCoverageFileFound_CoverageXmlFileAlreadyPresent_DoesNotConvert_UsesFallback(Settings settings)
     {
         SetupSettingsAndFiles(settings, alternate: true, alternateXml: true);
-        using var envVars = new EnvironmentVariableScope(); // set up search fallback
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, testResultsDir);
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertConvertNotCalled();
         AssertUsesFallback();
         File.Exists(propertiesFilePath).Should().BeTrue();
         File.ReadAllText(propertiesFilePath).Should()
-            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", PathCombineWithEscape("TestResults", "alternate.coveragexml"))
+            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", PathCombineWithEscape("TestResults", "alternate", "In", "alternate.coveragexml"))
             .And.NotContain(SonarProperties.VsTestReportsPaths);
     }
 
@@ -369,8 +363,6 @@ public class BuildVNextCoverageReportProcessorTests
         Settings settings)
     {
         SetupSettingsAndFiles(settings, alternate: true, alternateXml: true);
-        using var envVars = new EnvironmentVariableScope(); // set up search fallback
-        envVars.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, testResultsDir);
 
         sut.ProcessCoverageReports(testLogger).Should().BeTrue();
         converter.AssertConvertNotCalled();
@@ -417,11 +409,11 @@ public class BuildVNextCoverageReportProcessorTests
         }
         if (alternate)
         {
-            TestUtils.CreateTextFile(testResultsDir, "alternate.coverage", "alternate");
+            TestUtils.CreateTextFile(alternateCoverageDir, "alternate.coverage", "alternate");
         }
         if (alternateXml)
         {
-            TestUtils.CreateTextFile(testResultsDir, "alternate.coveragexml", "alternate coveragexml");
+            TestUtils.CreateTextFile(alternateCoverageDir, "alternate.coveragexml", "alternate coveragexml");
         }
     }
 
