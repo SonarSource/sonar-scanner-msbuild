@@ -44,7 +44,7 @@ public class FileCache : IFileCache
     }
 
     public string EnsureCacheRoot(string sonarUserHome) =>
-        EnsureDirectoryExists(CacheRoot(sonarUserHome)) is { } cacheRoot ? cacheRoot : null;
+        EnsureDirectoryExists(CacheRoot(sonarUserHome));
 
     public string EnsureDirectoryExists(string directory)
     {

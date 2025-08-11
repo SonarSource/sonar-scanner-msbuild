@@ -137,7 +137,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void IsFileCached_CacheMiss_FileDoesNotExist()
+    public void IsFileCached_FileDoesNotExist_ReturnsCacheMiss()
     {
         var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
         var file = Path.Combine(sonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
@@ -150,7 +150,7 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void IsFileCached_CreateDirectoryThrows_IsCacheFailure()
+    public void IsFileCached_CreateDirectoryThrows_ReturnsCacheFailure()
     {
         var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
