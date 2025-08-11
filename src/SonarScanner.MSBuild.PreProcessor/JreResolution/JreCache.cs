@@ -51,7 +51,7 @@ internal class JreCache(
                 return new CacheMiss();
             }
         }
-        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine("cache")));
+        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(fileCache.CacheRoot())));
     }
 
     public async Task<CacheResult> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
