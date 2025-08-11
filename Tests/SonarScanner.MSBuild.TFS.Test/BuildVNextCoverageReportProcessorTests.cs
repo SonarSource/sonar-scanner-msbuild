@@ -148,9 +148,9 @@ public class BuildVNextCoverageReportProcessorTests
         File.Exists(propertiesFilePath).Should().BeTrue();
         File.ReadAllText(propertiesFilePath).Should().ContainAll(
             "sonar.cs.vstest.reportsPaths",
-            @"\\TestResults\\dummy.trx",
+            PathCombineWithEscape("TestResults", "dummy.trx"),
             "sonar.cs.vscoveragexml.reportsPaths",
-            @"\\TestResults\\dummy\\In\\dummy.coveragexml");
+            PathCombineWithEscape("TestResults", "dummy", "In", "dummy.coveragexml"));
     }
 
     [TestMethod]
@@ -163,7 +163,7 @@ public class BuildVNextCoverageReportProcessorTests
         testLogger.AssertWarningsLogged(0);
         File.Exists(propertiesFilePath).Should().BeTrue();
         File.ReadAllText(propertiesFilePath).Should()
-            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", @"\\TestResults\\dummy\\In\\dummy.coveragexml")
+            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", PathCombineWithEscape("TestResults", "dummy", "In", "dummy.coveragexml"))
             .And.NotContainAny(SonarProperties.VsTestReportsPaths, "dummy.trx");
     }
 
@@ -216,7 +216,7 @@ public class BuildVNextCoverageReportProcessorTests
         testLogger.AssertWarningsLogged(0);
         File.Exists(propertiesFilePath).Should().BeTrue();
         File.ReadAllText(propertiesFilePath).Should()
-            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", @"\\TestResults\\dummy\\In\\dummy.coveragexml");
+            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", PathCombineWithEscape("TestResults", "dummy", "In", "dummy.coveragexml"));
     }
 
     [TestMethod]
@@ -262,7 +262,7 @@ public class BuildVNextCoverageReportProcessorTests
         AssertUsesFallback();
         File.Exists(propertiesFilePath).Should().BeTrue();
         File.ReadAllText(propertiesFilePath).Should()
-            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", @"\\TestResults\\alternate.coveragexml")
+            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", PathCombineWithEscape("TestResults", "alternate.coveragexml"))
             .And.NotContain(SonarProperties.VsTestReportsPaths);
     }
 
@@ -325,7 +325,7 @@ public class BuildVNextCoverageReportProcessorTests
         AssertUsesFallback(false);
         File.Exists(propertiesFilePath).Should().BeTrue();
         File.ReadAllText(propertiesFilePath).Should()
-            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", @"\\TestResults\\dummy\\In\\dummy.coveragexml");
+            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", PathCombineWithEscape("TestResults", "dummy", "In", "dummy.coveragexml"));
     }
 
     [TestMethod]
@@ -358,7 +358,7 @@ public class BuildVNextCoverageReportProcessorTests
         AssertUsesFallback();
         File.Exists(propertiesFilePath).Should().BeTrue();
         File.ReadAllText(propertiesFilePath).Should()
-            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", @"\\TestResults\\alternate.coveragexml")
+            .ContainAll("sonar.cs.vscoveragexml.reportsPaths", PathCombineWithEscape("TestResults", "alternate.coveragexml"))
             .And.NotContain(SonarProperties.VsTestReportsPaths);
     }
 
@@ -435,7 +435,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         File.Exists(propertiesFilePath).Should().BeTrue();
         File.ReadAllText(propertiesFilePath).Should()
-            .ContainAll("sonar.cs.vstest.reportsPaths", @"\\TestResults\\dummy.trx")
+            .ContainAll("sonar.cs.vstest.reportsPaths", PathCombineWithEscape("TestResults", "dummy.trx"))
             .And.NotContainAny(SonarProperties.VsCoverageXmlReportsPaths);
     }
 
@@ -451,5 +451,15 @@ public class BuildVNextCoverageReportProcessorTests
             testLogger.AssertMessageNotLogged(Resources.TRX_DIAG_NoCoverageFilesFound);
             testLogger.AssertDebugLogged("Not using the fallback mechanism to detect binary coverage files.");
         }
+    }
+
+    private string PathCombineWithEscape(params string[] parts)
+    {
+        var separator = Path.DirectorySeparatorChar.ToString();
+        if (separator == @"\")
+        {
+            separator = @"\\";
+        }
+        return string.Join(separator, parts);
     }
 }
