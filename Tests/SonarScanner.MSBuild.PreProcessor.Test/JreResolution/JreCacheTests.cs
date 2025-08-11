@@ -480,10 +480,10 @@ public class JreCacheTests
         testLogger.DebugMessages.Should().BeEquivalentTo(
             "Starting the Java Runtime Environment download.",
             $"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.",
-            $"Starting extracting the Java runtime environment from archive '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "filename.tar.gz")}' " +
-                $"to folder '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "xSecond.rnd")}'.",
-            "The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment " +
-                $"was expected to be at '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "xSecond.rnd", "javaPath")}' but couldn't be found.'.");
+            $"Starting extracting the Java runtime environment from archive '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "filename.tar.gz")}' "
+            + $"to folder '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "xSecond.rnd")}'.",
+            "The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment "
+            + $"was expected to be at '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "xSecond.rnd", "javaPath")}' but couldn't be found.'.");
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(Path.Combine(sha, "xFirst.rnd"));
         fileWrapper.Received(1).Move(Path.Combine(sha, "xFirst.rnd"), file);

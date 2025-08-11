@@ -130,7 +130,7 @@ public class FileCacheTests
         var file = Path.Combine(sonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
         fileWrapper.Exists(file).Returns(true);
 
-        var result = fileCache.IsFileCached( fileDescriptor);
+        var result = fileCache.IsFileCached(fileDescriptor);
 
         result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
         fileWrapper.Received(1).Exists(file);
