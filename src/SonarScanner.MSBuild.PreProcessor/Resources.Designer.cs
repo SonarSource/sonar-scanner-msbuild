@@ -115,7 +115,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Java runtime environment cache directory in &apos;{0}&apos; could not be created..
+        ///   Looks up a localized string similar to The file cache directory in &apos;{0}&apos; could not be created..
         /// </summary>
         internal static string ERR_CacheDirectoryCouldNotBeCreated {
             get {
