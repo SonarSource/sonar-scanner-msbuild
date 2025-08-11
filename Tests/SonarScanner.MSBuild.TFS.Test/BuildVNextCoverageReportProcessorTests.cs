@@ -445,7 +445,7 @@ public class BuildVNextCoverageReportProcessorTests
         }
     }
 
-    private string PathCombineWithEscape(params string[] parts)
+    private static string PathCombineWithEscape(params string[] parts)
     {
         var separator = Path.DirectorySeparatorChar.ToString();
         if (separator == @"\")
