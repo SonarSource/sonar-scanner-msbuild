@@ -157,7 +157,7 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="Report_UpdatingTeamBuildSummary" xml:space="preserve">
     <value>Updating the TeamBuild summary...</value>
   </data>
-  <data name="TRIX_DIAG_NoCoverageFilesFound" xml:space="preserve">
+  <data name="TRX_DIAG_NoCoverageFilesFound" xml:space="preserve">
     <value>Did not find any binary coverage files in the expected location.</value>
   </data>
   <data name="TRX_DIAG_AbsoluteTrxPath" xml:space="preserve">

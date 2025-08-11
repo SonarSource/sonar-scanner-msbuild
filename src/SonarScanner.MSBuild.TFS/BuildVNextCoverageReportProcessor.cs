@@ -90,7 +90,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         // then try the fallback method to find coverage files
         if (!trxFilesLocated && (binaryFilePaths is null || !binaryFilePaths.Any()))
         {
-            logger.LogInfo(Resources.TRIX_DIAG_NoCoverageFilesFound);
+            logger.LogInfo(Resources.TRX_DIAG_NoCoverageFilesFound);
             binaryFilePaths = searchFallback.FindCoverageFiles();
         }
         else
