@@ -34,9 +34,9 @@ internal class JreCache(
     IUnpackerFactory unpackerFactory,
     IFilePermissionsWrapper filePermissionsWrapper) : IJreCache
 {
-    public CacheResult IsJreCached(string sonarUserHome, JreDescriptor jreDescriptor)
+    public CacheResult IsJreCached(JreDescriptor jreDescriptor)
     {
-        if (fileCache.EnsureCacheRoot(sonarUserHome) is { } cacheRoot)
+        if (fileCache.EnsureCacheRoot() is { } cacheRoot)
         {
             var extractedPath = JreExtractionPath(jreDescriptor, cacheRoot);
             if (directoryWrapper.Exists(extractedPath))
@@ -51,15 +51,15 @@ internal class JreCache(
                 return new CacheMiss();
             }
         }
-        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(sonarUserHome, "cache")));
+        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine("cache")));
     }
 
-    public async Task<CacheResult> DownloadJreAsync(string sonarUserHome, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
+    public async Task<CacheResult> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
-        if (!(fileCache.EnsureCacheRoot(sonarUserHome) is { } cacheRoot)
+        if (!(fileCache.EnsureCacheRoot() is { } cacheRoot)
             || fileCache.EnsureDirectoryExists(JreRootPath(jreDescriptor, cacheRoot)) is not { } jreDownloadPath)
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, fileCache.CacheRoot(sonarUserHome))));
+            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, fileCache.CacheRoot())));
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
         if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is not { } unpacker)

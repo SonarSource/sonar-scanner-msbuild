@@ -35,7 +35,7 @@ public class EngineResolver : IEngineResolver
         this.logger = logger;
     }
 
-    public async Task<string> ResolveEngine(ProcessedArgs args, string sonarUserHome)
+    public async Task<string> ResolveEngine(ProcessedArgs args)
     {
         if (args.EngineJarPath is { } enginePath)
         {
@@ -52,7 +52,7 @@ public class EngineResolver : IEngineResolver
             logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
             return null;
         }
-        return fileCache.IsFileCached(sonarUserHome, metadata.ToDescriptor()) switch
+        return fileCache.IsFileCached(metadata.ToDescriptor()) switch
         {
             CacheHit hit => hit.FilePath,
             _ => throw new NotImplementedException("Not yet implemented"),

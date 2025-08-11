@@ -22,5 +22,5 @@ namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
 public interface IEngineResolver
 {
-    Task<string> ResolveEngine(ProcessedArgs args, string sonarUserHome);
+    Task<string> ResolveEngine(ProcessedArgs args);
 }

@@ -24,23 +24,25 @@ public class FileCache : IFileCache
 {
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
+    private readonly string sonarUserHome;
 
-    public FileCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper)
+    public FileCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string sonarUserHome)
     {
         this.directoryWrapper = directoryWrapper;
         this.fileWrapper = fileWrapper;
+        this.sonarUserHome = sonarUserHome;
     }
 
-    public CacheResult IsFileCached(string sonarUserHome, FileDescriptor fileDescriptor)
+    public CacheResult IsFileCached(FileDescriptor fileDescriptor)
     {
-        if (EnsureCacheRoot(sonarUserHome) is { } cacheRoot)
+        if (EnsureCacheRoot() is { } cacheRoot)
         {
             var cacheLocation = CacheLocation(cacheRoot, fileDescriptor);
             return fileWrapper.Exists(cacheLocation) // We do not check the SHA256 of the found file.
                 ? new CacheHit(cacheLocation)
                 : new CacheMiss();
         }
-        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot(sonarUserHome)));
+        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot()));
     }
 
     public string EnsureCacheRoot(string sonarUserHome) =>
@@ -62,7 +64,7 @@ public class FileCache : IFileCache
         }
     }
 
-    public string CacheRoot(string sonarUserHome) =>
+    public string CacheRoot() =>
         Path.Combine(sonarUserHome, "cache");
 
     private static string CacheLocation(string cacheRoot, FileDescriptor fileDescriptor) =>
