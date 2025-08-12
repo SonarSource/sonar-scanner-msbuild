@@ -26,6 +26,8 @@ public class FileCache : IFileCache
     private readonly IFileWrapper fileWrapper;
     private readonly string sonarUserHome;
 
+    public string CacheRoot => Path.Combine(sonarUserHome, "cache");
+
     public FileCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string sonarUserHome)
     {
         this.directoryWrapper = directoryWrapper;
@@ -42,11 +44,11 @@ public class FileCache : IFileCache
                 ? new CacheHit(cacheLocation)
                 : new CacheMiss();
         }
-        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot()));
+        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
     }
 
     public string EnsureCacheRoot() =>
-        EnsureDirectoryExists(CacheRoot());
+        EnsureDirectoryExists(CacheRoot);
 
     public string EnsureDirectoryExists(string directory)
     {
@@ -63,9 +65,6 @@ public class FileCache : IFileCache
             return null;
         }
     }
-
-    public string CacheRoot() =>
-        Path.Combine(sonarUserHome, "cache");
 
     private static string CacheLocation(string cacheRoot, FileDescriptor fileDescriptor) =>
         Path.Combine(cacheRoot, fileDescriptor.Sha256, fileDescriptor.Filename);

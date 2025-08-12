@@ -116,12 +116,8 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void CacheRoot_ExpectedPath_IsReturned()
-    {
-        var result = fileCache.CacheRoot();
-
-        result.Should().Be(sonarUserHomeCache);
-    }
+    public void CacheRoot_ExpectedPath_IsReturned() =>
+        fileCache.CacheRoot.Should().Be(sonarUserHomeCache);
 
     [TestMethod]
     public void IsFileCached_CacheHit_ReturnsFile()

@@ -22,7 +22,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
 public interface IFileCache
 {
-    string CacheRoot();
+    string CacheRoot { get; }
     string EnsureCacheRoot();
     string EnsureDirectoryExists(string directory);
     CacheResult IsFileCached(FileDescriptor fileDescriptor);

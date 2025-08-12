@@ -51,7 +51,7 @@ internal class JreCache(
                 return new CacheMiss();
             }
         }
-        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(fileCache.CacheRoot())));
+        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(fileCache.CacheRoot)));
     }
 
     public async Task<CacheResult> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
@@ -59,7 +59,7 @@ internal class JreCache(
         if (!(fileCache.EnsureCacheRoot() is { } cacheRoot)
             || fileCache.EnsureDirectoryExists(JreRootPath(jreDescriptor, cacheRoot)) is not { } jreDownloadPath)
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, fileCache.CacheRoot())));
+            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, JreRootPath(jreDescriptor, fileCache.CacheRoot)));
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
         if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is not { } unpacker)
