@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.PreProcessor.Caching;
+
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 /// <summary>
 /// The descriptor of the JRE as returned from the server /analysis/jres endpoint.
 /// </summary>
-public readonly record struct JreDescriptor(string Filename, string Sha256, string JavaPath)
+public readonly record struct JreDescriptor(string Filename, string Sha256, string JavaPath) : IFileDescriptor
 {
     public string Filename { get; } = Filename;
     public string Sha256 { get; } = Sha256;

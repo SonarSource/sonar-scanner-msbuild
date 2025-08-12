@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Security.Cryptography;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
@@ -72,6 +73,51 @@ public class FileCache : IFileCache
         }
     }
 
+    public async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, IFileDescriptor descriptor, Func<Task<Stream>> download)
+    {
+        logger.LogDebug(Resources.MSG_StartingJreDownload);
+        // We download to a temporary file in the right folder.
+        // This avoids conflicts, if multiple scanner try to download to the same file.
+        var tempFileName = directoryWrapper.GetRandomFileName();
+        var tempFile = Path.Combine(downloadPath, tempFileName);
+        try
+        {
+            using var fileStream = fileWrapper.Create(tempFile);
+            try
+            {
+                logger.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
+                using var downloadStream = await download();
+                if (downloadStream is null)
+                {
+                    throw new InvalidOperationException(Resources.ERR_JreDownloadStreamNull);
+                }
+                await downloadStream.CopyToAsync(fileStream);
+                fileStream.Close();
+                if (ValidateChecksum(tempFile, descriptor.Sha256))
+                {
+                    fileWrapper.Move(tempFile, downloadTarget);
+                    return null;
+                }
+                else
+                {
+                    throw new CryptographicException(Resources.ERR_JreChecksumMissmatch);
+                }
+            }
+            catch
+            {
+                // Cleanup the temp file
+                EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
+                                          // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
+                TryDeleteFile(tempFile);
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
+    }
+
     public bool ValidateChecksum(string downloadTarget, string sha256)
     {
         try
@@ -85,6 +131,31 @@ public class FileCache : IFileCache
         {
             logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
             return false;
+        }
+    }
+
+    public void TryDeleteFile(string tempFile)
+    {
+        try
+        {
+            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
+            fileWrapper.Delete(tempFile);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
+        }
+    }
+
+    private static void EnsureClosed(Stream fileStream)
+    {
+        try
+        {
+            fileStream.Close();
+        }
+        catch
+        {
+            // If closing the file fails, just move on.
         }
     }
 

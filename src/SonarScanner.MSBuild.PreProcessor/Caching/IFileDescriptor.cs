@@ -20,13 +20,8 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-public interface IFileCache
+public interface IFileDescriptor
 {
-    string CacheRoot { get; }
-    string EnsureCacheRoot();
-    string EnsureDirectoryExists(string directory);
-    CacheResult IsFileCached(FileDescriptor fileDescriptor);
-    bool ValidateChecksum(string downloadTarget, string sha256);
-    Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, IFileDescriptor descriptor, Func<Task<Stream>> download);
-    void TryDeleteFile(string tempFile);
+    string Filename { get; }
+    string Sha256 { get; }
 }
