@@ -85,20 +85,8 @@ public class TrxFileReader
     /// * look for all test results files (*.trx) in a default location under the supplied build directory.
     /// * parse the trx files looking for all code coverage attachment entries
     /// * resolve all the attachment entries to absolute paths</remarks>
-    public IEnumerable<string> FindCodeCoverageFiles(string buildRootDirectory)
+    public IEnumerable<string> FindCodeCoverageFiles(IEnumerable<string> trxFilePaths)
     {
-        if (string.IsNullOrWhiteSpace(buildRootDirectory))
-        {
-            throw new ArgumentNullException(nameof(buildRootDirectory));
-        }
-
-        var trxFilePaths = FindTrxFiles(buildRootDirectory, false);
-
-        if (!trxFilePaths.Any())
-        {
-            return Enumerable.Empty<string>();
-        }
-
         Debug.Assert(trxFilePaths.All(fileWrapper.Exists), "Expecting the specified trx files to exist.");
 
         var coverageReportPaths = GetCoverageAttachments(trxFilePaths)

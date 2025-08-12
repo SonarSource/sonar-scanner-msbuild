@@ -53,17 +53,17 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         {
             throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialized);
         }
-        var trxFilesLocated = false;
+
+        this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+        var trxFilePaths = new TrxFileReader(logger).FindTrxFiles(settings.BuildDirectory);
+
+        var reportsPathsPropertyWritten = false;
         if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, logger) is null)
         {
-            // Fetch all of the report URLs
-            this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
-
-            var trxFilePaths = new TrxFileReader(logger).FindTrxFiles(settings.BuildDirectory);
-            trxFilesLocated = trxFilePaths.Any();
-            if (trxFilesLocated)
+            if (trxFilePaths.Any())
             {
                 WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxFilePaths.ToArray());
+                reportsPathsPropertyWritten = true;
             }
         }
         else
@@ -71,7 +71,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             this.logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
         }
 
-        var vsCoverageFilePaths = FindVsCoverageFiles(trxFilesLocated);
+        var vsCoverageFilePaths = FindVsCoverageFiles(reportsPathsPropertyWritten, trxFilePaths);
         if (vsCoverageFilePaths.Any()
             && TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths)
             && coverageReportPaths.Any()
@@ -83,21 +83,21 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         return true;
     }
 
-    private IEnumerable<string> FindVsCoverageFiles(bool trxFilesLocated)
+    private IEnumerable<string> FindVsCoverageFiles(bool reportsPathsPropertyWritten, IEnumerable<string> trxFilePaths)
     {
-        var binaryFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(settings.BuildDirectory);
-        // Fallback to workaround SONARAZDO-179: if the standard searches for .trx/.coverage failed
-        // then try the fallback method to find coverage files
-        if (!trxFilesLocated && (binaryFilePaths is null || !binaryFilePaths.Any()))
+        var binaryFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(trxFilePaths);
+        if (binaryFilePaths.Any() || reportsPathsPropertyWritten)
         {
-            logger.LogInfo(Resources.TRX_DIAG_NoCoverageFilesFound);
-            binaryFilePaths = searchFallback.FindCoverageFiles();
+            logger.LogDebug(Resources.TRX_DIAG_NotUsingFallback);
+            return binaryFilePaths;
         }
         else
         {
-            logger.LogDebug(Resources.TRX_DIAG_NotUsingFallback);
+            // Fallback to workaround SONARAZDO-179: if the standard searches for .trx/.coverage failed
+            // then try the fallback method to find coverage files
+            logger.LogInfo(Resources.TRX_DIAG_NoCoverageFilesFound);
+            return searchFallback.FindCoverageFiles();
         }
-        return binaryFilePaths;
     }
 
     private bool TryConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths)
