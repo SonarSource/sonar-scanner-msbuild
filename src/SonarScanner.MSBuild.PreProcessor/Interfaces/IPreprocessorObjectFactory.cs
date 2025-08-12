@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -57,5 +54,5 @@ public interface IPreprocessorObjectFactory
     /// <summary>
     /// Creates the component that resolves the JRE path.
     /// </summary>
-    IJreResolver CreateJreResolver(ISonarWebServer server);
+    IJreResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome);
 }

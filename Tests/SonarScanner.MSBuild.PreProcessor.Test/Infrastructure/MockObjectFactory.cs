@@ -92,7 +92,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         return settings;
     }
 
-    public IJreResolver CreateJreResolver(ISonarWebServer server) =>
+    public IJreResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
         JreResolver;
 
     public void AssertMethodCalled(string methodName, int callCount) =>

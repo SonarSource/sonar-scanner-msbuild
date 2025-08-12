@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.Caching;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
@@ -28,7 +25,7 @@ namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
 public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger) : IJreResolver
 {
-    public async Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome)
+    public async Task<string> ResolveJrePath(ProcessedArgs args)
     {
         logger.LogDebug(Resources.MSG_JreResolver_Resolving, string.Empty);
         if (!IsValid(args))
@@ -36,18 +33,18 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
             return null;
         }
 
-        if (await DownloadJre(args, sonarUserHome) is { } jrePath)
+        if (await DownloadJre(args) is { } jrePath)
         {
             return jrePath;
         }
         else
         {
             logger.LogDebug(Resources.MSG_JreResolver_Resolving, " Retrying...");
-            return await DownloadJre(args, sonarUserHome);
+            return await DownloadJre(args);
         }
     }
 
-    private async Task<string> DownloadJre(ProcessedArgs args, string sonarUserHome)
+    private async Task<string> DownloadJre(ProcessedArgs args)
     {
         var metadata = await server.DownloadJreMetadataAsync(args.OperatingSystem, args.Architecture);
         if (metadata is null)
@@ -57,7 +54,7 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
         }
 
         var descriptor = metadata.ToDescriptor();
-        var result = cache.IsJreCached(sonarUserHome, descriptor);
+        var result = cache.IsJreCached(descriptor);
         switch (result)
         {
             case CacheHit hit:
@@ -65,7 +62,7 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
                 return hit.FilePath;
             case CacheMiss:
                 logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
-                return await DownloadJre(metadata, descriptor, sonarUserHome);
+                return await DownloadJre(metadata, descriptor);
             case CacheFailure failure:
                 logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
                 return null;
@@ -74,9 +71,9 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
         throw new NotSupportedException("Cache result is expected to be Hit, Miss, or Failure.");
     }
 
-    private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor, string sonarUserHome)
+    private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor)
     {
-        var result = await cache.DownloadJreAsync(sonarUserHome, descriptor, () => server.DownloadJreAsync(metadata));
+        var result = await cache.DownloadJreAsync(descriptor, () => server.DownloadJreAsync(metadata));
         if (result is CacheHit hit)
         {
             logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.FilePath);

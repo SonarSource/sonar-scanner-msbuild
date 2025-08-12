@@ -151,7 +151,7 @@ public class PreprocessorObjectFactoryTests
     public void CreateJreResolver_Success()
     {
         var sut = new PreprocessorObjectFactory(logger);
-        sut.CreateJreResolver(Substitute.For<ISonarWebServer>()).Should().NotBeNull();
+        sut.CreateJreResolver(Substitute.For<ISonarWebServer>(), "sonarUserHome").Should().NotBeNull();
     }
 
     [TestMethod]

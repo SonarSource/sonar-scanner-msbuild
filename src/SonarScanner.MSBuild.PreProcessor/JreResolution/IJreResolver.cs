@@ -18,11 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
-
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 public interface IJreResolver
 {
-    Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome);
+    Task<string> ResolveJrePath(ProcessedArgs args);
 }

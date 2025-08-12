@@ -100,10 +100,10 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
                                                                string language) =>
         new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger, teamBuildSettings, sonarProperties, rules, language);
 
-    public IJreResolver CreateJreResolver(ISonarWebServer server)
+    public IJreResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome)
     {
         var filePermissionsWrapper = new FilePermissionsWrapper(new OperatingSystemProvider(FileWrapper.Instance, logger));
-        var fileCache = new FileCache(DirectoryWrapper.Instance, FileWrapper.Instance);
+        var fileCache = new FileCache(DirectoryWrapper.Instance, FileWrapper.Instance, sonarUserHome);
         var cache = new JreCache(logger, fileCache, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance, filePermissionsWrapper);
         return new JreResolver(server, cache, logger);
     }

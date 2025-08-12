@@ -88,8 +88,8 @@ public sealed class PreProcessor : IPreProcessor
             return false;
         }
 
-        var jreResolver = factory.CreateJreResolver(server);
-        var resolvedJavaExePath = await jreResolver.ResolveJrePath(localSettings, localSettings.UserHome);
+        var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
+        var resolvedJavaExePath = await jreResolver.ResolveJrePath(localSettings);
 
         var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
         if (!argumentsAndRuleSets.IsSuccess)

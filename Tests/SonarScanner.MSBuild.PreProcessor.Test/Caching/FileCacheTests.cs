@@ -35,7 +35,7 @@ public class FileCacheTests
         sonarUserHomeCache = Path.Combine(sonarUserHome, "cache");
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
         fileWrapper = Substitute.For<IFileWrapper>();
-        fileCache = new FileCache(directoryWrapper, fileWrapper);
+        fileCache = new FileCache(directoryWrapper, fileWrapper, sonarUserHome);
     }
 
     [TestMethod]
@@ -43,7 +43,7 @@ public class FileCacheTests
     {
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
 
-        var cacheRoot = fileCache.EnsureCacheRoot(sonarUserHome);
+        var cacheRoot = fileCache.EnsureCacheRoot();
 
         cacheRoot.Should().Be(sonarUserHomeCache);
         directoryWrapper.Received(1).Exists(sonarUserHomeCache);
@@ -55,7 +55,7 @@ public class FileCacheTests
     {
         directoryWrapper.Exists(sonarUserHomeCache).Returns(true);
 
-        var cacheRoot = fileCache.EnsureCacheRoot(sonarUserHome);
+        var cacheRoot = fileCache.EnsureCacheRoot();
 
         cacheRoot.Should().Be(sonarUserHomeCache);
         directoryWrapper.Received(1).Exists(sonarUserHomeCache);
@@ -68,7 +68,7 @@ public class FileCacheTests
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
         directoryWrapper.When(x => x.CreateDirectory(sonarUserHomeCache)).Throw<IOException>();
 
-        var cacheRoot = fileCache.EnsureCacheRoot(sonarUserHome);
+        var cacheRoot = fileCache.EnsureCacheRoot();
 
         cacheRoot.Should().BeNull();
         directoryWrapper.Received(1).Exists(sonarUserHomeCache);
@@ -116,12 +116,8 @@ public class FileCacheTests
     }
 
     [TestMethod]
-    public void CacheRoot_ExpectedPath_IsReturned()
-    {
-        var result = fileCache.CacheRoot(sonarUserHome);
-
-        result.Should().Be(sonarUserHomeCache);
-    }
+    public void CacheRoot_ExpectedPath_IsReturned() =>
+        fileCache.CacheRoot.Should().Be(sonarUserHomeCache);
 
     [TestMethod]
     public void IsFileCached_CacheHit_ReturnsFile()
@@ -130,7 +126,7 @@ public class FileCacheTests
         var file = Path.Combine(sonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
         fileWrapper.Exists(file).Returns(true);
 
-        var result = fileCache.IsFileCached(sonarUserHome, fileDescriptor);
+        var result = fileCache.IsFileCached(fileDescriptor);
 
         result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
         fileWrapper.Received(1).Exists(file);
@@ -143,7 +139,7 @@ public class FileCacheTests
         var file = Path.Combine(sonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
         fileWrapper.Exists(file).Returns(false);
 
-        var result = fileCache.IsFileCached(sonarUserHome, fileDescriptor);
+        var result = fileCache.IsFileCached(fileDescriptor);
 
         result.Should().BeOfType<CacheMiss>();
         fileWrapper.Received(1).Exists(file);
@@ -156,7 +152,7 @@ public class FileCacheTests
         directoryWrapper.Exists(sonarUserHomeCache).Returns(false);
         directoryWrapper.When(x => x.CreateDirectory(sonarUserHomeCache)).Do(_ => throw new IOException("Disk full"));
 
-        var result = fileCache.IsFileCached(sonarUserHome, fileDescriptor);
+        var result = fileCache.IsFileCached(fileDescriptor);
 
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be($"The file cache directory in '{sonarUserHomeCache}' could not be created.");
     }

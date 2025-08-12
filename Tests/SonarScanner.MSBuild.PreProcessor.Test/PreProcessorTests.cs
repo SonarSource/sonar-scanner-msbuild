@@ -376,7 +376,7 @@ public partial class PreProcessorTests
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
         factory.JreResolver
-            .ResolveJrePath(Arg.Any<ProcessedArgs>(), "homeSweetHome")
+            .ResolveJrePath(Arg.Any<ProcessedArgs>())
             .Returns("some/path/bin/java.exe");
         factory.Server.Data.ServerProperties.Add("shared.key1", "server shared value 1");
         factory.Server.Data.ServerProperties.Add("shared.CASING", "server upper case value");
