@@ -75,7 +75,6 @@ public class FileCache : IFileCache
 
     public async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, IFileDescriptor descriptor, Func<Task<Stream>> download)
     {
-        logger.LogDebug(Resources.MSG_StartingJreDownload);
         // We download to a temporary file in the right folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
         var tempFileName = directoryWrapper.GetRandomFileName();
@@ -89,7 +88,7 @@ public class FileCache : IFileCache
                 using var downloadStream = await download();
                 if (downloadStream is null)
                 {
-                    throw new InvalidOperationException(Resources.ERR_JreDownloadStreamNull);
+                    throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
                 }
                 await downloadStream.CopyToAsync(fileStream);
                 fileStream.Close();
@@ -100,7 +99,7 @@ public class FileCache : IFileCache
                 }
                 else
                 {
-                    throw new CryptographicException(Resources.ERR_JreChecksumMissmatch);
+                    throw new CryptographicException(Resources.ERR_ChecksumMismatch);
                 }
             }
             catch

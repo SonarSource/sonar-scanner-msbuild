@@ -84,6 +84,7 @@ internal class JreCache(
                                                                  string cacheRoot,
                                                                  Func<Task<Stream>> jreDownload)
     {
+        logger.LogDebug(Resources.MSG_StartingJreDownload);
         if (await fileCache.DownloadAndValidateFile(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } exception)
         {
             logger.LogDebug(Resources.ERR_JreDownloadFailed, exception.Message);
@@ -109,7 +110,7 @@ internal class JreCache(
         else
         {
             fileCache.TryDeleteFile(jreArchive);
-            return new CacheFailure(Resources.ERR_JreChecksumMissmatch);
+            return new CacheFailure(Resources.ERR_JreChecksumMismatch);
         }
     }
 

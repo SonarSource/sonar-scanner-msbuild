@@ -402,7 +402,7 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_FileChecksum" xml:space="preserve">
     <value>The checksum of the downloaded file is '{0}' and the expected checksum is '{1}'.</value>
   </data>
-  <data name="ERR_JreChecksumMissmatch" xml:space="preserve">
+  <data name="ERR_JreChecksumMismatch" xml:space="preserve">
     <value>The checksum of the downloaded Java runtime environment does not match the expected checksum.</value>
   </data>
   <data name="ERR_ChecksumCalculationFailed" xml:space="preserve">
@@ -501,7 +501,7 @@ If the intention was to connect to the local SonarQube instance, please add the 
 JRE provisioned: {0}.
 If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=&lt;PATH&gt;".</value>
   </data>
-  <data name="ERR_JreDownloadStreamNull" xml:space="preserve">
+  <data name="ERR_DownloadStreamNull" xml:space="preserve">
     <value>The download stream is null. The server likely returned an error status code.</value>
   </data>
   <data name="ERROR_InvalidScanAllAnalysis" xml:space="preserve">
@@ -612,5 +612,8 @@ Check the certificates in the truststore file '{1}' specified via the {2} parame
   </data>
   <data name="MSG_EngineResolver_MetadataFailure" xml:space="preserve">
     <value>EngineResolver: Metadata could not be retrieved.</value>
+  </data>
+  <data name="ERR_ChecksumMismatch" xml:space="preserve">
+    <value>The checksum of the downloaded file does not match the expected checksum.</value>
   </data>
 </root>
