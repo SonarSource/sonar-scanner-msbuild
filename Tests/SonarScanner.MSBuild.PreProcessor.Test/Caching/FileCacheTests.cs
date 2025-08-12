@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+using Humanizer;
+using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching.Test;
@@ -161,5 +164,53 @@ public class FileCacheTests
         var result = fileCache.IsFileCached(fileDescriptor);
 
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be($"The file cache directory in '{sonarUserHomeCache}' could not be created.");
+    }
+
+    [TestMethod]
+    public void ValidateChecksum_ValidChecksum_ReturnsTrue()
+    {
+        var sha256 = "validsha256";
+
+        ExecuteValidateChecksumTest(sha256, sha256, true);
+
+        testLogger.AssertDebugLogged(Resources.MSG_FileChecksum.FormatWith(sha256, sha256));
+    }
+
+    [TestMethod]
+    public void ValidateChecksum_InvalidChecksum_ReturnsFalse()
+    {
+        var returnedSha = "invalidsha";
+        var expectedSha = "otherSha";
+
+        ExecuteValidateChecksumTest(returnedSha, expectedSha, false);
+
+        testLogger.AssertDebugLogged(Resources.MSG_FileChecksum.FormatWith(returnedSha, expectedSha));
+    }
+
+    [TestMethod]
+    public void ValidateChecksum_ChecksumCalculationFails_ReturnsFalse()
+    {
+        var downloadTarget = "some.file";
+
+        ExecuteValidateChecksumTest(null, "sha256", false, downloadTarget);
+
+        testLogger.AssertDebugLogged(Resources.ERR_ChecksumCalculationFailed.FormatWith(downloadTarget, "Operation is not valid due to the current state of the object."));
+    }
+
+    private void ExecuteValidateChecksumTest(string returnedSha, string expectedSha, bool expectSucces, string downloadTarget = "some.file")
+    {
+        using var stream = new MemoryStream();
+        fileWrapper.Open(downloadTarget).Returns(stream);
+        if (returnedSha is null)
+        {
+            checksum.ComputeHash(stream).Throws<InvalidOperationException>();
+        }
+        else
+        {
+            checksum.ComputeHash(stream).Returns(returnedSha);
+        }
+        fileCache.ValidateChecksum(downloadTarget, expectedSha).Should().Be(expectSucces);
+        fileWrapper.Received(1).Open(downloadTarget);
+        checksum.Received(1).ComputeHash(stream);
     }
 }
