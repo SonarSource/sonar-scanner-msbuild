@@ -78,7 +78,7 @@ public class CoverageReportProcessorTests
     {
         // Arrange
         var analysisConfig = new AnalysisConfig();
-        Action act = () => processor.Initialise(analysisConfig, null, string.Empty);
+        Action act = () => processor.Initialize(analysisConfig, null, string.Empty);
 
         // Act & Assert
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
@@ -94,7 +94,7 @@ public class CoverageReportProcessorTests
 
         // Set up the factory to return a processor that returns success
         var processor = Substitute.For<ICoverageReportProcessor>();
-        processor.Initialise(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>()).Returns(true);
+        processor.Initialize(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>()).Returns(true);
         processor.ProcessCoverageReports(logger).Returns(true);
         legacyFactory.BuildTfsLegacyCoverageReportProcessor().Returns(processor);
 
@@ -103,7 +103,7 @@ public class CoverageReportProcessorTests
             scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
 
             var testSubject = new CoverageReportProcessor(legacyFactory, reportConverter, logger);
-            testSubject.Initialise(analysisConfig, settingsMock, string.Empty);
+            testSubject.Initialize(analysisConfig, settingsMock, string.Empty);
 
             // Act
             var result = testSubject.ProcessCoverageReports(logger);
@@ -111,7 +111,7 @@ public class CoverageReportProcessorTests
             // Assert
             result.Should().BeTrue();
             legacyFactory.Received(1).BuildTfsLegacyCoverageReportProcessor();
-            processor.Received(1).Initialise(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>());
+            processor.Received(1).Initialize(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>());
             processor.Received(1).ProcessCoverageReports(logger);
         }
     }
@@ -129,7 +129,7 @@ public class CoverageReportProcessorTests
             scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
 
             var testSubject = new CoverageReportProcessor(legacyFactory, reportConverter, logger);
-            testSubject.Initialise(analysisConfig, settingsMock, string.Empty);
+            testSubject.Initialize(analysisConfig, settingsMock, string.Empty);
 
             // Act
             var result = false;
@@ -153,7 +153,7 @@ public class CoverageReportProcessorTests
         var logger = new TestLogger();
 
         var testSubject = new CoverageReportProcessor(legacyFactory, reportConverter, logger);
-        testSubject.Initialise(analysisConfig, settings, string.Empty);
+        testSubject.Initialize(analysisConfig, settings, string.Empty);
 
         // Act
         var result = false;

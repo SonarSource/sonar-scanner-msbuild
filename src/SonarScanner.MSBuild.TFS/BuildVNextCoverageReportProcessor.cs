@@ -18,63 +18,112 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
-
 namespace SonarScanner.MSBuild.TFS;
 
-public class BuildVNextCoverageReportProcessor : CoverageReportProcessorBase
+public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
 {
-    internal bool TrxFilesLocated { get; private set; }
-
-    private readonly IBuildVNextCoverageSearchFallback searchFallback;
+    private const string XmlReportFileExtension = "coveragexml";
+    private readonly ICoverageReportConverter converter;
+    private readonly ILogger logger;
+    private readonly BuildVNextCoverageSearchFallback searchFallback;
+    private AnalysisConfig config;
+    private IBuildSettings settings;
+    private string propertiesFilePath;
+    private bool successfullyInitialized;
 
     public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, ILogger logger)
-        : this(converter, logger, new BuildVNextCoverageSearchFallback(logger))
     {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
+        searchFallback = new BuildVNextCoverageSearchFallback(logger);
     }
 
-    internal /* for testing */ BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, ILogger logger,
-        IBuildVNextCoverageSearchFallback searchFallback)
-        : base(converter, logger)
+    public bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
     {
-        this.searchFallback = searchFallback;
+        this.config = config ?? throw new ArgumentNullException(nameof(config));
+        this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        this.propertiesFilePath = propertiesFilePath ?? throw new ArgumentNullException(nameof(propertiesFilePath));
+        successfullyInitialized = true;
+        return successfullyInitialized;
     }
 
-    protected override bool TryGetVsCoverageFiles(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths)
+    public bool ProcessCoverageReports(ILogger logger)
     {
-        binaryFilePaths = new TrxFileReader(Logger).FindCodeCoverageFiles(settings.BuildDirectory);
-
-        // Fallback to workround SONARAZDO-179: if the standard searches for .trx/.converage failed
-        // then try the fallback method to find coverage files
-        if (!TrxFilesLocated && (binaryFilePaths == null || !binaryFilePaths.Any()))
+        if (!successfullyInitialized)
         {
-            Logger.LogInfo("Did not find any binary coverage files in the expected location.");
+            throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialized);
+        }
+        var trxFilesLocated = false;
+        if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, logger) is null)
+        {
+            // Fetch all of the report URLs
+            this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+
+            var trxFilePaths = new TrxFileReader(logger).FindTrxFiles(settings.BuildDirectory);
+            trxFilesLocated = trxFilePaths.Any();
+            if (trxFilesLocated)
+            {
+                WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxFilePaths.ToArray());
+            }
+        }
+        else
+        {
+            this.logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
+        }
+
+        var vsCoverageFilePaths = FindVsCoverageFiles(trxFilesLocated);
+        if (vsCoverageFilePaths.Any()
+            && TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths)
+            && coverageReportPaths.Any()
+            && config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) is null)
+        {
+            WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, coverageReportPaths.ToArray());
+        }
+
+        return true;
+    }
+
+    private IEnumerable<string> FindVsCoverageFiles(bool trxFilesLocated)
+    {
+        var binaryFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(settings.BuildDirectory);
+        // Fallback to workaround SONARAZDO-179: if the standard searches for .trx/.coverage failed
+        // then try the fallback method to find coverage files
+        if (!trxFilesLocated && (binaryFilePaths is null || !binaryFilePaths.Any()))
+        {
+            logger.LogInfo(Resources.TRX_DIAG_NoCoverageFilesFound);
             binaryFilePaths = searchFallback.FindCoverageFiles();
         }
         else
         {
-            Logger.LogDebug("Not using the fallback mechanism to detect binary coverage files.");
+            logger.LogDebug(Resources.TRX_DIAG_NotUsingFallback);
         }
-
-        return true; // there aren't currently any conditions under which we'd want to stop processing
+        return binaryFilePaths;
     }
 
-    protected override bool TryGetTrxFiles(IBuildSettings settings, out IEnumerable<string> trxFilePaths)
+    private bool TryConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths)
     {
-        trxFilePaths = new TrxFileReader(Logger).FindTrxFiles(settings.BuildDirectory);
-
-        TrxFilesLocated = trxFilePaths != null && trxFilePaths.Any();
+        var xmlFileNames = new List<string>();
+        foreach (var vsCoverageFilePath in vsCoverageFilePaths)
+        {
+            var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
+            if (File.Exists(xmlFilePath))
+            {
+                logger.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
+            }
+            else
+            {
+                if (!converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
+                {
+                    vsCoverageXmlPaths = [];
+                    return false;
+                }
+            }
+            xmlFileNames.Add(xmlFilePath);
+        }
+        vsCoverageXmlPaths = xmlFileNames;
         return true;
     }
 
-    // We can't make the override internal, so this is a pass-through for testing
-    internal /* for testing */ bool TryGetVsCoverageFilesAccessor(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> binaryFilePaths) =>
-        TryGetVsCoverageFiles(config, settings, out binaryFilePaths);
-
-    internal /* for testing */ bool TryGetTrxFilesAccessor(AnalysisConfig config, IBuildSettings settings, out IEnumerable<string> trxFilePaths) =>
-        this.TryGetTrxFiles(settings, out trxFilePaths);
-
+    private static void WriteProperty(string propertiesFilePath, string property, string[] paths) =>
+        File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
 }
