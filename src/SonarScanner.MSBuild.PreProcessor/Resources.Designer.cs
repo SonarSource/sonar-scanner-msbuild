@@ -124,6 +124,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The calculation of the checksum of the file &apos;{0}&apos; failed with message &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_ChecksumCalculationFailed {
+            get {
+                return ResourceManager.GetString("ERR_ChecksumCalculationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Detected SonarCloud but server was found to be SonarQube. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
         /// </summary>
         internal static string ERR_DetectedErroneouslySonarCloud {
@@ -201,15 +210,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERR_JreArchiveFormatNotSupported {
             get {
                 return ResourceManager.GetString("ERR_JreArchiveFormatNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The calculation of the checksum of the file &apos;{0}&apos; failed with message &apos;{1}&apos;..
-        /// </summary>
-        internal static string ERR_JreChecksumCalculationFailed {
-            get {
-                return ResourceManager.GetString("ERR_JreChecksumCalculationFailed", resourceCulture);
             }
         }
         

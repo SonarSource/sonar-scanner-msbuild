@@ -83,7 +83,7 @@ public class FileCache : IFileCache
         }
         catch (Exception ex)
         {
-            logger.LogDebug(Resources.ERR_JreChecksumCalculationFailed, downloadTarget, ex.Message);
+            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
             return false;
         }
     }
