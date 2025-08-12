@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
-using Humanizer;
 using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
@@ -173,7 +171,9 @@ public class FileCacheTests
 
         ExecuteValidateChecksumTest(sha256, sha256, true);
 
-        testLogger.AssertDebugLogged(Resources.MSG_FileChecksum.FormatWith(sha256, sha256));
+        testLogger.AssertDebugLogged($"""
+            The checksum of the downloaded file is '{sha256}' and the expected checksum is '{sha256}'.
+            """);
     }
 
     [TestMethod]
@@ -184,7 +184,9 @@ public class FileCacheTests
 
         ExecuteValidateChecksumTest(returnedSha, expectedSha, false);
 
-        testLogger.AssertDebugLogged(Resources.MSG_FileChecksum.FormatWith(returnedSha, expectedSha));
+        testLogger.AssertDebugLogged($"""
+            The checksum of the downloaded file is '{returnedSha}' and the expected checksum is '{expectedSha}'.
+            """);
     }
 
     [TestMethod]
@@ -194,7 +196,9 @@ public class FileCacheTests
 
         ExecuteValidateChecksumTest(null, "sha256", false, downloadTarget);
 
-        testLogger.AssertDebugLogged(Resources.ERR_ChecksumCalculationFailed.FormatWith(downloadTarget, "Operation is not valid due to the current state of the object."));
+        testLogger.AssertDebugLogged($"""
+            The calculation of the checksum of the file '{downloadTarget}' failed with message 'Operation is not valid due to the current state of the object.'.
+            """);
     }
 
     private void ExecuteValidateChecksumTest(string returnedSha, string expectedSha, bool expectSucces, string downloadTarget = "some.file")
