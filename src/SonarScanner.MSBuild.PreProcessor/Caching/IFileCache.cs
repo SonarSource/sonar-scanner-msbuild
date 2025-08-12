@@ -26,4 +26,5 @@ public interface IFileCache
     string EnsureCacheRoot();
     string EnsureDirectoryExists(string directory);
     CacheResult IsFileCached(FileDescriptor fileDescriptor);
+    bool ValidateChecksum(string downloadTarget, string sha256);
 }

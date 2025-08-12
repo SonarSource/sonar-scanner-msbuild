@@ -30,7 +30,6 @@ internal class JreCache(
     IFileCache fileCache,
     IDirectoryWrapper directoryWrapper,
     IFileWrapper fileWrapper,
-    IChecksum checksum,
     IUnpackerFactory unpackerFactory,
     IFilePermissionsWrapper filePermissionsWrapper) : IJreCache
 {
@@ -121,7 +120,7 @@ internal class JreCache(
                 }
                 await downloadStream.CopyToAsync(fileStream);
                 fileStream.Close();
-                if (ValidateChecksum(tempFile, descriptor.Sha256))
+                if (fileCache.ValidateChecksum(tempFile, descriptor.Sha256))
                 {
                     fileWrapper.Move(tempFile, downloadTarget);
                     return null;
@@ -173,7 +172,7 @@ internal class JreCache(
 
     private CacheResult ValidateAndUnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor, string cacheRoot)
     {
-        if (ValidateChecksum(jreArchive, jreDescriptor.Sha256))
+        if (fileCache.ValidateChecksum(jreArchive, jreDescriptor.Sha256))
         {
             return UnpackJre(unpacker, jreArchive, jreDescriptor, cacheRoot);
         }
@@ -224,22 +223,6 @@ internal class JreCache(
         catch (Exception ex)
         {
             logger.LogDebug(Resources.ERR_JreExtractionCleanupFailed, tempExtractionPath, ex.Message);
-        }
-    }
-
-    private bool ValidateChecksum(string downloadTarget, string sha256)
-    {
-        try
-        {
-            using var fs = fileWrapper.Open(downloadTarget);
-            var fileChecksum = checksum.ComputeHash(fs);
-            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
-            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug(Resources.ERR_JreChecksumCalculationFailed, downloadTarget, ex.Message);
-            return false;
         }
     }
 

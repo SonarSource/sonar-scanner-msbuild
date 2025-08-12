@@ -18,21 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
+
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
 public class FileCache : IFileCache
 {
+    private readonly IChecksum checksum;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
+    private readonly ILogger logger;
     private readonly string sonarUserHome;
 
     public string CacheRoot => Path.Combine(sonarUserHome, "cache");
 
-    public FileCache(IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, string sonarUserHome)
+    public FileCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, string sonarUserHome)
     {
+        this.logger = logger;
         this.directoryWrapper = directoryWrapper;
         this.fileWrapper = fileWrapper;
         this.sonarUserHome = sonarUserHome;
+        this.checksum = checksum;
     }
 
     public CacheResult IsFileCached(FileDescriptor fileDescriptor)
@@ -63,6 +69,22 @@ public class FileCache : IFileCache
         catch
         {
             return null;
+        }
+    }
+
+    public bool ValidateChecksum(string downloadTarget, string sha256)
+    {
+        try
+        {
+            using var fs = fileWrapper.Open(downloadTarget);
+            var fileChecksum = checksum.ComputeHash(fs);
+            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
+            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
+            return false;
         }
     }
 

@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ExceptionExtensions;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
+
 namespace SonarScanner.MSBuild.PreProcessor.Caching.Test;
 
 [TestClass]
@@ -25,17 +28,21 @@ public class FileCacheTests
 {
     private readonly string sonarUserHome;
     private readonly string sonarUserHomeCache;
+    private readonly IChecksum checksum;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
     private readonly FileCache fileCache;
+    private readonly TestLogger testLogger;
 
     public FileCacheTests()
     {
+        testLogger = new TestLogger();
+        checksum = Substitute.For<IChecksum>();
         sonarUserHome = Path.Combine("home", ".sonar");
         sonarUserHomeCache = Path.Combine(sonarUserHome, "cache");
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
         fileWrapper = Substitute.For<IFileWrapper>();
-        fileCache = new FileCache(directoryWrapper, fileWrapper, sonarUserHome);
+        fileCache = new FileCache(testLogger, directoryWrapper, fileWrapper, checksum, sonarUserHome);
     }
 
     [TestMethod]
@@ -155,5 +162,59 @@ public class FileCacheTests
         var result = fileCache.IsFileCached(fileDescriptor);
 
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be($"The file cache directory in '{sonarUserHomeCache}' could not be created.");
+    }
+
+    [TestMethod]
+    public void ValidateChecksum_ValidChecksum_ReturnsTrue()
+    {
+        var sha256 = "validsha256";
+
+        ExecuteValidateChecksumTest(sha256, sha256, true);
+
+        testLogger.AssertDebugLogged($"""
+            The checksum of the downloaded file is '{sha256}' and the expected checksum is '{sha256}'.
+            """);
+    }
+
+    [TestMethod]
+    public void ValidateChecksum_InvalidChecksum_ReturnsFalse()
+    {
+        var returnedSha = "invalidsha";
+        var expectedSha = "otherSha";
+
+        ExecuteValidateChecksumTest(returnedSha, expectedSha, false);
+
+        testLogger.AssertDebugLogged($"""
+            The checksum of the downloaded file is '{returnedSha}' and the expected checksum is '{expectedSha}'.
+            """);
+    }
+
+    [TestMethod]
+    public void ValidateChecksum_ChecksumCalculationFails_ReturnsFalse()
+    {
+        var downloadTarget = "some.file";
+
+        ExecuteValidateChecksumTest(null, "sha256", false, downloadTarget);
+
+        testLogger.AssertDebugLogged($"""
+            The calculation of the checksum of the file '{downloadTarget}' failed with message 'Operation is not valid due to the current state of the object.'.
+            """);
+    }
+
+    private void ExecuteValidateChecksumTest(string returnedSha, string expectedSha, bool expectSucces, string downloadTarget = "some.file")
+    {
+        using var stream = new MemoryStream();
+        fileWrapper.Open(downloadTarget).Returns(stream);
+        if (returnedSha is null)
+        {
+            checksum.ComputeHash(stream).Throws<InvalidOperationException>();
+        }
+        else
+        {
+            checksum.ComputeHash(stream).Returns(returnedSha);
+        }
+        fileCache.ValidateChecksum(downloadTarget, expectedSha).Should().Be(expectSucces);
+        fileWrapper.Received(1).Open(downloadTarget);
+        checksum.Received(1).ComputeHash(stream);
     }
 }
