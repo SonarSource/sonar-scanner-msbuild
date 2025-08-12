@@ -33,6 +33,7 @@ public class BuildVNextCoverageReportProcessorTests
         TestAndCoverageXmlReportsPathsNotNull
     }
 
+    private readonly TestContext testContext;
     private readonly AnalysisConfig analysisConfig = new();
     private readonly TestLogger testLogger = new();
     private readonly MockReportConverter converter = new();
@@ -45,8 +46,9 @@ public class BuildVNextCoverageReportProcessorTests
 
     private BuildVNextCoverageReportProcessor sut;
 
-    public BuildVNextCoverageReportProcessorTests()
+    public BuildVNextCoverageReportProcessorTests(TestContext testContext)
     {
+        this.testContext = testContext;
         var testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
         testResultsDir = Directory.CreateDirectory(Path.Combine(testDir, "TestResults")).FullName;
         coverageDir = Directory.CreateDirectory(Path.Combine(testResultsDir, "dummy", "In")).FullName;
@@ -55,7 +57,7 @@ public class BuildVNextCoverageReportProcessorTests
         settings.BuildDirectory = testDir;
         sut = new BuildVNextCoverageReportProcessor(converter, testLogger);
         sut.Initialize(analysisConfig, settings, propertiesFilePath);
-        environmentVariableScope.SetVariable(BuildVNextCoverageSearchFallback.AgentTempDirectory, alternateCoverageDir);  // setup search fallback
+        environmentVariableScope.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, alternateCoverageDir);  // setup search fallback
     }
 
     [TestCleanup]
@@ -368,6 +370,168 @@ public class BuildVNextCoverageReportProcessorTests
         converter.AssertConvertNotCalled();
         AssertUsesFallback();
         File.Exists(propertiesFilePath).Should().BeFalse();
+    }
+    [TestMethod]
+    public void AgentDirectory_CalculatedCorrectly_Null()
+    {
+        using var envVars = new EnvironmentVariableScope();
+        // env var not specified -> null
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, null);
+        sut.CheckAgentTempDirectory().Should().BeNull();
+    }
+
+    [TestMethod]
+    public void AgentDirectory_CalculatedCorrectly_NonExisting()
+    {
+        var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
+        var envDir = Path.Combine(rootDir, "DirSpecifiedInEnvDir");
+
+        using var envVars = new EnvironmentVariableScope();
+        // Env var set but dir does not exist -> null
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, envDir);
+        sut.CheckAgentTempDirectory().Should().BeNull();
+    }
+
+    [TestMethod]
+    public void AgentDirectory_CalculatedCorrectly_Existing()
+    {
+        var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
+        var envDir = Path.Combine(rootDir, "DirSpecifiedInEnvDir");
+
+        using var envVars = new EnvironmentVariableScope();
+        // Env var set and dir exists -> dir returned
+        Directory.CreateDirectory(envDir);
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, envDir);
+        sut.CheckAgentTempDirectory().Should().Be(envDir);
+    }
+
+    [TestCategory(TestCategories.NoLinux)]
+    [TestMethod]
+    public void FindFallbackCoverageFiles_FilesLocatedCorrectly_Windows_Mac()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
+        var subDir = Path.Combine(dir, "subDir", "subDir2");
+        Directory.CreateDirectory(subDir);
+
+        TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");              // wrong file extension
+        TestUtils.CreateTextFile(dir, "abc.trx", "2");                      // wrong file extension
+        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
+        var lowerCasePath = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
+        var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
+        var duplicate1FilePath = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
+        var duplicate2FilePath = TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");
+
+        using var envVars = new EnvironmentVariableScope();
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, dir);
+        sut.FindFallbackCoverageFiles().Should().Satisfy(
+            x => x == lowerCasePath,
+            x => x == upperCasePath,
+            x => x == duplicate1FilePath || x == duplicate2FilePath);
+    }
+
+    [TestCategory(TestCategories.NoWindows)]
+    [TestCategory(TestCategories.NoMacOS)]
+    [TestMethod]
+    public void FindFallbackCoverageFiles_FilesLocatedCorrectly_Linux()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
+        var subDir = Path.Combine(dir, "subDir", "subDir2");
+        Directory.CreateDirectory(subDir);
+
+        TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");              // wrong file extension
+        TestUtils.CreateTextFile(dir, "abc.trx", "2");                      // wrong file extension
+        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
+        var lowerCasePath = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
+        var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
+        var duplicate1FilePath = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
+        var duplicate2FilePath = TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");
+
+        using var envVars = new EnvironmentVariableScope();
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, dir);
+        sut.FindFallbackCoverageFiles().Should().Satisfy(
+            x => x == lowerCasePath,    // should also find upperCasePath but does not due to case-sensitivity
+            x => x == duplicate1FilePath || x == duplicate2FilePath);
+    }
+
+    [TestMethod]
+    public void FindFallbackCoverageFiles_CalculatesAndDeDupesOnContentCorrectly()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
+        var subDir = Path.Combine(dir, "subDir", "subDir2");
+        Directory.CreateDirectory(subDir);
+
+        var file1 = "file1.coverage";
+        var file2 = "file2.coverage";
+        var file3 = "file3.coverage";
+        var file1Duplicate = "file1Duplicate.coverage";
+        var filePath1 = TestUtils.CreateTextFile(dir, file1, file1);
+        var filePath2 = TestUtils.CreateTextFile(dir, file2, file2);
+        var filePath3 = TestUtils.CreateTextFile(dir, file3, file3);
+        var filePath1Duplicate = TestUtils.CreateTextFile(dir, file1Duplicate, file1);
+        var filePath1SubDir = TestUtils.CreateTextFile(subDir, file1, file1);
+
+        using var envVars = new EnvironmentVariableScope();
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, dir);
+        var result = sut.FindFallbackCoverageFiles().ToList();
+        result.Should().HaveCount(3, "the 5 files should be de-duped based on content hash.");
+        result.Should().Satisfy(
+            x => x == filePath1 || x == filePath1Duplicate || x == filePath1SubDir,
+            x => x == filePath2,
+            x => x == filePath3);
+    }
+
+    [TestMethod]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2 }, true)]
+    [DataRow(new byte[] { 1, 2, 3 }, new byte[] { 1, 2 }, false)]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2, 3 }, false)]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 3 }, false)]
+    [DataRow(new byte[] { }, new byte[] { 1 }, false)]
+    public void FileHashComparer_SimpleComparisons_DifferentHashes(byte[] hash1, byte[] hash2, bool expected)
+    {
+        var testSubject = new BuildVNextCoverageReportProcessor.FileHashComparer();
+        testSubject.Equals(
+            new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path1.txt", hash1),
+            new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path2.txt", hash2))
+            .Should().Be(expected);
+    }
+
+    [TestMethod]
+    [DataRow("File.txt", "File.txt")]
+    [DataRow("File.txt", "FileOther.txt")]
+    [DataRow("FileOther.txt", "File.txt")]
+    [DataRow("File.txt", null)]
+    [DataRow("File.txt", "")]
+    [DataRow("", "File.txt")]
+    [DataRow(null, "File.txt")]
+    public void FileHashComparer_SimpleComparisons_SameHash_Filenames(string fileName1, string fileName2)
+    {
+        var testSubject = new BuildVNextCoverageReportProcessor.FileHashComparer();
+
+        // file name is not considered by the FileHashComparer, only the hash
+        testSubject.Equals(
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName1, [1, 2]),
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName2, [1, 2]))
+            .Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void FileHashComparer_CorrectlyDeDupesList()
+    {
+        var comparer = new BuildVNextCoverageReportProcessor.FileHashComparer();
+        BuildVNextCoverageReportProcessor.FileWithContentHash[] input =
+        [
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1]),
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1]),
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2]),
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2]),
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2, 3]),
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2, 3])
+        ];
+
+        input.Distinct(comparer).Should().BeEquivalentTo([
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1]),
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2]),
+            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2, 3])]);
     }
 
     private void SetupSettingsAndFiles(Settings settings, bool trx = false, bool coverage = false, bool coverageXml = false, bool alternate = false, bool alternateXml = false)
