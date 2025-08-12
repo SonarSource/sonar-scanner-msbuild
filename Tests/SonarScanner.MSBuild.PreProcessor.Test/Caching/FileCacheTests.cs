@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
+
 namespace SonarScanner.MSBuild.PreProcessor.Caching.Test;
 
 [TestClass]
@@ -25,17 +27,21 @@ public class FileCacheTests
 {
     private readonly string sonarUserHome;
     private readonly string sonarUserHomeCache;
+    private readonly IChecksum checksum;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
     private readonly FileCache fileCache;
+    private readonly TestLogger testLogger;
 
     public FileCacheTests()
     {
+        testLogger = new TestLogger();
+        checksum = Substitute.For<IChecksum>();
         sonarUserHome = Path.Combine("home", ".sonar");
         sonarUserHomeCache = Path.Combine(sonarUserHome, "cache");
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
         fileWrapper = Substitute.For<IFileWrapper>();
-        fileCache = new FileCache(directoryWrapper, fileWrapper, sonarUserHome);
+        fileCache = new FileCache(testLogger, directoryWrapper, fileWrapper, checksum, sonarUserHome);
     }
 
     [TestMethod]
