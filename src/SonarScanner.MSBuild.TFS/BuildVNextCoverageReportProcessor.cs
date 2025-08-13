@@ -115,7 +115,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             });
 
         files = fileWithContentHashes
-            .Distinct(new FileHashComparer())
+            .Distinct()
             .Select(x => x.FullFilePath)
             .ToArray();
 
@@ -194,19 +194,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
     private static void WriteProperty(string propertiesFilePath, string property, string[] paths) =>
         File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
 
-    /// <summary>
-    /// Compares file name and content hash tuples based on their hashes.
-    /// </summary>
-    internal class FileHashComparer : IEqualityComparer<FileWithContentHash>
-    {
-        public bool Equals(FileWithContentHash x, FileWithContentHash y) =>
-            x.ContentHash.SequenceEqual(y.ContentHash);
-
-        // We solely rely on `Equals`
-        public int GetHashCode(FileWithContentHash obj) => 0;
-    }
-
-    internal class FileWithContentHash
+    internal /* for testing */ class FileWithContentHash
     {
         public string FullFilePath { get; }
         public byte[] ContentHash { get; }
@@ -216,5 +204,12 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             FullFilePath = fullFilePath;
             ContentHash = contentHash;
         }
+
+        public override bool Equals(object obj) =>
+            obj is FileWithContentHash other
+            && ContentHash.SequenceEqual(other.ContentHash);
+
+        // We solely rely on `Equals`
+        public override int GetHashCode() => 0;
     }
 }

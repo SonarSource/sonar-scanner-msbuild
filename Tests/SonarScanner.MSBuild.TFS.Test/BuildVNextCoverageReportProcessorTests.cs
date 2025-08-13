@@ -481,19 +481,14 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2 }, true)]
-    [DataRow(new byte[] { 1, 2, 3 }, new byte[] { 1, 2 }, false)]
-    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2, 3 }, false)]
-    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 3 }, false)]
-    [DataRow(new byte[] { }, new byte[] { 1 }, false)]
-    public void FileHashComparer_SimpleComparisons_DifferentHashes(byte[] hash1, byte[] hash2, bool expected)
-    {
-        var testSubject = new BuildVNextCoverageReportProcessor.FileHashComparer();
-        testSubject.Equals(
-            new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path1.txt", hash1),
-            new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path2.txt", hash2))
-            .Should().Be(expected);
-    }
+    [DataRow(new byte[] { 1, 2, 3 }, new byte[] { 1, 2 })]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2, 3 })]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 3 })]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 2, 1 })]
+    [DataRow(new byte[] { }, new byte[] { 1 })]
+    public void FileWithContentHash_Equals_DifferentHash_False(byte[] hash1, byte[] hash2) =>
+        new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", hash1).Should()
+            .NotBe(new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", hash2));
 
     [TestMethod]
     [DataRow("File.txt", "File.txt")]
@@ -503,36 +498,9 @@ public class BuildVNextCoverageReportProcessorTests
     [DataRow("File.txt", "")]
     [DataRow("", "File.txt")]
     [DataRow(null, "File.txt")]
-    public void FileHashComparer_SimpleComparisons_SameHash_Filenames(string fileName1, string fileName2)
-    {
-        var testSubject = new BuildVNextCoverageReportProcessor.FileHashComparer();
-
-        // file name is not considered by the FileHashComparer, only the hash
-        testSubject.Equals(
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName1, [1, 2]),
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName2, [1, 2]))
-            .Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void FileHashComparer_CorrectlyDeDupesList()
-    {
-        var comparer = new BuildVNextCoverageReportProcessor.FileHashComparer();
-        BuildVNextCoverageReportProcessor.FileWithContentHash[] input =
-        [
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1]),
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1]),
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2]),
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2]),
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2, 3]),
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2, 3])
-        ];
-
-        input.Distinct(comparer).Should().BeEquivalentTo([
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1]),
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2]),
-            new BuildVNextCoverageReportProcessor.FileWithContentHash(string.Empty, [1, 2, 3])]);
-    }
+    public void FileWithContentHash_Equals_SameHash_True(string fileName1, string fileName2) =>
+        new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName1, [1, 2]).Should()
+            .Be(new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName2, [1, 2]));
 
     private void SetupSettingsAndFiles(Settings settings, bool trx = false, bool coverage = false, bool coverageXml = false, bool alternate = false, bool alternateXml = false)
     {
