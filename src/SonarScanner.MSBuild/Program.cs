@@ -42,9 +42,9 @@ public static class Program
     {
         Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
 #if NETFRAMEWORK
-        logger.LogInfo("Using the .NET Framework version of the Scanner for MSBuild");
+        logger.LogInfo("Using the .NET Framework version of the Scanner for .NET");
 #else
-        logger.LogInfo("Using the .NET Core version of the Scanner for MSBuild");
+        logger.LogInfo("Using the .NET Core version of the Scanner for .NET");
 #endif
 
         logger.SuspendOutput();

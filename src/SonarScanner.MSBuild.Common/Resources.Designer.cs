@@ -107,7 +107,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The property &apos;{0}&apos; is automatically set by the SonarScanner for MSBuild and cannot be overridden on the command line..
+        ///   Looks up a localized string similar to The property &apos;{0}&apos; is automatically set by the SonarScanner for .NET and cannot be overridden on the command line..
         /// </summary>
         internal static string ERROR_CmdLine_CannotSetPropertyOnCommandLine {
             get {

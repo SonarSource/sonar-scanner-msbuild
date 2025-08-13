@@ -162,24 +162,16 @@ public class SummaryReportBuilderTests
         var hostUrl = "http://mySonarQube:9000";
         var result = new ProjectInfoAnalysisResult();
         var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
-
-        // Arrange
         var settings = new MockBuildSettings
         {
             BuildEnvironment = BuildEnvironment.LegacyTeamBuild
         };
-
         var summaryLogger = new MockLegacyBuildSummaryLogger();
-        var builder = new SummaryReportBuilder(
-            new MockLegacyTeamBuildFactory(summaryLogger, null), new TestLogger());
-
+        var builder = new SummaryReportBuilder(new MockLegacyTeamBuildFactory(summaryLogger, null), new TestLogger());
         config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
-
-        // Act
         builder.GenerateReports(settings, config, result.RanToCompletion, result.FullPropertiesFilePath, testLogger);
 
-        // Assert
-        summaryLogger.Messages[0].Should().Be("** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for MSBuild **");
+        summaryLogger.Messages[0].Should().Be("** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for .NET **");
     }
 
     private sealed class MockLegacyBuildSummaryLogger : ILegacyBuildSummaryLogger
