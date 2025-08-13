@@ -65,6 +65,7 @@ internal class JreCache(
             return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
         }
         var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
+        logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
         if (await fileCache.EnsureFileDownload(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } errorMessage)
         {
             return new CacheFailure(errorMessage);

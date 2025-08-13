@@ -77,16 +77,7 @@ public class FileCache : IFileCache
     {
         if (fileWrapper.Exists(downloadTarget))
         {
-            logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
-            if (ValidateChecksum(downloadTarget, descriptor.Sha256))
-            {
-                return null;
-            }
-            else
-            {
-                TryDeleteFile(downloadTarget);
-                return Resources.ERR_JreChecksumMismatch;
-            }
+            return ValidateFile(downloadTarget, descriptor);
         }
         logger.LogDebug(Resources.MSG_StartingJreDownload);
         if (await DownloadAndValidateFile(jreDownloadPath, downloadTarget, descriptor, download) is { } exception)
@@ -95,15 +86,7 @@ public class FileCache : IFileCache
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
                 logger.LogDebug(Resources.MSG_JreFoundAfterFailedDownload, downloadTarget);
-                if (ValidateChecksum(downloadTarget, descriptor.Sha256))
-                {
-                    return null;
-                }
-                else
-                {
-                    TryDeleteFile(downloadTarget);
-                    return Resources.ERR_JreChecksumMismatch;
-                }
+                return ValidateFile(downloadTarget, descriptor);
             }
             return string.Format(Resources.ERR_JreDownloadFailed, exception.Message);
         }
@@ -196,6 +179,20 @@ public class FileCache : IFileCache
 
     public string FileRootPath(FileDescriptor jreDescriptor) =>
         Path.Combine(CacheRoot, jreDescriptor.Sha256);
+
+    private string ValidateFile(string downloadTarget, FileDescriptor descriptor)
+    {
+        logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
+        if (ValidateChecksum(downloadTarget, descriptor.Sha256))
+        {
+            return null;
+        }
+        else
+        {
+            TryDeleteFile(downloadTarget);
+            return Resources.ERR_JreChecksumMismatch;
+        }
+    }
 
     private static void EnsureClosed(Stream fileStream)
     {
