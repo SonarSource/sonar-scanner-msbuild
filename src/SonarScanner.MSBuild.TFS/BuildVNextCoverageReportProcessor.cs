@@ -84,7 +84,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         return true;
     }
 
-    internal /* for testing */ IEnumerable<string> FindFallbackCoverageFiles()
+    internal IEnumerable<string> FindFallbackCoverageFiles()
     {
         logger.LogInfo("Falling back on locating coverage files in the agent temp directory.");
 
@@ -194,7 +194,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
     private static void WriteProperty(string propertiesFilePath, string property, string[] paths) =>
         File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
 
-    internal /* for testing */ class FileWithContentHash
+    internal class FileWithContentHash
     {
         public string FullFilePath { get; }
         public byte[] ContentHash { get; }

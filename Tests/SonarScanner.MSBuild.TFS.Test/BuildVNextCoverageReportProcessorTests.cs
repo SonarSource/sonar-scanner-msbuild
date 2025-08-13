@@ -453,7 +453,7 @@ public class BuildVNextCoverageReportProcessorTests
         envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, testDir);
 
         sut.FindFallbackCoverageFiles().Should().Satisfy(
-            x => x == lowerCasePath,    // should also find upperCasePath but does not due to case-sensitivity
+            x => x == lowerCasePath,    // should also find upperCasePath but does not due to case-sensitivity on Linux
             x => x == duplicate1FilePath || x == duplicate2FilePath);
     }
 
