@@ -300,7 +300,7 @@ public static class TestUtils
 
     private static string CreateTestSpecificFolder(TestContext testContext) =>
         TestDirectoriesMap.GetOrAdd(
-            testContext.FullyQualifiedTestClassName + testContext.TestName,
+            testContext.FullyQualifiedTestClassName + testContext.TestDisplayName,
             x =>
             {
                 var uniqueDir = UniqueDirectory.CreateNext(testContext.TestRunDirectory);
