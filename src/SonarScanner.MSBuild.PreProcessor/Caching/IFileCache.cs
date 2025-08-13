@@ -26,8 +26,8 @@ public interface IFileCache
     string EnsureCacheRoot();
     string EnsureDirectoryExists(string directory);
     CacheResult IsFileCached(FileDescriptor fileDescriptor);
-    string FileRootPath(FileDescriptor jreDescriptor);
+    string FileRootPath(FileDescriptor descriptor);
     string EnsureDownloadDirectory(FileDescriptor fileDescriptor);
-    Task<string> EnsureFileDownload(string jreDownloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
+    Task<string> EnsureFileDownload(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
     void TryDeleteFile(string tempFile);
 }

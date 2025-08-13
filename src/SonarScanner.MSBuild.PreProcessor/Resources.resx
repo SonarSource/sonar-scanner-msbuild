@@ -387,23 +387,20 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="WARN_DefaultUserHomeCreationFailed" xml:space="preserve">
     <value>Failed to create the default user home directory '{0}' with exception '{1}'.</value>
   </data>
-  <data name="ERR_JreDownloadFailed" xml:space="preserve">
-    <value>The download of the Java runtime environment from the server failed with the exception '{0}'.</value>
+  <data name="ERR_DownloadFailed" xml:space="preserve">
+    <value>The download of the file from the server failed with the exception '{0}'.</value>
   </data>
-  <data name="MSG_JreAlreadyDownloaded" xml:space="preserve">
-    <value>The Java Runtime Environment was already downloaded from the server and stored at '{0}'.</value>
+  <data name="MSG_FileAlreadyDownloaded" xml:space="preserve">
+    <value>The file was already downloaded from the server and stored at '{0}'.</value>
   </data>
-  <data name="MSG_JreFoundAfterFailedDownload" xml:space="preserve">
-    <value>The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel.</value>
+  <data name="MSG_FileFoundAfterFailedDownload" xml:space="preserve">
+    <value>The file was found after the download failed. Another scanner did the download in the parallel.</value>
   </data>
-  <data name="MSG_StartingJreDownload" xml:space="preserve">
-    <value>Starting the Java Runtime Environment download.</value>
+  <data name="MSG_StartingFileDownload" xml:space="preserve">
+    <value>Starting the file download.</value>
   </data>
   <data name="MSG_FileChecksum" xml:space="preserve">
     <value>The checksum of the downloaded file is '{0}' and the expected checksum is '{1}'.</value>
-  </data>
-  <data name="ERR_JreChecksumMismatch" xml:space="preserve">
-    <value>The checksum of the downloaded Java runtime environment does not match the expected checksum.</value>
   </data>
   <data name="ERR_ChecksumCalculationFailed" xml:space="preserve">
     <value>The calculation of the checksum of the file '{0}' failed with message '{1}'.</value>

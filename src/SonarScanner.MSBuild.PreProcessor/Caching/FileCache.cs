@@ -73,22 +73,22 @@ public class FileCache : IFileCache
         }
     }
 
-    public async Task<string> EnsureFileDownload(string jreDownloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    public async Task<string> EnsureFileDownload(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
         {
             return ValidateFile(downloadTarget, descriptor);
         }
-        logger.LogDebug(Resources.MSG_StartingJreDownload);
-        if (await DownloadAndValidateFile(jreDownloadPath, downloadTarget, descriptor, download) is { } exception)
+        logger.LogDebug(Resources.MSG_StartingFileDownload);
+        if (await DownloadAndValidateFile(downloadPath, downloadTarget, descriptor, download) is { } exception)
         {
-            logger.LogDebug(Resources.ERR_JreDownloadFailed, exception.Message);
+            logger.LogDebug(Resources.ERR_DownloadFailed, exception.Message);
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
-                logger.LogDebug(Resources.MSG_JreFoundAfterFailedDownload, downloadTarget);
+                logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, downloadTarget);
                 return ValidateFile(downloadTarget, descriptor);
             }
-            return string.Format(Resources.ERR_JreDownloadFailed, exception.Message);
+            return string.Format(Resources.ERR_DownloadFailed, exception.Message);
         }
         return null;
     }
@@ -177,12 +177,12 @@ public class FileCache : IFileCache
         }
     }
 
-    public string FileRootPath(FileDescriptor jreDescriptor) =>
-        Path.Combine(CacheRoot, jreDescriptor.Sha256);
+    public string FileRootPath(FileDescriptor descriptor) =>
+        Path.Combine(CacheRoot, descriptor.Sha256);
 
     private string ValidateFile(string downloadTarget, FileDescriptor descriptor)
     {
-        logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
+        logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
         if (ValidateChecksum(downloadTarget, descriptor.Sha256))
         {
             return null;
@@ -190,7 +190,7 @@ public class FileCache : IFileCache
         else
         {
             TryDeleteFile(downloadTarget);
-            return Resources.ERR_JreChecksumMismatch;
+            return Resources.ERR_ChecksumMismatch;
         }
     }
 
