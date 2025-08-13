@@ -94,11 +94,12 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     {
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var result = new ProjectInfoAnalysisResult();
-        var writer = new PropertiesWriter(analysisConfig, logger);
+        var propertiesFileWriter = new PropertiesWriter(analysisConfig, logger);
+        var jsonWriter = new JsonPropertiesWriter(analysisConfig, logger);
         logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
-        if (TryWriteProperties(writer, out var projects))
+        if (TryWriteProperties(propertiesFileWriter, jsonWriter, out var projects))
         {
-            var contents = writer.Flush();
+            var contents = propertiesFileWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
             logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
             result.FullPropertiesFilePath = projectPropertiesPath;
@@ -111,10 +112,14 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         return result;
     }
 
+    // FixMe: Delete this method after implementing JsonWriter
     public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects) =>
-        TryWriteProperties(writer, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
+        TryWriteProperties(writer, null, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
 
-    public bool TryWriteProperties(PropertiesWriter writer, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
+    public bool TryWriteProperties(PropertiesWriter writer, JsonPropertiesWriter jsonWriter, out IEnumerable<ProjectData> allProjects) =>
+        TryWriteProperties(writer, jsonWriter, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
+
+    public bool TryWriteProperties(PropertiesWriter writer, JsonPropertiesWriter jsonWriter, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
     {
         if (projects.Count == 0)
         {
@@ -165,33 +170,6 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         }
         writer.WriteGlobalSettings(analysisProperties);
         return true;
-    }
-
-    internal /* for testing */ static ProjectData GetSingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
-    {
-        var length = 0;
-        var closestProjects = new List<ProjectData>();
-        foreach (var project in projects)
-        {
-            var projectDirectory = project.Project.GetDirectory();
-            if (fileInfo.IsInDirectory(projectDirectory))
-            {
-                if (projectDirectory.FullName.Length == length)
-                {
-                    closestProjects.Add(project);
-                }
-                else if (projectDirectory.FullName.Length > length)
-                {
-                    length = projectDirectory.FullName.Length;
-                    closestProjects = new List<ProjectData> { project };
-                }
-                else
-                {
-                    // nothing to do
-                }
-            }
-        }
-        return closestProjects.Count >= 1 ? closestProjects[0] : null;
     }
 
     /// <summary>
@@ -250,6 +228,33 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         {
             return null;
         }
+    }
+
+    internal /* for testing */ static ProjectData SingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
+    {
+        var length = 0;
+        var closestProjects = new List<ProjectData>();
+        foreach (var project in projects)
+        {
+            var projectDirectory = project.Project.GetDirectory();
+            if (fileInfo.IsInDirectory(projectDirectory))
+            {
+                if (projectDirectory.FullName.Length == length)
+                {
+                    closestProjects.Add(project);
+                }
+                else if (projectDirectory.FullName.Length > length)
+                {
+                    length = projectDirectory.FullName.Length;
+                    closestProjects = [project];
+                }
+                else
+                {
+                    // nothing to do
+                }
+            }
+        }
+        return closestProjects.Count >= 1 ? closestProjects[0] : null;
     }
 
     internal /* for testing */ ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projectsGroupedByGuid)
@@ -350,7 +355,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
             }
             else if (group.Value.Length >= 1)
             {
-                if (GetSingleClosestProjectOrDefault(file, group.Value) is { } closestProject)
+                if (SingleClosestProjectOrDefault(file, group.Value) is { } closestProject)
                 {
                     closestProject.SonarQubeModuleFiles.Add(file);
                 }
@@ -364,11 +369,11 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
 
         Dictionary<FileInfo, ProjectData[]> ProjectsPerFile(IEnumerable<ProjectData> projectsData) =>
             projectsData
-                .SelectMany(x => GetProjectFiles(x).Where(f => !IsBinary(f)).Select(f => new { Project = x, File = f }))
+                .SelectMany(x => ProjectFiles(x).Where(f => !IsBinary(f)).Select(f => new { Project = x, File = f }))
                 .GroupBy(x => x.File, FileInfoEqualityComparer.Instance)
                 .ToDictionary(x => x.Key, x => x.Select(a => a.Project).ToArray());
 
-        IEnumerable<FileInfo> GetProjectFiles(ProjectData projectData) =>
+        IEnumerable<FileInfo> ProjectFiles(ProjectData projectData) =>
             projectData.ReferencedFiles
                 .Concat(additionalFiles.Sources)
                 .Except(additionalFiles.Tests, FileInfoEqualityComparer.Instance); // the tests are removed here as they are reported at root level.

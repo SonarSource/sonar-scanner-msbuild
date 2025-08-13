@@ -18,13 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Shim.Interfaces;
+using System.Runtime.InteropServices;
 
-public interface IPropertiesFileGenerator
+namespace SonarScanner.MSBuild.Shim.Test;
+
+[TestClass]
+public class JsonPropertiesWriterTest
 {
-    ProjectInfoAnalysisResult GenerateFile();
+    public TestContext TestContext { get; set; }
 
-    bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects);
+    [TestMethod]
+    public void Constructor_ConfigIsNull_ThrowsOnNullArgument()
+    {
+        Action action = () => new JsonPropertiesWriter(null, new TestLogger());
 
-    DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+    }
+
+    [TestMethod]
+    public void Constructor_LoggerIsNull_ThrowsOnNullArgument()
+    {
+        Action action = () => new JsonPropertiesWriter(new AnalysisConfig(), null);
+
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
 }

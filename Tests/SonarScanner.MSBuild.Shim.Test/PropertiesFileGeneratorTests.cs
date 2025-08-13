@@ -908,7 +908,7 @@ public class PropertiesFileGeneratorTests
 
         // In order to force automatic root path detection to point to file system root,
         // create a project in the test run directory and a second one in the temp folder.
-        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
+        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), new JsonPropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
 
         logger.AssertErrorLogged("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
     }
@@ -940,7 +940,7 @@ public class PropertiesFileGeneratorTests
         };
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "Second");
-        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
+        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), new JsonPropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
 
         logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
         logger.AssertErrorLogged("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
@@ -1143,7 +1143,7 @@ public class PropertiesFileGeneratorTests
     public void GetClosestProjectOrDefault_WhenNoProjects_ReturnsNull()
     {
         // Arrange & Act
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo("foo"), Enumerable.Empty<ProjectData>());
+        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo("foo"), Enumerable.Empty<ProjectData>());
 
         // Assert
         actual.Should().BeNull();
@@ -1161,7 +1161,7 @@ public class PropertiesFileGeneratorTests
         };
 
         // Act
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("E"), "foo")), projects);
+        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("E"), "foo")), projects);
 
         // Assert
         actual.Should().BeNull();
@@ -1177,7 +1177,7 @@ public class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "foo.csproj") }),
         };
 
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "foo.cs")), projects);
+        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "foo.cs")), projects);
 
         actual.Should().Be(projects[2]);
     }
@@ -1192,7 +1192,7 @@ public class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "foo.csproj") }),
         };
 
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("C"), "FOO", "FOO.cs")), projects);
+        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("C"), "FOO", "FOO.cs")), projects);
 
         actual.Should().Be(projects[2]);
     }
@@ -1207,7 +1207,7 @@ public class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = $"{TestUtils.DriveRoot()}{Path.AltDirectorySeparatorChar}foo{Path.AltDirectorySeparatorChar}foo.csproj" }),
         };
 
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "foo.cs")), projects);
+        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "foo.cs")), projects);
 
         actual.Should().Be(projects[2]);
     }
@@ -1224,7 +1224,7 @@ public class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foobar", "foo.csproj") }),
         };
 
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.cs")), projects);
+        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.cs")), projects);
 
         actual.Should().Be(projects[2]);
     }
@@ -1239,7 +1239,7 @@ public class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "fooNetStd.csproj") }),
         };
 
-        var actual = PropertiesFileGenerator.GetSingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.cs")), projects);
+        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.cs")), projects);
 
         actual.Should().Be(projects[0]);
     }
@@ -1595,7 +1595,7 @@ public class PropertiesFileGeneratorTests
             AnalysisSettings = [],
             AnalysisResults = [new AnalysisResult { Id = AnalysisType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
         };
-        sut.TryWriteProperties(writer, [project], out _).Should().BeTrue();
+        sut.TryWriteProperties(writer, new JsonPropertiesWriter(config, logger), [project], out _).Should().BeTrue();
     }
 
     /// <summary>

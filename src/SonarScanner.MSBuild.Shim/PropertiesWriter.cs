@@ -18,14 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Shim;
 
@@ -39,7 +32,7 @@ public class PropertiesWriter
     /// <summary>
     /// Project guids that have been processed. This is used in <see cref="Flush"/> to write the module keys in the end.
     /// </summary>
-    private readonly IList<string> moduleKeys = new List<string>();
+    private readonly IList<string> moduleKeys = [];
     private readonly StringBuilder sb = new();
 
     public bool FinishedWriting { get; private set; }
@@ -285,8 +278,10 @@ public class PropertiesWriter
 
     private void AppendKeyValue(string key, string value)
     {
-        Debug.Assert(!ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
-            "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}", key);
+        Debug.Assert(
+            !ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
+            "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}",
+            key);
 
         sb.Append(key).Append('=').AppendLine(Escape(value));
     }
@@ -306,7 +301,7 @@ public class PropertiesWriter
     {
         var multiValuesPropertySeparator = $@",\{Environment.NewLine}";
 
-        if (Version.TryParse(this.config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
+        if (Version.TryParse(config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
         {
             return string.Join(multiValuesPropertySeparator, paths.Select(x => $"\"{x.Replace("\"", "\"\"")}\""));
         }
@@ -315,12 +310,13 @@ public class PropertiesWriter
             var invalidPaths = paths.Where(InvalidPathPredicate);
             if (invalidPaths.Any())
             {
-                this.logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
+                logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
             }
 
             return string.Join(multiValuesPropertySeparator, paths.Where(x => !InvalidPathPredicate(x)));
         }
 
-        bool InvalidPathPredicate(string path) => path.Contains(",");
+        static bool InvalidPathPredicate(string path) =>
+            path.Contains(",");
     }
 }
