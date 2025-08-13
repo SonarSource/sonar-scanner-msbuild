@@ -52,21 +52,9 @@ internal class JreCache(
         return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(fileCache.CacheRoot)));
     }
 
-    private string EnsureDownloadDirectory(FileDescriptor jreDescriptor)
-    {
-        if (fileCache.EnsureCacheRoot() is not null && fileCache.EnsureDirectoryExists(fileCache.FileRootPath(jreDescriptor)) is { } jreDownloadPath)
-        {
-            return jreDownloadPath;
-        }
-        else
-        {
-            return null;
-        }
-    }
-
     public async Task<CacheResult> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
-        var jreDownloadPath = EnsureDownloadDirectory(jreDescriptor);
+        var jreDownloadPath = fileCache.EnsureDownloadDirectory(jreDescriptor);
         if (jreDownloadPath is null)
         {
             return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, fileCache.FileRootPath(jreDescriptor)));
