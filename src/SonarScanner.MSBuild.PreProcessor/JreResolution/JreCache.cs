@@ -65,17 +65,29 @@ internal class JreCache(
             return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
         }
         var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
+        if (await EnsureJreDownload(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } errorMessage)
+        {
+            return new CacheFailure(errorMessage);
+        }
+        else
+        {
+            return UnpackJre(unpacker, downloadTarget, jreDescriptor);
+        }
+    }
+
+    private async Task<string> EnsureJreDownload(string jreDownloadPath, string downloadTarget, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
+    {
         if (fileWrapper.Exists(downloadTarget))
         {
             logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
             if (fileCache.ValidateChecksum(downloadTarget, jreDescriptor.Sha256))
             {
-                return UnpackJre(unpacker, downloadTarget, jreDescriptor);
+                return null;
             }
             else
             {
                 fileCache.TryDeleteFile(downloadTarget);
-                return new CacheFailure(Resources.ERR_JreChecksumMismatch);
+                return Resources.ERR_JreChecksumMismatch;
             }
         }
         logger.LogDebug(Resources.MSG_StartingJreDownload);
@@ -88,20 +100,17 @@ internal class JreCache(
                 logger.LogDebug(Resources.MSG_JreFoundAfterFailedDownload, downloadTarget);
                 if (fileCache.ValidateChecksum(downloadTarget, jreDescriptor.Sha256))
                 {
-                    return UnpackJre(unpacker, downloadTarget, jreDescriptor);
+                    return null;
                 }
                 else
                 {
                     fileCache.TryDeleteFile(downloadTarget);
-                    return new CacheFailure(Resources.ERR_JreChecksumMismatch);
+                    return Resources.ERR_JreChecksumMismatch;
                 }
             }
-            return new CacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message));
+            return string.Format(Resources.ERR_JreDownloadFailed, exception.Message);
         }
-        else
-        {
-            return UnpackJre(unpacker, downloadTarget, jreDescriptor);
-        }
+        return null;
     }
 
     private CacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor)
