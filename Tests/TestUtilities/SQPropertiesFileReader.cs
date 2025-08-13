@@ -18,16 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
-using System.IO;
-using FluentAssertions;
-
 namespace TestUtilities;
 
 /// <summary>
-/// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-scanner.properties)
+/// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-scanner.properties).
 /// </summary>
+/// ToDo: Remove this class in https://sonarsource.atlassian.net/browse/SCAN4NET-721 it's used only for the PropertiesWriter
 public class SQPropertiesFileReader
 {
     /// <summary>
@@ -60,7 +56,7 @@ public class SQPropertiesFileReader
     public void AssertSettingExists(string key, string expectedValue)
     {
         var actualValue = Properties.GetProperty(key);
-        var found = actualValue != null;
+        var found = actualValue is not null;
 
         found.Should().BeTrue("Expected setting was not found. Key: {0}", key);
         actualValue.Should().Be(expectedValue, "Property does not have the expected value. Key: {0}", key);
@@ -69,7 +65,7 @@ public class SQPropertiesFileReader
     public void AssertSettingDoesNotExist(string key)
     {
         var actualValue = Properties.GetProperty(key);
-        var found = actualValue != null;
+        var found = actualValue is not null;
 
         found.Should().BeFalse("Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
     }
