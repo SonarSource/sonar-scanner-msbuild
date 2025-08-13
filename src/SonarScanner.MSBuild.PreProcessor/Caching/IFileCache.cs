@@ -29,6 +29,6 @@ public interface IFileCache
     string FileRootPath(FileDescriptor jreDescriptor);
     string EnsureDownloadDirectory(FileDescriptor fileDescriptor);
     bool ValidateChecksum(string downloadTarget, string sha256);
-    Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
+    Task<string> EnsureFileDownload(string jreDownloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
     void TryDeleteFile(string tempFile);
 }

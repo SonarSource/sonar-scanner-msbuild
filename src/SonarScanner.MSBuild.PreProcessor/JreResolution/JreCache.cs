@@ -65,7 +65,7 @@ internal class JreCache(
             return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
         }
         var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
-        if (await EnsureJreDownload(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } errorMessage)
+        if (await fileCache.EnsureFileDownload(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } errorMessage)
         {
             return new CacheFailure(errorMessage);
         }
@@ -73,44 +73,6 @@ internal class JreCache(
         {
             return UnpackJre(unpacker, downloadTarget, jreDescriptor);
         }
-    }
-
-    private async Task<string> EnsureJreDownload(string jreDownloadPath, string downloadTarget, JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
-    {
-        if (fileWrapper.Exists(downloadTarget))
-        {
-            logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
-            if (fileCache.ValidateChecksum(downloadTarget, jreDescriptor.Sha256))
-            {
-                return null;
-            }
-            else
-            {
-                fileCache.TryDeleteFile(downloadTarget);
-                return Resources.ERR_JreChecksumMismatch;
-            }
-        }
-        logger.LogDebug(Resources.MSG_StartingJreDownload);
-        logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
-        if (await fileCache.DownloadAndValidateFile(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } exception)
-        {
-            logger.LogDebug(Resources.ERR_JreDownloadFailed, exception.Message);
-            if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
-            {
-                logger.LogDebug(Resources.MSG_JreFoundAfterFailedDownload, downloadTarget);
-                if (fileCache.ValidateChecksum(downloadTarget, jreDescriptor.Sha256))
-                {
-                    return null;
-                }
-                else
-                {
-                    fileCache.TryDeleteFile(downloadTarget);
-                    return Resources.ERR_JreChecksumMismatch;
-                }
-            }
-            return string.Format(Resources.ERR_JreDownloadFailed, exception.Message);
-        }
-        return null;
     }
 
     private CacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor)

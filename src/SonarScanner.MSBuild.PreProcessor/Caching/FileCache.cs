@@ -73,6 +73,43 @@ public class FileCache : IFileCache
         }
     }
 
+    public async Task<string> EnsureFileDownload(string jreDownloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    {
+        if (fileWrapper.Exists(downloadTarget))
+        {
+            logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
+            if (ValidateChecksum(downloadTarget, descriptor.Sha256))
+            {
+                return null;
+            }
+            else
+            {
+                TryDeleteFile(downloadTarget);
+                return Resources.ERR_JreChecksumMismatch;
+            }
+        }
+        logger.LogDebug(Resources.MSG_StartingJreDownload);
+        if (await DownloadAndValidateFile(jreDownloadPath, downloadTarget, descriptor, download) is { } exception)
+        {
+            logger.LogDebug(Resources.ERR_JreDownloadFailed, exception.Message);
+            if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
+            {
+                logger.LogDebug(Resources.MSG_JreFoundAfterFailedDownload, downloadTarget);
+                if (ValidateChecksum(downloadTarget, descriptor.Sha256))
+                {
+                    return null;
+                }
+                else
+                {
+                    TryDeleteFile(downloadTarget);
+                    return Resources.ERR_JreChecksumMismatch;
+                }
+            }
+            return string.Format(Resources.ERR_JreDownloadFailed, exception.Message);
+        }
+        return null;
+    }
+
     public async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         // We download to a temporary file in the right folder.
