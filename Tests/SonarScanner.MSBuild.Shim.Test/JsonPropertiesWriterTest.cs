@@ -23,14 +23,14 @@ using System.Runtime.InteropServices;
 namespace SonarScanner.MSBuild.Shim.Test;
 
 [TestClass]
-public class JsonWriterTest
+public class JsonPropertiesWriterTest
 {
     public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void Constructor_ConfigIsNull_ThrowsOnNullArgument()
     {
-        Action action = static () => new JsonWriter(null, new TestLogger());
+        Action action = static () => new JsonPropertiesWriter(null, new TestLogger());
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
     }
@@ -38,7 +38,7 @@ public class JsonWriterTest
     [TestMethod]
     public void Constructor_LoggerIsNull_ThrowsOnNullArgument()
     {
-        Action action = static () => new JsonWriter(new AnalysisConfig(), null);
+        Action action = static () => new JsonPropertiesWriter(new AnalysisConfig(), null);
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }

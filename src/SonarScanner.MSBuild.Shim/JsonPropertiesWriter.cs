@@ -20,12 +20,12 @@
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class JsonWriter
+public class JsonPropertiesWriter
 {
     private readonly AnalysisConfig config;
     private readonly ILogger logger;
 
-    public JsonWriter(AnalysisConfig config, ILogger logger)
+    public JsonPropertiesWriter(AnalysisConfig config, ILogger logger)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));

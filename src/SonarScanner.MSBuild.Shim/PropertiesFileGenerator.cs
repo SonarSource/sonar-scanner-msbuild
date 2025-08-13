@@ -95,7 +95,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var result = new ProjectInfoAnalysisResult();
         var writer = new PropertiesWriter(analysisConfig, logger);
-        var jsonWriter = new JsonWriter(analysisConfig, logger);
+        var jsonWriter = new JsonPropertiesWriter(analysisConfig, logger);
         logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
         if (TryWriteProperties(writer, jsonWriter, out var projects))
         {
@@ -116,10 +116,10 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects) =>
         TryWriteProperties(writer, null, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
 
-    public bool TryWriteProperties(PropertiesWriter writer, JsonWriter jsonWriter, out IEnumerable<ProjectData> allProjects) =>
+    public bool TryWriteProperties(PropertiesWriter writer, JsonPropertiesWriter jsonWriter, out IEnumerable<ProjectData> allProjects) =>
         TryWriteProperties(writer, jsonWriter, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
 
-    public bool TryWriteProperties(PropertiesWriter writer, JsonWriter jsonWriter, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
+    public bool TryWriteProperties(PropertiesWriter writer, JsonPropertiesWriter jsonWriter, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
     {
         if (projects.Count == 0)
         {
