@@ -145,6 +145,9 @@ public class FileCache : IFileCache
         }
     }
 
+    public string FileRootPath(FileDescriptor jreDescriptor) =>
+        Path.Combine(CacheRoot, jreDescriptor.Sha256);
+
     private static void EnsureClosed(Stream fileStream)
     {
         try

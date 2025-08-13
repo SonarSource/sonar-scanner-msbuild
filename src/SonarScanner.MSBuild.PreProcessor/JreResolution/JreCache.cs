@@ -34,7 +34,7 @@ internal class JreCache(
 {
     public CacheResult IsJreCached(JreDescriptor jreDescriptor)
     {
-        if (fileCache.EnsureCacheRoot() is { } cacheRoot)
+        if (fileCache.EnsureCacheRoot() is not null)
         {
             var extractedPath = JreExtractionPath(jreDescriptor);
             if (directoryWrapper.Exists(extractedPath))
@@ -54,7 +54,7 @@ internal class JreCache(
 
     private string EnsureDownloadDirectory(FileDescriptor jreDescriptor)
     {
-        if (fileCache.EnsureCacheRoot() is { } cacheRoot && fileCache.EnsureDirectoryExists(FileRootPath(jreDescriptor)) is { } jreDownloadPath)
+        if (fileCache.EnsureCacheRoot() is not null && fileCache.EnsureDirectoryExists(fileCache.FileRootPath(jreDescriptor)) is { } jreDownloadPath)
         {
             return jreDownloadPath;
         }
@@ -69,7 +69,7 @@ internal class JreCache(
         var jreDownloadPath = EnsureDownloadDirectory(jreDescriptor);
         if (jreDownloadPath is null)
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(jreDescriptor)));
+            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, fileCache.FileRootPath(jreDescriptor)));
         }
         // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
         if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is not { } unpacker)
@@ -128,7 +128,7 @@ internal class JreCache(
     private CacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
-        var tempExtractionPath = Path.Combine(FileRootPath(jreDescriptor), directoryWrapper.GetRandomFileName());
+        var tempExtractionPath = Path.Combine(fileCache.FileRootPath(jreDescriptor), directoryWrapper.GetRandomFileName());
         var finalExtractionPath = JreExtractionPath(jreDescriptor); // If all goes well, this will be the final folder. We rename the temporary folder to this one.
         try
         {
@@ -168,9 +168,6 @@ internal class JreCache(
         }
     }
 
-    private string FileRootPath(FileDescriptor jreDescriptor) =>
-        Path.Combine(fileCache.CacheRoot, jreDescriptor.Sha256);
-
     private string JreExtractionPath(JreDescriptor jreDescriptor) =>
-        Path.Combine(FileRootPath(jreDescriptor), $"{jreDescriptor.Filename}_extracted");
+        Path.Combine(fileCache.FileRootPath(jreDescriptor), $"{jreDescriptor.Filename}_extracted");
 }
