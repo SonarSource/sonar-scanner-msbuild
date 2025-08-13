@@ -424,13 +424,8 @@ public class BuildVNextCoverageReportProcessorTests
         TestUtils.CreateTextFile(alternateCoverageDir, "BAR.coverage.XXX", "3");             // wrong file extension
         var lowerCasePath = TestUtils.CreateTextFile(alternateCoverageDir, "foo.coverage", "4");
         var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
-        var duplicate1FilePath = TestUtils.CreateTextFile(alternateCoverageDir, "DUPLICATE.coverage", "6");
-        var duplicate2FilePath = TestUtils.CreateTextFile(alternateCoverageDir, "Duplicate.coverage", "7");
 
-        sut.FindFallbackCoverageFiles().Should().Satisfy(
-            x => x == lowerCasePath,
-            x => x == upperCasePath,
-            x => x == duplicate1FilePath || x == duplicate2FilePath);
+        sut.FindFallbackCoverageFiles().Should().BeEquivalentTo(lowerCasePath, upperCasePath);
     }
 
     [TestCategory(TestCategories.NoWindows)]
@@ -446,11 +441,12 @@ public class BuildVNextCoverageReportProcessorTests
         var lowerCasePath = TestUtils.CreateTextFile(alternateCoverageDir, "foo.coverage", "4");
         var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
         var duplicate1FilePath = TestUtils.CreateTextFile(alternateCoverageDir, "DUPLICATE.coverage", "6");
-        var duplicate2FilePath = TestUtils.CreateTextFile(alternateCoverageDir, "Duplicate.coverage", "7");
+        var duplicate2FilePath = TestUtils.CreateTextFile(alternateCoverageDir, "Duplicate.coverage", "7"); // Unix file system is case-sensitive, so these are two separate files
 
         sut.FindFallbackCoverageFiles().Should().Satisfy(
             x => x == lowerCasePath,    // should also find upperCasePath but does not due to case-sensitivity on Linux
-            x => x == duplicate1FilePath || x == duplicate2FilePath);
+            x => x == duplicate1FilePath,
+            x => x == duplicate2FilePath);
     }
 
     [TestMethod]
