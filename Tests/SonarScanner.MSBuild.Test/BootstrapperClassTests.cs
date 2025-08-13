@@ -171,8 +171,8 @@ public class BootstrapperClassTests
             logger.DebugMessages[2].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Common.dll' because The process cannot access the file '*SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
             logger.DebugMessages[3].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Tasks.dll' because The process cannot access the file '*SonarScanner.MSBuild.Tasks.dll' because it is being used by another process..");
             logger.AssertErrorLogged("""
-                Cannot copy a different version of the SonarScanner for MSBuild assemblies because they are used by a running MSBuild/.Net Core process. To resolve this problem try one of the following:
-                - Analyze this project using the same version of SonarScanner for MSBuild
+                Cannot copy a different version of the SonarScanner for .NET assemblies because they are used by a running MSBuild/.Net Core process. To resolve this problem try one of the following:
+                - Analyze this project using the same version of SonarScanner for .NET
                 - Build your project with the '/nr:false' switch
                 """);
             file1.Close();

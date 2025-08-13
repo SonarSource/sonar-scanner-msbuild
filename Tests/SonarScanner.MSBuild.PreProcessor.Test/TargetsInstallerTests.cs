@@ -121,7 +121,7 @@ public class TargetsInstallerTests
             targetsInstaller.InstallLoaderTargets("c:\\project");
         }
         fileWrapperMock.Received(1).Exists(Path.Combine("global", "SonarQube.Integration.ImportBefore.targets"));
-        logger.Warnings.Should().Contain(x => x.StartsWith("This version of the SonarScanner for MSBuild automatically deploys"));
+        logger.Warnings.Should().Contain(x => x.StartsWith("This version of the SonarScanner for .NET automatically deploys"));
     }
 
     [TestMethod]
@@ -138,7 +138,7 @@ public class TargetsInstallerTests
         }
 
         fileWrapperMock.Received(1).Exists(Path.Combine("global", "SonarQube.Integration.ImportBefore.targets"));
-        logger.Warnings.Should().NotContain(x => x.StartsWith("This version of the SonarScanner for MSBuild automatically deploys"));
+        logger.Warnings.Should().NotContain(x => x.StartsWith("This version of the SonarScanner for .NET automatically deploys"));
     }
 
     [TestMethod]

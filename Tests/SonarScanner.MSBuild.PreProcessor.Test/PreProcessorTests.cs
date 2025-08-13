@@ -55,7 +55,7 @@ public partial class PreProcessorTests
         factory.Logger.AssertErrorLogged("""
         Expecting at least the following command line argument:
         - SonarQube/SonarCloud project key
-        The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
+        The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
         Use '/?' or '/h' to see the help message.
         """);
     }

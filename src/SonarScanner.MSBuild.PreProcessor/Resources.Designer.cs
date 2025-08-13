@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarScanner for MSBuild Begin Step.
+        ///   Looks up a localized string similar to SonarScanner for .NET Begin Step.
         /// </summary>
         internal static string AssemblyDescription {
             get {
@@ -396,7 +396,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Expecting at least the following command line argument:
         ///- SonarQube/SonarCloud project key
-        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
+        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
         ///Use &apos;/?&apos; or &apos;/h&apos; to see the help message..
         /// </summary>
         internal static string ERROR_InvalidCommandLineArgs {
@@ -784,7 +784,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Running the Scanner for MSBuild under Local System or Network Service account is not supported. Please, use a local or domain user account instead..
+        ///   Looks up a localized string similar to Running the Scanner for .NET under Local System or Network Service account is not supported. Please, use a local or domain user account instead..
         /// </summary>
         internal static string MSG_InstallTargetsLocalSystem {
             get {
@@ -1417,7 +1417,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This version of the SonarScanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
+        ///   Looks up a localized string similar to This version of the SonarScanner for .NET automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional..
         /// </summary>
         internal static string WARN_ExistingGlobalTargets {
             get {

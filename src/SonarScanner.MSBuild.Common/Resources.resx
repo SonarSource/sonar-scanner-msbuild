@@ -191,7 +191,7 @@
     <value>/d:[key]=[value]</value>
   </data>
   <data name="ERROR_CmdLine_CannotSetPropertyOnCommandLine" xml:space="preserve">
-    <value>The property '{0}' is automatically set by the SonarScanner for MSBuild and cannot be overridden on the command line.</value>
+    <value>The property '{0}' is automatically set by the SonarScanner for .NET and cannot be overridden on the command line.</value>
   </data>
   <data name="ERROR_CmdLine_DuplicateProperty" xml:space="preserve">
     <value>A value has already been supplied for this property. Key: {0}, existing value: {1}</value>

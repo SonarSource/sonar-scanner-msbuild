@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AssemblyDescription" xml:space="preserve">
-    <value>SonarScanner for MSBuild End Step</value>
+    <value>SonarScanner for .NET End Step</value>
   </data>
   <data name="ERROR_BuildUrisDontMatch" xml:space="preserve">
     <value>Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
@@ -141,7 +141,7 @@ Expected location: {0}</value>
     <value>'sonar.scanner.truststorePassword' must be specified in the end step when specified during the begin step.</value>
   </data>
   <data name="ERR_ConflictingSonarProjectProperties" xml:space="preserve">
-    <value>sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}</value>
+    <value>sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: {0}</value>
   </data>
   <data name="MSG_LoadingConfig" xml:space="preserve">
     <value>Loading the SonarQube analysis config from {0}</value>

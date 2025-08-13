@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarScanner for MSBuild End Step.
+        ///   Looks up a localized string similar to SonarScanner for .NET End Step.
         /// </summary>
         internal static string AssemblyDescription {
             get {
@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}.
+        ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: {0}.
         /// </summary>
         internal static string ERR_ConflictingSonarProjectProperties {
             get {

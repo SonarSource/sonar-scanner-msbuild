@@ -61,7 +61,7 @@
     Specifying additional types of file to be analysed
     **************************************************
 
-    The Scanner for MSBuild will automatically collect all of the common
+    The Scanner for .NET will automatically collect all of the common
     file types that can be analysed by the various Sonar language plugins
     (e.g. C# files, TypeScript, TSQL, C++ include and source files etc).
     The full list of item types that will be included for analysis is
