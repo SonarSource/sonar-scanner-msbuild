@@ -20,7 +20,7 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-public sealed record FileDescriptor : IFileDescriptor
+public record FileDescriptor
 {
     public string Filename { get; }
     public string Sha256 { get; }

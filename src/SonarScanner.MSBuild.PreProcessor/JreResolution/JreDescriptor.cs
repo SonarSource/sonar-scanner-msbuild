@@ -25,9 +25,7 @@ namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 /// <summary>
 /// The descriptor of the JRE as returned from the server /analysis/jres endpoint.
 /// </summary>
-public readonly record struct JreDescriptor(string Filename, string Sha256, string JavaPath) : IFileDescriptor
+public record JreDescriptor(string Filename, string Sha256, string JavaPath) : FileDescriptor(Filename, Sha256)
 {
-    public string Filename { get; } = Filename;
-    public string Sha256 { get; } = Sha256;
     public string JavaPath { get; } = JavaPath;
 }

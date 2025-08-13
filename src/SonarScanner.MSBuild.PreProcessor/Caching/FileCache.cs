@@ -73,7 +73,7 @@ public class FileCache : IFileCache
         }
     }
 
-    public async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, IFileDescriptor descriptor, Func<Task<Stream>> download)
+    public async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         // We download to a temporary file in the right folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.

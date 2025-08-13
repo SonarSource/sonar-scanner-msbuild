@@ -27,6 +27,6 @@ public interface IFileCache
     string EnsureDirectoryExists(string directory);
     CacheResult IsFileCached(FileDescriptor fileDescriptor);
     bool ValidateChecksum(string downloadTarget, string sha256);
-    Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, IFileDescriptor descriptor, Func<Task<Stream>> download);
+    Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
     void TryDeleteFile(string tempFile);
 }
