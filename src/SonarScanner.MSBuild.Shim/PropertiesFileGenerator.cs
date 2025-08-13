@@ -94,12 +94,12 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     {
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var result = new ProjectInfoAnalysisResult();
-        var writer = new PropertiesWriter(analysisConfig, logger);
+        var propertiesFileWriter = new PropertiesWriter(analysisConfig, logger);
         var jsonWriter = new JsonPropertiesWriter(analysisConfig, logger);
         logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
-        if (TryWriteProperties(writer, jsonWriter, out var projects))
+        if (TryWriteProperties(propertiesFileWriter, jsonWriter, out var projects))
         {
-            var contents = writer.Flush();
+            var contents = propertiesFileWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
             logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
             result.FullPropertiesFilePath = projectPropertiesPath;
