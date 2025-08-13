@@ -908,7 +908,7 @@ public class PropertiesFileGeneratorTests
 
         // In order to force automatic root path detection to point to file system root,
         // create a project in the test run directory and a second one in the temp folder.
-        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
+        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), new JsonWriter(config, this.logger),[firstProjectInfo, secondProjectInfo], out _);
 
         logger.AssertErrorLogged("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
     }
@@ -940,7 +940,7 @@ public class PropertiesFileGeneratorTests
         };
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "Second");
-        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
+        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), new JsonWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
 
         logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
         logger.AssertErrorLogged("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
@@ -1595,7 +1595,7 @@ public class PropertiesFileGeneratorTests
             AnalysisSettings = [],
             AnalysisResults = [new AnalysisResult { Id = AnalysisType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
         };
-        sut.TryWriteProperties(writer, [project], out _).Should().BeTrue();
+        sut.TryWriteProperties(writer, new JsonWriter(config, logger), [project], out _).Should().BeTrue();
     }
 
     /// <summary>
