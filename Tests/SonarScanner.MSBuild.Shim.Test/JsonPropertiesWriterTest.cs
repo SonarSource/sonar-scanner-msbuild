@@ -30,7 +30,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void Constructor_ConfigIsNull_ThrowsOnNullArgument()
     {
-        Action action = static () => new JsonPropertiesWriter(null, new TestLogger());
+        Action action = () => new JsonPropertiesWriter(null, new TestLogger());
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
     }
@@ -38,7 +38,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void Constructor_LoggerIsNull_ThrowsOnNullArgument()
     {
-        Action action = static () => new JsonPropertiesWriter(new AnalysisConfig(), null);
+        Action action = () => new JsonPropertiesWriter(new AnalysisConfig(), null);
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }

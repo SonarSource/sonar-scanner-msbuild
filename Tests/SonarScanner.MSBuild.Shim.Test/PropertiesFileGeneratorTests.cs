@@ -908,7 +908,7 @@ public class PropertiesFileGeneratorTests
 
         // In order to force automatic root path detection to point to file system root,
         // create a project in the test run directory and a second one in the temp folder.
-        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), new JsonPropertiesWriter(config, this.logger),[firstProjectInfo, secondProjectInfo], out _);
+        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), new JsonPropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
 
         logger.AssertErrorLogged("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
     }
