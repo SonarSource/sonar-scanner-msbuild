@@ -167,33 +167,6 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         return true;
     }
 
-    internal /* for testing */ static ProjectData GetSingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
-    {
-        var length = 0;
-        var closestProjects = new List<ProjectData>();
-        foreach (var project in projects)
-        {
-            var projectDirectory = project.Project.GetDirectory();
-            if (fileInfo.IsInDirectory(projectDirectory))
-            {
-                if (projectDirectory.FullName.Length == length)
-                {
-                    closestProjects.Add(project);
-                }
-                else if (projectDirectory.FullName.Length > length)
-                {
-                    length = projectDirectory.FullName.Length;
-                    closestProjects = new List<ProjectData> { project };
-                }
-                else
-                {
-                    // nothing to do
-                }
-            }
-        }
-        return closestProjects.Count >= 1 ? closestProjects[0] : null;
-    }
-
     /// <summary>
     /// Appends the sonar.projectBaseDir value. This is calculated as follows:
     /// 1. the user supplied value, or if none
@@ -250,6 +223,33 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
         {
             return null;
         }
+    }
+
+    internal /* for testing */ static ProjectData SingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
+    {
+        var length = 0;
+        var closestProjects = new List<ProjectData>();
+        foreach (var project in projects)
+        {
+            var projectDirectory = project.Project.GetDirectory();
+            if (fileInfo.IsInDirectory(projectDirectory))
+            {
+                if (projectDirectory.FullName.Length == length)
+                {
+                    closestProjects.Add(project);
+                }
+                else if (projectDirectory.FullName.Length > length)
+                {
+                    length = projectDirectory.FullName.Length;
+                    closestProjects = [project];
+                }
+                else
+                {
+                    // nothing to do
+                }
+            }
+        }
+        return closestProjects.Count >= 1 ? closestProjects[0] : null;
     }
 
     internal /* for testing */ ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projectsGroupedByGuid)
@@ -350,7 +350,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
             }
             else if (group.Value.Length >= 1)
             {
-                if (GetSingleClosestProjectOrDefault(file, group.Value) is { } closestProject)
+                if (SingleClosestProjectOrDefault(file, group.Value) is { } closestProject)
                 {
                     closestProject.SonarQubeModuleFiles.Add(file);
                 }
@@ -364,11 +364,11 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
 
         Dictionary<FileInfo, ProjectData[]> ProjectsPerFile(IEnumerable<ProjectData> projectsData) =>
             projectsData
-                .SelectMany(x => GetProjectFiles(x).Where(f => !IsBinary(f)).Select(f => new { Project = x, File = f }))
+                .SelectMany(x => ProjectFiles(x).Where(f => !IsBinary(f)).Select(f => new { Project = x, File = f }))
                 .GroupBy(x => x.File, FileInfoEqualityComparer.Instance)
                 .ToDictionary(x => x.Key, x => x.Select(a => a.Project).ToArray());
 
-        IEnumerable<FileInfo> GetProjectFiles(ProjectData projectData) =>
+        IEnumerable<FileInfo> ProjectFiles(ProjectData projectData) =>
             projectData.ReferencedFiles
                 .Concat(additionalFiles.Sources)
                 .Except(additionalFiles.Tests, FileInfoEqualityComparer.Instance); // the tests are removed here as they are reported at root level.
