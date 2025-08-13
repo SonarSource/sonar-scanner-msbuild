@@ -68,20 +68,16 @@ internal class JreCache(
         if (fileWrapper.Exists(downloadTarget))
         {
             logger.LogDebug(Resources.MSG_JreAlreadyDownloaded, downloadTarget);
-            return ValidateAndUnpackJre(unpacker, downloadTarget, jreDescriptor);
+            if (fileCache.ValidateChecksum(downloadTarget, jreDescriptor.Sha256))
+            {
+                return UnpackJre(unpacker, downloadTarget, jreDescriptor);
+            }
+            else
+            {
+                fileCache.TryDeleteFile(downloadTarget);
+                return new CacheFailure(Resources.ERR_JreChecksumMismatch);
+            }
         }
-        else
-        {
-            return await DownloadValidateAndUnpackJre(unpacker, jreDownloadPath, downloadTarget, jreDescriptor, jreDownload);
-        }
-    }
-
-    private async Task<CacheResult> DownloadValidateAndUnpackJre(IUnpacker unpacker,
-                                                                 string jreDownloadPath,
-                                                                 string downloadTarget,
-                                                                 JreDescriptor jreDescriptor,
-                                                                 Func<Task<Stream>> jreDownload)
-    {
         logger.LogDebug(Resources.MSG_StartingJreDownload);
         logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
         if (await fileCache.DownloadAndValidateFile(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } exception)
@@ -90,26 +86,21 @@ internal class JreCache(
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
                 logger.LogDebug(Resources.MSG_JreFoundAfterFailedDownload, downloadTarget);
-                return ValidateAndUnpackJre(unpacker, downloadTarget, jreDescriptor);
+                if (fileCache.ValidateChecksum(downloadTarget, jreDescriptor.Sha256))
+                {
+                    return UnpackJre(unpacker, downloadTarget, jreDescriptor);
+                }
+                else
+                {
+                    fileCache.TryDeleteFile(downloadTarget);
+                    return new CacheFailure(Resources.ERR_JreChecksumMismatch);
+                }
             }
             return new CacheFailure(string.Format(Resources.ERR_JreDownloadFailed, exception.Message));
         }
         else
         {
             return UnpackJre(unpacker, downloadTarget, jreDescriptor);
-        }
-    }
-
-    private CacheResult ValidateAndUnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor)
-    {
-        if (fileCache.ValidateChecksum(jreArchive, jreDescriptor.Sha256))
-        {
-            return UnpackJre(unpacker, jreArchive, jreDescriptor);
-        }
-        else
-        {
-            fileCache.TryDeleteFile(jreArchive);
-            return new CacheFailure(Resources.ERR_JreChecksumMismatch);
         }
     }
 
