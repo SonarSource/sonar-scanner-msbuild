@@ -38,6 +38,7 @@ public class BuildVNextCoverageReportProcessorTests
     private readonly TestLogger testLogger = new();
     private readonly MockReportConverter converter = new();
     private readonly MockBuildSettings settings = new();
+    private readonly string testDir;
     private readonly string testResultsDir;
     private readonly string coverageDir;
     private readonly string alternateCoverageDir;
@@ -49,7 +50,7 @@ public class BuildVNextCoverageReportProcessorTests
     public BuildVNextCoverageReportProcessorTests(TestContext testContext)
     {
         this.testContext = testContext;
-        var testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
+        testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
         testResultsDir = Directory.CreateDirectory(Path.Combine(testDir, "TestResults")).FullName;
         coverageDir = Directory.CreateDirectory(Path.Combine(testResultsDir, "dummy", "In")).FullName;
         alternateCoverageDir = Directory.CreateDirectory(Path.Combine(testResultsDir, "alternate", "In")).FullName;
@@ -371,37 +372,37 @@ public class BuildVNextCoverageReportProcessorTests
         AssertUsesFallback();
         File.Exists(propertiesFilePath).Should().BeFalse();
     }
+
     [TestMethod]
     public void AgentDirectory_CalculatedCorrectly_Null()
     {
         using var envVars = new EnvironmentVariableScope();
         // env var not specified -> null
         envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, null);
+
         sut.CheckAgentTempDirectory().Should().BeNull();
     }
 
     [TestMethod]
     public void AgentDirectory_CalculatedCorrectly_NonExisting()
     {
-        var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
-        var envDir = Path.Combine(rootDir, "DirSpecifiedInEnvDir");
-
+        var envDir = Path.Combine(testDir, "DirSpecifiedInEnvDir");
         using var envVars = new EnvironmentVariableScope();
         // Env var set but dir does not exist -> null
         envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, envDir);
+
         sut.CheckAgentTempDirectory().Should().BeNull();
     }
 
     [TestMethod]
     public void AgentDirectory_CalculatedCorrectly_Existing()
     {
-        var rootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
-        var envDir = Path.Combine(rootDir, "DirSpecifiedInEnvDir");
-
+        var envDir = Path.Combine(testDir, "DirSpecifiedInEnvDir");
         using var envVars = new EnvironmentVariableScope();
         // Env var set and dir exists -> dir returned
         Directory.CreateDirectory(envDir);
         envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, envDir);
+
         sut.CheckAgentTempDirectory().Should().Be(envDir);
     }
 
@@ -409,20 +410,18 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void FindFallbackCoverageFiles_FilesLocatedCorrectly_Windows_Mac()
     {
-        var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
-        var subDir = Path.Combine(dir, "subDir", "subDir2");
+        var subDir = Path.Combine(testDir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
-
-        TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");              // wrong file extension
-        TestUtils.CreateTextFile(dir, "abc.trx", "2");                      // wrong file extension
-        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
-        var lowerCasePath = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
+        TestUtils.CreateTextFile(testDir, "foo.coverageXXX", "1");              // wrong file extension
+        TestUtils.CreateTextFile(testDir, "abc.trx", "2");                      // wrong file extension
+        TestUtils.CreateTextFile(testDir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
+        var lowerCasePath = TestUtils.CreateTextFile(testDir, "foo.coverage", "3");
         var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
-        var duplicate1FilePath = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
-        var duplicate2FilePath = TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");
-
+        var duplicate1FilePath = TestUtils.CreateTextFile(testDir, "DUPLICATE.coverage", "4");
+        var duplicate2FilePath = TestUtils.CreateTextFile(testDir, "Duplicate.coverage", "4");
         using var envVars = new EnvironmentVariableScope();
-        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, dir);
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, testDir);
+
         sut.FindFallbackCoverageFiles().Should().Satisfy(
             x => x == lowerCasePath,
             x => x == upperCasePath,
@@ -434,20 +433,18 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void FindFallbackCoverageFiles_FilesLocatedCorrectly_Linux()
     {
-        var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
-        var subDir = Path.Combine(dir, "subDir", "subDir2");
+        var subDir = Path.Combine(testDir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
-
-        TestUtils.CreateTextFile(dir, "foo.coverageXXX", "1");              // wrong file extension
-        TestUtils.CreateTextFile(dir, "abc.trx", "2");                      // wrong file extension
-        TestUtils.CreateTextFile(dir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
-        var lowerCasePath = TestUtils.CreateTextFile(dir, "foo.coverage", "3");
+        TestUtils.CreateTextFile(testDir, "foo.coverageXXX", "1");              // wrong file extension
+        TestUtils.CreateTextFile(testDir, "abc.trx", "2");                      // wrong file extension
+        TestUtils.CreateTextFile(testDir, "BAR.coverage.XXX", string.Empty);    // wrong file extension
+        var lowerCasePath = TestUtils.CreateTextFile(testDir, "foo.coverage", "3");
         var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
-        var duplicate1FilePath = TestUtils.CreateTextFile(dir, "DUPLICATE.coverage", "4");
-        var duplicate2FilePath = TestUtils.CreateTextFile(dir, "Duplicate.coverage", "4");
-
+        var duplicate1FilePath = TestUtils.CreateTextFile(testDir, "DUPLICATE.coverage", "4");
+        var duplicate2FilePath = TestUtils.CreateTextFile(testDir, "Duplicate.coverage", "4");
         using var envVars = new EnvironmentVariableScope();
-        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, dir);
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, testDir);
+
         sut.FindFallbackCoverageFiles().Should().Satisfy(
             x => x == lowerCasePath,    // should also find upperCasePath but does not due to case-sensitivity
             x => x == duplicate1FilePath || x == duplicate2FilePath);
@@ -456,25 +453,23 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void FindFallbackCoverageFiles_CalculatesAndDeDupesOnContentCorrectly()
     {
-        var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), "TestResults");
-        var subDir = Path.Combine(dir, "subDir", "subDir2");
+        var subDir = Path.Combine(testDir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
-
         var file1 = "file1.coverage";
         var file2 = "file2.coverage";
         var file3 = "file3.coverage";
         var file1Duplicate = "file1Duplicate.coverage";
-        var filePath1 = TestUtils.CreateTextFile(dir, file1, file1);
-        var filePath2 = TestUtils.CreateTextFile(dir, file2, file2);
-        var filePath3 = TestUtils.CreateTextFile(dir, file3, file3);
-        var filePath1Duplicate = TestUtils.CreateTextFile(dir, file1Duplicate, file1);
+        var filePath1 = TestUtils.CreateTextFile(testDir, file1, file1);
+        var filePath2 = TestUtils.CreateTextFile(testDir, file2, file2);
+        var filePath3 = TestUtils.CreateTextFile(testDir, file3, file3);
+        var filePath1Duplicate = TestUtils.CreateTextFile(testDir, file1Duplicate, file1);
         var filePath1SubDir = TestUtils.CreateTextFile(subDir, file1, file1);
-
         using var envVars = new EnvironmentVariableScope();
-        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, dir);
-        var result = sut.FindFallbackCoverageFiles().ToList();
-        result.Should().HaveCount(3, "the 5 files should be de-duped based on content hash.");
-        result.Should().Satisfy(
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, testDir);
+
+        sut.FindFallbackCoverageFiles().Should()
+            .HaveCount(3, "the 5 files should be de-duped based on content hash.")
+            .And.Satisfy(
             x => x == filePath1 || x == filePath1Duplicate || x == filePath1SubDir,
             x => x == filePath2,
             x => x == filePath3);
