@@ -25,7 +25,7 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 namespace SonarScanner.MSBuild.PreProcessor.Caching.Test;
 
 [TestClass]
-public class FileCacheTests
+public sealed class FileCacheTests : IDisposable
 {
     private static readonly string SonarUserHome = Path.Combine("home", ".sonar");
     private static readonly string SonarUserHomeCache = Path.Combine(SonarUserHome, "cache");
@@ -34,6 +34,14 @@ public class FileCacheTests
     private readonly IFileWrapper fileWrapper;
     private readonly FileCache fileCache;
     private readonly TestLogger testLogger;
+    private readonly string downloadPath = Path.Combine(SonarUserHomeCache, "somePath");
+    private readonly string downloadTarget = "someFile";
+    private readonly string tempFileName = "xFirst.rnd";
+    private readonly string expectedSha = "sha256";
+    private readonly byte[] fileContentArray = new byte[3];
+    private readonly MemoryStream fileContentStream;
+    private readonly byte[] downloadContentArray = [1, 2, 3,];
+    private readonly string tempFilePath;
 
     public FileCacheTests()
     {
@@ -42,7 +50,16 @@ public class FileCacheTests
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
         fileWrapper = Substitute.For<IFileWrapper>();
         fileCache = new FileCache(testLogger, directoryWrapper, fileWrapper, checksum, SonarUserHome);
+
+        directoryWrapper.GetRandomFileName().Returns(tempFileName);
+        fileContentStream = new MemoryStream(fileContentArray, writable: true);
+        tempFilePath = Path.Combine(downloadPath, tempFileName);
+        fileWrapper.Create(tempFilePath).Returns(fileContentStream);
+        checksum.ComputeHash(null).ReturnsForAnyArgs(expectedSha);
     }
+
+    public void Dispose() =>
+        fileContentStream.Dispose();
 
     [TestMethod]
     public void EnsureCacheRoot_DirectoryDoesNotExist_CreatesDirectory()
@@ -166,12 +183,10 @@ public class FileCacheTests
     [TestMethod]
     public void ValidateChecksum_ValidChecksum_ReturnsTrue()
     {
-        var sha256 = "validsha256";
-
-        ExecuteValidateChecksumTest(sha256, sha256, true);
+        ExecuteValidateChecksumTest(expectedSha, expectedSha, true);
 
         testLogger.AssertDebugLogged($"""
-            The checksum of the downloaded file is '{sha256}' and the expected checksum is '{sha256}'.
+            The checksum of the downloaded file is '{expectedSha}' and the expected checksum is '{expectedSha}'.
             """);
     }
 
@@ -179,8 +194,6 @@ public class FileCacheTests
     public void ValidateChecksum_InvalidChecksum_ReturnsFalse()
     {
         var returnedSha = "invalidsha";
-        var expectedSha = "otherSha";
-
         ExecuteValidateChecksumTest(returnedSha, expectedSha, false);
 
         testLogger.AssertDebugLogged($"""
@@ -191,8 +204,6 @@ public class FileCacheTests
     [TestMethod]
     public void ValidateChecksum_ChecksumCalculationFails_ReturnsFalse()
     {
-        var downloadTarget = "some.file";
-
         ExecuteValidateChecksumTest(null, "sha256", false, downloadTarget);
 
         testLogger.AssertDebugLogged($"""
@@ -203,48 +214,46 @@ public class FileCacheTests
     [TestMethod]
     public async Task DownloadAndValidateFile_Success()
     {
-        var context = new ChecksumContext(fileCache, directoryWrapper, fileWrapper, checksum);
-
-        var result = await context.DownloadAndValidateFileTest(new MemoryStream(context.DownloadContentArray));
+        var result = await ExecuteDownloadAndValidateFile(new MemoryStream(downloadContentArray));
 
         result.Should().BeNull();
-        context.AssertStreamDisposed();
-        fileWrapper.Received(1).Create(Path.Combine(context.DownloadPath, context.TempFileName));
-        fileWrapper.Received(1).Move(Path.Combine(context.DownloadPath, context.TempFileName), context.DownloadTarget);
-        context.FileContentArray.Should().BeEquivalentTo(context.DownloadContentArray);
-        testLogger.DebugMessages.Should().BeEquivalentTo($"The checksum of the downloaded file is '{context.ExpectedSha}' and the expected checksum is '{context.ExpectedSha}'.");
+        AssertStreamDisposed();
+        fileWrapper.Received(1).Create(Path.Combine(downloadPath, tempFileName));
+        fileWrapper.Received(1).Move(Path.Combine(downloadPath, tempFileName), downloadTarget);
+        fileContentArray.Should().BeEquivalentTo(downloadContentArray);
+        testLogger.DebugMessages.Should().BeEquivalentTo($"The checksum of the downloaded file is '{expectedSha}' and the expected checksum is '{expectedSha}'.");
     }
 
     [TestMethod]
     public async Task DownloadAndValidateFile_NullStream_ReturnsInvalidOperationException()
     {
-        var context = new ChecksumContext(fileCache, directoryWrapper, fileWrapper, checksum);
-
-        var result = await context.DownloadAndValidateFileTest(null);
+        var result = await ExecuteDownloadAndValidateFile(null);
 
         result.Should().BeOfType<InvalidOperationException>().Which.Message.Should().Be(
             "The download stream is null. The server likely returned an error status code.");
-        context.AssertTempFileCreatedAndDeleted();
-        context.AssertStreamDisposed();
-        testLogger.DebugMessages.Should().BeEquivalentTo($"Deleting file '{Path.Combine(context.DownloadPath, context.TempFileName)}'.");
+        AssertTempFileCreatedAndDeleted();
+        AssertStreamDisposed();
+        testLogger.DebugMessages.Should().BeEquivalentTo($"Deleting file '{Path.Combine(downloadPath, tempFileName)}'.");
     }
 
     [TestMethod]
     public async Task DownloadAndValidateFile_WrongChecksum_ReturnsCryptographicException()
     {
-        var context = new ChecksumContext(fileCache, directoryWrapper, fileWrapper, checksum);
-        checksum.ComputeHash(context.FileContentStream).ReturnsForAnyArgs("someOtherHash");
+        checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
 
-        var result = await context.DownloadAndValidateFileTest(new MemoryStream(context.DownloadContentArray));
+        var result = await ExecuteDownloadAndValidateFile(new MemoryStream(downloadContentArray));
 
         result.Should().BeOfType<CryptographicException>().Which.Message.Should().Be("The checksum of the downloaded file does not match the expected checksum.");
-        context.AssertTempFileCreatedAndDeleted();
-        context.FileContentArray.Should().BeEquivalentTo(context.DownloadContentArray);
-        context.AssertStreamDisposed();
+        AssertTempFileCreatedAndDeleted();
+        fileContentArray.Should().BeEquivalentTo(downloadContentArray);
+        AssertStreamDisposed();
         testLogger.DebugMessages.Should().BeEquivalentTo(
-            $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{context.ExpectedSha}'.",
-            $"Deleting file '{Path.Combine(context.DownloadPath, context.TempFileName)}'.");
+            $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{expectedSha}'.",
+            $"Deleting file '{Path.Combine(downloadPath, tempFileName)}'.");
     }
+
+    private async Task<Exception> ExecuteDownloadAndValidateFile(MemoryStream downloadContent) =>
+        await fileCache.DownloadAndValidateFile(downloadPath, downloadTarget, new FileDescriptor(downloadTarget, expectedSha), () => Task.FromResult<Stream>(downloadContent));
 
     private void ExecuteValidateChecksumTest(string returnedSha, string expectedSha, bool expectSucces, string downloadTarget = "some.file")
     {
@@ -263,43 +272,16 @@ public class FileCacheTests
         checksum.Received(1).ComputeHash(stream);
     }
 
-    private class ChecksumContext
+    private void AssertTempFileCreatedAndDeleted()
     {
-        public readonly byte[] FileContentArray = new byte[3];
-        public readonly MemoryStream FileContentStream;
-        public readonly byte[] DownloadContentArray = [1, 2, 3,];
-        public readonly string DownloadPath = Path.Combine(SonarUserHomeCache, "somePath");
-        public readonly string DownloadTarget = "someFile";
-        public readonly string TempFileName = "xFirst.rnd";
-        public readonly string ExpectedSha = "sha256";
+        fileWrapper.Received(1).Create(tempFilePath);
+        fileWrapper.Received(1).Delete(tempFilePath);
+        fileWrapper.DidNotReceiveWithAnyArgs().Move(null, null);
+    }
 
-        private readonly FileCache fileCache;
-        private readonly IFileWrapper fileWrapper;
-
-        public ChecksumContext(FileCache fileCache, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum)
-        {
-            this.fileCache = fileCache;
-            this.fileWrapper = fileWrapper;
-            directoryWrapper.GetRandomFileName().Returns(TempFileName);
-            FileContentStream = new MemoryStream(FileContentArray, writable: true);
-            fileWrapper.Create(Path.Combine(DownloadPath, TempFileName)).Returns(FileContentStream);
-            checksum.ComputeHash(FileContentStream).ReturnsForAnyArgs(ExpectedSha);
-        }
-
-        public async Task<Exception> DownloadAndValidateFileTest(MemoryStream expectedResult) =>
-            await fileCache.DownloadAndValidateFile(DownloadPath, DownloadTarget, new FileDescriptor(DownloadTarget, ExpectedSha), () => Task.FromResult<Stream>(expectedResult));
-
-        public void AssertTempFileCreatedAndDeleted()
-        {
-            fileWrapper.Received(1).Create(Path.Combine(DownloadPath, TempFileName));
-            fileWrapper.Received(1).Delete(Path.Combine(DownloadPath, TempFileName));
-            fileWrapper.DidNotReceive().Move(Path.Combine(DownloadPath, TempFileName), DownloadTarget);
-        }
-
-        public void AssertStreamDisposed()
-        {
-            var streamAccess = () => FileContentStream.Position;
-            streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after succes and failure.");
-        }
+    private void AssertStreamDisposed()
+    {
+        var streamAccess = () => fileContentStream.Position;
+        streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after success and failure.");
     }
 }

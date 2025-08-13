@@ -84,7 +84,6 @@ public class FileCache : IFileCache
             using var fileStream = fileWrapper.Create(tempFile);
             try
             {
-                logger.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
                 using var downloadStream = await download();
                 if (downloadStream is null)
                 {

@@ -84,6 +84,7 @@ internal class JreCache(
                                                                  Func<Task<Stream>> jreDownload)
     {
         logger.LogDebug(Resources.MSG_StartingJreDownload);
+        logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
         if (await fileCache.DownloadAndValidateFile(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } exception)
         {
             logger.LogDebug(Resources.ERR_JreDownloadFailed, exception.Message);
