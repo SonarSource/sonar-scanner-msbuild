@@ -33,7 +33,6 @@ public class BuildVNextCoverageReportProcessorTests
         TestAndCoverageXmlReportsPathsNotNull
     }
 
-    private readonly TestContext testContext;
     private readonly AnalysisConfig analysisConfig = new();
     private readonly TestLogger testLogger = new();
     private readonly MockReportConverter converter = new();
@@ -49,7 +48,6 @@ public class BuildVNextCoverageReportProcessorTests
 
     public BuildVNextCoverageReportProcessorTests(TestContext testContext)
     {
-        this.testContext = testContext;
         testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
         testResultsDir = Directory.CreateDirectory(Path.Combine(testDir, "TestResults")).FullName;
         coverageDir = Directory.CreateDirectory(Path.Combine(testResultsDir, "dummy", "In")).FullName;
@@ -406,6 +404,15 @@ public class BuildVNextCoverageReportProcessorTests
         sut.CheckAgentTempDirectory().Should().Be(envDir);
     }
 
+    [TestMethod]
+    public void FindFallbackCoverageFiles_NoAgentDirectory_Empty()
+    {
+        using var envVars = new EnvironmentVariableScope();
+        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, null);
+
+        sut.FindFallbackCoverageFiles().Should().BeEmpty();
+    }
+
     [TestCategory(TestCategories.NoLinux)]
     [TestMethod]
     public void FindFallbackCoverageFiles_FilesLocatedCorrectly_Windows_Mac()
@@ -482,8 +489,9 @@ public class BuildVNextCoverageReportProcessorTests
     [DataRow(new byte[] { 1, 2 }, new byte[] { 2, 1 })]
     [DataRow(new byte[] { }, new byte[] { 1 })]
     public void FileWithContentHash_Equals_DifferentHash_False(byte[] hash1, byte[] hash2) =>
-        new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", hash1).Should()
-            .NotBe(new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", hash2));
+        new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", hash1)
+            .Equals(new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", hash2))
+            .Should().BeFalse();
 
     [TestMethod]
     [DataRow("File.txt", "File.txt")]
@@ -494,8 +502,18 @@ public class BuildVNextCoverageReportProcessorTests
     [DataRow("", "File.txt")]
     [DataRow(null, "File.txt")]
     public void FileWithContentHash_Equals_SameHash_True(string fileName1, string fileName2) =>
-        new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName1, [1, 2]).Should()
-            .Be(new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName2, [1, 2]));
+        new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName1, [1, 2])
+            .Equals(new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName2, [1, 2]))
+            .Should().BeTrue();
+
+    [TestMethod]
+    [DataRow("string")]
+    [DataRow(42)]
+    [DataRow(null)]
+    public void FileWithContentHash_Equals_Other_False(object other) =>
+        new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", [1, 2])
+            .Equals(other)
+            .Should().BeFalse();
 
     private void SetupSettingsAndFiles(Settings settings, bool trx = false, bool coverage = false, bool coverageXml = false, bool alternate = false, bool alternateXml = false)
     {
