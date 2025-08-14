@@ -18,23 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.PostProcessor;
 
 /// <summary>
 /// Handles removing targets from .sonarqube/bin directory
 /// </summary>
-public class TargetsUninstaller : ITargetsUninstaller
+public class TargetsUninstaller
 {
     private readonly ILogger logger;
 
     public TargetsUninstaller(ILogger logger) =>
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public void UninstallTargets(string binDirectory)
+    public virtual void UninstallTargets(string binDirectory)
     {
         var path = Path.Combine(binDirectory, "targets", FileConstants.IntegrationTargetsName);
         if (File.Exists(path))
