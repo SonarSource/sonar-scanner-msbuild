@@ -54,25 +54,6 @@ public class FileCache
         return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
     }
 
-    public string EnsureCacheRoot() =>
-        EnsureDirectoryExists(CacheRoot);
-
-    public string EnsureDirectoryExists(string directory)
-    {
-        try
-        {
-            if (!directoryWrapper.Exists(directory))
-            {
-                directoryWrapper.CreateDirectory(directory);
-            }
-            return directory;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
     public virtual async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
     {
         if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
@@ -88,7 +69,42 @@ public class FileCache
         }
     }
 
-    public async Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    internal string EnsureCacheRoot() =>
+        EnsureDirectoryExists(CacheRoot);
+
+    internal string EnsureDirectoryExists(string directory)
+    {
+        try
+        {
+            if (!directoryWrapper.Exists(directory))
+            {
+                directoryWrapper.CreateDirectory(directory);
+            }
+            return directory;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    internal bool ValidateChecksum(string downloadTarget, string sha256)
+    {
+        try
+        {
+            using var fs = fileWrapper.Open(downloadTarget);
+            var fileChecksum = checksum.ComputeHash(fs);
+            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
+            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
+            return false;
+        }
+    }
+
+    protected async Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
         {
@@ -108,26 +124,13 @@ public class FileCache
         return null;
     }
 
-    public string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
+    protected string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
         EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
 
-    public bool ValidateChecksum(string downloadTarget, string sha256)
-    {
-        try
-        {
-            using var fs = fileWrapper.Open(downloadTarget);
-            var fileChecksum = checksum.ComputeHash(fs);
-            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
-            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
-            return false;
-        }
-    }
+    protected string FileRootPath(FileDescriptor descriptor) =>
+        Path.Combine(CacheRoot, descriptor.Sha256);
 
-    public void TryDeleteFile(string tempFile)
+    private void TryDeleteFile(string tempFile)
     {
         try
         {
@@ -139,9 +142,6 @@ public class FileCache
             logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
         }
     }
-
-    public string FileRootPath(FileDescriptor descriptor) =>
-        Path.Combine(CacheRoot, descriptor.Sha256);
 
     private async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
