@@ -218,8 +218,8 @@ public sealed class FileCacheTests : IDisposable
 
         result.Should().BeNull();
         AssertStreamDisposed();
-        fileWrapper.Received(1).Create(Path.Combine(downloadPath, tempFileName));
-        fileWrapper.Received(1).Move(Path.Combine(downloadPath, tempFileName), downloadTarget);
+        fileWrapper.Received(1).Create(tempFilePath);
+        fileWrapper.Received(1).Move(tempFilePath, downloadTarget);
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         testLogger.DebugMessages.Should().BeEquivalentTo($"The checksum of the downloaded file is '{expectedSha}' and the expected checksum is '{expectedSha}'.");
     }
@@ -233,7 +233,7 @@ public sealed class FileCacheTests : IDisposable
             "The download stream is null. The server likely returned an error status code.");
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
-        testLogger.DebugMessages.Should().BeEquivalentTo($"Deleting file '{Path.Combine(downloadPath, tempFileName)}'.");
+        testLogger.DebugMessages.Should().BeEquivalentTo($"Deleting file '{tempFilePath}'.");
     }
 
     [TestMethod]
@@ -249,7 +249,7 @@ public sealed class FileCacheTests : IDisposable
         AssertStreamDisposed();
         testLogger.DebugMessages.Should().BeEquivalentTo(
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{expectedSha}'.",
-            $"Deleting file '{Path.Combine(downloadPath, tempFileName)}'.");
+            $"Deleting file '{tempFilePath}'.");
     }
 
     private async Task<Exception> ExecuteDownloadAndValidateFile(MemoryStream downloadContent) =>
