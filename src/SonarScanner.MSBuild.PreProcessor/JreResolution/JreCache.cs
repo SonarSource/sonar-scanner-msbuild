@@ -24,7 +24,7 @@ using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-internal class JreCache : FileCache
+public class JreCache : FileCache
 {
     private readonly IUnpackerFactory unpackerFactory;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
@@ -66,7 +66,7 @@ internal class JreCache : FileCache
         return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(CacheRoot)));
     }
 
-    public override  async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    public override async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
     {
         if (fileDescriptor is not JreDescriptor jreDescriptor)
         {

@@ -77,7 +77,7 @@ public class JreCacheTests
     {
         directoryWrapper.Exists(SonarCache).Returns(false);
         var sut = CreateSutWithSubstitutes();
-        var result = sut.IsJreCached(new("jre", "sha", "java"));
+        var result = sut.IsFileCached(new JreDescriptor("jre", "sha", "java"));
         result.Should().Be(new CacheMiss());
         directoryWrapper.Received(1).CreateDirectory(SonarCache);
     }
@@ -89,7 +89,7 @@ public class JreCacheTests
         directoryWrapper.When(x => x.CreateDirectory(SonarCache)).Throw((Exception)Activator.CreateInstance(exceptionType));
 
         var sut = CreateSutWithSubstitutes();
-        var result = sut.IsJreCached(new("jre", "sha", "java"));
+        var result = sut.IsFileCached(new JreDescriptor("jre", "sha", "java"));
         result.Should().Be(new CacheFailure($"The file cache directory in '{SonarCache}' could not be created."));
         directoryWrapper.Received(1).Exists(SonarCache);
         directoryWrapper.Received(1).CreateDirectory(SonarCache);
@@ -103,7 +103,7 @@ public class JreCacheTests
         directoryWrapper.Exists(expectedExtractedPath).Returns(false);
 
         var sut = CreateSutWithSubstitutes();
-        var result = sut.IsJreCached(new("filename.tar.gz", "sha", "jdk/bin/java"));
+        var result = sut.IsFileCached(new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new CacheMiss());
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
@@ -118,7 +118,7 @@ public class JreCacheTests
         fileWrapper.Exists(expectedExtractedJavaExe).Returns(false);
 
         var sut = CreateSutWithSubstitutes();
-        var result = sut.IsJreCached(new("filename.tar.gz", "sha", "jdk/bin/java"));
+        var result = sut.IsFileCached(new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new CacheFailure(
             $"The java executable in the Java runtime environment cache could not be found at the expected location '{Path.Combine(expectedExtractedPath, "jdk/bin/java")}'."));
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
@@ -134,7 +134,7 @@ public class JreCacheTests
         fileWrapper.Exists(expectedExtractedJavaExe).Returns(true);
 
         var sut = CreateSutWithSubstitutes();
-        var result = sut.IsJreCached(new("filename.tar.gz", "sha", "jdk/bin/java"));
+        var result = sut.IsFileCached(new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
         result.Should().Be(new CacheHit(expectedExtractedJavaExe));
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
@@ -147,7 +147,7 @@ public class JreCacheTests
         directoryWrapper.When(x => x.CreateDirectory(SonarCache)).Throw((Exception)Activator.CreateInstance(exception));
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be($"The file cache directory in '{ShaPath}' could not be created.");
     }
 
@@ -159,7 +159,7 @@ public class JreCacheTests
         directoryWrapper.When(x => x.CreateDirectory(ShaPath)).Throw((Exception)Activator.CreateInstance(exception));
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be($"The file cache directory in '{ShaPath}' could not be created.");
     }
 
@@ -173,7 +173,7 @@ public class JreCacheTests
         fileWrapper.Exists($@"{ShaPath}\filename.tar.gz").Returns(true);
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The checksum of the downloaded file does not match the expected checksum.");
         testLogger.DebugMessages.Should().BeEquivalentTo(
             $"The file was already downloaded from the server and stored at '{Path.Combine(ShaPath, "filename.tar.gz")}'.",
@@ -191,7 +191,7 @@ public class JreCacheTests
         fileWrapper.Open(Path.Combine(ShaPath, "filename.tar.gz")).Returns(fileContent);
         checksum.ComputeHash(fileContent).Returns("sha256");
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         testLogger.DebugMessages.Should().BeEquivalentTo(
             $"The file was already downloaded from the server and stored at '{Path.Combine(ShaPath, "filename.tar.gz")}'.",
@@ -213,7 +213,7 @@ public class JreCacheTests
         fileWrapper.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileContentStream);
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
         fileWrapper.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -238,13 +238,12 @@ public class JreCacheTests
         var file = Path.Combine(jre, "filename.tar.gz");
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
-        var fileCache = new FileCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, home);
         var downloadContentArray = new byte[] { 1, 2, 3 };
 
-        var sut = new JreCache(testLogger, fileCache, directoryWrapperIO, fileWrapperIO, unpackerFactory, filePermissionsWrapper);
+        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, filePermissionsWrapper, home);
         try
         {
-            var result = await sut.DownloadJreAsync(new("filename.tar.gz", sha, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+            var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", sha, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
             result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
                 + "'The checksum of the downloaded file does not match the expected checksum.'.");
             File.Exists(file).Should().BeFalse();
@@ -273,12 +272,11 @@ public class JreCacheTests
         var file = Path.Combine(jre, "filename.tar.gz");
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
-        var fileCache = new FileCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, home);
 
-        var sut = new JreCache(testLogger, fileCache, directoryWrapperIO, fileWrapperIO, unpackerFactory, filePermissionsWrapper);
+        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, filePermissionsWrapper, home);
         try
         {
-            var result = await sut.DownloadJreAsync(new("filename.tar.gz", sha, "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
+            var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", sha, "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
             result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be(
                 @"The download of the file from the server failed with the exception 'Download failure simulation.'.");
             File.Exists(file).Should().BeFalse();
@@ -310,7 +308,7 @@ public class JreCacheTests
         fileWrapper.Create(Path.Combine(ShaPath, "xFirst.rnd")).Throws(exception);
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be(
             $"The download of the file from the server failed with the exception '{exception.Message}'.");
         fileWrapper.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -330,7 +328,7 @@ public class JreCacheTests
         fileWrapper.When(x => x.Delete(Path.Combine(ShaPath, "xFirst.rnd"))).Do(x => throw ((Exception)Activator.CreateInstance(exceptionType)));
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The download of the file from the server failed with the "
             + "exception 'Download failure simulation.'."); // The exception from the failed temp file delete is not visible to the user.
         fileWrapper.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -350,7 +348,7 @@ public class JreCacheTests
         fileWrapper.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileStream);
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
         result.Should().BeOfType<CacheFailure>().Which.Message.Replace(Environment.NewLine, string.Empty).Should().Be("""
             The download of the file from the server failed with the exception 'Cannot access a disposed object.Object name: 'stream'.'.
             """); // This should actually read "Download failure simulation." because the ObjectDisposedException is actually swallowed.
@@ -378,7 +376,7 @@ public class JreCacheTests
         fileWrapper.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileContentStream);
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The download of the file from the server failed with the exception 'Download failure simulation.'.");
         fileWrapper.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
         fileWrapper.Received(1).Delete(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -398,7 +396,7 @@ public class JreCacheTests
         fileWrapper.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileContentStream);
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(null));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(null));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be(
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.");
         fileWrapper.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -426,7 +424,7 @@ public class JreCacheTests
         fileWrapper.When(x => x.Move(Path.Combine(ShaPath, "xFirst.rnd"), file)).Throw(exception);
         checksum.ComputeHash(computeHashStream).Returns("sha256");
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream([1, 2, 3])));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream([1, 2, 3])));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be($"The download of the file from the server failed with the exception '{exception.Message}'.");
         fileWrapper.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
         fileWrapper.Received(1).Move(Path.Combine(ShaPath, "xFirst.rnd"), file);
@@ -449,7 +447,7 @@ public class JreCacheTests
         fileWrapper.When(x => x.Create(Arg.Any<string>())).Throw<IOException>(); // Fail the download somehow.
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
         // The download failed, but we still progress with the provisioning because somehow magically the file is there anyway.
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The checksum of the downloaded file does not match the expected checksum.");
         testLogger.AssertDebugLogged(@"Starting the file download.");
@@ -475,7 +473,7 @@ public class JreCacheTests
         checksum.ComputeHash(fileStream).Returns(fileHashValue);
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         testLogger.DebugMessages.Should().BeEquivalentTo(
             "Starting the file download.",
@@ -512,7 +510,7 @@ public class JreCacheTests
         fileWrapper.Open(Path.Combine(sha, "xFirst.rnd")).Returns(fileStream);
         checksum.ComputeHash(fileStream).Returns(fileHashValue);
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
         testLogger.DebugMessages.Should().BeEquivalentTo(
@@ -541,7 +539,7 @@ public class JreCacheTests
         fileWrapper.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileStream);
         checksum.ComputeHash(fileStream).Throws<InvalidOperationException>();
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
         testLogger.AssertDebugLogged($"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message "
@@ -565,7 +563,7 @@ public class JreCacheTests
         fileWrapper.Open(Path.Combine(ShaPath, "xFirst.rnd")).Throws<IOException>();
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
         testLogger.AssertDebugLogged(@$"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message 'I/O error occurred.'.");
@@ -589,7 +587,7 @@ public class JreCacheTests
         unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").Returns(Substitute.For<IUnpacker>());
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be(@"The downloaded Java runtime environment could not be extracted.");
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(Arg.Any<string>());
@@ -612,7 +610,7 @@ public class JreCacheTests
         unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").ReturnsNull();
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The archive format of the JRE archive `filename.tar.gz` is not supported.");
         fileWrapper.DidNotReceiveWithAnyArgs().Exists(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
@@ -630,7 +628,7 @@ public class JreCacheTests
         unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").ReturnsNull();
 
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The archive format of the JRE archive `filename.tar.gz` is not supported.");
         fileWrapper.DidNotReceiveWithAnyArgs().Exists(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
@@ -655,7 +653,7 @@ public class JreCacheTests
         fileWrapper.Exists(Path.Combine(ShaPath, "xSecond.rnd", "javaPath")).Returns(true);
         var sut = CreateSutWithSubstitutes();
 
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(Path.Combine(file + "_extracted", "javaPath"));
         directoryWrapper.Received(2).GetRandomFileName();
         directoryWrapper.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
@@ -684,7 +682,7 @@ public class JreCacheTests
         unpacker.When(x => x.Unpack(archiveFileStream, Path.Combine(ShaPath, "xSecond.rnd"))).Throw(new IOException("Unpack failure"));
         var sut = CreateSutWithSubstitutes();
 
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         directoryWrapper.Received(2).GetRandomFileName();
         directoryWrapper.DidNotReceiveWithAnyArgs().Move(null, null);
@@ -713,7 +711,7 @@ public class JreCacheTests
         directoryWrapper.When(x => x.Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted")).Throw<IOException>();
         var sut = CreateSutWithSubstitutes();
 
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         directoryWrapper.Received(2).GetRandomFileName();
         directoryWrapper.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
@@ -742,7 +740,7 @@ public class JreCacheTests
         fileWrapper.Exists(Path.Combine("sha", "xSecond.rnd", "javaPath")).Returns(false);
         var sut = CreateSutWithSubstitutes();
 
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         directoryWrapper.Received(2).GetRandomFileName();
         fileWrapper.Received(1).Exists(Path.Combine(ShaPath, "xSecond.rnd", "javaPath"));
@@ -770,7 +768,7 @@ public class JreCacheTests
         directoryWrapper.When(x => x.Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted")).Throw(new IOException("Move failure"));
         directoryWrapper.When(x => x.Delete(Path.Combine(ShaPath, "xSecond.rnd"), true)).Throw(new IOException("Folder cleanup failure"));
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
         directoryWrapper.Received(2).GetRandomFileName();
         directoryWrapper.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
         directoryWrapper.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
@@ -805,12 +803,12 @@ public class JreCacheTests
         var sha = "b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip";
         var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
-        var fileCache = new FileCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), home);
-        var sut = new JreCache(testLogger, fileCache, DirectoryWrapper.Instance, FileWrapper.Instance, UnpackerFactory.Instance, filePermissionsWrapper);
+
+        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, filePermissionsWrapper, home);
 
         try
         {
-            var result = await sut.DownloadJreAsync(jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(zipContent)));
+            var result = await sut.DownloadFileAsync(jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(zipContent)));
             result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(
                 Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted", "jdk-17.0.11+9-jre/bin/java.exe"));
             Directory.EnumerateFileSystemEntries(cache, "*", SearchOption.AllDirectories).Should().BeEquivalentTo(
@@ -857,11 +855,11 @@ public class JreCacheTests
         var sha = "347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz";
         var jreDescriptor = new JreDescriptor(file, sha, Path.Combine("jdk-17.0.11+9-jre", "bin", "java.exe"));
-        var fileCache = new FileCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), home);
-        var sut = new JreCache(testLogger, fileCache, DirectoryWrapper.Instance, FileWrapper.Instance, UnpackerFactory.Instance, filePermissionsWrapper);
+
+        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, filePermissionsWrapper, home);
         try
         {
-            var result = await sut.DownloadJreAsync(jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(tarContent)));
+            var result = await sut.DownloadFileAsync(jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(tarContent)));
 
             result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(
                 Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
@@ -893,5 +891,5 @@ public class JreCacheTests
     }
 
     private JreCache CreateSutWithSubstitutes() =>
-        new JreCache(testLogger, fileCache, directoryWrapper, fileWrapper, unpackerFactory, filePermissionsWrapper);
+        new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackerFactory, filePermissionsWrapper, SonarUserHome);
 }
