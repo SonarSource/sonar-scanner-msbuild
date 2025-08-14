@@ -28,7 +28,7 @@ internal class MockTfsProcessor : ITfsProcessor
     private bool methodCalled;
 
     public string ErrorToLog { get; set; }
-    public bool ValueToReturn { get; set; }
+    public bool ValueToReturn { get; set; } = true;
     public IEnumerable<string> SuppliedCommandLineArgs { get; set; }
 
     public MockTfsProcessor(ILogger logger)
