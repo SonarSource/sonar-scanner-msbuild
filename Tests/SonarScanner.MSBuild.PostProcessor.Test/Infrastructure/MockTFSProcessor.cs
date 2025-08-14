@@ -24,41 +24,29 @@ namespace SonarScanner.MSBuild.PostProcessor.Test;
 
 internal class MockTfsProcessor : ITfsProcessor
 {
-    private bool methodCalled;
     private readonly ILogger logger;
-
-    #region Test Helpers
+    private bool methodCalled;
 
     public string ErrorToLog { get; set; }
-
     public bool ValueToReturn { get; set; }
-
     public IEnumerable<string> SuppliedCommandLineArgs { get; set; }
-
-    #endregion Test Helpers
 
     public MockTfsProcessor(ILogger logger)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    #region ITfsProcessor interface
-
     public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
     {
         methodCalled = true;
         SuppliedCommandLineArgs = userCmdLineArguments;
-        if (ErrorToLog != null)
+        if (ErrorToLog is not null)
         {
             logger.LogError(ErrorToLog);
         }
 
         return ValueToReturn;
     }
-
-    #endregion ISonarScanner interface
-
-    #region Checks
 
     public void AssertExecutedIfNetFramework()
     {
@@ -73,6 +61,4 @@ internal class MockTfsProcessor : ITfsProcessor
     {
         methodCalled.Should().BeFalse("TFS processor should not have been called.");
     }
-
-#endregion Checks
 }
