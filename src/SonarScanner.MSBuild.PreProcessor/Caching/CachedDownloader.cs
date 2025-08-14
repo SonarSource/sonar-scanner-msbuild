@@ -54,10 +54,25 @@ public class CachedDownloader
         return new CacheError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
     }
 
-    public string EnsureCacheRoot() =>
+    public virtual async Task<DownloadResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    {
+        if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
+        {
+            var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
+            return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } cacheFailure
+                ? cacheFailure
+                : new CacheHit(downloadTarget);
+        }
+        else
+        {
+            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
+        }
+    }
+
+    internal string EnsureCacheRoot() =>
         EnsureDirectoryExists(CacheRoot);
 
-    public string EnsureDirectoryExists(string directory)
+    internal string EnsureDirectoryExists(string directory)
     {
         try
         {
@@ -141,6 +156,25 @@ public class CachedDownloader
             return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
         }
         return null;
+    }
+
+    protected string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
+        EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
+
+    protected string FileRootPath(FileDescriptor descriptor) =>
+        Path.Combine(CacheRoot, descriptor.Sha256);
+
+    private void TryDeleteFile(string tempFile)
+    {
+        try
+        {
+            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
+            fileWrapper.Delete(tempFile);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
+        }
     }
 
     private async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
