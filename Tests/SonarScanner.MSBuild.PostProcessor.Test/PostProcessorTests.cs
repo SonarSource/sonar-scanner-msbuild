@@ -30,6 +30,7 @@ public class PostProcessorTests
     private const string CredentialsErrorMessage = "Credentials must be passed in both begin and end steps or not at all";
     private const string TruststorePasswordErrorMessage = "'sonar.scanner.truststorePassword' must be specified in the end step when specified during the begin step.";
 
+    private readonly TestContext testContext;
     private readonly TargetsUninstaller targetsUninstaller;
     private readonly AnalysisConfig config;
     private readonly BuildSettings settings;
@@ -37,10 +38,9 @@ public class PostProcessorTests
     private readonly TestLogger logger;
     private readonly TfsProcessorWrapper tfsProcessor;
 
-    public TestContext TestContext { get; set; }
-
     public PostProcessorTests(TestContext testContext)
     {
+        this.testContext = testContext;
         config = new()
         {
             SonarOutputDir = Environment.CurrentDirectory,
@@ -303,9 +303,9 @@ public class PostProcessorTests
             tfsProcessor,
             sonarProjectPropertiesValidator);
 
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
 
-        var projectInfo = TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
+        var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
 
         var listOfProjects = new List<ProjectData>
         {
@@ -342,9 +342,9 @@ public class PostProcessorTests
             tfsProcessor,
             sonarProjectPropertiesValidator);
 
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Guid.NewGuid().ToString());
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext, Guid.NewGuid().ToString());
 
-        var projectInfo = TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
+        var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
 
         var listOfProjects = new List<ProjectData>
         {
