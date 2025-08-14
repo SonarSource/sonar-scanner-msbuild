@@ -28,6 +28,6 @@ public interface IFileCache
     CacheResult IsFileCached(FileDescriptor fileDescriptor);
     string FileRootPath(FileDescriptor descriptor);
     string EnsureDownloadDirectory(FileDescriptor fileDescriptor);
-    Task<string> EnsureFileDownload(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
+    Task<CacheFailure> EnsureFileDownload(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
     void TryDeleteFile(string tempFile);
 }

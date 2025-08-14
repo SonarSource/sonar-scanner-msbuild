@@ -73,7 +73,7 @@ public class FileCache : IFileCache
         }
     }
 
-    public async Task<string> EnsureFileDownload(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    public async Task<CacheFailure> EnsureFileDownload(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
         {
@@ -88,7 +88,7 @@ public class FileCache : IFileCache
                 logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, downloadTarget);
                 return ValidateFile(downloadTarget, descriptor);
             }
-            return string.Format(Resources.ERR_DownloadFailed, exception.Message);
+            return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
         }
         return null;
     }
@@ -180,7 +180,7 @@ public class FileCache : IFileCache
     public string FileRootPath(FileDescriptor descriptor) =>
         Path.Combine(CacheRoot, descriptor.Sha256);
 
-    private string ValidateFile(string downloadTarget, FileDescriptor descriptor)
+    private CacheFailure ValidateFile(string downloadTarget, FileDescriptor descriptor)
     {
         logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
         if (ValidateChecksum(downloadTarget, descriptor.Sha256))
@@ -190,7 +190,7 @@ public class FileCache : IFileCache
         else
         {
             TryDeleteFile(downloadTarget);
-            return Resources.ERR_ChecksumMismatch;
+            return new(Resources.ERR_ChecksumMismatch);
         }
     }
 

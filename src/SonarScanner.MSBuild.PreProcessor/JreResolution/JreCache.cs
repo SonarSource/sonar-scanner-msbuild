@@ -66,9 +66,9 @@ internal class JreCache(
         }
         var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
         logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
-        if (await fileCache.EnsureFileDownload(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } errorMessage)
+        if (await fileCache.EnsureFileDownload(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } cacheFailure)
         {
-            return new CacheFailure(errorMessage);
+            return cacheFailure;
         }
         else
         {
