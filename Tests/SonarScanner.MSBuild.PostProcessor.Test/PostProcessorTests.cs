@@ -35,8 +35,8 @@ public class PostProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        var scanner = Substitute.For<ISonarScanner>();
         var logger = Substitute.For<ILogger>();
+        var scanner = Substitute.For<SonarScannerWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
         var targets = Substitute.For<ITargetsUninstaller>();
         var tfs = Substitute.For<ITfsProcessor>();
 
@@ -397,7 +397,7 @@ public class PostProcessorTests
         public ITargetsUninstaller TargetsUninstaller { get; }
         public AnalysisConfig Config { get; set; }
         public BuildSettings Settings { get; }
-        public ISonarScanner Scanner { get; }
+        public SonarScannerWrapper Scanner { get; }
         public TestLogger Logger { get; }
         public ITfsProcessor TfsProcessor { get; }
 
@@ -412,7 +412,7 @@ public class PostProcessorTests
             Logger = new();
             TfsProcessor = Substitute.For<ITfsProcessor>();
             TfsProcessor.Execute(null, null, null).ReturnsForAnyArgs(true);
-            Scanner = Substitute.For<ISonarScanner>();
+            Scanner = Substitute.For<SonarScannerWrapper>(Logger, Substitute.For<IOperatingSystemProvider>());
             Scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
             TargetsUninstaller = Substitute.For<ITargetsUninstaller>();
         }
