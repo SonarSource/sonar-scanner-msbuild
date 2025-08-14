@@ -36,7 +36,6 @@ public class JreCacheTests
     private readonly TestLogger testLogger;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly IFileCache fileCache;
     private readonly IChecksum checksum;
     private readonly IUnpacker unpacker;
     private readonly IUnpackerFactory unpackerFactory;
@@ -69,7 +68,6 @@ public class JreCacheTests
         unpackerFactory = Substitute.For<IUnpackerFactory>();
         filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
         unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").Returns(unpacker);
-        fileCache = new FileCache(testLogger, directoryWrapper, fileWrapper, checksum, SonarUserHome);
     }
 
     [TestMethod]

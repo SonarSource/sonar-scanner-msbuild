@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-public class FileCache : IFileCache
+public class FileCache
 {
     private readonly IChecksum checksum;
     private readonly IDirectoryWrapper directoryWrapper;
