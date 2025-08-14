@@ -278,14 +278,14 @@ public class PostProcessorTests
     [TestMethod]
     public void Execute_NullArgs_Throws()
     {
-        Action action = () => DummyPostProcessorExecute(null, new AnalysisConfig(), new MockBuildSettings());
+        Action action = () => DummyPostProcessorExecute(null, new AnalysisConfig(), Substitute.For<IBuildSettings>());
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
     }
 
     [TestMethod]
     public void Execute_NullAnalysisConfig_Throws()
     {
-        Action action = () => DummyPostProcessorExecute([], null, new MockBuildSettings());
+        Action action = () => DummyPostProcessorExecute([], null, Substitute.For<IBuildSettings>());
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
     }
 
