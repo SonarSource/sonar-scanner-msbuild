@@ -25,10 +25,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
 public class CachedDownloader
 {
+    protected readonly IDirectoryWrapper directoryWrapper;
+    protected readonly IFileWrapper fileWrapper;
+    protected readonly ILogger logger;
     private readonly IChecksum checksum;
-    private readonly IDirectoryWrapper directoryWrapper;
-    private readonly IFileWrapper fileWrapper;
-    private readonly ILogger logger;
     private readonly string sonarUserHome;
 
     public string CacheRoot => Path.Combine(sonarUserHome, "cache");
