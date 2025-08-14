@@ -82,7 +82,7 @@ public class PostProcessorTests
     [TestMethod]
     public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
     {
-        Execute_WithNoProject().Should().BeFalse("Expecting post-processor to have failed");
+        Execute(withProject: false).Should().BeFalse("Expecting post-processor to have failed");
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         logger.AssertNoErrorsLogged();
@@ -150,7 +150,7 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineCredentials = true;
 
-        Execute(args: []).Should().BeFalse();
+        Execute().Should().BeFalse();
         logger.AssertErrorLogged(CredentialsErrorMessage);
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
@@ -162,7 +162,7 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineTruststorePassword = true;
 
-        Execute(args: []).Should().BeFalse();
+        Execute().Should().BeFalse();
         logger.AssertErrorLogged(TruststorePasswordErrorMessage);
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
@@ -174,7 +174,7 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineTruststorePassword = true;
 
-        Execute(args: "/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
+        Execute("/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
         logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
@@ -210,7 +210,7 @@ public class PostProcessorTests
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
 
-        Execute(args: "/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
+        Execute("/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
         logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
@@ -244,7 +244,7 @@ public class PostProcessorTests
     [TestMethod]
     public void PostProc_WhenNoSettingInFileAndCommandLineArg_Fail()
     {
-        Execute(args: "/d:sonar.token=foo").Should().BeFalse();
+        Execute("/d:sonar.token=foo").Should().BeFalse();
         logger.AssertErrorLogged(CredentialsErrorMessage);
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
@@ -254,7 +254,7 @@ public class PostProcessorTests
     [TestMethod]
     public void PostProc_WhenNoSettingInFileAndNoCommandLineArg_DoesNotFail()
     {
-        Execute(args: []).Should().BeTrue();
+        Execute().Should().BeTrue();
         logger.AssertNoErrorsLogged(CredentialsErrorMessage);
         logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
@@ -264,7 +264,7 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineCredentials = true;
 
-        Execute(args: "/d:sonar.token=foo").Should().BeTrue();
+        Execute("/d:sonar.token=foo").Should().BeTrue();
         logger.AssertNoErrorsLogged(CredentialsErrorMessage);
     }
 
@@ -289,8 +289,12 @@ public class PostProcessorTests
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
     }
 
-    private bool Execute_WithNoProject(params string[] args)
+    private bool Execute(string arg) =>
+        Execute([arg]);
+
+    private bool Execute(string[] args = null, bool withProject = true)
     {
+        args ??= [];
         var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
         sonarProjectPropertiesValidator
             .AreExistingSonarPropertiesFilesPresent(Arg.Any<string>(), Arg.Any<ICollection<ProjectData>>(), out var _)
@@ -320,46 +324,7 @@ public class PostProcessorTests
         var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
         projectInfoAnalysisResult.Projects.AddRange(listOfProjects);
         projectInfoAnalysisResult.RanToCompletion = true;
-        projectInfoAnalysisResult.FullPropertiesFilePath = null;
-
-        propertiesFileGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
-        proc.SetPropertiesFileGenerator(propertiesFileGenerator);
-        var success = proc.Execute(args, config, settings);
-        return success;
-    }
-
-    private bool Execute(params string[] args)
-    {
-        var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
-        sonarProjectPropertiesValidator
-            .AreExistingSonarPropertiesFilesPresent(Arg.Any<string>(), Arg.Any<ICollection<ProjectData>>(), out var _)
-            .Returns(false);
-
-        var proc = new PostProcessor(
-            scanner,
-            logger,
-            targetsUninstaller,
-            tfsProcessor,
-            sonarProjectPropertiesValidator);
-
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
-
-        var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
-
-        var listOfProjects = new List<ProjectData>
-        {
-            new(ProjectInfo.Load(projectInfo))
-        };
-
-        var propertiesFileGenerator = Substitute.For<IPropertiesFileGenerator>();
-        propertiesFileGenerator
-            .TryWriteProperties(Arg.Any<PropertiesWriter>(), out _)
-            .Returns(true);
-
-        var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
-        projectInfoAnalysisResult.Projects.AddRange(listOfProjects);
-        projectInfoAnalysisResult.RanToCompletion = true;
-        projectInfoAnalysisResult.FullPropertiesFilePath = Path.Combine(testDir, "sonar-project.properties");
+        projectInfoAnalysisResult.FullPropertiesFilePath = withProject ? Path.Combine(testDir, "sonar-project.properties") : null;
 
         propertiesFileGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
         proc.SetPropertiesFileGenerator(propertiesFileGenerator);
