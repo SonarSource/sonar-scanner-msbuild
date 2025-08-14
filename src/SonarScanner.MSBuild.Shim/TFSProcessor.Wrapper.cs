@@ -20,10 +20,16 @@
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
+public class TfsProcessorWrapper
 {
-    private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private readonly IOperatingSystemProvider operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+    private readonly ILogger logger;
+    private readonly IOperatingSystemProvider operatingSystemProvider;
+
+    public TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
+    {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+    }
 
     public virtual bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
     {
