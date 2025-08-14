@@ -93,49 +93,6 @@ public class FileCache : IFileCache
         return null;
     }
 
-    public async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
-    {
-        // We download to a temporary file in the right folder.
-        // This avoids conflicts, if multiple scanner try to download to the same file.
-        var tempFileName = directoryWrapper.GetRandomFileName();
-        var tempFile = Path.Combine(downloadPath, tempFileName);
-        try
-        {
-            using var fileStream = fileWrapper.Create(tempFile);
-            try
-            {
-                using var downloadStream = await download();
-                if (downloadStream is null)
-                {
-                    throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
-                }
-                await downloadStream.CopyToAsync(fileStream);
-                fileStream.Close();
-                if (ValidateChecksum(tempFile, descriptor.Sha256))
-                {
-                    fileWrapper.Move(tempFile, downloadTarget);
-                    return null;
-                }
-                else
-                {
-                    throw new CryptographicException(Resources.ERR_ChecksumMismatch);
-                }
-            }
-            catch
-            {
-                // Cleanup the temp file
-                EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
-                                          // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
-                TryDeleteFile(tempFile);
-                throw;
-            }
-        }
-        catch (Exception ex)
-        {
-            return ex;
-        }
-    }
-
     public string EnsureDownloadDirectory(FileDescriptor fileDescriptor)
     {
         if (EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath)
@@ -179,6 +136,49 @@ public class FileCache : IFileCache
 
     public string FileRootPath(FileDescriptor descriptor) =>
         Path.Combine(CacheRoot, descriptor.Sha256);
+
+    private async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    {
+        // We download to a temporary file in the correct folder.
+        // This avoids conflicts, if multiple scanner try to download to the same file.
+        var tempFileName = directoryWrapper.GetRandomFileName();
+        var tempFile = Path.Combine(downloadPath, tempFileName);
+        try
+        {
+            using var fileStream = fileWrapper.Create(tempFile);
+            try
+            {
+                using var downloadStream = await download();
+                if (downloadStream is null)
+                {
+                    throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
+                }
+                await downloadStream.CopyToAsync(fileStream);
+                fileStream.Close();
+                if (ValidateChecksum(tempFile, descriptor.Sha256))
+                {
+                    fileWrapper.Move(tempFile, downloadTarget);
+                    return null;
+                }
+                else
+                {
+                    throw new CryptographicException(Resources.ERR_ChecksumMismatch);
+                }
+            }
+            catch
+            {
+                // Cleanup the temp file
+                EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
+                                          // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
+                TryDeleteFile(tempFile);
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            return ex;
+        }
+    }
 
     private CacheFailure ValidateFile(string downloadTarget, FileDescriptor descriptor)
     {
