@@ -98,7 +98,7 @@ class CloudJreProvisioningTest {
       var cacheMissLogs = context.runAnalysis().begin().getLogs();
       assertThat(cacheMissLogs).contains(
         "JreResolver: Cache miss",
-        "Starting the Java Runtime Environment download.");
+        "Starting the file download.");
       assertThat(cacheMissLogs).doesNotContain(
         "JreResolver: Cache hit",
         "JreResolver: Cache failure");

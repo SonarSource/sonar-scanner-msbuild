@@ -36,7 +36,7 @@ public final class JreProvisioningAssertions {
       "Downloading from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
       "Response received from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
       "JreResolver: Cache miss. Attempting to download JRE.",
-      "Starting the Java Runtime Environment download.");
+      "Starting the file download.");
     TestUtils.matchesSingleLine(beginLogs, "Downloading Java JRE from " + jreUrlPattern);
     TestUtils.matchesSingleLine(beginLogs, "The checksum of the downloaded file is '.+' and the expected checksum is '.+'");
     TestUtils.matchesSingleLine(beginLogs, "Starting extracting the Java runtime environment from archive '" + cacheFolderPattern + "' to folder '" + cacheFolderPattern + "'");
@@ -56,6 +56,6 @@ public final class JreProvisioningAssertions {
     assertThat(secondBegin.getLogs()).doesNotContain(
       "JreResolver: Cache miss",
       "JreResolver: Cache failure",
-      "Starting the Java Runtime Environment download.");
+      "Starting the file download.");
   }
 }

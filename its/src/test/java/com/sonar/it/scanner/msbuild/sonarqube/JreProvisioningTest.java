@@ -66,7 +66,7 @@ class JreProvisioningTest {
       assertThat(firstBegin.isSuccess()).isTrue();
       assertThat(firstBegin.getLogs()).contains(
         "JreResolver: Cache miss",
-        "Starting the Java Runtime Environment download.");
+        "Starting the file download.");
       assertThat(firstBegin.getLogs()).doesNotContain(
         "JreResolver: Cache hit",
         "JreResolver: Cache failure");
