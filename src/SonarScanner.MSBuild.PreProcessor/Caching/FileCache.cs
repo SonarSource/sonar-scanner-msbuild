@@ -93,17 +93,8 @@ public class FileCache : IFileCache
         return null;
     }
 
-    public string EnsureDownloadDirectory(FileDescriptor fileDescriptor)
-    {
-        if (EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath)
-        {
-            return downloadPath;
-        }
-        else
-        {
-            return null;
-        }
-    }
+    public string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
+        EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
 
     public bool ValidateChecksum(string downloadTarget, string sha256)
     {
