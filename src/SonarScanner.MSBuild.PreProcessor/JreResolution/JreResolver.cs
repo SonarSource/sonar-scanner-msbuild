@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.PreProcessor.Caching;
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
-public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger) : IJreResolver
+public class JreResolver(ISonarWebServer server, JreCache cache, ILogger logger) : IJreResolver
 {
     public async Task<string> ResolveJrePath(ProcessedArgs args)
     {
@@ -54,7 +54,7 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
         }
 
         var descriptor = metadata.ToDescriptor();
-        var result = cache.IsJreCached(descriptor);
+        var result = cache.IsFileCached(descriptor);
         switch (result)
         {
             case CacheHit hit:
@@ -73,7 +73,7 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
 
     private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor)
     {
-        var result = await cache.DownloadJreAsync(descriptor, () => server.DownloadJreAsync(metadata));
+        var result = await cache.DownloadFileAsync(descriptor, () => server.DownloadJreAsync(metadata));
         if (result is CacheHit hit)
         {
             logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.FilePath);

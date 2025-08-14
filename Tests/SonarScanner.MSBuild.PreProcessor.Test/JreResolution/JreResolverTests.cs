@@ -19,7 +19,9 @@
  */
 
 using SonarScanner.MSBuild.PreProcessor.Caching;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
+using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.JreResolution;
 
@@ -32,7 +34,7 @@ public class JreResolverTests
     private readonly JreMetadata metadata = new(null, null, null, null, null);
 
     private ListPropertiesProvider provider;
-    private IJreCache cache;
+    private JreCache cache;
     private TestLogger logger;
     private ISonarWebServer server;
     private JreResolver sut;
@@ -42,13 +44,13 @@ public class JreResolverTests
     {
         provider = new();
         provider.AddProperty("sonar.scanner.os", "linux");
-        cache = Substitute.For<IJreCache>();
         logger = new TestLogger();
         server = Substitute.For<ISonarWebServer>();
         server
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
+        cache = new JreCache(logger, Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IChecksum>(), Substitute.For<IUnpackerFactory>(), Substitute.For<IFilePermissionsWrapper>(), Path.Combine("C:", "Users", "user", ".sonar"));
         sut = new JreResolver(server, cache, logger);
     }
 
@@ -134,7 +136,7 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_UnknownResult()
     {
         cache
-            .IsJreCached(Arg.Any<JreDescriptor>())
+            .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new UnknownResult());
 
         var func = async () => await sut.ResolveJrePath(GetArgs());
@@ -147,7 +149,7 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheFailure()
     {
         cache
-            .IsJreCached(Arg.Any<JreDescriptor>())
+            .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheFailure("Reason."));
 
         var res = await sut.ResolveJrePath(GetArgs());
@@ -165,7 +167,7 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheHit()
     {
         cache
-            .IsJreCached(Arg.Any<JreDescriptor>())
+            .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheHit("path"));
 
         var res = await sut.ResolveJrePath(GetArgs());
@@ -181,10 +183,10 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadSuccess()
     {
         cache
-            .IsJreCached(Arg.Any<JreDescriptor>())
+            .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheMiss());
         cache
-            .DownloadJreAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
+            .DownloadFileAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new CacheHit("path"));
 
         var res = await sut.ResolveJrePath(GetArgs());
@@ -201,10 +203,10 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadFailure()
     {
         cache
-            .IsJreCached(Arg.Any<JreDescriptor>())
+            .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheMiss());
         cache
-            .DownloadJreAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
+            .DownloadFileAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new CacheFailure("Reason."));
 
         var res = await sut.ResolveJrePath(GetArgs());
@@ -224,11 +226,11 @@ public class JreResolverTests
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadUnknown()
     {
         cache
-            .IsJreCached(Arg.Any<JreDescriptor>())
+            .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheMiss());
 
         cache
-            .DownloadJreAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
+            .DownloadFileAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new UnknownResult());
 
         var func = async () => await sut.ResolveJrePath(GetArgs());
