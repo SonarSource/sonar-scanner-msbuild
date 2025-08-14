@@ -30,7 +30,7 @@ public class PostProcessor : IPostProcessor
 {
     private readonly SonarScannerWrapper sonarScanner;
     private readonly ILogger logger;
-    private readonly ITargetsUninstaller targetUninstaller;
+    private readonly TargetsUninstaller targetUninstaller;
     private readonly ISonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly TfsProcessorWrapper tfsProcessor;
 
@@ -39,7 +39,7 @@ public class PostProcessor : IPostProcessor
     public PostProcessor(
         SonarScannerWrapper sonarScanner,
         ILogger logger,
-        ITargetsUninstaller targetUninstaller,
+        TargetsUninstaller targetUninstaller,
         TfsProcessorWrapper tfsProcessor,
         ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
     {

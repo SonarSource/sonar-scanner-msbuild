@@ -37,7 +37,7 @@ public class PostProcessorTests
     {
         var logger = Substitute.For<ILogger>();
         var scanner = Substitute.For<SonarScannerWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
-        var targets = Substitute.For<ITargetsUninstaller>();
+        var targets = Substitute.For<TargetsUninstaller>(logger);
         var tfs = Substitute.For<TfsProcessorWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
 
         Invoking(() => new PostProcessor(null, null, null, null, null)).Should()
@@ -394,7 +394,7 @@ public class PostProcessorTests
     /// </summary>
     private class PostProcTestContext
     {
-        public ITargetsUninstaller TargetsUninstaller { get; }
+        public TargetsUninstaller TargetsUninstaller { get; }
         public AnalysisConfig Config { get; set; }
         public BuildSettings Settings { get; }
         public SonarScannerWrapper Scanner { get; }
@@ -414,7 +414,7 @@ public class PostProcessorTests
             TfsProcessor.Execute(null, null, null).ReturnsForAnyArgs(true);
             Scanner = Substitute.For<SonarScannerWrapper>(Logger, Substitute.For<IOperatingSystemProvider>());
             Scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
-            TargetsUninstaller = Substitute.For<ITargetsUninstaller>();
+            TargetsUninstaller = Substitute.For<TargetsUninstaller>(Logger);
         }
 
         public void VerifyTargetsUninstaller() =>
