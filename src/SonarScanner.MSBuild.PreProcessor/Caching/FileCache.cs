@@ -80,28 +80,7 @@ public class FileCache : IFileCache
             return ValidateFile(downloadTarget, descriptor);
         }
         logger.LogDebug(Resources.MSG_StartingFileDownload);
-        try
-        {
-            var tempFilePath = await DownloadFile(downloadPath, download);
-            try
-            {
-                if (ValidateChecksum(tempFilePath, descriptor.Sha256))
-                {
-                    fileWrapper.Move(tempFilePath, downloadTarget);
-                    return null;
-                }
-                else
-                {
-                    throw new CryptographicException(Resources.ERR_ChecksumMismatch);
-                }
-            }
-            catch
-            {
-                TryDeleteFile(tempFilePath);    // Cleanup the temp file
-                throw;
-            }
-        }
-        catch (Exception exception)
+        if (await DownloadAndValidateFile(downloadPath, downloadTarget, descriptor, download) is { } exception)
         {
             logger.LogDebug(Resources.ERR_DownloadFailed, exception.Message);
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
@@ -111,6 +90,7 @@ public class FileCache : IFileCache
             }
             return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
         }
+        return null;
     }
 
     public string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
@@ -148,29 +128,46 @@ public class FileCache : IFileCache
     public string FileRootPath(FileDescriptor descriptor) =>
         Path.Combine(CacheRoot, descriptor.Sha256);
 
-    private async Task<string> DownloadFile(string downloadPath, Func<Task<Stream>> download)
+    private async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
+        // We download to a temporary file in the correct folder.
+        // This avoids conflicts, if multiple scanner try to download to the same file.
         var tempFileName = directoryWrapper.GetRandomFileName();
         var tempFile = Path.Combine(downloadPath, tempFileName);
-        using var fileStream = fileWrapper.Create(tempFile);
         try
         {
-            using var downloadStream = await download();
-            if (downloadStream is null)
+            using var fileStream = fileWrapper.Create(tempFile);
+            try
             {
-                throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
+                using var downloadStream = await download();
+                if (downloadStream is null)
+                {
+                    throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
+                }
+                await downloadStream.CopyToAsync(fileStream);
+                fileStream.Close();
+                if (ValidateChecksum(tempFile, descriptor.Sha256))
+                {
+                    fileWrapper.Move(tempFile, downloadTarget);
+                    return null;
+                }
+                else
+                {
+                    throw new CryptographicException(Resources.ERR_ChecksumMismatch);
+                }
             }
-            await downloadStream.CopyToAsync(fileStream);
-            fileStream.Close();
-            return tempFile;
+            catch
+            {
+                // Cleanup the temp file
+                EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
+                                          // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
+                TryDeleteFile(tempFile);
+                throw;
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            // Cleanup the temp file
-            EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
-                                        // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
-            TryDeleteFile(tempFile);
-            throw;
+            return ex;
         }
     }
 
