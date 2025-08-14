@@ -101,6 +101,7 @@ public class PostProcessorTests
         // Assert
         success.Should().BeTrue("Expecting post-processor to have succeeded");
 
+        context.TfsProcessor.AssertExecutedIfNetFramework();
         context.Scanner.AssertExecuted();
         context.Scanner.SuppliedCommandLineArgs.Should().BeEmpty();
         context.Logger.AssertErrorsLogged(1);
@@ -164,6 +165,7 @@ public class PostProcessorTests
         // Assert
         success.Should().BeTrue("Expecting post-processor to have succeeded");
 
+        context.TfsProcessor.AssertExecutedIfNetFramework();
         context.Scanner.AssertExecuted();
         context.Scanner.SuppliedCommandLineArgs.Should().Equal(expectedArgs, "Unexpected command line args passed to the sonar-scanner");
         context.Logger.AssertErrorsLogged(0);

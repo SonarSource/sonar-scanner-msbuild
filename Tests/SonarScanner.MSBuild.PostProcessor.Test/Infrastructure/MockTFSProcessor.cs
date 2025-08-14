@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test;
@@ -64,15 +60,19 @@ internal class MockTfsProcessor : ITfsProcessor
 
     #region Checks
 
-    public void AssertExecuted()
+    public void AssertExecutedIfNetFramework()
     {
-        methodCalled.Should().BeTrue("Expecting the TFS processor to have been called");
+#if NETFRAMEWORK
+        methodCalled.Should().BeTrue("the TFS processor should have been called.");
+#else
+        methodCalled.Should().BeFalse("the TFS processor should not be called in .NET (Core).");
+#endif
     }
 
     public void AssertNotExecuted()
     {
-        methodCalled.Should().BeFalse("Not expecting the TFS processor to have been called");
+        methodCalled.Should().BeFalse("TFS processor should not have been called.");
     }
 
-    #endregion Checks
+#endregion Checks
 }
