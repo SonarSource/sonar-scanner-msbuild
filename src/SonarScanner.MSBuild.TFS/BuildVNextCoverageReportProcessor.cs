@@ -28,15 +28,19 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
     private const string XmlReportFileExtension = "coveragexml";
     private readonly ICoverageReportConverter converter;
     private readonly ILogger logger;
+    private readonly IFileWrapper fileWrapper;
+    private readonly IDirectoryWrapper directoryWrapper;
     private AnalysisConfig config;
     private IBuildSettings settings;
     private string propertiesFilePath;
     private bool successfullyInitialized;
 
-    public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, ILogger logger)
+    public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, ILogger logger, IFileWrapper fileWrapper = null, IDirectoryWrapper directoryWrapper = null)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
+        this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
+        this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
     }
 
     public bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
@@ -56,7 +60,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         }
 
         this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
-        var trxFilePaths = new TrxFileReader(logger).FindTrxFiles(settings.BuildDirectory);
+        var trxFilePaths = new TrxFileReader(logger, fileWrapper, directoryWrapper).FindTrxFiles(settings.BuildDirectory);
 
         var reportsPathsPropertyWritten = false;
         if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, logger) is null)
@@ -95,7 +99,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         }
 
         logger.LogInfo($"Searching for coverage files in {agentTempDirectory}");
-        var files = Directory.GetFiles(agentTempDirectory, "*.coverage", SearchOption.AllDirectories);
+        var files = directoryWrapper.GetFiles(agentTempDirectory, "*.coverage", SearchOption.AllDirectories);
 
         if (files is null || files.Length == 0)
         {
@@ -107,7 +111,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
 
         var fileWithContentHashes = files.Select(x =>
             {
-                using var fileStream = new FileStream(x, FileMode.Open);
+                using var fileStream = fileWrapper.Open(x);
                 using var bufferedStream = new BufferedStream(fileStream);
                 using var sha = new SHA256CryptoServiceProvider();
                 var contentHash = sha.ComputeHash(bufferedStream);
@@ -132,7 +136,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
             return null;
         }
 
-        if (!Directory.Exists(agentTempDirectory))
+        if (!directoryWrapper.Exists(agentTempDirectory))
         {
             logger.LogDebug($"Calculated location for {AgentTempDirectory} does not exist: {agentTempDirectory}");
             return null;
@@ -152,7 +156,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
 
     private IEnumerable<string> FindVsCoverageFiles(bool reportsPathsPropertyWritten, IEnumerable<string> trxFilePaths)
     {
-        var binaryFilePaths = new TrxFileReader(logger).FindCodeCoverageFiles(trxFilePaths);
+        var binaryFilePaths = new TrxFileReader(logger, fileWrapper, directoryWrapper).FindCodeCoverageFiles(trxFilePaths);
         if (binaryFilePaths.Any() || reportsPathsPropertyWritten)
         {
             logger.LogDebug(Resources.TRX_DIAG_NotUsingFallback);
@@ -173,7 +177,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         foreach (var vsCoverageFilePath in vsCoverageFilePaths)
         {
             var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
-            if (File.Exists(xmlFilePath))
+            if (fileWrapper.Exists(xmlFilePath))
             {
                 logger.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
             }
@@ -191,8 +195,8 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         return true;
     }
 
-    private static void WriteProperty(string propertiesFilePath, string property, string[] paths) =>
-        File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
+    private void WriteProperty(string propertiesFilePath, string property, string[] paths) =>
+        fileWrapper.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
 
     internal class FileWithContentHash
     {
