@@ -50,7 +50,14 @@ public class JreResolverTests
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
-        cache = new JreCache(logger, Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IChecksum>(), Substitute.For<IUnpackerFactory>(), Substitute.For<IFilePermissionsWrapper>(), Path.Combine("C:", "Users", "user", ".sonar"));
+        cache = Substitute.For<JreCache>(
+            logger,
+            Substitute.For<IDirectoryWrapper>(),
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IChecksum>(),
+            Substitute.For<IUnpackerFactory>(),
+            Substitute.For<IFilePermissionsWrapper>(),
+            SonarUserHome);
         sut = new JreResolver(server, cache, logger);
     }
 

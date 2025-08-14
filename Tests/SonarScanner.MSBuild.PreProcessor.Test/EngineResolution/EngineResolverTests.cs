@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarScanner.MSBuild.PreProcessor.Caching;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution.Test;
 
@@ -29,7 +29,7 @@ public class EngineResolverTests
 {
     private readonly ISonarWebServer server;
     private readonly ILogger logger;
-    private readonly IFileCache fileCache;
+    private readonly FileCache fileCache;
     private readonly ProcessedArgs args;
     private readonly EngineResolver resolver;
 
@@ -38,7 +38,14 @@ public class EngineResolverTests
         server = Substitute.For<ISonarWebServer>();
         server.SupportsJreProvisioning.Returns(true);
         logger = Substitute.For<ILogger>();
-        fileCache = Substitute.For<IFileCache>();
+
+        fileCache = Substitute.For<FileCache>(
+            logger,
+            Substitute.For<IDirectoryWrapper>(),
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IChecksum>(),
+            "sonarUserHome");
+
         args = Substitute.For<ProcessedArgs>();
         args.EngineJarPath.ReturnsNull();
 
