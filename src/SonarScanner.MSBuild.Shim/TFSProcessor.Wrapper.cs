@@ -18,16 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Shim.Interfaces;
-
 namespace SonarScanner.MSBuild.Shim;
 
-public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider) : ITfsProcessor
+public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
 {
     private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IOperatingSystemProvider operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
 
-    public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    public virtual bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
     {
         if (config is null)
         {
