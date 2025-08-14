@@ -82,7 +82,7 @@ public class PostProcessorTests
     [TestMethod]
     public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
     {
-        Execute_WithNoProject(true).Should().BeFalse("Expecting post-processor to have failed");
+        Execute_WithNoProject().Should().BeFalse("Expecting post-processor to have failed");
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         logger.AssertNoErrorsLogged();
@@ -96,7 +96,7 @@ public class PostProcessorTests
     {
         scanner.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => logger.LogError("Errors"));
 
-        Execute(true).Should().BeTrue("Expecting post-processor to have succeeded");
+        Execute().Should().BeTrue("Expecting post-processor to have succeeded");
         AssertTfsProcesserCalledIfNetFramework();
         scanner.Received().Execute(
             config,
@@ -110,7 +110,7 @@ public class PostProcessorTests
     [TestMethod]
     public void PostProc_FailsOnInvalidArgs()
     {
-        Execute(true, "/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
+        Execute("/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         logger.AssertErrorsLogged(1);
@@ -135,7 +135,7 @@ public class PostProcessorTests
             "-Dsonar.token=token"
         };
 
-        Execute(true, suppliedArgs).Should().BeTrue("Expecting post-processor to have succeeded");
+        Execute(suppliedArgs).Should().BeTrue("Expecting post-processor to have succeeded");
         AssertTfsProcesserCalledIfNetFramework();
         scanner.Received().Execute(
             config,
@@ -150,7 +150,7 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineCredentials = true;
 
-        Execute(true, args: []).Should().BeFalse();
+        Execute(args: []).Should().BeFalse();
         logger.AssertErrorLogged(CredentialsErrorMessage);
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
@@ -162,7 +162,7 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineTruststorePassword = true;
 
-        Execute(true, args: []).Should().BeFalse();
+        Execute(args: []).Should().BeFalse();
         logger.AssertErrorLogged(TruststorePasswordErrorMessage);
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
@@ -174,7 +174,7 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineTruststorePassword = true;
 
-        Execute(true, args: "/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
+        Execute(args: "/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
         logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
@@ -188,7 +188,7 @@ public class PostProcessorTests
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, $"-D{truststorePasswordProp}");
 
-        Execute(true).Should().BeTrue();
+        Execute().Should().BeTrue();
         logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
@@ -199,7 +199,7 @@ public class PostProcessorTests
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=foo");
 
-        Execute(true).Should().BeTrue();
+        Execute().Should().BeTrue();
         logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
@@ -210,7 +210,7 @@ public class PostProcessorTests
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
 
-        Execute(true, args: "/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
+        Execute(args: "/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
         logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
@@ -221,7 +221,7 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineTruststorePassword = true;
 
-        Execute(true, $"/d:{truststorePasswordProperty}").Should().BeFalse();
+        Execute($"/d:{truststorePasswordProperty}").Should().BeFalse();
         logger.AssertErrorLogged($"The format of the analysis property {truststorePasswordProperty} is invalid");
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
@@ -235,7 +235,7 @@ public class PostProcessorTests
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Dsonar.scanner.truststorePassword");
 
-        Execute(true).Should().BeFalse();
+        Execute().Should().BeFalse();
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
@@ -244,7 +244,7 @@ public class PostProcessorTests
     [TestMethod]
     public void PostProc_WhenNoSettingInFileAndCommandLineArg_Fail()
     {
-        Execute(true, args: "/d:sonar.token=foo").Should().BeFalse();
+        Execute(args: "/d:sonar.token=foo").Should().BeFalse();
         logger.AssertErrorLogged(CredentialsErrorMessage);
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
@@ -254,7 +254,7 @@ public class PostProcessorTests
     [TestMethod]
     public void PostProc_WhenNoSettingInFileAndNoCommandLineArg_DoesNotFail()
     {
-        Execute(true, args: []).Should().BeTrue();
+        Execute(args: []).Should().BeTrue();
         logger.AssertNoErrorsLogged(CredentialsErrorMessage);
         logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
@@ -264,7 +264,7 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineCredentials = true;
 
-        Execute(true, args: "/d:sonar.token=foo").Should().BeTrue();
+        Execute(args: "/d:sonar.token=foo").Should().BeTrue();
         logger.AssertNoErrorsLogged(CredentialsErrorMessage);
     }
 
@@ -289,7 +289,7 @@ public class PostProcessorTests
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
     }
 
-    private bool Execute_WithNoProject(bool propertyWriteSucceeded, params string[] args)
+    private bool Execute_WithNoProject(params string[] args)
     {
         var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
         sonarProjectPropertiesValidator
@@ -315,7 +315,7 @@ public class PostProcessorTests
         var propertiesFileGenerator = Substitute.For<IPropertiesFileGenerator>();
         propertiesFileGenerator
             .TryWriteProperties(Arg.Any<PropertiesWriter>(), out _)
-            .Returns(propertyWriteSucceeded);
+            .Returns(true);
 
         var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
         projectInfoAnalysisResult.Projects.AddRange(listOfProjects);
@@ -328,7 +328,7 @@ public class PostProcessorTests
         return success;
     }
 
-    private bool Execute(bool propertyWriteSucceeded, params string[] args)
+    private bool Execute(params string[] args)
     {
         var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
         sonarProjectPropertiesValidator
@@ -342,7 +342,7 @@ public class PostProcessorTests
             tfsProcessor,
             sonarProjectPropertiesValidator);
 
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext, Guid.NewGuid().ToString());
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
 
         var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
 
@@ -354,7 +354,7 @@ public class PostProcessorTests
         var propertiesFileGenerator = Substitute.For<IPropertiesFileGenerator>();
         propertiesFileGenerator
             .TryWriteProperties(Arg.Any<PropertiesWriter>(), out _)
-            .Returns(propertyWriteSucceeded);
+            .Returns(true);
 
         var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
         projectInfoAnalysisResult.Projects.AddRange(listOfProjects);
