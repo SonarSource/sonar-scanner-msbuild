@@ -25,10 +25,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
 public class FileCache : IFileCache
 {
+    protected readonly IDirectoryWrapper directoryWrapper;
+    protected readonly IFileWrapper fileWrapper;
+    protected readonly ILogger logger;
     private readonly IChecksum checksum;
-    private readonly IDirectoryWrapper directoryWrapper;
-    private readonly IFileWrapper fileWrapper;
-    private readonly ILogger logger;
     private readonly string sonarUserHome;
 
     public string CacheRoot => Path.Combine(sonarUserHome, "cache");
@@ -42,7 +42,7 @@ public class FileCache : IFileCache
         this.checksum = checksum;
     }
 
-    public CacheResult IsFileCached(FileDescriptor fileDescriptor)
+    public virtual CacheResult IsFileCached(FileDescriptor fileDescriptor)
     {
         if (EnsureCacheRoot() is { } cacheRoot)
         {
@@ -73,7 +73,7 @@ public class FileCache : IFileCache
         }
     }
 
-    public async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    public virtual async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
     {
         if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
         {
