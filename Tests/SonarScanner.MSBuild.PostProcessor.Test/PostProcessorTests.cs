@@ -38,7 +38,7 @@ public class PostProcessorTests
         var logger = Substitute.For<ILogger>();
         var scanner = Substitute.For<SonarScannerWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
         var targets = Substitute.For<ITargetsUninstaller>();
-        var tfs = Substitute.For<ITfsProcessor>();
+        var tfs = Substitute.For<TfsProcessorWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
 
         Invoking(() => new PostProcessor(null, null, null, null, null)).Should()
             .Throw<ArgumentNullException>()
@@ -399,7 +399,7 @@ public class PostProcessorTests
         public BuildSettings Settings { get; }
         public SonarScannerWrapper Scanner { get; }
         public TestLogger Logger { get; }
-        public ITfsProcessor TfsProcessor { get; }
+        public TfsProcessorWrapper TfsProcessor { get; }
 
         public PostProcTestContext(TestContext testContext)
         {
@@ -410,7 +410,7 @@ public class PostProcessorTests
             };
             Settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
             Logger = new();
-            TfsProcessor = Substitute.For<ITfsProcessor>();
+            TfsProcessor = Substitute.For<TfsProcessorWrapper>(Logger, Substitute.For<IOperatingSystemProvider>());
             TfsProcessor.Execute(null, null, null).ReturnsForAnyArgs(true);
             Scanner = Substitute.For<SonarScannerWrapper>(Logger, Substitute.For<IOperatingSystemProvider>());
             Scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
