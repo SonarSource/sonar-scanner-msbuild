@@ -18,7 +18,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Build.Framework" Version="17.11.4" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.14.2075" />
-    <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.17" />
+    <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.45" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.10.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.10.1" />
