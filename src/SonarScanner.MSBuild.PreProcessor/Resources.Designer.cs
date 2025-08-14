@@ -133,6 +133,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The checksum of the downloaded file does not match the expected checksum..
+        /// </summary>
+        internal static string ERR_ChecksumMismatch {
+            get {
+                return ResourceManager.GetString("ERR_ChecksumMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Detected SonarCloud but server was found to be SonarQube. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
         /// </summary>
         internal static string ERR_DetectedErroneouslySonarCloud {
@@ -156,6 +165,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERR_DotNetAnalyzersNotFound {
             get {
                 return ResourceManager.GetString("ERR_DotNetAnalyzersNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The download stream is null. The server likely returned an error status code..
+        /// </summary>
+        internal static string ERR_DownloadStreamNull {
+            get {
+                return ResourceManager.GetString("ERR_DownloadStreamNull", resourceCulture);
             }
         }
         
@@ -216,9 +234,9 @@ namespace SonarScanner.MSBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to The checksum of the downloaded Java runtime environment does not match the expected checksum..
         /// </summary>
-        internal static string ERR_JreChecksumMissmatch {
+        internal static string ERR_JreChecksumMismatch {
             get {
-                return ResourceManager.GetString("ERR_JreChecksumMissmatch", resourceCulture);
+                return ResourceManager.GetString("ERR_JreChecksumMismatch", resourceCulture);
             }
         }
         
@@ -228,15 +246,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERR_JreDownloadFailed {
             get {
                 return ResourceManager.GetString("ERR_JreDownloadFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The download stream is null. The server likely returned an error status code..
-        /// </summary>
-        internal static string ERR_JreDownloadStreamNull {
-            get {
-                return ResourceManager.GetString("ERR_JreDownloadStreamNull", resourceCulture);
             }
         }
         
