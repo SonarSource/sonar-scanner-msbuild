@@ -21,7 +21,7 @@
 namespace SonarScanner.MSBuild.PostProcessor;
 
 /// <summary>
-/// Handles removing targets from .sonarqube/bin directory
+/// Handles removing targets from .sonarqube/bin directory.
 /// </summary>
 public class TargetsUninstaller
 {
