@@ -54,25 +54,24 @@ internal class JreCache(
 
     public async Task<CacheResult> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
-        var jreDownloadPath = fileCache.EnsureDownloadDirectory(jreDescriptor);
-        if (jreDownloadPath is null)
+        if (fileCache.EnsureDownloadDirectory(jreDescriptor) is { } jreDownloadPath)
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, fileCache.FileRootPath(jreDescriptor)));
-        }
-        // If we do not support the archive format, there is no point in downloading. Therefore we bail out early in such a case.
-        if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is not { } unpacker)
-        {
-            return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
-        }
-        var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
-        logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
-        if (await fileCache.EnsureFileDownload(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } cacheFailure)
-        {
-            return cacheFailure;
+            if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is { } unpacker)
+            {
+                var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
+                logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
+                return await fileCache.EnsureFileIsDownloaded(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } cacheFailure
+                    ? cacheFailure
+                    : UnpackJre(unpacker, downloadTarget, jreDescriptor);
+            }
+            else
+            {
+                return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
+            }
         }
         else
         {
-            return UnpackJre(unpacker, downloadTarget, jreDescriptor);
+            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, fileCache.FileRootPath(jreDescriptor)));
         }
     }
 
