@@ -18,8 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Security.Cryptography;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using System.IO;
+using System.Security.Cryptography;
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
@@ -70,6 +71,21 @@ public class FileCache : IFileCache
         catch
         {
             return null;
+        }
+    }
+
+    public async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    {
+        if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
+        {
+            var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
+            return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } cacheFailure
+                ? cacheFailure
+                : new CacheHit(downloadTarget);
+        }
+        else
+        {
+            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
         }
     }
 
