@@ -65,11 +65,6 @@ public class PostProcessorTests
     public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
     {
         var context = new PostProcTestContext(TestContext);
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarConfigDir = Environment.CurrentDirectory;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.ScanAllAnalysis = true;
 
         Execute_WithNoProject(context, true).Should().BeFalse("Expecting post-processor to have failed");
         context.TfsProcessor.AssertNotExecuted();
@@ -84,10 +79,6 @@ public class PostProcessorTests
     public void PostProc_ExecutionSucceedsWithErrorLogs()
     {
         var context = new PostProcTestContext(TestContext);
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarConfigDir = Environment.CurrentDirectory;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
         context.Scanner.ErrorToLog = "Errors";
 
         Execute(context, true).Should().BeTrue("Expecting post-processor to have succeeded");
@@ -103,9 +94,7 @@ public class PostProcessorTests
     public void PostProc_FailsOnInvalidArgs()
     {
         var context = new PostProcTestContext(TestContext);
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
         context.TfsProcessor.ValueToReturn = false;
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
 
         Execute(context, true, "/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
         context.TfsProcessor.AssertNotExecuted();
@@ -120,11 +109,6 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineCredentials = true;
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarConfigDir = Environment.CurrentDirectory;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.ScanAllAnalysis = true;
         var suppliedArgs = new[]
         {
             "/d:sonar.password=\"my pwd\"",
@@ -151,7 +135,6 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineCredentials = true;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         context.TfsProcessor.ValueToReturn = false;
 
         Execute(context, true, args: []).Should().BeFalse();
@@ -166,7 +149,6 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineTruststorePassword = true;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         context.TfsProcessor.ValueToReturn = false;
 
         Execute(context, true, args: []).Should().BeFalse();
@@ -180,12 +162,7 @@ public class PostProcessorTests
     public void PostProc_TruststorePasswordProvided_DoesNotFail()
     {
         var context = new PostProcTestContext(TestContext);
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarConfigDir = Environment.CurrentDirectory;
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.AdditionalConfig = [];
         context.Config.HasBeginStepCommandLineTruststorePassword = true;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
 
         Execute(context, true, args: "/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
         context.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
@@ -198,12 +175,7 @@ public class PostProcessorTests
     public void PostProc_TruststorePasswordProvidedThroughEnv_DoesNotFail(string truststorePasswordProp)
     {
         var context = new PostProcTestContext(TestContext);
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarConfigDir = Environment.CurrentDirectory;
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.AdditionalConfig = [];
         context.Config.HasBeginStepCommandLineTruststorePassword = true;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, $"-D{truststorePasswordProp}");
 
@@ -215,12 +187,7 @@ public class PostProcessorTests
     public void PostProc_PasswordNotProvidedDuringBeginStepAndTruststorePasswordProvidedThroughEnvDuringEndStep_DoesNotFail()
     {
         var context = new PostProcTestContext(TestContext);
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarConfigDir = Environment.CurrentDirectory;
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.AdditionalConfig = [];
         context.Config.HasBeginStepCommandLineTruststorePassword = false;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=foo");
 
@@ -232,12 +199,7 @@ public class PostProcessorTests
     public void PostProc_PasswordNotProvidedDuringBeginStepAndTruststorePasswordProvidedEndStep_DoesNotFail()
     {
         var context = new PostProcTestContext(TestContext);
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarConfigDir = Environment.CurrentDirectory;
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.AdditionalConfig = [];
         context.Config.HasBeginStepCommandLineTruststorePassword = false;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
 
@@ -252,7 +214,6 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineTruststorePassword = true;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         context.TfsProcessor.ValueToReturn = false;
 
         Execute(context, true, $"/d:{truststorePasswordProperty}").Should().BeFalse();
@@ -267,7 +228,6 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineTruststorePassword = true;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
         context.TfsProcessor.ValueToReturn = false;
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Dsonar.scanner.truststorePassword");
@@ -282,10 +242,6 @@ public class PostProcessorTests
     public void PostProc_WhenNoSettingInFileAndCommandLineArg_Fail()
     {
         var context = new PostProcTestContext(TestContext);
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.AdditionalConfig = [];
         context.TfsProcessor.ValueToReturn = false;
 
         Execute(context, true, args: "/d:sonar.token=foo").Should().BeFalse();
@@ -299,11 +255,6 @@ public class PostProcessorTests
     public void PostProc_WhenNoSettingInFileAndNoCommandLineArg_DoesNotFail()
     {
         var context = new PostProcTestContext(TestContext);
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarConfigDir = Environment.CurrentDirectory;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
-        context.Config.AdditionalConfig = [];
 
         Execute(context, true, args: []).Should().BeTrue();
         context.Logger.AssertNoErrorsLogged(CredentialsErrorMessage);
@@ -315,10 +266,6 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineCredentials = true;
-        context.Config.SonarConfigDir = Environment.CurrentDirectory;
-        context.Config.SonarQubeHostUrl = "http://sonarqube.com";
-        context.Config.SonarOutputDir = Environment.CurrentDirectory;
-        context.Config.SonarScannerWorkingDirectory = Environment.CurrentDirectory;
 
         Execute(context, true, args: "/d:sonar.token=foo").Should().BeTrue();
         context.Logger.AssertNoErrorsLogged(CredentialsErrorMessage);
@@ -451,11 +398,15 @@ public class PostProcessorTests
 
         public PostProcTestContext(TestContext testContext)
         {
-            Config = new AnalysisConfig();
+            Config = new()
+            {
+                SonarOutputDir = Environment.CurrentDirectory,
+                SonarConfigDir = Environment.CurrentDirectory,
+            };
             Settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
-            Logger = new TestLogger();
-            TfsProcessor = new MockTfsProcessor(Logger);
-            Scanner = new MockSonarScanner(Logger);
+            Logger = new();
+            TfsProcessor = new(Logger);
+            Scanner = new(Logger);
             TargetsUninstaller = Substitute.For<ITargetsUninstaller>();
         }
 
