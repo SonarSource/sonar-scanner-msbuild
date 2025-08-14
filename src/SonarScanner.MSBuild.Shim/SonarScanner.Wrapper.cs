@@ -19,11 +19,10 @@
  */
 
 using System.Globalization;
-using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider) : ISonarScanner
+public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
 {
     /// <summary>
     /// Name of the command line argument used to specify the generated project settings file to use
@@ -40,7 +39,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly IOperatingSystemProvider operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
 
-    public bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string propertiesFilePath)
+    public virtual bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string propertiesFilePath)
     {
         if (config is null)
         {

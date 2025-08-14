@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.PostProcessor;
 
 public class PostProcessor : IPostProcessor
 {
-    private readonly ISonarScanner sonarScanner;
+    private readonly SonarScannerWrapper sonarScanner;
     private readonly ILogger logger;
     private readonly ITargetsUninstaller targetUninstaller;
     private readonly ISonarProjectPropertiesValidator sonarProjectPropertiesValidator;
@@ -37,7 +37,7 @@ public class PostProcessor : IPostProcessor
     private IPropertiesFileGenerator propertiesFileGenerator;
 
     public PostProcessor(
-        ISonarScanner sonarScanner,
+        SonarScannerWrapper sonarScanner,
         ILogger logger,
         ITargetsUninstaller targetUninstaller,
         ITfsProcessor tfsProcessor,
