@@ -193,7 +193,10 @@ public class JreResolverTests
             .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheMiss());
         cache
-            .DownloadFileAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
+            .DownloadFileAsync(Arg.Any<FileDescriptor>(), Arg.Any<Func<Task<Stream>>>())
+            .Returns(new CacheHit("downloadPath"));
+        cache
+            .UnpackJre(Arg.Any<string>(), Arg.Any<JreDescriptor>())
             .Returns(new CacheHit("path"));
 
         var res = await sut.ResolveJrePath(GetArgs());

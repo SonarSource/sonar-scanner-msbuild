@@ -73,19 +73,37 @@ public class JreResolver(ISonarWebServer server, JreCache cache, ILogger logger)
 
     private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor)
     {
-        var result = await cache.DownloadFileAsync(descriptor, () => server.DownloadJreAsync(metadata));
-        if (result is CacheHit hit)
-        {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.FilePath);
-            return hit.FilePath;
-        }
-        else if (result is CacheFailure failure)
+        if (cache.CreateUnpacker(descriptor) is CacheFailure failure)
         {
             logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, failure.Message);
             return null;
         }
-
+        var result = await DownloadAndUnpackJre(metadata, descriptor);
+        if (result is CacheHit success)
+        {
+            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, success.FilePath);
+            return success.FilePath;
+        }
+        else if (result is CacheFailure downloadFailure)
+        {
+            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, downloadFailure.Message);
+            return null;
+        }
         throw new NotSupportedException("Download result is expected to be Hit or Failure.");
+    }
+
+    private async Task<CacheResult> DownloadAndUnpackJre(JreMetadata metadata, JreDescriptor descriptor)
+    {
+        logger.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
+        var downloadResult = await cache.DownloadFileAsync(descriptor, () => server.DownloadJreAsync(metadata));
+        if (downloadResult is CacheHit downloadSucces)
+        {
+            return cache.UnpackJre(downloadSucces.FilePath, descriptor);
+        }
+        else
+        {
+            return downloadResult;
+        }
     }
 
     private bool IsValid(ProcessedArgs args)

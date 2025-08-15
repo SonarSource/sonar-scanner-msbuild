@@ -28,6 +28,7 @@ public class JreCache : FileCache
 {
     private readonly IUnpackerFactory unpackerFactory;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
+    private IUnpacker unpacker;
 
     public JreCache(ILogger logger,
                     IDirectoryWrapper directoryWrapper,
@@ -66,35 +67,20 @@ public class JreCache : FileCache
         return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(CacheRoot)));
     }
 
-    public override async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    public CacheFailure CreateUnpacker(FileDescriptor fileDescriptor)
     {
-        if (fileDescriptor is not JreDescriptor jreDescriptor)
+        if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, fileDescriptor.Filename) is { } archiveUnpacker)
         {
-            throw new ArgumentException($"{nameof(JreCache)} must be used with {nameof(JreDescriptor)}");
-        }
-
-        if (EnsureDownloadDirectory(jreDescriptor) is { } jreDownloadPath)
-        {
-            if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is { } unpacker)
-            {
-                var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
-                logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
-                return await EnsureFileIsDownloaded(jreDownloadPath, downloadTarget, jreDescriptor, download) is { } cacheFailure
-                    ? cacheFailure
-                    : UnpackJre(unpacker, downloadTarget, jreDescriptor);
-            }
-            else
-            {
-                return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
-            }
+            unpacker = archiveUnpacker;
+            return null;
         }
         else
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(jreDescriptor)));
+            return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, fileDescriptor.Filename));
         }
     }
 
-    private CacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor)
+    public virtual CacheResult UnpackJre(string jreArchive, JreDescriptor jreDescriptor)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
         var tempExtractionPath = Path.Combine(FileRootPath(jreDescriptor), directoryWrapper.GetRandomFileName());
