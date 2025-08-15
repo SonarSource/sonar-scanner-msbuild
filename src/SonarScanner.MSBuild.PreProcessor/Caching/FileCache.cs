@@ -73,9 +73,64 @@ public class FileCache : IFileCache
         }
     }
 
-    public async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    public async Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
-        // We download to a temporary file in the right folder.
+        if (fileWrapper.Exists(downloadTarget))
+        {
+            return ValidateFile(downloadTarget, descriptor);
+        }
+        logger.LogDebug(Resources.MSG_StartingFileDownload);
+        if (await DownloadAndValidateFile(downloadPath, downloadTarget, descriptor, download) is { } exception)
+        {
+            logger.LogDebug(Resources.ERR_DownloadFailed, exception.Message);
+            if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
+            {
+                logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, downloadTarget);
+                return ValidateFile(downloadTarget, descriptor);
+            }
+            return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
+        }
+        return null;
+    }
+
+    public string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
+        EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
+
+    public bool ValidateChecksum(string downloadTarget, string sha256)
+    {
+        try
+        {
+            using var fs = fileWrapper.Open(downloadTarget);
+            var fileChecksum = checksum.ComputeHash(fs);
+            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
+            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
+            return false;
+        }
+    }
+
+    public void TryDeleteFile(string tempFile)
+    {
+        try
+        {
+            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
+            fileWrapper.Delete(tempFile);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
+        }
+    }
+
+    public string FileRootPath(FileDescriptor descriptor) =>
+        Path.Combine(CacheRoot, descriptor.Sha256);
+
+    private async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    {
+        // We download to a temporary file in the correct folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
         var tempFileName = directoryWrapper.GetRandomFileName();
         var tempFile = Path.Combine(downloadPath, tempFileName);
@@ -116,32 +171,17 @@ public class FileCache : IFileCache
         }
     }
 
-    public bool ValidateChecksum(string downloadTarget, string sha256)
+    private CacheFailure ValidateFile(string downloadTarget, FileDescriptor descriptor)
     {
-        try
+        logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
+        if (ValidateChecksum(downloadTarget, descriptor.Sha256))
         {
-            using var fs = fileWrapper.Open(downloadTarget);
-            var fileChecksum = checksum.ComputeHash(fs);
-            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
-            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
+            return null;
         }
-        catch (Exception ex)
+        else
         {
-            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
-            return false;
-        }
-    }
-
-    public void TryDeleteFile(string tempFile)
-    {
-        try
-        {
-            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
-            fileWrapper.Delete(tempFile);
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
+            TryDeleteFile(downloadTarget);
+            return new(Resources.ERR_ChecksumMismatch);
         }
     }
 

@@ -169,6 +169,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The download of the file from the server failed with the exception &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_DownloadFailed {
+            get {
+                return ResourceManager.GetString("ERR_DownloadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The download stream is null. The server likely returned an error status code..
         /// </summary>
         internal static string ERR_DownloadStreamNull {
@@ -228,24 +237,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERR_JreArchiveFormatNotSupported {
             get {
                 return ResourceManager.GetString("ERR_JreArchiveFormatNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The checksum of the downloaded Java runtime environment does not match the expected checksum..
-        /// </summary>
-        internal static string ERR_JreChecksumMismatch {
-            get {
-                return ResourceManager.GetString("ERR_JreChecksumMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The download of the Java runtime environment from the server failed with the exception &apos;{0}&apos;..
-        /// </summary>
-        internal static string ERR_JreDownloadFailed {
-            get {
-                return ResourceManager.GetString("ERR_JreDownloadFailed", resourceCulture);
             }
         }
         
@@ -712,11 +703,29 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The file was already downloaded from the server and stored at &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_FileAlreadyDownloaded {
+            get {
+                return ResourceManager.GetString("MSG_FileAlreadyDownloaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The checksum of the downloaded file is &apos;{0}&apos; and the expected checksum is &apos;{1}&apos;..
         /// </summary>
         internal static string MSG_FileChecksum {
             get {
                 return ResourceManager.GetString("MSG_FileChecksum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file was found after the download failed. Another scanner downloaded the file in parallel..
+        /// </summary>
+        internal static string MSG_FileFoundAfterFailedDownload {
+            get {
+                return ResourceManager.GetString("MSG_FileFoundAfterFailedDownload", resourceCulture);
             }
         }
         
@@ -865,15 +874,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Java Runtime Environment was already downloaded from the server and stored at &apos;{0}&apos;..
-        /// </summary>
-        internal static string MSG_JreAlreadyDownloaded {
-            get {
-                return ResourceManager.GetString("MSG_JreAlreadyDownloaded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The JRE provisioning is a time consuming operation.
         ///JRE provisioned: {0}.
         ///If you already have a compatible java version installed, please add either the parameter &quot;/d:sonar.scanner.skipJreProvisioning=true&quot; or &quot;/d:sonar.scanner.javaExePath=&lt;PATH&gt;&quot;..
@@ -899,15 +899,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_JreExtractedSucessfully {
             get {
                 return ResourceManager.GetString("MSG_JreExtractedSucessfully", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel..
-        /// </summary>
-        internal static string MSG_JreFoundAfterFailedDownload {
-            get {
-                return ResourceManager.GetString("MSG_JreFoundAfterFailedDownload", resourceCulture);
             }
         }
         
@@ -1173,11 +1164,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Starting the Java Runtime Environment download..
+        ///   Looks up a localized string similar to Starting the file download..
         /// </summary>
-        internal static string MSG_StartingJreDownload {
+        internal static string MSG_StartingFileDownload {
             get {
-                return ResourceManager.GetString("MSG_StartingJreDownload", resourceCulture);
+                return ResourceManager.GetString("MSG_StartingFileDownload", resourceCulture);
             }
         }
         

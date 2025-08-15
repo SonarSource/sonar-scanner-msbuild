@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Security.Cryptography;
 using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
@@ -212,48 +211,129 @@ public sealed class FileCacheTests : IDisposable
     }
 
     [TestMethod]
-    public async Task DownloadAndValidateFile_Success()
+    public async Task EnsureFileDownload_Succeeds()
     {
-        var result = await ExecuteDownloadAndValidateFile(new MemoryStream(downloadContentArray));
+        var result = await ExecuteEnsureFileDownload(new MemoryStream(downloadContentArray));
 
         result.Should().BeNull();
         AssertStreamDisposed();
         fileWrapper.Received(1).Create(tempFilePath);
         fileWrapper.Received(1).Move(tempFilePath, downloadTarget);
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
-        testLogger.DebugMessages.Should().BeEquivalentTo($"The checksum of the downloaded file is '{expectedSha}' and the expected checksum is '{expectedSha}'.");
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            "Starting the file download.",
+            $"The checksum of the downloaded file is '{expectedSha}' and the expected checksum is '{expectedSha}'.");
     }
 
     [TestMethod]
-    public async Task DownloadAndValidateFile_NullStream_ReturnsInvalidOperationException()
+    public async Task EnsureFileDownload_NullStream_ReturnsCacheFailure()
     {
-        var result = await ExecuteDownloadAndValidateFile(null);
+        var result = await ExecuteEnsureFileDownload(null);
 
-        result.Should().BeOfType<InvalidOperationException>().Which.Message.Should().Be(
-            "The download stream is null. The server likely returned an error status code.");
+        result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be(
+            "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.");
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
-        testLogger.DebugMessages.Should().BeEquivalentTo($"Deleting file '{tempFilePath}'.");
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            "Starting the file download.",
+            $"Deleting file '{tempFilePath}'.",
+            "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.");
     }
 
     [TestMethod]
-    public async Task DownloadAndValidateFile_WrongChecksum_ReturnsCryptographicException()
+    public async Task EnsureFileDownload_WrongChecksum_ReturnsCacheFailure()
     {
         checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
 
-        var result = await ExecuteDownloadAndValidateFile(new MemoryStream(downloadContentArray));
+        var result = await ExecuteEnsureFileDownload(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<CryptographicException>().Which.Message.Should().Be("The checksum of the downloaded file does not match the expected checksum.");
+        result.Should().BeOfType<CacheFailure>().Which.Message
+            .Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
         AssertTempFileCreatedAndDeleted();
-        fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         AssertStreamDisposed();
+        fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         testLogger.DebugMessages.Should().BeEquivalentTo(
+            "Starting the file download.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{expectedSha}'.",
-            $"Deleting file '{tempFilePath}'.");
+            $"Deleting file '{Path.Combine(downloadPath, tempFileName)}'.",
+            "The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
     }
 
-    private async Task<Exception> ExecuteDownloadAndValidateFile(MemoryStream downloadContent) =>
-        await fileCache.DownloadAndValidateFile(downloadPath, downloadTarget, new FileDescriptor(downloadTarget, expectedSha), () => Task.FromResult<Stream>(downloadContent));
+    [TestMethod]
+    public async Task EnsureFileDownload_ValidFileCached_Succeeds()
+    {
+        fileWrapper.Exists(downloadTarget).Returns(true);
+        var result = await ExecuteEnsureFileDownload(new MemoryStream(downloadContentArray));
+
+        result.Should().BeNull();
+        fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
+        fileWrapper.DidNotReceiveWithAnyArgs().Move(null, null);
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            $"The file was already downloaded from the server and stored at '{downloadTarget}'.",
+            $"The checksum of the downloaded file is '{expectedSha}' and the expected checksum is '{expectedSha}'.");
+    }
+
+    [TestMethod]
+    public async Task EnsureFileDownload_InvalidFileCached_ReturnsCacheFailure()
+    {
+        fileWrapper.Exists(downloadTarget).Returns(true);
+        checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
+
+        var result = await ExecuteEnsureFileDownload(new MemoryStream(downloadContentArray));
+
+        result.Should().BeOfType<CacheFailure>().Which.Message
+            .Should().Be("The checksum of the downloaded file does not match the expected checksum.");
+        fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
+        fileWrapper.DidNotReceiveWithAnyArgs().Move(null, null);
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            $"The file was already downloaded from the server and stored at '{downloadTarget}'.",
+            $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{expectedSha}'.",
+            $"Deleting file '{downloadTarget}'.");
+    }
+
+    [TestMethod]
+    public async Task EnsureFileDownload_DownloadFails_FileDownloadedByOtherScanner_Succeeds()
+    {
+        fileWrapper.Exists(downloadTarget).Returns(false, true);
+
+        var result = await ExecuteEnsureFileDownload(null);
+
+        result.Should().BeNull();
+        AssertTempFileCreatedAndDeleted();
+        AssertStreamDisposed();
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            "Starting the file download.",
+            $"Deleting file '{tempFilePath}'.",
+            "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
+            "The file was found after the download failed. Another scanner downloaded the file in parallel.",
+            $"The file was already downloaded from the server and stored at '{downloadTarget}'.",
+            $"The checksum of the downloaded file is '{expectedSha}' and the expected checksum is '{expectedSha}'.");
+    }
+
+    [TestMethod]
+    public async Task EnsureFileDownload_DownloadFails_FileDownloadedByOtherScannerInvalid_Fails()
+    {
+        fileWrapper.Exists(downloadTarget).Returns(false, true);
+        checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
+
+        var result = await ExecuteEnsureFileDownload(null);
+
+        result.Should().BeOfType<CacheFailure>().Which.Message
+            .Should().Be("The checksum of the downloaded file does not match the expected checksum.");
+        AssertTempFileCreatedAndDeleted();
+        AssertStreamDisposed();
+        testLogger.DebugMessages.Should().BeEquivalentTo(
+            "Starting the file download.",
+            $"Deleting file '{tempFilePath}'.",
+            "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
+            "The file was found after the download failed. Another scanner downloaded the file in parallel.",
+            $"The file was already downloaded from the server and stored at '{downloadTarget}'.",
+            $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{expectedSha}'.",
+            $"Deleting file '{downloadTarget}'.");
+    }
+
+    private async Task<CacheResult> ExecuteEnsureFileDownload(MemoryStream downloadContent) =>
+        await fileCache.EnsureFileIsDownloaded(downloadPath, downloadTarget, new FileDescriptor(downloadTarget, expectedSha), () => Task.FromResult<Stream>(downloadContent));
 
     private void ExecuteValidateChecksumTest(string returnedSha, string expectedSha, bool expectSucces, string downloadTarget = "some.file")
     {
