@@ -18,14 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
@@ -33,14 +27,11 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
 internal class SonarQubeWebServer : SonarWebServer
 {
-    public override bool SupportsJreProvisioning =>
-        serverVersion >= new Version(10, 6);
+    public override bool SupportsJreProvisioning => serverVersion >= new Version(10, 6);
 
     public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
-        : base(webDownloader, apiDownloader, serverVersion, logger, organization)
-    {
+        : base(webDownloader, apiDownloader, serverVersion, logger, organization) =>
         logger.LogInfo(Resources.MSG_UsingSonarQube, serverVersion);
-    }
 
     public override bool IsServerVersionSupported()
     {
@@ -50,9 +41,9 @@ internal class SonarQubeWebServer : SonarWebServer
             logger.LogError(Resources.ERR_SonarQubeUnsupported);
             return false;
         }
-        else if (serverVersion.CompareTo(new Version(9, 9)) < 0)
+        else if (serverVersion.CompareTo(new Version(2025, 1)) < 0)
         {
-            logger.LogUIWarning(Resources.WARN_UI_SonarQubeNearEndOfSupport);
+            logger.LogUIWarning(Resources.WARN_UI_SonarQubeUnsupported);
         }
         return true;
     }
