@@ -24,7 +24,7 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 namespace SonarScanner.MSBuild.PreProcessor.Caching.Test;
 
 [TestClass]
-public sealed class FileCacheTests : IDisposable
+public sealed class CachingDownloaderTests : IDisposable
 {
     private const string ExpectedSha = "sha256";
     private const string DownloadTarget = "someFile";
@@ -37,19 +37,19 @@ public sealed class FileCacheTests : IDisposable
     private readonly IChecksum checksum;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly FileCache fileCache;
+    private readonly CachingDownloader cachingDownloader;
     private readonly TestLogger testLogger;
     private readonly byte[] fileContentArray = new byte[3];
     private readonly MemoryStream fileContentStream;
     private readonly byte[] downloadContentArray = [1, 2, 3,];
 
-    public FileCacheTests()
+    public CachingDownloaderTests()
     {
         testLogger = new TestLogger();
         checksum = Substitute.For<IChecksum>();
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
         fileWrapper = Substitute.For<IFileWrapper>();
-        fileCache = new FileCache(testLogger, directoryWrapper, fileWrapper, checksum, SonarUserHome);
+        cachingDownloader = new CachingDownloader(testLogger, directoryWrapper, fileWrapper, checksum, SonarUserHome);
         directoryWrapper.GetRandomFileName().Returns(TempFileName);
         fileContentStream = new MemoryStream(fileContentArray, writable: true);
         fileWrapper.Create(TempFilePath).Returns(fileContentStream);
@@ -64,7 +64,7 @@ public sealed class FileCacheTests : IDisposable
     {
         directoryWrapper.Exists(SonarUserHomeCache).Returns(false);
 
-        var cacheRoot = fileCache.EnsureCacheRoot();
+        var cacheRoot = cachingDownloader.EnsureCacheRoot();
 
         cacheRoot.Should().Be(SonarUserHomeCache);
         directoryWrapper.Received(1).Exists(SonarUserHomeCache);
@@ -76,7 +76,7 @@ public sealed class FileCacheTests : IDisposable
     {
         directoryWrapper.Exists(SonarUserHomeCache).Returns(true);
 
-        var cacheRoot = fileCache.EnsureCacheRoot();
+        var cacheRoot = cachingDownloader.EnsureCacheRoot();
 
         cacheRoot.Should().Be(SonarUserHomeCache);
         directoryWrapper.Received(1).Exists(SonarUserHomeCache);
@@ -89,7 +89,7 @@ public sealed class FileCacheTests : IDisposable
         directoryWrapper.Exists(SonarUserHomeCache).Returns(false);
         directoryWrapper.When(x => x.CreateDirectory(SonarUserHomeCache)).Throw<IOException>();
 
-        var cacheRoot = fileCache.EnsureCacheRoot();
+        var cacheRoot = cachingDownloader.EnsureCacheRoot();
 
         cacheRoot.Should().BeNull();
         directoryWrapper.Received(1).Exists(SonarUserHomeCache);
@@ -102,7 +102,7 @@ public sealed class FileCacheTests : IDisposable
         var dir = "some/dir";
         directoryWrapper.Exists(dir).Returns(false);
 
-        var result = fileCache.EnsureDirectoryExists(dir);
+        var result = cachingDownloader.EnsureDirectoryExists(dir);
 
         result.Should().Be(dir);
         directoryWrapper.Received(1).Exists(dir);
@@ -115,7 +115,7 @@ public sealed class FileCacheTests : IDisposable
         var dir = "some/dir";
         directoryWrapper.Exists(dir).Returns(true);
 
-        var result = fileCache.EnsureDirectoryExists(dir);
+        var result = cachingDownloader.EnsureDirectoryExists(dir);
 
         result.Should().Be(dir);
         directoryWrapper.Received(1).Exists(dir);
@@ -129,7 +129,7 @@ public sealed class FileCacheTests : IDisposable
         directoryWrapper.Exists(dir).Returns(false);
         directoryWrapper.When(x => x.CreateDirectory(dir)).Throw<IOException>();
 
-        var result = fileCache.EnsureDirectoryExists(dir);
+        var result = cachingDownloader.EnsureDirectoryExists(dir);
 
         result.Should().BeNull();
         directoryWrapper.Received(1).Exists(dir);
@@ -138,7 +138,7 @@ public sealed class FileCacheTests : IDisposable
 
     [TestMethod]
     public void CacheRoot_ExpectedPath_IsReturned() =>
-        fileCache.CacheRoot.Should().Be(SonarUserHomeCache);
+        cachingDownloader.CacheRoot.Should().Be(SonarUserHomeCache);
 
     [TestMethod]
     public void IsFileCached_CacheHit_ReturnsFile()
@@ -147,7 +147,7 @@ public sealed class FileCacheTests : IDisposable
         var file = Path.Combine(SonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
         fileWrapper.Exists(file).Returns(true);
 
-        var result = fileCache.IsFileCached(fileDescriptor);
+        var result = cachingDownloader.IsFileCached(fileDescriptor);
 
         result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
         fileWrapper.Received(1).Exists(file);
@@ -160,7 +160,7 @@ public sealed class FileCacheTests : IDisposable
         var file = Path.Combine(SonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
         fileWrapper.Exists(file).Returns(false);
 
-        var result = fileCache.IsFileCached(fileDescriptor);
+        var result = cachingDownloader.IsFileCached(fileDescriptor);
 
         result.Should().BeOfType<CacheMiss>();
         fileWrapper.Received(1).Exists(file);
@@ -173,7 +173,7 @@ public sealed class FileCacheTests : IDisposable
         directoryWrapper.Exists(SonarUserHomeCache).Returns(false);
         directoryWrapper.When(x => x.CreateDirectory(SonarUserHomeCache)).Do(_ => throw new IOException("Disk full"));
 
-        var result = fileCache.IsFileCached(fileDescriptor);
+        var result = cachingDownloader.IsFileCached(fileDescriptor);
 
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be($"The file cache directory in '{SonarUserHomeCache}' could not be created.");
     }
@@ -341,7 +341,7 @@ public sealed class FileCacheTests : IDisposable
     }
 
     private async Task<CacheResult> ExecuteDownloadFileAsync(MemoryStream downloadContent) =>
-        await fileCache.DownloadFileAsync(new FileDescriptor(DownloadTarget, ExpectedSha), () => Task.FromResult<Stream>(downloadContent));
+        await cachingDownloader.DownloadFileAsync(new FileDescriptor(DownloadTarget, ExpectedSha), () => Task.FromResult<Stream>(downloadContent));
 
     private void ExecuteValidateChecksumTest(string returnedSha, string expectedSha, bool expectSucces, string downloadTarget = "some.file")
     {
@@ -355,7 +355,7 @@ public sealed class FileCacheTests : IDisposable
         {
             checksum.ComputeHash(stream).Returns(returnedSha);
         }
-        fileCache.ValidateChecksum(downloadTarget, expectedSha).Should().Be(expectSucces);
+        cachingDownloader.ValidateChecksum(downloadTarget, expectedSha).Should().Be(expectSucces);
         fileWrapper.Received(1).Open(downloadTarget);
         checksum.Received(1).ComputeHash(stream);
     }
