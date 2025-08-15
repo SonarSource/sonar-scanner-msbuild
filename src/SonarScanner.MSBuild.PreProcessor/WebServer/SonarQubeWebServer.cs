@@ -18,14 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
@@ -34,8 +28,7 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
 internal class SonarQubeWebServer : SonarWebServer
 {
-    public override bool SupportsJreProvisioning =>
-        serverVersion >= new Version(10, 6);
+    public override bool SupportsJreProvisioning => serverVersion >= new Version(10, 6);
 
     public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
         : base(webDownloader, apiDownloader, serverVersion, logger, organization)
@@ -164,6 +157,6 @@ internal class SonarQubeWebServer : SonarWebServer
         logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId);
         var contents = await webDownloader.Download(uri, true);
         var properties = JArray.Parse(contents);
-        return CheckTestProjectPattern(properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString()));
+        return CheckTestProjectPattern(properties.ToDictionary(x => x["key"].ToString(), x => x["value"].ToString()));
     }
 }
