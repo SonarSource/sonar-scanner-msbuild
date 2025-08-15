@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-public class JreDownloader
+public class JreDownloader : CachingDownloader
 {
     private readonly ILogger logger;
     private readonly CachedDownloader cachedDownloader;
@@ -38,11 +38,12 @@ public class JreDownloader
     private IUnpacker unpacker;
 
     public JreDownloader(ILogger logger,
-                         CachedDownloader cachedDownloader,
                          IDirectoryWrapper directoryWrapper,
                          IFileWrapper fileWrapper,
-                         UnpackerFactory unpackerFactory,
-                         IFilePermissionsWrapper filePermissionsWrapper)
+                         IChecksum checksum,
+                         IUnpackerFactory unpackerFactory,
+                         IFilePermissionsWrapper filePermissionsWrapper,
+                         string sonarUserHome) : base(logger, directoryWrapper, fileWrapper, checksum, sonarUserHome)
     {
         this.logger = logger;
         this.cachedDownloader = cachedDownloader;
