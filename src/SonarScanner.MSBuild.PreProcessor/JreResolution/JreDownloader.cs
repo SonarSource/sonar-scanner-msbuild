@@ -21,6 +21,9 @@
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
@@ -32,6 +35,7 @@ public class JreDownloader
     private readonly IFileWrapper fileWrapper;
     private readonly UnpackerFactory unpackerFactory;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
+    private IUnpacker unpacker;
 
     public JreDownloader(ILogger logger,
                          CachedDownloader cachedDownloader,

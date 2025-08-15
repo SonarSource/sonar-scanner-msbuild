@@ -190,9 +190,10 @@ public class JreDownloaderTests
         var fileContent = new MemoryStream();
         fileWrapper.Open(Path.Combine(ShaPath, "filename.tar.gz")).Returns(fileContent);
         checksum.ComputeHash(fileContent).Returns("sha256");
-        var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => throw new NotSupportedException("Unreachable"));
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+
+        var result = await ExecuteDownloadAndUnpack();
+
+        result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         testLogger.DebugMessages.Should().BeEquivalentTo(
             $"The file was already downloaded from the server and stored at '{Path.Combine(ShaPath, "filename.tar.gz")}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
@@ -474,8 +475,8 @@ public class JreDownloaderTests
         fileWrapper.Open(Path.Combine(sha, "xFirst.rnd")).Returns(fileStream);
         checksum.ComputeHash(fileStream).Returns(fileHashValue);
 
-        var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", expectedHashValue, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await ExecuteDownloadAndUnpack(null, new JreDescriptor("filename.tar.gz", expectedHashValue, "javaPath"));
+
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         testLogger.DebugMessages.Should().BeEquivalentTo(
             "Starting the file download.",
@@ -588,8 +589,8 @@ public class JreDownloaderTests
         checksum.ComputeHash(Arg.Any<Stream>()).Returns("sha256");
         unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").Returns(Substitute.For<IUnpacker>());
 
-        var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await ExecuteDownloadAndUnpack();
+
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be(@"The downloaded Java runtime environment could not be extracted.");
         fileWrapper.Received(1).Exists(file);
         fileWrapper.Received(1).Create(Arg.Any<string>());
@@ -605,14 +606,15 @@ public class JreDownloaderTests
     }
 
     [TestMethod]
-    public async Task UnpackerFactory_ReturnsNull()
+    public void UnpackerFactory_ReturnsNull()
     {
         directoryWrapper.Exists(SonarCache).Returns(true);
         directoryWrapper.Exists(ShaPath).Returns(true);
         unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").ReturnsNull();
-
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+
+        var result = sut.CreateUnpacker(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"));
+
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The archive format of the JRE archive `filename.tar.gz` is not supported.");
         fileWrapper.DidNotReceiveWithAnyArgs().Exists(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
@@ -623,14 +625,15 @@ public class JreDownloaderTests
     }
 
     [TestMethod]
-    public async Task UnpackerFactory_UnsupportedFormat()
+    public void UnpackerFactory_UnsupportedFormat()
     {
         directoryWrapper.Exists(SonarCache).Returns(true);
         directoryWrapper.Exists(ShaPath).Returns(true);
         unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").ReturnsNull();
-
         var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+
+        var result = sut.CreateUnpacker(new JreDescriptor("filename.tar.gz", "sha256", "javaPath"));
+
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The archive format of the JRE archive `filename.tar.gz` is not supported.");
         fileWrapper.DidNotReceiveWithAnyArgs().Exists(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
@@ -653,9 +656,9 @@ public class JreDownloaderTests
         fileWrapper.Open(file).Returns(archiveFileStream);
         checksum.ComputeHash(tempFileStream).Returns("sha256");
         fileWrapper.Exists(Path.Combine(ShaPath, "xSecond.rnd", "javaPath")).Returns(true);
-        var sut = CreateSutWithSubstitutes();
 
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await ExecuteDownloadAndUnpack();
+
         result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(Path.Combine(file + "_extracted", "javaPath"));
         directoryWrapper.Received(2).GetRandomFileName();
         directoryWrapper.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
@@ -682,17 +685,17 @@ public class JreDownloaderTests
         fileWrapper.Open(file).Returns(archiveFileStream);
         checksum.ComputeHash(tempFileStream).Returns("sha256");
         unpacker.When(x => x.Unpack(archiveFileStream, Path.Combine(ShaPath, "xSecond.rnd"))).Throw(new IOException("Unpack failure"));
-        var sut = CreateSutWithSubstitutes();
 
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await ExecuteDownloadAndUnpack();
+
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         directoryWrapper.Received(2).GetRandomFileName();
         directoryWrapper.DidNotReceiveWithAnyArgs().Move(null, null);
         directoryWrapper.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
         testLogger.DebugMessages.Should().BeEquivalentTo(
-            @"Starting the file download.",
-            @"The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            @$"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
+            "Starting the file download.",
+            "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            $"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
             "The extraction of the downloaded Java runtime environment failed with error 'Unpack failure'.");
     }
 
@@ -711,9 +714,9 @@ public class JreDownloaderTests
         checksum.ComputeHash(tempFileStream).Returns("sha256");
         fileWrapper.Exists(Path.Combine(ShaPath, "xSecond.rnd", "javaPath")).Returns(true);
         directoryWrapper.When(x => x.Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted")).Throw<IOException>();
-        var sut = CreateSutWithSubstitutes();
 
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await ExecuteDownloadAndUnpack();
+
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         directoryWrapper.Received(2).GetRandomFileName();
         directoryWrapper.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
@@ -740,9 +743,9 @@ public class JreDownloaderTests
         fileWrapper.Open(file).Returns(archiveFileStream);
         checksum.ComputeHash(tempFileStream).Returns("sha256");
         fileWrapper.Exists(Path.Combine("sha", "xSecond.rnd", "javaPath")).Returns(false);
-        var sut = CreateSutWithSubstitutes();
 
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+        var result = await ExecuteDownloadAndUnpack();
+
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
         directoryWrapper.Received(2).GetRandomFileName();
         fileWrapper.Received(1).Exists(Path.Combine(ShaPath, "xSecond.rnd", "javaPath"));
@@ -769,8 +772,9 @@ public class JreDownloaderTests
         fileWrapper.Exists(Path.Combine(ShaPath, "xSecond.rnd", "javaPath")).Returns(true);
         directoryWrapper.When(x => x.Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted")).Throw(new IOException("Move failure"));
         directoryWrapper.When(x => x.Delete(Path.Combine(ShaPath, "xSecond.rnd"), true)).Throw(new IOException("Folder cleanup failure"));
-        var sut = CreateSutWithSubstitutes();
-        var result = await sut.DownloadJreAsync(new("filename.tar.gz", "sha256", "javaPath"), () => Task.FromResult<Stream>(new MemoryStream()));
+
+        await ExecuteDownloadAndUnpack();
+
         directoryWrapper.Received(2).GetRandomFileName();
         directoryWrapper.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
         directoryWrapper.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
@@ -811,7 +815,8 @@ public class JreDownloaderTests
 
         try
         {
-            var result = await sut.DownloadJreAsync(jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(zipContent)));
+            var result = await ExecuteDownloadAndUnpack(sut, jreDescriptor, new MemoryStream(zipContent));
+
             result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(
                 Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted", "jdk-17.0.11+9-jre/bin/java.exe"));
             Directory.EnumerateFileSystemEntries(cache, "*", SearchOption.AllDirectories).Should().BeEquivalentTo(
@@ -823,17 +828,12 @@ public class JreDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            testLogger.AssertSingleInfoMessageExists("""
-                The JRE provisioning is a time consuming operation.
-                JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip.
-                If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
-                """);
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be("Starting the file download."),
-                x => x.Should().Be(@$"The checksum of the downloaded file is '{sha}' and the expected checksum is '{sha}'."),
-                x => x.Should().Match(@$"Starting extracting the Java runtime environment from archive '{Path.Combine(cache, sha, file)}' to folder '{Path.Combine(cache, sha, "*")}'."),
-                x => x.Should().Match(@$"Moving extracted Java runtime environment from '{Path.Combine(cache, sha, "*")}' to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted")}'."),
-                x => x.Should().Be(@$"The Java runtime environment was successfully added to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted")}'."));
+                x => x.Should().Be($"The checksum of the downloaded file is '{sha}' and the expected checksum is '{sha}'."),
+                x => x.Should().Match($"Starting extracting the Java runtime environment from archive '{Path.Combine(cache, sha, file)}' to folder '{Path.Combine(cache, sha, "*")}'."),
+                x => x.Should().Match($"Moving extracted Java runtime environment from '{Path.Combine(cache, sha, "*")}' to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted")}'."),
+                x => x.Should().Be($"The Java runtime environment was successfully added to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted")}'."));
         }
         finally
         {
@@ -863,7 +863,7 @@ public class JreDownloaderTests
         var sut = new JreDownloader(testLogger, downloader, DirectoryWrapper.Instance, FileWrapper.Instance, UnpackerFactory.Instance, filePermissionsWrapper);
         try
         {
-            var result = await sut.DownloadJreAsync(jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(tarContent)));
+            var result = await ExecuteDownloadAndUnpack(sut, jreDescriptor, new MemoryStream(tarContent));
 
             result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(
                 Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
@@ -876,11 +876,6 @@ public class JreDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            testLogger.AssertSingleInfoMessageExists("""
-                The JRE provisioning is a time consuming operation.
-                JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz.
-                If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
-                """);
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be("Starting the file download."),
                 x => x.Should().Be($"The checksum of the downloaded file is '{sha}' and the expected checksum is '{sha}'."),
@@ -892,6 +887,16 @@ public class JreDownloaderTests
         {
             Directory.Delete(home, true);
         }
+    }
+
+    private async Task<CacheResult> ExecuteDownloadAndUnpack(JreCache cache = null, JreDescriptor descriptor = null, MemoryStream content = null)
+    {
+        var sut = cache ?? CreateSutWithSubstitutes();
+        var jreDescriptor = descriptor ?? new JreDescriptor("filename.tar.gz", "sha256", "javaPath");
+        var memoryStream = content ?? new MemoryStream();
+        sut.CreateUnpacker(jreDescriptor);
+        var success = await sut.DownloadFileAsync(jreDescriptor, () => Task.FromResult<Stream>(memoryStream));
+        return sut.UnpackJre(((CacheHit)success).FilePath, jreDescriptor);
     }
 
     private JreDownloader CreateSutWithSubstitutes() =>
