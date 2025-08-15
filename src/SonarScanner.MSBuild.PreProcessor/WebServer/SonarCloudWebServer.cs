@@ -26,6 +26,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
@@ -117,6 +118,12 @@ internal class SonarCloudWebServer : SonarWebServer
         var uri = new Uri(metadata.DownloadUrl);
         logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
         return await cacheClient.GetStreamAsync(uri);
+    }
+
+    public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
+    {
+        logger.LogDebug(Resources.MSG_EngineDownloadUri, metadata.DownloadUrl);
+        return await cacheClient.GetStreamAsync(metadata.DownloadUrl);
     }
 
     protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)

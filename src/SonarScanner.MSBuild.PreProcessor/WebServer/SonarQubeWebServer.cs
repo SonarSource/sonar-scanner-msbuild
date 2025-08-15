@@ -20,6 +20,8 @@
 
 using System.Net;
 using Newtonsoft.Json.Linq;
+using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
@@ -125,6 +127,13 @@ internal class SonarQubeWebServer : SonarWebServer
     {
         var uri = WebUtils.Escape("analysis/jres/{0}", metadata.Id);
         logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
+        return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
+    }
+
+    public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
+    {
+        var uri = WebUtils.Escape("analysis/engine");
+        logger.LogDebug(Resources.MSG_EngineDownloadUri, uri);
         return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
     }
 

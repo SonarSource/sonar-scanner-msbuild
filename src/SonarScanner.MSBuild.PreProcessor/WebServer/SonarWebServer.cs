@@ -44,6 +44,7 @@ public abstract class SonarWebServer : ISonarWebServer
     public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
 
     public abstract Task<Stream> DownloadJreAsync(JreMetadata metadata);
+    public abstract Task<Stream> DownloadEngineAsync(EngineMetadata metadata);
     public abstract bool IsServerVersionSupported();
 
     public abstract Task<bool> IsServerLicenseValid();
