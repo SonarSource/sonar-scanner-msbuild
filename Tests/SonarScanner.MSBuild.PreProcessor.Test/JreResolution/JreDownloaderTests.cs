@@ -96,6 +96,12 @@ public class JreDownloaderTests
     }
 
     [TestMethod]
+    public void IsFileCached_ThrowsException_WhenFileDescriptorIsNotJreDescriptor() =>
+        ((Action)(() => CreateSutWithSubstitutes().IsFileCached(new FileDescriptor("filename.tar.gz", "sha256"))))
+            .Should().Throw<ArgumentException>()
+            .WithMessage("JreCache must be used with JreDescriptor*");
+
+    [TestMethod]
     public void ExtractedDirectoryDoesNotExists()
     {
         var expectedExtractedPath = Path.Combine(SonarCache, "sha", "filename.tar.gz_extracted");
