@@ -96,14 +96,9 @@ public class JreResolver(ISonarWebServer server, JreDownloader downloader, ILogg
     {
         logger.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
         var downloadResult = await cache.DownloadFileAsync(descriptor, () => server.DownloadJreAsync(metadata));
-        if (downloadResult is CacheHit downloadSucces)
-        {
-            return cache.UnpackJre(downloadSucces.FilePath, descriptor);
-        }
-        else
-        {
-            return downloadResult;
-        }
+        return downloadResult is CacheHit downloadSucces
+            ? cache.UnpackJre(downloadSucces.FilePath, descriptor)
+            : downloadResult;
     }
 
     private bool IsValid(ProcessedArgs args)
