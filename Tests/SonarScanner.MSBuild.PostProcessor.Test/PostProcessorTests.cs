@@ -35,10 +35,10 @@ public class PostProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        var scanner = Substitute.For<ISonarScanner>();
         var logger = Substitute.For<ILogger>();
-        var targets = Substitute.For<ITargetsUninstaller>();
-        var tfs = Substitute.For<ITfsProcessor>();
+        var scanner = Substitute.For<SonarScannerWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
+        var targets = Substitute.For<TargetsUninstaller>(logger);
+        var tfs = Substitute.For<TfsProcessorWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
 
         Invoking(() => new PostProcessor(null, null, null, null, null)).Should()
             .Throw<ArgumentNullException>()
@@ -67,8 +67,8 @@ public class PostProcessorTests
         var context = new PostProcTestContext(TestContext);
 
         Execute_WithNoProject(context, true).Should().BeFalse("Expecting post-processor to have failed");
-        context.TfsProcessor.AssertNotExecuted();
-        context.Scanner.AssertNotExecuted();
+        context.TfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        context.Scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         context.Logger.AssertNoErrorsLogged();
         context.Logger.AssertNoWarningsLogged();
         context.Logger.AssertNoUIWarningsLogged();
@@ -79,12 +79,14 @@ public class PostProcessorTests
     public void PostProc_ExecutionSucceedsWithErrorLogs()
     {
         var context = new PostProcTestContext(TestContext);
-        context.Scanner.ErrorToLog = "Errors";
+        context.Scanner.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => context.Logger.LogError("Errors"));
 
         Execute(context, true).Should().BeTrue("Expecting post-processor to have succeeded");
-        context.TfsProcessor.AssertExecutedIfNetFramework();
-        context.Scanner.AssertExecuted();
-        context.Scanner.SuppliedCommandLineArgs.Should().BeEmpty();
+        AssertTfsProcesserCalledIfNetFramework(context);
+        context.Scanner.Received().Execute(
+            context.Config,
+            Arg.Is<IAnalysisPropertyProvider>(x => !x.GetAllProperties().Any()),
+            Arg.Any<string>());
         context.Logger.AssertErrorsLogged(1);
         context.Logger.AssertWarningsLogged(0);
         context.VerifyTargetsUninstaller();
@@ -94,11 +96,10 @@ public class PostProcessorTests
     public void PostProc_FailsOnInvalidArgs()
     {
         var context = new PostProcTestContext(TestContext);
-        context.TfsProcessor.ValueToReturn = false;
 
         Execute(context, true, "/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
-        context.TfsProcessor.AssertNotExecuted();
-        context.Scanner.AssertNotExecuted();
+        context.TfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        context.Scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         context.Logger.AssertErrorsLogged(1);
         context.Logger.AssertWarningsLogged(0);
         context.VerifyTargetsUninstaller();
@@ -123,9 +124,11 @@ public class PostProcessorTests
         };
 
         Execute(context, true, suppliedArgs).Should().BeTrue("Expecting post-processor to have succeeded");
-        context.TfsProcessor.AssertExecutedIfNetFramework();
-        context.Scanner.AssertExecuted();
-        context.Scanner.SuppliedCommandLineArgs.Should().Equal(expectedArgs, "Unexpected command line args passed to the sonar-scanner");
+        AssertTfsProcesserCalledIfNetFramework(context);
+        context.Scanner.Received().Execute(
+            context.Config,
+            Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)),
+            Arg.Any<string>());
         context.Logger.AssertErrorsLogged(0);
         context.VerifyTargetsUninstaller();
     }
@@ -135,12 +138,11 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineCredentials = true;
-        context.TfsProcessor.ValueToReturn = false;
 
         Execute(context, true, args: []).Should().BeFalse();
         context.Logger.AssertErrorLogged(CredentialsErrorMessage);
-        context.TfsProcessor.AssertNotExecuted();
-        context.Scanner.AssertNotExecuted();
+        context.TfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        context.Scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         context.VerifyTargetsUninstaller();
     }
 
@@ -149,12 +151,11 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineTruststorePassword = true;
-        context.TfsProcessor.ValueToReturn = false;
 
         Execute(context, true, args: []).Should().BeFalse();
         context.Logger.AssertErrorLogged(TruststorePasswordErrorMessage);
-        context.TfsProcessor.AssertNotExecuted();
-        context.Scanner.AssertNotExecuted();
+        context.TfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        context.Scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         context.VerifyTargetsUninstaller();
     }
 
@@ -214,12 +215,11 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineTruststorePassword = true;
-        context.TfsProcessor.ValueToReturn = false;
 
         Execute(context, true, $"/d:{truststorePasswordProperty}").Should().BeFalse();
         context.Logger.AssertErrorLogged($"The format of the analysis property {truststorePasswordProperty} is invalid");
-        context.TfsProcessor.AssertNotExecuted();
-        context.Scanner.AssertNotExecuted();
+        context.TfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        context.Scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         context.VerifyTargetsUninstaller();
     }
 
@@ -228,13 +228,12 @@ public class PostProcessorTests
     {
         var context = new PostProcTestContext(TestContext);
         context.Config.HasBeginStepCommandLineTruststorePassword = true;
-        context.TfsProcessor.ValueToReturn = false;
         using var env = new EnvironmentVariableScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Dsonar.scanner.truststorePassword");
 
         Execute(context, true).Should().BeFalse();
-        context.TfsProcessor.AssertNotExecuted();
-        context.Scanner.AssertNotExecuted();
+        context.TfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        context.Scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         context.VerifyTargetsUninstaller();
     }
 
@@ -242,12 +241,11 @@ public class PostProcessorTests
     public void PostProc_WhenNoSettingInFileAndCommandLineArg_Fail()
     {
         var context = new PostProcTestContext(TestContext);
-        context.TfsProcessor.ValueToReturn = false;
 
         Execute(context, true, args: "/d:sonar.token=foo").Should().BeFalse();
         context.Logger.AssertErrorLogged(CredentialsErrorMessage);
-        context.TfsProcessor.AssertNotExecuted();
-        context.Scanner.AssertNotExecuted();
+        context.TfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        context.Scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         context.VerifyTargetsUninstaller();
     }
 
@@ -274,14 +272,14 @@ public class PostProcessorTests
     [TestMethod]
     public void Execute_NullArgs_Throws()
     {
-        Action action = () => DummyPostProcessorExecute(null, new AnalysisConfig(), new MockBuildSettings());
+        Action action = () => DummyPostProcessorExecute(null, new AnalysisConfig(), Substitute.For<IBuildSettings>());
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
     }
 
     [TestMethod]
     public void Execute_NullAnalysisConfig_Throws()
     {
-        Action action = () => DummyPostProcessorExecute([], null, new MockBuildSettings());
+        Action action = () => DummyPostProcessorExecute([], null, Substitute.For<IBuildSettings>());
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
     }
 
@@ -384,17 +382,24 @@ public class PostProcessorTests
         proc.Execute(args, config, settings);
     }
 
+    private static void AssertTfsProcesserCalledIfNetFramework(PostProcTestContext context) =>
+#if NETFRAMEWORK
+        context.TfsProcessor.ReceivedWithAnyArgs().Execute(null, null, null);
+#else
+        context.TfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+#endif
+
     /// <summary>
     /// Helper class that creates all of the necessary mocks.
     /// </summary>
     private class PostProcTestContext
     {
-        public ITargetsUninstaller TargetsUninstaller { get; }
+        public TargetsUninstaller TargetsUninstaller { get; }
         public AnalysisConfig Config { get; set; }
         public BuildSettings Settings { get; }
-        public MockSonarScanner Scanner { get; }
+        public SonarScannerWrapper Scanner { get; }
         public TestLogger Logger { get; }
-        public MockTfsProcessor TfsProcessor { get; }
+        public TfsProcessorWrapper TfsProcessor { get; }
 
         public PostProcTestContext(TestContext testContext)
         {
@@ -405,9 +410,11 @@ public class PostProcessorTests
             };
             Settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
             Logger = new();
-            TfsProcessor = new(Logger);
-            Scanner = new(Logger);
-            TargetsUninstaller = Substitute.For<ITargetsUninstaller>();
+            TfsProcessor = Substitute.For<TfsProcessorWrapper>(Logger, Substitute.For<IOperatingSystemProvider>());
+            TfsProcessor.Execute(null, null, null).ReturnsForAnyArgs(true);
+            Scanner = Substitute.For<SonarScannerWrapper>(Logger, Substitute.For<IOperatingSystemProvider>());
+            Scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
+            TargetsUninstaller = Substitute.For<TargetsUninstaller>(Logger);
         }
 
         public void VerifyTargetsUninstaller() =>
