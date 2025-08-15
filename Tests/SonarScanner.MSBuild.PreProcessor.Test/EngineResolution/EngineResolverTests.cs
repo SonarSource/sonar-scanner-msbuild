@@ -98,7 +98,7 @@ public class EngineResolverTests
             new("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"))));
         cachingDownloader.IsFileCached(Arg.Is<FileDescriptor>(x =>
             x.Filename == "engine.jar"
-            && x.Sha256 == "sha256")).Returns(new CacheHit("sonarHome/.cache/engine.jar"));
+            && x.Sha256 == "sha256")).Returns(new ResolutionSuccess("sonarHome/.cache/engine.jar"));
 
         var result = await resolver.ResolveEngine(args);
 

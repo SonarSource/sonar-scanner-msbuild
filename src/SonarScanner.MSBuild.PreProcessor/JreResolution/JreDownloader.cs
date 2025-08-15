@@ -41,8 +41,8 @@ internal class JreDownloader(
             {
                 var extractedJavaExe = Path.Combine(extractedPath, jreDescriptor.JavaPath);
                 return fileWrapper.Exists(extractedJavaExe)
-                    ? new CacheHit(extractedJavaExe)
-                    : new CacheFailure(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
+                    ? new ResolutionSuccess(extractedJavaExe)
+                    : new ResolutionError(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
             }
             else
             {
@@ -82,7 +82,7 @@ internal class JreDownloader(
                 logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, finalExtractionPath);
                 directoryWrapper.Move(tempExtractionPath, finalExtractionPath);
                 logger.LogDebug(Resources.MSG_JreExtractedSucessfully, finalExtractionPath);
-                return new CacheHit(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
+                return new ResolutionSuccess(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
             }
             else
             {
@@ -93,7 +93,7 @@ internal class JreDownloader(
         {
             logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
             CleanupFolder(tempExtractionPath);
-            return new CacheFailure(Resources.ERR_JreExtractionFailed);
+            return new ResolutionError(Resources.ERR_JreExtractionFailed);
         }
     }
 

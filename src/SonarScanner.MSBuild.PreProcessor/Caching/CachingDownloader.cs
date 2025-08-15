@@ -42,16 +42,16 @@ public class CachingDownloader
         this.checksum = checksum;
     }
 
-    public CacheResult IsFileCached(FileDescriptor fileDescriptor)
+    public virtual FileResolution IsFileCached(FileDescriptor fileDescriptor)
     {
         if (EnsureCacheRoot() is { } cacheRoot)
         {
             var cacheLocation = CacheLocation(cacheRoot, fileDescriptor);
             return fileWrapper.Exists(cacheLocation) // We do not check the SHA256 of the found file.
-                ? new CacheHit(cacheLocation)
+                ? new ResolutionSuccess(cacheLocation)
                 : new CacheMiss();
         }
-        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
+        return new ResolutionError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
     }
 
     public string EnsureCacheRoot() =>
@@ -88,7 +88,7 @@ public class CachingDownloader
         }
     }
 
-    public async Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    protected async Task<ResolutionError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
         {
@@ -186,7 +186,7 @@ public class CachingDownloader
         }
     }
 
-    private CacheFailure ValidateFile(string downloadTarget, FileDescriptor descriptor)
+    private ResolutionError ValidateFile(string downloadTarget, FileDescriptor descriptor)
     {
         logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
         if (ValidateChecksum(downloadTarget, descriptor.Sha256))
