@@ -30,6 +30,7 @@ public class PostProcessorTests
     private const string CredentialsErrorMessage = "Credentials must be passed in both begin and end steps or not at all";
     private const string TruststorePasswordErrorMessage = "'sonar.scanner.truststorePassword' must be specified in the end step when specified during the begin step.";
 
+    private readonly PostProcessor sut;
     private readonly TestContext testContext;
     private readonly TargetsUninstaller targetsUninstaller;
     private readonly AnalysisConfig config;
@@ -37,6 +38,7 @@ public class PostProcessorTests
     private readonly SonarScannerWrapper scanner;
     private readonly TestLogger logger;
     private readonly TfsProcessorWrapper tfsProcessor;
+    private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
 
     public PostProcessorTests(TestContext testContext)
     {
@@ -53,6 +55,13 @@ public class PostProcessorTests
         scanner = Substitute.For<SonarScannerWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
         scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(logger);
+        sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
+        sut = new PostProcessor(
+            scanner,
+            logger,
+            targetsUninstaller,
+            tfsProcessor,
+            sonarProjectPropertiesValidator);
     }
 
     [TestMethod]
@@ -271,21 +280,21 @@ public class PostProcessorTests
     [TestMethod]
     public void Execute_NullArgs_Throws()
     {
-        Action action = () => DummyPostProcessorExecute(null, new AnalysisConfig(), Substitute.For<IBuildSettings>());
+        Action action = () => sut.Execute(null, new AnalysisConfig(), Substitute.For<IBuildSettings>());
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
     }
 
     [TestMethod]
     public void Execute_NullAnalysisConfig_Throws()
     {
-        Action action = () => DummyPostProcessorExecute([], null, Substitute.For<IBuildSettings>());
+        Action action = () => sut.Execute([], null, Substitute.For<IBuildSettings>());
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
     }
 
     [TestMethod]
     public void Execute_NullTeamBuildSettings_Throws()
     {
-        Action action = () => DummyPostProcessorExecute([], new AnalysisConfig(), null);
+        Action action = () => sut.Execute([], new AnalysisConfig(), null);
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
     }
 
@@ -295,22 +304,8 @@ public class PostProcessorTests
     private bool Execute(string[] args = null, bool withProject = true)
     {
         args ??= [];
-        var sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
-        sonarProjectPropertiesValidator
-            .AreExistingSonarPropertiesFilesPresent(Arg.Any<string>(), Arg.Any<ICollection<ProjectData>>(), out var _)
-            .Returns(false);
-
-        var proc = new PostProcessor(
-            scanner,
-            logger,
-            targetsUninstaller,
-            tfsProcessor,
-            sonarProjectPropertiesValidator);
-
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
-
         var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
-
         var listOfProjects = new List<ProjectData>
         {
             new(ProjectInfo.Load(projectInfo))
@@ -327,22 +322,9 @@ public class PostProcessorTests
         projectInfoAnalysisResult.FullPropertiesFilePath = withProject ? Path.Combine(testDir, "sonar-project.properties") : null;
 
         propertiesFileGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
-        proc.SetPropertiesFileGenerator(propertiesFileGenerator);
-        var success = proc.Execute(args, config, settings);
+        sut.SetPropertiesFileGenerator(propertiesFileGenerator);
+        var success = sut.Execute(args, config, settings);
         return success;
-    }
-
-    private void DummyPostProcessorExecute(string[] args, AnalysisConfig config, IBuildSettings settings)
-    {
-        var sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
-
-        var proc = new PostProcessor(
-            scanner,
-            logger,
-            targetsUninstaller,
-            tfsProcessor,
-            sonarProjectPropertiesValidator);
-        proc.Execute(args, config, settings);
     }
 
     private void AssertTfsProcesserCalledIfNetFramework() =>
