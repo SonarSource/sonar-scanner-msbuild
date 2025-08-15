@@ -52,7 +52,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         return successfullyInitialized;
     }
 
-    public bool ProcessCoverageReports(ILogger logger)
+    public virtual bool ProcessCoverageReports(ILogger logger)
     {
         if (!successfullyInitialized)
         {

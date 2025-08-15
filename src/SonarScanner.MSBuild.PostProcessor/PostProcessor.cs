@@ -22,6 +22,7 @@ using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.PostProcessor;
 
@@ -32,6 +33,7 @@ public class PostProcessor : IPostProcessor
     private readonly TargetsUninstaller targetUninstaller;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly TfsProcessorWrapper tfsProcessor;
+    private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
 
     private PropertiesFileGenerator propertiesFileGenerator;
 
@@ -40,13 +42,15 @@ public class PostProcessor : IPostProcessor
         ILogger logger,
         TargetsUninstaller targetUninstaller,
         TfsProcessorWrapper tfsProcessor,
-        SonarProjectPropertiesValidator sonarProjectPropertiesValidator)
+        SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
+        BuildVNextCoverageReportProcessor coverageReportProcessor)
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
         this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
         this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
+        this.coverageReportProcessor = coverageReportProcessor ?? throw new ArgumentNullException(nameof(coverageReportProcessor));
     }
 
     public void /* for testing purposes */ SetPropertiesFileGenerator(PropertiesFileGenerator propertiesFileGenerator) =>
@@ -82,7 +86,7 @@ public class PostProcessor : IPostProcessor
         if (propertyResult.FullPropertiesFilePath is not null)
         {
 #if NETFRAMEWORK
-            ProcessCoverageReport(config, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
+            ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
 #endif
             var result = false;
             if (propertyResult.RanToCompletion)
@@ -221,16 +225,38 @@ public class PostProcessor : IPostProcessor
         logger.IncludeTimestamp = true;
     }
 
-    private void ProcessCoverageReport(AnalysisConfig config, string sonarAnalysisConfigFilePath, string propertiesFilePath)
+    private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, string sonarAnalysisConfigFilePath, string propertiesFilePath)
     {
-        IList<string> args = new List<string>();
-        args.Add("ConvertCoverage");
-        args.Add(sonarAnalysisConfigFilePath);
-        args.Add(propertiesFilePath);
+        if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
+        {
+            ExecuteCoverageConverter(config, settings, propertiesFilePath);
+        }
+        else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
+        {
+            IList<string> args = new List<string>();
+            args.Add("ConvertCoverage");
+            args.Add(sonarAnalysisConfigFilePath);
+            args.Add(propertiesFilePath);
+            logger.IncludeTimestamp = false;
+            tfsProcessor.Execute(config, args, propertiesFilePath);
+            logger.IncludeTimestamp = true;
+        }
+    }
 
-        logger.IncludeTimestamp = false;
-        tfsProcessor.Execute(config, args, propertiesFilePath);
-        logger.IncludeTimestamp = true;
+    private void ExecuteCoverageConverter(AnalysisConfig config, IBuildSettings buildSettings, string fullPropertiesFilePath)
+    {
+        if (coverageReportProcessor.Initialize(config, buildSettings, fullPropertiesFilePath))
+        {
+            var success = coverageReportProcessor.ProcessCoverageReports(logger);
+            if (success)
+            {
+                logger.LogInfo("Coverage report conversion completed successfully.");
+            }
+            else
+            {
+                logger.LogWarning("Coverage report conversion has failed. Skipping...");
+            }
+        }
     }
 
 #endif
