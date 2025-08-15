@@ -43,7 +43,7 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
     }
 
-    public bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
+    public virtual bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
         this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
