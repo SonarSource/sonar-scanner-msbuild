@@ -86,9 +86,8 @@ public class SonarWebServerTest
         downloader
             .Download("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue", false)
             .Returns(Task.FromResult<string>(null));
-        sut = CreateServer(new Version("6.4"), "ThisIsInvalidValue");
 
-        Func<Task> act = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
+        Func<Task> act = async () => await CreateServer(new Version("6.4"), "ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
         await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
         logger.AssertErrorLogged("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");

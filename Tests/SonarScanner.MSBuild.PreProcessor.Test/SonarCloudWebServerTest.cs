@@ -126,7 +126,7 @@ public class SonarCloudWebServerTest
 
     [TestMethod]
     public void DownloadProperties_NullProjectKey_Throws() =>
-        ((Action)(() => _ = CreateServer().DownloadProperties(null, null).Result)).Should()
+        ((Action)(() => CreateServer().DownloadProperties(null, null).GetAwaiter().GetResult())).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("projectKey");
 
