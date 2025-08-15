@@ -24,61 +24,66 @@ using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-internal class JreCache(
-    ILogger logger,
-    IFileCache fileCache,
-    IDirectoryWrapper directoryWrapper,
-    IFileWrapper fileWrapper,
-    IUnpackerFactory unpackerFactory,
-    IFilePermissionsWrapper filePermissionsWrapper) : IJreCache
+public class JreDownloader : CachingDownloader
 {
-    public CacheResult IsJreCached(JreDescriptor jreDescriptor)
+    private readonly IUnpackerFactory unpackerFactory;
+    private readonly IFilePermissionsWrapper filePermissionsWrapper;
+    private IUnpacker unpacker;
+
+    public JreDownloader(ILogger logger,
+                         IDirectoryWrapper directoryWrapper,
+                         IFileWrapper fileWrapper,
+                         IChecksum checksum,
+                         IUnpackerFactory unpackerFactory,
+                         IFilePermissionsWrapper filePermissionsWrapper,
+                         string sonarUserHome) : base(logger, directoryWrapper, fileWrapper, checksum, sonarUserHome)
     {
-        if (fileCache.EnsureCacheRoot() is not null)
+        this.unpackerFactory = unpackerFactory;
+        this.filePermissionsWrapper = filePermissionsWrapper;
+    }
+
+    public override FileResolution IsFileCached(FileDescriptor fileDescriptor)
+    {
+        if (fileDescriptor is not JreDescriptor jreDescriptor)
+        {
+            throw new ArgumentException($"{nameof(JreDownloader)} must be used with {nameof(JreDescriptor)}");
+        }
+
+        if (EnsureCacheRoot() is not null)
         {
             var extractedPath = JreExtractionPath(jreDescriptor);
             if (directoryWrapper.Exists(extractedPath))
             {
                 var extractedJavaExe = Path.Combine(extractedPath, jreDescriptor.JavaPath);
                 return fileWrapper.Exists(extractedJavaExe)
-                    ? new CacheHit(extractedJavaExe)
-                    : new CacheFailure(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
+                    ? new ResolutionSuccess(extractedJavaExe)
+                    : new ResolutionError(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
             }
             else
             {
                 return new CacheMiss();
             }
         }
-        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(fileCache.CacheRoot)));
+        return new ResolutionError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(CacheRoot)));
     }
 
-    public async Task<CacheResult> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
+    public ResolutionError CreateUnpacker(FileDescriptor fileDescriptor)
     {
-        if (fileCache.EnsureDownloadDirectory(jreDescriptor) is { } jreDownloadPath)
+        if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, fileDescriptor.Filename) is { } archiveUnpacker)
         {
-            if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is { } unpacker)
-            {
-                var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
-                logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
-                return await fileCache.EnsureFileIsDownloaded(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } cacheFailure
-                    ? cacheFailure
-                    : UnpackJre(unpacker, downloadTarget, jreDescriptor);
-            }
-            else
-            {
-                return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
-            }
+            unpacker = archiveUnpacker;
+            return null;
         }
         else
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, fileCache.FileRootPath(jreDescriptor)));
+            return new ResolutionError(string.Format(Resources.ERR_JreArchiveFormatNotSupported, fileDescriptor.Filename));
         }
     }
 
-    private CacheResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor)
+    public virtual FileResolution UnpackJre(string jreArchive, JreDescriptor jreDescriptor)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
-        var tempExtractionPath = Path.Combine(fileCache.FileRootPath(jreDescriptor), directoryWrapper.GetRandomFileName());
+        var tempExtractionPath = Path.Combine(FileRootPath(jreDescriptor), directoryWrapper.GetRandomFileName());
         var finalExtractionPath = JreExtractionPath(jreDescriptor); // If all goes well, this will be the final folder. We rename the temporary folder to this one.
         try
         {
@@ -91,7 +96,7 @@ internal class JreCache(
                 logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, finalExtractionPath);
                 directoryWrapper.Move(tempExtractionPath, finalExtractionPath);
                 logger.LogDebug(Resources.MSG_JreExtractedSucessfully, finalExtractionPath);
-                return new CacheHit(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
+                return new ResolutionSuccess(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
             }
             else
             {
@@ -102,7 +107,7 @@ internal class JreCache(
         {
             logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
             CleanupFolder(tempExtractionPath);
-            return new CacheFailure(Resources.ERR_JreExtractionFailed);
+            return new ResolutionError(Resources.ERR_JreExtractionFailed);
         }
     }
 
@@ -119,5 +124,5 @@ internal class JreCache(
     }
 
     private string JreExtractionPath(JreDescriptor jreDescriptor) =>
-        Path.Combine(fileCache.FileRootPath(jreDescriptor), $"{jreDescriptor.Filename}_extracted");
+        Path.Combine(FileRootPath(jreDescriptor), $"{jreDescriptor.Filename}_extracted");
 }

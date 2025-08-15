@@ -23,17 +23,17 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-public class FileCache : IFileCache
+public class CachingDownloader
 {
+    protected readonly IDirectoryWrapper directoryWrapper;
+    protected readonly IFileWrapper fileWrapper;
+    protected readonly ILogger logger;
     private readonly IChecksum checksum;
-    private readonly IDirectoryWrapper directoryWrapper;
-    private readonly IFileWrapper fileWrapper;
-    private readonly ILogger logger;
     private readonly string sonarUserHome;
 
     public string CacheRoot => Path.Combine(sonarUserHome, "cache");
 
-    public FileCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, string sonarUserHome)
+    public CachingDownloader(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, string sonarUserHome)
     {
         this.logger = logger;
         this.directoryWrapper = directoryWrapper;
@@ -42,22 +42,37 @@ public class FileCache : IFileCache
         this.checksum = checksum;
     }
 
-    public CacheResult IsFileCached(FileDescriptor fileDescriptor)
+    public virtual FileResolution IsFileCached(FileDescriptor fileDescriptor)
     {
         if (EnsureCacheRoot() is { } cacheRoot)
         {
             var cacheLocation = CacheLocation(cacheRoot, fileDescriptor);
             return fileWrapper.Exists(cacheLocation) // We do not check the SHA256 of the found file.
-                ? new CacheHit(cacheLocation)
+                ? new ResolutionSuccess(cacheLocation)
                 : new CacheMiss();
         }
-        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
+        return new ResolutionError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
     }
 
-    public string EnsureCacheRoot() =>
+    public virtual async Task<FileResolution> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    {
+        if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
+        {
+            var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
+            return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } cacheFailure
+                ? cacheFailure
+                : new ResolutionSuccess(downloadTarget);
+        }
+        else
+        {
+            return new ResolutionError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
+        }
+    }
+
+    internal string EnsureCacheRoot() =>
         EnsureDirectoryExists(CacheRoot);
 
-    public string EnsureDirectoryExists(string directory)
+    internal string EnsureDirectoryExists(string directory)
     {
         try
         {
@@ -73,22 +88,23 @@ public class FileCache : IFileCache
         }
     }
 
-    public async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    internal bool ValidateChecksum(string downloadTarget, string sha256)
     {
-        if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
+        try
         {
-            var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
-            return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } cacheFailure
-                ? cacheFailure
-                : new CacheHit(downloadTarget);
+            using var fs = fileWrapper.Open(downloadTarget);
+            var fileChecksum = checksum.ComputeHash(fs);
+            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
+            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
         }
-        else
+        catch (Exception ex)
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
+            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
+            return false;
         }
     }
 
-    public async Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    protected async Task<ResolutionError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
         {
@@ -108,26 +124,13 @@ public class FileCache : IFileCache
         return null;
     }
 
-    public string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
+    protected string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
         EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
 
-    public bool ValidateChecksum(string downloadTarget, string sha256)
-    {
-        try
-        {
-            using var fs = fileWrapper.Open(downloadTarget);
-            var fileChecksum = checksum.ComputeHash(fs);
-            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
-            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
-            return false;
-        }
-    }
+    protected string FileRootPath(FileDescriptor descriptor) =>
+        Path.Combine(CacheRoot, descriptor.Sha256);
 
-    public void TryDeleteFile(string tempFile)
+    private void TryDeleteFile(string tempFile)
     {
         try
         {
@@ -139,9 +142,6 @@ public class FileCache : IFileCache
             logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
         }
     }
-
-    public string FileRootPath(FileDescriptor descriptor) =>
-        Path.Combine(CacheRoot, descriptor.Sha256);
 
     private async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
@@ -186,7 +186,7 @@ public class FileCache : IFileCache
         }
     }
 
-    private CacheFailure ValidateFile(string downloadTarget, FileDescriptor descriptor)
+    private ResolutionError ValidateFile(string downloadTarget, FileDescriptor descriptor)
     {
         logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
         if (ValidateChecksum(downloadTarget, descriptor.Sha256))

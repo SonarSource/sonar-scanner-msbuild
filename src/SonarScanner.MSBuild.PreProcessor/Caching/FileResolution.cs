@@ -20,14 +20,28 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-public interface IFileCache
+public abstract record FileResolution;
+
+/// <summary>
+/// File has been found, either in the cache or downloaded from the server. In case of the JRE, this is the path to the java executable.
+/// </summary>
+public sealed record ResolutionSuccess(string FilePath) : FileResolution
 {
-    string CacheRoot { get; }
-    string EnsureCacheRoot();
-    string EnsureDirectoryExists(string directory);
-    CacheResult IsFileCached(FileDescriptor fileDescriptor);
-    string FileRootPath(FileDescriptor descriptor);
-    string EnsureDownloadDirectory(FileDescriptor fileDescriptor);
-    Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
-    void TryDeleteFile(string tempFile);
+    /// <summary>
+    /// Path to the cached file, which is either the JRE executable or a file downloaded from the server.
+    /// </summary>
+    public string FilePath { get; } = FilePath;
+}
+
+/// <summary>
+/// File not found in the cache. A download is required.
+/// </summary>
+public sealed record CacheMiss : FileResolution;
+
+/// <summary>
+/// The cache location is invalid, the file found in the cache is invalid, or the download has failed.
+/// </summary>
+public sealed record ResolutionError(string Message) : FileResolution
+{
+    public string Message { get; } = Message;
 }
