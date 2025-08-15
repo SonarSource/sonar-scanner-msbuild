@@ -27,7 +27,7 @@ using SonarScanner.MSBuild.PreProcessor.Unpacking;
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution.Test;
 
 [TestClass]
-public class JreCacheTests
+public class JreDownloaderTests
 {
     private static readonly string SonarUserHome = Path.Combine("C:", "Users", "user", ".sonar");
     private static readonly string SonarCache = Path.Combine(SonarUserHome, "cache");
@@ -58,7 +58,7 @@ public class JreCacheTests
         }
     }
 
-    public JreCacheTests()
+    public JreDownloaderTests()
     {
         testLogger = new TestLogger();
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
@@ -238,7 +238,7 @@ public class JreCacheTests
         var fileWrapperIO = FileWrapper.Instance;
         var downloadContentArray = new byte[] { 1, 2, 3 };
 
-        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, filePermissionsWrapper, home);
+        var sut = new JreDownloader(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, filePermissionsWrapper, home);
         try
         {
             var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", sha, "javaPath"), () => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
@@ -271,7 +271,7 @@ public class JreCacheTests
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
 
-        var sut = new JreCache(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, filePermissionsWrapper, home);
+        var sut = new JreDownloader(testLogger, directoryWrapperIO, fileWrapperIO, checksum, unpackerFactory, filePermissionsWrapper, home);
         try
         {
             var result = await sut.DownloadFileAsync(new JreDescriptor("filename.tar.gz", sha, "javaPath"), () => throw new InvalidOperationException("Download failure simulation."));
@@ -802,7 +802,7 @@ public class JreCacheTests
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip";
         var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
 
-        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, filePermissionsWrapper, home);
+        var sut = new JreDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, filePermissionsWrapper, home);
 
         try
         {
@@ -854,7 +854,7 @@ public class JreCacheTests
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz";
         var jreDescriptor = new JreDescriptor(file, sha, Path.Combine("jdk-17.0.11+9-jre", "bin", "java.exe"));
 
-        var sut = new JreCache(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, filePermissionsWrapper, home);
+        var sut = new JreDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), UnpackerFactory.Instance, filePermissionsWrapper, home);
         try
         {
             var result = await sut.DownloadFileAsync(jreDescriptor, () => Task.FromResult<Stream>(new MemoryStream(tarContent)));
@@ -888,6 +888,6 @@ public class JreCacheTests
         }
     }
 
-    private JreCache CreateSutWithSubstitutes() =>
-        new JreCache(testLogger, directoryWrapper, fileWrapper, checksum, unpackerFactory, filePermissionsWrapper, SonarUserHome);
+    private JreDownloader CreateSutWithSubstitutes() =>
+        new JreDownloader(testLogger, directoryWrapper, fileWrapper, checksum, unpackerFactory, filePermissionsWrapper, SonarUserHome);
 }
