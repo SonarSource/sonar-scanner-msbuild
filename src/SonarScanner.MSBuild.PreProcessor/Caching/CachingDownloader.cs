@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-public class FileCache
+public class CachingDownloader
 {
     protected readonly IDirectoryWrapper directoryWrapper;
     protected readonly IFileWrapper fileWrapper;
@@ -33,7 +33,7 @@ public class FileCache
 
     public string CacheRoot => Path.Combine(sonarUserHome, "cache");
 
-    public FileCache(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, string sonarUserHome)
+    public CachingDownloader(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, string sonarUserHome)
     {
         this.logger = logger;
         this.directoryWrapper = directoryWrapper;

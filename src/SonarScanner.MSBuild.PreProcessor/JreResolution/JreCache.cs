@@ -24,7 +24,7 @@ using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-public class JreCache : FileCache
+public class JreCache : CachingDownloader
 {
     private readonly IUnpackerFactory unpackerFactory;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
