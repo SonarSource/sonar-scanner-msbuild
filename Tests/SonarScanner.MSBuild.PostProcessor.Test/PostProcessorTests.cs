@@ -295,7 +295,7 @@ public class PostProcessorTests
     private bool Execute(string[] args = null, bool withProject = true)
     {
         args ??= [];
-        var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
+        var sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         sonarProjectPropertiesValidator
             .AreExistingSonarPropertiesFilesPresent(Arg.Any<string>(), Arg.Any<ICollection<ProjectData>>(), out var _)
             .Returns(false);
@@ -334,7 +334,7 @@ public class PostProcessorTests
 
     private void DummyPostProcessorExecute(string[] args, AnalysisConfig config, IBuildSettings settings)
     {
-        var sonarProjectPropertiesValidator = Substitute.For<ISonarProjectPropertiesValidator>();
+        var sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
 
         var proc = new PostProcessor(
             scanner,
