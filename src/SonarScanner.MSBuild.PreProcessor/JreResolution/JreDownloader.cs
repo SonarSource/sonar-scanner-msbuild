@@ -31,12 +31,12 @@ public class JreDownloader : CachingDownloader
     private IUnpacker unpacker;
 
     public JreDownloader(ILogger logger,
-                    IDirectoryWrapper directoryWrapper,
-                    IFileWrapper fileWrapper,
-                    IChecksum checksum,
-                    IUnpackerFactory unpackerFactory,
-                    IFilePermissionsWrapper filePermissionsWrapper,
-                    string sonarUserHome) : base(logger, directoryWrapper, fileWrapper, checksum, sonarUserHome)
+                         IDirectoryWrapper directoryWrapper,
+                         IFileWrapper fileWrapper,
+                         IChecksum checksum,
+                         IUnpackerFactory unpackerFactory,
+                         IFilePermissionsWrapper filePermissionsWrapper,
+                         string sonarUserHome) : base(logger, directoryWrapper, fileWrapper, checksum, sonarUserHome)
     {
         this.unpackerFactory = unpackerFactory;
         this.filePermissionsWrapper = filePermissionsWrapper;
