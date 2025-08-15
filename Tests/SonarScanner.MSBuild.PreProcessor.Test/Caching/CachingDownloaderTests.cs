@@ -149,7 +149,7 @@ public sealed class CachingDownloaderTests : IDisposable
 
         var result = cachingDownloader.IsFileCached(fileDescriptor);
 
-        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
+        result.Should().BeOfType<ResolutionSuccess>().Which.FilePath.Should().Be(file);
         fileWrapper.Received(1).Exists(file);
     }
 
@@ -175,7 +175,7 @@ public sealed class CachingDownloaderTests : IDisposable
 
         var result = cachingDownloader.IsFileCached(fileDescriptor);
 
-        result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be($"The file cache directory in '{SonarUserHomeCache}' could not be created.");
+        result.Should().BeOfType<ResolutionError>().Which.Message.Should().Be($"The file cache directory in '{SonarUserHomeCache}' could not be created.");
     }
 
     [TestMethod]
@@ -214,7 +214,7 @@ public sealed class CachingDownloaderTests : IDisposable
     {
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<ResolutionSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
         AssertStreamDisposed();
         fileWrapper.Received(1).Create(TempFilePath);
         fileWrapper.Received(1).Move(TempFilePath, DownloadFilePath);
@@ -229,7 +229,7 @@ public sealed class CachingDownloaderTests : IDisposable
     {
         var result = await ExecuteDownloadFileAsync(null);
 
-        result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be(
+        result.Should().BeOfType<ResolutionError>().Which.Message.Should().Be(
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.");
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
@@ -246,7 +246,7 @@ public sealed class CachingDownloaderTests : IDisposable
 
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<CacheFailure>().Which.Message
+        result.Should().BeOfType<ResolutionError>().Which.Message
             .Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
@@ -264,7 +264,7 @@ public sealed class CachingDownloaderTests : IDisposable
         fileWrapper.Exists(DownloadFilePath).Returns(true);
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<ResolutionSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Move(null, null);
         testLogger.DebugMessages.Should().BeEquivalentTo(
@@ -280,7 +280,7 @@ public sealed class CachingDownloaderTests : IDisposable
 
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<CacheFailure>().Which.Message
+        result.Should().BeOfType<ResolutionError>().Which.Message
             .Should().Be("The checksum of the downloaded file does not match the expected checksum.");
         fileWrapper.DidNotReceiveWithAnyArgs().Create(null);
         fileWrapper.DidNotReceiveWithAnyArgs().Move(null, null);
@@ -297,7 +297,7 @@ public sealed class CachingDownloaderTests : IDisposable
 
         var result = await ExecuteDownloadFileAsync(null);
 
-        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<ResolutionSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         testLogger.DebugMessages.Should().BeEquivalentTo(
@@ -317,7 +317,7 @@ public sealed class CachingDownloaderTests : IDisposable
 
         var result = await ExecuteDownloadFileAsync(null);
 
-        result.Should().BeOfType<CacheFailure>().Which.Message
+        result.Should().BeOfType<ResolutionError>().Which.Message
             .Should().Be("The checksum of the downloaded file does not match the expected checksum.");
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
@@ -336,11 +336,11 @@ public sealed class CachingDownloaderTests : IDisposable
     {
         directoryWrapper.When(x => x.CreateDirectory(SonarUserHomeCache)).Do(_ => throw new IOException());
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
-        result.Should().BeOfType<CacheFailure>().Which.Message
+        result.Should().BeOfType<ResolutionError>().Which.Message
             .Should().Be($"The file cache directory in '{DownloadPath}' could not be created.");
     }
 
-    private async Task<CacheResult> ExecuteDownloadFileAsync(MemoryStream downloadContent) =>
+    private async Task<FileResolution> ExecuteDownloadFileAsync(MemoryStream downloadContent) =>
         await cachingDownloader.DownloadFileAsync(new FileDescriptor(DownloadTarget, ExpectedSha), () => Task.FromResult<Stream>(downloadContent));
 
     private void ExecuteValidateChecksumTest(string returnedSha, string expectedSha, bool expectSucces, string downloadTarget = "some.file")

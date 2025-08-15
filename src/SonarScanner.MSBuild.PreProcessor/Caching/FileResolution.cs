@@ -20,12 +20,12 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-public abstract record CacheResult;
+public abstract record FileResolution;
 
 /// <summary>
-/// File found in the cache. In case of the JRE, this is the path to the java executable.
+/// File has been found, either in the cache or downloaded from the server. In case of the JRE, this is the path to the java executable.
 /// </summary>
-public sealed record CacheHit(string FilePath) : CacheResult
+public sealed record ResolutionSuccess(string FilePath) : FileResolution
 {
     /// <summary>
     /// Path to the cached file, which is either the JRE executable or a file downloaded from the server.
@@ -36,12 +36,12 @@ public sealed record CacheHit(string FilePath) : CacheResult
 /// <summary>
 /// File not found in the cache. A download is required.
 /// </summary>
-public sealed record CacheMiss : CacheResult;
+public sealed record CacheMiss : FileResolution;
 
 /// <summary>
-/// The cache location is invalid or the file found in the cache is invalid. A download is not required.
+/// The cache location is invalid, the file found in the cache is invalid, or the download has failed.
 /// </summary>
-public sealed record CacheFailure(string Message) : CacheResult
+public sealed record ResolutionError(string Message) : FileResolution
 {
     public string Message { get; } = Message;
 }

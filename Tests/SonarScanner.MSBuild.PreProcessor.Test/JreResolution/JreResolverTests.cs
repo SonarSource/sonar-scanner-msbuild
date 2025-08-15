@@ -154,7 +154,7 @@ public class JreResolverTests
     {
         downloader
             .IsFileCached(Arg.Any<JreDescriptor>())
-            .Returns(new CacheFailure("Reason."));
+            .Returns(new ResolutionError("Reason."));
 
         var res = await sut.ResolveJrePath(Args());
 
@@ -171,7 +171,7 @@ public class JreResolverTests
     {
         downloader
             .IsFileCached(Arg.Any<JreDescriptor>())
-            .Returns(new CacheHit("path"));
+            .Returns(new ResolutionSuccess("path"));
 
         var res = await sut.ResolveJrePath(Args());
 
@@ -189,10 +189,10 @@ public class JreResolverTests
             .Returns(new CacheMiss());
         downloader
             .DownloadFileAsync(Arg.Any<FileDescriptor>(), Arg.Any<Func<Task<Stream>>>())
-            .Returns(new CacheHit("downloadPath"));
+            .Returns(new ResolutionSuccess("downloadPath"));
         downloader
             .UnpackJre(Arg.Any<string>(), Arg.Any<JreDescriptor>())
-            .Returns(new CacheHit("path"));
+            .Returns(new ResolutionSuccess("path"));
 
         var res = await sut.ResolveJrePath(Args());
 
@@ -217,7 +217,7 @@ public class JreResolverTests
             .Returns(new CacheMiss());
         downloader
             .DownloadFileAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
-            .Returns(new CacheFailure("Reason."));
+            .Returns(new ResolutionError("Reason."));
 
         var res = await sut.ResolveJrePath(Args());
 
@@ -255,7 +255,7 @@ public class JreResolverTests
 
         var func = async () => await sut.ResolveJrePath(Args());
 
-        await func.Should().ThrowExactlyAsync<NotSupportedException>().WithMessage("Download result is expected to be Hit or Failure.");
+        await func.Should().ThrowExactlyAsync<NotSupportedException>().WithMessage("Download result is expected to be Success or Failure.");
 
         logger.InfoMessages.Should().BeEquivalentTo("""
             The JRE provisioning is a time consuming operation.
@@ -381,5 +381,5 @@ public class JreResolverTests
         return args;
     }
 
-    private record class UnknownResult : CacheResult;
+    private record class UnknownResult : FileResolution;
 }

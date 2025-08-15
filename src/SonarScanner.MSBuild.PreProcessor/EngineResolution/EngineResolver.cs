@@ -54,7 +54,7 @@ public class EngineResolver : IEngineResolver
         }
         return cachingDownloader.IsFileCached(metadata.ToDescriptor()) switch
         {
-            CacheHit hit => hit.FilePath,
+            ResolutionSuccess hit => hit.FilePath,
             _ => throw new NotImplementedException("Not yet implemented"),
         };
     }

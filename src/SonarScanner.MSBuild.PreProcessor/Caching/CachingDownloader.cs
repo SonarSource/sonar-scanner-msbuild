@@ -42,30 +42,30 @@ public class CachingDownloader
         this.checksum = checksum;
     }
 
-    public virtual CacheResult IsFileCached(FileDescriptor fileDescriptor)
+    public virtual FileResolution IsFileCached(FileDescriptor fileDescriptor)
     {
         if (EnsureCacheRoot() is { } cacheRoot)
         {
             var cacheLocation = CacheLocation(cacheRoot, fileDescriptor);
             return fileWrapper.Exists(cacheLocation) // We do not check the SHA256 of the found file.
-                ? new CacheHit(cacheLocation)
+                ? new ResolutionSuccess(cacheLocation)
                 : new CacheMiss();
         }
-        return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
+        return new ResolutionError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
     }
 
-    public virtual async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    public virtual async Task<FileResolution> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
     {
         if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
         {
             var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
             return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } cacheFailure
                 ? cacheFailure
-                : new CacheHit(downloadTarget);
+                : new ResolutionSuccess(downloadTarget);
         }
         else
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
+            return new ResolutionError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
         }
     }
 
@@ -104,7 +104,7 @@ public class CachingDownloader
         }
     }
 
-    protected async Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    protected async Task<ResolutionError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
         {
@@ -186,7 +186,7 @@ public class CachingDownloader
         }
     }
 
-    private CacheFailure ValidateFile(string downloadTarget, FileDescriptor descriptor)
+    private ResolutionError ValidateFile(string downloadTarget, FileDescriptor descriptor)
     {
         logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
         if (ValidateChecksum(downloadTarget, descriptor.Sha256))
