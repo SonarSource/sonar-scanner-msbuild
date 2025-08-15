@@ -102,8 +102,6 @@ public class PostProcessorTests
     public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
     {
         Execute(withProject: false).Should().BeFalse("Expecting post-processor to have failed");
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         logger.AssertNoErrorsLogged();
         logger.AssertNoWarningsLogged();
@@ -117,8 +115,6 @@ public class PostProcessorTests
         scanner.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => logger.LogError("Errors"));
 
         Execute().Should().BeTrue("Expecting post-processor to have succeeded");
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
         scanner.Received().Execute(
             config,
             Arg.Is<IAnalysisPropertyProvider>(x => !x.GetAllProperties().Any()),
@@ -132,8 +128,6 @@ public class PostProcessorTests
     public void PostProc_FailsOnInvalidArgs()
     {
         Execute("/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         logger.AssertErrorsLogged(1);
         logger.AssertWarningsLogged(0);
@@ -158,8 +152,6 @@ public class PostProcessorTests
         };
 
         Execute(suppliedArgs).Should().BeTrue("Expecting post-processor to have succeeded");
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
         scanner.Received().Execute(
             config,
             Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)),
@@ -175,8 +167,6 @@ public class PostProcessorTests
 
         Execute().Should().BeFalse();
         logger.AssertErrorLogged(CredentialsErrorMessage);
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -188,8 +178,6 @@ public class PostProcessorTests
 
         Execute().Should().BeFalse();
         logger.AssertErrorLogged(TruststorePasswordErrorMessage);
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -248,8 +236,6 @@ public class PostProcessorTests
 
         Execute($"/d:{truststorePasswordProperty}").Should().BeFalse();
         logger.AssertErrorLogged($"The format of the analysis property {truststorePasswordProperty} is invalid");
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -262,8 +248,6 @@ public class PostProcessorTests
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Dsonar.scanner.truststorePassword");
 
         Execute().Should().BeFalse();
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -273,8 +257,6 @@ public class PostProcessorTests
     {
         Execute("/d:sonar.token=foo").Should().BeFalse();
         logger.AssertErrorLogged(CredentialsErrorMessage);
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
