@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
     <ProjectReference Include="..\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
+    <ProjectReference Include="..\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">

@@ -18,17 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PostProcessor;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
 using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild;
 
-public class DefaultProcessorFactory(ILogger logger) : IProcessorFactory
+public class DefaultProcessorFactory : IProcessorFactory
 {
-    private readonly IOperatingSystemProvider operatingSystemProvider = new OperatingSystemProvider(FileWrapper.Instance, logger);
+    private readonly ILogger logger;
+    private readonly IOperatingSystemProvider operatingSystemProvider;
+
+    public DefaultProcessorFactory(ILogger logger)
+    {
+        this.logger = logger;
+        operatingSystemProvider = new OperatingSystemProvider(FileWrapper.Instance, logger);
+    }
 
     public IPostProcessor CreatePostProcessor() =>
         new PostProcessor.PostProcessor(
@@ -36,7 +43,8 @@ public class DefaultProcessorFactory(ILogger logger) : IProcessorFactory
             logger,
             new TargetsUninstaller(logger),
             new TfsProcessorWrapper(logger, operatingSystemProvider),
-            new SonarProjectPropertiesValidator());
+            new SonarProjectPropertiesValidator(),
+            new BuildVNextCoverageReportProcessor(new BinaryToXmlCoverageReportConverter(logger), logger));
 
     public IPreProcessor CreatePreProcessor() =>
         new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), logger);
