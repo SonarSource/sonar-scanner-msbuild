@@ -73,6 +73,21 @@ public class FileCache : IFileCache
         }
     }
 
+    public async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    {
+        if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
+        {
+            var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
+            return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } cacheFailure
+                ? cacheFailure
+                : new CacheHit(downloadTarget);
+        }
+        else
+        {
+            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
+        }
+    }
+
     public async Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
