@@ -22,7 +22,6 @@ using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.Shim;
-using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.PostProcessor;
 
@@ -34,7 +33,7 @@ public class PostProcessor : IPostProcessor
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly TfsProcessorWrapper tfsProcessor;
 
-    private IPropertiesFileGenerator propertiesFileGenerator;
+    private PropertiesFileGenerator propertiesFileGenerator;
 
     public PostProcessor(
         SonarScannerWrapper sonarScanner,
@@ -50,7 +49,7 @@ public class PostProcessor : IPostProcessor
         this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
     }
 
-    public void /* for testing purposes */ SetPropertiesFileGenerator(IPropertiesFileGenerator propertiesFileGenerator) =>
+    public void /* for testing purposes */ SetPropertiesFileGenerator(PropertiesFileGenerator propertiesFileGenerator) =>
         this.propertiesFileGenerator = propertiesFileGenerator;
 
     public bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings)

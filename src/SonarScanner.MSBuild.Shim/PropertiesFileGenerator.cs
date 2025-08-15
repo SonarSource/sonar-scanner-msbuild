@@ -25,7 +25,7 @@ using EncodingProvider = SonarScanner.MSBuild.Common.EncodingProvider;
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class PropertiesFileGenerator : IPropertiesFileGenerator
+public class PropertiesFileGenerator
 {
     public const string ReportFilePathsCSharpPropertyKey = "sonar.cs.roslyn.reportFilePaths";
     public const string ReportFilePathsVbNetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
@@ -90,7 +90,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     /// </summary>
     /// <returns>Information about each of the project info files that was processed, together with the full path to the generated sonar-project.properties file.
     /// Note: The path to the generated file will be null if the file could not be generated.</returns>
-    public ProjectInfoAnalysisResult GenerateFile()
+    public virtual ProjectInfoAnalysisResult GenerateFile()
     {
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var result = new ProjectInfoAnalysisResult();
@@ -113,7 +113,7 @@ public class PropertiesFileGenerator : IPropertiesFileGenerator
     }
 
     // FixMe: Delete this method after implementing JsonWriter
-    public bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects) =>
+    public virtual bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects) =>
         TryWriteProperties(writer, null, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
 
     public bool TryWriteProperties(PropertiesWriter writer, JsonPropertiesWriter jsonWriter, out IEnumerable<ProjectData> allProjects) =>
