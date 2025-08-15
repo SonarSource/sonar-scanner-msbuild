@@ -234,13 +234,18 @@ public class SonarQubeWebServerTest
     [TestMethod]
     public void DownloadQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
     {
-        var downloadResult = Tuple.Create(true, "{ profiles: [{\"key\":\"profile1k\",\"name\":\"profile1\",\"language\":\"cs\", \"isDefault\": false}, {\"key\":\"profile4k\",\"name\":\"profile4\",\"language\":\"cs\", \"isDefault\": true}]}");
+        var downloadResult = Tuple.Create(true, """
+            { profiles: [
+                {"key":"profile1k","name":"profile1","language":"cs", "isDefault": false},
+                {"key":"profile4k","name":"profile4","language":"cs", "isDefault": true}
+                ]}
+            """);
         var downloader = Substitute.For<IDownloader>();
         downloader.TryDownloadIfExists("api/qualityprofiles/search?project=foo+bar", Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
 
         var sut = CreateServer(downloader, new Version("9.9"));
 
-        // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/1468
+        // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://sonarsource.atlassian.net/browse/SCAN4NET-578
         ((Func<string>)(() => sut.DownloadQualityProfile("foo bar", null, "cs").Result))
             .Should()
             .ThrowExactly<AggregateException>()
@@ -253,34 +258,36 @@ public class SonarQubeWebServerTest
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.TryDownloadIfExists("api/settings/values?component=comp", Arg.Any<bool>())
-            .Returns(Task.FromResult(Tuple.Create(true, @"{settings: [
-                    {
-                        key: ""sonar.core.id"",
-                        value: ""AVrrKaIfChAsLlov22f0"",
-                        inherited: true
-                    },
-                    {
-                        key: ""sonar.exclusions"",
-                        values: [ ""myfile"", ""myfile2"" ]
-                    },
-                    {
-                        key: ""sonar.junit.reportsPath"",
-                        value: ""testing.xml""
-                    },
-                    {
-                        key: ""sonar.issue.ignore.multicriteria"",
-                        fieldValues: [
-                            {
-                                resourceKey: ""prop1"",
-                                ruleKey: """"
-                            },
-                            {
-                                resourceKey: ""prop2"",
-                                ruleKey: """"
-                            }
-                        ]
-                    }
-                ]}")));
+            .Returns(Task.FromResult(Tuple.Create(true, """
+                {settings: [
+                                    {
+                                        key: "sonar.core.id",
+                                        value: "AVrrKaIfChAsLlov22f0",
+                                        inherited: true
+                                    },
+                                    {
+                                        key: "sonar.exclusions",
+                                        values: [ "myfile", "myfile2" ]
+                                    },
+                                    {
+                                        key: "sonar.junit.reportsPath",
+                                        value: "testing.xml"
+                                    },
+                                    {
+                                        key: "sonar.issue.ignore.multicriteria",
+                                        fieldValues: [
+                                            {
+                                                resourceKey: "prop1",
+                                                ruleKey: ""
+                                            },
+                                            {
+                                                resourceKey: "prop2",
+                                                ruleKey: ""
+                                            }
+                                        ]
+                                    }
+                                ]}
+                """)));
         var sut = CreateServer(downloader, new Version("6.3"));
 
         var result = sut.DownloadProperties("comp", null).Result;
@@ -765,15 +772,15 @@ public class SonarQubeWebServerTest
         args.ProjectKey.Returns(projectKey);
         args.Organization.Returns(organization);
         args.TryGetSetting(SonarProperties.PullRequestBase, out Arg.Any<string>()).Returns(x =>
-        {
-            x[1] = branch;
-            return !string.IsNullOrWhiteSpace(branch);
-        });
+            {
+                x[1] = branch;
+                return !string.IsNullOrWhiteSpace(branch);
+            });
         args.TryGetSetting(SonarProperties.SonarUserName, out Arg.Any<string>()).Returns(x =>
-        {
-            x[1] = token;
-            return !string.IsNullOrWhiteSpace(token);
-        });
+            {
+                x[1] = token;
+                return !string.IsNullOrWhiteSpace(token);
+            });
         return args;
     }
 

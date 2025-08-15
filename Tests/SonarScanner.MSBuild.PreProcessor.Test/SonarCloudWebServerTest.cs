@@ -37,7 +37,7 @@ public class SonarCloudWebServerTest
     private const string Organization = "org42";
 
     private readonly TimeSpan httpTimeout = TimeSpan.FromSeconds(42);
-    private readonly Version version = new Version("5.6");
+    private readonly Version version = new("5.6");
 
     [TestMethod]
     public void Ctor_OrganizationNull_ShouldThrow()
@@ -47,8 +47,7 @@ public class SonarCloudWebServerTest
 
         ((Func<SonarCloudWebServer>)(() => new SonarCloudWebServer(downloader, downloader, version, logger, null, httpTimeout)))
             .Should().Throw<ArgumentNullException>()
-            .And
-            .ParamName.Should().Be("organization");
+            .And.ParamName.Should().Be("organization");
     }
 
     [TestMethod]
@@ -86,37 +85,39 @@ public class SonarCloudWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader
             .TryDownloadIfExists(Arg.Any<string>(), Arg.Any<bool>())
-            .Returns(Task.FromResult(Tuple.Create(true, @"{ settings: [
-                  {
-                    key: ""sonar.core.id"",
-                    value: ""AVrrKaIfChAsLlov22f0"",
-                    inherited: true
-                  },
-                  {
-                    key: ""sonar.exclusions"",
-                    values: [
-                      ""myfile"",
-                      ""myfile2""
-                    ]
-                  },
-                  {
-                    key: ""sonar.junit.reportsPath"",
-                    value: ""testing.xml""
-                  },
-                  {
-                    key: ""sonar.issue.ignore.multicriteria"",
-                    fieldValues: [
-                        {
-                            resourceKey: ""prop1"",
-                            ruleKey: """"
-                        },
-                        {
-                            resourceKey: ""prop2"",
-                            ruleKey: """"
-                        }
-                    ]
-                  }
-                ]}")));
+            .Returns(Task.FromResult(Tuple.Create(true, """
+                { settings: [
+                                  {
+                                    key: "sonar.core.id",
+                                    value: "AVrrKaIfChAsLlov22f0",
+                                    inherited: true
+                                  },
+                                  {
+                                    key: "sonar.exclusions",
+                                    values: [
+                                      "myfile",
+                                      "myfile2"
+                                    ]
+                                  },
+                                  {
+                                    key: "sonar.junit.reportsPath",
+                                    value: "testing.xml"
+                                  },
+                                  {
+                                    key: "sonar.issue.ignore.multicriteria",
+                                    fieldValues: [
+                                        {
+                                            resourceKey: "prop1",
+                                            ruleKey: ""
+                                        },
+                                        {
+                                            resourceKey: "prop2",
+                                            ruleKey: ""
+                                        }
+                                    ]
+                                  }
+                                ]}
+                """)));
         var sut = CreateServer(downloader);
 
         var result = sut.DownloadProperties("comp", null).Result;
@@ -151,10 +152,8 @@ public class SonarCloudWebServerTest
     }
 
     [TestMethod]
-    public async Task DownloadCache_NullArgument()
-    {
+    public async Task DownloadCache_NullArgument() =>
         (await CreateServer().Invoking(x => x.DownloadCache(null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("localSettings");
-    }
 
     [TestMethod]
     [DataRow("", "", "", "Incremental PR analysis: ProjectKey parameter was not provided.")]
@@ -300,7 +299,7 @@ public class SonarCloudWebServerTest
         var logger = new TestLogger();
         const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
         var cacheFullUrl = $"https://www.cacheBaseUrl.com/sensor-cache/prepare-read?organization={Organization}&project=project-key&branch=project-branch";
-        var handler = MockHttpHandler(cacheFullUrl, $@"{{ ""enabled"": ""false"", ""url"":""https://www.sonarsource.com"" }}");
+        var handler = MockHttpHandler(cacheFullUrl, @"{{ ""enabled"": ""false"", ""url"":""https://www.sonarsource.com"" }}");
         var sut = CreateServer(MockIDownloader(cacheBaseUrl), handler: handler, logger: logger);
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
 
@@ -318,7 +317,7 @@ public class SonarCloudWebServerTest
         var logger = new TestLogger();
         const string cacheBaseUrl = "https://www.cacheBaseUrl.com";
         var cacheFullUrl = $"https://www.cacheBaseUrl.com/sensor-cache/prepare-read?organization={Organization}&project=project-key&branch=project-branch";
-        var handler = MockHttpHandler(cacheFullUrl, $@"{{ ""enabled"": ""true"" }}");
+        var handler = MockHttpHandler(cacheFullUrl, @"{{ ""enabled"": ""true"" }}");
         var sut = CreateServer(MockIDownloader(cacheBaseUrl), handler: handler, logger: logger);
         var localSettings = CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token);
 
@@ -397,7 +396,7 @@ public class SonarCloudWebServerTest
             StatusCode = HttpStatusCode.OK,
             Content = new StreamContent(new MemoryStream([1, 2, 3])),
         };
-        var sut = CreateServer(downloader, downloader, new HttpMessageHandlerMock((r, c) => Task.FromResult(response)), logger);
+        var sut = CreateServer(downloader, downloader, new HttpMessageHandlerMock((_,_) => Task.FromResult(response)), logger);
 
         var actual = await sut.DownloadJreAsync(CreateJreMetadata(new("http://localhost/path-to-jre")));
 
@@ -436,7 +435,7 @@ public class SonarCloudWebServerTest
             StatusCode = HttpStatusCode.OK,
             Content = new StreamContent(new MemoryStream([1, 2, 3])),
         };
-        var sut = CreateServer(downloader, downloader, new HttpMessageHandlerMock((r, c) => Task.FromResult(response)), logger);
+        var sut = CreateServer(downloader, downloader, new HttpMessageHandlerMock((_, _) => Task.FromResult(response)), logger);
 
         var actual = await sut.DownloadEngineAsync(CreateEngineMetadata(new("http://localhost/path-to-engine")));
 
@@ -475,9 +474,9 @@ public class SonarCloudWebServerTest
 
     private static IDownloader MockIDownloader(string cacheBaseUrl = null)
     {
-        var serverSettingsJson = cacheBaseUrl is not null
-                                     ? $"{{\"settings\":[{{ \"key\":\"sonar.sensor.cache.baseUrl\",\"value\": \"{cacheBaseUrl}\" }}]}}"
-                                     : "{\"settings\":[]}";
+        var serverSettingsJson = cacheBaseUrl is null
+            ? "{\"settings\":[]}"
+            : $"{{\"settings\":[{{ \"key\":\"sonar.sensor.cache.baseUrl\",\"value\": \"{cacheBaseUrl}\" }}]}}";
 
         var downloader = Substitute.For<IDownloader>();
         downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(serverSettingsJson));
@@ -485,18 +484,16 @@ public class SonarCloudWebServerTest
         return downloader;
     }
 
-    private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string prepareReadResponse, HttpStatusCode prepareReadResponseCode = HttpStatusCode.OK) => new(
-        async (request, cancel) =>
+    private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string prepareReadResponse, HttpStatusCode prepareReadResponseCode = HttpStatusCode.OK) =>
+        new(
+            async (request, _) =>
             request.RequestUri == new Uri(cacheFullUrl)
-            ? new HttpResponseMessage
-            {
-                StatusCode = prepareReadResponseCode,
-                Content = new StringContent(prepareReadResponse),
-            }
-            : new HttpResponseMessage(HttpStatusCode.NotFound), Token);
+                ? new HttpResponseMessage { StatusCode = prepareReadResponseCode, Content = new StringContent(prepareReadResponse) }
+                : new HttpResponseMessage(HttpStatusCode.NotFound),
+            Token);
 
     private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData) =>
-        new(async (request, cancel) => request.RequestUri switch
+        new(async (request, _) => request.RequestUri switch
             {
                 var url when url == new Uri(cacheFullUrl) => new HttpResponseMessage
                 {
@@ -522,16 +519,16 @@ public class SonarCloudWebServerTest
         args.Organization.Returns(organization);
         args.TryGetSetting(SonarProperties.PullRequestBase, out Arg.Any<string>())
             .Returns(x =>
-            {
-                x[1] = branch;
-                return !string.IsNullOrWhiteSpace(branch);
-            });
+                {
+                    x[1] = branch;
+                    return !string.IsNullOrWhiteSpace(branch);
+                });
         args.TryGetSetting(tokenKey, out Arg.Any<string>())
             .Returns(x =>
-            {
-                x[1] = token;
-                return !string.IsNullOrWhiteSpace(token);
-            });
+                {
+                    x[1] = token;
+                    return !string.IsNullOrWhiteSpace(token);
+                });
         return args;
     }
 
