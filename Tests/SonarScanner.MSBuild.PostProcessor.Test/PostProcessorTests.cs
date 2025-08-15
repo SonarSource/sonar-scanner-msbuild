@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
 using static FluentAssertions.FluentActions;
 
@@ -33,11 +34,11 @@ public class PostProcessorTests
     private readonly TestContext testContext;
     private readonly TargetsUninstaller targetsUninstaller;
     private readonly AnalysisConfig config;
-    private readonly BuildSettings settings;
     private readonly SonarScannerWrapper scanner;
     private readonly TestLogger logger;
     private readonly TfsProcessorWrapper tfsProcessor;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
+    private IBuildSettings settings;
 
     public PostProcessorTests(TestContext testContext)
     {
@@ -288,6 +289,42 @@ public class PostProcessorTests
     public void Execute_NullTeamBuildSettings_Throws() =>
         sut.Invoking(x => x.Execute([], new AnalysisConfig(), null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
 
+    [TestMethod]
+    [DataRow(BuildEnvironment.NotTeamBuild, "true")]
+    [DataRow(BuildEnvironment.NotTeamBuild, "false")]
+    [DataRow(BuildEnvironment.TeamBuild, "true")]
+    [DataRow(BuildEnvironment.TeamBuild, "false")]
+    public void Execute_NotLegacyTeamBuild_TfsProcessorCalledCorrectly(BuildEnvironment buildEnvironment, string skipLegacyCodeCoverage)
+    {
+        settings = Substitute.For<IBuildSettings>();
+        settings.BuildEnvironment.Returns(buildEnvironment);
+        settings.BuildUri.Returns("http://test-build-uri");
+        config.SetBuildUri("http://test-build-uri");
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, skipLegacyCodeCoverage);
+
+        Execute().Should().BeTrue();
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework();
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(shouldBeCalled: false);
+    }
+
+    [TestMethod]
+    [DataRow("true")]
+    [DataRow("false")]
+    public void Execute_LegacyTeamBuild_TfsProcessorCalledCorrectly(string skipLegacyCodeCoverage)
+    {
+        settings = Substitute.For<IBuildSettings>();
+        settings.BuildEnvironment.Returns(BuildEnvironment.LegacyTeamBuild);
+        settings.BuildUri.Returns("http://test-build-uri");
+        config.SetBuildUri("http://test-build-uri");
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, skipLegacyCodeCoverage);
+
+        Execute().Should().BeTrue();
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework();
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
+    }
+
     private bool Execute(string arg) =>
         Execute([arg]);
 
@@ -323,6 +360,28 @@ public class PostProcessorTests
 #else
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
 #endif
+
+    private void AssertTfsProcessorConvertCoverageCalledIfNetFramework(bool shouldBeCalled = true) =>
+        AssertTfsProcessorCommandCalledIfNetFramework("ConvertCoverage", shouldBeCalled);
+
+    private void AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(bool shouldBeCalled = true) =>
+        AssertTfsProcessorCommandCalledIfNetFramework("SummaryReportBuilder", shouldBeCalled);
+
+    private void AssertTfsProcessorCommandCalledIfNetFramework(string command, bool shouldBeCalled)
+    {
+#if NETFRAMEWORK
+        if (shouldBeCalled)
+        {
+            tfsProcessor.Received().Execute(Arg.Any<AnalysisConfig>(), Arg.Is<IEnumerable<string>>(x => x.Contains(command)), Arg.Any<string>());
+        }
+        else
+        {
+            tfsProcessor.DidNotReceive().Execute(Arg.Any<AnalysisConfig>(), Arg.Is<IEnumerable<string>>(x => x.Contains(command)), Arg.Any<string>());
+        }
+#else
+        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+#endif
+    }
 
     private void VerifyTargetsUninstaller() =>
         targetsUninstaller.Received(1).UninstallTargets(Arg.Any<string>());
