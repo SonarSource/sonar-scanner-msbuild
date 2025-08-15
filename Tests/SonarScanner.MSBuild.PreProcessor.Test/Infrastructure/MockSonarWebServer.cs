@@ -147,6 +147,12 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
         return Task.FromResult<EngineMetadata>(null);
     }
 
+    Task<Stream> ISonarWebServer.DownloadEngineAsync(EngineMetadata metadata)
+    {
+        LogMethodCalled();
+        return Task.FromResult<Stream>(null);
+    }
+
     private void LogMethodCalled([CallerMemberName] string methodName = null) =>
         calledMethods.Add(methodName);
 }
