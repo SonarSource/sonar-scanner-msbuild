@@ -19,7 +19,6 @@
  */
 
 using SonarScanner.MSBuild.Shim;
-using SonarScanner.MSBuild.Shim.Interfaces;
 using static FluentAssertions.FluentActions;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test;
@@ -311,7 +310,7 @@ public class PostProcessorTests
             new(ProjectInfo.Load(projectInfo))
         };
 
-        var propertiesFileGenerator = Substitute.For<IPropertiesFileGenerator>();
+        var propertiesFileGenerator = Substitute.For<PropertiesFileGenerator>(config, logger);
         propertiesFileGenerator
             .TryWriteProperties(Arg.Any<PropertiesWriter>(), out _)
             .Returns(true);
