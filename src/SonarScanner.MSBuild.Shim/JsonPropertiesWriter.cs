@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Shim;
@@ -48,7 +47,7 @@ public class JsonPropertiesWriter
     /// <summary>
     /// Finishes writing out any additional data then returns the whole of the content.
     /// </summary>
-    public string Flush()
+    public JArray Flush()
     {
         if (FinishedWriting)
         {
@@ -60,7 +59,7 @@ public class JsonPropertiesWriter
         Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
 
         AppendKeyValue("sonar.modules", string.Join(",", moduleKeys));
-        return JsonConvert.SerializeObject(jsonArray, Formatting.Indented);
+        return jsonArray;
     }
 
     public void WriteSettingsForProject(ProjectData projectData)
@@ -102,7 +101,7 @@ public class JsonPropertiesWriter
                 jsonArray.Add(new JObject
                 {
                     { "key", $"{guid}.{setting.Id}" },
-                    { "value", JToken.FromObject(setting.Value) }
+                    { "value", setting.Value }
                 });
             }
 
@@ -260,7 +259,7 @@ public class JsonPropertiesWriter
         jsonArray.Add(new JObject
             {
                 { "key", $"{keyPrefix}.{keySuffix}" },
-                { "value", EncodeAsMultiValueProperty(paths)}
+                { "value", new JRaw($"\"{EncodeAsMultiValueProperty(paths)}\"") }
             });
 
     private void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
@@ -273,12 +272,11 @@ public class JsonPropertiesWriter
             "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}",
             key);
 
-        // ToDo: Maybe we can skip the property if value is null.
         jsonArray.Add(new JObject
-            {
-                { "key", key },
-                { "value", JToken.FromObject(value ?? string.Empty) }
-            });
+        {
+            { "key", key },
+            { "value", new JRaw($"\"{value ?? string.Empty}\"") }
+        });
     }
 
     private void AppendKeyValueIfNotEmpty(string key, string value)

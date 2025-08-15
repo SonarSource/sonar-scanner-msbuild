@@ -20,6 +20,8 @@
 
 using System.Runtime.InteropServices;
 using System.Text.Json.Nodes;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -27,7 +29,7 @@ namespace SonarScanner.MSBuild.Shim.Test;
 public class JsonPropertiesWriterTest
 {
     public TestContext TestContext { get; set; }
-    private static string LineSeparator => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? """\r\n""" : """\n""";
+    private static string NewLine => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "\r\n" : "\n";
 
     [TestMethod]
     public void Constructor_ConfigIsNull_ThrowsOnNullArgument()
@@ -71,7 +73,7 @@ public class JsonPropertiesWriterTest
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
         ]);
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings("""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
             [
               {
                 "key": "sonar.host.url",
@@ -93,7 +95,7 @@ public class JsonPropertiesWriterTest
             new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
         ]);
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings("""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
             [
               {
                 "key": "sonar.scanner.sonarcloudUrl",
@@ -116,7 +118,7 @@ public class JsonPropertiesWriterTest
     {
         var propertiesWriter = new JsonPropertiesWriter(new(), new TestLogger());
         propertiesWriter.WriteSharedFiles(new([], []));
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings("""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
             [
               {
                 "key": "sonar.modules",
@@ -131,11 +133,11 @@ public class JsonPropertiesWriterTest
     {
         var propertiesWriter = new JsonPropertiesWriter(new(), new TestLogger());
         propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings($$"""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
             [
               {
                 "key": "sonar.sources",
-                "value": "{{PropertiesPath(TestUtils.DriveRoot(), "dev", "main.hs")}},\\{{LineSeparator}}{{PropertiesPath(TestUtils.DriveRoot(), "dev", "lambdas.hs")}}"
+                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs")}}"
               },
               {
                 "key": "sonar.modules",
@@ -150,11 +152,11 @@ public class JsonPropertiesWriterTest
     {
         var propertiesWriter = new JsonPropertiesWriter(new(), new TestLogger());
         propertiesWriter.WriteSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings($$"""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
             [
               {
                 "key": "sonar.tests",
-                "value": "{{PropertiesPath(TestUtils.DriveRoot(), "dev", "test.hs")}},\\{{LineSeparator}}{{PropertiesPath(TestUtils.DriveRoot(), "dev", "test2.hs")}}"
+                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs")}}"
               },
               {
                 "key": "sonar.modules",
@@ -169,15 +171,15 @@ public class JsonPropertiesWriterTest
     {
         var propertiesWriter = new JsonPropertiesWriter(new(), new TestLogger());
         propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings($$"""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
             [
               {
                 "key": "sonar.sources",
-                "value": "{{PropertiesPath(TestUtils.DriveRoot(), "dev", "main.hs")}}"
+                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")}}"
               },
               {
                 "key": "sonar.tests",
-                "value": "{{PropertiesPath(TestUtils.DriveRoot(), "dev", "test.hs")}}"
+                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")}}"
               },
               {
                 "key": "sonar.modules",
@@ -193,7 +195,7 @@ public class JsonPropertiesWriterTest
         var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
         propertiesWriter.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths("unexpected", analyzerOutPaths: [@"c:\dir1\dir2"]));
 
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings("""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
             [
               {
                 "key": "sonar.modules",
@@ -212,11 +214,11 @@ public class JsonPropertiesWriterTest
         propertiesWriter.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths(
             language,
             analyzerOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings($$"""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
             [
               {
                 "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                "value": "{{PropertiesPath(TestUtils.DriveRoot(), "dir1", "first")}},\\{{LineSeparator}}{{PropertiesPath(TestUtils.DriveRoot(), "dir1", "second")}}"
+                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dir1", "first")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dir1", "second")}}"
               },
               {
                 "key": "sonar.modules",
@@ -231,8 +233,7 @@ public class JsonPropertiesWriterTest
     {
         var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
         propertiesWriter.WriteRoslynReportPaths(CreateTestProjectDataWithPaths("unexpected"));
-
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings(
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings(
             """
             [
               {
@@ -252,11 +253,11 @@ public class JsonPropertiesWriterTest
         propertiesWriter.WriteRoslynReportPaths(CreateTestProjectDataWithPaths(
             language,
             roslynOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings($$"""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
             [
               {
                 "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                "value": "{{PropertiesPath(TestUtils.DriveRoot(), "dir1", "first")}},\\{{LineSeparator}}{{PropertiesPath(TestUtils.DriveRoot(), "dir1", "second")}}"
+                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dir1", "first")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dir1", "second")}}"
               },
               {
                 "key": "sonar.modules",
@@ -273,7 +274,7 @@ public class JsonPropertiesWriterTest
 
         propertiesWriter.WriteTelemetryPaths(CreateTestProjectDataWithPaths("unexpected", telemetryPaths: [@"c:\dir1\dir2\Telemetry.json"]));
 
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings("""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
             [
               {
                 "key": "sonar.modules",
@@ -292,11 +293,11 @@ public class JsonPropertiesWriterTest
         propertiesWriter.WriteTelemetryPaths(CreateTestProjectDataWithPaths(
             language,
             telemetryPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")]));
-        propertiesWriter.Flush().Should().BeIgnoringLineEndings($$"""
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
             [
               {
                 "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                "value": "{{PropertiesPath(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json")}},\\{{LineSeparator}}{{PropertiesPath(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")}}"
+                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")}}"
               },
               {
                 "key": "sonar.modules",
@@ -309,7 +310,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void JsonPropertiesWriterToString()
     {
-        var productBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonPropertiesWriterTest_ProductBaseDir").Replace("""\""", """\\""");
+        var productBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonPropertiesWriterTest_ProductBaseDir");
         var productProject = CreateEmptyFile(productBaseDir, "MyProduct.csproj");
         var productFile = CreateEmptyFile(productBaseDir, "File.cs");
         var productChineseFile = CreateEmptyFile(productBaseDir, "你好.cs");
@@ -335,7 +336,7 @@ public class JsonPropertiesWriterTest
         var productVB = new ProjectData(CreateProjectInfo("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic, "UTF-8"));
         productVB.SonarQubeModuleFiles.Add(productFile);
 
-        var testBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonPropertiesWriterTest_TestBaseDir").Replace("""\""", """\\""");
+        var testBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonPropertiesWriterTest_TestBaseDir");
         var testProject = CreateEmptyFile(testBaseDir, "MyTest.csproj");
         var testFile = CreateEmptyFile(testBaseDir, "File.cs");
         var testFileListFilePath = Path.Combine(testBaseDir, "testManagedFiles.txt");
@@ -366,10 +367,9 @@ public class JsonPropertiesWriterTest
             writer.WriteSettingsForProject(productVB);
             writer.WriteSettingsForProject(test);
 
-            actual = writer.Flush();
+            actual = PropertiesToString(writer);
         }
 
-        var separator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"\\" : "/";
         var expected = $$"""
             [
               {
@@ -394,11 +394,11 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources",
-                "value": "{{productBaseDir}}{{separator}}File.cs,\\{{LineSeparator}}{{productBaseDir}}{{separator}}你好.cs,\\{{LineSeparator}}{{missingFileOutsideProjectDir.FullName.Replace("""\""", """\\""")}}"
+                "value": "{{Path.Combine(productBaseDir, "File.cs")}},\{{NewLine}}{{Path.Combine(productBaseDir, "你好.cs")}},\{{NewLine}}{{missingFileOutsideProjectDir.FullName}}"
               },
               {
                 "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.working.directory",
-                "value": "{{Path.Combine(sonarOutputDir, ".sonar", "mod0").Replace("""\""", """\\""")}}"
+                "value": "{{Path.Combine(sonarOutputDir, ".sonar", "mod0")}}"
               },
               {
                 "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey",
@@ -422,11 +422,11 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources",
-                "value": "{{productBaseDir}}{{separator}}File.cs"
+                "value": "{{Path.Combine(productBaseDir, "File.cs")}}"
               },
               {
                 "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.working.directory",
-                "value": "{{Path.Combine(sonarOutputDir, ".sonar", "mod1").Replace("""\""", """\\""")}}"
+                "value": "{{Path.Combine(sonarOutputDir, ".sonar", "mod1")}}"
               },
               {
                 "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey",
@@ -450,11 +450,11 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests",
-                "value": "{{testBaseDir}}{{separator}}File.cs"
+                "value": "{{Path.Combine(testBaseDir, "File.cs")}}"
               },
               {
                 "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.working.directory",
-                "value": "{{Path.Combine(sonarOutputDir, ".sonar", "mod2").Replace("""\""", """\\""")}}"
+                "value": "{{Path.Combine(sonarOutputDir, ".sonar", "mod2")}}"
               },
               {
                 "key": "sonar.modules",
@@ -482,7 +482,7 @@ public class JsonPropertiesWriterTest
         var writer = new JsonPropertiesWriter(config, Substitute.For<ILogger>());
         writer.WriteSonarProjectInfo(new DirectoryInfo(projectBaseDir));
 
-        writer.Flush().Should().BeIgnoringLineEndings(
+        PropertiesToString(writer).Should().BeIgnoringLineEndings(
             $$"""
             [
               {
@@ -499,15 +499,15 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "sonar.working.directory",
-                "value": "{{Path.Combine(sonarOutputDir, ".sonar").Replace("""\""", """\\""")}}"
+                "value": "{{Path.Combine(sonarOutputDir, ".sonar")}}"
               },
               {
                 "key": "sonar.projectBaseDir",
-                "value": "{{projectBaseDir.Replace("""\""", """\\""")}}"
+                "value": "{{projectBaseDir}}"
               },
               {
                 "key": "sonar.pullrequest.cache.basepath",
-                "value": "C:\\PullRequest\\Cache\\BasePath"
+                "value": "C:\PullRequest\Cache\BasePath"
               },
               {
                 "key": "sonar.modules",
@@ -523,7 +523,7 @@ public class JsonPropertiesWriterTest
         var config = new AnalysisConfig { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
         var writer = new JsonPropertiesWriter(config, Substitute.For<ILogger>());
         writer.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
-        writer.Flush().Should().BeIgnoringLineEndings(
+        PropertiesToString(writer).Should().BeIgnoringLineEndings(
             $$"""
             [
               {
@@ -532,11 +532,11 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "sonar.working.directory",
-                "value": "C:\\OutputDir\\CannotBeEmpty{{(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"\\" : "/")}}.sonar"
+                "value": "{{Path.Combine(@"C:\OutputDir\CannotBeEmpty", ".sonar")}}"
               },
               {
                 "key": "sonar.projectBaseDir",
-                "value": "{{PropertiesPath(TestUtils.DriveRoot(), "ProjectBaseDir")}}"
+                "value": "{{Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")}}"
               },
               {
                 "key": "sonar.pullrequest.cache.basepath",
@@ -562,9 +562,9 @@ public class JsonPropertiesWriterTest
                 SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
             },
             new TestLogger());
-        writer.Flush();
+        PropertiesToString(writer);
 
-        Action act = () => writer.Flush();
+        Action act = () => PropertiesToString(writer);
         act.Should().ThrowExactly<InvalidOperationException>();
     }
 
@@ -580,7 +580,7 @@ public class JsonPropertiesWriterTest
                 SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
             },
             new TestLogger());
-        writer.Flush();
+        PropertiesToString(writer);
 
         using (new AssertIgnoreScope())
         {
@@ -616,7 +616,7 @@ public class JsonPropertiesWriterTest
         var writer = new JsonPropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" }, new TestLogger());
         writer.WriteSettingsForProject(product);
 
-        var jsonProperties = JsonPropertiesReader(SaveToResultFile(projectBaseDir, "Actual.json", writer.Flush()));
+        var jsonProperties = JsonPropertiesReader(writer.Flush());
         PropertyWithValueExists(jsonProperties, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1").Should().BeTrue();
         PropertyWithValueExists(jsonProperties, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces").Should().BeTrue();
         PropertyWithValueExists(jsonProperties, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\dir1\dir2\foo.txt").Should().BeTrue();
@@ -648,19 +648,18 @@ public class JsonPropertiesWriterTest
         var writer = new JsonPropertiesWriter(config, new TestLogger());
         writer.WriteSettingsForProject(product);
         writer.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
-        var jsonString = writer.Flush();
 
         // ToDo: https://sonarsource.atlassian.net/browse/SCAN4NET-747
         // The following code, checks if a key exists in the properties.
-        // It should be re-written and extracted in the "JsonPropertiesReader" class. It's going to be the equivalent of the "SQPropertiesFileReader" but for JSON property files.
-        var jsonArray = (JsonArray)JsonNode.Parse(jsonString);
+        // It should be re-written and extracted in its own class "JsonPropertiesUtils" as it seems to be needed for the PropertiesFileGeneratorTests
+        var jsonArray = writer.Flush();
         var workDirKey = projectKey + "." + SonarProperties.WorkingDirectory;
         var found = false;
         foreach (var item in jsonArray)
         {
-            if (item is JsonObject jsonObject)
+            if (item is JObject jsonObject)
             {
-                if (jsonObject.First().Value?.ToString() == workDirKey)
+                if (jsonObject.Properties().First().Value?.ToString() == workDirKey)
                 {
                     found = true;
                     break;
@@ -686,7 +685,7 @@ public class JsonPropertiesWriterTest
         var writer = new JsonPropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" }, new TestLogger());
         writer.WriteGlobalSettings(globalSettings);
 
-        var jsonProperties = JsonPropertiesReader(SaveToResultFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonPropertiesWriterTest_GlobalSettingsWritten"), "Actual.txt", writer.Flush()));
+        var jsonProperties = JsonPropertiesReader(writer.Flush());
         PropertyWithValueExists(jsonProperties, "my.setting1", "setting1").Should().BeTrue();
         PropertyWithValueExists(jsonProperties, "my.setting2", "setting 2 with spaces").Should().BeTrue();
         PropertyWithValueExists(jsonProperties, "my.setting.3", @"c:\dir1\dir2\foo.txt").Should().BeTrue();
@@ -777,9 +776,6 @@ public class JsonPropertiesWriterTest
         logger.Warnings[0].Should().Be("The following paths contain invalid characters and will be excluded from this analysis: C:\\foo,bar.cs");
     }
 
-    private static string PropertiesPath(params string[] paths) =>
-        Path.Combine(paths).Replace(@"\", @"\\"); // We escape `\` when we write the properties file
-
     private static ProjectInfo CreateProjectInfo(
         string name,
         string projectId,
@@ -824,13 +820,6 @@ public class JsonPropertiesWriterTest
         return fullPath;
     }
 
-    private string SaveToResultFile(string testDir, string fileName, string content)
-    {
-        var fullPath = CreateFile(testDir, fileName, content);
-        TestContext.AddResultFile(fullPath);
-        return fullPath;
-    }
-
     private static ProjectData CreateTestProjectDataWithPaths(string language, string[] analyzerOutPaths = null, string[] roslynOutPaths = null, string[] telemetryPaths = null)
     {
         analyzerOutPaths ??= [];
@@ -857,18 +846,20 @@ public class JsonPropertiesWriterTest
     }
 
     // ToDo: https://sonarsource.atlassian.net/browse/SCAN4NET-747
-    // this method should be moved to its own class "JsonPropertiesReader". It's going to be the equivalent of the SQPropertiesFileReader but for JSON property files.
-    private static List<KeyValuePair<string, string>> JsonPropertiesReader(string filePath)
+    // this method should be moved/re-implemetented to its own class "JsonPropertiesUtils as it seems to be needed for the PropertiesFileGeneratorTests
+    private static List<KeyValuePair<string, string>> JsonPropertiesReader(JArray jsonProperties)
     {
         var result = new List<KeyValuePair<string, string>>();
-        var jsonString = File.ReadAllText(filePath);
-
-        var jsonArray = (JsonArray)JsonNode.Parse(jsonString);
-        foreach (var item in jsonArray)
+        foreach (var item in jsonProperties)
         {
-            if (item is JsonObject jsonObject)
+            if (item is JObject jsonObject)
             {
-                result.Add(new KeyValuePair<string, string>(jsonObject.First().Value?.ToString(), jsonObject.Last().Value?.ToString() ?? string.Empty));
+                // jsonObject.Properties() will return an array of key-value pairs
+                // [0]: { "key": "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectKey"}
+                // [1]: { "value": "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5"}
+                var propertyKey = jsonObject.Properties().First().Value.ToString();
+                var propertyValue = jsonObject.Properties().Last().Value.ToString().Trim('\"');
+                result.Add(new KeyValuePair<string, string>(propertyKey, propertyValue));
             }
             else
             {
@@ -879,7 +870,7 @@ public class JsonPropertiesWriterTest
     }
 
     // ToDo: https://sonarsource.atlassian.net/browse/SCAN4NET-747
-    // this method should be moved to its own class "JsonPropertiesReader". It's going to be the equivalent of the SQPropertiesFileReader but for JSON property files
+    // this method should be moved/implemetented to its own class "JsonPropertiesUtils" as it seems to be needed for the PropertiesFileGeneratorTests
     private static bool PropertyWithValueExists(List<KeyValuePair<string, string>> properties, string key, string value)
     {
         foreach (var entry in properties)
@@ -894,4 +885,7 @@ public class JsonPropertiesWriterTest
         }
         return false;
     }
+
+    private static string PropertiesToString(JsonPropertiesWriter writer) =>
+        JsonConvert.SerializeObject(writer.Flush(), Formatting.Indented);
 }
