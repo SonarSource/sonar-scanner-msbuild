@@ -18,41 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test;
 
 internal class MockTfsProcessor : ITfsProcessor
 {
-    private bool methodCalled;
     private readonly ILogger logger;
-
-    #region Test Helpers
+    private bool methodCalled;
 
     public string ErrorToLog { get; set; }
-
-    public bool ValueToReturn { get; set; }
-
+    public bool ValueToReturn { get; set; } = true;
     public IEnumerable<string> SuppliedCommandLineArgs { get; set; }
-
-    #endregion Test Helpers
 
     public MockTfsProcessor(ILogger logger)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    #region ITfsProcessor interface
-
     public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
     {
         methodCalled = true;
         SuppliedCommandLineArgs = userCmdLineArguments;
-        if (ErrorToLog != null)
+        if (ErrorToLog is not null)
         {
             logger.LogError(ErrorToLog);
         }
@@ -60,19 +48,17 @@ internal class MockTfsProcessor : ITfsProcessor
         return ValueToReturn;
     }
 
-    #endregion ISonarScanner interface
-
-    #region Checks
-
-    public void AssertExecuted()
+    public void AssertExecutedIfNetFramework()
     {
-        methodCalled.Should().BeTrue("Expecting the TFS processor to have been called");
+#if NETFRAMEWORK
+        methodCalled.Should().BeTrue("the TFS processor should have been called.");
+#else
+        methodCalled.Should().BeFalse("the TFS processor should not be called in .NET (Core).");
+#endif
     }
 
     public void AssertNotExecuted()
     {
-        methodCalled.Should().BeFalse("Not expecting the TFS processor to have been called");
+        methodCalled.Should().BeFalse("TFS processor should not have been called.");
     }
-
-    #endregion Checks
 }

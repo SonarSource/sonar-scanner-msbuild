@@ -24,52 +24,37 @@ namespace SonarScanner.MSBuild.PostProcessor.Test;
 
 internal class MockSonarScanner : ISonarScanner
 {
-    private bool methodCalled;
     private readonly ILogger logger;
-
-    #region Test Helpers
+    private bool methodCalled;
 
     public string ErrorToLog { get; set; }
-
-    public bool ValueToReturn { get; set; }
-
+    public bool ValueToReturn { get; set; } = true;
     public IEnumerable<string> SuppliedCommandLineArgs { get; set; }
-
-    #endregion Test Helpers
 
     public MockSonarScanner(ILogger logger)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    #region ISonarScanner interface
-
-    public bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string fullPropertiesFilePath)
+    public bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string propertiesFilePath)
     {
-        methodCalled.Should().BeFalse("Scanner should only be called once");
+        methodCalled.Should().BeFalse("the scanner should only be called once.");
         methodCalled = true;
         SuppliedCommandLineArgs = userCmdLineArguments.GetAllProperties().Select(x => x.AsSonarScannerArg());
-        if (ErrorToLog != null)
+        if (ErrorToLog is not null)
         {
             logger.LogError(ErrorToLog);
         }
-
         return ValueToReturn;
     }
 
-    #endregion ISonarScanner interface
-
-    #region Checks
-
     public void AssertExecuted()
     {
-        methodCalled.Should().BeTrue("Expecting the sonar-scanner to have been called");
+        methodCalled.Should().BeTrue("the scanner should have been called.");
     }
 
     public void AssertNotExecuted()
     {
-        methodCalled.Should().BeFalse("Not expecting the sonar-scanner to have been called");
+        methodCalled.Should().BeFalse("the scanner should not have been called.");
     }
-
-    #endregion Checks
 }
