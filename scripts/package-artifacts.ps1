@@ -54,6 +54,7 @@ function Package-NetScanner {
     Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.PreProcessor.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.runtimeconfig.json" -Destination $destination
     Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.Shim.dll" -Destination $destination
+    Copy-Item -Path "$sourceRoot\SonarScanner.MSBuild.TFS.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\Google.Protobuf.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\Newtonsoft.Json.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\ICSharpCode.SharpZipLib.dll" -Destination $destination
