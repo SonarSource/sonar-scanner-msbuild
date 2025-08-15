@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 internal sealed class MockSonarWebServer(string organization = null) : ISonarWebServer
 {
-    private readonly List<string> calledMethods = new();
+    private readonly List<string> calledMethods = [];
 
     public ServerDataModel Data { get; } = new();
     public IList<SensorCacheEntry> Cache { get; set; }
@@ -48,7 +48,7 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
     public bool SupportsJreProvisioning => true;
 
     public void AssertMethodCalled(string methodName, int callCount) =>
-        calledMethods.Count(n => string.Equals(methodName, n)).Should().Be(callCount, "Method was not called the expected number of times");
+        calledMethods.Count(x => string.Equals(methodName, x)).Should().Be(callCount, "Method was not called the expected number of times");
 
     public void Dispose()
     {
@@ -71,7 +71,7 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
     {
         LogMethodCalled();
         qProfile.Should().NotBeNullOrEmpty("Quality profile is required");
-        var profile = Data.QualityProfiles.FirstOrDefault(qp => string.Equals(qp.Id, qProfile));
+        var profile = Data.QualityProfiles.FirstOrDefault(x => string.Equals(x.Id, qProfile));
         return Task.FromResult(profile?.Rules);
     }
 
@@ -101,7 +101,7 @@ internal sealed class MockSonarWebServer(string organization = null) : ISonarWeb
             projectId = projectKey + ":" + projectBranch;
         }
 
-        var profile = Data.QualityProfiles.FirstOrDefault(qp => qp.Language == language && qp.Projects.Contains(projectId) && qp.Organization == organization);
+        var profile = Data.QualityProfiles.FirstOrDefault(x => x.Language == language && x.Projects.Contains(projectId) && x.Organization == organization);
         return Task.FromResult(profile?.Id);
     }
 

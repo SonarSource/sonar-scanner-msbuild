@@ -51,17 +51,17 @@ public class SonarWebServerTest
     [TestMethod]
     public void Ctor_Null_Throws()
     {
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, version, logger, null)))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName
+            .Should().Be("webDownloader");
 
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null)))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName
+            .Should().Be("apiDownloader");
 
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, logger, null)))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName
+            .Should().Be("serverVersion");
 
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, version, null, null)))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, version, null, null))).Should().Throw<ArgumentNullException>().And.ParamName
+            .Should().Be("logger");
     }
 
     [TestMethod]
@@ -285,34 +285,36 @@ public class SonarWebServerTest
     {
         downloader
             .Download(Arg.Any<string>(), Arg.Any<bool>())
-            .Returns(Task.FromResult(@"{ total: 1, p: 1, ps: 1,
-            rules: [{
-                key: ""vbnet:S2368"",
-                repo: ""vbnet"",
-                name: ""Public methods should not have multidimensional array parameters"",
-                severity: ""MAJOR"",
-                lang: ""vbnet"",
-                params: [ ],
-                type: ""CODE_SMELL""
-            }],
+            .Returns(Task.FromResult("""
+                { total: 1, p: 1, ps: 1,
+                            rules: [{
+                                key: "vbnet:S2368",
+                                repo: "vbnet",
+                                name: "Public methods should not have multidimensional array parameters",
+                                severity: "MAJOR",
+                                lang: "vbnet",
+                                params: [ ],
+                                type: "CODE_SMELL"
+                            }],
 
-            actives: {
-                ""vbnet:S2368"": [
-                {
-                    qProfile: ""qp"",
-                    inherit: ""NONE"",
-                    severity: ""MAJOR"",
-                    params: [
-                    {
-                      key: ""CheckId"",
-                      value: ""OverwrittenId"",
-                      type: ""FLOAT""
-                    }
-                    ]
-                }
-                ]
-            }
-            }"));
+                            actives: {
+                                "vbnet:S2368": [
+                                {
+                                    qProfile: "qp",
+                                    inherit: "NONE",
+                                    severity: "MAJOR",
+                                    params: [
+                                    {
+                                      key: "CheckId",
+                                      value: "OverwrittenId",
+                                      type: "FLOAT"
+                                    }
+                                    ]
+                                }
+                                ]
+                            }
+                            }
+                """));
 
         var actual = sut.DownloadRules("qp").Result;
         actual.Should().ContainSingle();
@@ -321,7 +323,7 @@ public class SonarWebServerTest
         actual[0].RuleKey.Should().Be("OverwrittenId");
         actual[0].InternalKeyOrKey.Should().Be("OverwrittenId");
         actual[0].TemplateKey.Should().BeNull();
-        actual[0].Parameters.Should().HaveCount(1);
+        actual[0].Parameters.Should().ContainSingle();
     }
 
     [TestMethod]
@@ -463,7 +465,7 @@ public class SonarWebServerTest
                     ]
                 }
                 }
-            """);
+                """);
 
         downloader
             .Download("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=2")
@@ -500,14 +502,14 @@ public class SonarWebServerTest
         actual[0].RuleKey.Should().Be("S2368");
         actual[0].InternalKeyOrKey.Should().Be("S2368");
         actual[0].TemplateKey.Should().BeNull();
-        actual[0].Parameters.Should().HaveCount(0);
+        actual[0].Parameters.Should().BeEmpty();
         actual[0].IsActive.Should().BeTrue();
 
         actual[1].RepoKey.Should().Be("common-vbnet");
         actual[1].RuleKey.Should().Be("InsufficientCommentDensity");
         actual[1].InternalKeyOrKey.Should().Be("InsufficientCommentDensity.internal");
         actual[1].TemplateKey.Should().Be("dummy.template.key");
-        actual[1].Parameters.Should().HaveCount(1);
+        actual[1].Parameters.Should().ContainSingle();
         actual[1].Parameters.First().Should().Be(new KeyValuePair<string, string>("minimumCommentDensity", "50"));
         actual[1].IsActive.Should().BeTrue();
 
@@ -522,14 +524,13 @@ public class SonarWebServerTest
         actual[3].RuleKey.Should().Be("S2346");
         actual[3].InternalKeyOrKey.Should().Be("S2346");
         actual[3].TemplateKey.Should().BeNull();
-        actual[3].Parameters.Should().HaveCount(0);
+        actual[3].Parameters.Should().BeEmpty();
         actual[3].IsActive.Should().BeTrue();
     }
 
     [TestMethod]
     public void DownloadRules_Active_WhenActivesContainsRuleWithMultipleBodies_UseFirst()
     {
-        // Arrange
         downloader
             .Download("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1")
             .Returns("""
@@ -573,12 +574,11 @@ public class SonarWebServerTest
                                 ]
                             }
                             }
-            """);
+                """);
 
         var actual = sut.DownloadRules("qp").Result;
 
-        // Assert
-        actual.Should().HaveCount(1);
+        actual.Should().ContainSingle();
         actual.Single().IsActive.Should().BeTrue();
         actual.Single().RuleKey.Should().Be("OverwrittenId-First");
     }
@@ -605,7 +605,7 @@ public class SonarWebServerTest
                         "type": "CODE_SMELL"
                     }
                 ]}
-            """);
+                """);
 
         var rules = sut.DownloadRules("qp").Result;
 
@@ -709,7 +709,7 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
-    public async Task GetInstalledPlugins()
+    public async Task DownloadAllLanguages_Succeeds()
     {
         downloader
             .Download("api/languages/list", Arg.Any<bool>())
@@ -823,15 +823,15 @@ public class SonarWebServerTest
         downloader
             .Download("analysis/jres?os=what&arch=ever")
             .Returns("""
-            [{
-                "id": "someId",
-                "filename": "file42.txt",
-                "sha256": "42==",
-                "javaPath": "best/language/java.exe",
-                "os": "lunix",
-                "arch": "manjaro"
-            }]
-            """);
+                [{
+                    "id": "someId",
+                    "filename": "file42.txt",
+                    "sha256": "42==",
+                    "javaPath": "best/language/java.exe",
+                    "os": "lunix",
+                    "arch": "manjaro"
+                }]
+                """);
 
         var jreMetadata = await sut.DownloadJreMetadataAsync("what", "ever");
 
@@ -850,11 +850,11 @@ public class SonarWebServerTest
         downloader
             .Download("analysis/jres?os=what&arch=ever")
             .Returns("""
-            [
-                { "id": "first" },
-                { "id": "second" },
-            ]
-            """);
+                [
+                    { "id": "first" },
+                    { "id": "second" },
+                ]
+                """);
 
         var jreMetadata = await sut.DownloadJreMetadataAsync("what", "ever");
 
