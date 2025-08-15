@@ -31,7 +31,7 @@ public class PostProcessor : IPostProcessor
     private readonly SonarScannerWrapper sonarScanner;
     private readonly ILogger logger;
     private readonly TargetsUninstaller targetUninstaller;
-    private readonly ISonarProjectPropertiesValidator sonarProjectPropertiesValidator;
+    private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly TfsProcessorWrapper tfsProcessor;
 
     private IPropertiesFileGenerator propertiesFileGenerator;
@@ -41,7 +41,7 @@ public class PostProcessor : IPostProcessor
         ILogger logger,
         TargetsUninstaller targetUninstaller,
         TfsProcessorWrapper tfsProcessor,
-        ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
+        SonarProjectPropertiesValidator sonarProjectPropertiesValidator)
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));

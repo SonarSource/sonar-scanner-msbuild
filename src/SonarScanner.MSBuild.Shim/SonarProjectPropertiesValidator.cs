@@ -18,35 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Shim.Interfaces;
-
 namespace SonarScanner.MSBuild.Shim;
 
-public class SonarProjectPropertiesValidator : ISonarProjectPropertiesValidator
+public class SonarProjectPropertiesValidator
 {
     /// <summary>
-    /// Verifies that no sonar-project.properties conflicting with the generated one exists within the project
+    /// Verifies that no sonar-project.properties conflicting with the generated one exists within the project.
     /// </summary>
-    /// <param name="sonarScannerCwd">Solution folder to check</param>
-    /// <param name="projects">MSBuild projects to check, only valid ones will be verified</param>
-    public bool AreExistingSonarPropertiesFilesPresent(string sonarScannerCwd, ICollection<ProjectData> projects, out IEnumerable<string> invalidFolders)
+    /// <param name="sonarScannerCwd">Solution folder to check.</param>
+    /// <param name="projects">MSBuild projects to check, only valid ones will be verified.</param>
+    public virtual bool AreExistingSonarPropertiesFilesPresent(string sonarScannerCwd, ICollection<ProjectData> projects, out IEnumerable<string> invalidFolders)
     {
         invalidFolders = projects
-            .Where(p => p.Status == ProjectInfoValidity.Valid)
-            .Select(p => p.Project.GetDirectory().FullName)
-            .Union(new[] { sonarScannerCwd })
+            .Where(x => x.Status == ProjectInfoValidity.Valid)
+            .Select(x => x.Project.GetDirectory().FullName)
+            .Union([sonarScannerCwd])
             .Where(SonarProjectPropertiesExists)
             .ToList();
 
         return invalidFolders.Any();
     }
 
-    private bool SonarProjectPropertiesExists(string folder)
-    {
-        return File.Exists(Path.Combine(folder, "sonar-project.properties"));
-    }
+    private static bool SonarProjectPropertiesExists(string folder) =>
+        File.Exists(Path.Combine(folder, "sonar-project.properties"));
 }
