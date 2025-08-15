@@ -60,6 +60,7 @@ public class PostProcessorTests
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         coverageReportProcessor = Substitute
             .For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>());
+        coverageReportProcessor.Initialize(null, null, null).ReturnsForAnyArgs(true);
         coverageReportProcessor.ProcessCoverageReports(null).ReturnsForAnyArgs(true);
         sut = new PostProcessor(
             scanner,
@@ -279,6 +280,19 @@ public class PostProcessorTests
     }
 
     [TestMethod]
+    public void Execute_ExistingSonarPropertiesFilesPresent_Fail()
+    {
+        sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(null, null, out var _).ReturnsForAnyArgs(x =>
+            {
+                x[2] = new[] { "not null" };
+                return true;
+            });
+        Execute().Should().BeFalse();
+        sonarProjectPropertiesValidator.ReceivedWithAnyArgs().AreExistingSonarPropertiesFilesPresent(null, null, out var _);
+        logger.AssertErrorLogged("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: not null");
+    }
+
+    [TestMethod]
     public void Execute_NullArgs_Throws() =>
         sut.Invoking(x => x.Execute(null, new AnalysisConfig(), Substitute.For<IBuildSettings>())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
 
@@ -318,6 +332,37 @@ public class PostProcessorTests
         AssertProcessCoverageReportsCalledIfNetFramework();
     }
 
+#if NETFRAMEWORK
+
+    [TestMethod]
+    public void Execute_TeamBuild_CoverageReportProcessorInitializeFails_DoesNotFail()
+    {
+        settings = Substitute.For<IBuildSettings>();
+        settings.BuildEnvironment.Returns(BuildEnvironment.TeamBuild);
+        settings.BuildUri.Returns("http://test-build-uri");
+        config.SetBuildUri("http://test-build-uri");
+        coverageReportProcessor.Initialize(null, null, null).ReturnsForAnyArgs(false);
+
+        Execute().Should().BeTrue();
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
+    }
+
+    [TestMethod]
+    public void Execute_TeamBuild_ProcessCoverageReportsFails_DoesNotFail()
+    {
+        settings = Substitute.For<IBuildSettings>();
+        settings.BuildEnvironment.Returns(BuildEnvironment.TeamBuild);
+        settings.BuildUri.Returns("http://test-build-uri");
+        config.SetBuildUri("http://test-build-uri");
+        coverageReportProcessor.ProcessCoverageReports(null).ReturnsForAnyArgs(false);
+
+        Execute().Should().BeTrue();
+        coverageReportProcessor.ReceivedWithAnyArgs().ProcessCoverageReports(null);
+        logger.AssertWarningLogged("Coverage report conversion has failed. Skipping...");
+    }
+
+#endif
+
     [TestMethod]
     public void Execute_LegacyTeamBuild_TfsProcessorCalled()
     {
@@ -330,6 +375,27 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework();
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
+    }
+
+    [TestMethod]
+    public void Execute_LegacyTeamBuild_BuildUrisDoNotMatch_Fail()
+    {
+        settings = Substitute.For<IBuildSettings>();
+        settings.BuildEnvironment.Returns(BuildEnvironment.LegacyTeamBuild);
+        settings.BuildUri.Returns("http://test-build-uri");
+        config.SetBuildUri("http://other-uri");
+
+        Execute().Should().BeFalse();
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework(shouldBeCalled: false);
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(shouldBeCalled: false);
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null);
+        logger.AssertErrorLogged("""
+            Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
+            Build Uri from environment: http://test-build-uri
+            Build Uri from config: http://other-uri
+            Analysis config file: 
+            Please delete the analysis config file and try the build again.
+            """);
     }
 
     [TestMethod]
