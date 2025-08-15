@@ -20,6 +20,7 @@
 
 using Google.Protobuf;
 using NSubstitute.ExceptionExtensions;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
@@ -714,6 +715,41 @@ public class SonarQubeWebServerTest
 
     [TestMethod]
     public async Task DownloadJreAsync_NullMetadata_Failure() =>
+        await CreateServer().Invoking(async x => await x.DownloadJreAsync(null)).Should().ThrowAsync<NullReferenceException>();
+
+    [TestMethod]
+    public async Task DownloadEngineAsync_Success()
+    {
+        var logger = new TestLogger();
+        Stream expected = new MemoryStream([1, 2, 3]);
+        var downloader = Substitute.For<IDownloader>();
+        downloader
+            .DownloadStream(
+                "analysis/engine",
+                Arg.Is<Dictionary<string, string>>(x => x.Single().Key == "Accept" && x.Single().Value == "application/octet-stream"))
+            .Returns(Task.FromResult(expected));
+
+        var sut = CreateServer(downloader, logger: logger);
+        var actual = await sut.DownloadEngineAsync(new EngineMetadata(null, null, null));
+
+        ((MemoryStream)actual).ToArray().Should().BeEquivalentTo([1, 2, 3]);
+        logger.AssertDebugLogged("Downloading Scanner Engine from analysis/engine");
+    }
+
+    [TestMethod]
+    public async Task DownloadEngineAsync_DownloadThrows_Failure()
+    {
+        var downloader = Substitute.For<IDownloader>();
+        downloader
+            .DownloadStream(Arg.Any<string>(), Arg.Any<Dictionary<string, string>>())
+            .Throws<HttpRequestException>();
+        var sut = CreateServer(downloader);
+
+        await sut.Invoking(async x => await x.DownloadEngineAsync(new EngineMetadata(null, null, null))).Should().ThrowAsync<HttpRequestException>();
+    }
+
+    [TestMethod]
+    public async Task DownloadEngineAsync_NullMetadata_Failure() =>
         await CreateServer().Invoking(async x => await x.DownloadJreAsync(null)).Should().ThrowAsync<NullReferenceException>();
 
     private static Stream CreateCacheStream(IMessage message)

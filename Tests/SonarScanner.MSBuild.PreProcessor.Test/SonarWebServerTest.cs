@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
@@ -972,5 +973,7 @@ public class SonarWebServerTest
         public override Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
 
         public override Task<Stream> DownloadJreAsync(JreMetadata metadata) => throw new NotImplementedException();
+
+        public override Task<Stream> DownloadEngineAsync(EngineMetadata metadata) => throw new NotImplementedException();
     }
 }
