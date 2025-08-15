@@ -18,14 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
@@ -81,7 +76,7 @@ internal class SonarCloudWebServer : SonarWebServer
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
             return empty;
         }
-        if (GetToken(localSettings) is not { } token)
+        if (AuthToken(localSettings) is not { } token)
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
             return empty;
@@ -184,7 +179,7 @@ internal class SonarCloudWebServer : SonarWebServer
         return decompressed;
     }
 
-    private static string GetToken(ProcessedArgs localSettings)
+    private static string AuthToken(ProcessedArgs localSettings)
     {
         if (localSettings.TryGetSetting(SonarProperties.SonarUserName, out var login))
         {
