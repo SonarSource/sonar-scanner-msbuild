@@ -721,7 +721,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The file was found after the download failed. Another scanner did the download in the parallel..
+        ///   Looks up a localized string similar to The file was found after the download failed. Another scanner downloaded the file in parallel..
         /// </summary>
         internal static string MSG_FileFoundAfterFailedDownload {
             get {

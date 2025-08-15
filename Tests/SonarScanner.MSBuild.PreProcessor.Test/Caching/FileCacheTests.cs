@@ -305,7 +305,7 @@ public sealed class FileCacheTests : IDisposable
             "Starting the file download.",
             $"Deleting file '{tempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
-            "The file was found after the download failed. Another scanner did the download in the parallel.",
+            "The file was found after the download failed. Another scanner downloaded the file in parallel.",
             $"The file was already downloaded from the server and stored at '{downloadTarget}'.",
             $"The checksum of the downloaded file is '{expectedSha}' and the expected checksum is '{expectedSha}'.");
     }
@@ -326,7 +326,7 @@ public sealed class FileCacheTests : IDisposable
             "Starting the file download.",
             $"Deleting file '{tempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
-            "The file was found after the download failed. Another scanner did the download in the parallel.",
+            "The file was found after the download failed. Another scanner downloaded the file in parallel.",
             $"The file was already downloaded from the server and stored at '{downloadTarget}'.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{expectedSha}'.",
             $"Deleting file '{downloadTarget}'.");

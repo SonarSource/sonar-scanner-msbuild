@@ -454,7 +454,7 @@ public class JreCacheTests
         result.Should().BeOfType<CacheFailure>().Which.Message.Should().Be("The checksum of the downloaded file does not match the expected checksum.");
         testLogger.AssertDebugLogged(@"Starting the file download.");
         testLogger.AssertDebugLogged(@"The download of the file from the server failed with the exception 'I/O error occurred.'.");
-        testLogger.AssertDebugLogged(@"The file was found after the download failed. Another scanner did the download in the parallel.");
+        testLogger.AssertDebugLogged(@"The file was found after the download failed. Another scanner downloaded the file in parallel.");
     }
 
     [TestMethod]
