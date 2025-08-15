@@ -102,8 +102,8 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     public IJreResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome)
     {
         var filePermissionsWrapper = new FilePermissionsWrapper(new OperatingSystemProvider(FileWrapper.Instance, logger));
-        var cache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance, filePermissionsWrapper, sonarUserHome);
-        return new JreResolver(server, cache, logger);
+        var jreDownloader = new JreDownloader(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance, filePermissionsWrapper, sonarUserHome);
+        return new JreResolver(server, jreDownloader, logger);
     }
 
     private bool ValidateServerUrl(string serverUrl)

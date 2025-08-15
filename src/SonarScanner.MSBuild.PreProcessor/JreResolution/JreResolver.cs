@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.PreProcessor.Caching;
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
-public class JreResolver(ISonarWebServer server, JreCache cache, ILogger logger) : IJreResolver
+public class JreResolver(ISonarWebServer server, JreDownloader downloader, ILogger logger) : IJreResolver
 {
     public async Task<string> ResolveJrePath(ProcessedArgs args)
     {
@@ -54,7 +54,7 @@ public class JreResolver(ISonarWebServer server, JreCache cache, ILogger logger)
         }
 
         var descriptor = metadata.ToDescriptor();
-        var result = cache.IsFileCached(descriptor);
+        var result = downloader.IsFileCached(descriptor);
         switch (result)
         {
             case CacheHit hit:
@@ -73,7 +73,7 @@ public class JreResolver(ISonarWebServer server, JreCache cache, ILogger logger)
 
     private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor)
     {
-        if (cache.CreateUnpacker(descriptor) is CacheFailure failure)
+        if (downloader.CreateUnpacker(descriptor) is CacheFailure failure)
         {
             logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, failure.Message);
             return null;
@@ -95,9 +95,9 @@ public class JreResolver(ISonarWebServer server, JreCache cache, ILogger logger)
     private async Task<CacheResult> DownloadAndUnpackJre(JreMetadata metadata, JreDescriptor descriptor)
     {
         logger.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
-        var downloadResult = await cache.DownloadFileAsync(descriptor, () => server.DownloadJreAsync(metadata));
+        var downloadResult = await downloader.DownloadFileAsync(descriptor, () => server.DownloadJreAsync(metadata));
         return downloadResult is CacheHit downloadSucces
-            ? cache.UnpackJre(downloadSucces.FilePath, descriptor)
+            ? downloader.UnpackJre(downloadSucces.FilePath, descriptor)
             : downloadResult;
     }
 

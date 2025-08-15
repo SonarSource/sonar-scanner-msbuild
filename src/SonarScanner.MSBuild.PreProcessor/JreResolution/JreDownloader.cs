@@ -24,13 +24,13 @@ using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-public class JreCache : CachingDownloader
+public class JreDownloader : CachingDownloader
 {
     private readonly IUnpackerFactory unpackerFactory;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
     private IUnpacker unpacker;
 
-    public JreCache(ILogger logger,
+    public JreDownloader(ILogger logger,
                     IDirectoryWrapper directoryWrapper,
                     IFileWrapper fileWrapper,
                     IChecksum checksum,
@@ -46,7 +46,7 @@ public class JreCache : CachingDownloader
     {
         if (fileDescriptor is not JreDescriptor jreDescriptor)
         {
-            throw new ArgumentException($"{nameof(JreCache)} must be used with {nameof(JreDescriptor)}");
+            throw new ArgumentException($"{nameof(JreDownloader)} must be used with {nameof(JreDescriptor)}");
         }
 
         if (EnsureCacheRoot() is not null)

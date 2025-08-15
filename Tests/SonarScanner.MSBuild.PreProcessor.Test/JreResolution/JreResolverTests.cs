@@ -34,7 +34,7 @@ public class JreResolverTests
     private readonly JreMetadata metadata = new(null, null, null, null, null);
 
     private ListPropertiesProvider provider;
-    private JreCache cache;
+    private JreDownloader downloader;
     private TestLogger logger;
     private ISonarWebServer server;
     private JreResolver sut;
@@ -52,7 +52,7 @@ public class JreResolverTests
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
         unpackerFactory = Substitute.For<IUnpackerFactory>();
-        cache = Substitute.For<JreCache>(
+        downloader = Substitute.For<JreDownloader>(
             logger,
             Substitute.For<IDirectoryWrapper>(),
             Substitute.For<IFileWrapper>(),
@@ -60,7 +60,7 @@ public class JreResolverTests
             unpackerFactory,
             Substitute.For<IFilePermissionsWrapper>(),
             SonarUserHome);
-        sut = new JreResolver(server, cache, logger);
+        sut = new JreResolver(server, downloader, logger);
     }
 
     [TestMethod]
@@ -139,7 +139,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_IsJreCached_UnknownResult()
     {
-        cache
+        downloader
             .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new UnknownResult());
 
@@ -152,7 +152,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_IsJreCached_CacheFailure()
     {
-        cache
+        downloader
             .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheFailure("Reason."));
 
@@ -169,7 +169,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_IsJreCached_CacheHit()
     {
-        cache
+        downloader
             .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheHit("path"));
 
@@ -184,13 +184,13 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadSuccess()
     {
-        cache
+        downloader
             .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheMiss());
-        cache
+        downloader
             .DownloadFileAsync(Arg.Any<FileDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new CacheHit("downloadPath"));
-        cache
+        downloader
             .UnpackJre(Arg.Any<string>(), Arg.Any<JreDescriptor>())
             .Returns(new CacheHit("path"));
 
@@ -212,10 +212,10 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadFailure()
     {
-        cache
+        downloader
             .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheMiss());
-        cache
+        downloader
             .DownloadFileAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new CacheFailure("Reason."));
 
@@ -245,11 +245,11 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadUnknown()
     {
-        cache
+        downloader
             .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheMiss());
 
-        cache
+        downloader
             .DownloadFileAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
             .Returns(new UnknownResult());
 
@@ -271,7 +271,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_CreateUnpackerFails_ReturnsFailure()
     {
-        cache
+        downloader
             .IsFileCached(Arg.Any<JreDescriptor>())
             .Returns(new CacheMiss());
 
