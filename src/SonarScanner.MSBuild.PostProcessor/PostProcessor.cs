@@ -28,19 +28,19 @@ namespace SonarScanner.MSBuild.PostProcessor;
 
 public class PostProcessor : IPostProcessor
 {
-    private readonly ISonarScanner sonarScanner;
+    private readonly SonarScannerWrapper sonarScanner;
     private readonly ILogger logger;
-    private readonly ITargetsUninstaller targetUninstaller;
+    private readonly TargetsUninstaller targetUninstaller;
     private readonly ISonarProjectPropertiesValidator sonarProjectPropertiesValidator;
-    private readonly ITfsProcessor tfsProcessor;
+    private readonly TfsProcessorWrapper tfsProcessor;
 
     private IPropertiesFileGenerator propertiesFileGenerator;
 
     public PostProcessor(
-        ISonarScanner sonarScanner,
+        SonarScannerWrapper sonarScanner,
         ILogger logger,
-        ITargetsUninstaller targetUninstaller,
-        ITfsProcessor tfsProcessor,
+        TargetsUninstaller targetUninstaller,
+        TfsProcessorWrapper tfsProcessor,
         ISonarProjectPropertiesValidator sonarProjectPropertiesValidator)
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));

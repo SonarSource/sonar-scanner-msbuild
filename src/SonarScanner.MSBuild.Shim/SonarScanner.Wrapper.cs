@@ -19,14 +19,13 @@
  */
 
 using System.Globalization;
-using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider) : ISonarScanner
+public class SonarScannerWrapper
 {
     /// <summary>
-    /// Name of the command line argument used to specify the generated project settings file to use
+    /// Name of the command line argument used to specify the generated project settings file to use.
     /// </summary>
     public const string ProjectSettingsFileArgName = "project.settings";
 
@@ -37,10 +36,16 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     // This version needs to be in sync with version in scripts\variables.ps1.
     private const string SonarScannerVersion = "5.0.2.4997";
 
-    private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private readonly IOperatingSystemProvider operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+    private readonly ILogger logger;
+    private readonly IOperatingSystemProvider operatingSystemProvider;
 
-    public bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string propertiesFilePath)
+    public SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
+    {
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+    }
+
+    public virtual bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string propertiesFilePath)
     {
         if (config is null)
         {
@@ -55,10 +60,10 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     }
 
     public virtual /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config,
-                                                                 IAnalysisPropertyProvider userCmdLineArguments,
-                                                                 string exeFileName,
-                                                                 string propertiesFileName,
-                                                                 IProcessRunner runner)
+                                                                  IAnalysisPropertyProvider userCmdLineArguments,
+                                                                  string exeFileName,
+                                                                  string propertiesFileName,
+                                                                  IProcessRunner runner)
     {
         Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
         Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
@@ -66,8 +71,8 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         IgnoreSonarScannerHome(logger);
 
         var stringArgs = userCmdLineArguments.GetAllProperties().Select(x => x.AsSonarScannerArg()).ToArray();
-        var allCmdLineArgs = GetAllCmdLineArgs(propertiesFileName, stringArgs, config, logger);
-        var envVarsDictionary = GetAdditionalEnvVariables(config, userCmdLineArguments, logger, operatingSystemProvider);
+        var allCmdLineArgs = AllCmdLineArgs(propertiesFileName, stringArgs, config, logger);
+        var envVarsDictionary = AdditionalEnvVariables(config, userCmdLineArguments, logger, operatingSystemProvider);
         Debug.Assert(envVarsDictionary is not null, "Unable to retrieve additional environment variables");
 
         logger.LogInfo(Resources.MSG_SonarScannerCalling);
@@ -129,7 +134,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     /// <summary>
     /// Returns any additional environment variables that need to be passed to the sonar-scanner.
     /// </summary>
-    private static IDictionary<string, string> GetAdditionalEnvVariables(
+    private static IDictionary<string, string> AdditionalEnvVariables(
         AnalysisConfig config,
         IAnalysisPropertyProvider userCmdLineArguments,
         ILogger logger,
@@ -208,16 +213,16 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
     }
 
     /// <summary>
-    /// Returns all the command line arguments to pass to sonar-scanner
+    /// Returns all the command line arguments to pass to sonar-scanner.
     /// </summary>
-    private static IEnumerable<string> GetAllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments, AnalysisConfig config, ILogger logger)
+    private static IEnumerable<string> AllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments, AnalysisConfig config, ILogger logger)
     {
         // We don't know what all the valid command line arguments are so we'll
         // just pass them on for the sonar-scanner to validate.
         var args = new List<string>(userCmdLineArguments);
 
         // Add any sensitive arguments supplied in the config should be passed on the command line
-        args.AddRange(GetSensitiveFileSettings(config, userCmdLineArguments, logger));
+        args.AddRange(SensitiveFileSettings(config, userCmdLineArguments, logger));
 
         // Add the project settings file and the standard options.
         // Experimentation suggests that the sonar-scanner won't error if duplicate arguments
@@ -248,7 +253,7 @@ public class SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operat
         return args;
     }
 
-    private static IEnumerable<string> GetSensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger) =>
+    private static IEnumerable<string> SensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger) =>
         config.GetAnalysisSettings(false, logger)
             .GetAllProperties()
             .Where(x => x.ContainsSensitiveData() && !UserSettingExists(x, userCmdLineArguments))
