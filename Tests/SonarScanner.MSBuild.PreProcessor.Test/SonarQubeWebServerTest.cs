@@ -707,7 +707,7 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader
             .DownloadStream(Arg.Any<string>(), Arg.Any<Dictionary<string, string>>())
-            .Throws<HttpRequestException>();
+            .ThrowsAsync<HttpRequestException>();
         var sut = CreateServer(downloader);
 
         await sut.Invoking(async x => await x.DownloadJreAsync(new(null, null, null, null, null))).Should().ThrowAsync<HttpRequestException>();
@@ -742,7 +742,7 @@ public class SonarQubeWebServerTest
         var downloader = Substitute.For<IDownloader>();
         downloader
             .DownloadStream(Arg.Any<string>(), Arg.Any<Dictionary<string, string>>())
-            .Throws<HttpRequestException>();
+            .ThrowsAsync<HttpRequestException>();
         var sut = CreateServer(downloader);
 
         await sut.Invoking(async x => await x.DownloadEngineAsync(new EngineMetadata(null, null, null))).Should().ThrowAsync<HttpRequestException>();
