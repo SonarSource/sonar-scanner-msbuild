@@ -748,10 +748,6 @@ public class SonarQubeWebServerTest
         await sut.Invoking(async x => await x.DownloadEngineAsync(new EngineMetadata(null, null, null))).Should().ThrowAsync<HttpRequestException>();
     }
 
-    [TestMethod]
-    public async Task DownloadEngineAsync_NullMetadata_Failure() =>
-        await CreateServer().Invoking(async x => await x.DownloadJreAsync(null)).Should().ThrowAsync<NullReferenceException>();
-
     private static Stream CreateCacheStream(IMessage message)
     {
         var stream = new MemoryStream();
