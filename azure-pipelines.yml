@@ -445,7 +445,7 @@ stages:
 
   - template: templates/unix-qa-stage.yml
     parameters:
-      vmImage: "macOS-latest"
+      vmImage: "macOS-14"
       name: "MacOS"
 
   - stage: artifacts
