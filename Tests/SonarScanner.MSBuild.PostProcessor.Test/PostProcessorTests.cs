@@ -277,25 +277,16 @@ public class PostProcessorTests
     }
 
     [TestMethod]
-    public void Execute_NullArgs_Throws()
-    {
-        Action action = () => sut.Execute(null, new AnalysisConfig(), Substitute.For<IBuildSettings>());
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
-    }
+    public void Execute_NullArgs_Throws() =>
+        sut.Invoking(x => x.Execute(null, new AnalysisConfig(), Substitute.For<IBuildSettings>())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
 
     [TestMethod]
-    public void Execute_NullAnalysisConfig_Throws()
-    {
-        Action action = () => sut.Execute([], null, Substitute.For<IBuildSettings>());
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
-    }
+    public void Execute_NullAnalysisConfig_Throws() =>
+        sut.Invoking(x => x.Execute([], null, Substitute.For<IBuildSettings>())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
 
     [TestMethod]
-    public void Execute_NullTeamBuildSettings_Throws()
-    {
-        Action action = () => sut.Execute([], new AnalysisConfig(), null);
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
-    }
+    public void Execute_NullTeamBuildSettings_Throws() =>
+        sut.Invoking(x => x.Execute([], new AnalysisConfig(), null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
 
     private bool Execute(string arg) =>
         Execute([arg]);
