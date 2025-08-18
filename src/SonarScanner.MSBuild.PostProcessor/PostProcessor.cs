@@ -233,12 +233,8 @@ public class PostProcessor : IPostProcessor
         }
         else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
-            IList<string> args = new List<string>();
-            args.Add("ConvertCoverage");
-            args.Add(sonarAnalysisConfigFilePath);
-            args.Add(propertiesFilePath);
             logger.IncludeTimestamp = false;
-            tfsProcessor.Execute(config, args, propertiesFilePath);
+            tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, propertiesFilePath], propertiesFilePath);
             logger.IncludeTimestamp = true;
         }
     }
@@ -247,8 +243,7 @@ public class PostProcessor : IPostProcessor
     {
         if (coverageReportProcessor.Initialize(config, buildSettings, fullPropertiesFilePath))
         {
-            var success = coverageReportProcessor.ProcessCoverageReports(logger);
-            if (success)
+            if (coverageReportProcessor.ProcessCoverageReports(logger))
             {
                 logger.LogInfo("Coverage report conversion completed successfully.");
             }
