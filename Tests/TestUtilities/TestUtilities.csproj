@@ -19,7 +19,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MSTest.TestFramework" Version="3.10.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.10.2" />
     <PackageReference Include="WireMock.Net" Version="1.9.0" />
   </ItemGroup>
   <ItemGroup>
