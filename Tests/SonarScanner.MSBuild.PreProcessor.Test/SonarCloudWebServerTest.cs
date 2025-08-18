@@ -415,8 +415,8 @@ public class SonarCloudWebServerTest
     private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string prepareReadResponse, HttpStatusCode prepareReadResponseCode = HttpStatusCode.OK) =>
         new(
             async (request, _) => request.RequestUri == new Uri(cacheFullUrl)
-                ? new HttpResponseMessage { StatusCode = prepareReadResponseCode, Content = new StringContent(prepareReadResponse) }
-                : new HttpResponseMessage(HttpStatusCode.NotFound),
+                                    ? new HttpResponseMessage { StatusCode = prepareReadResponseCode, Content = new StringContent(prepareReadResponse) }
+                                    : new HttpResponseMessage(HttpStatusCode.NotFound),
             Token);
 
     private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData) =>

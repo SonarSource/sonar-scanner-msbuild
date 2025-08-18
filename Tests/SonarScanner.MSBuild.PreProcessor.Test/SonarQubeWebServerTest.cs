@@ -84,7 +84,7 @@ public class SonarQubeWebServerTest
     public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsInvalid(string responseContent)
     {
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(responseContent) };
-        
+
         downloader.DownloadResource(Arg.Any<string>()).Returns(Task.FromResult(response));
         downloader.GetBaseUrl().Returns("host");
         var sut = CreateServer(downloader, logger: logger);
@@ -291,13 +291,15 @@ public class SonarQubeWebServerTest
             .Returns(Task.FromResult(@"{ settings: [ { key: ""key"" } ] }"));
 
         await CreateServer(downloader, new Version("6.3")).Invoking(async x => await x.DownloadProperties(componentName, null))
-            .Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
+            .Should().ThrowAsync<ArgumentException>()
+            .WithMessage("Invalid property");
     }
 
     [TestMethod]
     public void DownloadProperties_NullProjectKey_Throws() =>
         ((Action)(() => CreateServer().DownloadProperties(null, null).GetAwaiter().GetResult()))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectKey");
+            .Should().Throw<ArgumentNullException>()
+            .And.ParamName.Should().Be("projectKey");
 
     [TestMethod]
     public async Task DownloadProperties_ProjectWithBranch_SuccessfullyRetrieveProperties()
