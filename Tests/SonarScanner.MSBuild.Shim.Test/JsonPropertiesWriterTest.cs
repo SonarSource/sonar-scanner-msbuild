@@ -137,7 +137,7 @@ public class JsonPropertiesWriterTest
             [
               {
                 "key": "sonar.sources",
-                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))}}
               },
               {
                 "key": "sonar.modules",
@@ -156,7 +156,7 @@ public class JsonPropertiesWriterTest
             [
               {
                 "key": "sonar.tests",
-                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))}}
               },
               {
                 "key": "sonar.modules",
@@ -175,11 +175,11 @@ public class JsonPropertiesWriterTest
             [
               {
                 "key": "sonar.sources",
-                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))}}
               },
               {
                 "key": "sonar.tests",
-                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))}}
               },
               {
                 "key": "sonar.modules",
@@ -218,7 +218,7 @@ public class JsonPropertiesWriterTest
             [
               {
                 "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dir1", "first")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dir1", "second")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
               },
               {
                 "key": "sonar.modules",
@@ -257,7 +257,7 @@ public class JsonPropertiesWriterTest
             [
               {
                 "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dir1", "first")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dir1", "second")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
               },
               {
                 "key": "sonar.modules",
@@ -297,7 +297,7 @@ public class JsonPropertiesWriterTest
             [
               {
                 "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                "value": "{{Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json")}},\{{NewLine}}{{Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json"))}}
               },
               {
                 "key": "sonar.modules",
@@ -382,7 +382,7 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir",
-                "value": "{{productBaseDir}}"
+                "value": {{JsonConvert.ToString(productBaseDir)}}
               },
               {
                 "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sourceEncoding",
@@ -394,11 +394,11 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources",
-                "value": "{{Path.Combine(productBaseDir, "File.cs")}},\{{NewLine}}{{Path.Combine(productBaseDir, "你好.cs")}},\{{NewLine}}{{missingFileOutsideProjectDir.FullName}}"
+                "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs") + "," + Path.Combine(productBaseDir, "你好.cs") + "," + missingFileOutsideProjectDir.FullName)}}
               },
               {
                 "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.working.directory",
-                "value": "{{Path.Combine(sonarOutputDir, ".sonar", "mod0")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod0"))}}
               },
               {
                 "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey",
@@ -410,7 +410,7 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectBaseDir",
-                "value": "{{productBaseDir}}"
+                "value": {{JsonConvert.ToString(productBaseDir)}}
               },
               {
                 "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sourceEncoding",
@@ -422,11 +422,11 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources",
-                "value": "{{Path.Combine(productBaseDir, "File.cs")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs"))}}
               },
               {
                 "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.working.directory",
-                "value": "{{Path.Combine(sonarOutputDir, ".sonar", "mod1")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod1"))}}
               },
               {
                 "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey",
@@ -438,7 +438,7 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir",
-                "value": "{{testBaseDir}}"
+                "value": {{JsonConvert.ToString(testBaseDir)}}
               },
               {
                 "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding",
@@ -450,11 +450,11 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests",
-                "value": "{{Path.Combine(testBaseDir, "File.cs")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(testBaseDir, "File.cs"))}}
               },
               {
                 "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.working.directory",
-                "value": "{{Path.Combine(sonarOutputDir, ".sonar", "mod2")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod2"))}}
               },
               {
                 "key": "sonar.modules",
@@ -499,15 +499,15 @@ public class JsonPropertiesWriterTest
               },
               {
                 "key": "sonar.working.directory",
-                "value": "{{Path.Combine(sonarOutputDir, ".sonar")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar"))}}
               },
               {
                 "key": "sonar.projectBaseDir",
-                "value": "{{projectBaseDir}}"
+                "value": {{JsonConvert.ToString(projectBaseDir)}}
               },
               {
                 "key": "sonar.pullrequest.cache.basepath",
-                "value": "C:\PullRequest\Cache\BasePath"
+                "value": "C:\\PullRequest\\Cache\\BasePath"
               },
               {
                 "key": "sonar.modules",
@@ -528,19 +528,19 @@ public class JsonPropertiesWriterTest
             [
               {
                 "key": "sonar.projectKey",
-                "value": ""
+                "value": null
               },
               {
                 "key": "sonar.working.directory",
-                "value": "{{Path.Combine(@"C:\OutputDir\CannotBeEmpty", ".sonar")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(@"C:\OutputDir\CannotBeEmpty", ".sonar"))}}
               },
               {
                 "key": "sonar.projectBaseDir",
-                "value": "{{Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")}}"
+                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir"))}}
               },
               {
                 "key": "sonar.pullrequest.cache.basepath",
-                "value": ""
+                "value": null
               },
               {
                 "key": "sonar.modules",
@@ -693,87 +693,33 @@ public class JsonPropertiesWriterTest
     }
 
     [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQGreaterThanOrEqualTo65_EscapeAndJoinPaths()
+    public void AsMultiValueProperty_EncodeValues()
     {
-        var config65 = new AnalysisConfig
-        {
-            SonarOutputDir = @"C:\my_folder",
-            SonarQubeVersion = "6.5"
-        };
-        var config66 = new AnalysisConfig
-        {
-            SonarOutputDir = @"C:\my_folder",
-            SonarQubeVersion = "6.6"
-        };
-        var testSubject65 = new JsonPropertiesWriter(config65, new TestLogger());
-        var testSubject66 = new JsonPropertiesWriter(config66, new TestLogger());
-
-        var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs", "C:\\foo\"bar.cs" };
-
-        var actual65 = testSubject65.EncodeAsMultiValueProperty(paths);
-        var actual66 = testSubject66.EncodeAsMultiValueProperty(paths);
-
-        actual65.Should().BeIgnoringLineEndings("""
-            "C:\foo.cs",\
-            "C:\foo,bar.cs",\
-            "C:\foo""bar.cs"
+        var sut = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        sut.AppendKeyValue(
+            "sonar",
+            "multivalueproperty",
+            [
+                "Normal value without double quotes @#$%^&*()",
+                "With \r Carriage Return",
+                "With \n Line Feed",
+                "Normal value",
+                "With , Comma",
+                "With \" Double Quote",
+                "Normal value"
+            ]);
+        PropertiesToString(sut).Should().BeIgnoringLineEndings("""
+            [
+              {
+                "key": "sonar.multivalueproperty",
+                "value": "Normal value without double quotes @#$%^&*(),\"With \r Carriage Return\",\"With \n Line Feed\",Normal value,\"With , Comma\",\"With \"\" Double Quote\",Normal value"
+              },
+              {
+                "key": "sonar.modules",
+                "value": ""
+              }
+            ]
             """);
-        actual66.Should().Be(actual65);
-    }
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQLessThan65AndNoInvalidPath_JoinPaths() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("6.0");
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQVersionNullAndNoInvalidPath_JoinPaths() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(null);
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndNoInvalidPath_JoinPaths() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("foo");
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQLessThan65AndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("6.0");
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQVersionIsNullAndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(null);
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("foo");
-
-    private static void EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(string sonarqubeVersion) =>
-        new JsonPropertiesWriter(
-                new AnalysisConfig
-                {
-                    SonarOutputDir = @"C:\my_folder",
-                    SonarQubeVersion = sonarqubeVersion
-                },
-                new TestLogger())
-            .EncodeAsMultiValueProperty([@"C:\foo.cs", @"C:\foobar.cs"])
-            .Should().BeIgnoringLineEndings("""
-            C:\foo.cs,\
-            C:\foobar.cs
-            """);
-
-    private static void EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(string sonarqubeVersion)
-    {
-        var logger = new TestLogger();
-        var testSubject = new JsonPropertiesWriter(
-            new AnalysisConfig
-            {
-                SonarOutputDir = @"C:\my_folder",
-                SonarQubeVersion = sonarqubeVersion
-            },
-            logger);
-        var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs" };
-
-        testSubject.EncodeAsMultiValueProperty(paths).Should().Be(@"C:\foo.cs");
-        logger.Warnings.Should().ContainSingle();
-        logger.Warnings[0].Should().Be("The following paths contain invalid characters and will be excluded from this analysis: C:\\foo,bar.cs");
     }
 
     private static ProjectInfo CreateProjectInfo(

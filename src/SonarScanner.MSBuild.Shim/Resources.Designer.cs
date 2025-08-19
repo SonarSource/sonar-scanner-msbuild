@@ -466,15 +466,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following paths contain invalid characters and will be excluded from this analysis: {0}.
-        /// </summary>
-        internal static string WARN_InvalidCharacterInPaths {
-            get {
-                return ResourceManager.GetString("WARN_InvalidCharacterInPaths", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The project has an invalid GUID &quot;{0}&quot;. The project will not be analyzed. Project file: {1}.
         /// </summary>
         internal static string WARN_InvalidProjectGuid {

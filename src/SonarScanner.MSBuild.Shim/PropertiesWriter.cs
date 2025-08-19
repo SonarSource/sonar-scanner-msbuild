@@ -298,26 +298,6 @@ public class PropertiesWriter
     private static bool IsAscii(char c) =>
         c <= sbyte.MaxValue;
 
-    internal /* for testing purposes */ string EncodeAsMultiValueProperty(IEnumerable<string> paths)
-    {
-        var multiValuesPropertySeparator = $@",\{Environment.NewLine}";
-
-        if (Version.TryParse(config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
-        {
-            return string.Join(multiValuesPropertySeparator, paths.Select(x => $"\"{x.Replace("\"", "\"\"")}\""));
-        }
-        else
-        {
-            var invalidPaths = paths.Where(InvalidPathPredicate);
-            if (invalidPaths.Any())
-            {
-                logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
-            }
-
-            return string.Join(multiValuesPropertySeparator, paths.Where(x => !InvalidPathPredicate(x)));
-        }
-
-        static bool InvalidPathPredicate(string path) =>
-            path.Contains(",");
-    }
+    private static string EncodeAsMultiValueProperty(IEnumerable<string> paths) =>
+        string.Join($@",\{Environment.NewLine}", paths.Select(x => $"\"{x.Replace("\"", "\"\"")}\""));
 }

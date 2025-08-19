@@ -59,6 +59,7 @@ public class JsonPropertiesWriter
         Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
 
         AppendKeyValue("sonar.modules", string.Join(",", moduleKeys));
+        // ToDo: SCAN4NET-766 Add missing content, return string instead
         return jsonArray;
     }
 
@@ -232,35 +233,15 @@ public class JsonPropertiesWriter
         }
     }
 
-    internal /* for testing purposes */ string EncodeAsMultiValueProperty(IEnumerable<string> paths)
-    {
-        var multiValuesPropertySeparator = @$",\{Environment.NewLine}";
-
-        if (Version.TryParse(config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
-        {
-            return string.Join(multiValuesPropertySeparator, paths.Select(x => $"\"{x.Replace("\"", "\"\"")}\""));
-        }
-        else
-        {
-            var invalidPaths = paths.Where(InvalidPathPredicate);
-            if (invalidPaths.Any())
-            {
-                logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
-            }
-
-            return string.Join(multiValuesPropertySeparator, paths.Where(x => !InvalidPathPredicate(x)));
-        }
-    }
-
-    private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
-        AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
-
-    private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> paths) =>
+    internal void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> values) =>
         jsonArray.Add(new JObject
             {
                 { "key", $"{keyPrefix}.{keySuffix}" },
-                { "value", new JRaw($"\"{EncodeAsMultiValueProperty(paths)}\"") }
+                { "value", ToMultiValueProperty(values) }
             });
+
+    private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
+        AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
 
     private void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
         AppendKeyValue(keyPrefix + "." + keySuffix, value);
@@ -275,7 +256,7 @@ public class JsonPropertiesWriter
         jsonArray.Add(new JObject
         {
             { "key", key },
-            { "value", new JRaw($"\"{value ?? string.Empty}\"") }
+            { "value", value }
         });
     }
 
@@ -287,6 +268,16 @@ public class JsonPropertiesWriter
         }
     }
 
-    private static bool InvalidPathPredicate(string path) =>
-        path.Contains(",");
+    private static string ToMultiValueProperty(IEnumerable<string> paths)
+    {
+        return string.Join(",", paths.Select(Encode));
+
+        // RFC4180 2.5: Each field may or may not be enclosed in double quotes
+        // RFC4180 2.6: Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes.
+        // RFC4180 2.7: If double-quotes are used to enclose fields, then a double-quote appearing inside a field must be escaped by preceding it with another double quote.
+        static string Encode(string value) =>
+            value.IndexOfAny(['\r', '\n', '\"', ',']) >= 0
+                ? $"\"{value.Replace("\"", "\"\"")}\""
+                : value;
+    }
 }
