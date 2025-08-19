@@ -24,7 +24,7 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 namespace SonarScanner.MSBuild.PreProcessor.Caching.Test;
 
 [TestClass]
-public sealed class CachingDownloaderTests : IDisposable
+public sealed class CachedDownloaderTests : IDisposable
 {
     private const string ExpectedSha = "sha256";
     private const string DownloadTarget = "someFile";
@@ -37,19 +37,19 @@ public sealed class CachingDownloaderTests : IDisposable
     private readonly IChecksum checksum;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly CachingDownloader cachingDownloader;
+    private readonly CachedDownloader cachingDownloader;
     private readonly TestLogger testLogger;
     private readonly byte[] fileContentArray = new byte[3];
     private readonly MemoryStream fileContentStream;
     private readonly byte[] downloadContentArray = [1, 2, 3,];
 
-    public CachingDownloaderTests()
+    public CachedDownloaderTests()
     {
         testLogger = new TestLogger();
         checksum = Substitute.For<IChecksum>();
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
         fileWrapper = Substitute.For<IFileWrapper>();
-        cachingDownloader = new CachingDownloader(testLogger, directoryWrapper, fileWrapper, checksum, SonarUserHome);
+        cachingDownloader = new CachedDownloader(testLogger, directoryWrapper, fileWrapper, checksum, SonarUserHome);
         directoryWrapper.GetRandomFileName().Returns(TempFileName);
         fileContentStream = new MemoryStream(fileContentArray, writable: true);
         fileWrapper.Create(TempFilePath).Returns(fileContentStream);

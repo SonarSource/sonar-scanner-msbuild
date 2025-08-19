@@ -29,7 +29,7 @@ public class EngineResolverTests
 {
     private readonly ISonarWebServer server;
     private readonly ILogger logger;
-    private readonly CachingDownloader cachingDownloader;
+    private readonly CachedDownloader cachingDownloader;
     private readonly ProcessedArgs args;
     private readonly EngineResolver resolver;
 
@@ -39,7 +39,7 @@ public class EngineResolverTests
         server.SupportsJreProvisioning.Returns(true);
         logger = Substitute.For<ILogger>();
 
-        cachingDownloader = Substitute.For<CachingDownloader>(
+        cachingDownloader = Substitute.For<CachedDownloader>(
             logger,
             Substitute.For<IDirectoryWrapper>(),
             Substitute.For<IFileWrapper>(),

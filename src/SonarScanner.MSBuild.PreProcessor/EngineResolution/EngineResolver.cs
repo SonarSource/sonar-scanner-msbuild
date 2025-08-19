@@ -25,10 +25,10 @@ namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 public class EngineResolver : IEngineResolver
 {
     private readonly ISonarWebServer server;
-    private readonly CachingDownloader cachingDownloader;
+    private readonly CachedDownloader cachingDownloader;
     private readonly ILogger logger;
 
-    public EngineResolver(ISonarWebServer server, CachingDownloader cachingDownloader, ILogger logger)
+    public EngineResolver(ISonarWebServer server, CachedDownloader cachingDownloader, ILogger logger)
     {
         this.server = server;
         this.cachingDownloader = cachingDownloader;
