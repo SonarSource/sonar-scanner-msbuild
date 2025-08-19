@@ -54,24 +54,15 @@ internal class JreCache(
 
     public async Task<CacheResult> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
-        if (fileCache.EnsureDownloadDirectory(jreDescriptor) is { } jreDownloadPath)
+        if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is { } unpacker)
         {
-            if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is { } unpacker)
-            {
-                var downloadTarget = Path.Combine(jreDownloadPath, jreDescriptor.Filename);
-                logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
-                return await fileCache.EnsureFileIsDownloaded(jreDownloadPath, downloadTarget, jreDescriptor, jreDownload) is { } cacheFailure
-                    ? cacheFailure
-                    : UnpackJre(unpacker, downloadTarget, jreDescriptor);
-            }
-            else
-            {
-                return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
-            }
+            logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
+            var cacheResult = await fileCache.DownloadFileAsync(jreDescriptor, jreDownload);
+            return cacheResult is CacheHit cacheHit ? UnpackJre(unpacker, cacheHit.FilePath, jreDescriptor) : cacheResult;
         }
         else
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, fileCache.FileRootPath(jreDescriptor)));
+            return new CacheFailure(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
         }
     }
 

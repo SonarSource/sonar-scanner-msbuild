@@ -29,5 +29,6 @@ public interface IFileCache
     string FileRootPath(FileDescriptor descriptor);
     string EnsureDownloadDirectory(FileDescriptor fileDescriptor);
     Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
+    Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download);
     void TryDeleteFile(string tempFile);
 }
