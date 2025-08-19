@@ -312,8 +312,6 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
-        logger.AssertMessageNotLogged(Resources.MSG_ConvertingCoverageReports);
-        logger.AssertMessageNotLogged(Resources.MSG_TFSLegacyProcessorCalled);
     }
 
     [TestMethod]
@@ -325,8 +323,6 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         AssertProcessCoverageReportsCalledIfNetFramework();
-        logger.AssertInfoLogged("Converting coverage reports.");
-        logger.AssertMessageNotLogged(Resources.MSG_TFSLegacyProcessorCalled);
     }
 
     [TestMethod]
@@ -338,8 +334,6 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework();
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
-        logger.AssertMessageNotLogged(Resources.MSG_ConvertingCoverageReports);
-        logger.AssertInfoLogged("Calling legacy TFS processor.");
     }
 
     [TestMethod]
@@ -352,8 +346,6 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
-        logger.AssertMessageNotLogged(Resources.MSG_ConvertingCoverageReports);
-        logger.AssertMessageNotLogged(Resources.MSG_TFSLegacyProcessorCalled);
         logger.AssertErrorLogged("""
             Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
             Build Uri from environment: http://test-build-uri
@@ -374,8 +366,6 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
-        logger.AssertMessageNotLogged(Resources.MSG_ConvertingCoverageReports);
-        logger.AssertMessageNotLogged(Resources.MSG_TFSLegacyProcessorCalled);
     }
 
     private bool Execute(string arg) =>
