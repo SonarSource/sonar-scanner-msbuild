@@ -27,7 +27,6 @@ public class PropertiesWriter
 {
     private const string SonarSources = "sonar.sources";
     private const string SonarTests = "sonar.tests";
-    private readonly ILogger logger;
     private readonly AnalysisConfig config;
 
     /// <summary>
@@ -36,13 +35,8 @@ public class PropertiesWriter
     private readonly IList<string> moduleKeys = [];
     private readonly StringBuilder sb = new();
 
-    public bool FinishedWriting { get; private set; }
-
-    public PropertiesWriter(AnalysisConfig config, ILogger logger)
-    {
+    public PropertiesWriter(AnalysisConfig config) =>
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public static string Escape(string value)
     {
@@ -78,13 +72,6 @@ public class PropertiesWriter
     /// </summary>
     public string Flush()
     {
-        if (FinishedWriting)
-        {
-            throw new InvalidOperationException();
-        }
-
-        FinishedWriting = true;
-
         Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
 
         AppendKeyValue("sonar.modules", string.Join(",", moduleKeys));
@@ -95,11 +82,6 @@ public class PropertiesWriter
 
     public void WriteSettingsForProject(ProjectData projectData)
     {
-        if (FinishedWriting)
-        {
-            throw new InvalidOperationException();
-        }
-
         if (projectData is null)
         {
             throw new ArgumentNullException(nameof(projectData));

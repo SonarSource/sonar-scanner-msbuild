@@ -230,8 +230,8 @@ dotnet_naming_style.I_style.capitalization = pascal_case
 [*]
 dotnet_diagnostic.S1451.severity = warning      # For UTs - Track lack of copyright and license headers
 
-# CS7035: it expects the build number to fit in 16 bits, our build numbers are bigger https://github.com/dotnet/roslyn/issues/17024#issuecomment-1669503201
-dotnet_diagnostic.CS7035.severity = none
+dotnet_diagnostic.CS7035.severity = none    # CS7035: it expects the build number to fit in 16 bits, our build numbers are bigger https://github.com/dotnet/roslyn/issues/17024#issuecomment-1669503201
+dotnet_diagnostic.IDE0290.severity = none   # IDE0290: Use primary constructor
 
 # ----------------------------------------------------------------------------------------------------------------------
 # StyleCop.Analyzers rules - note that the URLs below are for tag 1.1.118

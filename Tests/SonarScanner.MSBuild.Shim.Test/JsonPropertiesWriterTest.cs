@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
-using System.Text.Json.Nodes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -29,28 +27,15 @@ namespace SonarScanner.MSBuild.Shim.Test;
 public class JsonPropertiesWriterTest
 {
     public TestContext TestContext { get; set; }
-    private static string NewLine => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "\r\n" : "\n";
 
     [TestMethod]
-    public void Constructor_ConfigIsNull_ThrowsOnNullArgument()
-    {
-        Action action = () => new JsonPropertiesWriter(null, new TestLogger());
-
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
-    }
-
-    [TestMethod]
-    public void Constructor_LoggerIsNull_ThrowsOnNullArgument()
-    {
-        Action action = () => new JsonPropertiesWriter(new AnalysisConfig(), null);
-
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-    }
+    public void Constructor_ConfigIsNull_ThrowsOnNullArgument() =>
+        ((Func<JsonPropertiesWriter>)(() => new JsonPropertiesWriter(null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
 
     [TestMethod]
     public void WriteSettingsForProject_ThrowsOnNullArgument()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         Action action = () => propertiesWriter.WriteSettingsForProject(null);
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectData");
@@ -59,7 +44,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void WriteGlobalSettings_ThrowsOnNullArgument()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         Action action = () => propertiesWriter.WriteGlobalSettings(null);
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
@@ -68,7 +53,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void WriteGlobalSettings_VerboseIsSkipped()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteGlobalSettings([
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
@@ -90,7 +75,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void WriteGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteGlobalSettings([
             new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
@@ -116,7 +101,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void WriteSharedProperties_EmptySources_EmptyTests()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([], []));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
             [
@@ -131,7 +116,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void WriteSharedProperties_WithSources_EmptyTests()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
             [
@@ -150,7 +135,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void WriteSharedProperties_EmptySources_WithTests()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
             [
@@ -169,7 +154,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void WriteSharedProperties_WithSources_WithTests()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
             [
@@ -192,7 +177,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void WriteAnalyzerOutputPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths("unexpected", analyzerOutPaths: [@"c:\dir1\dir2"]));
 
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
@@ -210,7 +195,7 @@ public class JsonPropertiesWriterTest
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.analyzer.projectOutPaths")]
     public void WriteAnalyzerOutputPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths(
             language,
             analyzerOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
@@ -231,7 +216,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void WriteRoslynReportPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteRoslynReportPaths(CreateTestProjectDataWithPaths("unexpected"));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings(
             """
@@ -249,7 +234,7 @@ public class JsonPropertiesWriterTest
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths")]
     public void WriteRoslynReportPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteRoslynReportPaths(CreateTestProjectDataWithPaths(
             language,
             roslynOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
@@ -270,7 +255,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void Telemetry_ForUnexpectedLanguage_DoNotWritePaths()
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
 
         propertiesWriter.WriteTelemetryPaths(CreateTestProjectDataWithPaths("unexpected", telemetryPaths: [@"c:\dir1\dir2\Telemetry.json"]));
 
@@ -289,7 +274,7 @@ public class JsonPropertiesWriterTest
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.scanner.telemetry")]
     public void Telemetry_WritesEncodedPaths(string language, string expectedPropertyKey)
     {
-        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteTelemetryPaths(CreateTestProjectDataWithPaths(
             language,
             telemetryPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")]));
@@ -362,7 +347,7 @@ public class JsonPropertiesWriterTest
         string actual = null;
         using (new AssertIgnoreScope()) // expecting the property writer to complain about the missing file
         {
-            var writer = new JsonPropertiesWriter(config, new TestLogger());
+            var writer = new JsonPropertiesWriter(config);
             writer.WriteSettingsForProject(productCS);
             writer.WriteSettingsForProject(productVB);
             writer.WriteSettingsForProject(test);
@@ -479,7 +464,7 @@ public class JsonPropertiesWriterTest
             SonarOutputDir = sonarOutputDir,
         };
         config.SetConfigValue(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
-        var writer = new JsonPropertiesWriter(config, Substitute.For<ILogger>());
+        var writer = new JsonPropertiesWriter(config);
         writer.WriteSonarProjectInfo(new DirectoryInfo(projectBaseDir));
 
         PropertiesToString(writer).Should().BeIgnoringLineEndings(
@@ -521,7 +506,7 @@ public class JsonPropertiesWriterTest
     public void WriteSonarProjectInfo_EmptyValues()
     {
         var config = new AnalysisConfig { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
-        var writer = new JsonPropertiesWriter(config, Substitute.For<ILogger>());
+        var writer = new JsonPropertiesWriter(config);
         writer.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
         PropertiesToString(writer).Should().BeIgnoringLineEndings(
             $$"""
@@ -550,45 +535,6 @@ public class JsonPropertiesWriterTest
             """);
     }
 
-    [TestMethod]
-    public void Flush_WhenCalledTwice_ThrowsInvalidOperationException()
-    {
-        var writer = new JsonPropertiesWriter(
-            new AnalysisConfig
-            {
-                SonarProjectKey = "key",
-                SonarProjectName = "name",
-                SonarProjectVersion = "1.0",
-                SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
-            },
-            new TestLogger());
-        PropertiesToString(writer);
-
-        Action act = () => PropertiesToString(writer);
-        act.Should().ThrowExactly<InvalidOperationException>();
-    }
-
-    [TestMethod]
-    public void WriteSettingsForProject_WhenFlushed_ThrowsInvalidOperationException()
-    {
-        var writer = new JsonPropertiesWriter(
-            new AnalysisConfig
-            {
-                SonarProjectKey = "key",
-                SonarProjectName = "name",
-                SonarProjectVersion = "1.0",
-                SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
-            },
-            new TestLogger());
-        PropertiesToString(writer);
-
-        using (new AssertIgnoreScope())
-        {
-            Action act = () => writer.WriteSettingsForProject(new ProjectData(new ProjectInfo()));
-            act.Should().ThrowExactly<InvalidOperationException>();
-        }
-    }
-
     // Tests that analysis settings in the ProjectInfo are written to the file
     [TestMethod]
     public void JsonPropertiesWriter_AnalysisSettingsWritten()
@@ -613,7 +559,7 @@ public class JsonPropertiesWriterTest
         ];
         product.ReferencedFiles.Add(productFile);
 
-        var writer = new JsonPropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" }, new TestLogger());
+        var writer = new JsonPropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
         writer.WriteSettingsForProject(product);
 
         var jsonProperties = JsonPropertiesReader(writer.Flush());
@@ -642,31 +588,15 @@ public class JsonPropertiesWriterTest
 
         var config = new AnalysisConfig
         {
-            SonarOutputDir = @"C:\my_folder"
+            SonarOutputDir = Path.Combine(TestUtils.DriveRoot(), "my_folder")
         };
 
-        var writer = new JsonPropertiesWriter(config, new TestLogger());
+        var writer = new JsonPropertiesWriter(config);
         writer.WriteSettingsForProject(product);
         writer.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
 
-        // ToDo: SCAN4NET-747
-        // The following code, checks if a key exists in the properties.
-        // It should be re-written and extracted in its own class "JsonPropertiesUtils" as it seems to be needed for the PropertiesFileGeneratorTests
-        var jsonArray = writer.Flush();
         var workDirKey = projectKey + "." + SonarProperties.WorkingDirectory;
-        var found = false;
-        foreach (var item in jsonArray)
-        {
-            if (item is JObject jsonObject)
-            {
-                if (jsonObject.Properties().First().Value?.ToString() == workDirKey)
-                {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        found.Should().BeTrue();
+        PropertyWithValueExists(JsonPropertiesReader(writer.Flush()), workDirKey, Path.Combine(TestUtils.DriveRoot(), "my_folder", ".sonar", "mod0")).Should().BeTrue();
     }
 
     // Tests that global settings in the ProjectInfo are written to the file
@@ -682,7 +612,7 @@ public class JsonPropertiesWriterTest
             new("sonar.branch", "aBranch")
         };
 
-        var writer = new JsonPropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" }, new TestLogger());
+        var writer = new JsonPropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
         writer.WriteGlobalSettings(globalSettings);
 
         var jsonProperties = JsonPropertiesReader(writer.Flush());
@@ -695,7 +625,7 @@ public class JsonPropertiesWriterTest
     [TestMethod]
     public void AsMultiValueProperty_EncodeValues()
     {
-        var sut = new JsonPropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var sut = new JsonPropertiesWriter(new AnalysisConfig());
         sut.AppendKeyValue(
             "sonar",
             "multivalueproperty",
@@ -792,7 +722,7 @@ public class JsonPropertiesWriterTest
     }
 
     // ToDo: SCAN4NET-747
-    // this method should be moved/re-implemetented to its own class "JsonPropertiesUtils as it seems to be needed for the PropertiesFileGeneratorTests
+    // this method should be moved/re-implemented to its own class "JsonPropertiesUtils as it seems to be needed for the PropertiesFileGeneratorTests
     private static List<KeyValuePair<string, string>> JsonPropertiesReader(JArray jsonProperties)
     {
         var result = new List<KeyValuePair<string, string>>();
@@ -804,7 +734,7 @@ public class JsonPropertiesWriterTest
                 // [0]: { "key": "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectKey"}
                 // [1]: { "value": "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5"}
                 var propertyKey = jsonObject.Properties().First().Value.ToString();
-                var propertyValue = jsonObject.Properties().Last().Value.ToString().Trim('\"');
+                var propertyValue = jsonObject.Properties().Last().Value.ToString();
                 result.Add(new KeyValuePair<string, string>(propertyKey, propertyValue));
             }
             else
@@ -816,7 +746,7 @@ public class JsonPropertiesWriterTest
     }
 
     // ToDo: SCAN4NET-747
-    // this method should be moved/implemetented to its own class "JsonPropertiesUtils" as it seems to be needed for the PropertiesFileGeneratorTests
+    // this method should be moved/implemented to its own class "JsonPropertiesUtils" as it seems to be needed for the PropertiesFileGeneratorTests
     private static bool PropertyWithValueExists(List<KeyValuePair<string, string>> properties, string key, string value)
     {
         foreach (var entry in properties)

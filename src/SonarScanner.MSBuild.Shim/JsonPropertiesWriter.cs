@@ -26,7 +26,6 @@ public class JsonPropertiesWriter
 {
     private const string SonarSources = "sonar.sources";
     private const string SonarTests = "sonar.tests";
-    private readonly ILogger logger;
     private readonly AnalysisConfig config;
 
     /// <summary>
@@ -35,27 +34,14 @@ public class JsonPropertiesWriter
     private readonly IList<string> moduleKeys = [];
     private readonly JArray jsonArray = [];
 
-    // ToDo: why is this public?
-    public bool FinishedWriting { get; private set; }
-
-    public JsonPropertiesWriter(AnalysisConfig config, ILogger logger)
-    {
+    public JsonPropertiesWriter(AnalysisConfig config) =>
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     /// <summary>
     /// Finishes writing out any additional data then returns the whole of the content.
     /// </summary>
     public JArray Flush()
     {
-        if (FinishedWriting)
-        {
-            throw new InvalidOperationException();
-        }
-
-        FinishedWriting = true;
-
         Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
 
         AppendKeyValue("sonar.modules", string.Join(",", moduleKeys));
@@ -65,11 +51,6 @@ public class JsonPropertiesWriter
 
     public void WriteSettingsForProject(ProjectData projectData)
     {
-        if (FinishedWriting)
-        {
-            throw new InvalidOperationException();
-        }
-
         if (projectData is null)
         {
             throw new ArgumentNullException(nameof(projectData));
@@ -80,7 +61,7 @@ public class JsonPropertiesWriter
 
         var guid = projectData.Project.GetProjectGuidAsString();
 
-        AppendKeyValue(guid, SonarProperties.ProjectKey, string.IsNullOrEmpty(config.SonarProjectKey) ? guid : config.SonarProjectKey + ":" + guid);
+        AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
         AppendKeyValue(guid, SonarProperties.ProjectName, projectData.Project.ProjectName);
         AppendKeyValue(guid, SonarProperties.ProjectBaseDir, projectData.Project.GetDirectory().FullName);
 
@@ -99,11 +80,7 @@ public class JsonPropertiesWriter
                 && !PropertiesFileGenerator.IsReportFilePaths(x.Id)
                 && !PropertiesFileGenerator.IsTelemetryPaths(x.Id)))
             {
-                jsonArray.Add(new JObject
-                {
-                    { "key", $"{guid}.{setting.Id}" },
-                    { "value", setting.Value }
-                });
+                AppendKeyValue($"{guid}.{setting.Id}", setting.Value);
             }
 
             WriteAnalyzerOutputPaths(projectData);
