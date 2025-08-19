@@ -214,43 +214,23 @@ public class PostProcessor : IPostProcessor
 
     private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, string sonarAnalysisConfigFilePath, string propertiesFilePath)
     {
-        IList<string> args = new List<string>();
-        args.Add("SummaryReportBuilder");
-        args.Add(sonarAnalysisConfigFilePath);
-        args.Add(propertiesFilePath);
-        args.Add(ranToCompletion.ToString());
-
         logger.IncludeTimestamp = false;
-        tfsProcessor.Execute(config, args, propertiesFilePath);
+        tfsProcessor.Execute(config, ["SummaryReportBuilder", sonarAnalysisConfigFilePath, propertiesFilePath, ranToCompletion.ToString()], propertiesFilePath);
         logger.IncludeTimestamp = true;
     }
 
     private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, string sonarAnalysisConfigFilePath, string propertiesFilePath)
     {
-        if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
+        if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
-            ExecuteCoverageConverter(config, settings, propertiesFilePath);
+            coverageReportProcessor.ProcessCoverageReports(config, settings, propertiesFilePath, logger);
+            logger.LogInfo("Coverage report conversion completed.");
         }
-        else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
+        else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
             logger.IncludeTimestamp = false;
             tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, propertiesFilePath], propertiesFilePath);
             logger.IncludeTimestamp = true;
-        }
-    }
-
-    private void ExecuteCoverageConverter(AnalysisConfig config, IBuildSettings buildSettings, string fullPropertiesFilePath)
-    {
-        if (coverageReportProcessor.Initialize(config, buildSettings, fullPropertiesFilePath))
-        {
-            if (coverageReportProcessor.ProcessCoverageReports(logger))
-            {
-                logger.LogInfo("Coverage report conversion completed successfully.");
-            }
-            else
-            {
-                logger.LogWarning("Coverage report conversion has failed. Skipping...");
-            }
         }
     }
 

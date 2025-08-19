@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 
 namespace SonarScanner.MSBuild.TFS;
@@ -71,11 +67,7 @@ public class CoverageReportProcessor : ICoverageReportProcessor
     /// </summary>
     private void TryCreateCoverageReportProcessor(IBuildSettings settings)
     {
-        if (settings.BuildEnvironment == BuildEnvironment.TeamBuild)
-        {
-            processor = new BuildVNextCoverageReportProcessor(coverageReportConverter, logger);
-        }
-        else if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
+        if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
             processor = legacyTeamBuildFactory.BuildTfsLegacyCoverageReportProcessor();
         }
