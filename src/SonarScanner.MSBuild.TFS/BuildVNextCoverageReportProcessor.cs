@@ -39,9 +39,11 @@ public class BuildVNextCoverageReportProcessor
         this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
     }
 
-    public virtual void ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath, ILogger logger)
+    public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath, ILogger logger)
     {
         this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+        string[] vsTestReportsPaths = null;
+        string[] vsCoverageXmlReportsPaths = null;
         var trxFilePaths = new TrxFileReader(logger, fileWrapper, directoryWrapper).FindTrxFiles(settings.BuildDirectory);
 
         var reportsPathsPropertyWritten = false;
@@ -50,6 +52,7 @@ public class BuildVNextCoverageReportProcessor
             if (trxFilePaths.Any())
             {
                 WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxFilePaths.ToArray());
+                vsTestReportsPaths = trxFilePaths.ToArray();
                 reportsPathsPropertyWritten = true;
             }
         }
@@ -65,7 +68,9 @@ public class BuildVNextCoverageReportProcessor
             && config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) is null)
         {
             WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, coverageReportPaths.ToArray());
+            vsCoverageXmlReportsPaths = coverageReportPaths.ToArray();
         }
+        return new(vsTestReportsPaths, vsCoverageXmlReportsPaths);
     }
 
     internal IEnumerable<string> FindFallbackCoverageFiles()
@@ -195,5 +200,17 @@ public class BuildVNextCoverageReportProcessor
 
         // We solely rely on `Equals`
         public override int GetHashCode() => 0;
+    }
+
+    public record AdditionalProperties
+    {
+        public string[] VsTestReportsPaths { get; }
+        public string[] VsCoverageXmlReportsPaths { get; }
+
+        public AdditionalProperties(string[] vsTestReportsPaths, string[] vsCoverageXmlReportsPaths)
+        {
+            VsTestReportsPaths = vsTestReportsPaths;
+            VsCoverageXmlReportsPaths = vsCoverageXmlReportsPaths;
+        }
     }
 }
