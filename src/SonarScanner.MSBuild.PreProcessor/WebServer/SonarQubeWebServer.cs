@@ -131,7 +131,7 @@ internal class SonarQubeWebServer : SonarWebServer
 
     public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
     {
-        var uri = WebUtils.Escape("analysis/engine");
+        const string uri = "analysis/engine";
         logger.LogDebug(Resources.MSG_EngineDownloadUri, uri);
         return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
     }

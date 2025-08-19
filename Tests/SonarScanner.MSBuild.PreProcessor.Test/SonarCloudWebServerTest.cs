@@ -399,13 +399,13 @@ public class SonarCloudWebServerTest
         };
         var sut = CreateServer(downloader, downloader, new HttpMessageHandlerMock((r, c) => Task.FromResult(response)), logger);
 
-        var actual = await sut.DownloadJreAsync(CreateJreMetadata("http://localhost"));
+        var actual = await sut.DownloadJreAsync(CreateJreMetadata("http://localhost/path-to-jre"));
 
         using var stream = new MemoryStream(); // actual is not a memory stream because of how HttpClient reads it from the handler.
         actual.CopyTo(stream);
         stream.ToArray().Should().BeEquivalentTo([1, 2, 3]);
         downloader.ReceivedCalls().Should().BeEmpty();
-        logger.AssertDebugLogged("Downloading Java JRE from http://localhost/.");
+        logger.AssertDebugLogged("Downloading Java JRE from http://localhost/path-to-jre.");
     }
 
     [TestMethod]
@@ -414,7 +414,7 @@ public class SonarCloudWebServerTest
         var handler = new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new HttpRequestException()));
         var sut = CreateServer(handler: handler);
 
-        await sut.Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata("http://local"))).Should().ThrowAsync<HttpRequestException>();
+        await sut.Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata("http://localhost/path-to-jre"))).Should().ThrowAsync<HttpRequestException>();
     }
 
     [TestMethod]
@@ -423,7 +423,8 @@ public class SonarCloudWebServerTest
 
     [TestMethod]
     public async Task DownloadJreAsync_NullDownloadUrl_Failure() =>
-        await CreateServer().Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata(null))).Should().ThrowAsync<ArgumentNullException>();
+        await CreateServer().Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata(null))).Should().ThrowAsync<AnalysisException>()
+            .WithMessage("JreMetadata must contain a valid download URL.");
 
     [TestMethod]
     public async Task DownloadEngineAsync_Success()
@@ -437,28 +438,25 @@ public class SonarCloudWebServerTest
         };
         var sut = CreateServer(downloader, downloader, new HttpMessageHandlerMock((r, c) => Task.FromResult(response)), logger);
 
-        var actual = await sut.DownloadEngineAsync(CreateEngineMetadata("http://localhost"));
+        var actual = await sut.DownloadEngineAsync(CreateEngineMetadata("http://localhost/path-to-engine"));
 
         using var stream = new MemoryStream(); // actual is not a memory stream because of how HttpClient reads it from the handler.
         actual.CopyTo(stream);
         stream.ToArray().Should().BeEquivalentTo([1, 2, 3]);
         downloader.ReceivedCalls().Should().BeEmpty();
-        logger.AssertDebugLogged("Downloading Scanner Engine from http://localhost/");
+        logger.AssertDebugLogged("Downloading Scanner Engine from http://localhost/path-to-engine");
     }
 
     [TestMethod]
     public async Task DownloadEngineAsync_DownloadThrows_Failure() =>
         await CreateServer(handler: new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new HttpRequestException())))
-            .Invoking(async x => await x.DownloadEngineAsync(CreateEngineMetadata("http://local")))
+            .Invoking(async x => await x.DownloadEngineAsync(CreateEngineMetadata("http://localhost/path-to-engine")))
             .Should().ThrowAsync<HttpRequestException>();
 
     [TestMethod]
-    public async Task DownloadEngineAsync_NullMetadata_Failure() =>
-        await CreateServer().Invoking(async x => await x.DownloadEngineAsync(null)).Should().ThrowAsync<NullReferenceException>();
-
-    [TestMethod]
     public async Task DownloadEngineAsync_NullDownloadUrl_Failure() =>
-        await CreateServer().Invoking(async x => await x.DownloadEngineAsync(CreateEngineMetadata(null))).Should().ThrowAsync<ArgumentNullException>();
+        await CreateServer().Invoking(async x => await x.DownloadEngineAsync(CreateEngineMetadata(null))).Should().ThrowAsync<AnalysisException>()
+            .WithMessage("EngineMetadata must contain a valid download URL.");
 
     private static MemoryStream CreateCacheStream(IMessage message)
     {
@@ -549,5 +547,5 @@ public class SonarCloudWebServerTest
         new(null, null, null, url, null);
 
     private static EngineMetadata CreateEngineMetadata(string url) =>
-        new(null, null, new(url));
+        new(null, null, url);
 }

@@ -276,13 +276,15 @@ public abstract class SonarWebServer : ISonarWebServer
 
     private Dictionary<string, string> ParseSettingsResponse(string contents)
     {
-        var settings = new Dictionary<string, string>();
         var settingsArray = JObject.Parse(contents).Value<JArray>("settings");
-        foreach (var t in settingsArray)
+        var settings = new Dictionary<string, string>();
+        foreach (var prop in settingsArray)
         {
-            GetPropertyValue(settings, t);
+            foreach (var kvp in ParseProperty(prop))
+            {
+                settings[kvp.Key] = kvp.Value;
+            }
         }
-
         return CheckTestProjectPattern(settings);
     }
 
@@ -315,7 +317,7 @@ public abstract class SonarWebServer : ISonarWebServer
         return rule;
     }
 
-    private static void MultivalueToProps(Dictionary<string, string> props, string settingKey, JArray array)
+    private static IEnumerable<KeyValuePair<string, string>> ParseMultivalueProp(string settingKey, JArray array)
     {
         var id = 1;
         foreach (var obj in array.Children<JObject>())
@@ -324,29 +326,32 @@ public abstract class SonarWebServer : ISonarWebServer
             {
                 var key = string.Concat(settingKey, ".", id, ".", prop.Name);
                 var value = prop.Value.ToString();
-                props.Add(key, value);
+                yield return new KeyValuePair<string, string>(key, value);
             }
             id++;
         }
     }
 
-    private static void GetPropertyValue(Dictionary<string, string> settings, JToken token)
+    private static IEnumerable<KeyValuePair<string, string>> ParseProperty(JToken prop)
     {
-        var key = token["key"].ToString();
-        if (token["value"] is not null)
+        var key = prop["key"].ToString();
+        if (prop["value"] is not null)
         {
-            var value = token["value"].ToString();
-            settings.Add(key, value);
+            var value = prop["value"].ToString();
+            yield return new KeyValuePair<string, string>(prop["key"].ToString(), value);
         }
-        else if (token["fieldValues"] is not null)
+        else if (prop["fieldValues"] is not null)
         {
-            MultivalueToProps(settings, key, (JArray)token["fieldValues"]);
+            foreach (var kvp in ParseMultivalueProp(key, (JArray)prop["fieldValues"]))
+            {
+                yield return new KeyValuePair<string, string>(kvp.Key, kvp.Value);
+            }
         }
-        else if (token["values"] is not null)
+        else if (prop["values"] is not null)
         {
-            var array = (JArray)token["values"];
+            var array = (JArray)prop["values"];
             var value = string.Join(",", array.Values<string>());
-            settings.Add(key, value);
+            yield return new KeyValuePair<string, string>(prop["key"].ToString(), value);
         }
         else
         {

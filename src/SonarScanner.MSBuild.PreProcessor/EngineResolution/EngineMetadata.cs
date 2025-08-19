@@ -22,11 +22,11 @@ using SonarScanner.MSBuild.PreProcessor.Caching;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
-public sealed record EngineMetadata(string Filename, string Sha256, Uri DownloadUrl)
+public sealed record EngineMetadata(string Filename, string Sha256, string DownloadUrl)
 {
     public string Filename { get; } = Filename;
     public string Sha256 { get; } = Sha256;
-    public Uri DownloadUrl { get; } = DownloadUrl; // Optional, only exists for SonarCloud
+    public string DownloadUrl { get; } = DownloadUrl; // Optional, only exists for SonarCloud
 
     public FileDescriptor ToDescriptor() =>
         new(Filename, Sha256);
