@@ -425,13 +425,13 @@ public class SonarCloudWebServerTest
 
     private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string prepareReadResponse, HttpStatusCode prepareReadResponseCode = HttpStatusCode.OK) =>
         new(
-            async (request, _) => request.RequestUri == new Uri(cacheFullUrl)
-                ? new HttpResponseMessage { StatusCode = prepareReadResponseCode, Content = new StringContent(prepareReadResponse) }
-                : new HttpResponseMessage(HttpStatusCode.NotFound),
+            (request, _) => Task.FromResult(request.RequestUri == new Uri(cacheFullUrl)
+                                ? new HttpResponseMessage { StatusCode = prepareReadResponseCode, Content = new StringContent(prepareReadResponse) }
+                                : new HttpResponseMessage(HttpStatusCode.NotFound)),
             Token);
 
     private static HttpMessageHandlerMock MockHttpHandler(string cacheFullUrl, string ephemeralCacheUrl, Stream cacheData) =>
-        new(async (request, _) => request.RequestUri switch
+        new((request, _) => Task.FromResult(request.RequestUri switch
         {
             var url when url == new Uri(cacheFullUrl) => new HttpResponseMessage
             {
@@ -444,7 +444,7 @@ public class SonarCloudWebServerTest
                 Content = new StreamContent(cacheData),
             },
             _ => new HttpResponseMessage(HttpStatusCode.NotFound)
-        });
+        }));
 
     private static ProcessedArgs CreateLocalSettings(string projectKey,
                                                      string branch,
@@ -457,16 +457,16 @@ public class SonarCloudWebServerTest
         args.Organization.Returns(organization);
         args.TryGetSetting(SonarProperties.PullRequestBase, out Arg.Any<string>())
             .Returns(x =>
-            {
-                x[1] = branch;
-                return !string.IsNullOrWhiteSpace(branch);
-            });
+                {
+                    x[1] = branch;
+                    return !string.IsNullOrWhiteSpace(branch);
+                });
         args.TryGetSetting(tokenKey, out Arg.Any<string>())
             .Returns(x =>
-            {
-                x[1] = token;
-                return !string.IsNullOrWhiteSpace(token);
-            });
+                {
+                    x[1] = token;
+                    return !string.IsNullOrWhiteSpace(token);
+                });
         return args;
     }
 

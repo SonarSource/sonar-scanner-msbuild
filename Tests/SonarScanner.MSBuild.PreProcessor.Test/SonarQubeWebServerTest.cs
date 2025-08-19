@@ -303,7 +303,8 @@ public class SonarQubeWebServerTest
             .Returns(Task.FromResult(@"{ settings: [ { key: ""key"" } ] }"));
 
         await context.CreateServer(new Version("6.3")).Invoking(async x => await x.DownloadProperties(componentName, null))
-            .Should().ThrowAsync<ArgumentException>().WithMessage("Invalid property");
+            .Should().ThrowAsync<ArgumentException>()
+            .WithMessage("Invalid property");
     }
 
     [TestMethod]
