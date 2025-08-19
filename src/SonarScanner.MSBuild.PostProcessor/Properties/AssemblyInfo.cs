@@ -18,7 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
+using System.Runtime.CompilerServices;
 
 [assembly: AssemblyTitle("SonarScanner.MSBuild.PostProcessor")]
 [assembly: AssemblyProduct("SonarScanner.MSBuild.PostProcessor")]
+[assembly: InternalsVisibleTo("SonarScanner.MSBuild.PostProcessor.Test")]

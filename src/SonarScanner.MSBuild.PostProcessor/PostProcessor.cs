@@ -223,11 +223,12 @@ public class PostProcessor : IPostProcessor
     {
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
+            logger.LogInfo(Resources.MSG_ConvertingCoverageReports);
             coverageReportProcessor.ProcessCoverageReports(config, settings, propertiesFilePath, logger);
-            logger.LogInfo("Coverage report conversion completed.");
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
+            logger.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
             logger.IncludeTimestamp = false;
             tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, propertiesFilePath], propertiesFilePath);
             logger.IncludeTimestamp = true;

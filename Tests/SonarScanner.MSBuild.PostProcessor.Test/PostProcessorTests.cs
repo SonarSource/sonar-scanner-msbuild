@@ -50,6 +50,7 @@ public class PostProcessorTests
             SonarOutputDir = Environment.CurrentDirectory,
             SonarConfigDir = Environment.CurrentDirectory,
         };
+        config.SetBuildUri("http://test-build-uri");
         settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
         logger = new();
         tfsProcessor = Substitute.For<TfsProcessorWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
@@ -282,12 +283,12 @@ public class PostProcessorTests
     {
         sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(null, null, out var _).ReturnsForAnyArgs(x =>
             {
-                x[2] = new[] { "not null" };
+                x[2] = new[] { "Some Path" };
                 return true;
             });
         Execute().Should().BeFalse();
         sonarProjectPropertiesValidator.ReceivedWithAnyArgs().AreExistingSonarPropertiesFilesPresent(null, null, out var _);
-        logger.AssertErrorLogged("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: not null");
+        logger.AssertErrorLogged("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: Some Path");
     }
 
     [TestMethod]
@@ -305,57 +306,54 @@ public class PostProcessorTests
     [TestMethod]
     public void Execute_NotTeamBuild_NoCoverageProcessorCalled()
     {
-        settings = Substitute.For<IBuildSettings>();
-        settings.BuildEnvironment.Returns(BuildEnvironment.NotTeamBuild);
-        settings.BuildUri.Returns("http://test-build-uri");
-        config.SetBuildUri("http://test-build-uri");
+        SubstituteSettings(BuildEnvironment.NotTeamBuild);
 
         Execute().Should().BeTrue();
-        AssertTfsProcessorConvertCoverageCalledIfNetFramework(shouldBeCalled: false);
-        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(shouldBeCalled: false);
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        logger.AssertMessageNotLogged(Resources.MSG_ConvertingCoverageReports);
+        logger.AssertMessageNotLogged(Resources.MSG_TFSLegacyProcessorCalled);
     }
 
     [TestMethod]
     public void Execute_TeamBuild_CoverageReportProcessorCalled()
     {
-        settings = Substitute.For<IBuildSettings>();
-        settings.BuildEnvironment.Returns(BuildEnvironment.TeamBuild);
-        settings.BuildUri.Returns("http://test-build-uri");
-        config.SetBuildUri("http://test-build-uri");
+        SubstituteSettings(BuildEnvironment.TeamBuild);
 
         Execute().Should().BeTrue();
-        AssertTfsProcessorConvertCoverageCalledIfNetFramework(shouldBeCalled: false);
-        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(shouldBeCalled: false);
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         AssertProcessCoverageReportsCalledIfNetFramework();
+        logger.AssertInfoLogged("Converting coverage reports.");
+        logger.AssertMessageNotLogged(Resources.MSG_TFSLegacyProcessorCalled);
     }
 
     [TestMethod]
     public void Execute_LegacyTeamBuild_TfsProcessorCalled()
     {
-        settings = Substitute.For<IBuildSettings>();
-        settings.BuildEnvironment.Returns(BuildEnvironment.LegacyTeamBuild);
-        settings.BuildUri.Returns("http://test-build-uri");
-        config.SetBuildUri("http://test-build-uri");
+        SubstituteSettings(BuildEnvironment.LegacyTeamBuild);
 
         Execute().Should().BeTrue();
         AssertTfsProcessorConvertCoverageCalledIfNetFramework();
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        logger.AssertMessageNotLogged(Resources.MSG_ConvertingCoverageReports);
+        logger.AssertInfoLogged("Calling legacy TFS processor.");
     }
 
     [TestMethod]
     public void Execute_LegacyTeamBuild_BuildUrisDoNotMatch_Fail()
     {
-        settings = Substitute.For<IBuildSettings>();
-        settings.BuildEnvironment.Returns(BuildEnvironment.LegacyTeamBuild);
-        settings.BuildUri.Returns("http://test-build-uri");
+        SubstituteSettings(BuildEnvironment.LegacyTeamBuild);
         config.SetBuildUri("http://other-uri");
 
         Execute().Should().BeFalse();
-        AssertTfsProcessorConvertCoverageCalledIfNetFramework(shouldBeCalled: false);
-        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(shouldBeCalled: false);
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        logger.AssertMessageNotLogged(Resources.MSG_ConvertingCoverageReports);
+        logger.AssertMessageNotLogged(Resources.MSG_TFSLegacyProcessorCalled);
         logger.AssertErrorLogged("""
             Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
             Build Uri from environment: http://test-build-uri
@@ -368,17 +366,16 @@ public class PostProcessorTests
     [TestMethod]
     public void Execute_LegacyTeamBuild_SkipLegacyCodeCoverage_TfsProcessorCalledOnlyForSummaryReportBuilder()
     {
-        settings = Substitute.For<IBuildSettings>();
-        settings.BuildEnvironment.Returns(BuildEnvironment.LegacyTeamBuild);
-        settings.BuildUri.Returns("http://test-build-uri");
-        config.SetBuildUri("http://test-build-uri");
+        SubstituteSettings(BuildEnvironment.LegacyTeamBuild);
         using var env = new EnvironmentVariableScope();
         env.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
 
         Execute().Should().BeTrue();
-        AssertTfsProcessorConvertCoverageCalledIfNetFramework(shouldBeCalled: false);
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        logger.AssertMessageNotLogged(Resources.MSG_ConvertingCoverageReports);
+        logger.AssertMessageNotLogged(Resources.MSG_TFSLegacyProcessorCalled);
     }
 
     private bool Execute(string arg) =>
@@ -441,4 +438,11 @@ public class PostProcessorTests
 
     private void VerifyTargetsUninstaller() =>
         targetsUninstaller.Received(1).UninstallTargets(Arg.Any<string>());
+
+    private void SubstituteSettings(BuildEnvironment environment)
+    {
+        settings = Substitute.For<IBuildSettings>();
+        settings.BuildEnvironment.Returns(environment);
+        settings.BuildUri.Returns(config.GetBuildUri());
+    }
 }
