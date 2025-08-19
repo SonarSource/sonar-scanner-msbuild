@@ -22,6 +22,7 @@ using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
 using static FluentAssertions.FluentActions;
+using static SonarScanner.MSBuild.TFS.BuildVNextCoverageReportProcessor;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test;
 
@@ -40,6 +41,7 @@ public class PostProcessorTests
     private readonly TfsProcessorWrapper tfsProcessor;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
+    private readonly IFileWrapper fileWrapper;
     private IBuildSettings settings;
 
     public PostProcessorTests(TestContext testContext)
@@ -61,13 +63,16 @@ public class PostProcessorTests
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         coverageReportProcessor = Substitute
             .For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>());
+        coverageReportProcessor.ProcessCoverageReports(null, null, null, null).ReturnsForAnyArgs(new AdditionalProperties([@"VS\Test\Path"], [@"VS\XML\Coverage\Path"]));
+        fileWrapper = Substitute.For<IFileWrapper>();
         sut = new PostProcessor(
             scanner,
             logger,
             targetsUninstaller,
             tfsProcessor,
             sonarProjectPropertiesValidator,
-            coverageReportProcessor);
+            coverageReportProcessor,
+            fileWrapper);
     }
 
     [TestMethod]
@@ -323,6 +328,15 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         AssertProcessCoverageReportsCalledIfNetFramework();
+
+#if NETFRAMEWORK
+        fileWrapper.Received().AppendAllText(
+            Arg.Any<string>(),
+            Arg.Is<string>(x => x.Contains("sonar.cs.vstest.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "Test", "Path"))));
+        fileWrapper.Received().AppendAllText(
+            Arg.Any<string>(),
+            Arg.Is<string>(x => x.Contains("sonar.cs.vscoveragexml.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "XML", "Coverage", "Path"))));
+#endif
     }
 
     [TestMethod]
@@ -434,5 +448,15 @@ public class PostProcessorTests
         settings = Substitute.For<IBuildSettings>();
         settings.BuildEnvironment.Returns(environment);
         settings.BuildUri.Returns(config.GetBuildUri());
+    }
+
+    private static string PathCombineWithEscape(params string[] parts)
+    {
+        var separator = Path.DirectorySeparatorChar.ToString();
+        if (separator == @"\")
+        {
+            separator = @"\\";
+        }
+        return string.Join(separator, parts);
     }
 }

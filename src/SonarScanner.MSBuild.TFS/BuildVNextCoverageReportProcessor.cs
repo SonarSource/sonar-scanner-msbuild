@@ -51,7 +51,6 @@ public class BuildVNextCoverageReportProcessor
         {
             if (trxFilePaths.Any())
             {
-                WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, trxFilePaths.ToArray());
                 vsTestReportsPaths = trxFilePaths.ToArray();
                 reportsPathsPropertyWritten = true;
             }
@@ -67,7 +66,6 @@ public class BuildVNextCoverageReportProcessor
             && coverageReportPaths.Any()
             && config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) is null)
         {
-            WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, coverageReportPaths.ToArray());
             vsCoverageXmlReportsPaths = coverageReportPaths.ToArray();
         }
         return new(vsTestReportsPaths, vsCoverageXmlReportsPaths);
