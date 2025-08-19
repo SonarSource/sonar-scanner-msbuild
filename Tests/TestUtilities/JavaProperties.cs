@@ -29,7 +29,7 @@ namespace TestUtilities;
 /// application <see cref="string"/> are Unicode - but all values outside the basic US-ASCII set are escaped.
 /// </summary>
 /// Copied from https://github.com/Kajabity/Kajabity-Tools
-// ToDo: Remove this class in https://sonarsource.atlassian.net/browse/SCAN4NET-721
+// ToDo: Remove this class in SCAN4NET-721
 public class JavaProperties : Hashtable
 {
     /// <summary>

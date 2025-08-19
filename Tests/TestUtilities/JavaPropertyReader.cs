@@ -28,7 +28,7 @@ namespace TestUtilities;
 /// This class reads Java style properties from an input stream.
 /// </summary>
 /// Copied from https://github.com/Kajabity/Kajabity-Tools
-// ToDo: Remove this class in https://sonarsource.atlassian.net/browse/SCAN4NET-721
+// ToDo: Remove this class in SCAN4NET-721
 public class JavaPropertyReader
 {
     private const int MATCH_end_of_input = 1;

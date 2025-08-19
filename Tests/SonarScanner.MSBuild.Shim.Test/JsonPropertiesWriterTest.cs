@@ -649,7 +649,7 @@ public class JsonPropertiesWriterTest
         writer.WriteSettingsForProject(product);
         writer.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
 
-        // ToDo: https://sonarsource.atlassian.net/browse/SCAN4NET-747
+        // ToDo: SCAN4NET-747
         // The following code, checks if a key exists in the properties.
         // It should be re-written and extracted in its own class "JsonPropertiesUtils" as it seems to be needed for the PropertiesFileGeneratorTests
         var jsonArray = writer.Flush();
@@ -845,7 +845,7 @@ public class JsonPropertiesWriterTest
         return projectData;
     }
 
-    // ToDo: https://sonarsource.atlassian.net/browse/SCAN4NET-747
+    // ToDo: SCAN4NET-747
     // this method should be moved/re-implemetented to its own class "JsonPropertiesUtils as it seems to be needed for the PropertiesFileGeneratorTests
     private static List<KeyValuePair<string, string>> JsonPropertiesReader(JArray jsonProperties)
     {
@@ -869,7 +869,7 @@ public class JsonPropertiesWriterTest
         return result;
     }
 
-    // ToDo: https://sonarsource.atlassian.net/browse/SCAN4NET-747
+    // ToDo: SCAN4NET-747
     // this method should be moved/implemetented to its own class "JsonPropertiesUtils" as it seems to be needed for the PropertiesFileGeneratorTests
     private static bool PropertyWithValueExists(List<KeyValuePair<string, string>> properties, string key, string value)
     {

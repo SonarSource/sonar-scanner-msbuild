@@ -22,7 +22,7 @@ using System.Globalization;
 
 namespace SonarScanner.MSBuild.Shim;
 
-// ToDo: Remove this class in https://sonarsource.atlassian.net/browse/SCAN4NET-721
+// ToDo: Remove this class in SCAN4NET-721
 public class PropertiesWriter
 {
     private const string SonarSources = "sonar.sources";

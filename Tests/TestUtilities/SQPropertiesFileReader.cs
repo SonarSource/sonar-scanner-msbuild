@@ -23,7 +23,7 @@ namespace TestUtilities;
 /// <summary>
 /// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-scanner.properties).
 /// </summary>
-/// ToDo: Remove this class in https://sonarsource.atlassian.net/browse/SCAN4NET-721 it's used only for the PropertiesWriter
+/// ToDo: Remove this class in SCAN4NET-721 it's used only for the PropertiesWriter
 public class SQPropertiesFileReader
 {
     /// <summary>
