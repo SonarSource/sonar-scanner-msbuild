@@ -227,7 +227,7 @@ public class PostProcessor : IPostProcessor
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
             logger.LogInfo(Resources.MSG_ConvertingCoverageReports);
-            var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings, propertiesFilePath, logger);
+            var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings, logger);
             WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
             WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
         }
@@ -240,8 +240,6 @@ public class PostProcessor : IPostProcessor
         }
     }
 
-#endif
-
     private void WriteProperty(string propertiesFilePath, string property, string[] paths)
     {
         if (paths is not null)
@@ -249,6 +247,8 @@ public class PostProcessor : IPostProcessor
             fileWrapper.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
         }
     }
+
+#endif
 
     private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, string propertiesFilePath)
     {

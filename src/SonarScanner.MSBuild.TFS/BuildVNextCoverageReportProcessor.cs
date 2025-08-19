@@ -39,7 +39,7 @@ public class BuildVNextCoverageReportProcessor
         this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
     }
 
-    public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath, ILogger logger)
+    public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings, ILogger logger)
     {
         this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
         string[] vsTestReportsPaths = null;
@@ -177,9 +177,6 @@ public class BuildVNextCoverageReportProcessor
         vsCoverageXmlPaths = xmlFileNames;
         return true;
     }
-
-    private void WriteProperty(string propertiesFilePath, string property, string[] paths) =>
-        fileWrapper.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
 
     internal class FileWithContentHash
     {
