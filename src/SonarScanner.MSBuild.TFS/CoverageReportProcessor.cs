@@ -24,33 +24,26 @@ namespace SonarScanner.MSBuild.TFS;
 
 public class CoverageReportProcessor : ICoverageReportProcessor
 {
+    private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
     private ICoverageReportProcessor processor;
     private bool initializedSuccessfully;
 
-    private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
-    private readonly ICoverageReportConverter coverageReportConverter;
-    private readonly ILogger logger;
-
-    public CoverageReportProcessor(ILegacyTeamBuildFactory legacyTeamBuildFactory,
-        ICoverageReportConverter coverageReportConverter, ILogger logger)
+    public CoverageReportProcessor(ILegacyTeamBuildFactory legacyTeamBuildFactory)
     {
         this.legacyTeamBuildFactory
             = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
-        this.coverageReportConverter
-            = coverageReportConverter ?? throw new ArgumentNullException(nameof(coverageReportConverter));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
     {
-        if (settings == null)
+        if (settings is null)
         {
             throw new ArgumentNullException(nameof(settings));
         }
 
         TryCreateCoverageReportProcessor(settings);
 
-        initializedSuccessfully = (processor != null && processor.Initialize(config, settings, propertiesFilePath));
+        initializedSuccessfully = processor is not null && processor.Initialize(config, settings, propertiesFilePath);
         return initializedSuccessfully;
     }
 

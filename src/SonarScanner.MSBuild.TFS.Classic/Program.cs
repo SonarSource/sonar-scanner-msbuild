@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 
 namespace SonarScanner.MSBuild.TFS.Classic;
@@ -91,8 +88,7 @@ public static class Program
 
     private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, IBuildSettings buildSettings, string fullPropertiesFilePath)
     {
-        var binaryConverter = new BinaryToXmlCoverageReportConverter(logger);
-        var coverageReportProcessor = new CoverageReportProcessor(teamBuildFactory, binaryConverter, logger);
+        var coverageReportProcessor = new CoverageReportProcessor(teamBuildFactory);
 
         if (coverageReportProcessor.Initialize(config, buildSettings, fullPropertiesFilePath))
         {
