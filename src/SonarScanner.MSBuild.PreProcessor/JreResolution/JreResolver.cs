@@ -19,12 +19,39 @@
  */
 
 using SonarScanner.MSBuild.PreProcessor.Caching;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
-public class JreResolver(ISonarWebServer server, JreDownloader downloader, ILogger logger) : IJreResolver
+public class JreResolver : IJreResolver
 {
+    private readonly ISonarWebServer server;
+    private readonly ILogger logger;
+    private readonly IUnpackerFactory unpackerFactory;
+    private readonly IDirectoryWrapper directoryWrapper;
+    private readonly IFileWrapper fileWrapper;
+    private readonly IFilePermissionsWrapper filePermissionsWrapper;
+    private readonly CachedDownloader cachedDownloader;
+
+    public JreResolver(ISonarWebServer server,
+                       ILogger logger,
+                       IFilePermissionsWrapper filePermissionsWrapper,
+                       CachedDownloader cachedDownloader,
+                       IUnpackerFactory unpackerFactory = null,
+                       IDirectoryWrapper directoryWrapper = null,
+                       IFileWrapper fileWrapper = null)
+    {
+        this.server = server;
+        this.logger = logger;
+        this.filePermissionsWrapper = filePermissionsWrapper;
+        this.cachedDownloader = cachedDownloader;
+        this.unpackerFactory = unpackerFactory ?? UnpackerFactory.Instance;
+        this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
+        this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
+    }
+
     public async Task<string> ResolveJrePath(ProcessedArgs args)
     {
         logger.LogDebug(Resources.MSG_JreResolver_Resolving, string.Empty);
@@ -54,32 +81,36 @@ public class JreResolver(ISonarWebServer server, JreDownloader downloader, ILogg
         }
 
         var descriptor = metadata.ToDescriptor();
-        var result = downloader.IsJreCached(descriptor);
-        switch (result)
+        if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, descriptor.Filename) is { } unpacker)
         {
-            case CacheHit hit:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.FilePath);
-                return hit.FilePath;
-            case CacheMiss:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
-                return await DownloadJre(metadata, descriptor);
-            case CacheError error:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, error.Message);
-                return null;
+            var jreDownloader = new JreDownloader(logger, directoryWrapper, fileWrapper, cachedDownloader, unpacker, descriptor);
+            var result = jreDownloader.IsJrecached();
+            switch (result)
+            {
+                case CacheHit hit:
+                    logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.FilePath);
+                    return hit.FilePath;
+                case CacheMiss:
+                    logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
+                    return await DownloadJre(jreDownloader, metadata);
+                case CacheError failure:
+                    logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
+                    return null;
+                default:
+                    throw new NotSupportedException("File Resolution is expected to be Success, CacheMiss, or Error.");
+            }
         }
-
-        throw new NotSupportedException("Cache result is expected to be Hit, Miss, or Failure.");
-    }
-
-    private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor)
-    {
-        if (cache.CreateUnpacker(descriptor) is CacheFailure failure)
+        else
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, failure.Message);
+            logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, string.Format(Resources.ERR_JreArchiveFormatNotSupported, descriptor.Filename));
             return null;
         }
-        var result = await DownloadAndUnpackJre(metadata, descriptor);
-        if (result is CacheHit success)
+    }
+
+    private async Task<string> DownloadJre(JreDownloader jreDownloader, JreMetadata metadata)
+    {
+        var result = await jreDownloader.DownloadJreAsync(() => server.DownloadJreAsync(metadata));
+        if (result is DownloadSuccess success)
         {
             logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, success.FilePath);
             return success.FilePath;
@@ -90,15 +121,6 @@ public class JreResolver(ISonarWebServer server, JreDownloader downloader, ILogg
             return null;
         }
         throw new NotSupportedException("Download result is expected to be Hit or Failure.");
-    }
-
-    private async Task<CacheResult> DownloadAndUnpackJre(JreMetadata metadata, JreDescriptor descriptor)
-    {
-        logger.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
-        var downloadResult = await cache.DownloadFileAsync(descriptor, () => server.DownloadJreAsync(metadata));
-        return downloadResult is CacheHit downloadSucces
-            ? cache.UnpackJre(downloadSucces.FilePath, descriptor)
-            : downloadResult;
     }
 
     private bool IsValid(ProcessedArgs args)

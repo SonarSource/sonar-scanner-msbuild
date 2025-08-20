@@ -104,8 +104,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     {
         var filePermissionsWrapper = new FilePermissionsWrapper(new OperatingSystemProvider(FileWrapper.Instance, logger));
         var cachedDownloader = new CachedDownloader(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, sonarUserHome);
-        var jreDownloader = new JreDownloader(logger, cachedDownloader, DirectoryWrapper.Instance, FileWrapper.Instance, UnpackerFactory.Instance, filePermissionsWrapper);
-        return new JreResolver(server, jreDownloader, logger);
+        return new JreResolver(server, logger, filePermissionsWrapper, cachedDownloader);
     }
 
     private bool ValidateServerUrl(string serverUrl)
