@@ -326,7 +326,7 @@ public class PropertiesFileGeneratorTests_MultiTarget
     {
         result.FullPropertiesFilePath.Should().NotBeNull("Expecting the sonar-scanner properties file to have been set");
 
-        var matches = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
+        var matches = result.ProjectsByStatus(ProjectInfoValidity.Valid);
         matches.Should().NotBeEmpty("Expecting at least one valid ProjectInfo file to exist");
 
         TestContext.AddResultFile(result.FullPropertiesFilePath);
@@ -338,7 +338,7 @@ public class PropertiesFileGeneratorTests_MultiTarget
     {
         result.FullPropertiesFilePath.Should().BeNull("Expecting the sonar-scanner properties file to have been set");
 
-        var matches = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
+        var matches = result.ProjectsByStatus(ProjectInfoValidity.Valid);
         matches.Should().BeEmpty("Expecting no valid ProjectInfo files to exist");
 
         logger.AssertErrorsLogged(1);

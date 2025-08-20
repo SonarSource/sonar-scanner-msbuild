@@ -364,7 +364,7 @@ public class PostProcessorTests
             Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
             Build Uri from environment: http://test-build-uri
             Build Uri from config: http://other-uri
-            Analysis config file: 
+            Analysis config file: Path-to-SonarQubeAnalysisConfig.xml
             Please delete the analysis config file and try the build again.
             """);
     }
@@ -390,21 +390,15 @@ public class PostProcessorTests
         args ??= [];
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
         var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
-        var listOfProjects = new List<ProjectData>
-        {
-            new(ProjectInfo.Load(projectInfo))
-        };
-
         var propertiesFileGenerator = Substitute.For<PropertiesFileGenerator>(config, logger);
         propertiesFileGenerator
-            .TryWriteProperties(Arg.Any<PropertiesWriter>(), out _)
+            .TryWriteProperties(Arg.Any<PropertiesWriter>(), Arg.Any<ScannerEngineInput>(), out _)
             .Returns(true);
 
-        var projectInfoAnalysisResult = new ProjectInfoAnalysisResult();
-        projectInfoAnalysisResult.Projects.AddRange(listOfProjects);
-        projectInfoAnalysisResult.RanToCompletion = true;
-        projectInfoAnalysisResult.FullPropertiesFilePath = withProject ? Path.Combine(testDir, "sonar-project.properties") : null;
-
+        var projectInfoAnalysisResult = new ProjectInfoAnalysisResult(
+            [new(ProjectInfo.Load(projectInfo))],
+            null,
+            withProject ? Path.Combine(testDir, "sonar-project.properties") : null) { RanToCompletion = true };
         propertiesFileGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
         sut.SetPropertiesFileGenerator(propertiesFileGenerator);
         var success = sut.Execute(args, config, settings);
@@ -448,6 +442,7 @@ public class PostProcessorTests
         settings = Substitute.For<IBuildSettings>();
         settings.BuildEnvironment.Returns(environment);
         settings.BuildUri.Returns(config.GetBuildUri());
+        settings.AnalysisConfigFilePath.Returns("Path-to-SonarQubeAnalysisConfig.xml");
     }
 
     private static string PathCombineWithEscape(params string[] parts)

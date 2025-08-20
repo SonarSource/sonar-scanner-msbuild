@@ -63,7 +63,7 @@ public class ProjectInfoReportBuilder
 
     private void Generate()
     {
-        IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
+        IEnumerable<ProjectInfo> validProjects = result.ProjectsByStatus(ProjectInfoValidity.Valid);
 
         WriteTitle(Resources.REPORT_ProductProjectsTitle);
         WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Product));
@@ -108,7 +108,7 @@ public class ProjectInfoReportBuilder
 
         foreach (var status in statuses)
         {
-            projects = projects.Concat(result.GetProjectsByStatus(status));
+            projects = projects.Concat(result.ProjectsByStatus(status));
         }
 
         if (!projects.Any())

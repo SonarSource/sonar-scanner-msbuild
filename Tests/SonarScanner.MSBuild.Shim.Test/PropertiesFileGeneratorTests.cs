@@ -1645,19 +1645,19 @@ public class PropertiesFileGeneratorTests
 
     private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, ProjectInfoAnalysisResult actual)
     {
-        var matches = actual.GetProjectsByStatus(expectedStatus).Where(p => p.ProjectName.Equals(expectedProjectName));
+        var matches = actual.ProjectsByStatus(expectedStatus).Where(p => p.ProjectName.Equals(expectedProjectName));
         matches.Should().ContainSingle("ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}", expectedProjectName, expectedStatus);
     }
 
     private static void AssertNoValidProjects(ProjectInfoAnalysisResult actual)
     {
-        IEnumerable<ProjectInfo> matches = actual.GetProjectsByStatus(ProjectInfoValidity.Valid);
+        IEnumerable<ProjectInfo> matches = actual.ProjectsByStatus(ProjectInfoValidity.Valid);
         matches.Should().BeEmpty("Not expecting to find any valid ProjectInfo files");
     }
 
     private static void AssertValidProjectsExist(ProjectInfoAnalysisResult actual)
     {
-        IEnumerable<ProjectInfo> matches = actual.GetProjectsByStatus(ProjectInfoValidity.Valid);
+        IEnumerable<ProjectInfo> matches = actual.ProjectsByStatus(ProjectInfoValidity.Valid);
         matches.Should().NotBeEmpty("Expecting at least one valid ProjectInfo file to exist");
     }
 
