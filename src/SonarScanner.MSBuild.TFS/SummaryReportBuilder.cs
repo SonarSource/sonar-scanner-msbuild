@@ -58,8 +58,7 @@ public class SummaryReportBuilder : ISummaryReportBuilder
 
     public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, ILogger logger)
     {
-        this.legacyTeamBuildFactory
-            = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
+        this.legacyTeamBuildFactory = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -72,15 +71,10 @@ public class SummaryReportBuilder : ISummaryReportBuilder
     {
         this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-
-        result = new ProjectInfoAnalysisResult();
-        result.RanToCompletion = ranToCompletion;
-        result.FullPropertiesFilePath = fullPropertiesFilePath;
-
-        new PropertiesFileGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), out var allProjects);
-
-        result.Projects.AddRange(allProjects);
-
+        var engineInput = new ScannerEngineInput(config);
+        // ToDo: SCAN4NET-778 Untangle this mess. TryWriteProperties only needs project list, result doesn't need to be here at all
+        new PropertiesFileGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), engineInput, out var allProjects);
+        result = new ProjectInfoAnalysisResult(allProjects, engineInput, fullPropertiesFilePath) { RanToCompletion = ranToCompletion };
         GenerateReports(logger);
     }
 
@@ -110,7 +104,7 @@ public class SummaryReportBuilder : ISummaryReportBuilder
             throw new ArgumentNullException(nameof(result));
         }
 
-        var validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
+        var validProjects = result.ProjectsByStatus(ProjectInfoValidity.Valid);
 
         var summaryData = new SummaryReportData
         {

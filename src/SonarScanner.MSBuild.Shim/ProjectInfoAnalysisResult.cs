@@ -18,22 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.Shim;
 
 public class ProjectInfoAnalysisResult
 {
-    public List<ProjectData> Projects { get; } = new List<ProjectData>();
+    public ProjectData[] Projects { get; }
+    public ScannerEngineInput ScannerEngineInput { get; }
+    public string FullPropertiesFilePath { get; }   // ToDo: Remove in SCAN4NET-721
+    public bool RanToCompletion { get; set; }       // ToDo: Remove this tangle in SCAN4NET-721, it can only be false when sonar-project.properties file already exists
 
-    public bool RanToCompletion { get; set; }
-
-    public string FullPropertiesFilePath { get; set; }
-
-    public ICollection<ProjectInfo> GetProjectsByStatus(ProjectInfoValidity status)
+    public ProjectInfoAnalysisResult(ProjectData[] projects, ScannerEngineInput scannerEngineInput = null, string fullPropertiesFilePath = null)
     {
-        return Projects.Where(p => p.Status == status).Select(p => p.Project).ToList();
+        Projects = projects;
+        ScannerEngineInput = scannerEngineInput;            // Can be null when there are no valid projects
+        FullPropertiesFilePath = fullPropertiesFilePath;    // Can be null when there are no valid projects
     }
+
+    public ICollection<ProjectInfo> ProjectsByStatus(ProjectInfoValidity status) =>
+        Projects.Where(x => x.Status == status).Select(x => x.Project).ToList();
 }

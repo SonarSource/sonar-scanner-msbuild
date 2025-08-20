@@ -93,33 +93,28 @@ public class PropertiesFileGenerator
     public virtual ProjectInfoAnalysisResult GenerateFile()
     {
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
-        var result = new ProjectInfoAnalysisResult();
-        var propertiesFileWriter = new PropertiesWriter(analysisConfig);
+        var legacyWriter = new PropertiesWriter(analysisConfig);
         var engineInput = new ScannerEngineInput(analysisConfig);
         logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
-        if (TryWriteProperties(propertiesFileWriter, engineInput, out var projects))
+        if (TryWriteProperties(legacyWriter, engineInput, out var projects))
         {
-            var contents = propertiesFileWriter.Flush();
+            var contents = legacyWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
             logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
-            result.FullPropertiesFilePath = projectPropertiesPath;
+            return new ProjectInfoAnalysisResult(projects, engineInput, projectPropertiesPath);
         }
         else
         {
             logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+            return new ProjectInfoAnalysisResult(projects);
         }
-        result.Projects.AddRange(projects);
-        return result;
     }
 
-    // FixMe: Delete this method after implementing JsonWriter
-    public virtual bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects) =>
-        TryWriteProperties(writer, null, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
+    public virtual bool TryWriteProperties(PropertiesWriter legacyWriter, ScannerEngineInput engineInput, out ProjectData[] allProjects) =>
+        TryWriteProperties(legacyWriter, engineInput, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
 
-    public bool TryWriteProperties(PropertiesWriter writer, ScannerEngineInput engineInput, out IEnumerable<ProjectData> allProjects) =>
-        TryWriteProperties(writer, engineInput, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
-
-    public bool TryWriteProperties(PropertiesWriter writer, ScannerEngineInput engineInput, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
+    // ToDo: SCAN4NET-778 Untangle this mess. allProjects should be input, not an output here
+    public bool TryWriteProperties(PropertiesWriter legacyWriter, ScannerEngineInput engineInput, IList<ProjectInfo> projects, out ProjectData[] allProjects)
     {
         if (projects.Count == 0)
         {
@@ -130,15 +125,15 @@ public class PropertiesFileGenerator
 
         var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
         FixSarifAndEncoding(projects, analysisProperties);
-        allProjects = projects.GroupBy(x => x.ProjectGuid).Select(ToProjectData).ToList();
-        var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToList();
-        if (validProjects.Count == 0)
+        allProjects = projects.GroupBy(x => x.ProjectGuid).Select(ToProjectData).ToArray();
+        var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
+        if (validProjects.Length == 0)
         {
             logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
             return false;
         }
 
-        var projectDirectories = validProjects.Select(x => x.Project.GetDirectory()).ToList();
+        var projectDirectories = validProjects.Select(x => x.Project.GetDirectory()).ToArray();
         var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
         if (projectBaseDir is null)
         {
@@ -156,19 +151,19 @@ public class PropertiesFileGenerator
 
         if (analysisFiles.Sources.Count == 0
             && analysisFiles.Tests.Count == 0
-            && validProjects.TrueForAll(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
+            && validProjects.All(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
         {
             logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
             return false;
         }
 
-        writer.WriteSonarProjectInfo(projectBaseDir);
-        writer.WriteSharedFiles(analysisFiles);
+        legacyWriter.WriteSonarProjectInfo(projectBaseDir);
+        legacyWriter.WriteSharedFiles(analysisFiles);
         foreach (var validProject in validProjects)
         {
-            writer.WriteSettingsForProject(validProject);
+            legacyWriter.WriteSettingsForProject(validProject);
         }
-        writer.WriteGlobalSettings(analysisProperties);
+        legacyWriter.WriteGlobalSettings(analysisProperties);
         return true;
     }
 

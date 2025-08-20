@@ -18,14 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Shim.Test;
 
 [TestClass]
@@ -37,7 +29,7 @@ public class ProjectInfoReportBuilderTests
     public void PIRB_WriteSummaryReport_InvalidArgs_Throws()
     {
         var analysisConfig = new AnalysisConfig();
-        var analysisResult = new ProjectInfoAnalysisResult();
+        var analysisResult = new ProjectInfoAnalysisResult([]);
         var loggerMock = Substitute.For<ILogger>();
 
         // 1. Invalid analysis config
@@ -56,36 +48,22 @@ public class ProjectInfoReportBuilderTests
     [TestMethod]
     public void PIRB_WriteSummaryReport_ValidArgs_FileCreated()
     {
-        // Arrange
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
-        var analysisConfig = new AnalysisConfig()
-        {
-            SonarOutputDir = testDir
-        };
-
-        var analysisResult = new ProjectInfoAnalysisResult();
-
-        analysisResult.Projects.Add(CreateProjectData("project1", ProjectType.Product, ProjectInfoValidity.ExcludeFlagSet));
-
-        analysisResult.Projects.Add(CreateProjectData("project2", ProjectType.Product, ProjectInfoValidity.InvalidGuid));
-        analysisResult.Projects.Add(CreateProjectData("project3", ProjectType.Product, ProjectInfoValidity.InvalidGuid));
-
-        analysisResult.Projects.Add(CreateProjectData("project4", ProjectType.Product, ProjectInfoValidity.NoFilesToAnalyze));
-        analysisResult.Projects.Add(CreateProjectData("project5", ProjectType.Test, ProjectInfoValidity.NoFilesToAnalyze));
-        analysisResult.Projects.Add(CreateProjectData("project6", ProjectType.Test, ProjectInfoValidity.NoFilesToAnalyze));
-
-        analysisResult.Projects.Add(CreateProjectData("project7", ProjectType.Test, ProjectInfoValidity.Valid));
-        analysisResult.Projects.Add(CreateProjectData("project8", ProjectType.Test, ProjectInfoValidity.Valid));
-        analysisResult.Projects.Add(CreateProjectData("project9", ProjectType.Test, ProjectInfoValidity.Valid));
-        analysisResult.Projects.Add(CreateProjectData("projectA", ProjectType.Test, ProjectInfoValidity.Valid));
-
+        var analysisConfig = new AnalysisConfig() { SonarOutputDir = testDir };
+        var analysisResult = new ProjectInfoAnalysisResult([
+            CreateProjectData("project1", ProjectType.Product, ProjectInfoValidity.ExcludeFlagSet),
+            CreateProjectData("project2", ProjectType.Product, ProjectInfoValidity.InvalidGuid),
+            CreateProjectData("project3", ProjectType.Product, ProjectInfoValidity.InvalidGuid),
+            CreateProjectData("project4", ProjectType.Product, ProjectInfoValidity.NoFilesToAnalyze),
+            CreateProjectData("project5", ProjectType.Test, ProjectInfoValidity.NoFilesToAnalyze),
+            CreateProjectData("project6", ProjectType.Test, ProjectInfoValidity.NoFilesToAnalyze),
+            CreateProjectData("project7", ProjectType.Test, ProjectInfoValidity.Valid),
+            CreateProjectData("project8", ProjectType.Test, ProjectInfoValidity.Valid),
+            CreateProjectData("project9", ProjectType.Test, ProjectInfoValidity.Valid),
+            CreateProjectData("projectA", ProjectType.Test, ProjectInfoValidity.Valid)]);
         var loggerMock = Substitute.For<ILogger>();
-
-        // Act
         ProjectInfoReportBuilder.WriteSummaryReport(analysisConfig, analysisResult, loggerMock);
 
-        // Assert
         var expectedFileName = Path.Combine(testDir, ProjectInfoReportBuilder.ReportFileName);
         File.Exists(expectedFileName).Should().BeTrue();
         TestContext.AddResultFile(expectedFileName);
