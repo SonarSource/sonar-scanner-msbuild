@@ -24,7 +24,7 @@ using SonarScanner.MSBuild.Shim.Interfaces;
 namespace SonarScanner.MSBuild.Shim.Test;
 
 [TestClass]
-public class PropertiesFileGeneratorTests
+public partial class PropertiesFileGeneratorTests
 {
     private const string TestSonarqubeOutputDir = @"e:\.sonarqube\out";
 
