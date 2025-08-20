@@ -36,10 +36,7 @@ public class CoverageReportProcessor : ICoverageReportProcessor
 
     public bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
     {
-        if (settings is null)
-        {
-            throw new ArgumentNullException(nameof(settings));
-        }
+        _ = settings ?? throw new ArgumentNullException(nameof(settings));
 
         TryCreateCoverageReportProcessor(settings);
 

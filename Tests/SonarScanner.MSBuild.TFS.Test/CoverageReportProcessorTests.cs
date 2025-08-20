@@ -26,11 +26,10 @@ namespace SonarScanner.MSBuild.TFS.Test;
 [TestClass]
 public class CoverageReportProcessorTests
 {
-    private ILegacyTeamBuildFactory legacyFactory;
-    private CoverageReportProcessor processor;
+    private readonly ILegacyTeamBuildFactory legacyFactory;
+    private ICoverageReportProcessor processor;
 
-    [TestInitialize]
-    public void TestInitialize()
+    public CoverageReportProcessorTests()
     {
         legacyFactory = Substitute.For<ILegacyTeamBuildFactory>();
         processor = new CoverageReportProcessor(legacyFactory);
@@ -58,10 +57,10 @@ public class CoverageReportProcessorTests
         var logger = new TestLogger();
 
         // Set up the factory to return a processor that returns success
-        var processorSub = Substitute.For<ICoverageReportProcessor>();
-        processorSub.Initialize(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>()).Returns(true);
-        processorSub.ProcessCoverageReports(logger).Returns(true);
-        legacyFactory.BuildTfsLegacyCoverageReportProcessor().Returns(processorSub);
+        processor = Substitute.For<ICoverageReportProcessor>();
+        processor.Initialize(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>()).Returns(true);
+        processor.ProcessCoverageReports(logger).Returns(true);
+        legacyFactory.BuildTfsLegacyCoverageReportProcessor().Returns(processor);
 
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
@@ -73,8 +72,8 @@ public class CoverageReportProcessorTests
 
         result.Should().BeTrue();
         legacyFactory.Received(1).BuildTfsLegacyCoverageReportProcessor();
-        processorSub.Received(1).Initialize(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>());
-        processorSub.Received(1).ProcessCoverageReports(logger);
+        processor.Received(1).Initialize(Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>(), Arg.Any<string>());
+        processor.Received(1).ProcessCoverageReports(logger);
     }
 
     [TestMethod]
