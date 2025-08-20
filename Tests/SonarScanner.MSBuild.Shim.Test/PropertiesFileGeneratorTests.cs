@@ -1451,7 +1451,7 @@ public partial class PropertiesFileGeneratorTests
         return new PropertiesFileGenerator(config, logger).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())?.FullName;
     }
 
-    private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths) =>
+    private static void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths) =>
         ComputeProjectBaseDir(teamBuildValue, userValue, projectPaths).Should().Be(expectedValue);
 
     private static AnalysisConfig CreateValidConfig(string outputDir, AnalysisProperties serverProperties = null, string workingDir = null)
