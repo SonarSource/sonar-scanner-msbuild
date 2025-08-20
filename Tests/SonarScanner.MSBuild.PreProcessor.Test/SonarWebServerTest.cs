@@ -51,17 +51,10 @@ public class SonarWebServerTest
     [TestMethod]
     public void Ctor_Null_Throws()
     {
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName
-            .Should().Be("webDownloader");
-
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName
-            .Should().Be("apiDownloader");
-
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName
-            .Should().Be("serverVersion");
-
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, version, null, null))).Should().Throw<ArgumentNullException>().And.ParamName
-            .Should().Be("logger");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, version, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -94,69 +87,40 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
-    [DataRow("foo bar")]
-    public async Task DownloadQualityProfile_MainProjectProfile_QualityProfileFound(string projectKey)
+    [DataRow(null, null)]
+    [DataRow("aBranch", null)]
+    [DataRow(null, "my Org")]
+    [DataRow("aBranch", "my Org")]
+    public async Task DownloadQualityProfile_QualityProfileFound(string branchName, string organization)
     {
         const string profileKey = "profile1k";
         const string language = "cs";
-        var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}";
-        var profileResponse = $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}";
-        downloader
-            .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
-            .Returns(Task.FromResult(Tuple.Create(true, profileResponse)));
-
-        var result = await sut.DownloadQualityProfile(projectKey, null, language);
-
-        result.Should().Be(profileKey);
-    }
-
-    [TestMethod]
-    [DataRow("foo bar", "aBranch")]
-    public async Task DownloadQualityProfile_BranchSpecificProfile_QualityProfileFound(string projectKey, string branchName)
-    {
-        const string profileKey = "profile1k";
-        const string language = "cs";
-        var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}:{branchName}")}";
-        var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
+        var projectKey = "someKey";
+        var projectTarget = branchName is null ? projectKey : $"{projectKey}:{branchName}";
+        var baseQualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectTarget}")}";
+        var qualityProfileUrl = organization is null ? baseQualityProfileUrl : $"{baseQualityProfileUrl}&organization={WebUtility.UrlEncode(organization)}";
+        var downloadResult = Tuple.Create(true, $$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}""");
         downloader
             .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
 
-        var result = await sut.DownloadQualityProfile(projectKey, branchName, language);
+        var result = await CreateServer(null, organization).DownloadQualityProfile(projectKey, branchName, language);
 
         result.Should().Be(profileKey);
     }
 
     [TestMethod]
-    [DataRow("foo bar", "my org")]
-    public async Task DownloadQualityProfile_OrganizationProfile_QualityProfileFound(string projectKey, string organization)
-    {
-        const string profileKey = "orgProfile";
-        const string language = "cs";
-        var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}&organization={WebUtility.UrlEncode($"{organization}")}";
-        var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
-        downloader
-            .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
-            .Returns(Task.FromResult(downloadResult));
-        sut = CreateServer(organization: organization);
-
-        var result = await sut.DownloadQualityProfile(projectKey, null, language);
-
-        result.Should().Be(profileKey);
-    }
-
-    [TestMethod]
-    [DataRow("foo bar")]
-    public async Task DownloadQualityProfile_FallBackDefaultProfile_QualityProfileFound(string projectKey)
+    public async Task DownloadQualityProfile_FallBackDefaultProfile_QualityProfileFound()
     {
         const string profileKey = "defaultProfile";
         const string language = "cs";
+        var projectKey = "someKey";
         downloader
             .TryDownloadIfExists($"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}", Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
         downloader
             .Download("api/qualityprofiles/search?defaults=true", Arg.Any<bool>())
-            .Returns(Task.FromResult($"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
+            .Returns(Task.FromResult($$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}"""));
 
         var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
@@ -164,27 +128,28 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
-    [DataRow("foo bar", "java")]
-    public async Task DownloadQualityProfile_NoProfileForLanguage_QualityProfileNotFound(string projectKey, string missingLanguage)
+    public async Task DownloadQualityProfile_NoProfileForLanguage_QualityProfileNotFound()
     {
         const string profileKey = "defaultProfile";
         const string language = "cs";
+        var projectKey = "someKey";
+
         var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}";
-        var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
+        var downloadResult = Tuple.Create(true, $$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}""");
         downloader
             .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
 
-        var result = await sut.DownloadQualityProfile(projectKey, null, missingLanguage);
+        var result = await sut.DownloadQualityProfile(projectKey, null, "java");
 
         result.Should().BeNull();
     }
 
     [TestMethod]
-    [DataRow("foo bar")]
-    public async Task DownloadQualityProfile_NoProfileForProject_QualityProfileNotFound(string projectKey)
+    public async Task DownloadQualityProfile_NoProfileForProject_QualityProfileNotFound()
     {
         const string language = "cs";
+        var projectKey = "someKey";
         var downloadResult = Tuple.Create(true, "{ profiles: []}");
         var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}";
         downloader
@@ -199,7 +164,7 @@ public class SonarWebServerTest
     [TestMethod]
     public async Task DownloadQualityProfile_MissingProfiles_ReturnsFalseAndEmptyContent()
     {
-        var downloadResult = Tuple.Create(true, @"{""unexpected"": ""valid json""}");
+        var downloadResult = Tuple.Create(true, """{"unexpected": "valid json"}""");
         downloader
             .TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
@@ -212,7 +177,7 @@ public class SonarWebServerTest
     [TestMethod]
     public async Task DownloadQualityProfile_MissingKey_ReturnsFalseAndEmptyContent()
     {
-        var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""language"":""cs"" } ] }");
+        var downloadResult = Tuple.Create(true, """{ profiles: [ { "language":"cs" } ] }""");
         downloader
             .TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
@@ -906,7 +871,7 @@ public class SonarWebServerTest
         {
             Filename = "sonarcloud-scanner-engine-11.14.1.763.jar",
             Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
-            DownloadUrl = (string)null,
+            DownloadUrl = (Uri)null,
         });
         logger.AssertNoWarningsLogged();
     }
