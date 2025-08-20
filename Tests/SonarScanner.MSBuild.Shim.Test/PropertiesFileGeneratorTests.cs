@@ -200,23 +200,6 @@ public partial class PropertiesFileGeneratorTests
         PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
-    /// <summary>
-    /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
-    /// Checks that a property file is created.
-    /// </summary>
-    private ProjectInfoAnalysisResult ExecuteAndCheckSucceeds(string projectName, TestLogger logger, params Property[] localSettings)
-    {
-        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, projectName);
-        TestUtils.CreateProjectWithFiles(TestContext, projectName, analysisRootDir);
-        var config = CreateValidConfig(analysisRootDir);
-        config.LocalSettings = [.. localSettings];
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
-
-        AssertExpectedProjectCount(1, result);
-        AssertPropertiesFilesCreated(result, logger);
-        return result;
-    }
-
     private static void AssertFailedToCreatePropertiesFiles(ProjectInfoAnalysisResult result, TestLogger logger)
     {
         result.FullPropertiesFilePath.Should().BeNull("Not expecting the sonar-scanner properties file to have been set");
@@ -282,11 +265,10 @@ public partial class PropertiesFileGeneratorTests
         "{input}"
         """;
 
-    private PropertiesFileGenerator CreateSut(
-        AnalysisConfig analysisConfig,
-        IRoslynV1SarifFixer sarifFixer = null,
-        IRuntimeInformationWrapper runtimeInformationWrapper = null,
-        IAdditionalFilesService additionalFileService = null)
+    private PropertiesFileGenerator CreateSut(AnalysisConfig analysisConfig,
+                                              IRoslynV1SarifFixer sarifFixer = null,
+                                              IRuntimeInformationWrapper runtimeInformationWrapper = null,
+                                              IAdditionalFilesService additionalFileService = null)
     {
         sarifFixer ??= new RoslynV1SarifFixer(logger);
         runtimeInformationWrapper ??= new RuntimeInformationWrapper();

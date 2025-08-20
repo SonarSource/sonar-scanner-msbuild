@@ -769,4 +769,21 @@ public partial class PropertiesFileGeneratorTests
         var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         properties.PropertyValue("sonar.tests").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(testFiles);
     }
+
+    /// <summary>
+    /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
+    /// Checks that a property file is created.
+    /// </summary>
+    private ProjectInfoAnalysisResult ExecuteAndCheckSucceeds(string projectName, TestLogger logger, params Property[] localSettings)
+    {
+        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, projectName);
+        TestUtils.CreateProjectWithFiles(TestContext, projectName, analysisRootDir);
+        var config = CreateValidConfig(analysisRootDir);
+        config.LocalSettings = [.. localSettings];
+        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+
+        AssertExpectedProjectCount(1, result);
+        AssertPropertiesFilesCreated(result, logger);
+        return result;
+    }
 }
