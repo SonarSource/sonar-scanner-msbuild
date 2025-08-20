@@ -276,13 +276,29 @@ public abstract class SonarWebServer : ISonarWebServer
 
     private Dictionary<string, string> ParseSettingsResponse(string contents)
     {
-        var settingsArray = JObject.Parse(contents).Value<JArray>("settings");
         var settings = new Dictionary<string, string>();
-        foreach (var prop in settingsArray)
+        foreach (var setting in JObject.Parse(contents).Value<JArray>("settings"))
         {
-            foreach (var kvp in ParseProperty(prop))
+            var key = setting["key"].ToString();
+            if (setting["value"] is not null)
             {
-                settings[kvp.Key] = kvp.Value;
+                settings.Add(setting["key"].ToString(), setting["value"].ToString());
+            }
+            else if (setting["fieldValues"] is not null)
+            {
+                foreach (var kvp in ParseMultivalueProp(key, (JArray)setting["fieldValues"]))
+                {
+                    settings.Add(kvp.Key, kvp.Value);
+                }
+            }
+            else if (setting["values"] is not null)
+            {
+                var value = string.Join(",", ((JArray)setting["values"]).Values<string>());
+                settings.Add(setting["key"].ToString(), value);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid property");
             }
         }
         return CheckTestProjectPattern(settings);
@@ -322,40 +338,12 @@ public abstract class SonarWebServer : ISonarWebServer
         var id = 1;
         foreach (var obj in array.Children<JObject>())
         {
-            foreach (var prop in obj.Properties())
+            foreach (var setting in obj.Properties())
             {
-                var key = string.Concat(settingKey, ".", id, ".", prop.Name);
-                var value = prop.Value.ToString();
-                yield return new KeyValuePair<string, string>(key, value);
+                var key = string.Concat(settingKey, ".", id, ".", setting.Name);
+                yield return new KeyValuePair<string, string>(key, setting.Value.ToString());
             }
             id++;
-        }
-    }
-
-    private static IEnumerable<KeyValuePair<string, string>> ParseProperty(JToken prop)
-    {
-        var key = prop["key"].ToString();
-        if (prop["value"] is not null)
-        {
-            var value = prop["value"].ToString();
-            yield return new KeyValuePair<string, string>(prop["key"].ToString(), value);
-        }
-        else if (prop["fieldValues"] is not null)
-        {
-            foreach (var kvp in ParseMultivalueProp(key, (JArray)prop["fieldValues"]))
-            {
-                yield return new KeyValuePair<string, string>(kvp.Key, kvp.Value);
-            }
-        }
-        else if (prop["values"] is not null)
-        {
-            var array = (JArray)prop["values"];
-            var value = string.Join(",", array.Values<string>());
-            yield return new KeyValuePair<string, string>(prop["key"].ToString(), value);
-        }
-        else
-        {
-            throw new ArgumentException("Invalid property");
         }
     }
 }

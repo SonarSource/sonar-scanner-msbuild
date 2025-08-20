@@ -31,7 +31,7 @@ internal class SonarCloudWebServer : SonarWebServer
 {
     private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
 
-    private readonly HttpClient anonymousClient;
+    private readonly HttpClient unauthenticatedClient;
 
     public SonarCloudWebServer(IDownloader webDownloader,
                                IDownloader apiDownloader,
@@ -44,8 +44,8 @@ internal class SonarCloudWebServer : SonarWebServer
     {
         Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
 
-        anonymousClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
-        anonymousClient.Timeout = httpTimeout;
+        unauthenticatedClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
+        unauthenticatedClient.Timeout = httpTimeout;
         logger.LogInfo(Resources.MSG_UsingSonarCloud);
     }
 
@@ -110,22 +110,16 @@ internal class SonarCloudWebServer : SonarWebServer
     // Do not use the downloaders here, as this is an unauthenticated request
     public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
     {
-        if (metadata.DownloadUrl is null)
-        {
-            throw new AnalysisException($"{nameof(JreMetadata)} must contain a valid download URL.");
-        }
+        _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(JreMetadata)} must contain a valid download URL.");
         logger.LogDebug(Resources.MSG_JreDownloadUri, metadata.DownloadUrl);
-        return await anonymousClient.GetStreamAsync(metadata.DownloadUrl);
+        return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
     }
 
     public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
     {
-        if (metadata.DownloadUrl is null)
-        {
-            throw new AnalysisException($"{nameof(EngineMetadata)} must contain a valid download URL.");
-        }
+        _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(EngineMetadata)} must contain a valid download URL.");
         logger.LogDebug(Resources.MSG_EngineDownloadUri, metadata.DownloadUrl);
-        return await anonymousClient.GetStreamAsync(metadata.DownloadUrl);
+        return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
     }
 
     protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
@@ -141,7 +135,7 @@ internal class SonarCloudWebServer : SonarWebServer
     {
         if (disposing)
         {
-            anonymousClient.Dispose();
+            unauthenticatedClient.Dispose();
         }
 
         base.Dispose(disposing);
@@ -154,7 +148,7 @@ internal class SonarCloudWebServer : SonarWebServer
         request.Headers.Add("Authorization", $"Bearer {token}");
         logger.LogDebug(Resources.MSG_Processing_PullRequest_RequestPrepareRead, uri);
 
-        using var response = await anonymousClient.SendAsync(request);
+        using var response = await unauthenticatedClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
             logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' did not respond successfully.");
@@ -178,7 +172,7 @@ internal class SonarCloudWebServer : SonarWebServer
 
     private async Task<Stream> DownloadCacheStream(Uri uri)
     {
-        var compressed = await anonymousClient.GetStreamAsync(uri);
+        var compressed = await unauthenticatedClient.GetStreamAsync(uri);
         using var decompressor = new GZipStream(compressed, CompressionMode.Decompress);
         var decompressed = new MemoryStream();
         await decompressor.CopyToAsync(decompressed);

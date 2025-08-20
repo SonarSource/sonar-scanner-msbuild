@@ -913,7 +913,7 @@ public class SonarWebServerTest
         {
             Filename = "sonarcloud-scanner-engine-11.14.1.763.jar",
             Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
-            DownloadUrl = "https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"
+            DownloadUrl = new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar")
         });
         logger.AssertNoWarningsLogged();
     }
