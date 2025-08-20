@@ -31,7 +31,7 @@ variables:
     value: $[variables.ARTIFACTORY_PRIVATE_READER_USERNAME]
   # pipelines-yaml-templates/promote-stage.yml line 56
   - name: IS_RELEASE_BRANCH
-    value: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/branch-')) }}
+    value: 'true'
   - name: BUILD_CONFIGURATION
     value: "Release"
   - name: BUILD_PLATFORM
