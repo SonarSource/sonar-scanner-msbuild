@@ -35,6 +35,8 @@ public class PropertiesWriter
     private readonly IList<string> moduleKeys = [];
     private readonly StringBuilder sb = new();
 
+    public bool FinishedWriting { get; private set; }
+
     public PropertiesWriter(AnalysisConfig config) =>
         this.config = config ?? throw new ArgumentNullException(nameof(config));
 
@@ -72,6 +74,13 @@ public class PropertiesWriter
     /// </summary>
     public string Flush()
     {
+        if (FinishedWriting)
+        {
+            throw new InvalidOperationException();
+        }
+
+        FinishedWriting = true;
+
         Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
 
         AppendKeyValue("sonar.modules", string.Join(",", moduleKeys));
@@ -82,6 +91,11 @@ public class PropertiesWriter
 
     public void WriteSettingsForProject(ProjectData projectData)
     {
+        if (FinishedWriting)
+        {
+            throw new InvalidOperationException();
+        }
+
         if (projectData is null)
         {
             throw new ArgumentNullException(nameof(projectData));

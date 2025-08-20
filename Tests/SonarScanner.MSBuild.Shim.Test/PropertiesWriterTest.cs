@@ -418,6 +418,43 @@ public class PropertiesWriterTest
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
     }
 
+    [TestMethod]
+    public void Flush_WhenCalledTwice_ThrowsInvalidOperationException()
+    {
+        var writer = new PropertiesWriter(
+            new AnalysisConfig
+            {
+                SonarProjectKey = "key",
+                SonarProjectName = "name",
+                SonarProjectVersion = "1.0",
+                SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
+            });
+        writer.Flush();
+
+        Action act = () => writer.Flush();
+        act.Should().ThrowExactly<InvalidOperationException>();
+    }
+
+    [TestMethod]
+    public void WriteSettingsForProject_WhenFlushed_ThrowsInvalidOperationException()
+    {
+        var writer = new PropertiesWriter(
+            new AnalysisConfig
+            {
+                SonarProjectKey = "key",
+                SonarProjectName = "name",
+                SonarProjectVersion = "1.0",
+                SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
+            });
+        writer.Flush();
+
+        using (new AssertIgnoreScope())
+        {
+            Action act = () => writer.WriteSettingsForProject(new ProjectData(new ProjectInfo()));
+            act.Should().ThrowExactly<InvalidOperationException>();
+        }
+    }
+
     // Tests that analysis settings in the ProjectInfo are written to the file
     [TestMethod]
     public void PropertiesWriter_AnalysisSettingsWritten()
