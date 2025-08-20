@@ -19,6 +19,7 @@
  */
 
 using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
+using static SonarScanner.MSBuild.TFS.BuildVNextCoverageReportProcessor;
 
 namespace SonarScanner.MSBuild.TFS.Test;
 
@@ -43,7 +44,6 @@ public class BuildVNextCoverageReportProcessorTests
     private readonly string testResultsDir;
     private readonly string coverageDir;
     private readonly string alternateCoverageDir;
-    private readonly string propertiesFilePath;
     private readonly EnvironmentVariableScope environmentVariableScope = new();
 
     private BuildVNextCoverageReportProcessor sut;
@@ -57,7 +57,6 @@ public class BuildVNextCoverageReportProcessorTests
         coverageDir = Path.Combine(testResultsDir, "dummy", "In");
         alternateCoverageDir = Path.Combine(testResultsDir, "alternate", "In");
         directoryWrapper.Exists(alternateCoverageDir).Returns(true);
-        propertiesFilePath = testDir + Path.DirectorySeparatorChar + "sonar-project.properties";
         buildSettings.BuildDirectory = testDir;
         sut = new BuildVNextCoverageReportProcessor(converter, testLogger, fileWrapper, directoryWrapper);
         environmentVariableScope.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, alternateCoverageDir);  // setup search fallback
@@ -88,11 +87,11 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, trx: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         AssertUsesFallback(false);
         testLogger.Warnings.Should().ContainSingle().Which.StartsWith("None of the following coverage attachments could be found: dummy.coverage");
-        AssertPropertiesFileContainsTestReportsPaths();
-        AssertPropertiesFileContainsCoverageXmlReportsPaths(false);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -102,7 +101,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, trx: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         testLogger.Warnings.Should().ContainSingle().Which.StartsWith("None of the following coverage attachments could be found: dummy.coverage");
         fileWrapper.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
     }
@@ -116,7 +115,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         AssertUsesFallback();
         testLogger.AssertWarningsLogged(0);
         fileWrapper.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
@@ -127,11 +126,11 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNull, trx: true, coverage: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(1);
         testLogger.AssertWarningsLogged(0);
-        AssertPropertiesFileContainsTestReportsPaths();
-        AssertPropertiesFileContainsCoverageXmlReportsPaths();
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
     }
 
     [TestMethod]
@@ -139,11 +138,11 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(Properties.TestReportsPathsNotNull, trx: true, coverage: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(1);
         testLogger.AssertWarningsLogged(0);
-        AssertPropertiesFileContainsCoverageXmlReportsPaths();
-        AssertPropertiesFileContainsTestReportsPaths(false);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -151,11 +150,11 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(Properties.CoverageXmlReportsPathsNotNull, trx: true, coverage: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(1);
         testLogger.AssertWarningsLogged(0);
-        AssertPropertiesFileContainsTestReportsPaths();
-        AssertPropertiesFileContainsCoverageXmlReportsPaths(false);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -163,7 +162,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNotNull, trx: true, coverage: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(1);
         testLogger.AssertWarningsLogged(0);
         fileWrapper.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
@@ -178,7 +177,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, coverage: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(0);
         testLogger.AssertWarningsLogged(0);
         fileWrapper.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
@@ -191,10 +190,10 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, trx: true, coverage: true, coverageXml: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertConvertNotCalled();
         testLogger.AssertWarningsLogged(0);
-        AssertPropertiesFileContainsCoverageXmlReportsPaths();
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
     }
 
     [TestMethod]
@@ -204,10 +203,10 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, trx: true, coverage: true, coverageXml: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertConvertNotCalled();
         testLogger.AssertWarningsLogged(0);
-        AssertPropertiesFileContainsCoverageXmlReportsPaths(false);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -220,10 +219,10 @@ public class BuildVNextCoverageReportProcessorTests
         SetupPropertiesAndFiles(properties, trx: true, coverage: true);
         converter.ShouldFailConversion = true;
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(1);
         testLogger.AssertWarningsLogged(0);
-        AssertPropertiesFileContainsCoverageXmlReportsPaths(false);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -233,11 +232,11 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, alternate: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(1);
         AssertUsesFallback();
-        AssertPropertiesFileContainsAlternateCoverageXmlReportsPaths();
-        AssertPropertiesFileContainsTestReportsPaths(false);
+        AssertPropertiesFileContainsAlternateCoverageXmlReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -247,7 +246,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, alternate: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         AssertUsesFallback();
         converter.AssertExpectedNumberOfConversions(1);
         fileWrapper.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
@@ -260,11 +259,11 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, trx: true, alternate: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(0);
         AssertUsesFallback(false);
-        AssertPropertiesFileContainsTestReportsPaths();
-        AssertPropertiesFileContainsCoverageXmlReportsPaths(false);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -274,10 +273,10 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, trx: true, alternate: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(1);
         AssertUsesFallback();
-        AssertPropertiesFileContainsTestReportsPaths(false);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -287,10 +286,10 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, trx: true, coverage: true, alternate: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(1);
         AssertUsesFallback(false);
-        AssertPropertiesFileContainsCoverageXmlReportsPaths();
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
     }
 
     [TestMethod]
@@ -301,10 +300,10 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, true, coverage: true, alternate: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertExpectedNumberOfConversions(1);
         AssertUsesFallback(false);
-        AssertPropertiesFileContainsCoverageXmlReportsPaths(false);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -314,11 +313,11 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, alternate: true, alternateXml: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertConvertNotCalled();
         AssertUsesFallback();
-        AssertPropertiesFileContainsAlternateCoverageXmlReportsPaths();
-        AssertPropertiesFileContainsTestReportsPaths(false);
+        AssertPropertiesFileContainsAlternateCoverageXmlReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
@@ -329,7 +328,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         SetupPropertiesAndFiles(properties, alternate: true, alternateXml: true);
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings, propertiesFilePath, testLogger);
+        sut.ProcessCoverageReports(analysisConfig, buildSettings, testLogger);
         converter.AssertConvertNotCalled();
         AssertUsesFallback();
         fileWrapper.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
@@ -438,8 +437,8 @@ public class BuildVNextCoverageReportProcessorTests
     [DataRow(new byte[] { 1, 2 }, new byte[] { 2, 1 })]
     [DataRow(new byte[] { }, new byte[] { 1 })]
     public void FileWithContentHash_Equals_DifferentHash_False(byte[] hash1, byte[] hash2) =>
-        new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", hash1)
-            .Equals(new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", hash2))
+        new FileWithContentHash("c:\\path.txt", hash1)
+            .Equals(new FileWithContentHash("c:\\path.txt", hash2))
             .Should().BeFalse();
 
     [TestMethod]
@@ -451,8 +450,8 @@ public class BuildVNextCoverageReportProcessorTests
     [DataRow("", "File.txt")]
     [DataRow(null, "File.txt")]
     public void FileWithContentHash_Equals_SameHash_True(string fileName1, string fileName2) =>
-        new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName1, [1, 2])
-            .Equals(new BuildVNextCoverageReportProcessor.FileWithContentHash(fileName2, [1, 2]))
+        new FileWithContentHash(fileName1, [1, 2])
+            .Equals(new FileWithContentHash(fileName2, [1, 2]))
             .Should().BeTrue();
 
     [TestMethod]
@@ -460,7 +459,7 @@ public class BuildVNextCoverageReportProcessorTests
     [DataRow(42)]
     [DataRow(null)]
     public void FileWithContentHash_Equals_Other_False(object other) =>
-        new BuildVNextCoverageReportProcessor.FileWithContentHash("c:\\path.txt", [1, 2])
+        new FileWithContentHash("c:\\path.txt", [1, 2])
             .Equals(other)
             .Should().BeFalse();
 
@@ -513,42 +512,32 @@ public class BuildVNextCoverageReportProcessorTests
         }
     }
 
-    private void AssertPropertiesFileContainsTestReportsPaths(bool contains = true)
+    private static void AssertPropertiesFileContainsTestReportsPaths(AdditionalProperties additionalProperties, bool contains = true)
     {
         if (contains)
         {
-            fileWrapper.Received().AppendAllText(
-                propertiesFilePath,
-                Arg.Is<string>(x => x.Contains("sonar.cs.vstest.reportsPaths") && x.Contains(PathCombineWithEscape("TestResults", "dummy.trx"))));
+            additionalProperties.VsTestReportsPaths.Should().ContainSingle(x => x.EndsWith(Path.Combine("TestResults", "dummy.trx")));
         }
         else
         {
-            fileWrapper.DidNotReceive().AppendAllText(
-                propertiesFilePath,
-                Arg.Is<string>(x => x.Contains(SonarProperties.VsTestReportsPaths)));
+            additionalProperties.VsTestReportsPaths.Should().BeNull();
         }
     }
 
-    private void AssertPropertiesFileContainsCoverageXmlReportsPaths(bool contains = true)
+    private static void AssertPropertiesFileContainsCoverageXmlReportsPaths(AdditionalProperties additionalProperties, bool contains = true)
     {
         if (contains)
         {
-            fileWrapper.Received().AppendAllText(
-                propertiesFilePath,
-                Arg.Is<string>(x => x.Contains("sonar.cs.vscoveragexml.reportsPaths") && x.Contains(PathCombineWithEscape("TestResults", "dummy", "In", "dummy.coveragexml"))));
+            additionalProperties.VsCoverageXmlReportsPaths.Should().ContainSingle(x => x.EndsWith(Path.Combine("TestResults", "dummy", "In", "dummy.coveragexml")));
         }
         else
         {
-            fileWrapper.DidNotReceive().AppendAllText(
-                propertiesFilePath,
-                Arg.Is<string>(x => x.Contains(SonarProperties.VsCoverageXmlReportsPaths)));
+            additionalProperties.VsCoverageXmlReportsPaths.Should().BeNull();
         }
     }
 
-    private void AssertPropertiesFileContainsAlternateCoverageXmlReportsPaths() =>
-            fileWrapper.Received().AppendAllText(
-                propertiesFilePath,
-                Arg.Is<string>(x => x.Contains("sonar.cs.vscoveragexml.reportsPaths") && x.Contains(PathCombineWithEscape("TestResults", "alternate", "In", "alternate.coveragexml"))));
+    private static void AssertPropertiesFileContainsAlternateCoverageXmlReportsPaths(AdditionalProperties additionalProperties) =>
+        additionalProperties.VsCoverageXmlReportsPaths.Should().ContainSingle(x => x.EndsWith(Path.Combine("TestResults", "alternate", "In", "alternate.coveragexml")));
 
     private void AssertUsesFallback(bool isTrue = true)
     {
@@ -564,21 +553,10 @@ public class BuildVNextCoverageReportProcessorTests
         }
     }
 
-    private static string PathCombineWithEscape(params string[] parts)
-    {
-        var separator = Path.DirectorySeparatorChar.ToString();
-        if (separator == @"\")
-        {
-            separator = @"\\";
-        }
-        return string.Join(separator, parts);
-    }
-
-    private string CreateFile(string path, string fileName, string fileContent = "")
+    private void CreateFile(string path, string fileName, string fileContent = "")
     {
         var filePath = Path.Combine(path, fileName);
         fileWrapper.Exists(filePath).Returns(true);
         fileWrapper.Open(filePath).Returns(new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
-        return filePath;
     }
 }

@@ -34,6 +34,7 @@ public class PostProcessor : IPostProcessor
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly TfsProcessorWrapper tfsProcessor;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
+    private readonly IFileWrapper fileWrapper;
 
     private PropertiesFileGenerator propertiesFileGenerator;
 
@@ -43,7 +44,8 @@ public class PostProcessor : IPostProcessor
         TargetsUninstaller targetUninstaller,
         TfsProcessorWrapper tfsProcessor,
         SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
-        BuildVNextCoverageReportProcessor coverageReportProcessor)
+        BuildVNextCoverageReportProcessor coverageReportProcessor,
+        IFileWrapper fileWrapper = null)
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -51,6 +53,7 @@ public class PostProcessor : IPostProcessor
         this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
         this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
         this.coverageReportProcessor = coverageReportProcessor ?? throw new ArgumentNullException(nameof(coverageReportProcessor));
+        this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
     }
 
     public void /* for testing purposes */ SetPropertiesFileGenerator(PropertiesFileGenerator propertiesFileGenerator) =>
@@ -224,7 +227,9 @@ public class PostProcessor : IPostProcessor
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
             logger.LogInfo(Resources.MSG_ConvertingCoverageReports);
-            coverageReportProcessor.ProcessCoverageReports(config, settings, propertiesFilePath, logger);
+            var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings, logger);
+            WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
+            WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
@@ -232,6 +237,14 @@ public class PostProcessor : IPostProcessor
             logger.IncludeTimestamp = false;
             tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, propertiesFilePath], propertiesFilePath);
             logger.IncludeTimestamp = true;
+        }
+    }
+
+    private void WriteProperty(string propertiesFilePath, string property, string[] paths)
+    {
+        if (paths is not null)
+        {
+            fileWrapper.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
         }
     }
 

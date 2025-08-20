@@ -22,6 +22,7 @@ using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
 using static FluentAssertions.FluentActions;
+using static SonarScanner.MSBuild.TFS.BuildVNextCoverageReportProcessor;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test;
 
@@ -40,6 +41,7 @@ public class PostProcessorTests
     private readonly TfsProcessorWrapper tfsProcessor;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
+    private readonly IFileWrapper fileWrapper;
     private IBuildSettings settings;
 
     public PostProcessorTests(TestContext testContext)
@@ -61,13 +63,16 @@ public class PostProcessorTests
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         coverageReportProcessor = Substitute
             .For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>());
+        coverageReportProcessor.ProcessCoverageReports(null, null, null).ReturnsForAnyArgs(new AdditionalProperties([@"VS\Test\Path"], [@"VS\XML\Coverage\Path"]));
+        fileWrapper = Substitute.For<IFileWrapper>();
         sut = new PostProcessor(
             scanner,
             logger,
             targetsUninstaller,
             tfsProcessor,
             sonarProjectPropertiesValidator,
-            coverageReportProcessor);
+            coverageReportProcessor,
+            fileWrapper);
     }
 
     [TestMethod]
@@ -311,7 +316,7 @@ public class PostProcessorTests
         Execute().Should().BeTrue();
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null);
     }
 
     [TestMethod]
@@ -323,6 +328,15 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         AssertProcessCoverageReportsCalledIfNetFramework();
+
+#if NETFRAMEWORK
+        fileWrapper.Received().AppendAllText(
+            Arg.Any<string>(),
+            Arg.Is<string>(x => x.Contains("sonar.cs.vstest.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "Test", "Path"))));
+        fileWrapper.Received().AppendAllText(
+            Arg.Any<string>(),
+            Arg.Is<string>(x => x.Contains("sonar.cs.vscoveragexml.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "XML", "Coverage", "Path"))));
+#endif
     }
 
     [TestMethod]
@@ -333,7 +347,7 @@ public class PostProcessorTests
         Execute().Should().BeTrue();
         AssertTfsProcessorConvertCoverageCalledIfNetFramework();
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null);
     }
 
     [TestMethod]
@@ -345,7 +359,7 @@ public class PostProcessorTests
         Execute().Should().BeFalse();
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null);
         logger.AssertErrorLogged("""
             Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
             Build Uri from environment: http://test-build-uri
@@ -365,7 +379,7 @@ public class PostProcessorTests
         Execute().Should().BeTrue();
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null);
     }
 
     private bool Execute(string arg) =>
@@ -399,9 +413,9 @@ public class PostProcessorTests
 
     private void AssertProcessCoverageReportsCalledIfNetFramework() =>
 #if NETFRAMEWORK
-        coverageReportProcessor.ReceivedWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        coverageReportProcessor.ReceivedWithAnyArgs().ProcessCoverageReports(null, null, null);
 #else
-        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null);
 #endif
 
     private void AssertTfsProcessorConvertCoverageCalledIfNetFramework(bool shouldBeCalled = true) =>
@@ -434,5 +448,15 @@ public class PostProcessorTests
         settings = Substitute.For<IBuildSettings>();
         settings.BuildEnvironment.Returns(environment);
         settings.BuildUri.Returns(config.GetBuildUri());
+    }
+
+    private static string PathCombineWithEscape(params string[] parts)
+    {
+        var separator = Path.DirectorySeparatorChar.ToString();
+        if (separator == @"\")
+        {
+            separator = @"\\";
+        }
+        return string.Join(separator, parts);
     }
 }
