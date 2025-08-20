@@ -159,14 +159,12 @@ public class JreDownloaderTests
         result.Should().BeOfType<CacheError>().Which.Message.Should().Be($"The file cache directory in '{ShaPath}' could not be created.");
     }
 
-    [TestCategory(TestCategories.NoLinux)]
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task Download_DownloadFileExists_ChecksumInvalid()
     {
         directoryWrapper.Exists(SonarCache).Returns(true);
         directoryWrapper.Exists(ShaPath).Returns(true);
-        fileWrapper.Exists($@"{ShaPath}\filename.tar.gz").Returns(true);
+        fileWrapper.Exists(Path.Combine(ShaPath, "filename.tar.gz")).Returns(true);
 
         var sut = CreateSutWithSubstitutes();
         var result = await sut.DownloadJreAsync(() => throw new NotSupportedException("Unreachable"));

@@ -30,6 +30,11 @@ public class JreResolverTests
 {
     private const string SonarUserHome = "sonarUserHome";
 
+    private static readonly string CacheDir = Path.Combine(SonarUserHome, "cache");
+    private static readonly string ShaPath = Path.Combine(CacheDir, "sha256");
+    private static readonly string ExtractedPath = Path.Combine(ShaPath, "filename.tar.gz_extracted");
+    private static readonly string JavaPath = Path.Combine(ExtractedPath, "javaPath");
+
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly JreMetadata metadata = new("1", "filename.tar.gz", "javaPath", "path/to-jre", "sha256");
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
@@ -162,9 +167,9 @@ public class JreResolverTests
         res.Should().BeNull();
         logger.DebugMessages.Should().BeEquivalentTo(
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache failure. The file cache directory in 'sonarUserHome\\cache' could not be created.",
+            $"JreResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.",
             "JreResolver: Resolving JRE path. Retrying...",
-            "JreResolver: Cache failure. The file cache directory in 'sonarUserHome\\cache' could not be created.");
+            $"JreResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.");
     }
 
     [TestMethod]
@@ -175,21 +180,21 @@ public class JreResolverTests
 
         var res = await sut.ResolveJrePath(Args());
 
-        res.Should().Be("""sonarUserHome\cache\sha256\filename.tar.gz_extracted\javaPath""");
+        res.Should().Be(JavaPath);
         logger.DebugMessages.Should().BeEquivalentTo(
             "JreResolver: Resolving JRE path.",
-            """JreResolver: Cache hit 'sonarUserHome\cache\sha256\filename.tar.gz_extracted\javaPath'.""");
+            $"JreResolver: Cache hit '{JavaPath}'.");
     }
 
     [TestMethod]
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadSuccess()
     {
         cachedDownloader.DownloadFileAsync(null, null).ReturnsForAnyArgs(new ResolutionSuccess("path"));
-        fileWrapper.Exists("""sonarUserHome\cache\sha256\javaPath""").Returns(true);
+        fileWrapper.Exists(Path.Combine(ShaPath, "javaPath")).Returns(true);
 
         var res = await sut.ResolveJrePath(Args());
 
-        res.Should().Be("""sonarUserHome\cache\sha256\filename.tar.gz_extracted\javaPath""");
+        res.Should().Be(JavaPath);
         logger.InfoMessages.Should().BeEquivalentTo("""
             The JRE provisioning is a time consuming operation.
             JRE provisioned: filename.tar.gz.
@@ -198,10 +203,10 @@ public class JreResolverTests
         logger.DebugMessages.Should().BeEquivalentTo(
             "JreResolver: Resolving JRE path.",
             "JreResolver: Cache miss. Attempting to download JRE.",
-            """Starting extracting the Java runtime environment from archive 'path' to folder 'sonarUserHome\cache\sha256'.""",
-            """Moving extracted Java runtime environment from 'sonarUserHome\cache\sha256' to 'sonarUserHome\cache\sha256\filename.tar.gz_extracted'.""",
-            """The Java runtime environment was successfully added to 'sonarUserHome\cache\sha256\filename.tar.gz_extracted'.""",
-            """JreResolver: Download success. JRE can be found at 'sonarUserHome\cache\sha256\filename.tar.gz_extracted\javaPath'.""");
+            $"Starting extracting the Java runtime environment from archive 'path' to folder '{ShaPath}'.",
+            $"Moving extracted Java runtime environment from '{ShaPath}' to '{ExtractedPath}'.",
+            $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
+            $"JreResolver: Download success. JRE can be found at '{JavaPath}'.");
     }
 
     [TestMethod]
