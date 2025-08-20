@@ -95,9 +95,9 @@ public class PropertiesFileGenerator
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var result = new ProjectInfoAnalysisResult();
         var propertiesFileWriter = new PropertiesWriter(analysisConfig);
-        var jsonWriter = new JsonPropertiesWriter(analysisConfig);
+        var engineInput = new ScannerEngineInput(analysisConfig);
         logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
-        if (TryWriteProperties(propertiesFileWriter, jsonWriter, out var projects))
+        if (TryWriteProperties(propertiesFileWriter, engineInput, out var projects))
         {
             var contents = propertiesFileWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
@@ -116,10 +116,10 @@ public class PropertiesFileGenerator
     public virtual bool TryWriteProperties(PropertiesWriter writer, out IEnumerable<ProjectData> allProjects) =>
         TryWriteProperties(writer, null, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
 
-    public bool TryWriteProperties(PropertiesWriter writer, JsonPropertiesWriter jsonWriter, out IEnumerable<ProjectData> allProjects) =>
-        TryWriteProperties(writer, jsonWriter, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
+    public bool TryWriteProperties(PropertiesWriter writer, ScannerEngineInput engineInput, out IEnumerable<ProjectData> allProjects) =>
+        TryWriteProperties(writer, engineInput, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
 
-    public bool TryWriteProperties(PropertiesWriter writer, JsonPropertiesWriter jsonWriter, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
+    public bool TryWriteProperties(PropertiesWriter writer, ScannerEngineInput engineInput, IList<ProjectInfo> projects, out IEnumerable<ProjectData> allProjects)
     {
         if (projects.Count == 0)
         {
