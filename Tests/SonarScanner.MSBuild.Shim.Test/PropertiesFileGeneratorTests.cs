@@ -74,7 +74,7 @@ public partial class PropertiesFileGeneratorTests
     [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
-    public void ProjectData_Orders_AnalyzerOutPaths(string languageKey)
+    public void ToProjectData_Orders_AnalyzerOutPaths(string languageKey)
     {
         var guid = Guid.NewGuid();
         var propertyKey = $"sonar.{languageKey}.analyzer.projectOutPaths";
@@ -128,52 +128,6 @@ public partial class PropertiesFileGeneratorTests
         results[1].FullName.Should().Be(new FileInfo("3").FullName);
         results[2].FullName.Should().Be(new FileInfo("4").FullName);
         results[3].FullName.Should().Be(new FileInfo("1").FullName);
-    }
-
-    [TestMethod]
-    [DataRow("cs")]
-    [DataRow("vbnet")]
-    public void Telemetry_Multitargeting(string languageKey)
-    {
-        var guid = Guid.NewGuid();
-        var propertyKey = $"sonar.{languageKey}.scanner.telemetry";
-        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
-        var projectInfos = new[]
-        {
-            new ProjectInfo
-            {
-                ProjectGuid = guid,
-                Configuration = "Debug",
-                TargetFramework = "netstandard2.0",
-                AnalysisSettings = [new(propertyKey, "1.json")],
-                FullPath = fullPath,
-            },
-            new ProjectInfo
-            {
-                ProjectGuid = guid,
-                Configuration = "Debug",
-                TargetFramework = "net46",
-                AnalysisSettings = [new(propertyKey, "2.json")],
-                FullPath = fullPath,
-            },
-            new ProjectInfo
-            {
-                ProjectGuid = guid,
-                Configuration = "Release",
-                TargetFramework = "netstandard2.0",
-                AnalysisSettings =  [
-                    new(propertyKey, "3.json"),
-                    new(propertyKey, "4.json"),
-                ],
-                FullPath = fullPath,
-            },
-        };
-
-        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-        var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
-        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single()).TelemetryPaths.ToList();
-
-        results.Should().BeEquivalentTo([new FileInfo("2.json"), new("1.json"), new("3.json"), new("4.json")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }
 
     [TestMethod]
@@ -241,6 +195,52 @@ public partial class PropertiesFileGeneratorTests
         var resultString = writer.Flush();
         resultString.Should().NotContain("validRoslyn"); // Expected to change when fixed
         resultString.Should().NotContain("validOutPath"); // Expected to change when fixed
+    }
+
+    [TestMethod]
+    [DataRow("cs")]
+    [DataRow("vbnet")]
+    public void Telemetry_Multitargeting(string languageKey)
+    {
+        var guid = Guid.NewGuid();
+        var propertyKey = $"sonar.{languageKey}.scanner.telemetry";
+        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
+        var projectInfos = new[]
+        {
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = [new(propertyKey, "1.json")],
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                TargetFramework = "net46",
+                AnalysisSettings = [new(propertyKey, "2.json")],
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Release",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings =  [
+                    new(propertyKey, "3.json"),
+                    new(propertyKey, "4.json"),
+                ],
+                FullPath = fullPath,
+            },
+        };
+
+        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
+        var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
+        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single()).TelemetryPaths.ToList();
+
+        results.Should().BeEquivalentTo([new FileInfo("2.json"), new("1.json"), new("3.json"), new("4.json")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }
 
     [TestMethod]
