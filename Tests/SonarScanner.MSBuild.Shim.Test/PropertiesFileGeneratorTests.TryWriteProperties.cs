@@ -97,10 +97,12 @@ public partial class PropertiesFileGeneratorTests
     {
         var outPath = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out");
         var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = outPath, SonarQubeHostUrl = sonarQubeHost };
-        var writer = new PropertiesWriter(config);
-        TryWriteProperties_HostUrl_Execute(config, writer);
+        var legacyWriter = new PropertiesWriter(config);
+        var engineInput = new ScannerEngineInput(config);
+        TryWriteProperties_HostUrl_Execute(config, legacyWriter, engineInput);
 
-        writer.Flush().Should().Contain($"sonar.host.url={sonarQubeHost}");
+        legacyWriter.Flush().Should().Contain($"sonar.host.url={sonarQubeHost}");
+        new ScannerEngineInputReader(engineInput.ToString()).AssertProperty("sonar.host.url", sonarQubeHost);
         logger.AssertDebugLogged("Setting analysis property: sonar.host.url=" + sonarQubeHost);
     }
 
@@ -115,13 +117,15 @@ public partial class PropertiesFileGeneratorTests
             SonarQubeHostUrl = "Property should take precedence and this should not be used",
             LocalSettings = [new Property(SonarProperties.HostUrl, "http://localhost:9000")]
         };
-        var writer = new PropertiesWriter(config);
-        TryWriteProperties_HostUrl_Execute(config, writer);
+        var legacyWriter = new PropertiesWriter(config);
+        var engineInput = new ScannerEngineInput(config);
+        TryWriteProperties_HostUrl_Execute(config, legacyWriter, engineInput);
 
-        writer.Flush().Should().Contain("sonar.host.url=http://localhost:9000");
+        legacyWriter.Flush().Should().Contain("sonar.host.url=http://localhost:9000");
+        new ScannerEngineInputReader(engineInput.ToString()).AssertProperty("sonar.host.url", "http://localhost:9000");
     }
 
-    private void TryWriteProperties_HostUrl_Execute(AnalysisConfig config, PropertiesWriter writer)
+    private void TryWriteProperties_HostUrl_Execute(AnalysisConfig config, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
     {
         Directory.CreateDirectory(config.SonarOutputDir);
         var sut = new PropertiesFileGenerator(config, logger);
@@ -137,6 +141,6 @@ public partial class PropertiesFileGeneratorTests
             AnalysisSettings = [],
             AnalysisResults = [new AnalysisResult { Id = AnalysisType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
         };
-        sut.TryWriteProperties(writer, new ScannerEngineInput(config), [project], out _).Should().BeTrue();
+        sut.TryWriteProperties(legacyWriter, engineInput, [project], out _).Should().BeTrue();
     }
 }

@@ -60,7 +60,7 @@ public partial class PropertiesFileGeneratorTests
         AssertExpectedProjectCount(1, result);
 
         // One valid project info file -> file created
-        AssertPropertiesFilesCreated(result, logger);
+        AssertScannerInputCreated(result, logger);
         var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         AssertFileIsReferenced(files[0], propertiesFileContent);
         AssertFileIsReferenced(files[1], propertiesFileContent);
@@ -103,7 +103,7 @@ public partial class PropertiesFileGeneratorTests
 
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
-        AssertPropertiesFilesCreated(result, logger);
+        AssertScannerInputCreated(result, logger);
         var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         AssertFileIsReferenced(files[0], propertiesFileContent);
         AssertFileIsReferenced(files[1], propertiesFileContent);
@@ -146,7 +146,7 @@ public partial class PropertiesFileGeneratorTests
 
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
-        AssertPropertiesFilesCreated(result, logger);
+        AssertScannerInputCreated(result, logger);
         var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         AssertFileIsReferenced(files[0], propertiesFileContent);
         AssertFileIsNotReferenced(files[1], propertiesFileContent);
@@ -189,7 +189,7 @@ public partial class PropertiesFileGeneratorTests
 
         AssertExpectedProjectCount(1, result);
         // No valid project info files -> properties not created
-        AssertFailedToCreatePropertiesFiles(result, logger);
+        AssertFailedToCreateScannerInput(result, logger);
     }
 
     private static void CreateProjectInfoAndFilesToAnalyze(Guid guid,
