@@ -94,8 +94,8 @@ public class PropertiesFileGenerator
     {
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var result = new ProjectInfoAnalysisResult();
-        var propertiesFileWriter = new PropertiesWriter(analysisConfig, logger);
-        var jsonWriter = new JsonPropertiesWriter(analysisConfig, logger);
+        var propertiesFileWriter = new PropertiesWriter(analysisConfig);
+        var jsonWriter = new JsonPropertiesWriter(analysisConfig);
         logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
         if (TryWriteProperties(propertiesFileWriter, jsonWriter, out var projects))
         {

@@ -77,7 +77,7 @@ public class SummaryReportBuilder : ISummaryReportBuilder
         result.RanToCompletion = ranToCompletion;
         result.FullPropertiesFilePath = fullPropertiesFilePath;
 
-        new PropertiesFileGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config, logger), out var allProjects);
+        new PropertiesFileGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), out var allProjects);
 
         result.Projects.AddRange(allProjects);
 

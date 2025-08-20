@@ -38,7 +38,7 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteSettingsForProject_ThrowsOnNullArgument()
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         Action action = () => propertiesWriter.WriteSettingsForProject(null);
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectData");
@@ -47,7 +47,7 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteGlobalSettings_ThrowsOnNullArgument()
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         Action action = () => propertiesWriter.WriteGlobalSettings(null);
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
@@ -56,7 +56,7 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteGlobalSettings_VerboseIsSkipped()
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteGlobalSettings([
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
@@ -73,7 +73,7 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteGlobalSettings([
             new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
@@ -91,7 +91,7 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteSharedProperties_EmptySources_EmptyTests()
     {
-        var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([], []));
         propertiesWriter.Flush().Should().BeIgnoringLineEndings("""
 
@@ -104,12 +104,12 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteSharedProperties_WithSources_EmptyTests()
     {
-        var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
         propertiesWriter.Flush().Should().BeIgnoringLineEndings($"""
             sonar.sources=\
-            {PropertiesPath(TestUtils.DriveRoot(), "dev", "main.hs")},\
-            {PropertiesPath(TestUtils.DriveRoot(), "dev", "lambdas.hs")}
+            "{PropertiesPath(TestUtils.DriveRoot(), "dev", "main.hs")}",\
+            "{PropertiesPath(TestUtils.DriveRoot(), "dev", "lambdas.hs")}"
 
             sonar.modules=
 
@@ -120,12 +120,12 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteSharedProperties_EmptySources_WithTests()
     {
-        var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
         propertiesWriter.Flush().Should().BeIgnoringLineEndings($"""
             sonar.tests=\
-            {PropertiesPath(TestUtils.DriveRoot(), "dev", "test.hs")},\
-            {PropertiesPath(TestUtils.DriveRoot(), "dev", "test2.hs")}
+            "{PropertiesPath(TestUtils.DriveRoot(), "dev", "test.hs")}",\
+            "{PropertiesPath(TestUtils.DriveRoot(), "dev", "test2.hs")}"
 
             sonar.modules=
 
@@ -136,13 +136,13 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteSharedProperties_WithSources_WithTests()
     {
-        var propertiesWriter = new PropertiesWriter(new(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
         propertiesWriter.Flush().Should().BeIgnoringLineEndings($"""
             sonar.sources=\
-            {PropertiesPath(TestUtils.DriveRoot(), "dev", "main.hs")}
+            "{PropertiesPath(TestUtils.DriveRoot(), "dev", "main.hs")}"
             sonar.tests=\
-            {PropertiesPath(TestUtils.DriveRoot(), "dev", "test.hs")}
+            "{PropertiesPath(TestUtils.DriveRoot(), "dev", "test.hs")}"
 
             sonar.modules=
 
@@ -153,7 +153,7 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteAnalyzerOutputPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths("unexpected", analyzerOutPaths: [@"c:\dir1\dir2"]));
 
         propertiesWriter.Flush().Should().BeIgnoringLineEndings(
@@ -169,15 +169,15 @@ public class PropertiesWriterTest
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.analyzer.projectOutPaths")]
     public void WriteAnalyzerOutputPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths(
             language,
             analyzerOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
         propertiesWriter.Flush().Should().BeIgnoringLineEndings(
             $"""
             5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
-            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "first")},\
-            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "second")}
+            "{PropertiesPath(TestUtils.DriveRoot(), "dir1", "first")}",\
+            "{PropertiesPath(TestUtils.DriveRoot(), "dir1", "second")}"
             sonar.modules=
 
 
@@ -187,7 +187,7 @@ public class PropertiesWriterTest
     [TestMethod]
     public void WriteRoslynReportPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteRoslynReportPaths(CreateTestProjectDataWithPaths("unexpected"));
 
         propertiesWriter.Flush().Should().BeIgnoringLineEndings(
@@ -203,7 +203,7 @@ public class PropertiesWriterTest
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths")]
     public void WriteRoslynReportPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteRoslynReportPaths(CreateTestProjectDataWithPaths(
             language,
             roslynOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
@@ -211,8 +211,8 @@ public class PropertiesWriterTest
         propertiesWriter.Flush().Should().BeIgnoringLineEndings(
             $"""
             5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
-            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "first")},\
-            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "second")}
+            "{PropertiesPath(TestUtils.DriveRoot(), "dir1", "first")}",\
+            "{PropertiesPath(TestUtils.DriveRoot(), "dir1", "second")}"
             sonar.modules=
 
 
@@ -222,7 +222,7 @@ public class PropertiesWriterTest
     [TestMethod]
     public void Telemetry_ForUnexpectedLanguage_DoNotWritePaths()
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
 
         propertiesWriter.WriteTelemetryPaths(CreateTestProjectDataWithPaths("unexpected", telemetryPaths: [@"c:\dir1\dir2\Telemetry.json"]));
 
@@ -239,7 +239,7 @@ public class PropertiesWriterTest
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.scanner.telemetry")]
     public void Telmetry_WritesEncodedPaths(string language, string expectedPropertyKey)
     {
-        var propertiesWriter = new PropertiesWriter(new AnalysisConfig(), new TestLogger());
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteTelemetryPaths(CreateTestProjectDataWithPaths(
             language,
             telemetryPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")]));
@@ -247,8 +247,8 @@ public class PropertiesWriterTest
         propertiesWriter.Flush().Should().BeIgnoringLineEndings(
             $"""
             5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}=\
-            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json")},\
-            {PropertiesPath(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")}
+            "{PropertiesPath(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json")}",\
+            "{PropertiesPath(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")}"
             sonar.modules=
 
 
@@ -308,7 +308,7 @@ public class PropertiesWriterTest
         string actual = null;
         using (new AssertIgnoreScope()) // expecting the property writer to complain about the missing file
         {
-            var writer = new PropertiesWriter(config, new TestLogger());
+            var writer = new PropertiesWriter(config);
             writer.WriteSettingsForProject(productCS);
             writer.WriteSettingsForProject(productVB);
             writer.WriteSettingsForProject(test);
@@ -325,9 +325,9 @@ public class PropertiesWriterTest
             DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sourceEncoding=utf-8
             DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.tests=
             DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources=\
-            {0}{3}File.cs,\
-            {0}{3}\u4F60\u597D.cs,\
-            {2}
+            "{0}{3}File.cs",\
+            "{0}{3}\u4F60\u597D.cs",\
+            "{2}"
 
             DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.working.directory=C:\\my_folder{3}.sonar{3}mod0
             B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey=my_project_key:B51622CF-82F4-48C9-9F38-FB981FAFAF3A
@@ -336,7 +336,7 @@ public class PropertiesWriterTest
             B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sourceEncoding=utf-8
             B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.tests=
             B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources=\
-            {0}{3}File.cs
+            "{0}{3}File.cs"
 
             B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.working.directory=C:\\my_folder{3}.sonar{3}mod1
             DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey=my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B
@@ -345,7 +345,7 @@ public class PropertiesWriterTest
             DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding=utf-8
             DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources=
             DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests=\
-            {1}{3}File.cs
+            "{1}{3}File.cs"
 
             DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.working.directory=C:\\my_folder{3}.sonar{3}mod2
             sonar.modules=DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981FAFAF3A,DA0FCD82-9C5C-4666-9370-C7388281D49B
@@ -374,7 +374,7 @@ public class PropertiesWriterTest
             SonarOutputDir = @"C:\OutpuDir",
         };
         config.SetConfigValue(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
-        var writer = new PropertiesWriter(config, Substitute.For<ILogger>());
+        var writer = new PropertiesWriter(config);
         writer.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
 
         writer.Flush().Should().BeIgnoringLineEndings(
@@ -395,7 +395,7 @@ public class PropertiesWriterTest
     public void WriteSonarProjectInfo_EmptyValues()
     {
         var config = new AnalysisConfig { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
-        var writer = new PropertiesWriter(config, Substitute.For<ILogger>());
+        var writer = new PropertiesWriter(config);
         writer.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
 
         writer.Flush().Should().BeIgnoringLineEndings(
@@ -413,17 +413,9 @@ public class PropertiesWriterTest
     [TestMethod]
     public void Ctor_WhenAnalysisConfigIsNull_ThrowsArgumentNulLException()
     {
-        Action act = () => new PropertiesWriter(null, new TestLogger());
+        Action act = () => new PropertiesWriter(null);
 
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
-    }
-
-    [TestMethod]
-    public void Ctor_WhenLoggerIsNull_ThrowsArgumentNulLException()
-    {
-        Action act = () => new PropertiesWriter(new AnalysisConfig(), null);
-
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -436,8 +428,7 @@ public class PropertiesWriterTest
                 SonarProjectName = "name",
                 SonarProjectVersion = "1.0",
                 SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
-            },
-            new TestLogger());
+            });
         writer.Flush();
 
         Action act = () => writer.Flush();
@@ -454,8 +445,7 @@ public class PropertiesWriterTest
                 SonarProjectName = "name",
                 SonarProjectVersion = "1.0",
                 SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
-            },
-            new TestLogger());
+            });
         writer.Flush();
 
         using (new AssertIgnoreScope())
@@ -489,7 +479,7 @@ public class PropertiesWriterTest
         ];
         product.ReferencedFiles.Add(productFile);
 
-        var writer = new PropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" }, new TestLogger());
+        var writer = new PropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
         writer.WriteSettingsForProject(product);
 
         var propertyReader = new SQPropertiesFileReader(SaveToResultFile(projectBaseDir, "Actual.txt", writer.Flush()));
@@ -521,7 +511,7 @@ public class PropertiesWriterTest
             SonarOutputDir = @"C:\my_folder"
         };
 
-        var writer = new PropertiesWriter(config, new TestLogger());
+        var writer = new PropertiesWriter(config);
         writer.WriteSettingsForProject(product);
         writer.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
         var s = writer.Flush();
@@ -555,7 +545,7 @@ public class PropertiesWriterTest
             new("sonar.branch", "aBranch") // path that will be escaped
         };
 
-        var writer = new PropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" }, new TestLogger());
+        var writer = new PropertiesWriter(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
         writer.WriteGlobalSettings(globalSettings);
 
         var propertyReader = new SQPropertiesFileReader(
@@ -564,90 +554,6 @@ public class PropertiesWriterTest
         propertyReader.AssertSettingExists("my.setting2", "setting 2 with spaces");
         propertyReader.AssertSettingExists("my.setting.3", @"c:\dir1\dir2\foo.txt");
         propertyReader.AssertSettingExists("sonar.branch", "aBranch");
-    }
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQGreaterThanOrEqualTo65_EscapeAndJoinPaths()
-    {
-        var config65 = new AnalysisConfig
-        {
-            SonarOutputDir = @"C:\my_folder",
-            SonarQubeVersion = "6.5"
-        };
-        var config66 = new AnalysisConfig
-        {
-            SonarOutputDir = @"C:\my_folder",
-            SonarQubeVersion = "6.6"
-        };
-        var testSubject65 = new PropertiesWriter(config65, new TestLogger());
-        var testSubject66 = new PropertiesWriter(config66, new TestLogger());
-
-        var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs", "C:\\foo\"bar.cs" };
-
-        var actual65 = testSubject65.EncodeAsMultiValueProperty(paths);
-        var actual66 = testSubject66.EncodeAsMultiValueProperty(paths);
-
-        actual65.Should().BeIgnoringLineEndings("""
-            "C:\foo.cs",\
-            "C:\foo,bar.cs",\
-            "C:\foo""bar.cs"
-            """);
-        actual66.Should().Be(actual65);
-    }
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQLessThan65AndNoInvalidPath_JoinPaths() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("6.0");
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQVersionNullAndNoInvalidPath_JoinPaths() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(null);
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndNoInvalidPath_JoinPaths() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths("foo");
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQLessThan65AndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("6.0");
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQVersionIsNullAndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(null);
-
-    [TestMethod]
-    public void EncodeAsMultiValueProperty_WhenSQVersionNotAVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers() =>
-        EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers("foo");
-
-    private static void EncodeAsMultiValueProperty_WhenGivenSQVersionAndNoInvalidPath_JoinPaths(string sonarqubeVersion) =>
-        new PropertiesWriter(
-                new AnalysisConfig
-                {
-                    SonarOutputDir = @"C:\my_folder",
-                    SonarQubeVersion = sonarqubeVersion
-                },
-                new TestLogger())
-            .EncodeAsMultiValueProperty([@"C:\foo.cs", @"C:\foobar.cs"])
-            .Should().BeIgnoringLineEndings("""
-            C:\foo.cs,\
-            C:\foobar.cs
-            """);
-
-    private static void EncodeAsMultiValueProperty_WhenGivenSQVersionAndInvalidPath_ExcludeInvalidPathAndJoinOthers(string sonarqubeVersion)
-    {
-        var logger = new TestLogger();
-        var testSubject = new PropertiesWriter(
-            new AnalysisConfig
-            {
-                SonarOutputDir = @"C:\my_folder",
-                SonarQubeVersion = sonarqubeVersion
-            },
-            logger);
-        var paths = new[] { "C:\\foo.cs", "C:\\foo,bar.cs" };
-
-        testSubject.EncodeAsMultiValueProperty(paths).Should().Be(@"C:\foo.cs");
-        logger.Warnings.Should().ContainSingle();
-        logger.Warnings[0].Should().Be("The following paths contain invalid characters and will be excluded from this analysis: C:\\foo,bar.cs");
     }
 
     private static string PropertiesPath(params string[] paths) =>

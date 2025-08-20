@@ -320,7 +320,7 @@ public class PropertiesFileGeneratorTests
 
         // Already valid SARIF -> no change in file -> unchanged property
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, mockReturnPath);
+        provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, AddQuotes(mockReturnPath));
     }
 
     [TestMethod]
@@ -354,7 +354,7 @@ public class PropertiesFileGeneratorTests
 
         // Fixable SARIF -> new file saved -> changed property
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + propertyKey, sarifFixer.ReturnVal);
+        provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + propertyKey, AddQuotes(sarifFixer.ReturnVal));
     }
 
     [TestMethod]
@@ -383,7 +383,7 @@ public class PropertiesFileGeneratorTests
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(
             $"{projectGuid.ToString().ToUpper()}.{PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey}",
-            $"{testSarifPath1}.fixed.mock.json,{testSarifPath2}.fixed.mock.json,{testSarifPath3}.fixed.mock.json");
+            $@"""{testSarifPath1}.fixed.mock.json"",""{testSarifPath2}.fixed.mock.json"",""{testSarifPath3}.fixed.mock.json""");
     }
 
     [TestMethod]
@@ -532,7 +532,7 @@ public class PropertiesFileGeneratorTests
         // Assert
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists("sonar.projectBaseDir", testDir);
-        provider.AssertSettingExists("sonar.sources", sharedFile);
+        provider.AssertSettingExists("sonar.sources", AddQuotes(sharedFile));
     }
 
     // SONARMSBRU-335
@@ -577,7 +577,7 @@ public class PropertiesFileGeneratorTests
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists("sonar.projectBaseDir", testDir);
         // First one wins
-        provider.AssertSettingExists("sonar.sources", sharedFile);
+        provider.AssertSettingExists("sonar.sources", AddQuotes(sharedFile));
     }
 
     // SONARMSBRU-336
@@ -615,7 +615,7 @@ public class PropertiesFileGeneratorTests
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists("sonar.projectBaseDir", testDir);
         provider.AssertSettingDoesNotExist("sonar.sources");
-        provider.AssertSettingExists(project1Guid.ToString().ToUpper() + ".sonar.sources", fileInProject1);
+        provider.AssertSettingExists(project1Guid.ToString().ToUpper() + ".sonar.sources", AddQuotes(fileInProject1));
     }
 
     [TestMethod] // https://jira.codehaus.org/browse/SONARMSBRU-13: Analysis fails if a content file referenced in the MSBuild project does not exist
@@ -908,7 +908,7 @@ public class PropertiesFileGeneratorTests
 
         // In order to force automatic root path detection to point to file system root,
         // create a project in the test run directory and a second one in the temp folder.
-        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), new JsonPropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
+        sut.TryWriteProperties(new PropertiesWriter(config), new JsonPropertiesWriter(config), [firstProjectInfo, secondProjectInfo], out _);
 
         logger.AssertErrorLogged("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
     }
@@ -940,7 +940,7 @@ public class PropertiesFileGeneratorTests
         };
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "Second");
-        sut.TryWriteProperties(new PropertiesWriter(config, this.logger), new JsonPropertiesWriter(config, this.logger), [firstProjectInfo, secondProjectInfo], out _);
+        sut.TryWriteProperties(new PropertiesWriter(config), new JsonPropertiesWriter(config), [firstProjectInfo, secondProjectInfo], out _);
 
         logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
         logger.AssertErrorLogged("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
@@ -1132,7 +1132,7 @@ public class PropertiesFileGeneratorTests
 
         sut.Status.Should().Be(ProjectInfoValidity.Valid);
         sut.Project.AnalysisSettings.Should().BeNullOrEmpty(); // Expected to change when fixed
-        var writer = new PropertiesWriter(config, new TestLogger());
+        var writer = new PropertiesWriter(config);
         writer.WriteSettingsForProject(sut);
         var resultString = writer.Flush();
         resultString.Should().NotContain("validRoslyn"); // Expected to change when fixed
@@ -1512,8 +1512,8 @@ public class PropertiesFileGeneratorTests
         AssertExpectedPathsAddedToModuleFiles(project2, project2Sources);
 
         var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        properties.PropertyValue("sonar.sources").Split(',').Should().BeEquivalentTo(rootSources);
-        properties.PropertyValue("sonar.tests").Split(',').Should().BeEquivalentTo(rootTests);
+        properties.PropertyValue("sonar.sources").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootSources);
+        properties.PropertyValue("sonar.tests").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests);
 
         void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
             expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
@@ -1547,7 +1547,7 @@ public class PropertiesFileGeneratorTests
         AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
 
         var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        properties.PropertyValue("sonar.tests").Split(',').Should().BeEquivalentTo(testFiles);
+        properties.PropertyValue("sonar.tests").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(testFiles);
     }
 
     [TestMethod]
@@ -1558,7 +1558,7 @@ public class PropertiesFileGeneratorTests
     {
         var outPath = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out");
         var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = outPath, SonarQubeHostUrl = sonarQubeHostUrl };
-        var writer = new PropertiesWriter(config, logger);
+        var writer = new PropertiesWriter(config);
         TryWriteProperties_HostUrl_Execute(config, writer);
 
         writer.Flush().Should().Contain($"sonar.host.url={sonarQubeHostUrl}");
@@ -1571,7 +1571,7 @@ public class PropertiesFileGeneratorTests
         var outPath = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out");
         var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = outPath, SonarQubeHostUrl = "Property should take precedence and this should not be used" };
         config.LocalSettings = [new Property(SonarProperties.HostUrl, "http://localhost:9000")];
-        var writer = new PropertiesWriter(config, logger);
+        var writer = new PropertiesWriter(config);
         TryWriteProperties_HostUrl_Execute(config, writer);
 
         writer.Flush().Should().Contain("sonar.host.url=http://localhost:9000");
@@ -1595,7 +1595,7 @@ public class PropertiesFileGeneratorTests
             AnalysisSettings = [],
             AnalysisResults = [new AnalysisResult { Id = AnalysisType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
         };
-        sut.TryWriteProperties(writer, new JsonPropertiesWriter(config, logger), [project], out _).Should().BeTrue();
+        sut.TryWriteProperties(writer, new JsonPropertiesWriter(config), [project], out _).Should().BeTrue();
     }
 
     /// <summary>
@@ -1682,7 +1682,7 @@ public class PropertiesFileGeneratorTests
     {
         var config = new AnalysisConfig();
         var logger = new TestLogger();
-        new PropertiesWriter(config, logger);
+        new PropertiesWriter(config);
         config.SonarOutputDir = TestSonarqubeOutputDir;
         config.SourcesDirectory = teamBuildValue;
         config.LocalSettings ??= new();
@@ -1726,6 +1726,11 @@ public class PropertiesFileGeneratorTests
         File.WriteAllLines(fullPath, files);
         return fullPath;
     }
+
+    private static string AddQuotes(string input) =>
+        $"""
+        "{input}"
+        """;
 
     private PropertiesFileGenerator CreateSut(
         AnalysisConfig analysisConfig,

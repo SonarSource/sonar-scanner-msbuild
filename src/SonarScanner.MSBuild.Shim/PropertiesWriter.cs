@@ -22,11 +22,11 @@ using System.Globalization;
 
 namespace SonarScanner.MSBuild.Shim;
 
+// ToDo: Remove this class in SCAN4NET-721
 public class PropertiesWriter
 {
     private const string SonarSources = "sonar.sources";
     private const string SonarTests = "sonar.tests";
-    private readonly ILogger logger;
     private readonly AnalysisConfig config;
 
     /// <summary>
@@ -37,11 +37,8 @@ public class PropertiesWriter
 
     public bool FinishedWriting { get; private set; }
 
-    public PropertiesWriter(AnalysisConfig config, ILogger logger)
-    {
+    public PropertiesWriter(AnalysisConfig config) =>
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public static string Escape(string value)
     {
@@ -297,26 +294,6 @@ public class PropertiesWriter
     private static bool IsAscii(char c) =>
         c <= sbyte.MaxValue;
 
-    internal /* for testing purposes */ string EncodeAsMultiValueProperty(IEnumerable<string> paths)
-    {
-        var multiValuesPropertySeparator = $@",\{Environment.NewLine}";
-
-        if (Version.TryParse(config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
-        {
-            return string.Join(multiValuesPropertySeparator, paths.Select(x => $"\"{x.Replace("\"", "\"\"")}\""));
-        }
-        else
-        {
-            var invalidPaths = paths.Where(InvalidPathPredicate);
-            if (invalidPaths.Any())
-            {
-                logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
-            }
-
-            return string.Join(multiValuesPropertySeparator, paths.Where(x => !InvalidPathPredicate(x)));
-        }
-
-        static bool InvalidPathPredicate(string path) =>
-            path.Contains(",");
-    }
+    private static string EncodeAsMultiValueProperty(IEnumerable<string> paths) =>
+        string.Join($@",\{Environment.NewLine}", paths.Select(x => $"\"{x.Replace("\"", "\"\"")}\""));
 }
