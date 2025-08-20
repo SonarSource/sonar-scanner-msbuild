@@ -69,7 +69,7 @@ public class CachedDownloader
         }
     }
 
-    internal string EnsureCacheRoot() =>
+    public virtual string EnsureCacheRoot() =>
         EnsureDirectoryExists(CacheRoot);
 
     internal string EnsureDirectoryExists(string directory)
