@@ -59,16 +59,18 @@ public class JsonPropertiesWriterTest
             new(SonarProperties.HostUrl, "http://example.org"),
         ]);
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "sonar.host.url",
-                "value": "http://example.org"
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.host.url",
+                  "value": "http://example.org"
+                }
+              ]
+            }
             """);
     }
 
@@ -81,20 +83,22 @@ public class JsonPropertiesWriterTest
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
         ]);
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "sonar.scanner.sonarcloudUrl",
-                "value": "http://SonarcloudUrl.org"
-              },
-              {
-                "key": "sonar.host.url",
-                "value": "http://HostUrl.org"
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.scanner.sonarcloudUrl",
+                  "value": "http://SonarcloudUrl.org"
+                },
+                {
+                  "key": "sonar.host.url",
+                  "value": "http://HostUrl.org"
+                }
+              ]
+            }
             """);
     }
 
@@ -104,12 +108,14 @@ public class JsonPropertiesWriterTest
         var propertiesWriter = new JsonPropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([], []));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                }
+              ]
+            }
             """);
     }
 
@@ -119,16 +125,18 @@ public class JsonPropertiesWriterTest
         var propertiesWriter = new JsonPropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "sonar.sources",
-                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))}}
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.sources",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))}}
+                }
+              ]
+            }
             """);
     }
 
@@ -138,16 +146,18 @@ public class JsonPropertiesWriterTest
         var propertiesWriter = new JsonPropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "sonar.tests",
-                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))}}
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.tests",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))}}
+                }
+              ]
+            }
             """);
     }
 
@@ -157,20 +167,22 @@ public class JsonPropertiesWriterTest
         var propertiesWriter = new JsonPropertiesWriter(new());
         propertiesWriter.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "sonar.sources",
-                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))}}
-              },
-              {
-                "key": "sonar.tests",
-                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))}}
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.sources",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))}}
+                },
+                {
+                  "key": "sonar.tests",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))}}
+                }
+              ]
+            }
             """);
     }
 
@@ -181,12 +193,14 @@ public class JsonPropertiesWriterTest
         propertiesWriter.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths("unexpected", analyzerOutPaths: [@"c:\dir1\dir2"]));
 
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                }
+              ]
+            }
             """);
     }
 
@@ -200,16 +214,18 @@ public class JsonPropertiesWriterTest
             language,
             analyzerOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
+                }
+              ]
+            }
             """);
     }
 
@@ -218,14 +234,15 @@ public class JsonPropertiesWriterTest
     {
         var propertiesWriter = new JsonPropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteRoslynReportPaths(CreateTestProjectDataWithPaths("unexpected"));
-        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings(
-            """
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              }
-            ]
+        PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                }
+              ]
+            }
             """);
     }
 
@@ -239,16 +256,18 @@ public class JsonPropertiesWriterTest
             language,
             roslynOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
+                }
+              ]
+            }
             """);
     }
 
@@ -260,12 +279,14 @@ public class JsonPropertiesWriterTest
         propertiesWriter.WriteTelemetryPaths(CreateTestProjectDataWithPaths("unexpected", telemetryPaths: [@"c:\dir1\dir2\Telemetry.json"]));
 
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings("""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                }
+              ]
+            }
             """);
     }
 
@@ -279,16 +300,18 @@ public class JsonPropertiesWriterTest
             language,
             telemetryPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")]));
         PropertiesToString(propertiesWriter).Should().BeIgnoringLineEndings($$"""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json"))}}
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json"))}}
+                }
+              ]
+            }
             """);
     }
 
@@ -356,96 +379,98 @@ public class JsonPropertiesWriterTest
         }
 
         var expected = $$"""
-            [
-              {
-                "key": "sonar.modules",
-                "value": "DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981FAFAF3A,DA0FCD82-9C5C-4666-9370-C7388281D49B"
-              },
-              {
-                "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey",
-                "value": "my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF"
-              },
-              {
-                "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName",
-                "value": "你好"
-              },
-              {
-                "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir",
-                "value": {{JsonConvert.ToString(productBaseDir)}}
-              },
-              {
-                "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sourceEncoding",
-                "value": "utf-8"
-              },
-              {
-                "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.tests",
-                "value": ""
-              },
-              {
-                "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources",
-                "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs") + "," + Path.Combine(productBaseDir, "你好.cs") + "," + missingFileOutsideProjectDir.FullName)}}
-              },
-              {
-                "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.working.directory",
-                "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod0"))}}
-              },
-              {
-                "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey",
-                "value": "my_project_key:B51622CF-82F4-48C9-9F38-FB981FAFAF3A"
-              },
-              {
-                "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectName",
-                "value": "vbProject"
-              },
-              {
-                "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectBaseDir",
-                "value": {{JsonConvert.ToString(productBaseDir)}}
-              },
-              {
-                "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sourceEncoding",
-                "value": "utf-8"
-              },
-              {
-                "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.tests",
-                "value": ""
-              },
-              {
-                "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources",
-                "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs"))}}
-              },
-              {
-                "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.working.directory",
-                "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod1"))}}
-              },
-              {
-                "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey",
-                "value": "my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B"
-              },
-              {
-                "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName",
-                "value": "my_test_project"
-              },
-              {
-                "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir",
-                "value": {{JsonConvert.ToString(testBaseDir)}}
-              },
-              {
-                "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding",
-                "value": "utf-8"
-              },
-              {
-                "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources",
-                "value": ""
-              },
-              {
-                "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests",
-                "value": {{JsonConvert.ToString(Path.Combine(testBaseDir, "File.cs"))}}
-              },
-              {
-                "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.working.directory",
-                "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod2"))}}
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": "DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981FAFAF3A,DA0FCD82-9C5C-4666-9370-C7388281D49B"
+                },
+                {
+                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectKey",
+                  "value": "my_project_key:DB2E5521-3172-47B9-BA50-864F12E6DFFF"
+                },
+                {
+                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectName",
+                  "value": "你好"
+                },
+                {
+                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.projectBaseDir",
+                  "value": {{JsonConvert.ToString(productBaseDir)}}
+                },
+                {
+                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sourceEncoding",
+                  "value": "utf-8"
+                },
+                {
+                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.tests",
+                  "value": ""
+                },
+                {
+                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources",
+                  "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs") + "," + Path.Combine(productBaseDir, "你好.cs") + "," + missingFileOutsideProjectDir.FullName)}}
+                },
+                {
+                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.working.directory",
+                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod0"))}}
+                },
+                {
+                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey",
+                  "value": "my_project_key:B51622CF-82F4-48C9-9F38-FB981FAFAF3A"
+                },
+                {
+                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectName",
+                  "value": "vbProject"
+                },
+                {
+                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectBaseDir",
+                  "value": {{JsonConvert.ToString(productBaseDir)}}
+                },
+                {
+                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sourceEncoding",
+                  "value": "utf-8"
+                },
+                {
+                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.tests",
+                  "value": ""
+                },
+                {
+                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources",
+                  "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs"))}}
+                },
+                {
+                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.working.directory",
+                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod1"))}}
+                },
+                {
+                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey",
+                  "value": "my_project_key:DA0FCD82-9C5C-4666-9370-C7388281D49B"
+                },
+                {
+                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectName",
+                  "value": "my_test_project"
+                },
+                {
+                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectBaseDir",
+                  "value": {{JsonConvert.ToString(testBaseDir)}}
+                },
+                {
+                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding",
+                  "value": "utf-8"
+                },
+                {
+                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources",
+                  "value": ""
+                },
+                {
+                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests",
+                  "value": {{JsonConvert.ToString(Path.Combine(testBaseDir, "File.cs"))}}
+                },
+                {
+                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.working.directory",
+                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod2"))}}
+                }
+              ]
+            }
             """;
         actual.Should().BeIgnoringLineEndings(expected);
     }
@@ -469,36 +494,38 @@ public class JsonPropertiesWriterTest
 
         PropertiesToString(writer).Should().BeIgnoringLineEndings(
             $$"""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "sonar.projectKey",
-                "value": "my_project_key"
-              },
-              {
-                "key": "sonar.projectName",
-                "value": "my_project_name"
-              },
-              {
-                "key": "sonar.projectVersion",
-                "value": "4.2"
-              },
-              {
-                "key": "sonar.working.directory",
-                "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar"))}}
-              },
-              {
-                "key": "sonar.projectBaseDir",
-                "value": {{JsonConvert.ToString(projectBaseDir)}}
-              },
-              {
-                "key": "sonar.pullrequest.cache.basepath",
-                "value": "C:\\PullRequest\\Cache\\BasePath"
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.projectKey",
+                  "value": "my_project_key"
+                },
+                {
+                  "key": "sonar.projectName",
+                  "value": "my_project_name"
+                },
+                {
+                  "key": "sonar.projectVersion",
+                  "value": "4.2"
+                },
+                {
+                  "key": "sonar.working.directory",
+                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar"))}}
+                },
+                {
+                  "key": "sonar.projectBaseDir",
+                  "value": {{JsonConvert.ToString(projectBaseDir)}}
+                },
+                {
+                  "key": "sonar.pullrequest.cache.basepath",
+                  "value": "C:\\PullRequest\\Cache\\BasePath"
+                }
+              ]
+            }
             """);
     }
 
@@ -510,28 +537,30 @@ public class JsonPropertiesWriterTest
         writer.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
         PropertiesToString(writer).Should().BeIgnoringLineEndings(
             $$"""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "sonar.projectKey",
-                "value": null
-              },
-              {
-                "key": "sonar.working.directory",
-                "value": {{JsonConvert.ToString(Path.Combine(@"C:\OutputDir\CannotBeEmpty", ".sonar"))}}
-              },
-              {
-                "key": "sonar.projectBaseDir",
-                "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir"))}}
-              },
-              {
-                "key": "sonar.pullrequest.cache.basepath",
-                "value": null
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.projectKey",
+                  "value": null
+                },
+                {
+                  "key": "sonar.working.directory",
+                  "value": {{JsonConvert.ToString(Path.Combine(@"C:\OutputDir\CannotBeEmpty", ".sonar"))}}
+                },
+                {
+                  "key": "sonar.projectBaseDir",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir"))}}
+                },
+                {
+                  "key": "sonar.pullrequest.cache.basepath",
+                  "value": null
+                }
+              ]
+            }
             """);
     }
 
@@ -639,16 +668,18 @@ public class JsonPropertiesWriterTest
                 "Normal value"
             ]);
         PropertiesToString(sut).Should().BeIgnoringLineEndings("""
-            [
-              {
-                "key": "sonar.modules",
-                "value": ""
-              },
-              {
-                "key": "sonar.multivalueproperty",
-                "value": "Normal value without double quotes @#$%^&*(),\"With \r Carriage Return\",\"With \n Line Feed\",Normal value,\"With , Comma\",\"With \"\" Double Quote\",Normal value"
-              }
-            ]
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.multivalueproperty",
+                  "value": "Normal value without double quotes @#$%^&*(),\"With \r Carriage Return\",\"With \n Line Feed\",Normal value,\"With , Comma\",\"With \"\" Double Quote\",Normal value"
+                }
+              ]
+            }
             """);
     }
 
@@ -723,10 +754,10 @@ public class JsonPropertiesWriterTest
 
     // ToDo: SCAN4NET-747
     // this method should be moved/re-implemented to its own class "JsonPropertiesUtils as it seems to be needed for the PropertiesFileGeneratorTests
-    private static List<KeyValuePair<string, string>> JsonPropertiesReader(JArray jsonProperties)
+    private static List<KeyValuePair<string, string>> JsonPropertiesReader(JObject properties)
     {
         var result = new List<KeyValuePair<string, string>>();
-        foreach (var item in jsonProperties)
+        foreach (var item in properties["scannerProperties"])
         {
             if (item is JObject jsonObject)
             {
