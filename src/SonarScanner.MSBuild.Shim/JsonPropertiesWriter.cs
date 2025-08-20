@@ -32,22 +32,27 @@ public class JsonPropertiesWriter
     /// Project guids that have been processed. This is used in <see cref="Flush"/> to write the module keys in the end.
     /// </summary>
     private readonly HashSet<string> moduleKeys = [];
-    private readonly JArray jsonArray = [];
+    private readonly JObject root;
+    private readonly JArray scannerProperties = [];
     private readonly JProperty modules;
 
     public JsonPropertiesWriter(AnalysisConfig config)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
+        root = new JObject
+        {
+            new JProperty("scannerProperties", scannerProperties)
+        };
         modules = AppendKeyValue("sonar.modules", string.Empty);
     }
 
     /// <summary>
     /// Finishes writing out any additional data then returns the whole of the content.
     /// </summary>
-    public JArray Flush()
+    public JObject Flush()
     {
         // ToDo: SCAN4NET-766 Add missing content, return string instead
-        return jsonArray;
+        return root;
     }
 
     public void WriteSettingsForProject(ProjectData projectData)
@@ -227,7 +232,7 @@ public class JsonPropertiesWriter
             "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}",
             key);
         var valueProperty = new JProperty("value", value);
-        jsonArray.Add(new JObject
+        scannerProperties.Add(new JObject
         {
             new JProperty("key", key),
             valueProperty
