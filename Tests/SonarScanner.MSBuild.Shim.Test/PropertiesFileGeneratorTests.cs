@@ -670,6 +670,7 @@ public partial class PropertiesFileGeneratorTests
             projectPaths: [@"d:\work\proj1.csproj"]);
     }
 
+    [TestMethod]
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
     public void GenerateFile_ComputeProjectBaseDir_Windows()
