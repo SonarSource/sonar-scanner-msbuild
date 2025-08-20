@@ -46,13 +46,11 @@ public class BuildVNextCoverageReportProcessor
         string[] vsCoverageXmlReportsPaths = null;
         var trxFilePaths = new TrxFileReader(logger, fileWrapper, directoryWrapper).FindTrxFiles(settings.BuildDirectory);
 
-        var reportsPathsPropertyWritten = false;
         if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, logger) is null)
         {
             if (trxFilePaths.Any())
             {
                 vsTestReportsPaths = trxFilePaths.ToArray();
-                reportsPathsPropertyWritten = true;
             }
         }
         else
@@ -60,7 +58,7 @@ public class BuildVNextCoverageReportProcessor
             this.logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
         }
 
-        var vsCoverageFilePaths = FindVsCoverageFiles(reportsPathsPropertyWritten, trxFilePaths);
+        var vsCoverageFilePaths = FindVsCoverageFiles(trxFilePaths, disableFallback: vsTestReportsPaths is not null);
         if (vsCoverageFilePaths.Any()
             && TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths)
             && coverageReportPaths.Any()
@@ -137,10 +135,10 @@ public class BuildVNextCoverageReportProcessor
         }
     }
 
-    private IEnumerable<string> FindVsCoverageFiles(bool reportsPathsPropertyWritten, IEnumerable<string> trxFilePaths)
+    private IEnumerable<string> FindVsCoverageFiles(IEnumerable<string> trxFilePaths, bool disableFallback)
     {
         var binaryFilePaths = new TrxFileReader(logger, fileWrapper, directoryWrapper).FindCodeCoverageFiles(trxFilePaths);
-        if (binaryFilePaths.Any() || reportsPathsPropertyWritten)
+        if (binaryFilePaths.Any() || disableFallback)
         {
             logger.LogDebug(Resources.TRX_DIAG_NotUsingFallback);
             return binaryFilePaths;
