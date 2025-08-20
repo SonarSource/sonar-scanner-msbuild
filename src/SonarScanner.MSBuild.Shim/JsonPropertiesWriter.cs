@@ -31,20 +31,21 @@ public class JsonPropertiesWriter
     /// <summary>
     /// Project guids that have been processed. This is used in <see cref="Flush"/> to write the module keys in the end.
     /// </summary>
-    private readonly IList<string> moduleKeys = [];
+    private readonly HashSet<string> moduleKeys = [];
     private readonly JArray jsonArray = [];
+    private readonly JProperty modules;
 
-    public JsonPropertiesWriter(AnalysisConfig config) =>
+    public JsonPropertiesWriter(AnalysisConfig config)
+    {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
+        modules = AppendKeyValue("sonar.modules", string.Empty);
+    }
 
     /// <summary>
     /// Finishes writing out any additional data then returns the whole of the content.
     /// </summary>
     public JArray Flush()
     {
-        Debug.Assert(moduleKeys.Distinct().Count() == moduleKeys.Count, "Expecting the project guids to be unique.");
-
-        AppendKeyValue("sonar.modules", string.Join(",", moduleKeys));
         // ToDo: SCAN4NET-766 Add missing content, return string instead
         return jsonArray;
     }
@@ -56,10 +57,13 @@ public class JsonPropertiesWriter
             throw new ArgumentNullException(nameof(projectData));
         }
 
+        var guid = projectData.Guid;
         Debug.Assert(projectData.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
         Debug.Assert(projectData.SonarQubeModuleFiles.All(x => x.Exists), "Expecting all of the specified files to exist");
+        Debug.Assert(!moduleKeys.Contains(guid), "Expecting the project guids to be unique.");
 
-        var guid = projectData.Project.GetProjectGuidAsString();
+        moduleKeys.Add(guid);
+        modules.Value = string.Join(",", moduleKeys);
 
         AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
         AppendKeyValue(guid, SonarProperties.ProjectName, projectData.Project.ProjectName);
@@ -88,11 +92,8 @@ public class JsonPropertiesWriter
             WriteTelemetryPaths(projectData);
         }
 
-        // Store the project guid so that we can write all module keys in the end
-        moduleKeys.Add(projectData.Guid);
-
-        var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"); // zero-based index of projectData.Guid
-        AppendKeyValue(projectData.Guid, SonarProperties.WorkingDirectory, moduleWorkdir);
+        var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"); // zero-based index
+        AppendKeyValue(guid, SonarProperties.WorkingDirectory, moduleWorkdir);
     }
 
     public void WriteTelemetryPaths(ProjectData project)
@@ -211,11 +212,7 @@ public class JsonPropertiesWriter
     }
 
     internal void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> values) =>
-        jsonArray.Add(new JObject
-            {
-                { "key", $"{keyPrefix}.{keySuffix}" },
-                { "value", ToMultiValueProperty(values) }
-            });
+        AppendKeyValue($"{keyPrefix}.{keySuffix}", ToMultiValueProperty(values));
 
     private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
         AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
@@ -223,18 +220,19 @@ public class JsonPropertiesWriter
     private void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
         AppendKeyValue(keyPrefix + "." + keySuffix, value);
 
-    private void AppendKeyValue(string key, string value)
+    private JProperty AppendKeyValue(string key, string value)
     {
         Debug.Assert(
             !ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
             "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}",
             key);
-
+        var valueProperty = new JProperty("value", value);
         jsonArray.Add(new JObject
         {
-            { "key", key },
-            { "value", value }
+            new JProperty("key", key),
+            valueProperty
         });
+        return valueProperty;
     }
 
     private void AppendKeyValueIfNotEmpty(string key, string value)
