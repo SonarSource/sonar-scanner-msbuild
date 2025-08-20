@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Shim;
@@ -46,14 +47,8 @@ public class ScannerEngineInput
         modules = AppendKeyValue("sonar.modules", string.Empty);
     }
 
-    /// <summary>
-    /// Finishes writing out any additional data then returns the whole of the content.
-    /// </summary>
-    public JObject Flush()
-    {
-        // ToDo: SCAN4NET-766 Add missing content, return string instead
-        return root;
-    }
+    public override string ToString() =>
+        JsonConvert.SerializeObject(root, Formatting.Indented);
 
     public void WriteSettingsForProject(ProjectData projectData)
     {
