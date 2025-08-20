@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.TFS;
 using static FluentAssertions.FluentActions;
 
 namespace SonarScanner.MSBuild.PostProcessor.Test;
@@ -33,11 +35,12 @@ public class PostProcessorTests
     private readonly TestContext testContext;
     private readonly TargetsUninstaller targetsUninstaller;
     private readonly AnalysisConfig config;
-    private readonly BuildSettings settings;
     private readonly SonarScannerWrapper scanner;
     private readonly TestLogger logger;
     private readonly TfsProcessorWrapper tfsProcessor;
+    private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
+    private IBuildSettings settings;
 
     public PostProcessorTests(TestContext testContext)
     {
@@ -47,6 +50,7 @@ public class PostProcessorTests
             SonarOutputDir = Environment.CurrentDirectory,
             SonarConfigDir = Environment.CurrentDirectory,
         };
+        config.SetBuildUri("http://test-build-uri");
         settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
         logger = new();
         tfsProcessor = Substitute.For<TfsProcessorWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
@@ -55,43 +59,49 @@ public class PostProcessorTests
         scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(logger);
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
+        coverageReportProcessor = Substitute
+            .For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>());
         sut = new PostProcessor(
             scanner,
             logger,
             targetsUninstaller,
             tfsProcessor,
-            sonarProjectPropertiesValidator);
+            sonarProjectPropertiesValidator,
+            coverageReportProcessor);
     }
 
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        Invoking(() => new PostProcessor(null, null, null, null, null)).Should()
+        Invoking(() => new PostProcessor(null, null, null, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("sonarScanner");
 
-        Invoking(() => new PostProcessor(scanner, null, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, null, null, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("logger");
 
-        Invoking(() => new PostProcessor(scanner, logger, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, logger, null, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("targetUninstaller");
 
-        Invoking(() => new PostProcessor(scanner, logger, targetsUninstaller, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, logger, targetsUninstaller, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("tfsProcessor");
 
-        Invoking(() => new PostProcessor(scanner, logger, targetsUninstaller, tfsProcessor, null)).Should()
+        Invoking(() => new PostProcessor(scanner, logger, targetsUninstaller, tfsProcessor, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("sonarProjectPropertiesValidator");
+
+        Invoking(() => new PostProcessor(scanner, logger, targetsUninstaller, tfsProcessor, Substitute.For<SonarProjectPropertiesValidator>(), null)).Should()
+            .Throw<ArgumentNullException>()
+            .And.ParamName.Should().Be("coverageReportProcessor");
     }
 
     [TestMethod]
     public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
     {
         Execute(withProject: false).Should().BeFalse("Expecting post-processor to have failed");
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         logger.AssertNoErrorsLogged();
         logger.AssertNoWarningsLogged();
@@ -105,7 +115,6 @@ public class PostProcessorTests
         scanner.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => logger.LogError("Errors"));
 
         Execute().Should().BeTrue("Expecting post-processor to have succeeded");
-        AssertTfsProcesserCalledIfNetFramework();
         scanner.Received().Execute(
             config,
             Arg.Is<IAnalysisPropertyProvider>(x => !x.GetAllProperties().Any()),
@@ -119,7 +128,6 @@ public class PostProcessorTests
     public void PostProc_FailsOnInvalidArgs()
     {
         Execute("/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         logger.AssertErrorsLogged(1);
         logger.AssertWarningsLogged(0);
@@ -144,7 +152,6 @@ public class PostProcessorTests
         };
 
         Execute(suppliedArgs).Should().BeTrue("Expecting post-processor to have succeeded");
-        AssertTfsProcesserCalledIfNetFramework();
         scanner.Received().Execute(
             config,
             Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)),
@@ -160,7 +167,6 @@ public class PostProcessorTests
 
         Execute().Should().BeFalse();
         logger.AssertErrorLogged(CredentialsErrorMessage);
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -172,7 +178,6 @@ public class PostProcessorTests
 
         Execute().Should().BeFalse();
         logger.AssertErrorLogged(TruststorePasswordErrorMessage);
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -231,7 +236,6 @@ public class PostProcessorTests
 
         Execute($"/d:{truststorePasswordProperty}").Should().BeFalse();
         logger.AssertErrorLogged($"The format of the analysis property {truststorePasswordProperty} is invalid");
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -244,7 +248,6 @@ public class PostProcessorTests
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Dsonar.scanner.truststorePassword");
 
         Execute().Should().BeFalse();
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -254,7 +257,6 @@ public class PostProcessorTests
     {
         Execute("/d:sonar.token=foo").Should().BeFalse();
         logger.AssertErrorLogged(CredentialsErrorMessage);
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -277,6 +279,19 @@ public class PostProcessorTests
     }
 
     [TestMethod]
+    public void Execute_ExistingSonarPropertiesFilesPresent_Fail()
+    {
+        sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(null, null, out var _).ReturnsForAnyArgs(x =>
+            {
+                x[2] = new[] { "Some Path" };
+                return true;
+            });
+        Execute().Should().BeFalse();
+        sonarProjectPropertiesValidator.ReceivedWithAnyArgs().AreExistingSonarPropertiesFilesPresent(null, null, out var _);
+        logger.AssertErrorLogged("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: Some Path");
+    }
+
+    [TestMethod]
     public void Execute_NullArgs_Throws() =>
         sut.Invoking(x => x.Execute(null, new AnalysisConfig(), Substitute.For<IBuildSettings>())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
 
@@ -287,6 +302,71 @@ public class PostProcessorTests
     [TestMethod]
     public void Execute_NullTeamBuildSettings_Throws() =>
         sut.Invoking(x => x.Execute([], new AnalysisConfig(), null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settings");
+
+    [TestMethod]
+    public void Execute_NotTeamBuild_NoCoverageProcessorCalled()
+    {
+        SubstituteSettings(BuildEnvironment.NotTeamBuild);
+
+        Execute().Should().BeTrue();
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+    }
+
+    [TestMethod]
+    public void Execute_TeamBuild_CoverageReportProcessorCalled()
+    {
+        SubstituteSettings(BuildEnvironment.TeamBuild);
+
+        Execute().Should().BeTrue();
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
+        AssertProcessCoverageReportsCalledIfNetFramework();
+    }
+
+    [TestMethod]
+    public void Execute_LegacyTeamBuild_TfsProcessorCalled()
+    {
+        SubstituteSettings(BuildEnvironment.LegacyTeamBuild);
+
+        Execute().Should().BeTrue();
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework();
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+    }
+
+    [TestMethod]
+    public void Execute_LegacyTeamBuild_BuildUrisDoNotMatch_Fail()
+    {
+        SubstituteSettings(BuildEnvironment.LegacyTeamBuild);
+        config.SetBuildUri("http://other-uri");
+
+        Execute().Should().BeFalse();
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+        logger.AssertErrorLogged("""
+            Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
+            Build Uri from environment: http://test-build-uri
+            Build Uri from config: http://other-uri
+            Analysis config file: 
+            Please delete the analysis config file and try the build again.
+            """);
+    }
+
+    [TestMethod]
+    public void Execute_LegacyTeamBuild_SkipLegacyCodeCoverage_TfsProcessorCalledOnlyForSummaryReportBuilder()
+    {
+        SubstituteSettings(BuildEnvironment.LegacyTeamBuild);
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
+
+        Execute().Should().BeTrue();
+        AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
+        AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+    }
 
     private bool Execute(string arg) =>
         Execute([arg]);
@@ -317,13 +397,42 @@ public class PostProcessorTests
         return success;
     }
 
-    private void AssertTfsProcesserCalledIfNetFramework() =>
+    private void AssertProcessCoverageReportsCalledIfNetFramework() =>
 #if NETFRAMEWORK
-        tfsProcessor.ReceivedWithAnyArgs().Execute(null, null, null);
+        coverageReportProcessor.ReceivedWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+#else
+        coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null, null);
+#endif
+
+    private void AssertTfsProcessorConvertCoverageCalledIfNetFramework(bool shouldBeCalled = true) =>
+        AssertTfsProcessorCommandCalledIfNetFramework("ConvertCoverage", shouldBeCalled);
+
+    private void AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(bool shouldBeCalled = true) =>
+        AssertTfsProcessorCommandCalledIfNetFramework("SummaryReportBuilder", shouldBeCalled);
+
+    private void AssertTfsProcessorCommandCalledIfNetFramework(string command, bool shouldBeCalled)
+    {
+#if NETFRAMEWORK
+        if (shouldBeCalled)
+        {
+            tfsProcessor.Received().Execute(Arg.Any<AnalysisConfig>(), Arg.Is<IEnumerable<string>>(x => x.Contains(command)), Arg.Any<string>());
+        }
+        else
+        {
+            tfsProcessor.DidNotReceive().Execute(Arg.Any<AnalysisConfig>(), Arg.Is<IEnumerable<string>>(x => x.Contains(command)), Arg.Any<string>());
+        }
 #else
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
 #endif
+    }
 
     private void VerifyTargetsUninstaller() =>
         targetsUninstaller.Received(1).UninstallTargets(Arg.Any<string>());
+
+    private void SubstituteSettings(BuildEnvironment environment)
+    {
+        settings = Substitute.For<IBuildSettings>();
+        settings.BuildEnvironment.Returns(environment);
+        settings.BuildUri.Returns(config.GetBuildUri());
+    }
 }

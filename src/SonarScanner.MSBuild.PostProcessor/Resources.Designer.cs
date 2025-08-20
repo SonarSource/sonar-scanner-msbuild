@@ -129,11 +129,29 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Converting coverage reports..
+        /// </summary>
+        internal static string MSG_ConvertingCoverageReports {
+            get {
+                return ResourceManager.GetString("MSG_ConvertingCoverageReports", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading the SonarQube analysis config from {0}.
         /// </summary>
         internal static string MSG_LoadingConfig {
             get {
                 return ResourceManager.GetString("MSG_LoadingConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calling legacy TFS processor..
+        /// </summary>
+        internal static string MSG_TFSLegacyProcessorCalled {
+            get {
+                return ResourceManager.GetString("MSG_TFSLegacyProcessorCalled", resourceCulture);
             }
         }
         

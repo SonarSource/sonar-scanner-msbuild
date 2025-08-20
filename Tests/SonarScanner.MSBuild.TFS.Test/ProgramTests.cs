@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.TFS.Classic.Tests;
 
 [TestClass]
@@ -78,7 +71,8 @@ public class ProgramTests
 
         result.Should().Be(0);
         logger.Errors.Should().HaveCount(0);
-        logger.InfoMessages.Should().Contain("Coverage report conversion completed successfully.");
+        logger.InfoMessages.Should().NotContain("Coverage report conversion completed successfully.");
+        logger.InfoMessages.Should().NotContain("Coverage report conversion has failed. Skipping...");
     }
 
     [TestMethod]

@@ -22,7 +22,7 @@ using System.Security.Cryptography;
 
 namespace SonarScanner.MSBuild.TFS;
 
-public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
+public class BuildVNextCoverageReportProcessor
 {
     internal const string AgentTempDirectory = "AGENT_TEMPDIRECTORY";
     private const string XmlReportFileExtension = "coveragexml";
@@ -30,10 +30,6 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
     private readonly ILogger logger;
     private readonly IFileWrapper fileWrapper;
     private readonly IDirectoryWrapper directoryWrapper;
-    private AnalysisConfig config;
-    private IBuildSettings settings;
-    private string propertiesFilePath;
-    private bool successfullyInitialized;
 
     public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, ILogger logger, IFileWrapper fileWrapper = null, IDirectoryWrapper directoryWrapper = null)
     {
@@ -43,22 +39,8 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
     }
 
-    public bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath)
+    public virtual void ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath, ILogger logger)
     {
-        this.config = config ?? throw new ArgumentNullException(nameof(config));
-        this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-        this.propertiesFilePath = propertiesFilePath ?? throw new ArgumentNullException(nameof(propertiesFilePath));
-        successfullyInitialized = true;
-        return successfullyInitialized;
-    }
-
-    public bool ProcessCoverageReports(ILogger logger)
-    {
-        if (!successfullyInitialized)
-        {
-            throw new InvalidOperationException(Resources.EX_CoverageReportProcessorNotInitialized);
-        }
-
         this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
         var trxFilePaths = new TrxFileReader(logger, fileWrapper, directoryWrapper).FindTrxFiles(settings.BuildDirectory);
 
@@ -84,8 +66,6 @@ public class BuildVNextCoverageReportProcessor : ICoverageReportProcessor
         {
             WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, coverageReportPaths.ToArray());
         }
-
-        return true;
     }
 
     internal IEnumerable<string> FindFallbackCoverageFiles()
