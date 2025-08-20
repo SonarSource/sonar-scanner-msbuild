@@ -22,7 +22,7 @@ using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class JsonPropertiesWriter
+public class ScannerEngineInput
 {
     private const string SonarSources = "sonar.sources";
     private const string SonarTests = "sonar.tests";
@@ -36,7 +36,7 @@ public class JsonPropertiesWriter
     private readonly JArray scannerProperties = [];
     private readonly JProperty modules;
 
-    public JsonPropertiesWriter(AnalysisConfig config)
+    public ScannerEngineInput(AnalysisConfig config)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
         root = new JObject
