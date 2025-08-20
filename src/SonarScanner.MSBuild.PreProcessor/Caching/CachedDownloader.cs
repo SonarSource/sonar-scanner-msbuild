@@ -72,6 +72,9 @@ public class CachedDownloader
     public virtual string EnsureCacheRoot() =>
         EnsureDirectoryExists(CacheRoot);
 
+    public string FileRootPath(FileDescriptor descriptor) =>
+        Path.Combine(CacheRoot, descriptor.Sha256);
+
     internal string EnsureDirectoryExists(string directory)
     {
         try
@@ -160,9 +163,6 @@ public class CachedDownloader
 
     protected string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
         EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
-
-    protected string FileRootPath(FileDescriptor descriptor) =>
-        Path.Combine(CacheRoot, descriptor.Sha256);
 
     private void TryDeleteFile(string tempFile)
     {
