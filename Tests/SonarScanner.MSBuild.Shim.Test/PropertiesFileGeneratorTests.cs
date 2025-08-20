@@ -40,40 +40,36 @@ public class PropertiesFileGeneratorTests
 
     [TestMethod]
     public void PropertiesFileGenerator_WhenConfigIsNull_Throws() =>
-        ((Action)(() => new PropertiesFileGenerator(null, new TestLogger()))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
+        ((Func<PropertiesFileGenerator>)(() => new(null, new TestLogger()))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
 
     [TestMethod]
     public void PropertiesFileGenerator_FirstConstructor_WhenLoggerIsNull_Throws() =>
-        ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper(), null)))
+        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper(), null)))
             .Should().ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("logger");
 
     [TestMethod]
     public void PropertiesFileGenerator_SecondConstructor_WhenLoggerIsNull_Throws() =>
         // the RoslynV1SarifFixer will throw
-        ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
     [TestMethod]
     public void PropertiesFileGenerator_WhenFixerIsNull_Throws() =>
-        ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper(), null))).Should()
+        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper(), null))).Should()
             .ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("fixer");
 
     [TestMethod]
-    public void PropertiesFileGenerator_WhenRuntimeInformationWrapperIsNull_Throws()
-    {
-        ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null, null))).Should()
+    public void PropertiesFileGenerator_WhenRuntimeInformationWrapperIsNull_Throws() =>
+        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null, null))).Should()
             .ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("runtimeInformationWrapper");
-    }
 
     [TestMethod]
-    public void PropertiesFileGenerator_WhenAdditionalFileServiceIsNull_Throws()
-    {
-        ((Action)(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), null))).Should()
+    public void PropertiesFileGenerator_WhenAdditionalFileServiceIsNull_Throws() =>
+        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), null))).Should()
             .ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("additionalFilesService");
-    }
 
     [TestMethod]
     public void GenerateFile_NoProjectInfoFiles()
@@ -85,7 +81,7 @@ public class PropertiesFileGeneratorTests
         var subDir2 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "dir2");
         TestUtils.CreateEmptyFile(subDir1, "file1.txt");
         TestUtils.CreateEmptyFile(subDir2, "file2.txt");
-        var config = new AnalysisConfig() { SonarOutputDir = testDir, SonarQubeHostUrl = "http://sonarqube.com" };
+        var config = new AnalysisConfig { SonarOutputDir = testDir, SonarQubeHostUrl = "http://sonarqube.com" };
         var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
         AssertFailedToCreatePropertiesFiles(result, logger);
@@ -201,7 +197,7 @@ public class PropertiesFileGeneratorTests
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
         var config = CreateValidConfig(testDir);
-        config.LocalSettings = new AnalysisProperties { new(SonarProperties.SourceEncoding, "test-encoding-here") };
+        config.LocalSettings = [new(SonarProperties.SourceEncoding, "test-encoding-here")];
         var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
         var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
@@ -215,11 +211,10 @@ public class PropertiesFileGeneratorTests
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
         var config = CreateValidConfig(testDir);
-        config.LocalSettings = new AnalysisProperties
-        {
+        config.LocalSettings = [
             new(SonarProperties.VsCoverageXmlReportsPaths, "coverage-path"),
             new(SonarProperties.VsTestReportsPaths, "trx-path"),
-        };
+        ];
         var result = CreateSut(config).GenerateFile();
 
         var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
@@ -234,11 +229,10 @@ public class PropertiesFileGeneratorTests
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
         var config = CreateValidConfig(testDir);
-        config.LocalSettings = new AnalysisProperties
-        {
+        config.LocalSettings = [
             new(SonarProperties.ClientCertPath, "Client cert path"),           // should be logged as it is not sensitive
             new(SonarProperties.ClientCertPassword, "Client cert password")    // should not be logged as it is sensitive
-        };
+        ];
         CreateSut(config).GenerateFile();
 
         logger.DebugMessages.Any(x => x.Contains("Client cert path")).Should().BeTrue();
@@ -344,14 +338,13 @@ public class PropertiesFileGeneratorTests
     {
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-        var projectPath = Path.Combine(projectDir, "project.proj");
+        var projectPath = TestUtils.CreateEmptyFile(projectDir, "project.proj");
         var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, projectPath, "UTF-8");
-        TestUtils.CreateEmptyFile(projectDir, "project.proj");
         string[] filesOutsideProjectPath = ["dllFile.dll", "exeFile.exe", "txtFile.txt", "foo.cs", "foo.DLL", "bar.EXE"];
         var filesToBeAnalyzedPaths = new List<string>();
         foreach (var fileName in filesOutsideProjectPath)
         {
-            filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(TestContext.TestDir, fileName));
+            filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, fileName));
         }
         // To add the files above, to the list of files that are to be analyzed, you need to add their paths to
         // the "contentList.txt" which is placed inside the projectDir folder.
@@ -365,8 +358,8 @@ public class PropertiesFileGeneratorTests
         // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
         AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
         logger.AssertWarningsLogged(2);
-        logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "txtFile.txt")}' is not located under the base directory");
-        logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestDir, "foo.cs")}' is not located under the base directory");
+        logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestRunDirectory, "txtFile.txt")}' is not located under the base directory");
+        logger.AssertSingleWarningExists($"File '{Path.Combine(TestContext.TestRunDirectory, "foo.cs")}' is not located under the base directory");
     }
 
     [TestMethod]
@@ -379,9 +372,8 @@ public class PropertiesFileGeneratorTests
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var dirOutOfProjectRoot = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, subDirNames);
         var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-        var projectPath = Path.Combine(projectDir, "project.proj");
+        var projectPath = TestUtils.CreateEmptyFile(projectDir, "project.proj");
         var projectInfo = TestUtils.CreateProjectInfoInSubDir(testDir, "project", null, Guid.NewGuid(), ProjectType.Product, false, projectPath, "UTF-8");
-        TestUtils.CreateEmptyFile(projectDir, "project.proj");
         var fileInNugetCache = TestUtils.CreateEmptyFile(dirOutOfProjectRoot, "foo.cs");
         // To add the files above, to the list of files that are to be analyzed, you need to add their paths to
         // the "contentList.txt" which is placed inside the projectDir folder.
@@ -411,18 +403,15 @@ public class PropertiesFileGeneratorTests
         // Shared files should be attached to the root project
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project1");
-        var project1Path = Path.Combine(project1Dir, "project1.proj");
+        var project1Path = TestUtils.CreateEmptyFile(project1Dir, "project1.proj");
         var project1Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName1", null, Guid.NewGuid(), ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
-        TestUtils.CreateEmptyFile(project1Dir, "project1.proj");
-        var sharedFile = Path.Combine(testDir, "contentFile.txt");
-        TestUtils.CreateEmptyFile(testDir, "contentFile.txt");
+        var sharedFile = TestUtils.CreateEmptyFile(testDir, "contentFile.txt");
         // Reference shared file, but not under the project directory
         var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", sharedFile);
         TestUtils.AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
         var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
-        var project2Path = Path.Combine(project2Dir, "project2.proj");
+        var project2Path = TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
         var project2Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName2", null, Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
-        TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
         // Reference shared file, but not under the project directory
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFile);
         TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
@@ -434,31 +423,26 @@ public class PropertiesFileGeneratorTests
         provider.AssertSettingExists("sonar.sources", AddQuotes(sharedFile));
     }
 
-    // SONARMSBRU-335
-    // Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
+    // SONARMSBRU-335 Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GenerateFile_SharedFiles_CaseInsensitive()
     {
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        // Create 2 uuids and order them so that test is reproducible
-        var uuids = new Guid[] { Guid.NewGuid(), Guid.NewGuid() };
-        Array.Sort(uuids);
+        // Create 2 UUIDs and order them so that test is reproducible
+        var uuids = new[] { Guid.NewGuid(), Guid.NewGuid() }.OrderBy(x => x).ToArray();
         var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project1");
-        var project1Path = Path.Combine(project1Dir, "project1.proj");
+        var project1Path = TestUtils.CreateEmptyFile(project1Dir, "project1.proj");
         var project1Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName1", null, uuids[0], ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
-        TestUtils.CreateEmptyFile(project1Dir, "project1.proj");
-        var sharedFile = Path.Combine(testDir, "contentFile.txt");
+        var sharedFile = TestUtils.CreateEmptyFile(testDir, "contentFile.txt");
         var sharedFileDifferentCase = Path.Combine(testDir, "ContentFile.TXT");
-        TestUtils.CreateEmptyFile(testDir, "contentFile.txt");
         // Reference shared file, but not under the project directory
         var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", sharedFile);
         TestUtils.AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
         var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
-        var project2Path = Path.Combine(project2Dir, "project2.proj");
+        var project2Path = TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
         var project2Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName2", null, uuids[1], ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
-        TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
         // Reference shared file, but not under the project directory
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFileDifferentCase);
         TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
@@ -478,18 +462,15 @@ public class PropertiesFileGeneratorTests
         // Shared files that belong to another project should NOT be attached to the root project
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project1");
-        var project1Path = Path.Combine(project1Dir, "project1.proj");
-        TestUtils.CreateEmptyFile(project1Dir, "project1.proj");
+        var project1Path = TestUtils.CreateEmptyFile(project1Dir, "project1.proj");
         var project1Guid = Guid.NewGuid();
         var project1Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName1", null, project1Guid, ProjectType.Product, false, project1Path, "UTF-8"); // not excluded
-        var fileInProject1 = Path.Combine(project1Dir, "contentFile.txt");
-        TestUtils.CreateEmptyFile(project1Dir, "contentFile.txt");
+        var fileInProject1 = TestUtils.CreateEmptyFile(project1Dir, "contentFile.txt");
         // Reference shared file, but not under the project directory
         var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", fileInProject1);
         TestUtils.AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
         var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
-        var project2Path = Path.Combine(project2Dir, "project2.proj");
-        TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
+        var project2Path = TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
         var project2Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName2", null, Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
         // Reference shared file, but not under the project directory
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", fileInProject1);
@@ -516,10 +497,10 @@ public class PropertiesFileGeneratorTests
         var existingContentFile = TestUtils.CreateEmptyFile(projectBaseDir, "Content1.txt");
         var missingManagedFile = Path.Combine(projectBaseDir, "MissingFile1.cs");
         var missingContentFile = Path.Combine(projectBaseDir, "MissingContent1.txt");
-        var projectInfo = new ProjectInfo()
+        var projectInfo = new ProjectInfo
         {
             FullPath = projectFullPath,
-            AnalysisResults = new List<AnalysisResult>(),
+            AnalysisResults = [],
             IsExcluded = false,
             ProjectGuid = Guid.NewGuid(),
             ProjectName = "project1.proj",
@@ -531,7 +512,7 @@ public class PropertiesFileGeneratorTests
         var projectInfoDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "ProjectInfo1Dir");
         var projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);
         projectInfo.Save(projectInfoFilePath);
-        var config = new AnalysisConfig()
+        var config = new AnalysisConfig
         {
             SonarQubeHostUrl = "http://sonarqube.com",
             SonarProjectKey = "my_project_key",
@@ -570,7 +551,7 @@ public class PropertiesFileGeneratorTests
             new(SonarProperties.ClientCertPassword, "secret client certpwd")
         };
         // Server properties should not be added
-        config.ServerSettings = new AnalysisProperties { new("server.key", "should not be added") };
+        config.ServerSettings = [new("server.key", "should not be added")];
         var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
@@ -796,7 +777,7 @@ public class PropertiesFileGeneratorTests
         sut.TryWriteProperties(new PropertiesWriter(config), new ScannerEngineInput(config), [firstProjectInfo, secondProjectInfo], out _);
 
         logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
-        logger.AssertErrorLogged("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+        logger.AssertErrorLogged("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
     }
 
     [TestMethod]
@@ -806,8 +787,7 @@ public class PropertiesFileGeneratorTests
     {
         var guid = Guid.NewGuid();
         var propertyKey = $"sonar.{languageKey}.analyzer.projectOutPaths";
-        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "foo");
-        var fullPath = Path.Combine(TestContext.TestRunDirectory, "foo");
+        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
         var projectInfos = new[]
         {
             new ProjectInfo
@@ -816,7 +796,7 @@ public class PropertiesFileGeneratorTests
                 Configuration = "Release",
                 Platform = "anyCpu",
                 TargetFramework = "netstandard2.0",
-                AnalysisSettings = new AnalysisProperties { new(propertyKey, "1") },
+                AnalysisSettings = [new(propertyKey, "1")],
                 FullPath = fullPath,
             },
             new ProjectInfo
@@ -825,7 +805,7 @@ public class PropertiesFileGeneratorTests
                 Configuration = "Debug",
                 Platform = "anyCpu",
                 TargetFramework = "netstandard2.0",
-                AnalysisSettings = new AnalysisProperties { new(propertyKey, "2") },
+                AnalysisSettings = [new(propertyKey, "2")],
                 FullPath = fullPath,
             },
             new ProjectInfo
@@ -834,7 +814,7 @@ public class PropertiesFileGeneratorTests
                 Configuration = "Debug",
                 Platform = "x86",
                 TargetFramework = "net46",
-                AnalysisSettings = new AnalysisProperties { new(propertyKey, "3") },
+                AnalysisSettings = [new(propertyKey, "3")],
                 FullPath = fullPath,
             },
             new ProjectInfo
@@ -843,14 +823,14 @@ public class PropertiesFileGeneratorTests
                 Configuration = "Debug",
                 Platform = "x86",
                 TargetFramework = "netstandard2.0",
-                AnalysisSettings = new AnalysisProperties { new(propertyKey, "4") },
+                AnalysisSettings = [new(propertyKey, "4")],
                 FullPath = fullPath,
             },
         };
 
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
         var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
-        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First()).AnalyzerOutPaths.ToList();
+        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First()).AnalyzerOutPaths.ToList();
 
         results.Should().HaveCount(4);
         results[0].FullName.Should().Be(new FileInfo("2").FullName);
@@ -866,8 +846,7 @@ public class PropertiesFileGeneratorTests
     {
         var guid = Guid.NewGuid();
         var propertyKey = $"sonar.{languageKey}.scanner.telemetry";
-        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "foo");
-        var fullPath = Path.Combine(TestContext.TestRunDirectory, "foo");
+        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
         var projectInfos = new[]
         {
             new ProjectInfo
@@ -875,7 +854,7 @@ public class PropertiesFileGeneratorTests
                 ProjectGuid = guid,
                 Configuration = "Debug",
                 TargetFramework = "netstandard2.0",
-                AnalysisSettings = new() { new(propertyKey, "1.json") },
+                AnalysisSettings = [new(propertyKey, "1.json")],
                 FullPath = fullPath,
             },
             new ProjectInfo
@@ -883,7 +862,7 @@ public class PropertiesFileGeneratorTests
                 ProjectGuid = guid,
                 Configuration = "Debug",
                 TargetFramework = "net46",
-                AnalysisSettings = new() { new(propertyKey, "2.json") },
+                AnalysisSettings = [new(propertyKey, "2.json")],
                 FullPath = fullPath,
             },
             new ProjectInfo
@@ -891,11 +870,10 @@ public class PropertiesFileGeneratorTests
                 ProjectGuid = guid,
                 Configuration = "Release",
                 TargetFramework = "netstandard2.0",
-                AnalysisSettings = new()
-                {
+                AnalysisSettings =  [
                     new(propertyKey, "3.json"),
                     new(propertyKey, "4.json"),
-                },
+                ],
                 FullPath = fullPath,
             },
         };
@@ -913,33 +891,18 @@ public class PropertiesFileGeneratorTests
         var guid = Guid.NewGuid();
         var projectInfos = new[]
         {
-            new ProjectInfo
-            {
-                ProjectGuid = guid,
-                FullPath = "path1"
-            },
-            new ProjectInfo
-            {
-                ProjectGuid = guid,
-                FullPath = "path2"
-            },
-            new ProjectInfo
-            {
-                ProjectGuid = guid,
-                FullPath = "path2"
-            },
+            new ProjectInfo { ProjectGuid = guid, FullPath = "path1" },
+            new ProjectInfo { ProjectGuid = guid, FullPath = "path2" },
+            new ProjectInfo { ProjectGuid = guid, FullPath = "path2" }
         };
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
         var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), logger);
-        var result = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(p => p.ProjectGuid).First());
+        var result = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First());
 
         result.Status.Should().Be(ProjectInfoValidity.DuplicateGuid);
         logger.Warnings.Should().BeEquivalentTo(
-            new[]
-            {
-                $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"path1\"",
-                $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"path2\"",
-            });
+            $@"Duplicate ProjectGuid: ""{guid}"". The project will not be analyzed. Project file: ""path1""",
+            $@"Duplicate ProjectGuid: ""{guid}"". The project will not be analyzed. Project file: ""path2""");
     }
 
     // Repro for https://sonarsource.atlassian.net/browse/SCAN4NET-431
@@ -947,8 +910,7 @@ public class PropertiesFileGeneratorTests
     public void ToProjectData_DoesNotChooseValidProject()
     {
         var guid = Guid.NewGuid();
-        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "foo");
-        var fullPath = Path.Combine(TestContext.TestRunDirectory, "foo");
+        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
         var contentFile1 = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "contentFile1.txt");
         var contentFileList1 = TestUtils.CreateFile(TestContext.TestRunDirectory, "contentList.txt", contentFile1);
         var projectInfos = new[]
@@ -959,7 +921,7 @@ public class PropertiesFileGeneratorTests
                 Configuration = "Debug",
                 Platform = "x86",
                 TargetFramework = "netstandard2.0",
-                AnalysisSettings = new AnalysisProperties {  },
+                AnalysisSettings = [],
                 FullPath = fullPath,
             },
             new ProjectInfo
@@ -968,11 +930,10 @@ public class PropertiesFileGeneratorTests
                 Configuration = "Debug",
                 Platform = "x86",
                 TargetFramework = "netstandard2.0",
-                AnalysisSettings = new AnalysisProperties
-                {
+                AnalysisSettings = [
                     new(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, "validRoslyn"),
                     new(PropertiesFileGenerator.ProjectOutPathsCsharpPropertyKey, "validOutPath")
-                },
+                ],
                 FullPath = fullPath,
             }
         };
@@ -992,25 +953,20 @@ public class PropertiesFileGeneratorTests
     }
 
     [TestMethod]
-    public void GetClosestProjectOrDefault_WhenNoProjects_ReturnsNull()
-    {
-        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo("foo"), Enumerable.Empty<ProjectData>());
-
-        actual.Should().BeNull();
-    }
+    public void GetClosestProjectOrDefault_WhenNoProjects_ReturnsNull() =>
+        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo("File.cs"), []).Should().BeNull();
 
     [TestMethod]
     public void GetClosestProjectOrDefault_WhenNoMatch_ReturnsNull()
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("D"), "foo.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~foo", "bar.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("C"), "foobar.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("D"), "WrongDrive.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~ProjectDir", "Incorrect.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("C"), "WrongDrive.csproj") }),
         };
-        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("E"), "foo")), projects);
 
-        actual.Should().BeNull();
+        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("E"), "File.cs")), projects).Should().BeNull();
     }
 
     [TestMethod]
@@ -1018,14 +974,12 @@ public class PropertiesFileGeneratorTests
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~foo", "bar.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "foo.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = "InRoot.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~ProjectDir", "Incorrect.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "Winner.csproj") }),
         };
 
-        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "foo.cs")), projects);
-
-        actual.Should().Be(projects[2]);
+        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "File.cs")), projects).Should().Be(projects[2]);
     }
 
     [TestMethod]
@@ -1033,13 +987,12 @@ public class PropertiesFileGeneratorTests
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~foo", "bar.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "foo.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = "InRoot.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~PROJECTDIR", "Incorrect.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "Winner.csproj") }),
         };
-        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("C"), "FOO", "FOO.cs")), projects);
 
-        actual.Should().Be(projects[2]);
+        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("C"), "PROJECTDIR", "FILE.cs")), projects).Should().Be(projects[2]);
     }
 
     [TestMethod]
@@ -1047,13 +1000,12 @@ public class PropertiesFileGeneratorTests
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "foo.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~foo", "bar.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = $"{TestUtils.DriveRoot()}{Path.AltDirectorySeparatorChar}foo{Path.AltDirectorySeparatorChar}foo.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = "InRoot.csproj" }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~ProjectDir", "Incorrect.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = $"{TestUtils.DriveRoot()}{Path.AltDirectorySeparatorChar}ProjectDir{Path.AltDirectorySeparatorChar}Winner.csproj" }),
         };
-        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "foo.cs")), projects);
 
-        actual.Should().Be(projects[2]);
+        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "File.cs")), projects).Should().Be(projects[2]);
     }
 
     [TestMethod]
@@ -1061,15 +1013,14 @@ public class PropertiesFileGeneratorTests
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "bar.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "xxx.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foobar", "foo.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "InRoot.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "InProjectDir.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "Winner.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "AnotherInProjectDir.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "Deeper", "TooDeep.csproj") }),
         };
-        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.cs")), projects);
 
-        actual.Should().Be(projects[2]);
+        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "File.cs")), projects).Should().Be(projects[2]);
     }
 
     [TestMethod]
@@ -1077,13 +1028,12 @@ public class PropertiesFileGeneratorTests
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "fooNet46.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "fooXamarin.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "fooNetStd.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "Net46.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "Xamarin.csproj") }),
+            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "NetStd.csproj") }),
         };
-        var actual = PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "foo", "bar", "foo.cs")), projects);
 
-        actual.Should().Be(projects[0]);
+        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
     [TestMethod]
@@ -1389,23 +1339,28 @@ public class PropertiesFileGeneratorTests
     [DataRow("https://sonarcloud.io")]
     [DataRow("https://sonarqube.us")]
     [DataRow("https://sonarqqqq.whale")]    // Any value, as long as it was auto-computed by the default URL mechanism and stored in SonarQubeAnalysisConfig.xml
-    public void TryWriteProperties_HostUrl_NotSet_UseSonarQubeHostUrl(string sonarQubeHostUrl)
+    public void TryWriteProperties_HostUrl_NotSet_UseSonarQubeHostUrl(string sonarQubeHost)
     {
         var outPath = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out");
-        var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = outPath, SonarQubeHostUrl = sonarQubeHostUrl };
+        var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = outPath, SonarQubeHostUrl = sonarQubeHost };
         var writer = new PropertiesWriter(config);
         TryWriteProperties_HostUrl_Execute(config, writer);
 
-        writer.Flush().Should().Contain($"sonar.host.url={sonarQubeHostUrl}");
-        logger.AssertDebugLogged("Setting analysis property: sonar.host.url=" + sonarQubeHostUrl);
+        writer.Flush().Should().Contain($"sonar.host.url={sonarQubeHost}");
+        logger.AssertDebugLogged("Setting analysis property: sonar.host.url=" + sonarQubeHost);
     }
 
     [TestMethod]
     public void TryWriteProperties_HostUrl_ExplicitValue_Propagated()
     {
         var outPath = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out");
-        var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = outPath, SonarQubeHostUrl = "Property should take precedence and this should not be used" };
-        config.LocalSettings = [new Property(SonarProperties.HostUrl, "http://localhost:9000")];
+        var config = new AnalysisConfig
+        {
+            SonarProjectKey = "key",
+            SonarOutputDir = outPath,
+            SonarQubeHostUrl = "Property should take precedence and this should not be used",
+            LocalSettings = [new Property(SonarProperties.HostUrl, "http://localhost:9000")]
+        };
         var writer = new PropertiesWriter(config);
         TryWriteProperties_HostUrl_Execute(config, writer);
 
@@ -1442,11 +1397,7 @@ public class PropertiesFileGeneratorTests
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, projectName);
         TestUtils.CreateProjectWithFiles(TestContext, projectName, analysisRootDir);
         var config = CreateValidConfig(analysisRootDir);
-        config.LocalSettings = new AnalysisProperties();
-        foreach (var property in localSettings)
-        {
-            config.LocalSettings.Add(property);
-        }
+        config.LocalSettings = [.. localSettings];
         var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
@@ -1458,82 +1409,55 @@ public class PropertiesFileGeneratorTests
     {
         result.FullPropertiesFilePath.Should().BeNull("Not expecting the sonar-scanner properties file to have been set");
         result.RanToCompletion.Should().BeFalse("Expecting the property file generation to have failed");
-
         AssertNoValidProjects(result);
-
         logger.AssertErrorsLogged();
     }
 
     private void AssertPropertiesFilesCreated(ProjectInfoAnalysisResult result, TestLogger logger)
     {
         result.FullPropertiesFilePath.Should().NotBeNull("Expecting the sonar-scanner properties file to have been set");
-
         AssertValidProjectsExist(result);
         TestContext.AddResultFile(result.FullPropertiesFilePath);
-
         logger.AssertErrorsLogged(0);
     }
 
-    private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, ProjectInfoAnalysisResult actual)
-    {
-        var matches = actual.ProjectsByStatus(expectedStatus).Where(p => p.ProjectName.Equals(expectedProjectName));
-        matches.Should().ContainSingle("ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}", expectedProjectName, expectedStatus);
-    }
+    private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, ProjectInfoAnalysisResult actual) =>
+        actual.ProjectsByStatus(expectedStatus).Where(x => x.ProjectName.Equals(expectedProjectName))
+            .Should().ContainSingle("ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}", expectedProjectName, expectedStatus);
 
-    private static void AssertNoValidProjects(ProjectInfoAnalysisResult actual)
-    {
-        IEnumerable<ProjectInfo> matches = actual.ProjectsByStatus(ProjectInfoValidity.Valid);
-        matches.Should().BeEmpty("Not expecting to find any valid ProjectInfo files");
-    }
+    private static void AssertNoValidProjects(ProjectInfoAnalysisResult actual) =>
+        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().BeEmpty("Not expecting to find any valid ProjectInfo files");
 
-    private static void AssertValidProjectsExist(ProjectInfoAnalysisResult actual)
-    {
-        IEnumerable<ProjectInfo> matches = actual.ProjectsByStatus(ProjectInfoValidity.Valid);
-        matches.Should().NotBeEmpty("Expecting at least one valid ProjectInfo file to exist");
-    }
+    private static void AssertValidProjectsExist(ProjectInfoAnalysisResult actual) =>
+        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().NotBeEmpty("Expecting at least one valid ProjectInfo file to exist");
 
-    private static void AssertExpectedProjectCount(int expected, ProjectInfoAnalysisResult actual)
-    {
+    private static void AssertExpectedProjectCount(int expected, ProjectInfoAnalysisResult actual) =>
         actual.Projects.Should().HaveCount(expected, "Unexpected number of projects in the result");
-    }
 
-    private static void AssertFileIsReferenced(string fullFilePath, string content)
-    {
-        var formattedPath = PropertiesWriter.Escape(fullFilePath);
-        content.Should().Contain(formattedPath, "Files should be referenced: {0}", formattedPath);
-    }
+    private static void AssertFileIsReferenced(string fullFilePath, string content) =>
+        content.Should().Contain(PropertiesWriter.Escape(fullFilePath), "Files should be referenced");
 
-    private static void AssertFileIsNotReferenced(string fullFilePath, string content)
-    {
-        var formattedPath = PropertiesWriter.Escape(fullFilePath);
-        content.Should().NotContain(formattedPath, "File should not be referenced: {0}", formattedPath);
-    }
+    private static void AssertFileIsNotReferenced(string fullFilePath, string content) =>
+        content.Should().NotContain(PropertiesWriter.Escape(fullFilePath), "File should not be referenced");
 
     private static string ComputeProjectBaseDir(string teamBuildValue, string userValue, string[] projectPaths)
     {
         var config = new AnalysisConfig();
         var logger = new TestLogger();
-        new PropertiesWriter(config);
         config.SonarOutputDir = TestSonarqubeOutputDir;
         config.SourcesDirectory = teamBuildValue;
         config.LocalSettings ??= new();
         config.LocalSettings.Add(new(SonarProperties.ProjectBaseDir, userValue));
-
-        return new PropertiesFileGenerator(config, logger)
-            .ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())
-            ?.FullName;
+        return new PropertiesFileGenerator(config, logger).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())?.FullName;
     }
 
-    private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths)
-    {
-        var result = ComputeProjectBaseDir(teamBuildValue, userValue, projectPaths);
-        result.Should().Be(expectedValue);
-    }
+    private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths) =>
+        ComputeProjectBaseDir(teamBuildValue, userValue, projectPaths).Should().Be(expectedValue);
 
     private static AnalysisConfig CreateValidConfig(string outputDir, AnalysisProperties serverProperties = null, string workingDir = null)
     {
         var dummyProjectKey = Guid.NewGuid().ToString();
-        var config = new AnalysisConfig()
+        return new()
         {
             SonarOutputDir = outputDir,
             SonarQubeHostUrl = "http://sonarqube.com",
@@ -1546,8 +1470,6 @@ public class PropertiesFileGeneratorTests
             LocalSettings = [],
             ScanAllAnalysis = true,
         };
-
-        return config;
     }
 
     private static string CreateFileList(string parentDir, string fileName, params string[] files)
