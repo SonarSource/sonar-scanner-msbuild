@@ -58,7 +58,7 @@ public class ScannerEngineInputTest
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
         ]);
-        PropertiesToString(sut).Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
                 {
@@ -82,7 +82,7 @@ public class ScannerEngineInputTest
             new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
         ]);
-        PropertiesToString(sut).Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
                 {
@@ -107,7 +107,7 @@ public class ScannerEngineInputTest
     {
         var sut = new ScannerEngineInput(new());
         sut.WriteSharedFiles(new([], []));
-        PropertiesToString(sut).Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
                 {
@@ -124,7 +124,7 @@ public class ScannerEngineInputTest
     {
         var sut = new ScannerEngineInput(new());
         sut.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
-        PropertiesToString(sut).Should().BeIgnoringLineEndings($$"""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
                 {
@@ -145,7 +145,7 @@ public class ScannerEngineInputTest
     {
         var sut = new ScannerEngineInput(new());
         sut.WriteSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
-        PropertiesToString(sut).Should().BeIgnoringLineEndings($$"""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
                 {
@@ -166,7 +166,7 @@ public class ScannerEngineInputTest
     {
         var sut = new ScannerEngineInput(new());
         sut.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
-        PropertiesToString(sut).Should().BeIgnoringLineEndings($$"""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
                 {
@@ -192,7 +192,7 @@ public class ScannerEngineInputTest
         var sut = new ScannerEngineInput(new AnalysisConfig());
         sut.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths("unexpected", analyzerOutPaths: [@"c:\dir1\dir2"]));
 
-        PropertiesToString(sut).Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
                 {
@@ -213,7 +213,7 @@ public class ScannerEngineInputTest
         sut.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths(
             language,
             analyzerOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
-        PropertiesToString(sut).Should().BeIgnoringLineEndings($$"""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
                 {
@@ -234,7 +234,7 @@ public class ScannerEngineInputTest
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
         sut.WriteRoslynReportPaths(CreateTestProjectDataWithPaths("unexpected"));
-        PropertiesToString(sut).Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
                 {
@@ -255,7 +255,7 @@ public class ScannerEngineInputTest
         sut.WriteRoslynReportPaths(CreateTestProjectDataWithPaths(
             language,
             roslynOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
-        PropertiesToString(sut).Should().BeIgnoringLineEndings($$"""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
                 {
@@ -278,7 +278,7 @@ public class ScannerEngineInputTest
 
         sut.WriteTelemetryPaths(CreateTestProjectDataWithPaths("unexpected", telemetryPaths: [@"c:\dir1\dir2\Telemetry.json"]));
 
-        PropertiesToString(sut).Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
                 {
@@ -299,7 +299,7 @@ public class ScannerEngineInputTest
         sut.WriteTelemetryPaths(CreateTestProjectDataWithPaths(
             language,
             telemetryPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")]));
-        PropertiesToString(sut).Should().BeIgnoringLineEndings($$"""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
                 {
@@ -375,7 +375,7 @@ public class ScannerEngineInputTest
             sut.WriteSettingsForProject(productVB);
             sut.WriteSettingsForProject(test);
 
-            actual = PropertiesToString(sut);
+            actual = sut.ToString();
         }
 
         var expected = $$"""
@@ -492,7 +492,7 @@ public class ScannerEngineInputTest
         var sut = new ScannerEngineInput(config);
         sut.WriteSonarProjectInfo(new DirectoryInfo(projectBaseDir));
 
-        PropertiesToString(sut).Should().BeIgnoringLineEndings(
+        sut.ToString().Should().BeIgnoringLineEndings(
             $$"""
             {
               "scannerProperties": [
@@ -535,7 +535,7 @@ public class ScannerEngineInputTest
         var config = new AnalysisConfig { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
         var sut = new ScannerEngineInput(config);
         sut.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
-        PropertiesToString(sut).Should().BeIgnoringLineEndings(
+        sut.ToString().Should().BeIgnoringLineEndings(
             $$"""
             {
               "scannerProperties": [
@@ -591,7 +591,7 @@ public class ScannerEngineInputTest
         var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
         sut.WriteSettingsForProject(product);
 
-        var jsonProperties = JsonPropertiesReader(sut.Flush());
+        var jsonProperties = JsonPropertiesReader(sut.ToString());
         PropertyWithValueExists(jsonProperties, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1").Should().BeTrue();
         PropertyWithValueExists(jsonProperties, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces").Should().BeTrue();
         PropertyWithValueExists(jsonProperties, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\dir1\dir2\foo.txt").Should().BeTrue();
@@ -625,7 +625,7 @@ public class ScannerEngineInputTest
         sut.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
 
         var workDirKey = projectKey + "." + SonarProperties.WorkingDirectory;
-        PropertyWithValueExists(JsonPropertiesReader(sut.Flush()), workDirKey, Path.Combine(TestUtils.DriveRoot(), "my_folder", ".sonar", "mod0")).Should().BeTrue();
+        PropertyWithValueExists(JsonPropertiesReader(sut.ToString()), workDirKey, Path.Combine(TestUtils.DriveRoot(), "my_folder", ".sonar", "mod0")).Should().BeTrue();
     }
 
     // Tests that global settings in the ProjectInfo are written to the file
@@ -644,7 +644,7 @@ public class ScannerEngineInputTest
         var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
         sut.WriteGlobalSettings(globalSettings);
 
-        var jsonProperties = JsonPropertiesReader(sut.Flush());
+        var jsonProperties = JsonPropertiesReader(sut.ToString());
         PropertyWithValueExists(jsonProperties, "my.setting1", "setting1").Should().BeTrue();
         PropertyWithValueExists(jsonProperties, "my.setting2", "setting 2 with spaces").Should().BeTrue();
         PropertyWithValueExists(jsonProperties, "my.setting.3", @"c:\dir1\dir2\foo.txt").Should().BeTrue();
@@ -667,7 +667,7 @@ public class ScannerEngineInputTest
                 "With \" Double Quote",
                 "Normal value"
             ]);
-        PropertiesToString(sut).Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
                 {
@@ -754,10 +754,10 @@ public class ScannerEngineInputTest
 
     // ToDo: SCAN4NET-747
     // this method should be moved/re-implemented to its own class "JsonPropertiesUtils as it seems to be needed for the PropertiesFileGeneratorTests
-    private static List<KeyValuePair<string, string>> JsonPropertiesReader(JObject properties)
+    private static List<KeyValuePair<string, string>> JsonPropertiesReader(string engineInput)
     {
         var result = new List<KeyValuePair<string, string>>();
-        foreach (var item in properties["scannerProperties"])
+        foreach (var item in JObject.Parse(engineInput)["scannerProperties"])
         {
             if (item is JObject jsonObject)
             {
@@ -792,7 +792,4 @@ public class ScannerEngineInputTest
         }
         return false;
     }
-
-    private static string PropertiesToString(ScannerEngineInput writer) =>
-        JsonConvert.SerializeObject(writer.Flush(), Formatting.Indented);
 }
