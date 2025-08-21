@@ -20,15 +20,23 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-public interface IFileCache
+public abstract record DownloadResult;
+
+/// <summary>
+/// File has been downloaded from the server. In case of the JRE, this is the path to the java executable.
+/// </summary>
+public sealed record DownloadSuccess(string FilePath) : DownloadResult
 {
-    string CacheRoot { get; }
-    string EnsureCacheRoot();
-    string EnsureDirectoryExists(string directory);
-    CacheResult IsFileCached(FileDescriptor fileDescriptor);
-    string FileRootPath(FileDescriptor descriptor);
-    string EnsureDownloadDirectory(FileDescriptor fileDescriptor);
-    Task<CacheFailure> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download);
-    Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download);
-    void TryDeleteFile(string tempFile);
+    /// <summary>
+    /// Path to the downloaded file, which is either the JRE executable or a file downloaded from the server.
+    /// </summary>
+    public string FilePath { get; } = FilePath;
+}
+
+/// <summary>
+/// The download is invalid, the downloaded file is invalid, or the download has failed.
+/// </summary>
+public sealed record DownloadError(string Message) : DownloadResult
+{
+    public string Message { get; } = Message;
 }

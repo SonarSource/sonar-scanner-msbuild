@@ -25,13 +25,13 @@ namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 public class EngineResolver : IEngineResolver
 {
     private readonly ISonarWebServer server;
-    private readonly IFileCache fileCache;
+    private readonly CachedDownloader cachedDownloader;
     private readonly ILogger logger;
 
-    public EngineResolver(ISonarWebServer server, IFileCache fileCache, ILogger logger)
+    public EngineResolver(ISonarWebServer server, CachedDownloader cachedDownloader, ILogger logger)
     {
         this.server = server;
-        this.fileCache = fileCache;
+        this.cachedDownloader = cachedDownloader;
         this.logger = logger;
     }
 
@@ -52,7 +52,7 @@ public class EngineResolver : IEngineResolver
             logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
             return null;
         }
-        return fileCache.IsFileCached(metadata.ToDescriptor()) switch
+        return cachedDownloader.IsFileCached(metadata.ToDescriptor()) switch
         {
             CacheHit hit => hit.FilePath,
             _ => throw new NotImplementedException("Not yet implemented"),

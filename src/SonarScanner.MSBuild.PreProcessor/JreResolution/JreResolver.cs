@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.PreProcessor.Caching;
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
-public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger) : IJreResolver
+public class JreResolver(ISonarWebServer server, JreDownloader downloader, ILogger logger) : IJreResolver
 {
     public async Task<string> ResolveJrePath(ProcessedArgs args)
     {
@@ -54,7 +54,7 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
         }
 
         var descriptor = metadata.ToDescriptor();
-        var result = cache.IsJreCached(descriptor);
+        var result = downloader.IsJreCached(descriptor);
         switch (result)
         {
             case CacheHit hit:
@@ -63,8 +63,8 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
             case CacheMiss:
                 logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
                 return await DownloadJre(metadata, descriptor);
-            case CacheFailure failure:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
+            case CacheError error:
+                logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, error.Message);
                 return null;
         }
 
@@ -73,15 +73,15 @@ public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger
 
     private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor)
     {
-        var result = await cache.DownloadJreAsync(descriptor, () => server.DownloadJreAsync(metadata));
-        if (result is CacheHit hit)
+        var result = await downloader.DownloadJreAsync(descriptor, () => server.DownloadJreAsync(metadata));
+        if (result is DownloadSuccess success)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.FilePath);
-            return hit.FilePath;
+            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, success.FilePath);
+            return success.FilePath;
         }
-        else if (result is CacheFailure failure)
+        else if (result is DownloadError error)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, failure.Message);
+            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, error.Message);
             return null;
         }
 
