@@ -24,14 +24,30 @@ using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-public class JreDownloader(
-    ILogger logger,
-    CachedDownloader cachedDownloader,
-    IDirectoryWrapper directoryWrapper,
-    IFileWrapper fileWrapper,
-    IUnpackerFactory unpackerFactory,
-    IFilePermissionsWrapper filePermissionsWrapper)
+public class JreDownloader
 {
+    private readonly ILogger logger;
+    private readonly CachedDownloader cachedDownloader;
+    private readonly IDirectoryWrapper directoryWrapper;
+    private readonly IFileWrapper fileWrapper;
+    private readonly IUnpackerFactory unpackerFactory;
+    private readonly IFilePermissionsWrapper filePermissionsWrapper;
+
+    public JreDownloader(ILogger logger,
+                         CachedDownloader cachedDownloader,
+                         IDirectoryWrapper directoryWrapper,
+                         IFileWrapper fileWrapper,
+                         IUnpackerFactory unpackerFactory,
+                         IFilePermissionsWrapper filePermissionsWrapper)
+    {
+        this.logger = logger;
+        this.cachedDownloader = cachedDownloader;
+        this.directoryWrapper = directoryWrapper;
+        this.fileWrapper = fileWrapper;
+        this.unpackerFactory = unpackerFactory;
+        this.filePermissionsWrapper = filePermissionsWrapper;
+    }
+
     public virtual CacheResult IsJreCached(JreDescriptor jreDescriptor)
     {
         if (cachedDownloader.EnsureCacheRoot() is not null)

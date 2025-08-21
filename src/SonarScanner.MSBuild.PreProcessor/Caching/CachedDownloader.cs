@@ -88,10 +88,10 @@ public class CachedDownloader
         }
     }
 
-    public string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
-        EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
+    public string FileRootPath(FileDescriptor descriptor) =>
+        Path.Combine(CacheRoot, descriptor.Sha256);
 
-    public bool ValidateChecksum(string downloadTarget, string sha256)
+    internal bool ValidateChecksum(string downloadTarget, string sha256)
     {
         try
         {
@@ -107,7 +107,10 @@ public class CachedDownloader
         }
     }
 
-    public void TryDeleteFile(string tempFile)
+    private string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
+        EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
+
+    private void TryDeleteFile(string tempFile)
     {
         try
         {
@@ -119,9 +122,6 @@ public class CachedDownloader
             logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
         }
     }
-
-    public string FileRootPath(FileDescriptor descriptor) =>
-        Path.Combine(CacheRoot, descriptor.Sha256);
 
     private async Task<DownloadError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
