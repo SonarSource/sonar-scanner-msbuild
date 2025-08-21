@@ -32,7 +32,7 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void Execute_WhenConfigIsNull_Throws()
     {
-        var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
+        var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
         Action act = () => testSubject.Execute(null, EmptyPropertyProvider.Instance, string.Empty);
 
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
@@ -41,7 +41,7 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
     {
-        var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
+        var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
         Action act = () => testSubject.Execute(new AnalysisConfig(), null, string.Empty);
 
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
@@ -50,7 +50,7 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void Execute_WhenFullPropertiesFilePathIsNull_ReturnsFalse()
     {
-        var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
+        var testSubject = new SonarScannerWrapper(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
         var result = testSubject.Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, null);
 
         result.Should().BeFalse();
@@ -59,7 +59,7 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void Execute_ReturnTrue()
     {
-        var testSubject = Substitute.ForPartsOf<SonarScannerWrapper>(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
+        var testSubject = Substitute.ForPartsOf<SonarScannerWrapper>(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
         testSubject
             .Configure()
             .ExecuteJavaRunner(Arg.Any<AnalysisConfig>(), Arg.Any<IAnalysisPropertyProvider>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
@@ -72,7 +72,7 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void Ctor_WhenLoggerIsNull_Throws()
     {
-        Action act = () => _ = new SonarScannerWrapper(null, Substitute.For<IOperatingSystemProvider>());
+        Action act = () => _ = new SonarScannerWrapper(null, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
 
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
@@ -406,7 +406,7 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void SonarScanner_TruststorePasswordLinux_ShouldBeInEnv()
     {
-        var osProvider = Substitute.For<IOperatingSystemProvider>();
+        var osProvider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
         osProvider.IsUnix().Returns(true);
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable("SONAR_SCANNER_OPTS", null);
@@ -601,9 +601,9 @@ public class SonarScannerWrapperTests
     private static string QuoteEnvironmentValue(string value) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @$"""{value}""" : value;
 
-    private static IOperatingSystemProvider UnixOperatingSystemProvider()
+    private static OperatingSystemProvider UnixOperatingSystemProvider()
     {
-        var provider = Substitute.For<IOperatingSystemProvider>();
+        var provider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
         provider.OperatingSystem().Returns(PlatformOS.Linux);
         return provider;
     }
@@ -617,7 +617,7 @@ public class SonarScannerWrapperTests
         public TestLogger Logger { get; } = new();
         public string PropertiesFileName { get; set; } = "c:\\foo.props";
         public MockProcessRunner Runner { get; set; } = new MockProcessRunner(executeResult: true);
-        public IOperatingSystemProvider OsProvider { get; set; }
+        public OperatingSystemProvider OsProvider { get; set; }
 
         public SonarScannerWrapperTestRunner()
         {

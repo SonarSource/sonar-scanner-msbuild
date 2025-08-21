@@ -27,7 +27,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest;
 /// </summary>
 internal static class MSBuildLocator
 {
-    public static IOperatingSystemProvider OperatingSystemProvider { get; set; } = new OperatingSystemProvider(FileWrapper.Instance, new ConsoleLogger(true));
+    public static OperatingSystemProvider OperatingSystemProvider { get; set; } = new OperatingSystemProvider(FileWrapper.Instance, new ConsoleLogger(true));
 
     /// <summary>
     /// Returns a path to an instance of msbuild.exe or null if one could

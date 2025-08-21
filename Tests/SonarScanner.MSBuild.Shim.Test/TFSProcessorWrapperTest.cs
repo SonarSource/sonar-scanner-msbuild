@@ -18,15 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 using NSubstitute.Extensions;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -40,7 +32,7 @@ public class TFSProcessorWrapperTest
     public void Execute_WhenConfigIsNull_Throws()
     {
         // Arrange
-        var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
+        var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
         Action act = () => testSubject.Execute(null, new string[] { }, String.Empty);
 
         // Act & Assert
@@ -51,7 +43,7 @@ public class TFSProcessorWrapperTest
     public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
     {
         // Arrange
-        var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
+        var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
         Action act = () => testSubject.Execute(new AnalysisConfig(), null, String.Empty);
 
         // Act & Assert
@@ -61,7 +53,7 @@ public class TFSProcessorWrapperTest
     [TestMethod]
     public void Execute_ReturnTrue()
     {
-        var testSubject = Substitute.ForPartsOf<TfsProcessorWrapper>(new TestLogger(), Substitute.For<IOperatingSystemProvider>());
+        var testSubject = Substitute.ForPartsOf<TfsProcessorWrapper>(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
         testSubject
             .Configure()
             .ExecuteProcessorRunner(Arg.Any<AnalysisConfig>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
@@ -75,7 +67,7 @@ public class TFSProcessorWrapperTest
     public void Ctor_WhenLoggerIsNull_Throws()
     {
         // Arrange
-        Action act = () => new TfsProcessorWrapper(null, Substitute.For<IOperatingSystemProvider>());
+        Action act = () => new TfsProcessorWrapper(null, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
 
         // Act & Assert
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
@@ -182,7 +174,7 @@ public class TFSProcessorWrapperTest
     {
         using (new AssertIgnoreScope())
         {
-            var wrapper = new TfsProcessorWrapper(logger, Substitute.For<IOperatingSystemProvider>());
+            var wrapper = new TfsProcessorWrapper(logger, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
             return wrapper.ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, propertiesFileName, runner);
         }
     }

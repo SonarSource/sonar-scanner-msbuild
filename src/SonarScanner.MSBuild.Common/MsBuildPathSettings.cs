@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
 namespace SonarScanner.MSBuild.Common;
 
 public class MsBuildPathSettings : IMsBuildPathsSettings
@@ -45,13 +40,13 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
     /// </remarks>
     private readonly string[] msBuildVersions = ["4.0", "10.0", "11.0", "12.0", "14.0", "15.0", "Current"];
 
-    private readonly IOperatingSystemProvider operatingSystemProvider;
+    private readonly OperatingSystemProvider operatingSystemProvider;
 
     public MsBuildPathSettings(ILogger logger) : this(new OperatingSystemProvider(FileWrapper.Instance, logger))
     {
     }
 
-    public /* for testing purposes */ MsBuildPathSettings(IOperatingSystemProvider operatingSystemProvider)
+    public /* for testing purposes */ MsBuildPathSettings(OperatingSystemProvider operatingSystemProvider)
     {
         this.operatingSystemProvider = operatingSystemProvider;
     }
