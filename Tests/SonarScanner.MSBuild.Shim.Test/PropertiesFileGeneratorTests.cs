@@ -39,35 +39,35 @@ public partial class PropertiesFileGeneratorTests
 
     [TestMethod]
     public void PropertiesFileGenerator_WhenConfigIsNull_Throws() =>
-        ((Func<PropertiesFileGenerator>)(() => new(null, new TestLogger()))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
+        FluentActions.Invoking(() => new PropertiesFileGenerator(null, new TestLogger())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
 
     [TestMethod]
     public void PropertiesFileGenerator_FirstConstructor_WhenLoggerIsNull_Throws() =>
-        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper(), null)))
+        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper(), null))
             .Should().ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("logger");
 
     [TestMethod]
     public void PropertiesFileGenerator_SecondConstructor_WhenLoggerIsNull_Throws() =>
         // the RoslynV1SarifFixer will throw
-        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
     [TestMethod]
     public void PropertiesFileGenerator_WhenFixerIsNull_Throws() =>
-        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper(), null))).Should()
-            .ThrowExactly<ArgumentNullException>()
+        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper(), null))
+            .Should().ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("fixer");
 
     [TestMethod]
     public void PropertiesFileGenerator_WhenRuntimeInformationWrapperIsNull_Throws() =>
-        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null, null))).Should()
-            .ThrowExactly<ArgumentNullException>()
+        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null, null))
+            .Should().ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("runtimeInformationWrapper");
 
     [TestMethod]
     public void PropertiesFileGenerator_WhenAdditionalFileServiceIsNull_Throws() =>
-        ((Func<PropertiesFileGenerator>)(() => new(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), null))).Should()
-            .ThrowExactly<ArgumentNullException>()
+        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), null))
+            .Should().ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("additionalFilesService");
 
     [TestMethod]
