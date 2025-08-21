@@ -44,6 +44,7 @@ public abstract class SonarWebServer : ISonarWebServer
     public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
 
     public abstract Task<Stream> DownloadJreAsync(JreMetadata metadata);
+    public abstract Task<Stream> DownloadEngineAsync(EngineMetadata metadata);
     public abstract bool IsServerVersionSupported();
 
     public abstract Task<bool> IsServerLicenseValid();
@@ -122,7 +123,7 @@ public abstract class SonarWebServer : ISonarWebServer
     {
         var contents = await webDownloader.Download("api/languages/list");
         var langArray = JObject.Parse(contents).Value<JArray>("languages");
-        return langArray.Select(obj => obj["key"].ToString());
+        return langArray.Select(x => x["key"].ToString());
     }
 
     public async Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
@@ -172,22 +173,6 @@ public abstract class SonarWebServer : ISonarWebServer
         }
     }
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposed && disposing)
-        {
-            webDownloader.Dispose();
-            apiDownloader.Dispose();
-            disposed = true;
-        }
-    }
-
     /// <summary>
     /// Retrieves project properties from the server.
     ///
@@ -203,6 +188,22 @@ public abstract class SonarWebServer : ISonarWebServer
         var component = ComponentIdentifier(projectKey, projectBranch);
 
         return await DownloadComponentProperties(component);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposed && disposing)
+        {
+            webDownloader.Dispose();
+            apiDownloader.Dispose();
+            disposed = true;
+        }
     }
 
     protected virtual async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
@@ -241,18 +242,6 @@ public abstract class SonarWebServer : ISonarWebServer
             ? uri
             : $"{uri}&organization={WebUtility.UrlEncode(organization)}";
 
-    private Dictionary<string, string> ParseSettingsResponse(string contents)
-    {
-        var settings = new Dictionary<string, string>();
-        var settingsArray = JObject.Parse(contents).Value<JArray>("settings");
-        foreach (var t in settingsArray)
-        {
-            GetPropertyValue(settings, t);
-        }
-
-        return CheckTestProjectPattern(settings);
-    }
-
     protected bool TryGetBaseBranch(ProcessedArgs localSettings, out string branch)
     {
         if (localSettings.TryGetSetting(SonarProperties.PullRequestBase, out branch))
@@ -270,7 +259,7 @@ public abstract class SonarWebServer : ISonarWebServer
 
     protected static IList<SensorCacheEntry> ParseCacheEntries(Stream dataStream)
     {
-        if (dataStream == null)
+        if (dataStream is null)
         {
             return Array.Empty<SensorCacheEntry>();
         }
@@ -285,10 +274,40 @@ public abstract class SonarWebServer : ISonarWebServer
     protected virtual RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
         new(json["total"].ToObject<int>(), json["ps"].ToObject<int>());
 
+    private Dictionary<string, string> ParseSettingsResponse(string contents)
+    {
+        var settings = new Dictionary<string, string>();
+        foreach (var setting in JObject.Parse(contents).Value<JArray>("settings"))
+        {
+            var key = setting["key"].ToString();
+            if (setting["value"] is not null)
+            {
+                settings.Add(setting["key"].ToString(), setting["value"].ToString());
+            }
+            else if (setting["fieldValues"] is not null)
+            {
+                foreach (var kvp in ParseMultivalueProp(key, (JArray)setting["fieldValues"]))
+                {
+                    settings.Add(kvp.Key, kvp.Value);
+                }
+            }
+            else if (setting["values"] is not null)
+            {
+                var value = string.Join(",", ((JArray)setting["values"]).Values<string>());
+                settings.Add(setting["key"].ToString(), value);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid property");
+            }
+        }
+        return CheckTestProjectPattern(settings);
+    }
+
     /// <summary>
     /// Concatenates project key and branch into one string.
     /// </summary>
-    /// <param name="projectKey">Unique project key</param>
+    /// <param name="projectKey">Unique project key.</param>
     /// <param name="projectBranch">Specified branch of the project. Null if no branch to be specified.</param>
     /// <returns>A correctly formatted branch-specific identifier (if appropriate) for a given project.</returns>
     private static string ComponentIdentifier(string projectKey, string projectBranch = null) =>
@@ -302,10 +321,10 @@ public abstract class SonarWebServer : ISonarWebServer
     private static SonarRule CreateRule(JObject r, JToken actives)
     {
         var active = actives?.Value<JArray>(r["key"].ToString())?.FirstOrDefault();
-        var rule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), r["internalKey"]?.ToString(), r["templateKey"]?.ToString(), active != null);
-        if (active is { })
+        var rule = new SonarRule(r["repo"].ToString(), ParseRuleKey(r["key"].ToString()), r["internalKey"]?.ToString(), r["templateKey"]?.ToString(), active is not null);
+        if (active is not null)
         {
-            rule.Parameters = active["params"].Children<JObject>().ToDictionary(pair => pair["key"].ToString(), pair => pair["value"].ToString());
+            rule.Parameters = active["params"].Children<JObject>().ToDictionary(x => x["key"].ToString(), x => x["value"].ToString());
             if (rule.Parameters.ContainsKey("CheckId"))
             {
                 rule.RuleKey = rule.Parameters["CheckId"];
@@ -314,42 +333,17 @@ public abstract class SonarWebServer : ISonarWebServer
         return rule;
     }
 
-    private static void MultivalueToProps(Dictionary<string, string> props, string settingKey, JArray array)
+    private static IEnumerable<KeyValuePair<string, string>> ParseMultivalueProp(string settingKey, JArray array)
     {
         var id = 1;
         foreach (var obj in array.Children<JObject>())
         {
-            foreach (var prop in obj.Properties())
+            foreach (var setting in obj.Properties())
             {
-                var key = string.Concat(settingKey, ".", id, ".", prop.Name);
-                var value = prop.Value.ToString();
-                props.Add(key, value);
+                var key = string.Concat(settingKey, ".", id, ".", setting.Name);
+                yield return new KeyValuePair<string, string>(key, setting.Value.ToString());
             }
             id++;
-        }
-    }
-
-    private static void GetPropertyValue(Dictionary<string, string> settings, JToken p)
-    {
-        var key = p["key"].ToString();
-        if (p["value"] != null)
-        {
-            var value = p["value"].ToString();
-            settings.Add(key, value);
-        }
-        else if (p["fieldValues"] != null)
-        {
-            MultivalueToProps(settings, key, (JArray)p["fieldValues"]);
-        }
-        else if (p["values"] != null)
-        {
-            var array = (JArray)p["values"];
-            var value = string.Join(",", array.Values<string>());
-            settings.Add(key, value);
-        }
-        else
-        {
-            throw new ArgumentException("Invalid property");
         }
     }
 }

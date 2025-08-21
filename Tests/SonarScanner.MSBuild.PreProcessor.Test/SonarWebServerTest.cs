@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
@@ -935,7 +936,7 @@ public class SonarWebServerTest
         {
             Filename = "sonarcloud-scanner-engine-11.14.1.763.jar",
             Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
-            DownloadUrl = (Uri)null,
+            DownloadUrl = (string)null,
         });
         logger.AssertNoWarningsLogged();
     }
@@ -972,5 +973,7 @@ public class SonarWebServerTest
         public override Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
 
         public override Task<Stream> DownloadJreAsync(JreMetadata metadata) => throw new NotImplementedException();
+
+        public override Task<Stream> DownloadEngineAsync(EngineMetadata metadata) => throw new NotImplementedException();
     }
 }

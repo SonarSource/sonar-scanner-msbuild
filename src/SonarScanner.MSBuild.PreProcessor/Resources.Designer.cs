@@ -613,6 +613,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading Scanner Engine from {0}.
+        /// </summary>
+        internal static string MSG_EngineDownloadUri {
+            get {
+                return ResourceManager.GetString("MSG_EngineDownloadUri", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to EngineResolver: Metadata could not be retrieved..
         /// </summary>
         internal static string MSG_EngineResolver_MetadataFailure {

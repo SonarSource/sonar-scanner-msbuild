@@ -20,6 +20,7 @@
 
 using System.Net;
 using Newtonsoft.Json.Linq;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
@@ -128,6 +129,13 @@ internal class SonarQubeWebServer : SonarWebServer
         return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
     }
 
+    public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
+    {
+        const string uri = "analysis/engine";
+        logger.LogDebug(Resources.MSG_EngineDownloadUri, uri);
+        return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
+    }
+
     protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component) =>
         serverVersion.CompareTo(new Version(6, 3)) >= 0
             ? await base.DownloadComponentProperties(component)
@@ -147,6 +155,6 @@ internal class SonarQubeWebServer : SonarWebServer
         logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId);
         var contents = await webDownloader.Download(uri, true);
         var properties = JArray.Parse(contents);
-        return CheckTestProjectPattern(properties.ToDictionary(p => p["key"].ToString(), p => p["value"].ToString()));
+        return CheckTestProjectPattern(properties.ToDictionary(x => x["key"].ToString(), x => x["value"].ToString()));
     }
 }

@@ -18,14 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
@@ -35,7 +31,7 @@ internal class SonarCloudWebServer : SonarWebServer
 {
     private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
 
-    private readonly HttpClient cacheClient;
+    private readonly HttpClient unauthenticatedClient;
 
     public SonarCloudWebServer(IDownloader webDownloader,
                                IDownloader apiDownloader,
@@ -48,8 +44,8 @@ internal class SonarCloudWebServer : SonarWebServer
     {
         Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
 
-        cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
-        cacheClient.Timeout = httpTimeout;
+        unauthenticatedClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
+        unauthenticatedClient.Timeout = httpTimeout;
         logger.LogInfo(Resources.MSG_UsingSonarCloud);
     }
 
@@ -80,7 +76,7 @@ internal class SonarCloudWebServer : SonarWebServer
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
             return empty;
         }
-        if (GetToken(localSettings) is not { } token)
+        if (AuthToken(localSettings) is not { } token)
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
             return empty;
@@ -114,9 +110,16 @@ internal class SonarCloudWebServer : SonarWebServer
     // Do not use the downloaders here, as this is an unauthenticated request
     public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
     {
-        var uri = new Uri(metadata.DownloadUrl);
-        logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
-        return await cacheClient.GetStreamAsync(uri);
+        _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(JreMetadata)} must contain a valid download URL.");
+        logger.LogDebug(Resources.MSG_JreDownloadUri, metadata.DownloadUrl);
+        return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
+    }
+
+    public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
+    {
+        _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(EngineMetadata)} must contain a valid download URL.");
+        logger.LogDebug(Resources.MSG_EngineDownloadUri, metadata.DownloadUrl);
+        return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
     }
 
     protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
@@ -132,7 +135,7 @@ internal class SonarCloudWebServer : SonarWebServer
     {
         if (disposing)
         {
-            cacheClient.Dispose();
+            unauthenticatedClient.Dispose();
         }
 
         base.Dispose(disposing);
@@ -145,7 +148,7 @@ internal class SonarCloudWebServer : SonarWebServer
         request.Headers.Add("Authorization", $"Bearer {token}");
         logger.LogDebug(Resources.MSG_Processing_PullRequest_RequestPrepareRead, uri);
 
-        using var response = await cacheClient.SendAsync(request);
+        using var response = await unauthenticatedClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
             logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' did not respond successfully.");
@@ -169,7 +172,7 @@ internal class SonarCloudWebServer : SonarWebServer
 
     private async Task<Stream> DownloadCacheStream(Uri uri)
     {
-        var compressed = await cacheClient.GetStreamAsync(uri);
+        var compressed = await unauthenticatedClient.GetStreamAsync(uri);
         using var decompressor = new GZipStream(compressed, CompressionMode.Decompress);
         var decompressed = new MemoryStream();
         await decompressor.CopyToAsync(decompressed);
@@ -177,7 +180,7 @@ internal class SonarCloudWebServer : SonarWebServer
         return decompressed;
     }
 
-    private static string GetToken(ProcessedArgs localSettings)
+    private static string AuthToken(ProcessedArgs localSettings)
     {
         if (localSettings.TryGetSetting(SonarProperties.SonarUserName, out var login))
         {

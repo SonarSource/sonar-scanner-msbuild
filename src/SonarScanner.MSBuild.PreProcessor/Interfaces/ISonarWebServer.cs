@@ -75,6 +75,7 @@ public interface ISonarWebServer : IDisposable
     Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture);
 
     Task<Stream> DownloadJreAsync(JreMetadata metadata);
+    Task<Stream> DownloadEngineAsync(EngineMetadata metadata);
 
     bool IsServerVersionSupported();
 

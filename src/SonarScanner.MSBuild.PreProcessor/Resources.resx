@@ -613,4 +613,7 @@ Check the certificates in the truststore file '{1}' specified via the {2} parame
   <data name="ERR_ChecksumMismatch" xml:space="preserve">
     <value>The checksum of the downloaded file does not match the expected checksum.</value>
   </data>
+  <data name="MSG_EngineDownloadUri" xml:space="preserve">
+    <value>Downloading Scanner Engine from {0}</value>
+  </data>
 </root>
