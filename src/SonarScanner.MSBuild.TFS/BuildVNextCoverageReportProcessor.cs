@@ -39,6 +39,9 @@ public class BuildVNextCoverageReportProcessor
         this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
     }
 
+    // The logic in this method is flawed:
+    // https://sonarsource.atlassian.net/browse/SCAN4NET-786
+    // https://sonarsource.atlassian.net/browse/SCAN4NET-787
     public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings, ILogger logger)
     {
         this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
