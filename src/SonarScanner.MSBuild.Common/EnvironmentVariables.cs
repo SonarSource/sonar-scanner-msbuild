@@ -61,13 +61,13 @@ public static class EnvironmentVariables
 
     public const string BuildUriLegacy = "TF_BUILD_BUILDURI";
     public const string BuildDirectoryLegacy = "TF_BUILD_BUILDDIRECTORY";       // Legacy TeamBuild directory (TFS2013 and earlier)
-    public const string SourcesDirectoryLegacy = "TF_BUILD_SOURCESDIRECTORY";   // TeamBuild 2015 and later build directory
+    public const string SourcesDirectoryLegacy = "TF_BUILD_SOURCESDIRECTORY";
 
     // TFS 2015 (TFS Build) Environment variables
     public const string TfsCollectionUriTfs2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
 
     public const string BuildUriTfs2015 = "BUILD_BUILDURI";
-    public const string BuildDirectoryTfs2015 = "AGENT_BUILDDIRECTORY";
+    public const string BuildDirectoryTfs2015 = "AGENT_BUILDDIRECTORY";         // TeamBuild 2015 and later build directory
     public const string SourcesDirectoryTfs2015 = "BUILD_SOURCESDIRECTORY";
 
     // This env variable can be set by the VSTest platform installer tool available on AzDo. This will be also used if the user want to set a custom location.
