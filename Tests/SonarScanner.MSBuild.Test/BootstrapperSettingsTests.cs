@@ -26,17 +26,27 @@ public class BootstrapperSettingsTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void BootSettings_InvalidArguments()
-    {
-        Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, null);
-        act.Should().ThrowExactly<ArgumentNullException>();
-    }
+    public void InvalidArguments() =>
+        FluentActions.Invoking(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, null)).Should().ThrowExactly<ArgumentNullException>();
 
     [TestMethod]
-    public void BootSettings_Properties_RelativePathsConvertToAbsolute()
+    public void Properties_RelativePathsConvertToAbsolute()
     {
         using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryLegacy, $@"c:{Path.DirectorySeparatorChar}temp");
         var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestLogger());
         sut.TempDirectory.Should().Be($@"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
+    }
+
+    [TestMethod]
+    public void Properties_ScannerBinaryDirPath()
+    {
+        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestLogger());
+        string extension;
+#if NETFRAMEWORK
+        extension = "exe";
+#else
+        extension = "dll";
+#endif
+        $"{sut.ScannerBinaryDirPath}{Path.DirectorySeparatorChar}SonarScanner.MSBuild.{extension}".Should().Be(typeof(BootstrapperSettings).Assembly.Location);
     }
 }
