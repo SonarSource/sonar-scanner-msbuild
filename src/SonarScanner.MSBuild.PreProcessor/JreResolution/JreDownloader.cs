@@ -20,7 +20,6 @@
 
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
-using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
@@ -34,16 +33,16 @@ public class JreDownloader
     private readonly JreDescriptor jreDescriptor;
 
     public JreDownloader(ILogger logger,
+                         CachedDownloader cachedDownloader,
                          IDirectoryWrapper directoryWrapper,
                          IFileWrapper fileWrapper,
-                         CachedDownloader cachedDownloader,
                          IUnpacker unpacker,
                          JreDescriptor jreDescriptor)
     {
         this.logger = logger;
+        this.cachedDownloader = cachedDownloader;
         this.directoryWrapper = directoryWrapper;
         this.fileWrapper = fileWrapper;
-        this.cachedDownloader = cachedDownloader;
         this.unpacker = unpacker;
         this.jreDescriptor = jreDescriptor;
     }
@@ -71,8 +70,8 @@ public class JreDownloader
     public virtual async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)
     {
         logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
-        var resolution = await cachedDownloader.DownloadFileAsync(jreDescriptor, jreDownload);
-        return resolution is ResolutionSuccess resolutionSuccess ? UnpackJre(resolutionSuccess.FilePath) : resolution;
+        var result = await cachedDownloader.DownloadFileAsync(jreDescriptor, jreDownload);
+        return result is DownloadSuccess success ? UnpackJre(success.FilePath) : result;
     }
 
     public virtual DownloadResult UnpackJre(string jreArchive)

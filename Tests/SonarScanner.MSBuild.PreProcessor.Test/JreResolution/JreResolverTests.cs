@@ -60,26 +60,12 @@ public class JreResolverTests
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
         unpackerFactory = Substitute.For<IUnpackerFactory>();
-        var cachedDownloader = Substitute.For<CachedDownloader>(
         cachedDownloader = Substitute.For<CachedDownloader>(
             logger,
-            Substitute.For<IDirectoryWrapper>(),
-            fileWrapper,
-            Substitute.For<IChecksum>(),
-            unpackerFactory,
-            Substitute.For<IFilePermissionsWrapper>(),
             directoryWrapper,
             fileWrapper,
             checksum,
             SonarUserHome);
-        downloader = Substitute.For<JreDownloader>(
-            logger,
-            cachedDownloader,
-            Substitute.For<IDirectoryWrapper>(),
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<UnpackerFactory>(),
-            Substitute.For<IFilePermissionsWrapper>());
-        sut = new JreResolver(server, downloader, logger);
 
         sut = new JreResolver(server, logger, filePermissionsWrapper, cachedDownloader, unpackerFactory, directoryWrapper, fileWrapper);
     }
@@ -189,7 +175,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadSuccess()
     {
-        cachedDownloader.DownloadFileAsync(null, null).ReturnsForAnyArgs(new ResolutionSuccess("path"));
+        cachedDownloader.DownloadFileAsync(null, null).ReturnsForAnyArgs(new DownloadSuccess("path"));
         fileWrapper.Exists(Path.Combine(ShaPath, "javaPath")).Returns(true);
 
         var res = await sut.ResolveJrePath(Args());
@@ -212,7 +198,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadFailure()
     {
-        cachedDownloader.DownloadFileAsync(null, null).ReturnsForAnyArgs(new ResolutionError("Reason."));
+        cachedDownloader.DownloadFileAsync(null, null).ReturnsForAnyArgs(new DownloadError("Reason."));
 
         var res = await sut.ResolveJrePath(Args());
 

@@ -61,11 +61,11 @@ public class CachedDownloader
             var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
             return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } cacheFailure
                 ? cacheFailure
-                : new CacheHit(downloadTarget);
+                : new DownloadSuccess(downloadTarget);
         }
         else
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
+            return new DownloadError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
         }
     }
 
@@ -125,23 +125,7 @@ public class CachedDownloader
         }
     }
 
-    private string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
-        EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
-
-    private void TryDeleteFile(string tempFile)
-    {
-        try
-        {
-            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
-            fileWrapper.Delete(tempFile);
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
-        }
-    }
-
-    private async Task<DownloadError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    protected async Task<DownloadError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
         {

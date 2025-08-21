@@ -83,7 +83,7 @@ public class JreResolver : IJreResolver
         var descriptor = metadata.ToDescriptor();
         if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, descriptor.Filename) is { } unpacker)
         {
-            var jreDownloader = new JreDownloader(logger, directoryWrapper, fileWrapper, cachedDownloader, unpacker, descriptor);
+            var jreDownloader = new JreDownloader(logger, cachedDownloader, directoryWrapper, fileWrapper, unpacker, descriptor);
             var result = jreDownloader.IsJrecached();
             switch (result)
             {
@@ -115,9 +115,9 @@ public class JreResolver : IJreResolver
             logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, success.FilePath);
             return success.FilePath;
         }
-        else if (result is CacheFailure downloadFailure)
+        else if (result is DownloadError error)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, downloadFailure.Message);
+            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, error.Message);
             return null;
         }
         throw new NotSupportedException("Download result is expected to be Hit or Failure.");
