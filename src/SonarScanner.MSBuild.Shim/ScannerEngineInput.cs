@@ -168,6 +168,12 @@ public class ScannerEngineInput
         AppendKeyValue(project.Guid, property, project.RoslynReportFilePaths);
     }
 
+    public void WriteVsTestReportPaths(string[] paths) =>
+        AppendKeyValue(SonarProperties.VsTestReportsPaths, paths);
+
+    public void WriteVsXmlCoverageReportPaths(string[] paths) =>
+        AppendKeyValue(SonarProperties.VsCoverageXmlReportsPaths, paths);
+
     /// <summary>
     /// Write the supplied global settings into the file.
     /// </summary>
@@ -219,6 +225,9 @@ public class ScannerEngineInput
 
     private void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
         AppendKeyValue(keyPrefix + "." + keySuffix, value);
+
+    private void AppendKeyValue(string key, IEnumerable<string> values) =>
+        AppendKeyValue(key, ToMultiValueProperty(values));
 
     private JProperty AppendKeyValue(string key, string value)
     {
