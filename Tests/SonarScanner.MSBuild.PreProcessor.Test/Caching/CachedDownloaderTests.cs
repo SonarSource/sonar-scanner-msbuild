@@ -149,7 +149,7 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var result = cachedDownloader.IsFileCached(fileDescriptor);
 
-        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(file);
+        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
         fileWrapper.Received(1).Exists(file);
     }
 
@@ -175,7 +175,7 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var result = cachedDownloader.IsFileCached(fileDescriptor);
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be($"The file cache directory in '{SonarUserHomeCache}' could not be created.");
+        result.Should().BeOfType<CacheError>().Which.Message.Should().Be($"The file cache directory in '{SonarUserHomeCache}' could not be created.");
     }
 
     [TestMethod]
