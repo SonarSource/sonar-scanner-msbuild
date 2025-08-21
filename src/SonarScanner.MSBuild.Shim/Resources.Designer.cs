@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details..
+        ///   Looks up a localized string similar to No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details..
         /// </summary>
         internal static string ERR_NoValidProjectInfoFiles {
             get {

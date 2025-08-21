@@ -143,7 +143,7 @@ class ParameterTest {
     var logs = context.runFailedAnalysis().end().getLogs();
 
     assertThat(logs).contains("The exclude flag has been set so the project will not be analyzed.");
-    assertThat(logs).contains("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+    assertThat(logs).contains("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
   }
 
   @Test
