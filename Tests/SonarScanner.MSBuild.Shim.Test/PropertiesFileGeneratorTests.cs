@@ -117,11 +117,11 @@ public partial class PropertiesFileGeneratorTests
     }
 
     [TestMethod]
-    public void GetClosestProjectOrDefault_WhenNoProjects_ReturnsNull() =>
+    public void SingleClosestProjectOrDefault_WhenNoProjects_ReturnsNull() =>
         PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo("File.cs"), []).Should().BeNull();
 
     [TestMethod]
-    public void GetClosestProjectOrDefault_WhenNoMatch_ReturnsNull()
+    public void SingleClosestProjectOrDefault_WhenNoMatch_ReturnsNull()
     {
         var projects = new[]
         {
@@ -134,7 +134,7 @@ public partial class PropertiesFileGeneratorTests
     }
 
     [TestMethod]
-    public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithSameCase_ReturnsProject()
+    public void SingleClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithSameCase_ReturnsProject()
     {
         var projects = new[]
         {
@@ -147,7 +147,7 @@ public partial class PropertiesFileGeneratorTests
     }
 
     [TestMethod]
-    public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentCase_ReturnsProject()
+    public void SingleClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentCase_ReturnsProject()
     {
         var projects = new[]
         {
@@ -160,7 +160,7 @@ public partial class PropertiesFileGeneratorTests
     }
 
     [TestMethod]
-    public void GetClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentSeparators_ReturnsProject()
+    public void SingleClosestProjectOrDefault_WhenOnlyOneProjectMatchingWithDifferentSeparators_ReturnsProject()
     {
         var projects = new[]
         {
@@ -173,7 +173,7 @@ public partial class PropertiesFileGeneratorTests
     }
 
     [TestMethod]
-    public void GetClosestProjectOrDefault_WhenMultipleProjectsMatch_ReturnsProjectWithLongestMatch()
+    public void SingleClosestProjectOrDefault_WhenMultipleProjectsMatch_ReturnsProjectWithLongestMatch()
     {
         var projects = new[]
         {
@@ -188,7 +188,7 @@ public partial class PropertiesFileGeneratorTests
     }
 
     [TestMethod]
-    public void GetClosestProjectOrDefault_WhenMultipleProjectsMatchWithSameLength_ReturnsClosestProject()
+    public void SingleClosestProjectOrDefault_WhenMultipleProjectsMatchWithSameLength_ReturnsClosestProject()
     {
         var projects = new[]
         {
@@ -200,19 +200,22 @@ public partial class PropertiesFileGeneratorTests
         PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
-    private static void AssertFailedToCreatePropertiesFiles(ProjectInfoAnalysisResult result, TestLogger logger)
+    private static void AssertFailedToCreateScannerInput(ProjectInfoAnalysisResult result, TestLogger logger)
     {
-        result.FullPropertiesFilePath.Should().BeNull("Not expecting the sonar-scanner properties file to have been set");
-        result.RanToCompletion.Should().BeFalse("Expecting the property file generation to have failed");
+        result.FullPropertiesFilePath.Should().BeNull();
+        result.ScannerEngineInput.Should().BeNull();
+        result.RanToCompletion.Should().BeFalse();
         AssertNoValidProjects(result);
         logger.AssertErrorsLogged();
     }
 
-    private void AssertPropertiesFilesCreated(ProjectInfoAnalysisResult result, TestLogger logger)
+    private void AssertScannerInputCreated(ProjectInfoAnalysisResult result, TestLogger logger)
     {
-        result.FullPropertiesFilePath.Should().NotBeNull("Expecting the sonar-scanner properties file to have been set");
+        result.FullPropertiesFilePath.Should().NotBeNull();
+        result.ScannerEngineInput.Should().NotBeNull();
         AssertValidProjectsExist(result);
         TestContext.AddResultFile(result.FullPropertiesFilePath);
+        Console.WriteLine(result.ScannerEngineInput.ToString());
         logger.AssertErrorsLogged(0);
     }
 
@@ -221,19 +224,19 @@ public partial class PropertiesFileGeneratorTests
             .Should().ContainSingle("ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}", expectedProjectName, expectedStatus);
 
     private static void AssertNoValidProjects(ProjectInfoAnalysisResult actual) =>
-        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().BeEmpty("Not expecting to find any valid ProjectInfo files");
+        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().BeEmpty();
 
     private static void AssertValidProjectsExist(ProjectInfoAnalysisResult actual) =>
-        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().NotBeEmpty("Expecting at least one valid ProjectInfo file to exist");
+        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().NotBeEmpty();
 
     private static void AssertExpectedProjectCount(int expected, ProjectInfoAnalysisResult actual) =>
-        actual.Projects.Should().HaveCount(expected, "Unexpected number of projects in the result");
+        actual.Projects.Should().HaveCount(expected);
 
     private static void AssertFileIsReferenced(string fullFilePath, string content) =>
-        content.Should().Contain(PropertiesWriter.Escape(fullFilePath), "Files should be referenced");
+        content.Should().Contain(PropertiesWriter.Escape(fullFilePath), "files should be referenced");
 
     private static void AssertFileIsNotReferenced(string fullFilePath, string content) =>
-        content.Should().NotContain(PropertiesWriter.Escape(fullFilePath), "File should not be referenced");
+        content.Should().NotContain(PropertiesWriter.Escape(fullFilePath), "file should not be referenced");
 
     private static AnalysisConfig CreateValidConfig(string outputDir, AnalysisProperties serverProperties = null, string workingDir = null)
     {

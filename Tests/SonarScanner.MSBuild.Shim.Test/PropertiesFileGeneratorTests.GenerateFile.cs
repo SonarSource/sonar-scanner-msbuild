@@ -37,7 +37,7 @@ public partial class PropertiesFileGeneratorTests
         var config = new AnalysisConfig { SonarOutputDir = testDir, SonarQubeHostUrl = "http://sonarqube.com" };
         var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
-        AssertFailedToCreatePropertiesFiles(result, logger);
+        AssertFailedToCreateScannerInput(result, logger);
         AssertExpectedProjectCount(0, result);
     }
 
@@ -61,7 +61,7 @@ public partial class PropertiesFileGeneratorTests
         AssertExpectedProjectCount(3, result);
 
         // One valid project info file -> file created
-        AssertPropertiesFilesCreated(result, logger);
+        AssertScannerInputCreated(result, logger);
     }
 
     [TestMethod]
@@ -199,7 +199,7 @@ public partial class PropertiesFileGeneratorTests
         // SARIF file path
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         // Create SARIF report path property and add it to the project info
-        var projectSettings = new AnalysisProperties { new(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, testSarifPath) };
+        var projectSettings = new AnalysisProperties { new("sonar.cs.roslyn.reportFilePaths", testSarifPath) };
         var projectGuid = Guid.NewGuid();
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", ProjectLanguages.CSharp, testDir, projectGuid, true, projectSettings);
         var config = CreateValidConfig(testDir);
@@ -211,12 +211,13 @@ public partial class PropertiesFileGeneratorTests
         mockSarifFixer.CallCount.Should().Be(1);
         // Already valid SARIF -> no change in file -> unchanged property
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, AddQuotes(mockReturnPath));
+        provider.AssertSettingExists(projectGuid.ToString().ToUpper() + ".sonar.cs.roslyn.reportFilePaths", AddQuotes(mockReturnPath));
+        CreateInputReader(result).AssertProperty(projectGuid.ToString().ToUpper() + ".sonar.cs.roslyn.reportFilePaths", mockReturnPath);
     }
 
     [TestMethod]
-    [DataRow(ProjectLanguages.CSharp, PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, RoslynV1SarifFixer.CSharpLanguage)]
-    [DataRow(ProjectLanguages.VisualBasic, PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey, RoslynV1SarifFixer.VBNetLanguage)]
+    [DataRow(ProjectLanguages.CSharp, "sonar.cs.roslyn.reportFilePaths", "cs")]
+    [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths", "vbnet")]
     public void GenerateFile_ValidFiles_WithFixableSarif(string projectLanguage, string propertyKey, string expectedSarifLanguage)
     {
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -237,6 +238,7 @@ public partial class PropertiesFileGeneratorTests
         // Fixable SARIF -> new file saved -> changed property
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + propertyKey, AddQuotes(sarifFixer.ReturnVal));
+        CreateInputReader(result).AssertProperty(projectGuid.ToString().ToUpper() + "." + propertyKey, sarifFixer.ReturnVal);
     }
 
     [TestMethod]
@@ -251,7 +253,7 @@ public partial class PropertiesFileGeneratorTests
         var mockSarifFixer = new MockRoslynV1SarifFixer(null);
         var projectSettings = new AnalysisProperties
         {
-            new(PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey, string.Join(PropertiesFileGenerator.RoslynReportPathsDelimiter.ToString(), testSarifPath1, testSarifPath2, testSarifPath3))
+            new("sonar.vbnet.roslyn.reportFilePaths", $"{testSarifPath1}|{testSarifPath2}|{testSarifPath3}")
         };
         var projectGuid = Guid.NewGuid();
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", ProjectLanguages.VisualBasic, testDir, projectGuid, true, projectSettings);
@@ -259,8 +261,11 @@ public partial class PropertiesFileGeneratorTests
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(
-            $"{projectGuid.ToString().ToUpper()}.{PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey}",
+            $"{projectGuid.ToString().ToUpper()}.sonar.vbnet.roslyn.reportFilePaths",
             $@"""{testSarifPath1}.fixed.mock.json"",""{testSarifPath2}.fixed.mock.json"",""{testSarifPath3}.fixed.mock.json""");
+        CreateInputReader(result).AssertProperty(
+            $"{projectGuid.ToString().ToUpper()}.sonar.vbnet.roslyn.reportFilePaths",
+            $"{testSarifPath1}.fixed.mock.json,{testSarifPath2}.fixed.mock.json,{testSarifPath3}.fixed.mock.json");
     }
 
     [TestMethod]
@@ -270,7 +275,7 @@ public partial class PropertiesFileGeneratorTests
         // SARIF file path
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         // Create SARIF report path property and add it to the project info
-        var projectSettings = new AnalysisProperties { new(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, testSarifPath) };
+        var projectSettings = new AnalysisProperties { new("sonar.cs.roslyn.reportFilePaths", testSarifPath) };
         var projectGuid = Guid.NewGuid();
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", null, testDir, projectGuid, true, projectSettings);
         var config = CreateValidConfig(testDir);
@@ -280,10 +285,11 @@ public partial class PropertiesFileGeneratorTests
 
         mockSarifFixer.CallCount.Should().Be(1);
         // One valid project info file -> file created
-        AssertPropertiesFilesCreated(result, logger);
+        AssertScannerInputCreated(result, logger);
         // Unfixable SARIF -> cannot fix -> report file property removed
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        provider.AssertSettingDoesNotExist(projectGuid.ToString().ToUpper() + "." + PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey);
+        provider.AssertSettingDoesNotExist(projectGuid.ToString().ToUpper() + "." + "sonar.cs.roslyn.reportFilePaths");
+        CreateInputReader(result).AssertPropertyDoesNotExist(projectGuid.ToString().ToUpper() + "." + "sonar.cs.roslyn.reportFilePaths");
     }
 
     [TestMethod]
@@ -374,6 +380,9 @@ public partial class PropertiesFileGeneratorTests
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists("sonar.projectBaseDir", testDir);
         provider.AssertSettingExists("sonar.sources", AddQuotes(sharedFile));
+        var reader = CreateInputReader(result);
+        reader.AssertProperty("sonar.projectBaseDir", testDir);
+        reader.AssertProperty("sonar.sources", sharedFile);
     }
 
     // SONARMSBRU-335 Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
@@ -404,8 +413,10 @@ public partial class PropertiesFileGeneratorTests
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists("sonar.projectBaseDir", testDir);
-        // First one wins
-        provider.AssertSettingExists("sonar.sources", AddQuotes(sharedFile));
+        provider.AssertSettingExists("sonar.sources", AddQuotes(sharedFile));   // First one wins
+        var reader = CreateInputReader(result);
+        reader.AssertProperty("sonar.projectBaseDir", testDir);
+        reader.AssertProperty("sonar.sources", sharedFile);          // First one wins
     }
 
     // SONARMSBRU-336
@@ -435,6 +446,10 @@ public partial class PropertiesFileGeneratorTests
         provider.AssertSettingExists("sonar.projectBaseDir", testDir);
         provider.AssertSettingDoesNotExist("sonar.sources");
         provider.AssertSettingExists(project1Guid.ToString().ToUpper() + ".sonar.sources", AddQuotes(fileInProject1));
+        var reader = CreateInputReader(result);
+        reader.AssertProperty("sonar.projectBaseDir", testDir);
+        reader.AssertPropertyDoesNotExist("sonar.sources");
+        reader.AssertProperty(project1Guid.ToString().ToUpper() + ".sonar.sources", fileInProject1);
     }
 
     [TestMethod] // https://jira.codehaus.org/browse/SONARMSBRU-13: Analysis fails if a content file referenced in the MSBuild project does not exist
@@ -509,7 +524,7 @@ public partial class PropertiesFileGeneratorTests
 
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
-        AssertPropertiesFilesCreated(result, logger);
+        AssertScannerInputCreated(result, logger);
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists("key1", "value1");
@@ -520,6 +535,15 @@ public partial class PropertiesFileGeneratorTests
         provider.AssertSettingDoesNotExist(SonarProperties.SonarUserName);
         provider.AssertSettingDoesNotExist(SonarProperties.ClientCertPassword);
         provider.AssertSettingDoesNotExist(SonarProperties.SonarToken);
+        var reader = CreateInputReader(result);
+        reader.AssertProperty("key1", "value1");
+        reader.AssertProperty("key.2", "value two");
+        reader.AssertProperty("key.3", " ");
+        reader.AssertPropertyDoesNotExist("server.key");
+        reader.AssertPropertyDoesNotExist(SonarProperties.SonarPassword);
+        reader.AssertPropertyDoesNotExist(SonarProperties.SonarUserName);
+        reader.AssertPropertyDoesNotExist(SonarProperties.ClientCertPassword);
+        reader.AssertPropertyDoesNotExist(SonarProperties.SonarToken);
     }
 
     [TestMethod]
@@ -532,7 +556,7 @@ public partial class PropertiesFileGeneratorTests
 
         AssertExpectedProjectCount(1, result);
         // Empty guids are supported by generating them to the ProjectInfo.xml by WriteProjectInfoFile. In case it is not in ProjectInfo.xml, sonar-project.properties generation should fail.
-        AssertFailedToCreatePropertiesFiles(result, logger);
+        AssertFailedToCreateScannerInput(result, logger);
         logger.Warnings.Should().BeEmpty();
     }
 
@@ -543,6 +567,7 @@ public partial class PropertiesFileGeneratorTests
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
+        CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         logger.AssertWarningsLogged(0);
     }
 
@@ -555,6 +580,7 @@ public partial class PropertiesFileGeneratorTests
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
+        CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         logger.AssertSingleWarningExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey);
     }
 
@@ -566,6 +592,7 @@ public partial class PropertiesFileGeneratorTests
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
+        CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         logger.AssertDebugMessageExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey);
         logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
     }
@@ -727,7 +754,7 @@ public partial class PropertiesFileGeneratorTests
         var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(2, result);
-        AssertPropertiesFilesCreated(result, logger);
+        AssertScannerInputCreated(result, logger);
         AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
         AssertExpectedStatus(project2, ProjectInfoValidity.Valid, result);
         AssertExpectedPathsAddedToModuleFiles(project1, project1Sources);
@@ -736,6 +763,9 @@ public partial class PropertiesFileGeneratorTests
         var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         properties.PropertyValue("sonar.sources").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootSources);
         properties.PropertyValue("sonar.tests").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests);
+        var reader = CreateInputReader(result);
+        reader["sonar.sources"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootSources);
+        reader["sonar.tests"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests);
 
         void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
             expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
@@ -763,11 +793,12 @@ public partial class PropertiesFileGeneratorTests
         var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
-        AssertPropertiesFilesCreated(result, logger);
+        AssertScannerInputCreated(result, logger);
         AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
 
         var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         properties.PropertyValue("sonar.tests").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(testFiles);
+        CreateInputReader(result)["sonar.tests"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(testFiles);
     }
 
     /// <summary>
@@ -783,7 +814,10 @@ public partial class PropertiesFileGeneratorTests
         var result = new PropertiesFileGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
-        AssertPropertiesFilesCreated(result, logger);
+        AssertScannerInputCreated(result, logger);
         return result;
     }
+
+    private static ScannerEngineInputReader CreateInputReader(ProjectInfoAnalysisResult result) =>
+        new(result.ScannerEngineInput.ToString());
 }

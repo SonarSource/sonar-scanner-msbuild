@@ -158,12 +158,16 @@ public class PropertiesFileGenerator
         }
 
         legacyWriter.WriteSonarProjectInfo(projectBaseDir);
+        engineInput.WriteSonarProjectInfo(projectBaseDir);
         legacyWriter.WriteSharedFiles(analysisFiles);
+        engineInput.WriteSharedFiles(analysisFiles);
         foreach (var validProject in validProjects)
         {
             legacyWriter.WriteSettingsForProject(validProject);
+            engineInput.WriteSettingsForProject(validProject);
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
+        engineInput.WriteGlobalSettings(analysisProperties);
         return true;
     }
 
