@@ -62,10 +62,10 @@ public class ProgramTests
         using var scope = new EnvironmentVariableScope();
 
         // Faking TeamBuild
-        scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
-        scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
-        scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
-        scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
+        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "true");
+        scope.SetVariable(EnvironmentVariables.BuildUriTfs2015, "vsts://test/test");
+        scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, tempDir);
+        scope.SetVariable(EnvironmentVariables.SourcesDirectoryTfs2015, tempDir);
 
         var result = Program.Execute(new string[] { "ConvertCoverage", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties") }, logger);
 
@@ -99,10 +99,10 @@ public class ProgramTests
         using var scope = new EnvironmentVariableScope();
 
         // Faking TeamBuild
-        scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "true");
-        scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, "vsts://test/test");
-        scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, tempDir);
-        scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, tempDir);
+        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "true");
+        scope.SetVariable(EnvironmentVariables.BuildUriTfs2015, "vsts://test/test");
+        scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, tempDir);
+        scope.SetVariable(EnvironmentVariables.SourcesDirectoryTfs2015, tempDir);
 
         var result = Program.Execute(["SummaryReportBuilder", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties"), "true"], logger);
 

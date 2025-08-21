@@ -59,7 +59,7 @@ public class BuildVNextCoverageReportProcessorTests
         directoryWrapper.Exists(alternateCoverageDir).Returns(true);
         buildSettings.BuildDirectory = testDir;
         sut = new BuildVNextCoverageReportProcessor(converter, testLogger, fileWrapper, directoryWrapper);
-        environmentVariableScope.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, alternateCoverageDir);  // setup search fallback
+        environmentVariableScope.SetVariable(EnvironmentVariables.AgentTempDirectory, alternateCoverageDir);  // setup search fallback
     }
 
     [TestCleanup]
@@ -339,7 +339,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         using var envVars = new EnvironmentVariableScope();
         // env var not specified -> null
-        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, null);
+        envVars.SetVariable(EnvironmentVariables.AgentTempDirectory, null);
 
         sut.CheckAgentTempDirectory().Should().BeNull();
     }
@@ -350,7 +350,7 @@ public class BuildVNextCoverageReportProcessorTests
         var envDir = Path.Combine(testDir, "DirSpecifiedInEnvDir");
         using var envVars = new EnvironmentVariableScope();
         // Env var set but dir does not exist -> null
-        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, envDir);
+        envVars.SetVariable(EnvironmentVariables.AgentTempDirectory, envDir);
 
         sut.CheckAgentTempDirectory().Should().BeNull();
     }
@@ -362,7 +362,7 @@ public class BuildVNextCoverageReportProcessorTests
         using var envVars = new EnvironmentVariableScope();
         // Env var set and dir exists -> dir returned
         directoryWrapper.Exists(envDir).Returns(true);
-        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, envDir);
+        envVars.SetVariable(EnvironmentVariables.AgentTempDirectory, envDir);
 
         sut.CheckAgentTempDirectory().Should().Be(envDir);
     }
@@ -371,7 +371,7 @@ public class BuildVNextCoverageReportProcessorTests
     public void FindFallbackCoverageFiles_NoAgentDirectory_Empty()
     {
         using var envVars = new EnvironmentVariableScope();
-        envVars.SetVariable(BuildVNextCoverageReportProcessor.AgentTempDirectory, null);
+        envVars.SetVariable(EnvironmentVariables.AgentTempDirectory, null);
 
         sut.FindFallbackCoverageFiles().Should().BeEmpty();
     }

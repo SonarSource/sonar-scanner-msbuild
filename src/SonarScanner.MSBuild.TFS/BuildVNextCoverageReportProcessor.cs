@@ -24,7 +24,6 @@ namespace SonarScanner.MSBuild.TFS;
 
 public class BuildVNextCoverageReportProcessor
 {
-    internal const string AgentTempDirectory = "AGENT_TEMPDIRECTORY";
     private const string XmlReportFileExtension = "coveragexml";
     private readonly ICoverageReportConverter converter;
     private readonly ILogger logger;
@@ -110,16 +109,16 @@ public class BuildVNextCoverageReportProcessor
 
     internal /* for testing */ string CheckAgentTempDirectory()
     {
-        var agentTempDirectory = Environment.GetEnvironmentVariable(AgentTempDirectory);
+        var agentTempDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.AgentTempDirectory);
         if (string.IsNullOrEmpty(agentTempDirectory))
         {
-            logger.LogDebug($"Env var {AgentTempDirectory} is not set.");
+            logger.LogDebug($"Env var {EnvironmentVariables.AgentTempDirectory} is not set.");
             return null;
         }
 
         if (!directoryWrapper.Exists(agentTempDirectory))
         {
-            logger.LogDebug($"Calculated location for {AgentTempDirectory} does not exist: {agentTempDirectory}");
+            logger.LogDebug($"Calculated location for {EnvironmentVariables.AgentTempDirectory} does not exist: {agentTempDirectory}");
             return null;
         }
 

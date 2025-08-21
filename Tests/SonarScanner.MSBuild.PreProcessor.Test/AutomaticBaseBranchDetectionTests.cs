@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
@@ -38,14 +34,14 @@ public class AutomaticBaseBranchDetectionTests
     {
         using var environment = new EnvironmentVariableScope().SetVariable(variableName, "42");
 
-        var result = AutomaticBaseBranchDetection.GetValue();
+        var result = AutomaticBaseBranchDetection.Current();
 
         result.Should().NotBeNull();
         result.Value.Should().Be("42");
-        result.CiProvider.Should().Be(expectedProvider);
+        result.Provider.Should().Be(expectedProvider);
     }
 
     [TestMethod]
     public void TryGetValue_Failure() =>
-        AutomaticBaseBranchDetection.GetValue().Should().BeNull();
+        AutomaticBaseBranchDetection.Current().Should().BeNull();
 }

@@ -26,17 +26,27 @@ public class BootstrapperSettingsTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void BootSettings_InvalidArguments()
+    public void InvalidArguments() =>
+        FluentActions.Invoking(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, null)).Should().ThrowExactly<ArgumentNullException>();
+
+    [TestMethod]
+    public void Properties_RelativePathsConvertToAbsolute()
     {
-        Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, null);
-        act.Should().ThrowExactly<ArgumentNullException>();
+        using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryLegacy, $@"c:{Path.DirectorySeparatorChar}temp");
+        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestLogger());
+        sut.TempDirectory.Should().Be($@"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
     }
 
     [TestMethod]
-    public void BootSettings_Properties_RelativePathsConvertToAbsolute()
+    public void Properties_ScannerBinaryDirPath()
     {
-        using var envScope = new EnvironmentVariableScope().SetVariable(BootstrapperSettings.BuildDirectory_Legacy, $@"c:{Path.DirectorySeparatorChar}temp");
         var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestLogger());
-        sut.TempDirectory.Should().Be($@"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
+        string extension;
+#if NETFRAMEWORK
+        extension = "exe";
+#else
+        extension = "dll";
+#endif
+        $"{sut.ScannerBinaryDirPath}{Path.DirectorySeparatorChar}SonarScanner.MSBuild.{extension}".Should().Be(typeof(BootstrapperSettings).Assembly.Location);
     }
 }

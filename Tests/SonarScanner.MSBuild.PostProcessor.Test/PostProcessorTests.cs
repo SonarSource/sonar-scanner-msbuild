@@ -374,7 +374,7 @@ public class PostProcessorTests
     {
         SubstituteSettings(BuildEnvironment.LegacyTeamBuild);
         using var env = new EnvironmentVariableScope();
-        env.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
+        env.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "true");
 
         Execute().Should().BeTrue();
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);

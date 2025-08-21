@@ -63,7 +63,7 @@ public class CoverageReportProcessorTests
         legacyFactory.BuildTfsLegacyCoverageReportProcessor().Returns(processor);
 
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
+        scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "false");
 
         var testSubject = new CoverageReportProcessor(legacyFactory);
         testSubject.Initialize(analysisConfig, settingsMock, string.Empty);
@@ -84,7 +84,7 @@ public class CoverageReportProcessorTests
         var logger = new TestLogger();
 
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "true");
+        scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "true");
 
         var testSubject = new CoverageReportProcessor(legacyFactory);
         testSubject.Initialize(analysisConfig, settingsMock, string.Empty);

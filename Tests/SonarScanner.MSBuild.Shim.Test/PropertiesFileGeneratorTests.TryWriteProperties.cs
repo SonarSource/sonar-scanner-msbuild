@@ -128,8 +128,6 @@ public partial class PropertiesFileGeneratorTests
         var projectPath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Project.csproj");
         var sourceFilePath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Program.cs");
         var filesToAnalyzePath = TestUtils.CreateFile(config.SonarOutputDir, "FilesToAnalyze.txt", sourceFilePath);
-        using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);  // Otherwise it is picking up our own analysis variables and explicit sonarcloud.io URL
         var project = new ProjectInfo
         {
             ProjectGuid = new Guid("A85D6F60-4D86-401E-BE44-177F524BD4BB"),

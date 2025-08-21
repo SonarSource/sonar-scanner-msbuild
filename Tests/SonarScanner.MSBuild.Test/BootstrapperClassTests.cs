@@ -303,8 +303,8 @@ public class BootstrapperClassTests
     {
         Directory.SetCurrentDirectory(workingDirectory);
         return new EnvironmentVariableScope()
-            .SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null)
-            .SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
+            .SetVariable(EnvironmentVariables.BuildDirectoryLegacy, null)
+            .SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, null);
     }
 
     private TestLogger CheckExecutionFails(AnalysisPhase phase, bool debug, Func<string, Version> getAssemblyVersion = null, params string[] args)

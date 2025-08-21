@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -211,6 +205,7 @@ public class AnalysisConfigExtensionsTests
         // Check that local settings are always retrieved by GetAnalysisSettings
 
         // 0. Setup
+        var testLogger = new TestLogger();
         var config = new AnalysisConfig
         {
             LocalSettings = new AnalysisProperties()
@@ -219,13 +214,13 @@ public class AnalysisConfigExtensionsTests
         config.LocalSettings.Add(new("local.2", "local.value.2"));
 
         // 1. Local only
-        var localProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
+        var localProperties = config.GetAnalysisSettings(false, testLogger);
         localProperties.AssertExpectedPropertyCount(2);
         localProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
         localProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
 
         // 2. Local and server
-        var allProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, true);
+        var allProperties = config.GetAnalysisSettings(true, testLogger);
         allProperties.AssertExpectedPropertyCount(2);
         allProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
         allProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -238,6 +233,7 @@ public class AnalysisConfigExtensionsTests
         // if includeServerSettings is true
 
         // 0. Setup
+        var testLogger = new TestLogger();
         var config = new AnalysisConfig
         {
             ServerSettings = new AnalysisProperties()
@@ -246,14 +242,14 @@ public class AnalysisConfigExtensionsTests
         config.ServerSettings.Add(new("server.2", "server.value.2"));
 
         // 1. Local only
-        var localProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
+        var localProperties = config.GetAnalysisSettings(false, testLogger);
         localProperties.AssertExpectedPropertyCount(0);
 
         localProperties.AssertPropertyDoesNotExist("server.1");
         localProperties.AssertPropertyDoesNotExist("server.2");
 
         // 2. Local and server
-        var allProperties = GetAnalysisSettingsIsolatedFromEnvironment(config, true);
+        var allProperties = config.GetAnalysisSettings(true, testLogger);
         allProperties.AssertExpectedPropertyCount(2);
         allProperties.AssertExpectedPropertyValue("server.1", "server.value.1");
         allProperties.AssertExpectedPropertyValue("server.2", "server.value.2");
@@ -267,7 +263,7 @@ public class AnalysisConfigExtensionsTests
 
         // 0. Setup
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
+        var testLogger = new TestLogger();
         var config = new AnalysisConfig();
 
         // File settings
@@ -287,7 +283,7 @@ public class AnalysisConfigExtensionsTests
         config.GetSettingsFilePath().Should().Be(settingsFilePath, "Unexpected settings file path value returned");
 
         // 3. Check file properties are retrieved
-        var provider = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
+        var provider = config.GetAnalysisSettings(false, testLogger);
         provider.AssertExpectedPropertyCount(2);
         provider.AssertExpectedPropertyValue("file.1", "file.value.1");
         provider.AssertExpectedPropertyValue("file.2", "file.value.2");
@@ -300,8 +296,8 @@ public class AnalysisConfigExtensionsTests
 
         // 0. Setup
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
         var config = new AnalysisConfig();
+        var testLogger = new TestLogger();
 
         // File settings
         var fileSettings = new AnalysisProperties
@@ -332,7 +328,7 @@ public class AnalysisConfigExtensionsTests
         };
 
         // 1. Precedence - local should win over file
-        var provider = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
+        var provider = config.GetAnalysisSettings(false, testLogger);
         provider.AssertExpectedPropertyCount(5);
         provider.AssertExpectedPropertyValue("local.1", "local.value.1");
         provider.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -344,7 +340,7 @@ public class AnalysisConfigExtensionsTests
         provider.AssertPropertyDoesNotExist("server.2");
 
         // 2. Server and non-server
-        provider = GetAnalysisSettingsIsolatedFromEnvironment(config, true);
+        provider = config.GetAnalysisSettings(true, testLogger);
         provider.AssertExpectedPropertyCount(7);
         provider.AssertExpectedPropertyValue("local.1", "local.value.1");
         provider.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -359,15 +355,16 @@ public class AnalysisConfigExtensionsTests
     public void ConfigExt_GetAnalysisSettings_NoSettings()
     {
         // 0. Setup
+        var testLogger = new TestLogger();
         var config = new AnalysisConfig();
 
         // 1. No server settings
-        var provider = GetAnalysisSettingsIsolatedFromEnvironment(config, false);
+        var provider = config.GetAnalysisSettings(false, testLogger);
         provider.Should().NotBeNull("Returned provider should not be null");
         provider.AssertExpectedPropertyCount(0);
 
         // 2. With server settings
-        provider = GetAnalysisSettingsIsolatedFromEnvironment(config, true);
+        provider = config.GetAnalysisSettings(true, testLogger);
         provider.Should().NotBeNull("Returned provider should not be null");
         provider.AssertExpectedPropertyCount(0);
     }
@@ -419,11 +416,12 @@ public class AnalysisConfigExtensionsTests
     public void ConfigExt_GetSettingOrDefault_InvalidArgs_Throw()
     {
         // 1. Null config
-        Action action = () => ConfigSettingsExtensions.GetSettingOrDefault(null, "anySetting", true, "defaultValue", new TestLogger());
+        var testLogger = new TestLogger();
+        Action action = () => ConfigSettingsExtensions.GetSettingOrDefault(null, "anySetting", true, "defaultValue", testLogger);
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
 
         // 2. Null setting name
-        action = () => ConfigSettingsExtensions.GetSettingOrDefault(new AnalysisConfig(), null, true, "defaultValue", new TestLogger());
+        action = () => ConfigSettingsExtensions.GetSettingOrDefault(new AnalysisConfig(), null, true, "defaultValue", testLogger);
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingName");
 
         // 3. Null logger
@@ -473,14 +471,4 @@ public class AnalysisConfigExtensionsTests
     }
 
     #endregion Tests
-
-    private static IAnalysisPropertyProvider GetAnalysisSettingsIsolatedFromEnvironment(AnalysisConfig config, bool includeServerSettings)
-    {
-        var testLogger = new TestLogger();
-        // Make sure the test isn't affected by the hosting environment
-        // The SonarCloud AzDO extension sets additional properties in an environment variable that
-        // would affect the test
-        using var scope = new EnvironmentVariableScope().SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
-        return config.GetAnalysisSettings(includeServerSettings, testLogger);
-    }
 }
