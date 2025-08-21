@@ -18,14 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.IO;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.Shim;
 
 /// <summary>
-/// Contains the aggregated data from multiple ProjectInfos sharing the same GUID
+/// Contains the aggregated data from multiple ProjectInfos sharing the same GUID.
 /// </summary>
 public class ProjectData
 {
@@ -36,7 +32,7 @@ public class ProjectData
     public ProjectInfo Project { get; }
 
     /// <summary>
-    /// All files referenced by the given project
+    /// All files referenced by the given project.
     /// </summary>
     public ISet<FileInfo> ReferencedFiles { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 
@@ -46,12 +42,12 @@ public class ProjectData
     public ICollection<FileInfo> SonarQubeModuleFiles { get; } = new List<FileInfo>();
 
     /// <summary>
-    /// Roslyn analysis output files (json)
+    /// Roslyn analysis output files (json).
     /// </summary>
     public ICollection<FileInfo> RoslynReportFilePaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 
     /// <summary>
-    /// The folders where the protobuf files are generated
+    /// The folders where the protobuf files are generated.
     /// </summary>
     public ICollection<FileInfo> AnalyzerOutPaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 
@@ -60,8 +56,76 @@ public class ProjectData
     /// </summary>
     public ICollection<FileInfo> TelemetryPaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 
-    public ProjectData(ProjectInfo project)
+    public ProjectData(IGrouping<Guid, ProjectInfo> projectsGroupedByGuid, bool isWindows, ILogger logger)
     {
-        Project = project;
+        // To ensure consistently sending of metrics from the same configuration we sort the project outputs and use only the first one for metrics.
+        var orderedProjects = projectsGroupedByGuid.OrderBy(x => $"{x.Configuration}_{x.Platform}_{x.TargetFramework}").ToList();
+        Project = orderedProjects[0];
+        Status = ProjectInfoValidity.ExcludeFlagSet;
+        // Find projects with different paths within the same group
+        var projectPathsInGroup = projectsGroupedByGuid.Select(x => isWindows ? x.FullPath?.ToLowerInvariant() : x.FullPath).Distinct().ToList();
+        if (projectPathsInGroup.Count > 1)
+        {
+            Status = ProjectInfoValidity.DuplicateGuid;
+            foreach (var projectPath in projectPathsInGroup)
+            {
+                logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectsGroupedByGuid.Key, projectPath);
+            }
+        }
+        else if (projectsGroupedByGuid.Key == System.Guid.Empty)
+        {
+            Status = ProjectInfoValidity.InvalidGuid;
+        }
+        else if (File.Exists(Project.FullPath))
+        {
+            foreach (var project in orderedProjects.Where(x => x.IsValid(logger)))
+            {
+                // If we find just one valid configuration, everything is valid
+                Status = ProjectInfoValidity.Valid;
+                ReferencedFiles.UnionWith(project.GetAllAnalysisFiles(logger));
+                AddRoslynOutputFilePaths(project);
+                AddAnalyzerOutputFilePaths(project);
+                AddTelemetryFilePaths(project);
+            }
+            if (ReferencedFiles.Count == 0)
+            {
+                Status = ProjectInfoValidity.NoFilesToAnalyze;
+            }
+        }
+        else
+        {
+            // If a project was created and destroyed during the build, it is no longer valid. For example, "dotnet ef bundle" scaffolds and then removes a project.
+            Status = ProjectInfoValidity.ProjectNotFound;
+        }
+    }
+
+    private void AddAnalyzerOutputFilePaths(ProjectInfo project)
+    {
+        if (project.AnalysisSettings.FirstOrDefault(x => ScannerEngineInputGenerator.IsProjectOutPaths(x.Id)) is { } property)
+        {
+            foreach (var filePath in property.Value.Split(ScannerEngineInputGenerator.AnalyzerOutputPathsDelimiter))
+            {
+                AnalyzerOutPaths.Add(new FileInfo(filePath));
+            }
+        }
+    }
+
+    private void AddRoslynOutputFilePaths(ProjectInfo project)
+    {
+        if (project.AnalysisSettings.FirstOrDefault(x => ScannerEngineInputGenerator.IsReportFilePaths(x.Id)) is { } property)
+        {
+            foreach (var filePath in property.Value.Split(ScannerEngineInputGenerator.RoslynReportPathsDelimiter))
+            {
+                RoslynReportFilePaths.Add(new FileInfo(filePath));
+            }
+        }
+    }
+
+    private void AddTelemetryFilePaths(ProjectInfo project)
+    {
+        foreach (var property in project.AnalysisSettings.Where(x => ScannerEngineInputGenerator.IsTelemetryPaths(x.Id)))
+        {
+            TelemetryPaths.Add(new FileInfo(property.Value));
+        }
     }
 }

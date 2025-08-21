@@ -211,7 +211,7 @@ public class SummaryReportBuilderTests
     {
         for (var i = 0; i < count; i++)
         {
-            yield return new ProjectData(new ProjectInfo { ProjectType = type }) { Status = validity };
+            yield return new ProjectData(new[] { new ProjectInfo { ProjectType = type } }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>()) { Status = validity };
         }
     }
 

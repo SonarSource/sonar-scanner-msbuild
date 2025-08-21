@@ -20,12 +20,15 @@
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
-public partial class ScannerEngineInputGeneratorTest
+[TestClass]
+public class ProjectDataTest
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
-    public void ToProjectData_Orders_AnalyzerOutPaths(string languageKey)
+    public void Orders_AnalyzerOutPaths(string languageKey)
     {
         var guid = Guid.NewGuid();
         var propertyKey = $"sonar.{languageKey}.analyzer.projectOutPaths";
@@ -69,10 +72,7 @@ public partial class ScannerEngineInputGeneratorTest
                 FullPath = fullPath,
             },
         };
-
-        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-        var sut = CreateSut(CreateValidConfig(analysisRootDir));
-        var results = sut.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First()).AnalyzerOutPaths.ToList();
+        var results = new ProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>()).AnalyzerOutPaths.ToList();
 
         results.Should().HaveCount(4);
         results[0].FullName.Should().Be(new FileInfo("2").FullName);
@@ -82,8 +82,9 @@ public partial class ScannerEngineInputGeneratorTest
     }
 
     [TestMethod]
-    public void ToProjectData_ProjectsWithDuplicateGuid()
+    public void ProjectsWithDuplicateGuid()
     {
+        var logger = new TestLogger();
         var guid = Guid.NewGuid();
         var projectInfos = new[]
         {
@@ -91,9 +92,7 @@ public partial class ScannerEngineInputGeneratorTest
             new ProjectInfo { ProjectGuid = guid, FullPath = "path2" },
             new ProjectInfo { ProjectGuid = guid, FullPath = "path2" }
         };
-        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-        var sut = new ScannerEngineInputGenerator(CreateValidConfig(analysisRootDir), logger);
-        var result = sut.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First());
+        var result = new ProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single(), true, logger);
 
         result.Status.Should().Be(ProjectInfoValidity.DuplicateGuid);
         logger.Warnings.Should().BeEquivalentTo(
@@ -103,7 +102,7 @@ public partial class ScannerEngineInputGeneratorTest
 
     // Repro for https://sonarsource.atlassian.net/browse/SCAN4NET-431
     [TestMethod]
-    public void ToProjectData_DoesNotChooseValidProject()
+    public void DoesNotChooseValidProject()
     {
         var guid = Guid.NewGuid();
         var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
@@ -135,16 +134,52 @@ public partial class ScannerEngineInputGeneratorTest
         };
         projectInfos[0].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
         projectInfos[1].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
-        var config = CreateValidConfig("outputDir");
-        var generator = new ScannerEngineInputGenerator(config, logger);
-        var sut = generator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First());
+        var sut = new ProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>());
 
         sut.Status.Should().Be(ProjectInfoValidity.Valid);
-        sut.Project.AnalysisSettings.Should().BeNullOrEmpty(); // Expected to change when fixed
-        var writer = new PropertiesWriter(config);
-        writer.WriteSettingsForProject(sut);
-        var resultString = writer.Flush();
-        resultString.Should().NotContain("validRoslyn"); // Expected to change when fixed
-        resultString.Should().NotContain("validOutPath"); // Expected to change when fixed
+        sut.Project.AnalysisSettings.Should().BeEmpty();     // Expected to change when fixed later
+    }
+
+    [TestMethod]
+    [DataRow("cs")]
+    [DataRow("vbnet")]
+    public void Telemetry_Multitargeting(string languageKey)
+    {
+        var guid = Guid.NewGuid();
+        var propertyKey = $"sonar.{languageKey}.scanner.telemetry";
+        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
+        var projectInfos = new[]
+        {
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings = [new(propertyKey, "1.json")],
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Debug",
+                TargetFramework = "net46",
+                AnalysisSettings = [new(propertyKey, "2.json")],
+                FullPath = fullPath,
+            },
+            new ProjectInfo
+            {
+                ProjectGuid = guid,
+                Configuration = "Release",
+                TargetFramework = "netstandard2.0",
+                AnalysisSettings =  [
+                    new(propertyKey, "3.json"),
+                    new(propertyKey, "4.json"),
+                ],
+                FullPath = fullPath,
+            },
+        };
+        var results = new ProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>()).TelemetryPaths.ToList();
+
+        results.Should().BeEquivalentTo([new FileInfo("2.json"), new("1.json"), new("3.json"), new("4.json")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }
 }

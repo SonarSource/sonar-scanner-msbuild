@@ -89,7 +89,7 @@ public class ProjectInfoReportBuilderTests
             ProjectType = type
         };
 
-        return new ProjectData(projectInfo)
+        return new ProjectData(new[] { projectInfo }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>())
         {
             Status = validity
         };
