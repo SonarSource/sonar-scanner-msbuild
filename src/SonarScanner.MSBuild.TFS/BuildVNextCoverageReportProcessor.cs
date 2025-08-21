@@ -39,9 +39,8 @@ public class BuildVNextCoverageReportProcessor
         this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
     }
 
-    // The logic in this method is flawed:
-    // https://sonarsource.atlassian.net/browse/SCAN4NET-786
-    // https://sonarsource.atlassian.net/browse/SCAN4NET-787
+    // ToDo: SCAN4NET-786 Test report discovery is flawed
+    // ToDo: SCAN4NET-787 Coverage fallback should be in AzDo Extension
     public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings, ILogger logger)
     {
         this.logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
