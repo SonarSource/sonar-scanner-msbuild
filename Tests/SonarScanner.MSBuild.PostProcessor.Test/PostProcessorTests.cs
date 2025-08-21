@@ -338,8 +338,9 @@ public class PostProcessorTests
         fileWrapper.Received().AppendAllText(
             Arg.Any<string>(),
             Arg.Is<string>(x => x.Contains("sonar.cs.vscoveragexml.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "XML", "Coverage", "Path"))));
-        new ScannerEngineInputReader(scannerEngineInput.ToString()).AssertProperty("sonar.cs.vstest.reportsPaths", Path.Combine("VS", "Test", "Path"));
-        new ScannerEngineInputReader(scannerEngineInput.ToString()).AssertProperty("sonar.cs.vscoveragexml.reportsPaths", Path.Combine("VS", "XML", "Coverage", "Path"));
+        var reader = new ScannerEngineInputReader(scannerEngineInput.ToString());
+        reader.AssertProperty("sonar.cs.vstest.reportsPaths", Path.Combine("VS", "Test", "Path"));
+        reader.AssertProperty("sonar.cs.vscoveragexml.reportsPaths", Path.Combine("VS", "XML", "Coverage", "Path"));
 #endif
     }
 

@@ -220,14 +220,14 @@ public class ScannerEngineInput
     internal void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> values) =>
         AppendKeyValue($"{keyPrefix}.{keySuffix}", ToMultiValueProperty(values));
 
-    internal void AppendKeyValue(string key, IEnumerable<string> values) =>
-        AppendKeyValue(key, ToMultiValueProperty(values));
-
     private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
         AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
 
     private void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
         AppendKeyValue(keyPrefix + "." + keySuffix, value);
+
+    private void AppendKeyValue(string key, IEnumerable<string> values) =>
+        AppendKeyValue(key, ToMultiValueProperty(values));
 
     private JProperty AppendKeyValue(string key, string value)
     {
