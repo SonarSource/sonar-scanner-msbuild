@@ -77,7 +77,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
 
         // We don't need to create the paths here - the ITargetsInstaller will do it.
         // Also, see bug #681: Environment.SpecialFolderOption.Create fails on some versions of NET Core on Linux
-        var userProfilePath = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+        var userProfilePath = operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
 
         if (string.IsNullOrEmpty(userProfilePath))
         {
@@ -108,7 +108,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
     /// </summary>
     private IEnumerable<string> GetLocalApplicationDataPaths()
     {
-        var localAppData = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+        var localAppData = operatingSystemProvider.FolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
 
         // Return empty enumerable when Local AppData is empty. In this case an exception should be thrown at the call site.
         if (string.IsNullOrWhiteSpace(localAppData))
@@ -125,7 +125,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
             // both to the old and to the new location, because we don't know what runtime the build will be run on, and that
             // may differ from the runtime of the scanner.
             // See https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/8.0/getfolderpath-unix#macos
-            var userProfile = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+            var userProfile = operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
             yield return Path.Combine(userProfile, ".local", "share");                // LocalApplicationData on .Net 7 and earlier
             yield return Path.Combine(userProfile, "Library", "Application Support"); // LocalApplicationData on .Net 8 and later
         }
@@ -144,14 +144,14 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
             // https://docs.microsoft.com/en-us/windows/desktop/WinProg64/file-system-redirector
             // We need to copy the ImportBefore.targets in both locations to ensure that both the 32bit and 64bit versions
             // of MSBuild will be able to pick them up.
-            var systemPath = operatingSystemProvider.GetFolderPath(
+            var systemPath = operatingSystemProvider.FolderPath(
                 Environment.SpecialFolder.System,
                 Environment.SpecialFolderOption.None); // %windir%\System32
             if (!string.IsNullOrWhiteSpace(systemPath) &&
                 localAppData.StartsWith(systemPath, StringComparison.OrdinalIgnoreCase))
             {
                 // We are under %windir%\System32 => we are running as System Account
-                var systemX86Path = operatingSystemProvider.GetFolderPath(
+                var systemX86Path = operatingSystemProvider.FolderPath(
                     Environment.SpecialFolder.SystemX86,
                     Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
                 var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
@@ -173,7 +173,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
 
     public IEnumerable<string> GetGlobalTargetsPaths()
     {
-        var programFiles = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
+        var programFiles = operatingSystemProvider.FolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
 
         if (string.IsNullOrWhiteSpace(programFiles))
         {

@@ -34,7 +34,7 @@ public class OperatingSystemProviderTests
     public void GetFolderPath_WithUserProfile()
     {
         var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
-        sut.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None)
+        sut.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None)
             .Should().Be(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None));
     }
 

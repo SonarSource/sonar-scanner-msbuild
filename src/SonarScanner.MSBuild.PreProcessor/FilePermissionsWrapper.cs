@@ -23,8 +23,15 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
-public class FilePermissionsWrapper(OperatingSystemProvider operatingSystemProvider) : IFilePermissionsWrapper
+public class FilePermissionsWrapper : IFilePermissionsWrapper
 {
+    private readonly OperatingSystemProvider operatingSystemProvider;
+
+    public FilePermissionsWrapper(OperatingSystemProvider operatingSystemProvider)
+    {
+        this.operatingSystemProvider = operatingSystemProvider;
+    }
+
     [ExcludeFromCodeCoverage] // We don't have *inx UT images at the time of writing. We tested the functionality manually.
     public void Set(string destinationPath, int mode)
     {

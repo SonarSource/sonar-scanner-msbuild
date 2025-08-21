@@ -44,11 +44,14 @@ public class OperatingSystemProvider
         operatingSystem = new Lazy<PlatformOS>(OperatingSystemCore);
     }
 
-    public virtual string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => Environment.GetFolderPath(folder, option);
+    public virtual string FolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) =>
+        Environment.GetFolderPath(folder, option);
 
-    public virtual bool DirectoryExists(string path) => Directory.Exists(path);
+    public virtual bool DirectoryExists(string path) =>
+        Directory.Exists(path);
 
-    public virtual PlatformOS OperatingSystem() => operatingSystem.Value;
+    public virtual PlatformOS OperatingSystem() =>
+        operatingSystem.Value;
 
     public bool IsAlpine() =>
         IsAlpineRelease("/etc/os-release")

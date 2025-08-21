@@ -25,28 +25,23 @@ namespace SonarScanner.MSBuild.Shim.Test;
 [TestClass]
 public class TFSProcessorWrapperTest
 {
-
     public TestContext TestContext { get; set; }
 
     [TestMethod]
     public void Execute_WhenConfigIsNull_Throws()
     {
-        // Arrange
         var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
-        Action act = () => testSubject.Execute(null, new string[] { }, String.Empty);
+        Action act = () => testSubject.Execute(null, [], string.Empty);
 
-        // Act & Assert
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
     }
 
     [TestMethod]
     public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
     {
-        // Arrange
         var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
-        Action act = () => testSubject.Execute(new AnalysisConfig(), null, String.Empty);
+        Action act = () => testSubject.Execute(new AnalysisConfig(), null, string.Empty);
 
-        // Act & Assert
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
     }
 
@@ -58,7 +53,7 @@ public class TFSProcessorWrapperTest
             .Configure()
             .ExecuteProcessorRunner(Arg.Any<AnalysisConfig>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
             .Returns(true);
-        var result = testSubject.Execute(new AnalysisConfig(), new List<string>(), "some/path");
+        var result = testSubject.Execute(new AnalysisConfig(), [], "some/path");
 
         result.Should().BeTrue();
     }
@@ -66,35 +61,28 @@ public class TFSProcessorWrapperTest
     [TestMethod]
     public void Ctor_WhenLoggerIsNull_Throws()
     {
-        // Arrange
-        Action act = () => new TfsProcessorWrapper(null, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
+        Action act = () => _ = new TfsProcessorWrapper(null, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
 
-        // Act & Assert
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
     public void Ctor_WhenOperatingSystemProviderIsNull_Throws()
     {
-        // Arrange
-        Action act = () => new TfsProcessorWrapper(new TestLogger(), null);
+        Action act = () => _ = new TfsProcessorWrapper(new TestLogger(), null);
 
-        // Act & Assert
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("operatingSystemProvider");
     }
 
     [TestMethod]
     public void TfsProcessor_StandardAdditionalArgumentsPassed()
     {
-        // Arrange
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult: true);
-        var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "c:\\work" };
+        var config = new AnalysisConfig { SonarScannerWorkingDirectory = "c:\\work" };
 
-        // Act
-        var success = ExecuteTFSProcessorIgnoringAsserts(config, Enumerable.Empty<string>(), logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
+        var success = ExecuteTFSProcessorIgnoringAsserts(config, [], logger, "c:\\exe.Path", "d:\\propertiesFile.Path", mockRunner);
 
-        // Assert
         VerifyProcessRunOutcome(mockRunner, logger, "c:\\work", success, true);
     }
 
@@ -102,75 +90,60 @@ public class TFSProcessorWrapperTest
     public void TfsProcessor_CmdLineArgsOrdering()
     {
         // Check that user arguments are passed through to the wrapper and that they appear first
-
-        // Arrange
         var logger = new TestLogger();
-        var args = new string[] { "ConvertCoverage", "d:\\propertiesFile.Path" };
+        var args = new[] { "ConvertCoverage", "d:\\propertiesFile.Path" };
 
         var mockRunner = new MockProcessRunner(executeResult: true);
 
-        // Act
         var success = ExecuteTFSProcessorIgnoringAsserts(
-            new AnalysisConfig() { SonarScannerWorkingDirectory = "D:\\dummyWorkingDirectory" },
+            new AnalysisConfig { SonarScannerWorkingDirectory = "D:\\dummyWorkingDirectory" },
             args,
             logger,
             "c:\\dummy.exe",
             "c:\\foo.properties",
             mockRunner);
 
-        // Assert
         VerifyProcessRunOutcome(mockRunner, logger, "D:\\dummyWorkingDirectory", success, true);
 
         CheckArgExists("ConvertCoverage", mockRunner);
         CheckArgExists("d:\\propertiesFile.Path", mockRunner);
     }
 
-
     [TestMethod]
-    public void WrapperError_Success_NoStdErr()
-    {
+    public void WrapperError_Success_NoStdErr() =>
         TestWrapperErrorHandling(executeResult: true, addMessageToStdErr: false, expectedOutcome: true);
-    }
 
     [TestMethod]
-    public void WrapperError_Success_StdErr()
-    {
+    public void WrapperError_Success_StdErr() =>
         TestWrapperErrorHandling(executeResult: true, addMessageToStdErr: true, expectedOutcome: true);
-    }
 
     [TestMethod]
-    public void WrapperError_Fail_NoStdErr()
-    {
+    public void WrapperError_Fail_NoStdErr() =>
         TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: false, expectedOutcome: false);
-    }
 
     [TestMethod]
-    public void WrapperError_Fail_StdErr()
-    {
+    public void WrapperError_Fail_StdErr() =>
         TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: true, expectedOutcome: false);
-    }
 
-    private void TestWrapperErrorHandling(bool executeResult, bool addMessageToStdErr, bool expectedOutcome)
+    private static void TestWrapperErrorHandling(bool executeResult, bool addMessageToStdErr, bool expectedOutcome)
     {
-        // Arrange
         var logger = new TestLogger();
         var mockRunner = new MockProcessRunner(executeResult);
 
-        var config = new AnalysisConfig() { SonarScannerWorkingDirectory = "C:\\working" };
+        var config = new AnalysisConfig { SonarScannerWorkingDirectory = "C:\\working" };
 
         if (addMessageToStdErr)
         {
             logger.LogError("Dummy error");
         }
 
-        // Act
-        var success = ExecuteTFSProcessorIgnoringAsserts(config, Enumerable.Empty<string>(), logger, "c:\\bar.exe", "c:\\props.xml", mockRunner);
+        var success = ExecuteTFSProcessorIgnoringAsserts(config, [], logger, "c:\\bar.exe", "c:\\props.xml", mockRunner);
 
-        // Assert
         VerifyProcessRunOutcome(mockRunner, logger, "C:\\working", success, expectedOutcome);
     }
 
-    private static bool ExecuteTFSProcessorIgnoringAsserts(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
+    private static bool ExecuteTFSProcessorIgnoringAsserts(
+        AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
     {
         using (new AssertIgnoreScope())
         {
@@ -200,7 +173,7 @@ public class TFSProcessorWrapperTest
 
     /// <summary>
     /// Checks that the argument exists, and returns the start position of the argument in the list of
-    /// concatenated arguments so we can check that the arguments are passed in the correct order
+    /// concatenated arguments so we can check that the arguments are passed in the correct order.
     /// </summary>
     private int CheckArgExists(string expectedArg, MockProcessRunner mockRunner)
     {

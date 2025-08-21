@@ -330,7 +330,7 @@ public class ProcessedArgs
                 }
             }
         }
-        var defaultPath = Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
+        var defaultPath = Path.Combine(operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
         if (!directoryWrapper.Exists(defaultPath))
         {
             try
