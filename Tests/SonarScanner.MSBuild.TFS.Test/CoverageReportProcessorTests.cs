@@ -19,7 +19,7 @@
  */
 
 using SonarScanner.MSBuild.Common.TFS;
-using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
+using SonarScanner.MSBuild.TFS.Test.Infrastructure;
 
 namespace SonarScanner.MSBuild.TFS.Test;
 

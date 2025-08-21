@@ -18,39 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.TFS;
 
-namespace SonarScanner.MSBuild.PostProcessor.Tests;
+namespace SonarScanner.MSBuild.PostProcessor.Test;
 
-internal class MockSummaryReportBuilder : ISummaryReportBuilder
+internal class MockSummaryReportBuilder : SummaryReportBuilder
 {
     private bool methodCalled;
 
-    #region ISummaryReportBuilder interface
+    public MockSummaryReportBuilder() : base(Substitute.For<ILegacyTeamBuildFactory>(), Substitute.For<ILogger>()) { }
 
-    public void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger)
+    public override void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath)
     {
         methodCalled.Should().BeFalse("Generate reports has already been called");
-
         methodCalled = true;
     }
 
-    #endregion ISummaryReportBuilder interface
-
-    #region Checks
-
-    public void AssertExecuted()
-    {
+    public void AssertExecuted() =>
         methodCalled.Should().BeTrue("Expecting ISummaryReportBuilder.GenerateReports to have been called");
-    }
 
-    public void AssertNotExecuted()
-    {
+    public void AssertNotExecuted() =>
         methodCalled.Should().BeFalse("Not expecting ISummaryReportBuilder.GenerateReports to have been called");
-    }
-
-    #endregion Checks
 }

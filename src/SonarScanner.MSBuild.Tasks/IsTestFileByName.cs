@@ -70,7 +70,7 @@ public sealed class IsTestFileByName : Task
 
         if (TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log)) is AnalysisConfig config)
         {
-            if (config.GetAnalysisSettings(true, logger).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
+            if (config.AnalysisSettings(true, logger).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
             {
                 Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
                 try

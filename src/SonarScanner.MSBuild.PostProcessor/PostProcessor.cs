@@ -75,7 +75,7 @@ public class PostProcessor : IPostProcessor
             return false;
         }
 
-        logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.GetAnalysisSettings(true, logger), logger);
+        logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.AnalysisSettings(true, logger), logger);
         logger.ResumeOutput();
         LogStartupSettings(config, settings);
 

@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Globalization;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.TFS.Tests;
+namespace SonarScanner.MSBuild.TFS.Test;
 
 [TestClass]
 [DoNotParallelize]

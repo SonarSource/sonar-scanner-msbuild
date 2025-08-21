@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
-
-[assembly: AssemblyTitle("SonarScanner.MSBuild.TFS.Tests")]
-[assembly: AssemblyProduct("SonarScanner.MSBuild.TFS.Tests")]
+[assembly: AssemblyTitle("SonarScanner.MSBuild.TFS.Test")]
+[assembly: AssemblyProduct("SonarScanner.MSBuild.TFS.Test")]
 [assembly: AssemblyDescription("")]

@@ -18,21 +18,64 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
-using SonarScanner.MSBuild.Shim;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
+using System.Globalization;
 using SonarScanner.MSBuild.Common.TFS;
-using System.Linq;
+using SonarScanner.MSBuild.Shim;
 
 namespace SonarScanner.MSBuild.TFS;
 
 /// <summary>
-/// Generates summary reports for various build systems
+/// Generates summary reports for various build systems.
 /// </summary>
-public class SummaryReportBuilder : ISummaryReportBuilder
+public class SummaryReportBuilder
 {
+    private const string DashboardUrlFormat = "{0}/dashboard/index/{1}";
+    private const string DashboardUrlFormatWithBranch = "{0}/dashboard/index/{1}:{2}";
+
+    private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
+    private readonly ILogger logger;
+
+    public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, ILogger logger)
+    {
+        this.legacyTeamBuildFactory = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    /// <summary>
+    /// Generates summary reports for LegacyTeamBuild and for Build VNext.
+    /// </summary>
+    public virtual void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath)
+    {
+        _ = settings ?? throw new ArgumentNullException(nameof(settings));
+        _ = config ?? throw new ArgumentNullException(nameof(config));
+        var engineInput = new ScannerEngineInput(config);
+        // ToDo: SCAN4NET-778 Untangle this mess. TryWriteProperties only needs project list, result doesn't need to be here at all
+        new ScannerEngineInputGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), engineInput, out var allProjects);
+        var result = new ProjectInfoAnalysisResult(allProjects, engineInput, fullPropertiesFilePath) { RanToCompletion = ranToCompletion };
+        if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
+        {
+            UpdateLegacyTeamBuildSummary(config, new SummaryReportData(config, result, logger));
+        }
+    }
+
+    private void UpdateLegacyTeamBuildSummary(AnalysisConfig config, SummaryReportData summary)
+    {
+        logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
+        using var summaryLogger = legacyTeamBuildFactory.BuildLegacyBuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri());
+        summaryLogger.WriteMessage(Resources.WARN_XamlBuildDeprecated);
+        // Add a link to SonarQube dashboard if analysis succeeded
+        if (summary.Succeeded)
+        {
+            summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, summary.ProjectDescription, summary.DashboardUrl);
+        }
+        else
+        {
+            summaryLogger.WriteMessage(Resources.Report_AnalysisFailed, summary.ProjectDescription);
+        }
+        summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, summary.ProductProjects, summary.TestProjects);
+        summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, summary.InvalidProjects, summary.SkippedProjects, summary.ExcludedProjects);
+    }
+
     public class SummaryReportData
     {
         public int ProductProjects { get; set; }
@@ -43,143 +86,36 @@ public class SummaryReportBuilder : ISummaryReportBuilder
         public bool Succeeded { get; set; }
         public string DashboardUrl { get; set; } // should be Uri https://github.com/SonarSource/sonar-scanner-msbuild/issues/1252
         public string ProjectDescription { get; set; }
-    }
 
-    public /* for test purposes */ const string DashboardUrlFormat = "{0}/dashboard/index/{1}";
-    public /* for test purposes */ const string DashboardUrlFormatWithBranch = "{0}/dashboard/index/{1}:{2}";
-
-    private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
-    private readonly ILogger logger;
-
-    private AnalysisConfig config;
-    private ProjectInfoAnalysisResult result;
-    private IBuildSettings settings;
-
-
-    public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, ILogger logger)
-    {
-        this.legacyTeamBuildFactory = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
-    #region IReportBuilder interface methods
-
-    /// <summary>
-    /// Generates summary reports for LegacyTeamBuild and for Build Vnext
-    /// </summary>
-    public void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath, ILogger logger)
-    {
-        this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
-        this.config = config ?? throw new ArgumentNullException(nameof(config));
-        var engineInput = new ScannerEngineInput(config);
-        // ToDo: SCAN4NET-778 Untangle this mess. TryWriteProperties only needs project list, result doesn't need to be here at all
-        new ScannerEngineInputGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), engineInput, out var allProjects);
-        result = new ProjectInfoAnalysisResult(allProjects, engineInput, fullPropertiesFilePath) { RanToCompletion = ranToCompletion };
-        GenerateReports(logger);
-    }
-
-    #endregion IReportBuilder interface methods
-
-    private void GenerateReports(ILogger logger)
-    {
-        var summaryData = CreateSummaryData(config, result, logger);
-
-        if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
+        public SummaryReportData(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {
-            UpdateLegacyTeamBuildSummary(summaryData);
-        }
-    }
-
-    public /* for test purposes */ static SummaryReportData CreateSummaryData(
-        AnalysisConfig config,
-        ProjectInfoAnalysisResult result,
-        ILogger logger)
-    {
-        if (config == null)
-        {
-            throw new ArgumentNullException(nameof(config));
-        }
-        if (result == null)
-        {
-            throw new ArgumentNullException(nameof(result));
+            _ = config ?? throw new ArgumentNullException(nameof(config));
+            _ = result ?? throw new ArgumentNullException(nameof(result));
+            var validProjects = result.ProjectsByStatus(ProjectInfoValidity.Valid);
+            SkippedProjects = result.Projects.Count(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze);
+            InvalidProjects = result.Projects.Count(x => x.Status == ProjectInfoValidity.InvalidGuid || x.Status == ProjectInfoValidity.DuplicateGuid);
+            ExcludedProjects = result.Projects.Count(x => x.Status == ProjectInfoValidity.ExcludeFlagSet);
+            ProductProjects = validProjects.Count(x => x.ProjectType == ProjectType.Product);
+            TestProjects = validProjects.Count(x => x.ProjectType == ProjectType.Test);
+            Succeeded = result.RanToCompletion;
+            DashboardUrl = SonarDashboadUrl(config, logger);
+            ProjectDescription = string.Format(CultureInfo.CurrentCulture, Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
         }
 
-        var validProjects = result.ProjectsByStatus(ProjectInfoValidity.Valid);
-
-        var summaryData = new SummaryReportData
+        private static string SonarDashboadUrl(AnalysisConfig config, ILogger logger)
         {
-            SkippedProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.NoFilesToAnalyze),
-            InvalidProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.InvalidGuid || p.Status == ProjectInfoValidity.DuplicateGuid),
-            ExcludedProjects = result.Projects.Count(p => p.Status == ProjectInfoValidity.ExcludeFlagSet),
-            ProductProjects = validProjects.Count(p => p.ProjectType == ProjectType.Product),
-            TestProjects = validProjects.Count(p => p.ProjectType == ProjectType.Test),
-            Succeeded = result.RanToCompletion,
-            DashboardUrl = GetSonarDashboadUrl(config, logger),
-            ProjectDescription = string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                Resources.Report_SonarQubeProjectDescription, config.SonarProjectName,
-                config.SonarProjectKey, config.SonarProjectVersion)
-        };
-        return summaryData;
-    }
-
-    private static string GetSonarDashboadUrl(AnalysisConfig config, ILogger logger)
-    {
-        var hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
-        var branch = FindBranch(config, logger);
-
-        string sonarUrl;
-
-        if (string.IsNullOrWhiteSpace(branch))
-        {
-            sonarUrl = string.Format(
-                System.Globalization.CultureInfo.InvariantCulture,
-                DashboardUrlFormat,
-                hostUrl,
-                config.SonarProjectKey);
-        }
-        else
-        {
-            sonarUrl = string.Format(
-               System.Globalization.CultureInfo.InvariantCulture,
-               DashboardUrlFormatWithBranch,
-               hostUrl,
-               config.SonarProjectKey,
-               branch);
+            var hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
+            var branch = FindBranch(config, logger);
+            return string.IsNullOrWhiteSpace(branch)
+                ? string.Format(CultureInfo.InvariantCulture, DashboardUrlFormat, hostUrl, config.SonarProjectKey)
+                : string.Format(CultureInfo.InvariantCulture, DashboardUrlFormatWithBranch, hostUrl, config.SonarProjectKey, branch);
         }
 
-        return sonarUrl;
-    }
-
-    private static string FindBranch(AnalysisConfig config, ILogger logger)
-    {
-        var localSettings = config.GetAnalysisSettings(includeServerSettings: false, logger);
-        Debug.Assert(localSettings != null);
-
-        localSettings.TryGetValue(SonarProperties.ProjectBranch, out string branch);
-
-        return branch;
-    }
-
-    private void UpdateLegacyTeamBuildSummary(SummaryReportData summaryData)
-    {
-        logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
-
-        using (var summaryLogger = legacyTeamBuildFactory.BuildLegacyBuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri()))
+        private static string FindBranch(AnalysisConfig config, ILogger logger)
         {
-            summaryLogger.WriteMessage(Resources.WARN_XamlBuildDeprecated);
-
-            // Add a link to SonarQube dashboard if analysis succeeded
-            if (summaryData.Succeeded)
-            {
-                summaryLogger.WriteMessage(Resources.Report_AnalysisSucceeded, summaryData.ProjectDescription, summaryData.DashboardUrl);
-            }
-            else
-            {
-                summaryLogger.WriteMessage(Resources.Report_AnalysisFailed, summaryData.ProjectDescription);
-            }
-
-            summaryLogger.WriteMessage(Resources.Report_ProductAndTestMessage, summaryData.ProductProjects, summaryData.TestProjects);
-            summaryLogger.WriteMessage(Resources.Report_InvalidSkippedAndExcludedMessage, summaryData.InvalidProjects, summaryData.SkippedProjects, summaryData.ExcludedProjects);
+            var localSettings = config.AnalysisSettings(includeServerSettings: false, logger);
+            localSettings.TryGetValue(SonarProperties.ProjectBranch, out string branch);
+            return branch;
         }
     }
 }

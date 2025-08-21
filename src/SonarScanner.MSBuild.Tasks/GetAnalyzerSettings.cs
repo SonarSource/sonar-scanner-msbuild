@@ -155,7 +155,7 @@ public class GetAnalyzerSettings : Task
         return !Log.HasLoggedErrors;
 
         bool ExcludeTestProjects() =>
-            config.GetAnalysisSettings(false, logger).TryGetValue(ExcludeTestProjectsSettingId, out var excludeTestProjects)
+            config.AnalysisSettings(false, logger).TryGetValue(ExcludeTestProjectsSettingId, out var excludeTestProjects)
             && excludeTestProjects.Equals("true", StringComparison.OrdinalIgnoreCase);
     }
 

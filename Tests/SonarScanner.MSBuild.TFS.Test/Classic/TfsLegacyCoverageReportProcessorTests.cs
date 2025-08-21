@@ -19,9 +19,9 @@
  */
 
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
-using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
+using SonarScanner.MSBuild.TFS.Test.Infrastructure;
 
-namespace SonarScanner.MSBuild.TFS.Tests;
+namespace SonarScanner.MSBuild.TFS.Test;
 
 /*
  * Scenarios:

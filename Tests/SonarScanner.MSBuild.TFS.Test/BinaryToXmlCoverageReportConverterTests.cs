@@ -22,7 +22,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 
-namespace SonarScanner.MSBuild.TFS.Tests;
+namespace SonarScanner.MSBuild.TFS.Test;
 
 [TestClass]
 [DoNotParallelize]
