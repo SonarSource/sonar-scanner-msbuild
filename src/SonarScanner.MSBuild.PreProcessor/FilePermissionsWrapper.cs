@@ -19,21 +19,13 @@
  */
 
 using System.Diagnostics.CodeAnalysis;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
-public class FilePermissionsWrapper : IFilePermissionsWrapper
+public class FilePermissionsWrapper(OperatingSystemProvider operatingSystemProvider)
 {
-    private readonly OperatingSystemProvider operatingSystemProvider;
-
-    public FilePermissionsWrapper(OperatingSystemProvider operatingSystemProvider)
-    {
-        this.operatingSystemProvider = operatingSystemProvider;
-    }
-
     [ExcludeFromCodeCoverage] // We don't have *inx UT images at the time of writing. We tested the functionality manually.
-    public void Set(string destinationPath, int mode)
+    public virtual void Set(string destinationPath, int mode)
     {
         if (operatingSystemProvider.IsUnix())
         {

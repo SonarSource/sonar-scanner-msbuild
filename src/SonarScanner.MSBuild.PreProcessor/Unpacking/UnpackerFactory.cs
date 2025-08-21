@@ -26,7 +26,7 @@ public class UnpackerFactory
 {
     public static UnpackerFactory Instance { get; } = new UnpackerFactory();
 
-    public virtual IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper, string archivePath) =>
+    public virtual IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, FilePermissionsWrapper filePermissionsWrapper, string archivePath) =>
         archivePath switch
         {
             _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),

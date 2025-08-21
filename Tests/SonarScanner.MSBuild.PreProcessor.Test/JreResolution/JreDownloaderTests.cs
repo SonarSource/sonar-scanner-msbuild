@@ -37,7 +37,7 @@ public class JreDownloaderTests
     private readonly IFileWrapper fileWrapper;
     private readonly IChecksum checksum;
     private readonly IUnpacker unpacker;
-    private readonly IFilePermissionsWrapper filePermissionsWrapper;
+    private readonly FilePermissionsWrapper filePermissionsWrapper;
     private readonly MemoryStream failingStream;
 
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.createdirectory
@@ -64,7 +64,7 @@ public class JreDownloaderTests
         fileWrapper = Substitute.For<IFileWrapper>();
         checksum = Substitute.For<IChecksum>();
         unpacker = Substitute.For<IUnpacker>();
-        filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
+        filePermissionsWrapper = Substitute.For<FilePermissionsWrapper>(Substitute.For<OperatingSystemProvider>(fileWrapper, testLogger));
         failingStream = Substitute.For<MemoryStream>();
         failingStream.CopyToAsync(null, default, default).ThrowsAsyncForAnyArgs(new InvalidOperationException("Download failure simulation."));
     }
