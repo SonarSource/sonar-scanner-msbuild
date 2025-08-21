@@ -128,25 +128,25 @@ public class BuildSettings : IBuildSettings
             BuildEnvironment.LegacyTeamBuild => new BuildSettings
             {
                 BuildEnvironment = env,
-                BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy),
-                TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_Legacy),
-                BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_Legacy),
-                SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectory_Legacy),
+                BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy),
+                TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriLegacy),
+                BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryLegacy),
+                SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectoryLegacy),
             },
             BuildEnvironment.TeamBuild => new BuildSettings
             {
                 BuildEnvironment = env,
-                BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015),
-                TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUri_TFS2015),
-                BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectory_TFS2015),
-                SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectory_TFS2015),
-                CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestTool_CustomInstall)
+                BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015),
+                TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
+                BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryTfs2015),
+                SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
+                CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
             },
             _ => new BuildSettings
             {
                 BuildEnvironment = env, CoverageToolUserSuppliedPath
                     // there's no reliable of way of finding the SourcesDirectory, except after the build
-                    = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestTool_CustomInstall)
+                    = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
             }
         };
 
@@ -192,10 +192,10 @@ public class BuildSettings : IBuildSettings
         if (IsInTeamBuild)
         {
             // Work out which flavor of TeamBuild
-            var buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_Legacy);
+            var buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy);
             if (string.IsNullOrEmpty(buildUri))
             {
-                buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUri_TFS2015);
+                buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015);
                 if (!string.IsNullOrEmpty(buildUri))
                 {
                     env = BuildEnvironment.TeamBuild;
@@ -219,39 +219,4 @@ public class BuildSettings : IBuildSettings
         && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result)
             ? result
             : defaultValue;
-
-    public static class EnvironmentVariables
-    {
-        /// <summary>
-        /// Name of the environment variable that specifies whether the processing
-        /// of code coverage reports in legacy TeamBuild cases should be skipped
-        /// </summary>
-        public const string SkipLegacyCodeCoverage = "SQ_SkipLegacyCodeCoverage";
-
-        /// <summary>
-        /// Name of the environment variable that specifies how long to spend
-        /// attempting to retrieve code coverage reports in legacy TeamBuild cases
-        /// </summary>
-        public const string LegacyCodeCoverageTimeoutInMs = "SQ_LegacyCodeCoverageInMs";
-
-        public const string IsInTeamFoundationBuild = "TF_BUILD"; // Common to legacy and non-legacy TeamBuilds
-
-        // Legacy TeamBuild environment variables (XAML Builds)
-        public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
-
-        public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
-        public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
-        public const string SourcesDirectory_Legacy = "TF_BUILD_SOURCESDIRECTORY";
-
-        // TFS 2015 (TFS Build) Environment variables
-        public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
-
-        public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
-        public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
-        public const string SourcesDirectory_TFS2015 = "BUILD_SOURCESDIRECTORY";
-
-        // This env variable can be set by the VSTest platform installer tool available on AzDo : https://github.com/microsoft/azure-pipelines-tasks/blob/1538fd6fdb8efd93539b7fe65b00df900d963c1a/Tasks/VsTestPlatformToolInstallerV1/helpers.ts#L8
-        // This will be also used if the user want to set a custom location.
-        public const string VsTestTool_CustomInstall = "VsTestToolsInstallerInstalledToolLocation";
-    }
 }

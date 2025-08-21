@@ -27,7 +27,6 @@ namespace SonarScanner.MSBuild.Common;
 /// </summary>
 public class EnvScannerPropertiesProvider : IAnalysisPropertyProvider
 {
-    public static readonly string ENV_VAR_KEY = "SONARQUBE_SCANNER_PARAMS";
     private readonly IEnumerable<Property> properties;
 
     public PropertyProviderKind ProviderType => PropertyProviderKind.SONARQUBE_SCANNER_PARAMS;
@@ -47,12 +46,12 @@ public class EnvScannerPropertiesProvider : IAnalysisPropertyProvider
         provider = null;
         try
         {
-            provider = new EnvScannerPropertiesProvider(Environment.GetEnvironmentVariable(ENV_VAR_KEY));
+            provider = new EnvScannerPropertiesProvider(Environment.GetEnvironmentVariable(EnvironmentVariables.SonarQubeScannerParams));
             return true;
         }
         catch (Exception ex) // this cannot be JsonException because .NET Core 2.1 references Newtonsoft.Json 9
         {
-            logger.LogWarning(Resources.ERROR_FailedParsePropertiesEnvVar, ENV_VAR_KEY, ex.Message);
+            logger.LogWarning(Resources.ERROR_FailedParsePropertiesEnvVar, EnvironmentVariables.SonarQubeScannerParams, ex.Message);
         }
         return false;
     }

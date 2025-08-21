@@ -18,31 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild;
 
 public class BootstrapperSettings : IBootstrapperSettings
 {
     #region Working directory
 
-    // Variables used when calculating the working directory
-
-    // Note: these constant values must be kept in sync with the targets files.
-    public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
-
-    public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
-
     /// <summary>
     /// The list of environment variables that should be checked in order to find the
     /// root folder under which all analysis output will be written
     /// </summary>
     private static readonly string[] DirectoryEnvVarNames = {
-            BuildDirectory_Legacy,      // Legacy TeamBuild directory (TFS2013 and earlier)
-            BuildDirectory_TFS2015      // TeamBuild 2015 and later build directory
+            EnvironmentVariables.BuildDirectoryLegacy,
+            EnvironmentVariables.BuildDirectoryTfs2015
            };
 
     public const string RelativePathToTempDir = @".sonarqube";

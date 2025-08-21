@@ -480,7 +480,7 @@ public class AnalysisConfigExtensionsTests
         // Make sure the test isn't affected by the hosting environment
         // The SonarCloud AzDO extension sets additional properties in an environment variable that
         // would affect the test
-        using var scope = new EnvironmentVariableScope().SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarQubeScannerParams, null);
         return config.GetAnalysisSettings(includeServerSettings, testLogger);
     }
 }

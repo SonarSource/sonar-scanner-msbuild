@@ -27,14 +27,13 @@ namespace SonarScanner.MSBuild.PreProcessor;
 internal static class AutomaticBaseBranchDetection
 {
     private static readonly List<Tuple<string, string>> Candidates = new()
-    {
-        Tuple.Create("Jenkins", "ghprbTargetBranch"),
-        Tuple.Create("Jenkins", "gitlabTargetBranch"),
-        Tuple.Create("Jenkins", "BITBUCKET_TARGET_BRANCH"),
-        Tuple.Create("GitHub Actions", "GITHUB_BASE_REF"),
-        Tuple.Create("GitLab", "CI_MERGE_REQUEST_TARGET_BRANCH_NAME"),
-        Tuple.Create("BitBucket Pipelines", "BITBUCKET_PR_DESTINATION_BRANCH"),
-    };
+        new("Jenkins", EnvironmentVariables.BaseBranch.JenkingsGitHubPullRequestBuilder),
+        new("Jenkins", EnvironmentVariables.BaseBranch.JenkingsGitLab),
+        new("Jenkins", EnvironmentVariables.BaseBranch.JenkingsBitBucket),
+        new("GitHub Actions", EnvironmentVariables.BaseBranch.GitHub),
+        new("GitLab", EnvironmentVariables.BaseBranch.GitLab),
+        new("BitBucket Pipelines", EnvironmentVariables.BaseBranch.BitBucket),
+    ];
 
     public static CIProperty GetValue() =>
         Candidates.Select(x => new CIProperty(x.Item1, Environment.GetEnvironmentVariable(x.Item2))).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Value));

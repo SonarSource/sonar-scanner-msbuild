@@ -39,7 +39,7 @@ public class BuildSettingsTests
         // 1. Env var not set
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
             result = BuildSettings.IsInTeamBuild;
             result.Should().BeFalse();
         }
@@ -47,7 +47,7 @@ public class BuildSettingsTests
         // 2. Env var set to a non-boolean -> false
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
             result = BuildSettings.IsInTeamBuild;
             result.Should().BeFalse();
         }
@@ -55,7 +55,7 @@ public class BuildSettingsTests
         // 3. Env var set to false -> false
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false");
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false");
             result = BuildSettings.IsInTeamBuild;
             result.Should().BeFalse();
         }
@@ -63,7 +63,7 @@ public class BuildSettingsTests
         // 4. Env var set to true -> true
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
             result = BuildSettings.IsInTeamBuild;
             result.Should().BeTrue();
         }
@@ -78,7 +78,7 @@ public class BuildSettingsTests
         // 1. Env var not set
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, null);
+            scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, null);
             result = BuildSettings.SkipLegacyCodeCoverageProcessing;
             result.Should().BeFalse();
         }
@@ -86,7 +86,7 @@ public class BuildSettingsTests
         // 2. Env var set to a non-boolean -> false
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "wibble");
+            scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "wibble");
             result = BuildSettings.SkipLegacyCodeCoverageProcessing;
             result.Should().BeFalse();
         }
@@ -94,7 +94,7 @@ public class BuildSettingsTests
         // 3. Env var set to false -> false
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "false");
+            scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "false");
             result = BuildSettings.SkipLegacyCodeCoverageProcessing;
             result.Should().BeFalse();
         }
@@ -102,7 +102,7 @@ public class BuildSettingsTests
         // 4. Env var set to true -> true
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.SkipLegacyCodeCoverage, "TRUE");
+            scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "TRUE");
             result = BuildSettings.SkipLegacyCodeCoverageProcessing;
             result.Should().BeTrue();
         }
@@ -138,7 +138,7 @@ public class BuildSettingsTests
         // 1. No environment vars set
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
 
             settings = BuildSettings.GetSettingsFromEnvironment();
 
@@ -156,11 +156,11 @@ public class BuildSettingsTests
         // 2. Some Team build settings provided, but not marked as in team build
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, null);
-            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_Legacy, "build uri");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "collection uri");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "should be ignored");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "should be ignored");
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
+            scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "build uri");
+            scope.SetVariable(EnvironmentVariables.TfsCollectionUriLegacy, "collection uri");
+            scope.SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "should be ignored");
+            scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "should be ignored");
 
             settings = BuildSettings.GetSettingsFromEnvironment();
 
@@ -183,11 +183,11 @@ public class BuildSettingsTests
 
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_Legacy, "http://legacybuilduri");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, "http://legacycollectionUri");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_Legacy, "legacy build dir");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_Legacy, @"c:\build\1234");
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
+            scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "http://legacybuilduri");
+            scope.SetVariable(EnvironmentVariables.TfsCollectionUriLegacy, "http://legacycollectionUri");
+            scope.SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "legacy build dir");
+            scope.SetVariable(EnvironmentVariables.SourcesDirectoryLegacy, @"c:\build\1234");
 
             // Act
             settings = BuildSettings.GetSettingsFromEnvironment();
@@ -215,11 +215,11 @@ public class BuildSettingsTests
 
         using (var scope = new EnvironmentVariableScope())
         {
-            scope.SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, "http://builduri");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, "http://collectionUri");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.BuildDirectory_TFS2015, "non-legacy team build");
-            scope.SetVariable(BuildSettings.EnvironmentVariables.SourcesDirectory_TFS2015, @"c:\agent\_work\1");
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
+            scope.SetVariable(EnvironmentVariables.BuildUriTfs2015, "http://builduri");
+            scope.SetVariable(EnvironmentVariables.TfsCollectionUriTfs2015, "http://collectionUri");
+            scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "non-legacy team build");
+            scope.SetVariable(EnvironmentVariables.SourcesDirectoryTfs2015, @"c:\agent\_work\1");
 
             // Act
             settings = BuildSettings.GetSettingsFromEnvironment();
@@ -277,7 +277,7 @@ public class BuildSettingsTests
     private static void CheckExpectedTimeoutReturned(string envValue, int expected)
     {
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(BuildSettings.EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, envValue);
+        scope.SetVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, envValue);
         var result = BuildSettings.LegacyCodeCoverageProcessingTimeout;
         result.Should().Be(expected, "Unexpected timeout value returned. Environment value: {0}", envValue);
     }

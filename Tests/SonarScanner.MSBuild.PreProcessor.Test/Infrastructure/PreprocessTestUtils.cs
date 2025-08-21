@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 internal static class PreprocessTestUtils
@@ -31,10 +28,10 @@ internal static class PreprocessTestUtils
     /// </summary>
     public static EnvironmentVariableScope CreateValidNonTeamBuildScope() =>
         new EnvironmentVariableScope()
-            .SetVariable(BuildSettings.EnvironmentVariables.IsInTeamFoundationBuild, "false")
-            .SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_Legacy, null)
-            .SetVariable(BuildSettings.EnvironmentVariables.TfsCollectionUri_TFS2015, null)
-            .SetVariable(BuildSettings.EnvironmentVariables.BuildUri_Legacy, null)
-            .SetVariable(BuildSettings.EnvironmentVariables.BuildUri_TFS2015, null)
-            .SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null); // The Sonar AzDO tasks set and use this environment variable
+            .SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false")
+            .SetVariable(EnvironmentVariables.TfsCollectionUriLegacy, null)
+            .SetVariable(EnvironmentVariables.TfsCollectionUriTfs2015, null)
+            .SetVariable(EnvironmentVariables.BuildUriLegacy, null)
+            .SetVariable(EnvironmentVariables.BuildUriTfs2015, null)
+            .SetVariable(EnvironmentVariables.SonarQubeScannerParams, null); // The Sonar AzDO tasks set and use this environment variable
 }

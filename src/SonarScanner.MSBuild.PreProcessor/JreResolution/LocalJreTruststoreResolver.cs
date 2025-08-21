@@ -106,5 +106,5 @@ public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrap
     }
 
     private string ResolveBourneShellExecutable() =>
-        Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator).Select(x => Path.Combine(x, "sh")).FirstOrDefault(fileWrapper.Exists);
+        Environment.GetEnvironmentVariable(EnvironmentVariables.System.Path)?.Split(Path.PathSeparator).Select(x => Path.Combine(x, "sh")).FirstOrDefault(fileWrapper.Exists);
 }

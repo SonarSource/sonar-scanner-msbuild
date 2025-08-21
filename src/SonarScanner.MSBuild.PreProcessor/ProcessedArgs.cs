@@ -389,7 +389,7 @@ public class ProcessedArgs
 
     private bool DefaultTrustStoreProperties(IFileWrapper fileWrapper, out string truststorePath, ref string truststorePassword, ILogger logger)
     {
-        var sonarUserHome = Environment.GetEnvironmentVariable("SONAR_USER_HOME") ?? UserHome;
+        var sonarUserHome = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarUserHome) ?? UserHome;
 
         if (sonarUserHome is null)
         {
