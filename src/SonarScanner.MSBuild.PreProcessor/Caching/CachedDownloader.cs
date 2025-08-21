@@ -73,39 +73,19 @@ public class CachedDownloader
         }
     }
 
-    public async Task<CacheResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
+    public async Task<FileResolution> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
     {
         if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
         {
             var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
             return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } cacheFailure
                 ? cacheFailure
-                : new CacheHit(downloadTarget);
+                : new ResolutionSuccess(downloadTarget);
         }
         else
         {
-            return new CacheFailure(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
+            return new ResolutionError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
         }
-    }
-
-    protected async Task<ResolutionError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
-    {
-        if (fileWrapper.Exists(downloadTarget))
-        {
-            return ValidateFile(downloadTarget, descriptor);
-        }
-        logger.LogDebug(Resources.MSG_StartingFileDownload);
-        if (await DownloadAndValidateFile(downloadPath, downloadTarget, descriptor, download) is { } exception)
-        {
-            logger.LogDebug(Resources.ERR_DownloadFailed, exception.Message);
-            if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
-            {
-                logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, downloadTarget);
-                return ValidateFile(downloadTarget, descriptor);
-            }
-            return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
-        }
-        return null;
     }
 
     public string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
@@ -142,6 +122,26 @@ public class CachedDownloader
 
     public string FileRootPath(FileDescriptor descriptor) =>
         Path.Combine(CacheRoot, descriptor.Sha256);
+
+    private async Task<ResolutionError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    {
+        if (fileWrapper.Exists(downloadTarget))
+        {
+            return ValidateFile(downloadTarget, descriptor);
+        }
+        logger.LogDebug(Resources.MSG_StartingFileDownload);
+        if (await DownloadAndValidateFile(downloadPath, downloadTarget, descriptor, download) is { } exception)
+        {
+            logger.LogDebug(Resources.ERR_DownloadFailed, exception.Message);
+            if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
+            {
+                logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, downloadTarget);
+                return ValidateFile(downloadTarget, descriptor);
+            }
+            return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
+        }
+        return null;
+    }
 
     private async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
