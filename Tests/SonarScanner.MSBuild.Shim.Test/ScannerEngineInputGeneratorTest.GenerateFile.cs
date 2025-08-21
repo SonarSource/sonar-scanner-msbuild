@@ -97,8 +97,6 @@ public partial class ScannerEngineInputGeneratorTest
         var testRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "projects");
         var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Path.Combine("projects", projectName1));
         // Casing should not be ignored on non-windows OS
-        var runtimeInformation = Substitute.For<IRuntimeInformationWrapper>();
-        runtimeInformation.IsOS(OSPlatform.Windows).Returns(false);
         var guid = Guid.NewGuid();
         var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, Path.Combine(project1Dir, "withoutfile.proj"), "UTF-8");
         TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName2, null, guid, ProjectType.Product, false, Path.Combine(project1Dir, "withoutFile.proj"), "UTF-8"); // not excluded
@@ -107,7 +105,7 @@ public partial class ScannerEngineInputGeneratorTest
         var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", contentFile1);
         TestUtils.AddAnalysisResult(contentProjectInfo1, AnalysisType.FilesToAnalyze, contentFileList1);
         var config = CreateValidConfig(testRootDir);
-        var result = CreateSut(config, runtimeInformationWrapper: runtimeInformation).GenerateFile();
+        var result = CreateSut(config, runtimeInformation: MockRuntimeInformation.NonWindows).GenerateFile();
 
         AssertExpectedStatus(projectName1, ProjectInfoValidity.DuplicateGuid, result);
         AssertExpectedProjectCount(1, result);
@@ -127,8 +125,6 @@ public partial class ScannerEngineInputGeneratorTest
         var testRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "projects");
         var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Path.Combine("projects", projectName1));
         // Casing can be ignored on windows OS
-        var runtimeInformation = Substitute.For<IRuntimeInformationWrapper>();
-        runtimeInformation.IsOS(OSPlatform.Windows).Returns(true);
         var guid = Guid.NewGuid();
         var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, project1Dir + "\\withoutfile.proj", "UTF-8");
         TestUtils.CreateEmptyFile(project1Dir, "withoutfile.proj");
@@ -138,7 +134,7 @@ public partial class ScannerEngineInputGeneratorTest
         var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", contentFile1);
         TestUtils.AddAnalysisResult(contentProjectInfo1, AnalysisType.FilesToAnalyze, contentFileList1);
         var config = CreateValidConfig(testRootDir);
-        var result = CreateSut(config, runtimeInformationWrapper: runtimeInformation).GenerateFile();
+        var result = CreateSut(config, runtimeInformation: MockRuntimeInformation.Windows).GenerateFile();
 
         AssertExpectedStatus(projectName1, ProjectInfoValidity.Valid, result);
         AssertExpectedProjectCount(1, result);

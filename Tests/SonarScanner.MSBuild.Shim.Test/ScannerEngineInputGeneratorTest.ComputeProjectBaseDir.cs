@@ -128,10 +128,8 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseSensitive_NoRoot_ReturnsNull()
     {
-        var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
-        runtimeInformationWrapper.IsOS(OSPlatform.Windows).Returns(false);
         var additionalFileService = Substitute.For<IAdditionalFilesService>();
-        var sut = new ScannerEngineInputGenerator(new() { SonarOutputDir = @"C:\fallback" }, logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
+        var sut = new ScannerEngineInputGenerator(new() { SonarOutputDir = @"C:\fallback" }, logger, new RoslynV1SarifFixer(logger), MockRuntimeInformation.NonWindows, additionalFileService);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),
@@ -150,10 +148,8 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseInsensitive()
     {
-        var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
-        runtimeInformationWrapper.IsOS(OSPlatform.Windows).Returns(true);
         var additionalFileService = Substitute.For<IAdditionalFilesService>();
-        var sut = new ScannerEngineInputGenerator(new(), logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
+        var sut = new ScannerEngineInputGenerator(new(), logger, new RoslynV1SarifFixer(logger), MockRuntimeInformation.Windows, additionalFileService);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),

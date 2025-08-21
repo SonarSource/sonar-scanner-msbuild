@@ -62,7 +62,7 @@ public partial class ScannerEngineInputGeneratorTest
     public void Constructor_WhenRuntimeInformationWrapperIsNull_Throws() =>
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null, null))
             .Should().ThrowExactly<ArgumentNullException>()
-            .And.ParamName.Should().Be("runtimeInformationWrapper");
+            .And.ParamName.Should().Be("runtimeInformation");
 
     [TestMethod]
     public void Constructor_WhenAdditionalFileServiceIsNull_Throws() =>
@@ -270,12 +270,12 @@ public partial class ScannerEngineInputGeneratorTest
 
     private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig,
                                                   IRoslynV1SarifFixer sarifFixer = null,
-                                                  IRuntimeInformationWrapper runtimeInformationWrapper = null,
+                                                  RuntimeInformationWrapper runtimeInformation = null,
                                                   IAdditionalFilesService additionalFileService = null)
     {
         sarifFixer ??= new RoslynV1SarifFixer(logger);
-        runtimeInformationWrapper ??= new RuntimeInformationWrapper();
+        runtimeInformation ??= new RuntimeInformationWrapper();
         additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance, logger);
-        return new(analysisConfig, logger, sarifFixer, runtimeInformationWrapper, additionalFileService);
+        return new(analysisConfig, logger, sarifFixer, runtimeInformation, additionalFileService);
     }
 }

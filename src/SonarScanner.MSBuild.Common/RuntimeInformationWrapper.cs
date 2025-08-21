@@ -19,12 +19,10 @@
  */
 
 using System.Runtime.InteropServices;
-using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.Common;
 
-public class RuntimeInformationWrapper : IRuntimeInformationWrapper
+public class RuntimeInformationWrapper
 {
-    public bool IsOS(OSPlatform osPlatform) =>
-        RuntimeInformation.IsOSPlatform(osPlatform);
+    public virtual bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 }
