@@ -49,7 +49,7 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(logger);
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Throws<InvalidOperationException>();
+        downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).ThrowsAsync<InvalidOperationException>();
         downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
 
         var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);

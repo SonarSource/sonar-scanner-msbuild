@@ -86,12 +86,12 @@ public class WebClientDownloaderTest
     [TestMethod]
     public void Implements_Dispose()
     {
-        var httpClient = Substitute.For<HttpClient>();
-        sut = new WebClientDownloader(httpClient, BaseUrl, testLogger);
+        var handler = new HttpMessageHandlerMock();
+        sut = new WebClientDownloader(new HttpClient(handler), BaseUrl, testLogger);
 
         sut.Dispose();
 
-        httpClient.Received().Dispose();
+        handler.IsDisposed.Should().BeTrue();
     }
 
     [TestMethod]
