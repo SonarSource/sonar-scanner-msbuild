@@ -26,11 +26,12 @@ namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 public class JreDownloader
 {
     private readonly ILogger logger;
+    private readonly CachedDownloader cachedDownloader;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly CachedDownloader cachedDownloader;
     private readonly IUnpacker unpacker;
     private readonly JreDescriptor jreDescriptor;
+    private readonly string jreExtractionPath;
 
     public JreDownloader(ILogger logger,
                          CachedDownloader cachedDownloader,
@@ -45,13 +46,14 @@ public class JreDownloader
         this.fileWrapper = fileWrapper;
         this.unpacker = unpacker;
         this.jreDescriptor = jreDescriptor;
+        jreExtractionPath = Path.Combine(cachedDownloader.FileRootPath(jreDescriptor), $"{jreDescriptor.Filename}_extracted");
     }
 
-    public virtual CacheResult IsJrecached()
+    public virtual CacheResult IsJreCached()
     {
         if (cachedDownloader.EnsureCacheRoot() is not null)
         {
-            var extractedPath = JreExtractionPath(jreDescriptor);
+            var extractedPath = jreExtractionPath;
             if (directoryWrapper.Exists(extractedPath))
             {
                 var extractedJavaExe = Path.Combine(extractedPath, jreDescriptor.JavaPath);
@@ -67,18 +69,18 @@ public class JreDownloader
         return new CacheError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(cachedDownloader.CacheRoot)));
     }
 
-    public virtual async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)
+    public async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)
     {
         logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
         var result = await cachedDownloader.DownloadFileAsync(jreDescriptor, jreDownload);
         return result is DownloadSuccess success ? UnpackJre(success.FilePath) : result;
     }
 
-    public virtual DownloadResult UnpackJre(string jreArchive)
+    private DownloadResult UnpackJre(string jreArchive)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
         var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath(jreDescriptor), directoryWrapper.GetRandomFileName());
-        var finalExtractionPath = JreExtractionPath(jreDescriptor); // If all goes well, this will be the final folder. We rename the temporary folder to this one.
+        var finalExtractionPath = jreExtractionPath; // If all goes well, this will be the final folder. We rename the temporary folder to this one.
         try
         {
             logger.LogDebug(Resources.MSG_StartingJreExtraction, jreArchive, tempExtractionPath);
@@ -116,7 +118,4 @@ public class JreDownloader
             logger.LogDebug(Resources.ERR_JreExtractionCleanupFailed, tempExtractionPath, ex.Message);
         }
     }
-
-    private string JreExtractionPath(JreDescriptor jreDescriptor) =>
-        Path.Combine(cachedDownloader.FileRootPath(jreDescriptor), $"{jreDescriptor.Filename}_extracted");
 }

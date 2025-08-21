@@ -25,10 +25,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
 public class CachedDownloader
 {
-    protected readonly IDirectoryWrapper directoryWrapper;
-    protected readonly IFileWrapper fileWrapper;
-    protected readonly ILogger logger;
     private readonly IChecksum checksum;
+    private readonly IDirectoryWrapper directoryWrapper;
+    private readonly IFileWrapper fileWrapper;
+    private readonly ILogger logger;
     private readonly string sonarUserHome;
 
     public string CacheRoot => Path.Combine(sonarUserHome, "cache");
@@ -59,8 +59,8 @@ public class CachedDownloader
         if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
         {
             var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
-            return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } cacheFailure
-                ? cacheFailure
+            return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } downloadError
+                ? downloadError
                 : new DownloadSuccess(downloadTarget);
         }
         else
@@ -74,6 +74,7 @@ public class CachedDownloader
 
     public string FileRootPath(FileDescriptor descriptor) =>
         Path.Combine(CacheRoot, descriptor.Sha256);
+
 
     internal string EnsureDirectoryExists(string directory)
     {
@@ -91,24 +92,6 @@ public class CachedDownloader
         }
     }
 
-    public async Task<DownloadResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
-    {
-        if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
-        {
-            var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
-            return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } downloadFailure
-                ? downloadFailure
-                : new DownloadSuccess(downloadTarget);
-        }
-        else
-        {
-            return new DownloadError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
-        }
-    }
-
-    public string FileRootPath(FileDescriptor descriptor) =>
-        Path.Combine(CacheRoot, descriptor.Sha256);
-
     internal bool ValidateChecksum(string downloadTarget, string sha256)
     {
         try
@@ -125,7 +108,23 @@ public class CachedDownloader
         }
     }
 
-    protected async Task<DownloadError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    private string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
+        EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
+
+    private void TryDeleteFile(string tempFile)
+    {
+        try
+        {
+            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
+            fileWrapper.Delete(tempFile);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
+        }
+    }
+
+    private async Task<DownloadError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
         {
@@ -143,22 +142,6 @@ public class CachedDownloader
             return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
         }
         return null;
-    }
-
-    protected string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
-        EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
-
-    private void TryDeleteFile(string tempFile)
-    {
-        try
-        {
-            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
-            fileWrapper.Delete(tempFile);
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
-        }
     }
 
     private async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)

@@ -84,7 +84,7 @@ public class JreResolver : IJreResolver
         if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, descriptor.Filename) is { } unpacker)
         {
             var jreDownloader = new JreDownloader(logger, cachedDownloader, directoryWrapper, fileWrapper, unpacker, descriptor);
-            var result = jreDownloader.IsJrecached();
+            var result = jreDownloader.IsJreCached();
             switch (result)
             {
                 case CacheHit hit:
@@ -97,7 +97,7 @@ public class JreResolver : IJreResolver
                     logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
                     return null;
                 default:
-                    throw new NotSupportedException("File Resolution is expected to be Success, CacheMiss, or Error.");
+                    throw new NotSupportedException("File Resolution is expected to be CacheHit, CacheMiss, or CacheError.");
             }
         }
         else
@@ -120,7 +120,7 @@ public class JreResolver : IJreResolver
             logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, error.Message);
             return null;
         }
-        throw new NotSupportedException("Download result is expected to be Hit or Failure.");
+        throw new NotSupportedException("Download result is expected to be DownloadSuccess or DownloadError.");
     }
 
     private bool IsValid(ProcessedArgs args)
