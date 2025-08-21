@@ -391,9 +391,6 @@ public class PostProcessorTests
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
         var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
         var propertiesFileGenerator = Substitute.For<PropertiesFileGenerator>(config, logger);
-        propertiesFileGenerator
-            .TryWriteProperties(Arg.Any<PropertiesWriter>(), Arg.Any<ScannerEngineInput>(), out _)
-            .Returns(true);
 
         var projectInfoAnalysisResult = new ProjectInfoAnalysisResult(
             [new(ProjectInfo.Load(projectInfo))],
