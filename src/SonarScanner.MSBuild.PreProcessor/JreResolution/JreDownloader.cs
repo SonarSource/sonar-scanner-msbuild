@@ -32,7 +32,7 @@ public class JreDownloader(
     IUnpackerFactory unpackerFactory,
     IFilePermissionsWrapper filePermissionsWrapper)
 {
-    public virtual FileResolution IsJreCached(JreDescriptor jreDescriptor)
+    public virtual CacheResult IsJreCached(JreDescriptor jreDescriptor)
     {
         if (cachedDownloader.EnsureCacheRoot() is not null)
         {
@@ -41,32 +41,32 @@ public class JreDownloader(
             {
                 var extractedJavaExe = Path.Combine(extractedPath, jreDescriptor.JavaPath);
                 return fileWrapper.Exists(extractedJavaExe)
-                    ? new ResolutionSuccess(extractedJavaExe)
-                    : new ResolutionError(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
+                    ? new CacheHit(extractedJavaExe)
+                    : new CacheError(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
             }
             else
             {
                 return new CacheMiss();
             }
         }
-        return new ResolutionError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(cachedDownloader.CacheRoot)));
+        return new CacheError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(cachedDownloader.CacheRoot)));
     }
 
-    public virtual async Task<FileResolution> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
+    public virtual async Task<DownloadResult> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
     {
         if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is { } unpacker)
         {
             logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
             var resolution = await cachedDownloader.DownloadFileAsync(jreDescriptor, jreDownload);
-            return resolution is ResolutionSuccess success ? UnpackJre(unpacker, success.FilePath, jreDescriptor) : resolution;
+            return resolution is DownloadSuccess success ? UnpackJre(unpacker, success.FilePath, jreDescriptor) : resolution;
         }
         else
         {
-            return new ResolutionError(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
+            return new DownloadError(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
         }
     }
 
-    private FileResolution UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor)
+    private DownloadResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
         var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath(jreDescriptor), directoryWrapper.GetRandomFileName());
@@ -82,7 +82,7 @@ public class JreDownloader(
                 logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, finalExtractionPath);
                 directoryWrapper.Move(tempExtractionPath, finalExtractionPath);
                 logger.LogDebug(Resources.MSG_JreExtractedSucessfully, finalExtractionPath);
-                return new ResolutionSuccess(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
+                return new DownloadSuccess(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
             }
             else
             {
@@ -93,7 +93,7 @@ public class JreDownloader(
         {
             logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
             CleanupFolder(tempExtractionPath);
-            return new ResolutionError(Resources.ERR_JreExtractionFailed);
+            return new DownloadError(Resources.ERR_JreExtractionFailed);
         }
     }
 

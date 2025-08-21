@@ -57,13 +57,13 @@ public class JreResolver(ISonarWebServer server, JreDownloader downloader, ILogg
         var result = downloader.IsJreCached(descriptor);
         switch (result)
         {
-            case ResolutionSuccess hit:
+            case CacheHit hit:
                 logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.FilePath);
                 return hit.FilePath;
             case CacheMiss:
                 logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
                 return await DownloadJre(metadata, descriptor);
-            case ResolutionError failure:
+            case CacheError failure:
                 logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
                 return null;
         }
@@ -74,12 +74,12 @@ public class JreResolver(ISonarWebServer server, JreDownloader downloader, ILogg
     private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor)
     {
         var result = await downloader.DownloadJreAsync(descriptor, () => server.DownloadJreAsync(metadata));
-        if (result is ResolutionSuccess hit)
+        if (result is DownloadSuccess hit)
         {
             logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.FilePath);
             return hit.FilePath;
         }
-        else if (result is ResolutionError failure)
+        else if (result is DownloadError failure)
         {
             logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, failure.Message);
             return null;

@@ -148,7 +148,7 @@ public class JreResolverTests
     {
         downloader
             .IsJreCached(Arg.Any<JreDescriptor>())
-            .Returns(new UnknownResult());
+            .Returns(new UnknownCache());
 
         var func = async () => await sut.ResolveJrePath(GetArgs());
 
@@ -161,7 +161,7 @@ public class JreResolverTests
     {
         downloader
             .IsJreCached(Arg.Any<JreDescriptor>())
-            .Returns(new ResolutionError("Reason."));
+            .Returns(new CacheError("Reason."));
 
         var res = await sut.ResolveJrePath(GetArgs());
 
@@ -179,7 +179,7 @@ public class JreResolverTests
     {
         downloader
             .IsJreCached(Arg.Any<JreDescriptor>())
-            .Returns(new ResolutionSuccess("path"));
+            .Returns(new CacheHit("path"));
 
         var res = await sut.ResolveJrePath(GetArgs());
 
@@ -198,7 +198,7 @@ public class JreResolverTests
             .Returns(new CacheMiss());
         downloader
             .DownloadJreAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
-            .Returns(new ResolutionSuccess("path"));
+            .Returns(new DownloadSuccess("path"));
 
         var res = await sut.ResolveJrePath(GetArgs());
 
@@ -218,7 +218,7 @@ public class JreResolverTests
             .Returns(new CacheMiss());
         downloader
             .DownloadJreAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
-            .Returns(new ResolutionError("Reason."));
+            .Returns(new DownloadError("Reason."));
 
         var res = await sut.ResolveJrePath(GetArgs());
 
@@ -344,5 +344,7 @@ public class JreResolverTests
         return args;
     }
 
-    private record class UnknownResult : FileResolution;
+    private record class UnknownCache : CacheResult;
+
+    private record class UnknownResult : DownloadResult;
 }
