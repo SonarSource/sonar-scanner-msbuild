@@ -976,8 +976,7 @@ public class ArgumentProcessorTests
     private static TestLogger CheckProcessingFails(IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, params string[] commandLineArgs)
     {
         var logger = new TestLogger();
-
-        var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, directoryWrapper, logger);
+        var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, fileWrapper, directoryWrapper, logger);
 
         result.Should().BeNull("Not expecting the arguments to be processed successfully");
         logger.AssertErrorsLogged();
@@ -989,7 +988,7 @@ public class ArgumentProcessorTests
 
     private static ProcessedArgs CheckProcessingSucceeds(TestLogger logger, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, params string[] commandLineArgs)
     {
-        var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, directoryWrapper, logger);
+        var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, fileWrapper, directoryWrapper, logger);
         result.Should().NotBeNull("Expecting the arguments to be processed successfully");
         logger.AssertErrorsLogged(0);
         return result;
@@ -1014,14 +1013,5 @@ public class ArgumentProcessorTests
         found.Should().BeTrue("Failed to find the expected property. Key: {0}", key);
         match.Should().NotBeNull("Returned property should not be null. Key: {0}", key);
         match.Value.Should().Be(value, "Property does not have the expected value");
-    }
-
-    private static ProcessedArgs TryProcessArgsIsolatedFromEnvironment(string[] commandLineArgs, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, ILogger logger)
-    {
-        // Make sure the test isn't affected by the hosting environment
-        // The SonarCloud AzDO extension sets additional properties in an environment variable that
-        // would be picked up by the argument processor
-        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarQubeScannerParams, null);
-        return ArgumentProcessor.TryProcessArgs(commandLineArgs, fileWrapper, directoryWrapper, logger);
     }
 }

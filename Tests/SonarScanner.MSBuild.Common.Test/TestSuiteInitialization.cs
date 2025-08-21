@@ -18,20 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor.Test;
+namespace SonarScanner.MSBuild.Shim.Test;
 
-internal static class PreprocessTestUtils
+[TestClass]
+public static class TestSuiteInitialization
 {
-    /// <summary>
-    /// Creates and returns an environment scope configured as if it
-    /// is not running under TeamBuild
-    /// </summary>
-    public static EnvironmentVariableScope CreateValidNonTeamBuildScope() =>
-        new EnvironmentVariableScope()
-            .SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false")
-            .SetVariable(EnvironmentVariables.TfsCollectionUriLegacy, null)
-            .SetVariable(EnvironmentVariables.TfsCollectionUriTfs2015, null)
-            .SetVariable(EnvironmentVariables.BuildUriLegacy, null)
-            .SetVariable(EnvironmentVariables.BuildUriTfs2015, null)
-            .SetVariable(EnvironmentVariables.SonarQubeScannerParams, null); // The Sonar AzDO tasks set and use this environment variable
+    [AssemblyInitialize]
+    public static void AssemblyInit(TestContext context) =>
+        AssemblyInitialization.Initialize();
 }

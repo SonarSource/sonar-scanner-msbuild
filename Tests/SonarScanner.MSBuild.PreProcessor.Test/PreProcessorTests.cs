@@ -505,19 +505,14 @@ public partial class PreProcessorTests
         public readonly string WorkingDir;
 
         private readonly WorkingDirectoryScope workingDirectory;
-        private readonly EnvironmentVariableScope environmentScope;
 
         public TestScope(TestContext context)
         {
             WorkingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(context);
             workingDirectory = new WorkingDirectoryScope(WorkingDir);
-            environmentScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
         }
 
-        public void Dispose()
-        {
+        public void Dispose() =>
             workingDirectory.Dispose();
-            environmentScope.Dispose();
-        }
     }
 }
