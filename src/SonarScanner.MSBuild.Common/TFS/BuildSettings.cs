@@ -34,75 +34,29 @@ public class BuildSettings : IBuildSettings
 {
     public const int DefaultLegacyCodeCoverageTimeout = 30000; // ms
 
-    public static bool IsInTeamBuild =>
-        TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
-
-    public static bool SkipLegacyCodeCoverageProcessing =>
-        TryGetBoolEnvironmentVariable(EnvironmentVariables.SkipLegacyCodeCoverage, false);
-
-    public static int LegacyCodeCoverageProcessingTimeout =>
-        TryGetIntEnvironmentVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, DefaultLegacyCodeCoverageTimeout);
-
-    public BuildEnvironment BuildEnvironment
-    {
-        get;
-        private set;
-    }
-
-    public string TfsUri
-    {
-        get;
-        private set;
-    }
-
-    public string BuildUri
-    {
-        get;
-        private set;
-    }
-
-    public string SourcesDirectory
-    {
-        get;
-        private set;
-    }
+    public static bool IsInTeamBuild => TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
+    public static bool SkipLegacyCodeCoverageProcessing => TryGetBoolEnvironmentVariable(EnvironmentVariables.SkipLegacyCodeCoverage, false);
+    public static int LegacyCodeCoverageProcessingTimeout => TryGetIntEnvironmentVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, DefaultLegacyCodeCoverageTimeout);
+    public BuildEnvironment BuildEnvironment { get; private set; }
+    public string TfsUri { get; private set; }
+    public string BuildUri { get; private set; }
+    public string SourcesDirectory { get; private set; }
+    public string CoverageToolUserSuppliedPath { get; private set; }
+    public string SonarConfigDirectory => Path.Combine(AnalysisBaseDirectory, "conf");
+    public string SonarOutputDirectory => Path.Combine(AnalysisBaseDirectory, "out");
+    public string SonarBinDirectory => Path.Combine(AnalysisBaseDirectory, "bin");
+    public string AnalysisConfigFilePath => Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName);
 
     /// <summary>
     /// The base working directory under which the various analysis
     /// sub-directories (bin, conf, out) should be created
     /// </summary>
-    public string AnalysisBaseDirectory
-    {
-        get;
-        private set;
-    }
+    public string AnalysisBaseDirectory { get; private set; }
 
     /// <summary>
     /// The build directory as specified by the build system
     /// </summary>
-    public string BuildDirectory
-    {
-        get;
-        private set;
-    }
-
-    public string CoverageToolUserSuppliedPath
-    {
-        get;
-        private set;
-    }
-
-    public string SonarConfigDirectory =>
-        Path.Combine(AnalysisBaseDirectory, "conf");
-
-    public string SonarOutputDirectory =>
-        Path.Combine(AnalysisBaseDirectory, "out");
-
-    public string SonarBinDirectory =>
-        Path.Combine(AnalysisBaseDirectory, "bin");
-
-    public string AnalysisConfigFilePath =>
-        Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName);
+    public string BuildDirectory { get; private set; }
 
     /// <summary>
     /// The working directory that will be set when the sonar-scanner will be spawned
@@ -112,8 +66,7 @@ public class BuildSettings : IBuildSettings
     /// <summary>
     /// Private constructor to prevent direct creation
     /// </summary>
-    private BuildSettings()
-    { }
+    private BuildSettings() { }
 
     /// <summary>
     /// Factory method to create and return a new set of team build settings
@@ -144,9 +97,9 @@ public class BuildSettings : IBuildSettings
             },
             _ => new BuildSettings
             {
-                BuildEnvironment = env, CoverageToolUserSuppliedPath
-                    // there's no reliable of way of finding the SourcesDirectory, except after the build
-                    = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
+                BuildEnvironment = env,
+                // there's no reliable of way of finding the SourcesDirectory, except after the build
+                CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
             }
         };
 

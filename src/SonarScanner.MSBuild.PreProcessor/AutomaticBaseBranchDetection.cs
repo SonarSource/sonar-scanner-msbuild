@@ -18,15 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace SonarScanner.MSBuild.PreProcessor;
 
 internal static class AutomaticBaseBranchDetection
 {
-    private static readonly List<Tuple<string, string>> Candidates = new()
+    private static readonly CIDescriptor[] Candidates = [
         new("Jenkins", EnvironmentVariables.BaseBranch.JenkingsGitHubPullRequestBuilder),
         new("Jenkins", EnvironmentVariables.BaseBranch.JenkingsGitLab),
         new("Jenkins", EnvironmentVariables.BaseBranch.JenkingsBitBucket),
@@ -35,18 +31,10 @@ internal static class AutomaticBaseBranchDetection
         new("BitBucket Pipelines", EnvironmentVariables.BaseBranch.BitBucket),
     ];
 
-    public static CIProperty GetValue() =>
-        Candidates.Select(x => new CIProperty(x.Item1, Environment.GetEnvironmentVariable(x.Item2))).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Value));
+    public static CIProperty Current() =>
+        Candidates.Select(x => new CIProperty(x.Provider, Environment.GetEnvironmentVariable(x.EnvironmentVariableName))).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Value));
 
-    public class CIProperty
-    {
-        public string CiProvider { get; }
-        public string Value { get; }
+    public sealed record CIProperty(string Provider, string Value);
 
-        public CIProperty(string ciProvider, string value)
-        {
-            CiProvider = ciProvider;
-            Value = value;
-        }
-    }
+    private sealed record CIDescriptor(string Provider, string EnvironmentVariableName);
 }

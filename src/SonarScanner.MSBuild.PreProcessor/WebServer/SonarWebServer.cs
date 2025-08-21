@@ -248,10 +248,10 @@ public abstract class SonarWebServer : ISonarWebServer
         {
             return true;
         }
-        if (AutomaticBaseBranchDetection.GetValue() is { } ciProperty)
+        if (AutomaticBaseBranchDetection.Current() is { } ciProperty)
         {
             branch = ciProperty.Value;
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_AutomaticBranchDetection, ciProperty.Value, ciProperty.CiProvider);
+            logger.LogInfo(Resources.MSG_Processing_PullRequest_AutomaticBranchDetection, ciProperty.Value, ciProperty.Provider);
             return true;
         }
         return false;

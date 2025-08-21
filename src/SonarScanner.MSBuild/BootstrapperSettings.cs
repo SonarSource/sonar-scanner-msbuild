@@ -24,15 +24,6 @@ public class BootstrapperSettings : IBootstrapperSettings
 {
     #region Working directory
 
-    /// <summary>
-    /// The list of environment variables that should be checked in order to find the
-    /// root folder under which all analysis output will be written
-    /// </summary>
-    private static readonly string[] DirectoryEnvVarNames = {
-            EnvironmentVariables.BuildDirectoryLegacy,
-            EnvironmentVariables.BuildDirectoryTfs2015
-           };
-
     public const string RelativePathToTempDir = @".sonarqube";
     public const string RelativePathToDownloadDir = @"bin";
 
@@ -84,7 +75,7 @@ public class BootstrapperSettings : IBootstrapperSettings
     private string CalculateTempDir()
     {
         logger.LogDebug(Resources.MSG_UsingEnvVarToGetDirectory);
-        var rootDir = GetFirstEnvironmentVariable(DirectoryEnvVarNames);
+        var rootDir = GetFirstEnvironmentVariable(EnvironmentVariables.BuildDirectoryLegacy, EnvironmentVariables.BuildDirectoryTfs2015);
 
         if (string.IsNullOrWhiteSpace(rootDir))
         {
@@ -98,7 +89,7 @@ public class BootstrapperSettings : IBootstrapperSettings
     /// Returns the value of the first environment variable from the supplied
     /// list that return a non-empty value
     /// </summary>
-    private string GetFirstEnvironmentVariable(string[] varNames)
+    private string GetFirstEnvironmentVariable(params string[] varNames)
     {
         string result = null;
         foreach (var varName in varNames)
