@@ -25,7 +25,7 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper) : IUnpacker
+public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, FilePermissionsWrapper filePermissionsWrapper) : IUnpacker
 {
     // ref https://github.com/icsharpcode/SharpZipLib/blob/ff2d7c30bdb2474d507f001bc555405e9f02a0bb/src/ICSharpCode.SharpZipLib/Tar/TarArchive.cs#L608
     public void Unpack(Stream archive, string destinationDirectory)

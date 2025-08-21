@@ -32,13 +32,13 @@ public class JreResolver : IJreResolver
     private readonly UnpackerFactory unpackerFactory;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly IFilePermissionsWrapper filePermissionsWrapper;
+    private readonly FilePermissionsWrapper filePermissionsWrapper;
     private readonly IChecksum checksum;
     private readonly string sonarUserHome;
 
     public JreResolver(ISonarWebServer server,
                        ILogger logger,
-                       IFilePermissionsWrapper filePermissionsWrapper,
+                       FilePermissionsWrapper filePermissionsWrapper,
                        IChecksum checksum,
                        string sonarUserHome,
                        UnpackerFactory unpackerFactory = null,
