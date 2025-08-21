@@ -168,6 +168,12 @@ public class ScannerEngineInput
         AppendKeyValue(project.Guid, property, project.RoslynReportFilePaths);
     }
 
+    public void WriteVsTestReportPaths(string[] paths) =>
+        AppendKeyValue(SonarProperties.VsTestReportsPaths, paths);
+
+    public void WriteVsXmlCoverageReportPaths(string[] paths) =>
+        AppendKeyValue(SonarProperties.VsCoverageXmlReportsPaths, paths);
+
     /// <summary>
     /// Write the supplied global settings into the file.
     /// </summary>
@@ -213,6 +219,9 @@ public class ScannerEngineInput
 
     internal void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> values) =>
         AppendKeyValue($"{keyPrefix}.{keySuffix}", ToMultiValueProperty(values));
+
+    internal void AppendKeyValue(string key, IEnumerable<string> values) =>
+        AppendKeyValue(key, ToMultiValueProperty(values));
 
     private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
         AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));

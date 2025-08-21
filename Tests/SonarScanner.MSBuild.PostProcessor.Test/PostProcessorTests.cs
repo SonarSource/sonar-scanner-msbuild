@@ -41,6 +41,7 @@ public class PostProcessorTests
     private readonly TfsProcessorWrapper tfsProcessor;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
+    private readonly ScannerEngineInput scannerEngineInput;
     private readonly IFileWrapper fileWrapper;
     private IBuildSettings settings;
 
@@ -64,6 +65,7 @@ public class PostProcessorTests
         coverageReportProcessor = Substitute
             .For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>());
         coverageReportProcessor.ProcessCoverageReports(null, null, null).ReturnsForAnyArgs(new AdditionalProperties([@"VS\Test\Path"], [@"VS\XML\Coverage\Path"]));
+        scannerEngineInput = new ScannerEngineInput(config);
         fileWrapper = Substitute.For<IFileWrapper>();
         sut = new PostProcessor(
             scanner,
@@ -336,6 +338,8 @@ public class PostProcessorTests
         fileWrapper.Received().AppendAllText(
             Arg.Any<string>(),
             Arg.Is<string>(x => x.Contains("sonar.cs.vscoveragexml.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "XML", "Coverage", "Path"))));
+        new ScannerEngineInputReader(scannerEngineInput.ToString()).AssertProperty("sonar.cs.vstest.reportsPaths", Path.Combine("VS", "Test", "Path"));
+        new ScannerEngineInputReader(scannerEngineInput.ToString()).AssertProperty("sonar.cs.vscoveragexml.reportsPaths", Path.Combine("VS", "XML", "Coverage", "Path"));
 #endif
     }
 
@@ -394,7 +398,7 @@ public class PostProcessorTests
 
         var projectInfoAnalysisResult = new ProjectInfoAnalysisResult(
             [new(ProjectInfo.Load(projectInfo))],
-            null,
+            withProject ? scannerEngineInput : null,
             withProject ? Path.Combine(testDir, "sonar-project.properties") : null) { RanToCompletion = true };
         propertiesFileGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
         sut.SetPropertiesFileGenerator(propertiesFileGenerator);

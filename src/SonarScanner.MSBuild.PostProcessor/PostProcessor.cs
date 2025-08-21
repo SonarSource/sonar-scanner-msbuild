@@ -89,7 +89,7 @@ public class PostProcessor : IPostProcessor
         if (propertyResult.FullPropertiesFilePath is not null)
         {
 #if NETFRAMEWORK
-            ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
+            ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult);
 #endif
             var result = false;
             if (propertyResult.RanToCompletion)
@@ -222,20 +222,22 @@ public class PostProcessor : IPostProcessor
         logger.IncludeTimestamp = true;
     }
 
-    private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, string sonarAnalysisConfigFilePath, string propertiesFilePath)
+    private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, string sonarAnalysisConfigFilePath, ProjectInfoAnalysisResult projectInfoAnalysisResult)
     {
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
             logger.LogInfo(Resources.MSG_ConvertingCoverageReports);
             var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings, logger);
-            WriteProperty(propertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
-            WriteProperty(propertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
+            WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
+            WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
+            projectInfoAnalysisResult.ScannerEngineInput.WriteVsTestReportPaths(additionalProperties.VsTestReportsPaths);
+            projectInfoAnalysisResult.ScannerEngineInput.WriteVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
             logger.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
             logger.IncludeTimestamp = false;
-            tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, propertiesFilePath], propertiesFilePath);
+            tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, projectInfoAnalysisResult.FullPropertiesFilePath], projectInfoAnalysisResult.FullPropertiesFilePath);
             logger.IncludeTimestamp = true;
         }
     }

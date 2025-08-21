@@ -19,7 +19,6 @@
  */
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -264,6 +263,48 @@ public class ScannerEngineInputTest
                 },
                 {
                   "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
+                }
+              ]
+            }
+            """);
+    }
+
+    [TestMethod]
+    public void WriteVsTestReportPaths_WritesEncodedPaths()
+    {
+        var sut = new ScannerEngineInput(new AnalysisConfig());
+        sut.WriteVsTestReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.cs.vstest.reportsPaths",
+                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
+                }
+              ]
+            }
+            """);
+    }
+
+    [TestMethod]
+    public void WriteVsXmlCoverageReportPaths_WritesEncodedPaths()
+    {
+        var sut = new ScannerEngineInput(new AnalysisConfig());
+        sut.WriteVsXmlCoverageReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.cs.vscoveragexml.reportsPaths",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
                 }
               ]
