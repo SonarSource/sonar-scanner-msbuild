@@ -591,10 +591,10 @@ public class ScannerEngineInputTest
         var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
         sut.WriteSettingsForProject(product);
 
-        var jsonProperties = JsonPropertiesReader(sut.ToString());
-        PropertyWithValueExists(jsonProperties, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1").Should().BeTrue();
-        PropertyWithValueExists(jsonProperties, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces").Should().BeTrue();
-        PropertyWithValueExists(jsonProperties, "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\dir1\dir2\foo.txt").Should().BeTrue();
+        var reader = new ScannerEngineInputReader(sut.ToString());
+        reader.AssertProperty("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1");
+        reader.AssertProperty("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces");
+        reader.AssertProperty("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\dir1\dir2\foo.txt");
     }
 
     // Tests that .sonar.working.directory is explicitly set per module
@@ -625,7 +625,7 @@ public class ScannerEngineInputTest
         sut.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
 
         var workDirKey = projectKey + "." + SonarProperties.WorkingDirectory;
-        PropertyWithValueExists(JsonPropertiesReader(sut.ToString()), workDirKey, Path.Combine(TestUtils.DriveRoot(), "my_folder", ".sonar", "mod0")).Should().BeTrue();
+        new ScannerEngineInputReader(sut.ToString()).AssertProperty(workDirKey, Path.Combine(TestUtils.DriveRoot(), "my_folder", ".sonar", "mod0"));
     }
 
     // Tests that global settings in the ProjectInfo are written to the file
@@ -644,11 +644,11 @@ public class ScannerEngineInputTest
         var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
         sut.WriteGlobalSettings(globalSettings);
 
-        var jsonProperties = JsonPropertiesReader(sut.ToString());
-        PropertyWithValueExists(jsonProperties, "my.setting1", "setting1").Should().BeTrue();
-        PropertyWithValueExists(jsonProperties, "my.setting2", "setting 2 with spaces").Should().BeTrue();
-        PropertyWithValueExists(jsonProperties, "my.setting.3", @"c:\dir1\dir2\foo.txt").Should().BeTrue();
-        PropertyWithValueExists(jsonProperties, "sonar.branch", "aBranch").Should().BeTrue();
+        var reader = new ScannerEngineInputReader(sut.ToString());
+        reader.AssertProperty("my.setting1", "setting1");
+        reader.AssertProperty("my.setting2", "setting 2 with spaces");
+        reader.AssertProperty("my.setting.3", @"c:\dir1\dir2\foo.txt");
+        reader.AssertProperty("sonar.branch", "aBranch");
     }
 
     [TestMethod]
@@ -750,46 +750,5 @@ public class ScannerEngineInputTest
             projectData.TelemetryPaths.Add(new FileInfo(path));
         }
         return projectData;
-    }
-
-    // ToDo: SCAN4NET-747
-    // this method should be moved/re-implemented to its own class "JsonPropertiesUtils as it seems to be needed for the PropertiesFileGeneratorTests
-    private static List<KeyValuePair<string, string>> JsonPropertiesReader(string engineInput)
-    {
-        var result = new List<KeyValuePair<string, string>>();
-        foreach (var item in JObject.Parse(engineInput)["scannerProperties"])
-        {
-            if (item is JObject jsonObject)
-            {
-                // jsonObject.Properties() will return an array of key-value pairs
-                // [0]: { "key": "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.sonar.projectKey"}
-                // [1]: { "value": "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5"}
-                var propertyKey = jsonObject.Properties().First().Value.ToString();
-                var propertyValue = jsonObject.Properties().Last().Value.ToString();
-                result.Add(new KeyValuePair<string, string>(propertyKey, propertyValue));
-            }
-            else
-            {
-                Console.WriteLine("Warning: An item in the JSON array is not an object and will be skipped.");
-            }
-        }
-        return result;
-    }
-
-    // ToDo: SCAN4NET-747
-    // this method should be moved/implemented to its own class "JsonPropertiesUtils" as it seems to be needed for the PropertiesFileGeneratorTests
-    private static bool PropertyWithValueExists(List<KeyValuePair<string, string>> properties, string key, string value)
-    {
-        foreach (var entry in properties)
-        {
-            if (entry.Key.Equals(key, StringComparison.Ordinal))
-            {
-                if (entry.Value.Equals(value, StringComparison.Ordinal))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 }
