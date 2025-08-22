@@ -29,7 +29,7 @@ public class JreResolver : IJreResolver
 {
     private readonly ISonarWebServer server;
     private readonly ILogger logger;
-    private readonly IUnpackerFactory unpackerFactory;
+    private readonly UnpackerFactory unpackerFactory;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
@@ -41,7 +41,7 @@ public class JreResolver : IJreResolver
                        IFilePermissionsWrapper filePermissionsWrapper,
                        IChecksum checksum,
                        string sonarUserHome,
-                       IUnpackerFactory unpackerFactory = null,
+                       UnpackerFactory unpackerFactory = null,
                        IDirectoryWrapper directoryWrapper = null,
                        IFileWrapper fileWrapper = null)
     {

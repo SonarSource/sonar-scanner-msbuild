@@ -58,7 +58,6 @@ public class JreDownloader
     {
         if (cachedDownloader.EnsureCacheRoot())
         {
-
             if (directoryWrapper.Exists(jreExtractionPath))
             {
                 return fileWrapper.Exists(extractedJavaExe)

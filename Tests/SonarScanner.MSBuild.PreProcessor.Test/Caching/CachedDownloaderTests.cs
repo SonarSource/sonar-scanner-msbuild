@@ -96,8 +96,6 @@ public sealed class CachedDownloaderTests : IDisposable
         directoryWrapper.Received(1).CreateDirectory(SonarUserHomeCache);
     }
 
-
-
     [TestMethod]
     public void CacheRoot_ExpectedPath_IsReturned() =>
         cachedDownloader.CacheRoot.Should().Be(SonarUserHomeCache);

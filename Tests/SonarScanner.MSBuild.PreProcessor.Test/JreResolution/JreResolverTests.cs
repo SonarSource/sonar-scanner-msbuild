@@ -47,7 +47,7 @@ public class JreResolverTests
     private TestLogger logger;
     private ISonarWebServer server;
     private JreResolver sut;
-    private IUnpackerFactory unpackerFactory;
+    private UnpackerFactory unpackerFactory;
 
     [TestInitialize]
     public void Initialize()
@@ -60,7 +60,7 @@ public class JreResolverTests
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
-        unpackerFactory = Substitute.For<IUnpackerFactory>();
+        unpackerFactory = Substitute.For<UnpackerFactory>();
 
         sut = new JreResolver(server, logger, filePermissionsWrapper, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
     }
