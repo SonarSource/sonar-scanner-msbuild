@@ -62,6 +62,34 @@ public class OperatingSystemProvider
     public virtual bool IsUnix() =>
         OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine or PlatformOS.MacOSX;
 
+    [ExcludeFromCodeCoverage] // We don't have *inx UT images at the time of writing. We tested the functionality manually.
+    public virtual void Set(string destinationPath, int mode)
+    {
+        if (IsUnix())
+        {
+            // https://github.com/Jackett/Jackett/blob/master/src/Jackett.Server/Services/FilePermissionService.cs#L27
+            using var process = new Process
+            {
+                StartInfo = new()
+                {
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = "chmod",
+                    Arguments = $"""{Convert.ToString(mode, 8)} "{Path.GetFullPath(destinationPath)}" """,
+                }
+            };
+            process.Start();
+            var stdError = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException(stdError);
+            }
+        }
+    }
+
     // Not stable testable, manual testing was done by running the scanner on Windows, Mac OS X and Linux.
     [ExcludeFromCodeCoverage]
     private PlatformOS OperatingSystemCore()

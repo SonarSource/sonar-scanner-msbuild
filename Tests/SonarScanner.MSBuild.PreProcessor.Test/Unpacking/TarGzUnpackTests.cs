@@ -29,11 +29,11 @@ public class TarGzUnpackTests
     private readonly TestLogger logger = new();
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
-    private readonly FilePermissionsWrapper filePermissionsWrapper;
+    private readonly OperatingSystemProvider operatingSystem;
 
     public TarGzUnpackTests()
     {
-        filePermissionsWrapper = Substitute.For<FilePermissionsWrapper>(Substitute.For<OperatingSystemProvider>(fileWrapper, logger));
+        operatingSystem = Substitute.For<OperatingSystemProvider>(fileWrapper, directoryWrapper);
     }
 
     [TestMethod]
@@ -55,7 +55,7 @@ public class TarGzUnpackTests
         using var archive = new MemoryStream(Convert.FromBase64String(sampleTarGzFile));
         using var unzipped = new MemoryStream();
         fileWrapper.Create(filePath).Returns(unzipped);
-        filePermissionsWrapper.When(x => x.Set(Arg.Any<string>(), Arg.Any<int>())).Throw(new Exception("Sample exception message"));
+        operatingSystem.When(x => x.Set(Arg.Any<string>(), Arg.Any<int>())).Throw(new Exception("Sample exception message"));
 
         CreateUnpacker().Unpack(archive, baseDirectory);
 
@@ -146,5 +146,5 @@ public class TarGzUnpackTests
     }
 
     private TarGzUnpacker CreateUnpacker() =>
-        new(logger, directoryWrapper, fileWrapper, filePermissionsWrapper);
+        new(logger, directoryWrapper, fileWrapper, operatingSystem);
 }

@@ -47,7 +47,7 @@ public class JreResolverTests
     private ISonarWebServer server;
     private JreResolver sut;
     private UnpackerFactory unpackerFactory;
-    private FilePermissionsWrapper filePermissionsWrapper;
+    private OperatingSystemProvider operatingSystem;
 
     [TestInitialize]
     public void Initialize()
@@ -61,9 +61,9 @@ public class JreResolverTests
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
         unpackerFactory = Substitute.For<UnpackerFactory>();
-        filePermissionsWrapper = Substitute.For<FilePermissionsWrapper>(Substitute.For<OperatingSystemProvider>(fileWrapper, logger));
+        operatingSystem = Substitute.For<OperatingSystemProvider>(fileWrapper, logger);
 
-        sut = new JreResolver(server, logger, filePermissionsWrapper, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
+        sut = new JreResolver(server, logger, operatingSystem, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
     }
 
     [TestMethod]

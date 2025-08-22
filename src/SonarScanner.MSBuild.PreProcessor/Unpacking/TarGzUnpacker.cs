@@ -29,14 +29,14 @@ public class TarGzUnpacker : IUnpacker
     private readonly ILogger logger;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly FilePermissionsWrapper filePermissionsWrapper;
+    private readonly OperatingSystemProvider operatingSystem;
 
-    public TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, FilePermissionsWrapper filePermissionsWrapper)
+    public TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, OperatingSystemProvider operatingSystem)
     {
         this.logger = logger;
         this.directoryWrapper = directoryWrapper;
         this.fileWrapper = fileWrapper;
-        this.filePermissionsWrapper = filePermissionsWrapper;
+        this.operatingSystem = operatingSystem;
     }
 
     // ref https://github.com/icsharpcode/SharpZipLib/blob/ff2d7c30bdb2474d507f001bc555405e9f02a0bb/src/ICSharpCode.SharpZipLib/Tar/TarArchive.cs#L608
@@ -88,7 +88,7 @@ public class TarGzUnpacker : IUnpacker
             outputStream.Close();
             try
             {
-                filePermissionsWrapper.Set(destinationFile, entry.TarHeader.Mode);
+                operatingSystem.Set(destinationFile, entry.TarHeader.Mode);
             }
             catch (Exception ex)
             {
