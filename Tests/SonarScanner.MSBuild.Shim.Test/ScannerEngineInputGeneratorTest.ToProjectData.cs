@@ -20,7 +20,7 @@
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
-public partial class PropertiesFileGeneratorTests
+public partial class ScannerEngineInputGeneratorTest
 {
     [TestMethod]
     [DataRow("cs")]
@@ -71,8 +71,8 @@ public partial class PropertiesFileGeneratorTests
         };
 
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-        var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
-        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First()).AnalyzerOutPaths.ToList();
+        var sut = CreateSut(CreateValidConfig(analysisRootDir));
+        var results = sut.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First()).AnalyzerOutPaths.ToList();
 
         results.Should().HaveCount(4);
         results[0].FullName.Should().Be(new FileInfo("2").FullName);
@@ -92,8 +92,8 @@ public partial class PropertiesFileGeneratorTests
             new ProjectInfo { ProjectGuid = guid, FullPath = "path2" }
         };
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-        var propertiesFileGenerator = new PropertiesFileGenerator(CreateValidConfig(analysisRootDir), logger);
-        var result = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First());
+        var sut = new ScannerEngineInputGenerator(CreateValidConfig(analysisRootDir), logger);
+        var result = sut.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First());
 
         result.Status.Should().Be(ProjectInfoValidity.DuplicateGuid);
         logger.Warnings.Should().BeEquivalentTo(
@@ -127,8 +127,8 @@ public partial class PropertiesFileGeneratorTests
                 Platform = "x86",
                 TargetFramework = "netstandard2.0",
                 AnalysisSettings = [
-                    new(PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey, "validRoslyn"),
-                    new(PropertiesFileGenerator.ProjectOutPathsCsharpPropertyKey, "validOutPath")
+                    new(ScannerEngineInputGenerator.ReportFilePathsCSharpPropertyKey, "validRoslyn"),
+                    new(ScannerEngineInputGenerator.ProjectOutPathsCsharpPropertyKey, "validOutPath")
                 ],
                 FullPath = fullPath,
             }
@@ -136,8 +136,8 @@ public partial class PropertiesFileGeneratorTests
         projectInfos[0].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
         projectInfos[1].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
         var config = CreateValidConfig("outputDir");
-        var propertiesFileGenerator = new PropertiesFileGenerator(config, logger);
-        var sut = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First());
+        var generator = new ScannerEngineInputGenerator(config, logger);
+        var sut = generator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).First());
 
         sut.Status.Should().Be(ProjectInfoValidity.Valid);
         sut.Project.AnalysisSettings.Should().BeNullOrEmpty(); // Expected to change when fixed

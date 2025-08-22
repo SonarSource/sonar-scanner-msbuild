@@ -351,7 +351,7 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.IsExcluded.Should().BeTrue();
         actualStructure.AssertConfigFileDoesNotExist(ExpectedProjectConfigFileName);
         actualStructure.AssertExpectedFileList("code1.txt");
-        actualStructure.ProjectInfo.AnalysisSettings.Should().NotContain(x => PropertiesFileGenerator.IsReportFilePaths(x.Id));
+        actualStructure.ProjectInfo.AnalysisSettings.Should().NotContain(x => ScannerEngineInputGenerator.IsReportFilePaths(x.Id));
     }
 
     [TestMethod]
@@ -432,7 +432,7 @@ public class E2EAnalysisTests
 
         var actualStructure = ValidateAndLoadProjectStructure(context);
         actualStructure.ProjectInfo.ProjectType.Should().Be(ProjectType.Product);
-        actualStructure.ProjectInfo.AnalysisSettings.Single(x => PropertiesFileGenerator.IsReportFilePaths(x.Id)).Value.Should().Be(customErrorLog);
+        actualStructure.ProjectInfo.AnalysisSettings.Single(x => ScannerEngineInputGenerator.IsReportFilePaths(x.Id)).Value.Should().Be(customErrorLog);
     }
 
     // Checks the integration targets handle non-VB/C# project types

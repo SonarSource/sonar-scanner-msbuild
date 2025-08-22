@@ -36,7 +36,7 @@ public class PostProcessor : IPostProcessor
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
     private readonly IFileWrapper fileWrapper;
 
-    private PropertiesFileGenerator propertiesFileGenerator;
+    private ScannerEngineInputGenerator scannerEngineInputGenerator;
 
     public PostProcessor(
         SonarScannerWrapper sonarScanner,
@@ -56,8 +56,8 @@ public class PostProcessor : IPostProcessor
         this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
     }
 
-    public void /* for testing purposes */ SetPropertiesFileGenerator(PropertiesFileGenerator propertiesFileGenerator) =>
-        this.propertiesFileGenerator = propertiesFileGenerator;
+    public void /* for testing purposes */ SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
+        this.scannerEngineInputGenerator = scannerEngineInputGenerator;
 
     public bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings)
     {
@@ -110,9 +110,9 @@ public class PostProcessor : IPostProcessor
 
     private ProjectInfoAnalysisResult GenerateAndValidatePropertiesFile(AnalysisConfig config)
     {
-        propertiesFileGenerator ??= new PropertiesFileGenerator(config, logger);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, logger);
 
-        var result = propertiesFileGenerator.GenerateFile();
+        var result = scannerEngineInputGenerator.GenerateFile();
 
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {

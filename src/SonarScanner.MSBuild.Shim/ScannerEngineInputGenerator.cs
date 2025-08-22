@@ -25,7 +25,7 @@ using EncodingProvider = SonarScanner.MSBuild.Common.EncodingProvider;
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class PropertiesFileGenerator
+public class ScannerEngineInputGenerator
 {
     public const string ReportFilePathsCSharpPropertyKey = "sonar.cs.roslyn.reportFilePaths";
     public const string ReportFilePathsVbNetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
@@ -48,12 +48,12 @@ public class PropertiesFileGenerator
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
 
-    public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
+    public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, ILogger logger)
         : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance, logger))
     {
     }
 
-    internal /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig,
+    internal /*for testing*/ ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
                                                      ILogger logger,
                                                      IRoslynV1SarifFixer fixer,
                                                      IRuntimeInformationWrapper runtimeInformationWrapper,

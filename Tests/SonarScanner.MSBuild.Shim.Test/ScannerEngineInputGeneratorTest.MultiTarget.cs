@@ -20,7 +20,7 @@
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
-public partial class PropertiesFileGeneratorTests
+public partial class ScannerEngineInputGeneratorTest
 {
     [TestMethod]
     public void Same_Files_In_All_Targets_Are_Not_Duplicated()
@@ -54,7 +54,7 @@ public partial class PropertiesFileGeneratorTests
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new PropertiesFileGenerator(config, logger);
+        var generator = new ScannerEngineInputGenerator(config, logger);
         var result = generator.GenerateFile();
 
         AssertExpectedProjectCount(1, result);
@@ -98,7 +98,7 @@ public partial class PropertiesFileGeneratorTests
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new PropertiesFileGenerator(config, logger);
+        var generator = new ScannerEngineInputGenerator(config, logger);
         var result = generator.GenerateFile();
 
         AssertExpectedProjectCount(1, result);
@@ -141,7 +141,7 @@ public partial class PropertiesFileGeneratorTests
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new PropertiesFileGenerator(config, logger);
+        var generator = new ScannerEngineInputGenerator(config, logger);
         var result = generator.GenerateFile();
 
         AssertExpectedProjectCount(1, result);
@@ -184,7 +184,7 @@ public partial class PropertiesFileGeneratorTests
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new PropertiesFileGenerator(config, logger);
+        var generator = new ScannerEngineInputGenerator(config, logger);
         var result = generator.GenerateFile();
 
         AssertExpectedProjectCount(1, result);

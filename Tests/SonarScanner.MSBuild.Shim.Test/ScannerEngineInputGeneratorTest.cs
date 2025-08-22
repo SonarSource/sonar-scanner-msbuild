@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.Shim.Interfaces;
 namespace SonarScanner.MSBuild.Shim.Test;
 
 [TestClass]
-public partial class PropertiesFileGeneratorTests
+public partial class ScannerEngineInputGeneratorTest
 {
     private const string TestSonarqubeOutputDir = @"e:\.sonarqube\out";
 
@@ -38,35 +38,35 @@ public partial class PropertiesFileGeneratorTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void PropertiesFileGenerator_WhenConfigIsNull_Throws() =>
-        FluentActions.Invoking(() => new PropertiesFileGenerator(null, new TestLogger())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
+    public void Constructor_WhenConfigIsNull_Throws() =>
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, new TestLogger())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
 
     [TestMethod]
-    public void PropertiesFileGenerator_FirstConstructor_WhenLoggerIsNull_Throws() =>
-        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper(), null))
+    public void Constructor_FirstConstructor_WhenLoggerIsNull_Throws() =>
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper(), null))
             .Should().ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("logger");
 
     [TestMethod]
-    public void PropertiesFileGenerator_SecondConstructor_WhenLoggerIsNull_Throws() =>
+    public void Constructor_SecondConstructor_WhenLoggerIsNull_Throws() =>
         // the RoslynV1SarifFixer will throw
-        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
     [TestMethod]
-    public void PropertiesFileGenerator_WhenFixerIsNull_Throws() =>
-        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper(), null))
+    public void Constructor_WhenFixerIsNull_Throws() =>
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper(), null))
             .Should().ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("fixer");
 
     [TestMethod]
-    public void PropertiesFileGenerator_WhenRuntimeInformationWrapperIsNull_Throws() =>
-        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null, null))
+    public void Constructor_WhenRuntimeInformationWrapperIsNull_Throws() =>
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null, null))
             .Should().ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("runtimeInformationWrapper");
 
     [TestMethod]
-    public void PropertiesFileGenerator_WhenAdditionalFileServiceIsNull_Throws() =>
-        FluentActions.Invoking(() => new PropertiesFileGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), null))
+    public void Constructor_WhenAdditionalFileServiceIsNull_Throws() =>
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), null))
             .Should().ThrowExactly<ArgumentNullException>()
             .And.ParamName.Should().Be("additionalFilesService");
 
@@ -110,15 +110,15 @@ public partial class PropertiesFileGeneratorTests
         };
 
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-        var propertiesFileGenerator = CreateSut(CreateValidConfig(analysisRootDir));
-        var results = propertiesFileGenerator.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single()).TelemetryPaths.ToList();
+        var sut = CreateSut(CreateValidConfig(analysisRootDir));
+        var results = sut.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single()).TelemetryPaths.ToList();
 
         results.Should().BeEquivalentTo([new FileInfo("2.json"), new("1.json"), new("3.json"), new("4.json")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }
 
     [TestMethod]
     public void SingleClosestProjectOrDefault_WhenNoProjects_ReturnsNull() =>
-        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo("File.cs"), []).Should().BeNull();
+        ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo("File.cs"), []).Should().BeNull();
 
     [TestMethod]
     public void SingleClosestProjectOrDefault_WhenNoMatch_ReturnsNull()
@@ -130,7 +130,7 @@ public partial class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("C"), "WrongDrive.csproj") }),
         };
 
-        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("E"), "File.cs")), projects).Should().BeNull();
+        ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("E"), "File.cs")), projects).Should().BeNull();
     }
 
     [TestMethod]
@@ -143,7 +143,7 @@ public partial class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "Winner.csproj") }),
         };
 
-        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "File.cs")), projects).Should().Be(projects[2]);
+        ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "File.cs")), projects).Should().Be(projects[2]);
     }
 
     [TestMethod]
@@ -156,7 +156,7 @@ public partial class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "Winner.csproj") }),
         };
 
-        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("C"), "PROJECTDIR", "FILE.cs")), projects).Should().Be(projects[2]);
+        ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("C"), "PROJECTDIR", "FILE.cs")), projects).Should().Be(projects[2]);
     }
 
     [TestMethod]
@@ -169,7 +169,7 @@ public partial class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = $"{TestUtils.DriveRoot()}{Path.AltDirectorySeparatorChar}ProjectDir{Path.AltDirectorySeparatorChar}Winner.csproj" }),
         };
 
-        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "File.cs")), projects).Should().Be(projects[2]);
+        ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "File.cs")), projects).Should().Be(projects[2]);
     }
 
     [TestMethod]
@@ -184,7 +184,7 @@ public partial class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "Deeper", "TooDeep.csproj") }),
         };
 
-        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "File.cs")), projects).Should().Be(projects[2]);
+        ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "File.cs")), projects).Should().Be(projects[2]);
     }
 
     [TestMethod]
@@ -197,7 +197,7 @@ public partial class PropertiesFileGeneratorTests
             new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "NetStd.csproj") }),
         };
 
-        PropertiesFileGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
+        ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
     private static void AssertFailedToCreateScannerInput(ProjectInfoAnalysisResult result, TestLogger logger)
@@ -268,7 +268,7 @@ public partial class PropertiesFileGeneratorTests
         "{input}"
         """;
 
-    private PropertiesFileGenerator CreateSut(AnalysisConfig analysisConfig,
+    private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig,
                                               IRoslynV1SarifFixer sarifFixer = null,
                                               IRuntimeInformationWrapper runtimeInformationWrapper = null,
                                               IAdditionalFilesService additionalFileService = null)

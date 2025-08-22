@@ -370,7 +370,7 @@
     <ItemGroup>
       <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(SonarReportFilePath) != '' ">
         <!-- Join the paths with |  -->
-        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <!-- This delimiter needs to be the same as ScannerEngineInputGenerator.RoslynReportPathsDelimiter -->
         <Value>@(SonarReportFilePath->'%(identity)','|')</Value>
       </SonarQubeSetting>
       <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(SonarErrorLogExists) == 'true'">
@@ -471,7 +471,7 @@
       <RazorSonarReportFilePath Condition= "$(RazorSonarErrorLogExists) == 'true'" Include="$(RazorSonarErrorLog)" />
       <RazorSonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(RazorSonarReportFilePath) != '' ">
         <!-- Join the paths with |  -->
-        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <!-- This delimiter needs to be the same as ScannerEngineInputGenerator.RoslynReportPathsDelimiter -->
         <Value>@(RazorSonarReportFilePath->'%(identity)','|')</Value>
       </RazorSonarQubeSetting>
       <RazorSonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(RazorSonarErrorLogExists) == 'true'">
