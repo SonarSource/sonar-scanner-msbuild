@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
-using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
@@ -32,6 +32,7 @@ public class JreResolverTests
 
     private static readonly string CacheDir = Path.Combine(SonarUserHome, "cache");
     private static readonly string ShaPath = Path.Combine(CacheDir, "sha256");
+    private static readonly string DownloadPath = Path.Combine(ShaPath, "filename.tar.gz");
     private static readonly string ExtractedPath = Path.Combine(ShaPath, "filename.tar.gz_extracted");
     private static readonly string JavaExePath = Path.Combine("path", "to", "java.exe");
     private static readonly string ExtractedJavaPath = Path.Combine(ExtractedPath, JavaExePath);
@@ -47,7 +48,6 @@ public class JreResolverTests
     private ISonarWebServer server;
     private JreResolver sut;
     private IUnpackerFactory unpackerFactory;
-    private CachedDownloader cachedDownloader;
 
     [TestInitialize]
     public void Initialize()
@@ -61,14 +61,8 @@ public class JreResolverTests
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
         unpackerFactory = Substitute.For<IUnpackerFactory>();
-        cachedDownloader = Substitute.For<CachedDownloader>(
-            logger,
-            directoryWrapper,
-            fileWrapper,
-            checksum,
-            SonarUserHome);
 
-        sut = new JreResolver(server, logger, filePermissionsWrapper, cachedDownloader, unpackerFactory, directoryWrapper, fileWrapper);
+        sut = new JreResolver(server, logger, filePermissionsWrapper, checksum, SonarUserHome,  unpackerFactory, directoryWrapper, fileWrapper);
     }
 
     [TestMethod]
@@ -146,7 +140,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_CacheFailure()
     {
-        cachedDownloader.EnsureCacheRoot().ReturnsNull();
+        directoryWrapper.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
 
         var res = await sut.ResolveJrePath(Args());
 
@@ -175,9 +169,17 @@ public class JreResolverTests
     public async Task ResolveJrePath_CacheMiss_DownloadSuccess()
     {
         var tempArchive = Path.Combine(ShaPath, "tempFile.zip");
-        cachedDownloader.DownloadFileAsync(null, null).ReturnsForAnyArgs(new DownloadSuccess("path"))
-            .AndDoes(x => directoryWrapper.GetRandomFileName().Returns("tempFile.zip"))
-            .AndDoes(x => fileWrapper.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true));
+        var downloadContentArray = new byte[] { 1, 2, 3 };
+        using var content = new MemoryStream(downloadContentArray);
+        using var computeHashStream = new MemoryStream();
+
+        // mocks successful download from the server, and unpacking of the jre.
+        server.DownloadJreAsync(metadata).Returns(content);
+        directoryWrapper.GetRandomFileName().Returns("tempFile.zip");
+        fileWrapper.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true);
+        fileWrapper.Create(tempArchive).Returns(new MemoryStream());
+        fileWrapper.Open(tempArchive).Returns(computeHashStream);
+        checksum.ComputeHash(computeHashStream).Returns("sha256");
 
         var res = await sut.ResolveJrePath(Args());
 
@@ -186,7 +188,9 @@ public class JreResolverTests
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: Cache miss. Attempting to download JRE.",
-            $"Starting extracting the Java runtime environment from archive 'path' to folder '{tempArchive}'.",
+            "Starting the file download.",
+            "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
             $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
             $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
             $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
@@ -195,8 +199,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_CacheMiss_DownloadFailure()
     {
-        cachedDownloader.DownloadFileAsync(null, null).ReturnsForAnyArgs(new DownloadError("Reason."));
-
+        fileWrapper.Create(Arg.Any<string>()).Throws(new IOException("Reason"));
         var res = await sut.ResolveJrePath(Args());
 
         AssertJreBottleNeckMessage(true);
@@ -205,19 +208,9 @@ public class JreResolverTests
             true,
             "JreResolver: Resolving JRE path.",
             "JreResolver: Cache miss. Attempting to download JRE.",
-            "JreResolver: Download failure. Reason.");
-    }
-
-    [TestMethod]
-    public async Task ResolveJrePath_CacheMiss_DownloadUnknown()
-    {
-        var func = async () => await sut.ResolveJrePath(Args());
-
-        await func.Should().ThrowExactlyAsync<NotSupportedException>().WithMessage("Download result is expected to be DownloadSuccess or DownloadError.");
-
-        AssertDebugMessages(
-            "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache miss. Attempting to download JRE.");
+            "Starting the file download.",
+            "The download of the file from the server failed with the exception 'Reason'.",
+            "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
     }
 
     [TestMethod]

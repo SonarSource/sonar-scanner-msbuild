@@ -19,7 +19,6 @@
  */
 
 using System.Net;
-using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -102,8 +101,8 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     public IJreResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome)
     {
         var filePermissionsWrapper = new FilePermissionsWrapper(new OperatingSystemProvider(FileWrapper.Instance, logger));
-        var cachedDownloader = new CachedDownloader(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, sonarUserHome);
-        return new JreResolver(server, logger, filePermissionsWrapper, cachedDownloader);
+
+        return new JreResolver(server, logger, filePermissionsWrapper, ChecksumSha256.Instance, sonarUserHome);
     }
 
     private bool ValidateServerUrl(string serverUrl)

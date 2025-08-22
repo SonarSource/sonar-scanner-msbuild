@@ -27,12 +27,12 @@ namespace SonarScanner.MSBuild.PreProcessor.Caching.Test;
 public sealed class CachedDownloaderTests : IDisposable
 {
     private const string ExpectedSha = "sha256";
-    private const string DownloadTarget = "someFile";
     private const string TempFileName = "xFirst.rnd";
+    private static readonly FileDescriptor FileDescriptor = new("someFile.jar", "sha256");
     private static readonly string SonarUserHome = Path.Combine("home", ".sonar");
     private static readonly string SonarUserHomeCache = Path.Combine(SonarUserHome, "cache");
     private static readonly string DownloadPath = Path.Combine(SonarUserHomeCache, ExpectedSha);
-    private static readonly string DownloadFilePath = Path.Combine(DownloadPath, DownloadTarget);
+    private static readonly string DownloadFilePath = Path.Combine(DownloadPath, FileDescriptor.Filename);
     private static readonly string TempFilePath = Path.Combine(DownloadPath, TempFileName);
     private readonly IChecksum checksum;
     private readonly IDirectoryWrapper directoryWrapper;
@@ -49,7 +49,7 @@ public sealed class CachedDownloaderTests : IDisposable
         checksum = Substitute.For<IChecksum>();
         directoryWrapper = Substitute.For<IDirectoryWrapper>();
         fileWrapper = Substitute.For<IFileWrapper>();
-        cachedDownloader = new CachedDownloader(testLogger, directoryWrapper, fileWrapper, checksum, SonarUserHome);
+        cachedDownloader = new CachedDownloader(testLogger, directoryWrapper, fileWrapper, checksum, FileDescriptor, SonarUserHome);
         directoryWrapper.GetRandomFileName().Returns(TempFileName);
         fileContentStream = new MemoryStream(fileContentArray, writable: true);
         fileWrapper.Create(TempFilePath).Returns(fileContentStream);
@@ -143,11 +143,10 @@ public sealed class CachedDownloaderTests : IDisposable
     [TestMethod]
     public void IsFileCached_CacheHit_ReturnsFile()
     {
-        var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
-        var file = Path.Combine(SonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
+        var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
         fileWrapper.Exists(file).Returns(true);
 
-        var result = cachedDownloader.IsFileCached(fileDescriptor);
+        var result = cachedDownloader.IsFileCached();
 
         result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
         fileWrapper.Received(1).Exists(file);
@@ -156,11 +155,10 @@ public sealed class CachedDownloaderTests : IDisposable
     [TestMethod]
     public void IsFileCached_FileDoesNotExist_ReturnsCacheMiss()
     {
-        var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
-        var file = Path.Combine(SonarUserHomeCache, fileDescriptor.Sha256, fileDescriptor.Filename);
+        var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
         fileWrapper.Exists(file).Returns(false);
 
-        var result = cachedDownloader.IsFileCached(fileDescriptor);
+        var result = cachedDownloader.IsFileCached();
 
         result.Should().BeOfType<CacheMiss>();
         fileWrapper.Received(1).Exists(file);
@@ -169,11 +167,10 @@ public sealed class CachedDownloaderTests : IDisposable
     [TestMethod]
     public void IsFileCached_CreateDirectoryThrows_ReturnsCacheFailure()
     {
-        var fileDescriptor = new FileDescriptor("somefile.jar", "sha256");
         directoryWrapper.Exists(SonarUserHomeCache).Returns(false);
         directoryWrapper.When(x => x.CreateDirectory(SonarUserHomeCache)).Do(_ => throw new IOException("Disk full"));
 
-        var result = cachedDownloader.IsFileCached(fileDescriptor);
+        var result = cachedDownloader.IsFileCached();
 
         result.Should().BeOfType<CacheError>().Which.Message.Should().Be($"The file cache directory in '{SonarUserHomeCache}' could not be created.");
     }
@@ -202,10 +199,10 @@ public sealed class CachedDownloaderTests : IDisposable
     [TestMethod]
     public void ValidateChecksum_ChecksumCalculationFails_ReturnsFalse()
     {
-        ExecuteValidateChecksumTest(null, "sha256", false, DownloadTarget);
+        ExecuteValidateChecksumTest(null, "sha256", false, FileDescriptor.Filename);
 
         testLogger.AssertDebugLogged($"""
-            The calculation of the checksum of the file '{DownloadTarget}' failed with message 'Operation is not valid due to the current state of the object.'.
+            The calculation of the checksum of the file '{FileDescriptor.Filename}' failed with message 'Operation is not valid due to the current state of the object.'.
             """);
     }
 
@@ -262,6 +259,7 @@ public sealed class CachedDownloaderTests : IDisposable
     public async Task DownloadFileAsync_ValidFileCached_Succeeds()
     {
         fileWrapper.Exists(DownloadFilePath).Returns(true);
+
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
         result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
@@ -341,7 +339,7 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     private async Task<DownloadResult> ExecuteDownloadFileAsync(MemoryStream downloadContent) =>
-        await cachedDownloader.DownloadFileAsync(new FileDescriptor(DownloadTarget, ExpectedSha), () => Task.FromResult<Stream>(downloadContent));
+        await cachedDownloader.DownloadFileAsync(() => Task.FromResult<Stream>(downloadContent));
 
     private void ExecuteValidateChecksumTest(string returnedSha, string expectedSha, bool expectSucces, string downloadTarget = "some.file")
     {

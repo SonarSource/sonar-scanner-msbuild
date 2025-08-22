@@ -40,7 +40,6 @@ public class JreDownloaderTests
     private readonly IChecksum checksum;
     private readonly IUnpacker unpacker;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
-    private readonly CachedDownloader cachedDownloader;
 
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.createdirectory
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.file.create
@@ -67,7 +66,6 @@ public class JreDownloaderTests
         checksum = Substitute.For<IChecksum>();
         unpacker = Substitute.For<IUnpacker>();
         filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
-        cachedDownloader = new CachedDownloader(testLogger, directoryWrapper, fileWrapper, checksum, SonarUserHome);
     }
 
     [TestMethod]
@@ -237,10 +235,9 @@ public class JreDownloaderTests
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
         var downloadContentArray = new byte[] { 1, 2, 3 };
-        var downloader = new CachedDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), home);
         var targzUnpacker = UnpackerFactory.Instance.Create(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, filePermissionsWrapper, file);
 
-        var sut = new JreDownloader(testLogger, downloader, directoryWrapperIO, fileWrapperIO, targzUnpacker, new JreDescriptor("filename.tar.gz", sha, "javaPath"));
+        var sut = new JreDownloader(testLogger, directoryWrapperIO, fileWrapperIO, targzUnpacker, ChecksumSha256.Instance, home, new JreDescriptor("filename.tar.gz", sha, "javaPath"));
         try
         {
             using var content = new MemoryStream(downloadContentArray);
@@ -273,16 +270,14 @@ public class JreDownloaderTests
         var file = Path.Combine(jre, "filename.tar.gz");
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
-        var downloader = new CachedDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), home);
         var targzUnpacker = UnpackerFactory.Instance.Create(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, filePermissionsWrapper, file);
         var failingStream = Substitute.For<MemoryStream>();
         failingStream.When(x => x.CopyToAsync(Arg.Any<Stream>(), Arg.Any<int>(), Arg.Any<CancellationToken>()))
             .Do(x => throw new InvalidOperationException("Download failure simulation."));
 
-        var sut = new JreDownloader(testLogger, downloader, directoryWrapperIO, fileWrapperIO, targzUnpacker, new JreDescriptor("filename.tar.gz", sha, "javaPath"));
+        var sut = new JreDownloader(testLogger, directoryWrapperIO, fileWrapperIO, targzUnpacker, ChecksumSha256.Instance, home, new JreDescriptor("filename.tar.gz", sha, "javaPath"));
         try
         {
-
             var result = await ExecuteDownloadAndUnpack(sut, content: failingStream);
 
             result.Should().BeOfType<DownloadError>().Which.Message.Should().Be(
@@ -788,10 +783,9 @@ public class JreDownloaderTests
         var sha = "b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip";
         var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
-        var downloader = new CachedDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), home);
         var zipUnpacker = UnpackerFactory.Instance.Create(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, filePermissionsWrapper, file);
 
-        var sut = new JreDownloader(testLogger, downloader, DirectoryWrapper.Instance, FileWrapper.Instance, zipUnpacker, jreDescriptor);
+        var sut = new JreDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance,  zipUnpacker, ChecksumSha256.Instance, home, jreDescriptor);
 
         try
         {
@@ -843,10 +837,9 @@ public class JreDownloaderTests
         var sha = "347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz";
         var jreDescriptor = new JreDescriptor(file, sha, Path.Combine("jdk-17.0.11+9-jre", "bin", "java.exe"));
-        var downloader = new CachedDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ChecksumSha256(), home);
         var targzUnpacker = UnpackerFactory.Instance.Create(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, filePermissionsWrapper, file);
 
-        var sut = new JreDownloader(testLogger, downloader, DirectoryWrapper.Instance, FileWrapper.Instance, targzUnpacker, jreDescriptor);
+        var sut = new JreDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, targzUnpacker, ChecksumSha256.Instance, home, jreDescriptor);
 
         try
         {
@@ -892,6 +885,6 @@ public class JreDownloaderTests
     private JreDownloader CreateSutWithSubstitutes(JreDescriptor jreDescriptor = null)
     {
         jreDescriptor ??= new JreDescriptor("filename.tar.gz", "sha256", "javaPath");
-        return new JreDownloader(testLogger, cachedDownloader, directoryWrapper, fileWrapper, unpacker, jreDescriptor);
+        return new JreDownloader(testLogger, directoryWrapper, fileWrapper, unpacker, checksum, SonarUserHome, jreDescriptor);
     }
 }

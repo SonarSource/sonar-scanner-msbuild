@@ -52,7 +52,7 @@ public class EngineResolver : IEngineResolver
             logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
             return null;
         }
-        return cachedDownloader.IsFileCached(metadata.ToDescriptor()) switch
+        return cachedDownloader.IsFileCached() switch
         {
             CacheHit hit => hit.FilePath,
             _ => throw new NotImplementedException("Not yet implemented"),

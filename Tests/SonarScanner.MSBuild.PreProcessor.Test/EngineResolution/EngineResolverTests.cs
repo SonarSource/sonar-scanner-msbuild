@@ -32,6 +32,7 @@ public class EngineResolverTests
     private readonly CachedDownloader cachedDownloader;
     private readonly ProcessedArgs args;
     private readonly EngineResolver resolver;
+    private readonly FileDescriptor fileDescriptor = new("engine.jar", "sha256");
 
     public EngineResolverTests()
     {
@@ -44,6 +45,7 @@ public class EngineResolverTests
             Substitute.For<IDirectoryWrapper>(),
             Substitute.For<IFileWrapper>(),
             Substitute.For<IChecksum>(),
+            fileDescriptor,
             "sonarUserHome");
 
         args = Substitute.For<ProcessedArgs>();
@@ -96,17 +98,13 @@ public class EngineResolverTests
             "engine.jar",
             "sha256",
             new("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"))));
-        cachedDownloader.IsFileCached(Arg.Is<FileDescriptor>(x =>
-            x.Filename == "engine.jar"
-            && x.Sha256 == "sha256")).Returns(new CacheHit("sonarHome/.cache/engine.jar"));
+        cachedDownloader.IsFileCached().Returns(new CacheHit("sonarHome/.cache/engine.jar"));
 
         var result = await resolver.ResolveEngine(args);
 
         result.Should().Be("sonarHome/.cache/engine.jar");
         await server.Received(1).DownloadEngineMetadataAsync();
-        cachedDownloader.Received(1).IsFileCached(Arg.Is<FileDescriptor>(x =>
-            x.Filename == "engine.jar"
-            && x.Sha256 == "sha256"));
+        cachedDownloader.Received(1).IsFileCached();
         logger.DidNotReceiveWithAnyArgs().LogDebug(null, null);
     }
 
@@ -117,16 +115,12 @@ public class EngineResolverTests
             "engine.jar",
             "sha256",
             new("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar"))));
-        cachedDownloader.IsFileCached(Arg.Is<FileDescriptor>(x =>
-            x.Filename == "engine.jar"
-            && x.Sha256 == "sha256")).Returns(new CacheMiss());
+        cachedDownloader.IsFileCached().Returns(new CacheMiss());
 
         var act = async () => await resolver.ResolveEngine(args);
 
         await act.Should().ThrowAsync<NotImplementedException>();
         await server.Received(1).DownloadEngineMetadataAsync();
-        cachedDownloader.Received(1).IsFileCached(Arg.Is<FileDescriptor>(x =>
-            x.Filename == "engine.jar"
-            && x.Sha256 == "sha256"));
+        cachedDownloader.Received(1).IsFileCached();
     }
 }

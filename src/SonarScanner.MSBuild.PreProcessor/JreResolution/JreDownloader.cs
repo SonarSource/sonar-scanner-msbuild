@@ -19,6 +19,7 @@
  */
 
 using SonarScanner.MSBuild.PreProcessor.Caching;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
@@ -34,19 +35,21 @@ public class JreDownloader
     private readonly string jreExtractionPath;
 
     public JreDownloader(ILogger logger,
-                         CachedDownloader cachedDownloader,
                          IDirectoryWrapper directoryWrapper,
                          IFileWrapper fileWrapper,
                          IUnpacker unpacker,
+                         IChecksum checksum,
+                         string sonarUserHome,
                          JreDescriptor jreDescriptor)
     {
         this.logger = logger;
-        this.cachedDownloader = cachedDownloader;
         this.directoryWrapper = directoryWrapper;
         this.fileWrapper = fileWrapper;
         this.unpacker = unpacker;
         this.jreDescriptor = jreDescriptor;
-        jreExtractionPath = Path.Combine(cachedDownloader.FileRootPath(jreDescriptor), $"{jreDescriptor.Filename}_extracted");
+
+        cachedDownloader = new CachedDownloader(logger, directoryWrapper, fileWrapper, checksum, jreDescriptor, sonarUserHome);
+        jreExtractionPath = Path.Combine(cachedDownloader.FileRootPath, $"{jreDescriptor.Filename}_extracted");
     }
 
     public virtual CacheResult IsJreCached()
@@ -72,14 +75,14 @@ public class JreDownloader
     public async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)
     {
         logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
-        var result = await cachedDownloader.DownloadFileAsync(jreDescriptor, jreDownload);
+        var result = await cachedDownloader.DownloadFileAsync(jreDownload);
         return result is DownloadSuccess success ? UnpackJre(success.FilePath) : result;
     }
 
     private DownloadResult UnpackJre(string jreArchive)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
-        var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath(jreDescriptor), directoryWrapper.GetRandomFileName());
+        var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath, directoryWrapper.GetRandomFileName());
         var finalExtractionPath = jreExtractionPath; // If all goes well, this will be the final folder. We rename the temporary folder to this one.
         try
         {

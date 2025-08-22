@@ -20,14 +20,4 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
-public record FileDescriptor
-{
-    public string Filename { get; }
-    public string Sha256 { get; }
-
-    public FileDescriptor(string filename, string sha256)
-    {
-        Filename = filename;
-        Sha256 = sha256;
-    }
-}
+public record FileDescriptor(string Filename, string Sha256);
