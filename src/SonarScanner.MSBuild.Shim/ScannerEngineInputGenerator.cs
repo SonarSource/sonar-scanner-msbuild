@@ -94,22 +94,19 @@ public class ScannerEngineInputGenerator
         var legacyWriter = new PropertiesWriter(analysisConfig);
         var engineInput = new ScannerEngineInput(analysisConfig);
         logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
-        if (TryWriteProperties(legacyWriter, engineInput, out var projects))
+        if (TryWriteProperties(legacyWriter, engineInput, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out var allProjects))
         {
             var contents = legacyWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
             logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
-            return new ProjectInfoAnalysisResult(projects, engineInput, projectPropertiesPath);
+            return new ProjectInfoAnalysisResult(allProjects, engineInput, projectPropertiesPath);
         }
         else
         {
             logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
-            return new ProjectInfoAnalysisResult(projects);
+            return new ProjectInfoAnalysisResult(allProjects);
         }
     }
-
-    public virtual bool TryWriteProperties(PropertiesWriter legacyWriter, ScannerEngineInput engineInput, out ProjectData[] allProjects) =>
-        TryWriteProperties(legacyWriter, engineInput, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out allProjects);
 
     // ToDo: SCAN4NET-778 Untangle this mess. allProjects should be input, not an output here
     public bool TryWriteProperties(PropertiesWriter legacyWriter, ScannerEngineInput engineInput, IList<ProjectInfo> projects, out ProjectData[] allProjects)

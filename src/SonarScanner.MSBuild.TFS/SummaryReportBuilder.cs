@@ -51,7 +51,7 @@ public class SummaryReportBuilder
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
         var engineInput = new ScannerEngineInput(config);
         // ToDo: SCAN4NET-778 Untangle this mess. TryWriteProperties only needs project list, result doesn't need to be here at all
-        new ScannerEngineInputGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), engineInput, out var allProjects);
+        new ScannerEngineInputGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), engineInput, ProjectLoader.LoadFrom(config.SonarOutputDir).ToArray(), out var allProjects);
         var result = new ProjectInfoAnalysisResult(allProjects, engineInput, fullPropertiesFilePath) { RanToCompletion = ranToCompletion };
         if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
