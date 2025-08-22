@@ -27,6 +27,6 @@ internal class MockRuntimeInformation : RuntimeInformationWrapper
 
     public override bool IsWindows { get; }
 
-    private MockRuntimeInformation(bool isWindows) =>
+    public MockRuntimeInformation(bool isWindows) =>
         IsWindows = isWindows;
 }
