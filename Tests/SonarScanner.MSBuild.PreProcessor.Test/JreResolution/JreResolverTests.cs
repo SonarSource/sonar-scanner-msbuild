@@ -60,7 +60,7 @@ public class JreResolverTests
             cachedDownloader,
             Substitute.For<IDirectoryWrapper>(),
             Substitute.For<IFileWrapper>(),
-            Substitute.For<IUnpackerFactory>(),
+            Substitute.For<UnpackerFactory>(),
             Substitute.For<IFilePermissionsWrapper>());
         sut = new JreResolver(server, jreDownloader, logger);
     }

@@ -38,7 +38,7 @@ public class JreDownloaderTests
     private readonly IFileWrapper fileWrapper;
     private readonly IChecksum checksum;
     private readonly IUnpacker unpacker;
-    private readonly IUnpackerFactory unpackerFactory;
+    private readonly UnpackerFactory unpackerFactory;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
     private readonly CachedDownloader cachedDownloader;
 
@@ -66,7 +66,7 @@ public class JreDownloaderTests
         fileWrapper = Substitute.For<IFileWrapper>();
         checksum = Substitute.For<IChecksum>();
         unpacker = Substitute.For<IUnpacker>();
-        unpackerFactory = Substitute.For<IUnpackerFactory>();
+        unpackerFactory = Substitute.For<UnpackerFactory>();
         filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
         cachedDownloader = new CachedDownloader(testLogger, directoryWrapper, fileWrapper, checksum, SonarUserHome);
         unpackerFactory.Create(testLogger, directoryWrapper, fileWrapper, filePermissionsWrapper, "filename.tar.gz").Returns(unpacker);
