@@ -73,7 +73,7 @@ public class SummaryReportBuilder : ISummaryReportBuilder
         this.config = config ?? throw new ArgumentNullException(nameof(config));
         var engineInput = new ScannerEngineInput(config);
         // ToDo: SCAN4NET-778 Untangle this mess. TryWriteProperties only needs project list, result doesn't need to be here at all
-        new PropertiesFileGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), engineInput, out var allProjects);
+        new ScannerEngineInputGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), engineInput, out var allProjects);
         result = new ProjectInfoAnalysisResult(allProjects, engineInput, fullPropertiesFilePath) { RanToCompletion = ranToCompletion };
         GenerateReports(logger);
     }

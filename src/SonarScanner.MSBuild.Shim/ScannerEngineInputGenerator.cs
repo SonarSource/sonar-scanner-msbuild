@@ -25,7 +25,7 @@ using EncodingProvider = SonarScanner.MSBuild.Common.EncodingProvider;
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class PropertiesFileGenerator
+public class ScannerEngineInputGenerator
 {
     public const string ReportFilePathsCSharpPropertyKey = "sonar.cs.roslyn.reportFilePaths";
     public const string ReportFilePathsVbNetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
@@ -48,16 +48,16 @@ public class PropertiesFileGenerator
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
 
-    public PropertiesFileGenerator(AnalysisConfig analysisConfig, ILogger logger)
+    public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, ILogger logger)
         : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance, logger))
     {
     }
 
-    internal /*for testing*/ PropertiesFileGenerator(AnalysisConfig analysisConfig,
-                                                     ILogger logger,
-                                                     IRoslynV1SarifFixer fixer,
-                                                     IRuntimeInformationWrapper runtimeInformationWrapper,
-                                                     IAdditionalFilesService additionalFilesService)
+    internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
+                                         ILogger logger,
+                                         IRoslynV1SarifFixer fixer,
+                                         IRuntimeInformationWrapper runtimeInformationWrapper,
+                                         IAdditionalFilesService additionalFilesService)
     {
         this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -260,7 +260,7 @@ public class PropertiesFileGenerator
     {
         // To ensure consistently sending of metrics from the same configuration we sort the project outputs
         // and use only the first one for metrics.
-        var orderedProjects = projectsGroupedByGuid.OrderBy(p => $"{p.Configuration}_{p.Platform}_{p.TargetFramework}").ToList();
+        var orderedProjects = projectsGroupedByGuid.OrderBy(x => $"{x.Configuration}_{x.Platform}_{x.TargetFramework}").ToList();
         var projectData = new ProjectData(orderedProjects[0])
         {
             Status = ProjectInfoValidity.ExcludeFlagSet

@@ -395,14 +395,14 @@ public class PostProcessorTests
         args ??= [];
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
         var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
-        var propertiesFileGenerator = Substitute.For<PropertiesFileGenerator>(config, logger);
+        var scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, logger);
 
         var projectInfoAnalysisResult = new ProjectInfoAnalysisResult(
             [new(ProjectInfo.Load(projectInfo))],
             withProject ? scannerEngineInput : null,
             withProject ? Path.Combine(testDir, "sonar-project.properties") : null) { RanToCompletion = true };
-        propertiesFileGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
-        sut.SetPropertiesFileGenerator(propertiesFileGenerator);
+        scannerEngineInputGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
+        sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
         return success;
     }

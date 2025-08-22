@@ -22,7 +22,7 @@ using System.Runtime.InteropServices;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
-public partial class PropertiesFileGeneratorTests
+public partial class ScannerEngineInputGeneratorTest
 {
     [TestMethod]
     public void GenerateFile_NoProjectInfoFiles()
@@ -35,7 +35,7 @@ public partial class PropertiesFileGeneratorTests
         TestUtils.CreateEmptyFile(subDir1, "file1.txt");
         TestUtils.CreateEmptyFile(subDir2, "file2.txt");
         var config = new AnalysisConfig { SonarOutputDir = testDir, SonarQubeHostUrl = "http://sonarqube.com" };
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         AssertFailedToCreateScannerInput(result, logger);
         AssertExpectedProjectCount(0, result);
@@ -53,7 +53,7 @@ public partial class PropertiesFileGeneratorTests
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", testDir);
         var config = CreateValidConfig(testDir);
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         AssertExpectedStatus("withoutFiles", ProjectInfoValidity.NoFilesToAnalyze, result);
         AssertExpectedStatus("withFiles1", ProjectInfoValidity.Valid, result);
@@ -151,11 +151,11 @@ public partial class PropertiesFileGeneratorTests
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
         var config = CreateValidConfig(testDir);
         config.LocalSettings = [new(SonarProperties.SourceEncoding, "test-encoding-here")];
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         settingsFileContent.Should().Contain("sonar.sourceEncoding=test-encoding-here", "Command line parameter 'sonar.sourceEncoding' is ignored.");
-        logger.DebugMessages.Should().Contain(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
+        logger.AssertDebugLogged(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
     }
 
     [TestMethod]
@@ -173,7 +173,7 @@ public partial class PropertiesFileGeneratorTests
         var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         settingsFileContent.Should().Contain("sonar.cs.vscoveragexml.reportsPaths=coverage-path");
         settingsFileContent.Should().Contain("sonar.cs.vstest.reportsPaths=trx-path");
-        logger.DebugMessages.Should().Contain(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
+        logger.AssertDebugLogged(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
     }
 
     [TestMethod]
@@ -188,8 +188,8 @@ public partial class PropertiesFileGeneratorTests
         ];
         CreateSut(config).GenerateFile();
 
-        logger.DebugMessages.Any(x => x.Contains("Client cert path")).Should().BeTrue();
-        logger.DebugMessages.Any(x => x.Contains("Client cert password")).Should().BeFalse();
+        logger.DebugMessages.Should().Contain(x => x.Contains("Client cert path"));
+        logger.DebugMessages.Should().NotContain(x => x.Contains("Client cert password"));
     }
 
     [TestMethod]
@@ -311,7 +311,7 @@ public partial class PropertiesFileGeneratorTests
         // Add the file path of "contentList.txt" to the projectInfo.xml
         TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileListPath);
         var config = CreateValidConfig(testDir);
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
         // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
@@ -340,7 +340,7 @@ public partial class PropertiesFileGeneratorTests
         // Add the file path of "contentList.txt" to the projectInfo.xml
         TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileListPath);
         var config = CreateValidConfig(testDir);
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
         // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
@@ -375,7 +375,7 @@ public partial class PropertiesFileGeneratorTests
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFile);
         TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
         var config = CreateValidConfig(testDir);
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists("sonar.projectBaseDir", testDir);
@@ -409,7 +409,7 @@ public partial class PropertiesFileGeneratorTests
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFileDifferentCase);
         TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
         var config = CreateValidConfig(testDir);
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists("sonar.projectBaseDir", testDir);
@@ -440,7 +440,7 @@ public partial class PropertiesFileGeneratorTests
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", fileInProject1);
         TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
         var config = CreateValidConfig(testDir);
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists("sonar.projectBaseDir", testDir);
@@ -488,7 +488,7 @@ public partial class PropertiesFileGeneratorTests
             SonarProjectVersion = "1.0",
             SonarOutputDir = testDir
         };
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
         var actual = File.ReadAllText(result.FullPropertiesFilePath);
 
         AssertFileIsReferenced(existingContentFile, actual);
@@ -520,7 +520,7 @@ public partial class PropertiesFileGeneratorTests
         };
         // Server properties should not be added
         config.ServerSettings = [new("server.key", "should not be added")];
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
@@ -552,7 +552,7 @@ public partial class PropertiesFileGeneratorTests
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         TestUtils.CreateProjectWithFiles(TestContext, "project1", null, analysisRootDir, Guid.Empty);
         var config = CreateValidConfig(analysisRootDir);
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
         // Empty guids are supported by generating them to the ProjectInfo.xml by WriteProjectInfoFile. In case it is not in ProjectInfo.xml, sonar-project.properties generation should fail.
@@ -682,7 +682,7 @@ public partial class PropertiesFileGeneratorTests
             SourcesDirectory = teamBuildValue,
             LocalSettings = [new(SonarProperties.ProjectBaseDir, userValue)]
         };
-        new PropertiesFileGenerator(config, logger).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList());
+        new ScannerEngineInputGenerator(config, logger).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList());
 
         if (shouldLog)
         {
@@ -751,7 +751,7 @@ public partial class PropertiesFileGeneratorTests
             new("sonar.php.file.suffixes", "php"),
         ];
         var config = CreateValidConfig(root, serverProperties);
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(2, result);
         AssertScannerInputCreated(result, logger);
@@ -790,7 +790,7 @@ public partial class PropertiesFileGeneratorTests
             new("sonar.typescript.file.suffixes", ".ts,.tsx"),
         ];
         var config = CreateValidConfig(root, serverProperties, rootProjects);
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
         AssertScannerInputCreated(result, logger);
@@ -811,7 +811,7 @@ public partial class PropertiesFileGeneratorTests
         TestUtils.CreateProjectWithFiles(TestContext, projectName, analysisRootDir);
         var config = CreateValidConfig(analysisRootDir);
         config.LocalSettings = [.. localSettings];
-        var result = new PropertiesFileGenerator(config, logger).GenerateFile();
+        var result = new ScannerEngineInputGenerator(config, logger).GenerateFile();
 
         AssertExpectedProjectCount(1, result);
         AssertScannerInputCreated(result, logger);

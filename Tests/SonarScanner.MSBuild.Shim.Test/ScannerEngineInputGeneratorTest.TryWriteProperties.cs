@@ -20,7 +20,7 @@
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
-public partial class PropertiesFileGeneratorTests
+public partial class ScannerEngineInputGeneratorTest
 {
     [TestMethod]
     public void TryWriteProperties_WhenThereIsNoCommonPath_LogsError()
@@ -30,7 +30,7 @@ public partial class PropertiesFileGeneratorTests
         var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "file.cs");
         var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, TestUtils.FilesToAnalyze, fileToAnalyzePath);
         var config = new AnalysisConfig { SonarOutputDir = outPath };
-        var sut = new PropertiesFileGenerator(config, logger);
+        var sut = new ScannerEngineInputGenerator(config, logger);
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
@@ -63,7 +63,7 @@ public partial class PropertiesFileGeneratorTests
         var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
         Directory.CreateDirectory(outPath);
         var config = new AnalysisConfig { SonarOutputDir = outPath };
-        var sut = new PropertiesFileGenerator(config, logger);
+        var sut = new ScannerEngineInputGenerator(config, logger);
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
@@ -128,7 +128,7 @@ public partial class PropertiesFileGeneratorTests
     private void TryWriteProperties_HostUrl_Execute(AnalysisConfig config, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
     {
         Directory.CreateDirectory(config.SonarOutputDir);
-        var sut = new PropertiesFileGenerator(config, logger);
+        var sut = new ScannerEngineInputGenerator(config, logger);
         var projectPath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Project.csproj");
         var sourceFilePath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Program.cs");
         var filesToAnalyzePath = TestUtils.CreateFile(config.SonarOutputDir, "FilesToAnalyze.txt", sourceFilePath);

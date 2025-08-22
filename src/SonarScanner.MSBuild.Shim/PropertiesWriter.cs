@@ -123,9 +123,9 @@ public class PropertiesWriter
         if (projectData.Project.AnalysisSettings is not null && projectData.Project.AnalysisSettings.Any())
         {
             foreach (var setting in projectData.Project.AnalysisSettings.Where(x =>
-                !PropertiesFileGenerator.IsProjectOutPaths(x.Id)
-                && !PropertiesFileGenerator.IsReportFilePaths(x.Id)
-                && !PropertiesFileGenerator.IsTelemetryPaths(x.Id)))
+                !ScannerEngineInputGenerator.IsProjectOutPaths(x.Id)
+                && !ScannerEngineInputGenerator.IsReportFilePaths(x.Id)
+                && !ScannerEngineInputGenerator.IsTelemetryPaths(x.Id)))
             {
                 sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
                 sb.AppendLine();
@@ -154,11 +154,11 @@ public class PropertiesWriter
         string property;
         if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.TelemetryPathsCsharpPropertyKey;
+            property = ScannerEngineInputGenerator.TelemetryPathsCsharpPropertyKey;
         }
         else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.TelemetryPathsVbNetPropertyKey;
+            property = ScannerEngineInputGenerator.TelemetryPathsVbNetPropertyKey;
         }
         else
         {
@@ -178,11 +178,11 @@ public class PropertiesWriter
         string property;
         if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.ProjectOutPathsCsharpPropertyKey;
+            property = ScannerEngineInputGenerator.ProjectOutPathsCsharpPropertyKey;
         }
         else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.ProjectOutPathsVbNetPropertyKey;
+            property = ScannerEngineInputGenerator.ProjectOutPathsVbNetPropertyKey;
         }
         else
         {
@@ -202,11 +202,11 @@ public class PropertiesWriter
         string property;
         if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey;
+            property = ScannerEngineInputGenerator.ReportFilePathsCSharpPropertyKey;
         }
         else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey;
+            property = ScannerEngineInputGenerator.ReportFilePathsVbNetPropertyKey;
         }
         else
         {

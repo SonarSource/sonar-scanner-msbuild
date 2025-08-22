@@ -23,12 +23,12 @@ using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
-public partial class PropertiesFileGeneratorTests
+public partial class ScannerEngineInputGeneratorTest
 {
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_AllInRoot_NoWarning()
     {
-        var sut = new PropertiesFileGenerator(new(), logger);
+        var sut = new ScannerEngineInputGenerator(new(), logger);
         var projectPaths = new[]
         {
             new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Lib")),
@@ -47,7 +47,7 @@ public partial class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_ProjectOutsideRoot_LogsWarning()
     {
-        var sut = new PropertiesFileGenerator(new(), logger);
+        var sut = new ScannerEngineInputGenerator(new(), logger);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Src"),
@@ -68,7 +68,7 @@ public partial class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_NoBestCommonRoot_ReturnsNull()
     {
-        var sut = new PropertiesFileGenerator(new AnalysisConfig(), logger);
+        var sut = new ScannerEngineInputGenerator(new AnalysisConfig(), logger);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\RootOnce"),
@@ -85,7 +85,7 @@ public partial class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_AllFilesInWorkingDirectory()
     {
-        var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Projects") }, logger);
+        var sut = new ScannerEngineInputGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Projects") }, logger);
         var projectPaths = new[]
         {
             new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Lib")),
@@ -102,7 +102,7 @@ public partial class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_FallsBackToCommonPath()
     {
-        var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Solution", "Net") }, logger);
+        var sut = new ScannerEngineInputGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Solution", "Net") }, logger);
         var projectPaths = new[]
         {
             new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Lib")),
@@ -131,7 +131,7 @@ public partial class PropertiesFileGeneratorTests
         var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
         runtimeInformationWrapper.IsOS(OSPlatform.Windows).Returns(false);
         var additionalFileService = Substitute.For<IAdditionalFilesService>();
-        var sut = new PropertiesFileGenerator(new() { SonarOutputDir = @"C:\fallback" }, logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
+        var sut = new ScannerEngineInputGenerator(new() { SonarOutputDir = @"C:\fallback" }, logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),
@@ -153,7 +153,7 @@ public partial class PropertiesFileGeneratorTests
         var runtimeInformationWrapper = Substitute.For<IRuntimeInformationWrapper>();
         runtimeInformationWrapper.IsOS(OSPlatform.Windows).Returns(true);
         var additionalFileService = Substitute.For<IAdditionalFilesService>();
-        var sut = new PropertiesFileGenerator(new(), logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
+        var sut = new ScannerEngineInputGenerator(new(), logger, new RoslynV1SarifFixer(logger), runtimeInformationWrapper, additionalFileService);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),
@@ -171,7 +171,7 @@ public partial class PropertiesFileGeneratorTests
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_NoCommonRoot()
     {
-        var sut = new PropertiesFileGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Solution" }, logger);
+        var sut = new ScannerEngineInputGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Solution" }, logger);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Solution\Net\Name\Lib"),
@@ -217,7 +217,7 @@ public partial class PropertiesFileGeneratorTests
             scope.SetVariable("SONARQUBE_SCANNER_PARAMS", $$"""{"{{projectBaseDirKey}}": "{{scannerEnv}}"}""");
         }
 
-        new PropertiesFileGenerator(config, logger).ComputeProjectBaseDir([]).Name.Should().Be(expected);
+        new ScannerEngineInputGenerator(config, logger).ComputeProjectBaseDir([]).Name.Should().Be(expected);
         logger.DebugMessages.Should().ContainSingle(x => x.StartsWith("Using user supplied project base directory:"));
     }
 
@@ -229,7 +229,7 @@ public partial class PropertiesFileGeneratorTests
         config.SourcesDirectory = teamBuildValue;
         config.LocalSettings ??= new();
         config.LocalSettings.Add(new(SonarProperties.ProjectBaseDir, userValue));
-        return new PropertiesFileGenerator(config, logger).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())?.FullName;
+        return new ScannerEngineInputGenerator(config, logger).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())?.FullName;
     }
 
     private static void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths) =>
