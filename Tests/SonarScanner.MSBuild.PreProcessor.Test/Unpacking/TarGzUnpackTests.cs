@@ -19,9 +19,8 @@
  */
 
 using ICSharpCode.SharpZipLib.Core;
-using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
+namespace SonarScanner.MSBuild.PreProcessor.Unpacking.Test;
 
 [TestClass]
 public class TarGzUnpackTests
@@ -29,12 +28,7 @@ public class TarGzUnpackTests
     private readonly TestLogger logger = new();
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
-    private readonly OperatingSystemProvider operatingSystem;
-
-    public TarGzUnpackTests()
-    {
-        operatingSystem = Substitute.For<OperatingSystemProvider>(fileWrapper, directoryWrapper);
-    }
+    private readonly OperatingSystemProvider operatingSystem = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
 
     [TestMethod]
     public void TarGzUnpacking_Success_CopyFilePermissions_Fails()
