@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using System.IO.Compression;
 using Google.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.EngineResolution;
@@ -354,7 +353,7 @@ public class SonarCloudWebServerTest
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StreamContent(responseStream) };
         var context = new Context(new HttpMessageHandlerMock((_, _) => Task.FromResult(response)));
 
-        var actual = await context.Server.DownloadJreAsync(CreateJreMetadata("http://localhost/path-to-jre"));
+        var actual = await context.Server.DownloadJreAsync(CreateJreMetadata(new("http://localhost/path-to-jre")));
 
         using var stream = new MemoryStream(); // actual is not a memory stream because of how HttpClient reads it from the handler.
         await actual.CopyToAsync(stream);
@@ -366,7 +365,7 @@ public class SonarCloudWebServerTest
     [TestMethod]
     public async Task DownloadJreAsync_DownloadThrows_Failure() =>
         await new Context(new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new HttpRequestException()))).Server
-            .Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata("http://local")))
+            .Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata(new("http://local"))))
             .Should().ThrowAsync<HttpRequestException>();
 
     [TestMethod]
@@ -386,7 +385,7 @@ public class SonarCloudWebServerTest
         var context = new Context(new HttpMessageHandlerMock((_, _) => Task.FromResult(response)));
 
         var actual = await context.Server
-            .DownloadEngineAsync(CreateEngineMetadata("http://localhost/path-to-engine"));
+            .DownloadEngineAsync(CreateEngineMetadata(new("http://localhost/path-to-engine")));
 
         using var stream = new MemoryStream(); // actual is not a memory stream because of how HttpClient reads it from the handler.
         await actual.CopyToAsync(stream);
@@ -398,7 +397,7 @@ public class SonarCloudWebServerTest
     [TestMethod]
     public async Task DownloadEngineAsync_DownloadThrows_Failure() =>
         await new Context(new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new HttpRequestException()))).Server
-            .Invoking(async x => await x.DownloadEngineAsync(CreateEngineMetadata("http://localhost/path-to-engine")))
+            .Invoking(async x => await x.DownloadEngineAsync(CreateEngineMetadata(new("http://localhost/path-to-engine"))))
             .Should().ThrowAsync<HttpRequestException>();
 
     [TestMethod]
@@ -468,7 +467,7 @@ public class SonarCloudWebServerTest
         return args;
     }
 
-    private static JreMetadata CreateJreMetadata(string url) =>
+    private static JreMetadata CreateJreMetadata(Uri url) =>
         new(null, null, null, url, null);
 
     private static EngineMetadata CreateEngineMetadata(Uri url) =>
