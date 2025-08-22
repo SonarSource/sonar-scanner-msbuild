@@ -30,14 +30,14 @@ public class JreDownloader
     private readonly CachedDownloader cachedDownloader;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly IUnpackerFactory unpackerFactory;
+    private readonly UnpackerFactory unpackerFactory;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
 
     public JreDownloader(ILogger logger,
                          CachedDownloader cachedDownloader,
                          IDirectoryWrapper directoryWrapper,
                          IFileWrapper fileWrapper,
-                         IUnpackerFactory unpackerFactory,
+                         UnpackerFactory unpackerFactory,
                          IFilePermissionsWrapper filePermissionsWrapper)
     {
         this.logger = logger;
