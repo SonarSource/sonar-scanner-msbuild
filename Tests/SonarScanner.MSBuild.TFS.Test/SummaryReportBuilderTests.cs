@@ -36,10 +36,14 @@ public class SummaryReportBuilderTests
         testLogger = new TestLogger();
 
     [TestMethod]
-    public void Ctor_FactoryIsNull_Throws()
+    public void Ctor_NullParameter_Throws()
     {
-        FluentActions.Invoking(() => new SummaryReportBuilder(null, testLogger)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
-        FluentActions.Invoking(() => new SummaryReportBuilder(Substitute.For<ILegacyTeamBuildFactory>(), null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        var cnfg = Substitute.For<AnalysisConfig>();
+        var ltbf = Substitute.For<ILegacyTeamBuildFactory>();
+        var lggr = Substitute.For<ILogger>();
+        FluentActions.Invoking(() => new SummaryReportBuilder(null, cnfg, lggr)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
+        FluentActions.Invoking(() => new SummaryReportBuilder(ltbf, null, lggr)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        FluentActions.Invoking(() => new SummaryReportBuilder(ltbf, cnfg, null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -131,9 +135,9 @@ public class SummaryReportBuilderTests
             BuildEnvironment = BuildEnvironment.LegacyTeamBuild
         };
         var summaryLogger = new MockLegacyBuildSummaryLogger();
-        var builder = new SummaryReportBuilder(new MockLegacyTeamBuildFactory(summaryLogger, null), new TestLogger());
+        var builder = new SummaryReportBuilder(new MockLegacyTeamBuildFactory(summaryLogger, null), config, new TestLogger());
         config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
-        builder.GenerateReports(settings, config, result.RanToCompletion, result.FullPropertiesFilePath);
+        builder.GenerateReports(settings, result.RanToCompletion, result.FullPropertiesFilePath);
 
         summaryLogger.Messages[0].Should().Be("** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for .NET **");
     }

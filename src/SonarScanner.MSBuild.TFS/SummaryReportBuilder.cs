@@ -33,32 +33,33 @@ public class SummaryReportBuilder
     private const string DashboardUrlFormatWithBranch = "{0}/dashboard/index/{1}:{2}";
 
     private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
+    private readonly AnalysisConfig config;
     private readonly ILogger logger;
 
-    public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, ILogger logger)
+    public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, AnalysisConfig config, ILogger logger)
     {
         this.legacyTeamBuildFactory = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
+        this.config = config ?? throw new ArgumentNullException(nameof(config));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
     /// Generates summary reports for LegacyTeamBuild and for Build VNext.
     /// </summary>
-    public virtual void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath)
+    public virtual void GenerateReports(IBuildSettings settings, bool ranToCompletion, string fullPropertiesFilePath)
     {
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
-        _ = config ?? throw new ArgumentNullException(nameof(config));
         var engineInput = new ScannerEngineInput(config);
         // ToDo: SCAN4NET-778 Untangle this mess. TryWriteProperties only needs project list, result doesn't need to be here at all
         new ScannerEngineInputGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), engineInput, out var allProjects);
         var result = new ProjectInfoAnalysisResult(allProjects, engineInput, fullPropertiesFilePath) { RanToCompletion = ranToCompletion };
         if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
-            UpdateLegacyTeamBuildSummary(config, new SummaryReportData(config, result, logger));
+            UpdateLegacyTeamBuildSummary(new SummaryReportData(config, result, logger));
         }
     }
 
-    private void UpdateLegacyTeamBuildSummary(AnalysisConfig config, SummaryReportData summary)
+    private void UpdateLegacyTeamBuildSummary(SummaryReportData summary)
     {
         logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
         using var summaryLogger = legacyTeamBuildFactory.BuildLegacyBuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri());
@@ -78,14 +79,14 @@ public class SummaryReportBuilder
 
     public class SummaryReportData
     {
-        public int ProductProjects { get; set; }
-        public int TestProjects { get; set; }
-        public int InvalidProjects { get; set; }
-        public int SkippedProjects { get; set; }
-        public int ExcludedProjects { get; set; }
-        public bool Succeeded { get; set; }
-        public string DashboardUrl { get; set; } // should be Uri https://github.com/SonarSource/sonar-scanner-msbuild/issues/1252
-        public string ProjectDescription { get; set; }
+        public int ProductProjects { get; }
+        public int TestProjects { get; }
+        public int InvalidProjects { get; }
+        public int SkippedProjects { get; }
+        public int ExcludedProjects { get; }
+        public bool Succeeded { get; }
+        public string DashboardUrl { get; } // should be Uri https://github.com/SonarSource/sonar-scanner-msbuild/issues/1252
+        public string ProjectDescription { get; }
 
         public SummaryReportData(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
         {

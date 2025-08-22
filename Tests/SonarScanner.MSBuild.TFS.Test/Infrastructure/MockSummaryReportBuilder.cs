@@ -26,9 +26,9 @@ internal class MockSummaryReportBuilder : SummaryReportBuilder
 {
     private bool methodCalled;
 
-    public MockSummaryReportBuilder() : base(Substitute.For<ILegacyTeamBuildFactory>(), Substitute.For<ILogger>()) { }
+    public MockSummaryReportBuilder() : base(Substitute.For<ILegacyTeamBuildFactory>(), Substitute.For<AnalysisConfig>(), Substitute.For<ILogger>()) { }
 
-    public override void GenerateReports(IBuildSettings settings, AnalysisConfig config, bool ranToCompletion, string fullPropertiesFilePath)
+    public override void GenerateReports(IBuildSettings settings, bool ranToCompletion, string fullPropertiesFilePath)
     {
         methodCalled.Should().BeFalse("Generate reports has already been called");
         methodCalled = true;

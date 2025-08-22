@@ -106,7 +106,7 @@ public class AnalysisConfigExtensionsTests
     public void ConfigExt_AnalysisSettings_LocalOnly()
     {
         // Check that local settings are always retrieved by AnalysisSettings
-        var testLogger = new TestLogger();
+        var logger = new TestLogger();
         var config = new AnalysisConfig
         {
             LocalSettings = [
@@ -116,13 +116,13 @@ public class AnalysisConfigExtensionsTests
         };
 
         // Local only
-        var localProperties = config.AnalysisSettings(false, testLogger);
+        var localProperties = config.AnalysisSettings(false, logger);
         localProperties.AssertExpectedPropertyCount(2);
         localProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
         localProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
 
         // Local and server
-        var allProperties = config.AnalysisSettings(true, testLogger);
+        var allProperties = config.AnalysisSettings(true, logger);
         allProperties.AssertExpectedPropertyCount(2);
         allProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
         allProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -132,7 +132,7 @@ public class AnalysisConfigExtensionsTests
     public void ConfigExt_AnalysisSettings_ServerOnly()
     {
         // Check that local settings are only retrieved by AnalysisSettings if includeServerSettings is true
-        var testLogger = new TestLogger();
+        var logger = new TestLogger();
         var config = new AnalysisConfig
         {
             ServerSettings = [
@@ -142,14 +142,14 @@ public class AnalysisConfigExtensionsTests
         };
 
         // Local only
-        var localProperties = config.AnalysisSettings(false, testLogger);
+        var localProperties = config.AnalysisSettings(false, logger);
         localProperties.AssertExpectedPropertyCount(0);
 
         localProperties.AssertPropertyDoesNotExist("server.1");
         localProperties.AssertPropertyDoesNotExist("server.2");
 
         // Local and server
-        var allProperties = config.AnalysisSettings(true, testLogger);
+        var allProperties = config.AnalysisSettings(true, logger);
         allProperties.AssertExpectedPropertyCount(2);
         allProperties.AssertExpectedPropertyValue("server.1", "server.value.1");
         allProperties.AssertExpectedPropertyValue("server.2", "server.value.2");
@@ -160,10 +160,8 @@ public class AnalysisConfigExtensionsTests
     {
         // Check that file settings are always retrieved by AnalysisSettings and that the file name config property is set and retrieved correctly
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var testLogger = new TestLogger();
+        var logger = new TestLogger();
         var config = new AnalysisConfig();
-
-        // File settings
         var fileSettings = new AnalysisProperties
         {
             new("file.1", "file.value.1"),
@@ -171,14 +169,12 @@ public class AnalysisConfigExtensionsTests
         };
         var settingsFilePath = Path.Combine(testDir, "settings.txt");
         fileSettings.Save(settingsFilePath);
-
         config.GetSettingsFilePath().Should().BeNull("Expecting the settings file path to be null");
-
         config.SetSettingsFilePath(settingsFilePath);
         config.GetSettingsFilePath().Should().Be(settingsFilePath, "Unexpected settings file path value returned");
 
         // Check file properties are retrieved
-        var provider = config.AnalysisSettings(false, testLogger);
+        var provider = config.AnalysisSettings(false, logger);
         provider.AssertExpectedPropertyCount(2);
         provider.AssertExpectedPropertyValue("file.1", "file.value.1");
         provider.AssertExpectedPropertyValue("file.2", "file.value.2");
@@ -190,8 +186,7 @@ public class AnalysisConfigExtensionsTests
         // Expected precedence: local -> file -> server
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var config = new AnalysisConfig();
-        var testLogger = new TestLogger();
-        // File settings
+        var logger = new TestLogger();
         var fileSettings = new AnalysisProperties
         {
             new("file.1", "file.value.1"),
@@ -201,13 +196,11 @@ public class AnalysisConfigExtensionsTests
         var settingsFilePath = Path.Combine(testDir, "settings.txt");
         fileSettings.Save(settingsFilePath);
         config.SetSettingsFilePath(settingsFilePath);
-        // Local settings
         config.LocalSettings = [
             new("local.1", "local.value.1"),
             new("local.2", "local.value.2"),
             new("shared.property", "shared value from local")
         ];
-        // Server settings
         config.ServerSettings = [
             new("server.1", "server.value.1"),
             new("server.2", "server.value.2"),
@@ -216,7 +209,7 @@ public class AnalysisConfigExtensionsTests
         ];
 
         // Precedence - local should win over file
-        var provider = config.AnalysisSettings(false, testLogger);
+        var provider = config.AnalysisSettings(false, logger);
         provider.AssertExpectedPropertyCount(5);
         provider.AssertExpectedPropertyValue("local.1", "local.value.1");
         provider.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -228,7 +221,7 @@ public class AnalysisConfigExtensionsTests
         provider.AssertPropertyDoesNotExist("server.2");
 
         // Server and non-server
-        provider = config.AnalysisSettings(true, testLogger);
+        provider = config.AnalysisSettings(true, logger);
         provider.AssertExpectedPropertyCount(7);
         provider.AssertExpectedPropertyValue("local.1", "local.value.1");
         provider.AssertExpectedPropertyValue("local.2", "local.value.2");
@@ -242,16 +235,16 @@ public class AnalysisConfigExtensionsTests
     [TestMethod]
     public void ConfigExt_AnalysisSettings_NoSettings()
     {
-        var testLogger = new TestLogger();
+        var logger = new TestLogger();
         var config = new AnalysisConfig();
 
         // No server settings
-        var provider = config.AnalysisSettings(false, testLogger);
+        var provider = config.AnalysisSettings(false, logger);
         provider.Should().NotBeNull("Returned provider should not be null");
         provider.AssertExpectedPropertyCount(0);
 
         // With server settings
-        provider = config.AnalysisSettings(true, testLogger);
+        provider = config.AnalysisSettings(true, logger);
         provider.Should().NotBeNull("Returned provider should not be null");
         provider.AssertExpectedPropertyCount(0);
     }
@@ -286,11 +279,11 @@ public class AnalysisConfigExtensionsTests
     public void ConfigExt_GetSettingOrDefault_NoSetting_DefaultIsReturned()
     {
         var config = new AnalysisConfig { ServerSettings = new AnalysisProperties { new("id", "value") } };
-        var testLogger = new TestLogger();
-        ConfigSettingsExtensions.GetSettingOrDefault(config, "missing", true, "default", testLogger).Should().Be("default");
-        ConfigSettingsExtensions.GetSettingOrDefault(config, "missing", true, null, testLogger).Should().BeNull();
-        ConfigSettingsExtensions.GetSettingOrDefault(config, "ID", true, "default", testLogger).Should().Be("default");
-        ConfigSettingsExtensions.GetSettingOrDefault(config, "id", false, "default", testLogger).Should().Be("default");
+        var logger = new TestLogger();
+        ConfigSettingsExtensions.GetSettingOrDefault(config, "missing", true, "default", logger).Should().Be("default");
+        ConfigSettingsExtensions.GetSettingOrDefault(config, "missing", true, null, logger).Should().BeNull();
+        ConfigSettingsExtensions.GetSettingOrDefault(config, "ID", true, "default", logger).Should().Be("default");
+        ConfigSettingsExtensions.GetSettingOrDefault(config, "id", false, "default", logger).Should().Be("default");
     }
 
     [TestMethod]
@@ -301,10 +294,10 @@ public class AnalysisConfigExtensionsTests
             ServerSettings = new AnalysisProperties { new("id1", "server value") },
             LocalSettings = new AnalysisProperties { new("id1", "local value") }
         };
-        var testLogger = new TestLogger();
+        var logger = new TestLogger();
 
         // Local value should take precedence
-        var result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, "local value", testLogger);
+        var result = ConfigSettingsExtensions.GetSettingOrDefault(config, "id1", true, "local value", logger);
         result.Should().Be("local value");
     }
 }

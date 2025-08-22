@@ -82,8 +82,8 @@ public static class Program
                                              bool ranToCompletion,
                                              string fullPropertiesFilePath)
     {
-        var reportBuilder = new SummaryReportBuilder(teamBuildFactory, logger);
-        reportBuilder.GenerateReports(buildSettings, config, ranToCompletion, fullPropertiesFilePath);
+        var reportBuilder = new SummaryReportBuilder(teamBuildFactory, config, logger);
+        reportBuilder.GenerateReports(buildSettings, ranToCompletion, fullPropertiesFilePath);
     }
 
     private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, IBuildSettings buildSettings, string fullPropertiesFilePath)
