@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
-using System.Threading;
 using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
@@ -40,6 +38,7 @@ public class JreDownloaderTests
     private readonly IChecksum checksum;
     private readonly IUnpacker unpacker;
     private readonly IFilePermissionsWrapper filePermissionsWrapper;
+    private readonly MemoryStream failingStream;
 
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.createdirectory
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.file.create
@@ -66,6 +65,8 @@ public class JreDownloaderTests
         checksum = Substitute.For<IChecksum>();
         unpacker = Substitute.For<IUnpacker>();
         filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
+        failingStream = Substitute.For<MemoryStream>();
+        failingStream.CopyToAsync(null, default, default).ThrowsAsyncForAnyArgs(new InvalidOperationException("Download failure simulation."));
     }
 
     [TestMethod]
@@ -208,7 +209,7 @@ public class JreDownloaderTests
         fileWrapper.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileContentStream);
         using var content = new MemoryStream(downloadContentArray);
 
-        var result = await ExecuteDownloadAndUnpack(content: content);
+        var result = await ExecuteDownloadAndUnpack(content);
 
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
@@ -235,13 +236,13 @@ public class JreDownloaderTests
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
         var downloadContentArray = new byte[] { 1, 2, 3 };
-        var targzUnpacker = UnpackerFactory.Instance.Create(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, filePermissionsWrapper, file);
+        var targzUnpacker = new TarGzUnpacker(testLogger, directoryWrapperIO, fileWrapperIO, filePermissionsWrapper);
 
         var sut = new JreDownloader(testLogger, directoryWrapperIO, fileWrapperIO, targzUnpacker, ChecksumSha256.Instance, home, new JreDescriptor("filename.tar.gz", sha, "javaPath"));
         try
         {
             using var content = new MemoryStream(downloadContentArray);
-            var result = await ExecuteDownloadAndUnpack(sut, content: content);
+            var result = await sut.DownloadJreAsync(() => Task.FromResult<Stream>(content));
             result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
                 + "'The checksum of the downloaded file does not match the expected checksum.'.");
             File.Exists(file).Should().BeFalse();
@@ -270,15 +271,12 @@ public class JreDownloaderTests
         var file = Path.Combine(jre, "filename.tar.gz");
         var directoryWrapperIO = DirectoryWrapper.Instance; // Do real I/O operations in this test and only fake the download.
         var fileWrapperIO = FileWrapper.Instance;
-        var targzUnpacker = UnpackerFactory.Instance.Create(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, filePermissionsWrapper, file);
-        var failingStream = Substitute.For<MemoryStream>();
-        failingStream.When(x => x.CopyToAsync(Arg.Any<Stream>(), Arg.Any<int>(), Arg.Any<CancellationToken>()))
-            .Do(x => throw new InvalidOperationException("Download failure simulation."));
+        var targzUnpacker = new TarGzUnpacker(testLogger, directoryWrapperIO, fileWrapperIO, filePermissionsWrapper);
 
         var sut = new JreDownloader(testLogger, directoryWrapperIO, fileWrapperIO, targzUnpacker, ChecksumSha256.Instance, home, new JreDescriptor("filename.tar.gz", sha, "javaPath"));
         try
         {
-            var result = await ExecuteDownloadAndUnpack(sut, content: failingStream);
+            var result = await sut.DownloadJreAsync(() => Task.FromResult<Stream>(failingStream));
 
             result.Should().BeOfType<DownloadError>().Which.Message.Should().Be(
                 @"The download of the file from the server failed with the exception 'Download failure simulation.'.");
@@ -329,11 +327,8 @@ public class JreDownloaderTests
         fileWrapper.Exists($@"{ShaPath}\filename.tar.gz").Returns(false);
         fileWrapper.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(new MemoryStream());
         fileWrapper.When(x => x.Delete(Path.Combine(ShaPath, "xFirst.rnd"))).Do(x => throw ((Exception)Activator.CreateInstance(exceptionType)));
-        var failingStream = Substitute.For<MemoryStream>();
-        failingStream.When(x => x.CopyToAsync(Arg.Any<Stream>(), Arg.Any<int>(), Arg.Any<CancellationToken>()))
-            .Do(x => throw new InvalidOperationException("Download failure simulation."));
 
-        var result = await ExecuteDownloadAndUnpack(content: failingStream);
+        var result = await ExecuteDownloadAndUnpack(failingStream);
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The download of the file from the server failed with the "
             + "exception 'Download failure simulation.'."); // The exception from the failed temp file delete is not visible to the user.
         fileWrapper.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -352,11 +347,7 @@ public class JreDownloaderTests
         fileStream.When(x => x.Close()).Throw(x => new ObjectDisposedException("stream"));
         fileWrapper.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileStream);
 
-        var failingStream = Substitute.For<MemoryStream>();
-        failingStream.When(x => x.Read(Arg.Any<byte[]>(), Arg.Any<int>(), Arg.Any<int>()))
-            .Do(x => throw new InvalidOperationException("Download failure simulation."));
-
-        var result = await ExecuteDownloadAndUnpack(content: failingStream);
+        var result = await ExecuteDownloadAndUnpack(failingStream);
         result.Should().BeOfType<DownloadError>().Which.Message.Replace(Environment.NewLine, string.Empty).Should().Be("""
             The download of the file from the server failed with the exception 'Cannot access a disposed object.Object name: 'stream'.'.
             """); // This should actually read "Download failure simulation." because the ObjectDisposedException is actually swallowed.
@@ -382,11 +373,8 @@ public class JreDownloaderTests
         fileWrapper.Exists(Path.Combine(ShaPath, "filename.tar.gz")).Returns(false);
         var fileContentStream = new MemoryStream();
         fileWrapper.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileContentStream);
-        var failingStream = Substitute.For<MemoryStream>();
-        failingStream.When(x => x.CopyToAsync(Arg.Any<Stream>(), Arg.Any<int>(), Arg.Any<CancellationToken>()))
-            .Do(x => throw new InvalidOperationException("Download failure simulation."));
 
-        var result = await ExecuteDownloadAndUnpack(content: failingStream);
+        var result = await ExecuteDownloadAndUnpack(failingStream);
 
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The download of the file from the server failed with the exception 'Download failure simulation.'.");
         fileWrapper.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -437,7 +425,7 @@ public class JreDownloaderTests
         checksum.ComputeHash(computeHashStream).Returns("sha256");
         using var content = new MemoryStream([1, 2, 3]);
 
-        var result = await ExecuteDownloadAndUnpack(content: content);
+        var result = await ExecuteDownloadAndUnpack(content);
 
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be($"The download of the file from the server failed with the exception '{exception.Message}'.");
         fileWrapper.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -783,9 +771,8 @@ public class JreDownloaderTests
         var sha = "b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip";
         var jreDescriptor = new JreDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
-        var zipUnpacker = UnpackerFactory.Instance.Create(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, filePermissionsWrapper, file);
 
-        var sut = new JreDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance,  zipUnpacker, ChecksumSha256.Instance, home, jreDescriptor);
+        var sut = new JreDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, new ZipUnpacker(), ChecksumSha256.Instance, home, jreDescriptor);
 
         try
         {
@@ -837,7 +824,7 @@ public class JreDownloaderTests
         var sha = "347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz";
         var jreDescriptor = new JreDescriptor(file, sha, Path.Combine("jdk-17.0.11+9-jre", "bin", "java.exe"));
-        var targzUnpacker = UnpackerFactory.Instance.Create(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, filePermissionsWrapper, file);
+        var targzUnpacker = new TarGzUnpacker(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, filePermissionsWrapper);
 
         var sut = new JreDownloader(testLogger, DirectoryWrapper.Instance, FileWrapper.Instance, targzUnpacker, ChecksumSha256.Instance, home, jreDescriptor);
 
@@ -874,10 +861,10 @@ public class JreDownloaderTests
         }
     }
 
-    private async Task<DownloadResult> ExecuteDownloadAndUnpack(JreDownloader downloader = null, JreDescriptor descriptor = null, MemoryStream content = null)
+    private async Task<DownloadResult> ExecuteDownloadAndUnpack(MemoryStream content = null, JreDescriptor descriptor = null)
     {
         var jreDescriptor = descriptor ?? new JreDescriptor("filename.tar.gz", "sha256", "javaPath");
-        var sut = downloader ?? CreateSutWithSubstitutes(jreDescriptor);
+        var sut = CreateSutWithSubstitutes(jreDescriptor);
         var memoryStream = content ?? new MemoryStream();
         return await sut.DownloadJreAsync(() => Task.FromResult<Stream>(memoryStream));
     }

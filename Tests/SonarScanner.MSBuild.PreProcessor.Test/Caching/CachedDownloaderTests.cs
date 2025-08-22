@@ -66,7 +66,7 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var cacheRoot = cachedDownloader.EnsureCacheRoot();
 
-        cacheRoot.Should().Be(SonarUserHomeCache);
+        cacheRoot.Should().BeTrue();
         directoryWrapper.Received(1).Exists(SonarUserHomeCache);
         directoryWrapper.Received(1).CreateDirectory(SonarUserHomeCache);
     }
@@ -78,7 +78,7 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var cacheRoot = cachedDownloader.EnsureCacheRoot();
 
-        cacheRoot.Should().Be(SonarUserHomeCache);
+        cacheRoot.Should().BeTrue();
         directoryWrapper.Received(1).Exists(SonarUserHomeCache);
         directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
@@ -91,50 +91,12 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var cacheRoot = cachedDownloader.EnsureCacheRoot();
 
-        cacheRoot.Should().BeNull();
+        cacheRoot.Should().BeFalse();
         directoryWrapper.Received(1).Exists(SonarUserHomeCache);
         directoryWrapper.Received(1).CreateDirectory(SonarUserHomeCache);
     }
 
-    [TestMethod]
-    public void EnsureDirectoryExists_DirectoryDoesNotExist_CreatesDirectory()
-    {
-        var dir = "some/dir";
-        directoryWrapper.Exists(dir).Returns(false);
 
-        var result = cachedDownloader.EnsureDirectoryExists(dir);
-
-        result.Should().Be(dir);
-        directoryWrapper.Received(1).Exists(dir);
-        directoryWrapper.Received(1).CreateDirectory(dir);
-    }
-
-    [TestMethod]
-    public void EnsureDirectoryExists_DirectoryExists_DoesNotCreateDirectory()
-    {
-        var dir = "some/dir";
-        directoryWrapper.Exists(dir).Returns(true);
-
-        var result = cachedDownloader.EnsureDirectoryExists(dir);
-
-        result.Should().Be(dir);
-        directoryWrapper.Received(1).Exists(dir);
-        directoryWrapper.DidNotReceive().CreateDirectory(Arg.Any<string>());
-    }
-
-    [TestMethod]
-    public void EnsureDirectoryExists_CreateDirectoryFails_ReturnsNull()
-    {
-        var dir = "some/dir";
-        directoryWrapper.Exists(dir).Returns(false);
-        directoryWrapper.When(x => x.CreateDirectory(dir)).Throw<IOException>();
-
-        var result = cachedDownloader.EnsureDirectoryExists(dir);
-
-        result.Should().BeNull();
-        directoryWrapper.Received(1).Exists(dir);
-        directoryWrapper.Received(1).CreateDirectory(dir);
-    }
 
     [TestMethod]
     public void CacheRoot_ExpectedPath_IsReturned() =>

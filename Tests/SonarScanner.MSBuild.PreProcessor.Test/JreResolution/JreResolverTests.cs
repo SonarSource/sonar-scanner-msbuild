@@ -62,7 +62,7 @@ public class JreResolverTests
         server.SupportsJreProvisioning.Returns(true);
         unpackerFactory = Substitute.For<IUnpackerFactory>();
 
-        sut = new JreResolver(server, logger, filePermissionsWrapper, checksum, SonarUserHome,  unpackerFactory, directoryWrapper, fileWrapper);
+        sut = new JreResolver(server, logger, filePermissionsWrapper, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
     }
 
     [TestMethod]
@@ -176,7 +176,7 @@ public class JreResolverTests
         // mocks successful download from the server, and unpacking of the jre.
         server.DownloadJreAsync(metadata).Returns(content);
         directoryWrapper.GetRandomFileName().Returns("tempFile.zip");
-        fileWrapper.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true);
+        fileWrapper.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
         fileWrapper.Create(tempArchive).Returns(new MemoryStream());
         fileWrapper.Open(tempArchive).Returns(computeHashStream);
         checksum.ComputeHash(computeHashStream).Returns("sha256");
