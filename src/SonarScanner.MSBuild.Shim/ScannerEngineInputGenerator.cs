@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Shim.Interfaces;
 using EncodingProvider = SonarScanner.MSBuild.Common.EncodingProvider;
 
@@ -43,7 +41,7 @@ public class ScannerEngineInputGenerator
     private readonly AnalysisConfig analysisConfig;
     private readonly ILogger logger;
     private readonly IRoslynV1SarifFixer fixer;
-    private readonly IRuntimeInformationWrapper runtimeInformationWrapper;
+    private readonly RuntimeInformationWrapper runtimeInformation;
     private readonly IAdditionalFilesService additionalFilesService;
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
@@ -56,15 +54,15 @@ public class ScannerEngineInputGenerator
     internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
                                          ILogger logger,
                                          IRoslynV1SarifFixer fixer,
-                                         IRuntimeInformationWrapper runtimeInformationWrapper,
+                                         RuntimeInformationWrapper runtimeInformation,
                                          IAdditionalFilesService additionalFilesService)
     {
         this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
-        this.runtimeInformationWrapper = runtimeInformationWrapper ?? throw new ArgumentNullException(nameof(runtimeInformationWrapper));
+        this.runtimeInformation = runtimeInformation ?? throw new ArgumentNullException(nameof(runtimeInformation));
         this.additionalFilesService = additionalFilesService ?? throw new ArgumentNullException(nameof(additionalFilesService));
-        if (runtimeInformationWrapper.IsOS(OSPlatform.Windows))
+        if (runtimeInformation.IsWindows)
         {
             pathComparer = StringComparer.OrdinalIgnoreCase;
             pathComparison = StringComparison.OrdinalIgnoreCase;
@@ -266,7 +264,7 @@ public class ScannerEngineInputGenerator
             Status = ProjectInfoValidity.ExcludeFlagSet
         };
         // Find projects with different paths within the same group
-        var isWindows = runtimeInformationWrapper.IsOS(OSPlatform.Windows);
+        var isWindows = runtimeInformation.IsWindows;
         var projectPathsInGroup = projectsGroupedByGuid
             .Select(x => isWindows ? x.FullPath?.ToLowerInvariant() : x.FullPath)
             .Distinct()

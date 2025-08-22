@@ -86,62 +86,44 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedProjectCount(1, result);
     }
 
-    // Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
-    [TestCategory(TestCategories.NoLinux)]
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    public void GenerateFile_Duplicate_SameGuid_DifferentCase_ShouldNotIgnoreCase()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void GenerateFile_Duplicate_SameGuid_DifferentCase(bool isWindows)
     {
-        var projectName1 = "withFiles1";
-        var projectName2 = "withFiles2";
-        var testRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "projects");
-        var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Path.Combine("projects", projectName1));
-        // Casing should not be ignored on non-windows OS
-        var runtimeInformation = Substitute.For<IRuntimeInformationWrapper>();
-        runtimeInformation.IsOS(OSPlatform.Windows).Returns(false);
         var guid = Guid.NewGuid();
-        var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, Path.Combine(project1Dir, "withoutfile.proj"), "UTF-8");
-        TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName2, null, guid, ProjectType.Product, false, Path.Combine(project1Dir, "withoutFile.proj"), "UTF-8"); // not excluded
-        // Create content / managed files if required
-        var contentFile1 = TestUtils.CreateEmptyFile(project1Dir, "contentFile1.txt");
-        var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", contentFile1);
-        TestUtils.AddAnalysisResult(contentProjectInfo1, AnalysisType.FilesToAnalyze, contentFileList1);
+        var testRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Projects");
+        var projectFileOrig = CreateProject("Project1", "DifferentCasing.proj");
+        var projectFileDiff = CreateProject("Project2", "dIFFERENTcASING.proj");    // Same file for windows, different for Unix
         var config = CreateValidConfig(testRootDir);
-        var result = CreateSut(config, runtimeInformationWrapper: runtimeInformation).GenerateFile();
+        var result = CreateSut(config, runtimeInformation: new MockRuntimeInformation(isWindows)).GenerateFile();
 
-        AssertExpectedStatus(projectName1, ProjectInfoValidity.DuplicateGuid, result);
         AssertExpectedProjectCount(1, result);
-        logger.Warnings.Should().HaveCount(2).And.BeEquivalentTo(
-            $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{Path.Combine(project1Dir, "withoutfile.proj")}\"",
-            $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{Path.Combine(project1Dir, "withoutFile.proj")}\"");
-    }
+        if (isWindows)
+        {
+            AssertExpectedStatus("Project1", ProjectInfoValidity.Valid, result);
+            logger.Warnings.Should().BeEmpty("Windows is case insensitive and all project files are considered the same");
+        }
+        else
+        {
+            // Casing should not be ignored on non-windows OS, none of those two different project files with the same GUID will be analyzed
+            AssertExpectedStatus("Project1", ProjectInfoValidity.DuplicateGuid, result);
+            logger.Warnings.Should().HaveCount(2).And.BeEquivalentTo(
+                $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{projectFileOrig}\"",
+                $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{projectFileDiff}\"");
+        }
 
-    // Case sensitive test is only relevant for Windows OS, as it is case insensitive by default
-    [TestCategory(TestCategories.NoLinux)]
-    [TestCategory(TestCategories.NoMacOS)]
-    [TestMethod]
-    public void GenerateFile_Duplicate_SameGuid_DifferentCase_ShouldIgnoreCase()
-    {
-        var projectName1 = "withFiles1";
-        var projectName2 = "withFiles2";
-        var testRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "projects");
-        var project1Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, Path.Combine("projects", projectName1));
-        // Casing can be ignored on windows OS
-        var runtimeInformation = Substitute.For<IRuntimeInformationWrapper>();
-        runtimeInformation.IsOS(OSPlatform.Windows).Returns(true);
-        var guid = Guid.NewGuid();
-        var contentProjectInfo1 = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName1, null, guid, ProjectType.Product, false, project1Dir + "\\withoutfile.proj", "UTF-8");
-        TestUtils.CreateEmptyFile(project1Dir, "withoutfile.proj");
-        TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName2, null, guid, ProjectType.Product, false, project1Dir + "\\withoutFile.proj", "UTF-8"); // not excluded
-        // Create content / managed files if required
-        var contentFile1 = TestUtils.CreateEmptyFile(project1Dir, "contentFile1.txt");
-        var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", contentFile1);
-        TestUtils.AddAnalysisResult(contentProjectInfo1, AnalysisType.FilesToAnalyze, contentFileList1);
-        var config = CreateValidConfig(testRootDir);
-        var result = CreateSut(config, runtimeInformationWrapper: runtimeInformation).GenerateFile();
-
-        AssertExpectedStatus(projectName1, ProjectInfoValidity.Valid, result);
-        AssertExpectedProjectCount(1, result);
+        string CreateProject(string projectName, string projectFileName)
+        {
+            var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "SameDirForBoth");
+            var projectFile = TestUtils.CreateEmptyFile(projectDir, projectFileName);
+            var projectInfo = TestUtils.CreateProjectInfoInSubDir(testRootDir, projectName, null, guid, ProjectType.Product, false, projectFile, "UTF-8");
+            // Create content / managed files to make it valid
+            var contentFile = TestUtils.CreateEmptyFile(projectDir, "ContentFile.txt");
+            var contentFileList = TestUtils.CreateFile(projectDir, "ContentList.txt", contentFile);
+            TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileList);
+            return projectFile;
+        }
     }
 
     [TestMethod]

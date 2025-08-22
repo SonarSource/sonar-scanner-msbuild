@@ -18,11 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
+namespace SonarScanner.MSBuild.Shim.Test;
 
-namespace SonarScanner.MSBuild.Common.Interfaces;
-
-public interface IRuntimeInformationWrapper
+internal class MockRuntimeInformation : RuntimeInformationWrapper
 {
-    bool IsOS(OSPlatform osPlatform);
+    public static MockRuntimeInformation Windows = new(true);
+    public static MockRuntimeInformation NonWindows = new(false);
+
+    public override bool IsWindows { get; }
+
+    public MockRuntimeInformation(bool isWindows) =>
+        IsWindows = isWindows;
 }
