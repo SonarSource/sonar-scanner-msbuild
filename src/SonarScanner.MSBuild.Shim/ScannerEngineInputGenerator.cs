@@ -94,7 +94,17 @@ public class ScannerEngineInputGenerator
         var legacyWriter = new PropertiesWriter(analysisConfig);
         var engineInput = new ScannerEngineInput(analysisConfig);
         logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
-        if (TryWriteProperties(legacyWriter, engineInput, ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray(), out var allProjects))
+        var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray();
+        if (projects.Length == 0)
+        {
+            logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
+            logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+            return new ProjectInfoAnalysisResult([]);
+        }
+        var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
+        FixSarifAndEncoding(projects, analysisProperties);
+        var allProjects = projects.ToProjectData(runtimeInformation.IsWindows, logger);
+        if (TryWriteProperties(analysisProperties, allProjects, legacyWriter, engineInput))
         {
             var contents = legacyWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
@@ -108,19 +118,8 @@ public class ScannerEngineInputGenerator
         }
     }
 
-    // ToDo: SCAN4NET-778 Untangle this mess. allProjects should be input, not an output here
-    public bool TryWriteProperties(PropertiesWriter legacyWriter, ScannerEngineInput engineInput, IList<ProjectInfo> projects, out ProjectData[] allProjects)
+    public bool TryWriteProperties(AnalysisProperties analysisProperties, ProjectData[] allProjects, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
     {
-        if (projects.Count == 0)
-        {
-            logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
-            allProjects = [];
-            return false;
-        }
-
-        var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
-        FixSarifAndEncoding(projects, analysisProperties);
-        allProjects = projects.GroupBy(x => x.ProjectGuid).Select(x => new ProjectData(x, runtimeInformation.IsWindows, logger)).ToArray();
         var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
         {

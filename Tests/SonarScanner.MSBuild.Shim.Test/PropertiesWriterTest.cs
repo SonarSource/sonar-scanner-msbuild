@@ -450,7 +450,7 @@ public class PropertiesWriterTest
 
         using (new AssertIgnoreScope())
         {
-            FluentActions.Invoking(() => writer.WriteSettingsForProject(new ProjectData(new[] { new ProjectInfo() }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>())))
+            FluentActions.Invoking(() => writer.WriteSettingsForProject(new[] { new ProjectInfo() }.ToProjectData(true, Substitute.For<ILogger>()).Single()))
                 .Should().ThrowExactly<InvalidOperationException>();
         }
     }
@@ -589,7 +589,7 @@ public class PropertiesWriterTest
             File.WriteAllLines(fileListFilePath, files.Select(x => x.FullName));
             projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, fileListFilePath);
         }
-        return new(new[] { projectInfo }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>());
+        return new[] { projectInfo }.ToProjectData(true, Substitute.For<ILogger>()).Single();
     }
 
     private static FileInfo CreateEmptyFile(string parentDir, string fileName) =>

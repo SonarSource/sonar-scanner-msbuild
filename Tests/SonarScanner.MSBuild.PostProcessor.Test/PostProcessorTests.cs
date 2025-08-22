@@ -398,7 +398,7 @@ public class PostProcessorTests
         var scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, logger);
 
         var projectInfoAnalysisResult = new ProjectInfoAnalysisResult(
-            [new(new[] { ProjectInfo.Load(projectInfo) }.GroupBy(x => x.ProjectGuid).Single(), true, logger)],
+            [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(true, logger).Single()],
             withProject ? scannerEngineInput : null,
             withProject ? Path.Combine(testDir, "sonar-project.properties") : null) { RanToCompletion = true };
         scannerEngineInputGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
