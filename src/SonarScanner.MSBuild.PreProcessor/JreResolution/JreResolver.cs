@@ -32,13 +32,11 @@ public class JreResolver : IJreResolver
     private readonly UnpackerFactory unpackerFactory;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly OperatingSystemProvider operatingSystem;
     private readonly IChecksum checksum;
     private readonly string sonarUserHome;
 
     public JreResolver(ISonarWebServer server,
                        ILogger logger,
-                       OperatingSystemProvider operatingSystem,
                        IChecksum checksum,
                        string sonarUserHome,
                        UnpackerFactory unpackerFactory = null,
@@ -47,10 +45,9 @@ public class JreResolver : IJreResolver
     {
         this.server = server;
         this.logger = logger;
-        this.operatingSystem = operatingSystem;
         this.checksum = checksum;
         this.sonarUserHome = sonarUserHome;
-        this.unpackerFactory = unpackerFactory ?? UnpackerFactory.Instance;
+        this.unpackerFactory = unpackerFactory ?? new UnpackerFactory(logger, new OperatingSystemProvider(FileWrapper.Instance, logger));
         this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
         this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
     }
@@ -84,7 +81,7 @@ public class JreResolver : IJreResolver
         }
 
         var descriptor = metadata.ToDescriptor();
-        if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, operatingSystem, descriptor.Filename) is { } unpacker)
+        if (unpackerFactory.Create(descriptor.Filename) is { } unpacker)
         {
             var jreDownloader = new JreDownloader(logger, directoryWrapper, fileWrapper, unpacker, checksum, sonarUserHome, descriptor);
             switch (jreDownloader.IsJreCached())

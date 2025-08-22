@@ -36,14 +36,13 @@ public class UnpackerFactoryTests
     [DataRow(@"/usr/File.tar.GZ", typeof(TarGzUnpacker))]
     public void SupportedFileExtensions(string fileName, Type expectedUnpacker)
     {
-        var sut = new UnpackerFactory();
-
-        var unpacker = sut.Create(
+        var sut = new UnpackerFactory(
             Substitute.For<ILogger>(),
-            Substitute.For<IDirectoryWrapper>(),
-            Substitute.For<IFileWrapper>(),
             Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
-            fileName);
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>());
+
+        var unpacker = sut.Create(fileName);
 
         unpacker.Should().BeOfType(expectedUnpacker);
     }
@@ -55,14 +54,13 @@ public class UnpackerFactoryTests
     [DataRow("File.tar")]
     public void UnsupportedFileExtensions(string fileName)
     {
-        var sut = new UnpackerFactory();
-
-        var unpacker = sut.Create(
+        var sut = new UnpackerFactory(
             Substitute.For<ILogger>(),
-            Substitute.For<IDirectoryWrapper>(),
-            Substitute.For<IFileWrapper>(),
             Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
-            fileName);
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>());
+
+        var unpacker = sut.Create(fileName);
 
         unpacker.Should().BeNull();
     }
