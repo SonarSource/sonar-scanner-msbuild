@@ -69,7 +69,6 @@ public class SonarCloudWebServerTest
         context.WebDownloader
             .Download("api/editions/is_valid_license")
             .Returns("""{ "isValidLicense": false }""");
-
         (await context.Server.IsServerLicenseValid()).Should().BeTrue();
     }
 
@@ -111,7 +110,6 @@ public class SonarCloudWebServerTest
                     }]
                 }
                 """)));
-
         var result = await context.Server.DownloadProperties("comp", null);
 
         result.Should().HaveCount(7);
@@ -171,7 +169,6 @@ public class SonarCloudWebServerTest
         using var stream = new MemoryStream();
         var handler = MockHttpHandler(CacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, CacheBaseUrl);
-
         await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, null, Organization, Token));
 
@@ -192,7 +189,6 @@ public class SonarCloudWebServerTest
         using var stream = new MemoryStream();
         var handler = MockHttpHandler(CacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, CacheBaseUrl);
-
         await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
@@ -209,7 +205,6 @@ public class SonarCloudWebServerTest
         using var stream = new MemoryStream();
         var handler = MockHttpHandler(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, cacheBaseUrl);
-
         var result = await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
@@ -226,7 +221,6 @@ public class SonarCloudWebServerTest
         using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
         var handler = MockHttpHandler(CacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, CacheBaseUrl);
-
         var result = await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token, tokenKey));
 
@@ -241,7 +235,6 @@ public class SonarCloudWebServerTest
     {
         var handler = MockHttpHandler(CacheFullUrl, "irrelevant", HttpStatusCode.Forbidden);
         var context = new Context(handler, CacheBaseUrl);
-
         var result = await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
@@ -255,7 +248,6 @@ public class SonarCloudWebServerTest
     {
         var handler = MockHttpHandler(CacheFullUrl, string.Empty);
         var context = new Context(handler, CacheBaseUrl);
-
         var result = await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
@@ -269,7 +261,6 @@ public class SonarCloudWebServerTest
     {
         var handler = MockHttpHandler(CacheFullUrl, @"{ ""enabled"": ""false"", ""url"":""https://www.sonarsource.com"" }");
         var context = new Context(handler, CacheBaseUrl);
-
         var result = await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
@@ -284,7 +275,6 @@ public class SonarCloudWebServerTest
     {
         var handler = MockHttpHandler(CacheFullUrl, @"{ ""enabled"": ""true"" }");
         var context = new Context(handler, CacheBaseUrl);
-
         var result = await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
@@ -299,7 +289,6 @@ public class SonarCloudWebServerTest
         using var stream = new MemoryStream([42, 42]); // this is a random byte array that fails deserialization
         var handler = MockHttpHandler(CacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, CacheBaseUrl);
-
         var result = await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
@@ -335,7 +324,6 @@ public class SonarCloudWebServerTest
                     }]
                 }
                 """);
-
         var rules = await context.Server.DownloadRules("qp");
 
         rules.Should().ContainSingle();
@@ -352,7 +340,6 @@ public class SonarCloudWebServerTest
         using var responseStream = new MemoryStream([1, 2, 3]);
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StreamContent(responseStream) };
         var context = new Context(new HttpMessageHandlerMock((_, _) => Task.FromResult(response)));
-
         var actual = await context.Server.DownloadJreAsync(CreateJreMetadata(new("http://localhost/path-to-jre")));
 
         using var stream = new MemoryStream(); // actual is not a memory stream because of how HttpClient reads it from the handler.
@@ -383,7 +370,6 @@ public class SonarCloudWebServerTest
         using var responseStream = new MemoryStream([1, 2, 3]);
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StreamContent(responseStream) };
         var context = new Context(new HttpMessageHandlerMock((_, _) => Task.FromResult(response)));
-
         var actual = await context.Server
             .DownloadEngineAsync(CreateEngineMetadata(new("http://localhost/path-to-engine")));
 
@@ -478,15 +464,14 @@ public class SonarCloudWebServerTest
         public readonly IDownloader WebDownloader = Substitute.For<IDownloader>();
         public readonly IDownloader ApiDownloader = Substitute.For<IDownloader>();
         public readonly TestLogger Logger = new();
+        private readonly Lazy<SonarCloudWebServer> server;
 
-        private readonly HttpMessageHandlerMock handler;
-
-        public SonarCloudWebServer Server => new(WebDownloader, ApiDownloader, Version, Logger, Organization, HttpTimeout, handler);
+        public SonarCloudWebServer Server => server.Value;
 
         public Context(HttpMessageHandlerMock handler = null, string cacheBase = null)
         {
-            this.handler = handler;
             MockDownloaderServerSettings(cacheBase);
+            server = new Lazy<SonarCloudWebServer>(() => new SonarCloudWebServer(WebDownloader, ApiDownloader, Version, Logger, Organization, HttpTimeout, handler));
         }
 
         private void MockDownloaderServerSettings(string cacheBase)

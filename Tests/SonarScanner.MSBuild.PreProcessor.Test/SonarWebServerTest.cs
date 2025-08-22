@@ -63,7 +63,6 @@ public class SonarWebServerTest
         downloader
             .TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(true, "trash")));
-
         Func<Task> action = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
         await action.Should().ThrowAsync<Exception>();
@@ -79,7 +78,6 @@ public class SonarWebServerTest
         downloader
             .Download("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue", false)
             .Returns(Task.FromResult<string>(null));
-
         Func<Task> act = async () => await CreateServer(new Version("6.4"), "ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
         await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
@@ -103,7 +101,6 @@ public class SonarWebServerTest
         downloader
             .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
-
         var result = await CreateServer(null, organization).DownloadQualityProfile(projectKey, branchName, language);
 
         result.Should().Be(profileKey);
