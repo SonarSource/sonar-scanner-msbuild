@@ -397,7 +397,7 @@ public class ProcessedArgsTests
     [DataRow(PlatformOS.Unknown, null)]
     public void ProcArgs_OperatingSystem_AutoDetection(PlatformOS platformOS, string expectedOperatingSystem)
     {
-        var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
+        var operatingSystemProvider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
         operatingSystemProvider.OperatingSystem().Returns(_ => platformOS);
         var sut = CreateDefaultArgs(operatingSystemProvider: operatingSystemProvider);
         sut.OperatingSystem.Should().Be(expectedOperatingSystem);
@@ -446,8 +446,8 @@ public class ProcessedArgsTests
     [TestMethod]
     public void ProcArgs_UserHome_Default()
     {
-        var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
-        operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
+        var operatingSystemProvider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
+        operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")).Returns(true);
         var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
@@ -460,8 +460,8 @@ public class ProcessedArgsTests
     [TestMethod]
     public void ProcArgs_UserHome_Default_CreatedOnDemand()
     {
-        var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
-        operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
+        var operatingSystemProvider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
+        operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")).Returns(false);
         var sut = CreateDefaultArgs(directoryWrapper: directoryWrapper, operatingSystemProvider: operatingSystemProvider);
@@ -477,8 +477,8 @@ public class ProcessedArgsTests
     public void ProcArgs_UserHome_Default_CreationFails(Type exceptionType)
     {
         var exception = (Exception)Activator.CreateInstance(exceptionType);
-        var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
-        operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
+        var operatingSystemProvider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
+        operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
         var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         directoryWrapper.Exists(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")).Returns(false);
         directoryWrapper.When(x => x.CreateDirectory(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"))).Throw(exception);
@@ -516,7 +516,7 @@ public class ProcessedArgsTests
     private ProcessedArgs CreateDefaultArgs(IAnalysisPropertyProvider cmdLineProperties = null,
                                             IAnalysisPropertyProvider globalFileProperties = null,
                                             IAnalysisPropertyProvider scannerEnvProperties = null,
-                                            IOperatingSystemProvider operatingSystemProvider = null,
+                                            OperatingSystemProvider operatingSystemProvider = null,
                                             IFileWrapper fileWrapper = null,
                                             IDirectoryWrapper directoryWrapper = null,
                                             string key = "key",

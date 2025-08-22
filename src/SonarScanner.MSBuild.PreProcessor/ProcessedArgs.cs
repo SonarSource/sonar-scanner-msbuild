@@ -38,7 +38,7 @@ public class ProcessedArgs
     private static readonly Regex ProjectKeyRegEx = new(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline, RegexConstants.DefaultTimeout);
 
     private readonly IAnalysisPropertyProvider globalFileProperties;
-    private readonly IOperatingSystemProvider operatingSystemProvider;
+    private readonly OperatingSystemProvider operatingSystemProvider;
 
     public /* for testing */ virtual string ProjectKey { get; }
 
@@ -144,7 +144,7 @@ public class ProcessedArgs
         IAnalysisPropertyProvider scannerEnvProperties,
         IFileWrapper fileWrapper,
         IDirectoryWrapper directoryWrapper,
-        IOperatingSystemProvider operatingSystemProvider,
+        OperatingSystemProvider operatingSystemProvider,
         ILogger logger)
     {
         IsValid = true;
@@ -330,7 +330,7 @@ public class ProcessedArgs
                 }
             }
         }
-        var defaultPath = Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
+        var defaultPath = Path.Combine(operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
         if (!directoryWrapper.Exists(defaultPath))
         {
             try

@@ -223,7 +223,7 @@ public class PreprocessorObjectFactoryTests
             EmptyPropertyProvider.Instance,
             Substitute.For<IFileWrapper>(),
             Substitute.For<IDirectoryWrapper>(),
-            Substitute.For<IOperatingSystemProvider>(),
+            Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
             logger);
     }
 }

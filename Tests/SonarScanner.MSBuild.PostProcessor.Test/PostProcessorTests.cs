@@ -56,9 +56,9 @@ public class PostProcessorTests
         config.SetBuildUri("http://test-build-uri");
         settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
         logger = new();
-        tfsProcessor = Substitute.For<TfsProcessorWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
+        tfsProcessor = Substitute.For<TfsProcessorWrapper>(logger, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
         tfsProcessor.Execute(null, null, null).ReturnsForAnyArgs(true);
-        scanner = Substitute.For<SonarScannerWrapper>(logger, Substitute.For<IOperatingSystemProvider>());
+        scanner = Substitute.For<SonarScannerWrapper>(logger, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
         scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(logger);
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();

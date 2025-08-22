@@ -205,16 +205,16 @@ public class MsBuildPathSettingsTests
         Func<string, bool> directoryExistsFunc) =>
             new(CreateOsProvider(os, (_, _) => path, directoryExistsFunc));
 
-    private static IOperatingSystemProvider CreateOsProvider(
+    private static OperatingSystemProvider CreateOsProvider(
         PlatformOS os,
         Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> getFolderPath,
         Func<string, bool> directoryExists = null,
         bool? isUnix = null)
     {
-        var provider = Substitute.For<IOperatingSystemProvider>();
+        var provider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
         provider.OperatingSystem().Returns(os);
         provider.DirectoryExists(Arg.Any<string>()).Returns(x => directoryExists is null || directoryExists(x.Arg<string>()));
-        provider.GetFolderPath(Arg.Any<Environment.SpecialFolder>(), Arg.Any<Environment.SpecialFolderOption>())
+        provider.FolderPath(Arg.Any<Environment.SpecialFolder>(), Arg.Any<Environment.SpecialFolderOption>())
             .Returns(x => getFolderPath(x.Arg<Environment.SpecialFolder>(), x.Arg<Environment.SpecialFolderOption>()));
         provider.IsUnix().Returns(isUnix ?? (os == PlatformOS.Linux || os == PlatformOS.MacOSX || os == PlatformOS.Alpine));
         return provider;

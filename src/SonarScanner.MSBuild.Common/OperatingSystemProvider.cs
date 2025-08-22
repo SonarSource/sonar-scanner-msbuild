@@ -18,13 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 
 namespace SonarScanner.MSBuild.Common;
 
-public sealed class OperatingSystemProvider : IOperatingSystemProvider
+public enum PlatformOS
+{
+    Unknown,
+    Windows,
+    Linux,
+    MacOSX,
+    Alpine
+}
+
+public class OperatingSystemProvider
 {
     private readonly IFileWrapper fileWrapper;
     private readonly ILogger logger;
@@ -37,11 +44,14 @@ public sealed class OperatingSystemProvider : IOperatingSystemProvider
         operatingSystem = new Lazy<PlatformOS>(OperatingSystemCore);
     }
 
-    public string GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) => Environment.GetFolderPath(folder, option);
+    public virtual string FolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) =>
+        Environment.GetFolderPath(folder, option);
 
-    public bool DirectoryExists(string path) => Directory.Exists(path);
+    public virtual bool DirectoryExists(string path) =>
+        Directory.Exists(path);
 
-    public PlatformOS OperatingSystem() => operatingSystem.Value;
+    public virtual PlatformOS OperatingSystem() =>
+        operatingSystem.Value;
 
     public bool IsAlpine() =>
         IsAlpineRelease("/etc/os-release")
@@ -49,7 +59,7 @@ public sealed class OperatingSystemProvider : IOperatingSystemProvider
 
     // Not stable testable
     [ExcludeFromCodeCoverage]
-    public bool IsUnix() =>
+    public virtual bool IsUnix() =>
         OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine or PlatformOS.MacOSX;
 
     // Not stable testable, manual testing was done by running the scanner on Windows, Mac OS X and Linux.

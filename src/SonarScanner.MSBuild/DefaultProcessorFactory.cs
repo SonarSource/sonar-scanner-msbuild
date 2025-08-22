@@ -29,7 +29,7 @@ namespace SonarScanner.MSBuild;
 public class DefaultProcessorFactory : IProcessorFactory
 {
     private readonly ILogger logger;
-    private readonly IOperatingSystemProvider operatingSystemProvider;
+    private readonly OperatingSystemProvider operatingSystemProvider;
 
     public DefaultProcessorFactory(ILogger logger)
     {

@@ -33,7 +33,7 @@ public class TruststorePropertiesProcessor(
     IDirectoryWrapper directoryWrapper,
     IProcessRunner processRunner,
     ILogger logger,
-    IOperatingSystemProvider operatingSystemProvider)
+    OperatingSystemProvider operatingSystemProvider)
     : AnalysisConfigProcessorBase(localSettings, serverProperties)
 {
     public override void Update(AnalysisConfig config)

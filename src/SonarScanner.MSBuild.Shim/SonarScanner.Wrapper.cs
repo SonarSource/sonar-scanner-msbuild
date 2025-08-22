@@ -37,9 +37,9 @@ public class SonarScannerWrapper
     private const string SonarScannerVersion = "5.0.2.4997";
 
     private readonly ILogger logger;
-    private readonly IOperatingSystemProvider operatingSystemProvider;
+    private readonly OperatingSystemProvider operatingSystemProvider;
 
-    public SonarScannerWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
+    public SonarScannerWrapper(ILogger logger, OperatingSystemProvider operatingSystemProvider)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
@@ -138,7 +138,7 @@ public class SonarScannerWrapper
         AnalysisConfig config,
         IAnalysisPropertyProvider userCmdLineArguments,
         ILogger logger,
-        IOperatingSystemProvider operatingSystemProvider)
+        OperatingSystemProvider operatingSystemProvider)
     {
         IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
         if (!string.IsNullOrWhiteSpace(config.JavaExePath))

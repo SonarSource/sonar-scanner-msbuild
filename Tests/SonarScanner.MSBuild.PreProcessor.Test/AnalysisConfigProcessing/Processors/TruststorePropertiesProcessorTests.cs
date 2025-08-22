@@ -514,7 +514,7 @@ public class TruststorePropertiesProcessorTests
         ILogger logger = null,
         bool isUnix = false)
     {
-        var operatingSystemProvider = Substitute.For<IOperatingSystemProvider>();
+        var operatingSystemProvider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
         operatingSystemProvider.IsUnix().Returns(isUnix);
         return new TruststorePropertiesProcessor(
             args,
@@ -537,6 +537,6 @@ public class TruststorePropertiesProcessorTests
             EmptyPropertyProvider.Instance,
             fileWrapper ?? Substitute.For<IFileWrapper>(),
             Substitute.For<IDirectoryWrapper>(),
-            Substitute.For<IOperatingSystemProvider>(),
+            Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
             Substitute.For<ILogger>());
 }

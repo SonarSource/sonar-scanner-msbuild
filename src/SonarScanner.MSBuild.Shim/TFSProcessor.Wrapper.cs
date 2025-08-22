@@ -23,9 +23,9 @@ namespace SonarScanner.MSBuild.Shim;
 public class TfsProcessorWrapper
 {
     private readonly ILogger logger;
-    private readonly IOperatingSystemProvider operatingSystemProvider;
+    private readonly OperatingSystemProvider operatingSystemProvider;
 
-    public TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider)
+    public TfsProcessorWrapper(ILogger logger, OperatingSystemProvider operatingSystemProvider)
     {
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
