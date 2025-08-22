@@ -269,9 +269,9 @@ public partial class ScannerEngineInputGeneratorTest
         """;
 
     private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig,
-                                              IRoslynV1SarifFixer sarifFixer = null,
-                                              IRuntimeInformationWrapper runtimeInformationWrapper = null,
-                                              IAdditionalFilesService additionalFileService = null)
+                                                  IRoslynV1SarifFixer sarifFixer = null,
+                                                  IRuntimeInformationWrapper runtimeInformationWrapper = null,
+                                                  IAdditionalFilesService additionalFileService = null)
     {
         sarifFixer ??= new RoslynV1SarifFixer(logger);
         runtimeInformationWrapper ??= new RuntimeInformationWrapper();

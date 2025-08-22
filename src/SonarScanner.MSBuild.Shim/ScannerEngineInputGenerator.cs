@@ -53,11 +53,11 @@ public class ScannerEngineInputGenerator
     {
     }
 
-    internal /*for testing*/ ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
-                                                     ILogger logger,
-                                                     IRoslynV1SarifFixer fixer,
-                                                     IRuntimeInformationWrapper runtimeInformationWrapper,
-                                                     IAdditionalFilesService additionalFilesService)
+    internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
+                                         ILogger logger,
+                                         IRoslynV1SarifFixer fixer,
+                                         IRuntimeInformationWrapper runtimeInformationWrapper,
+                                         IAdditionalFilesService additionalFilesService)
     {
         this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -260,7 +260,7 @@ public class ScannerEngineInputGenerator
     {
         // To ensure consistently sending of metrics from the same configuration we sort the project outputs
         // and use only the first one for metrics.
-        var orderedProjects = projectsGroupedByGuid.OrderBy(p => $"{p.Configuration}_{p.Platform}_{p.TargetFramework}").ToList();
+        var orderedProjects = projectsGroupedByGuid.OrderBy(x => $"{x.Configuration}_{x.Platform}_{x.TargetFramework}").ToList();
         var projectData = new ProjectData(orderedProjects[0])
         {
             Status = ProjectInfoValidity.ExcludeFlagSet

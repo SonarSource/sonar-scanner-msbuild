@@ -155,7 +155,7 @@ public partial class ScannerEngineInputGeneratorTest
 
         var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         settingsFileContent.Should().Contain("sonar.sourceEncoding=test-encoding-here", "Command line parameter 'sonar.sourceEncoding' is ignored.");
-        logger.DebugMessages.Should().Contain(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
+        logger.AssertDebugLogged(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
     }
 
     [TestMethod]
@@ -173,7 +173,7 @@ public partial class ScannerEngineInputGeneratorTest
         var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         settingsFileContent.Should().Contain("sonar.cs.vscoveragexml.reportsPaths=coverage-path");
         settingsFileContent.Should().Contain("sonar.cs.vstest.reportsPaths=trx-path");
-        logger.DebugMessages.Should().Contain(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
+        logger.AssertDebugLogged(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
     }
 
     [TestMethod]
@@ -188,8 +188,8 @@ public partial class ScannerEngineInputGeneratorTest
         ];
         CreateSut(config).GenerateFile();
 
-        logger.DebugMessages.Any(x => x.Contains("Client cert path")).Should().BeTrue();
-        logger.DebugMessages.Any(x => x.Contains("Client cert password")).Should().BeFalse();
+        logger.DebugMessages.Should().Contain(x => x.Contains("Client cert path"));
+        logger.DebugMessages.Should().NotContain(x => x.Contains("Client cert password"));
     }
 
     [TestMethod]
