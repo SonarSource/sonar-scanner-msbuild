@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 public class UnpackerFactory

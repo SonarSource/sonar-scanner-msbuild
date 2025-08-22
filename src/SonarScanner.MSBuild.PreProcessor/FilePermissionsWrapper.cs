@@ -22,8 +22,15 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
-public class FilePermissionsWrapper(OperatingSystemProvider operatingSystemProvider)
+public class FilePermissionsWrapper
 {
+    private readonly OperatingSystemProvider operatingSystemProvider;
+
+    public FilePermissionsWrapper(OperatingSystemProvider operatingSystemProvider)
+    {
+        this.operatingSystemProvider = operatingSystemProvider;
+    }
+
     [ExcludeFromCodeCoverage] // We don't have *inx UT images at the time of writing. We tested the functionality manually.
     public virtual void Set(string destinationPath, int mode)
     {
