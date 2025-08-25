@@ -53,21 +53,15 @@ public class OperatingSystemProvider
     public virtual PlatformOS OperatingSystem() =>
         operatingSystem.Value;
 
-    public bool IsAlpine() =>
-        IsAlpineRelease("/etc/os-release")
-        || IsAlpineRelease("/usr/lib/os-release");
-
-    // Not stable testable
-    [ExcludeFromCodeCoverage]
     public virtual bool IsUnix() =>
         OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine or PlatformOS.MacOSX;
 
-    [ExcludeFromCodeCoverage] // We don't have *inx UT images at the time of writing. We tested the functionality manually.
+    [ExcludeFromCodeCoverage]   // We only collect coverage from Windows UTs.
     public virtual void Set(string destinationPath, int mode)
     {
         if (IsUnix())
         {
-            // https://github.com/Jackett/Jackett/blob/master/src/Jackett.Server/Services/FilePermissionService.cs#L27
+            // https://github.com/Jackett/Jackett/blob/d15fd75a3315b900c7aadc43d752ef910999eb31/src/Jackett.Server/Services/FilePermissionService.cs#L27
             using var process = new Process
             {
                 StartInfo = new()
@@ -90,8 +84,7 @@ public class OperatingSystemProvider
         }
     }
 
-    // Not stable testable, manual testing was done by running the scanner on Windows, Mac OS X and Linux.
-    [ExcludeFromCodeCoverage]
+    [ExcludeFromCodeCoverage]   // We only collect coverage from Windows UTs.
     private PlatformOS OperatingSystemCore()
     {
         if (Environment.OSVersion.Platform == PlatformID.Win32NT)
@@ -117,6 +110,7 @@ public class OperatingSystemProvider
     // SystemVersion.plist exists on Mac OS X (and iOS) at least since 2002, so it's safe to check it, even though it's not a robust, future-proof solution.
     // See: https://stackoverflow.com/a/38795621
     // TODO: once we drop support for .NET Framework 4.6.2 remove the call to File.Exists and use RuntimeInformation.IsOSPlatform instead of the Environment.OSVersion.Platform property
+    [ExcludeFromCodeCoverage]   // We only collect coverage from Windows UTs.
     private static bool IsMacOSX() =>
 #if NETSTANDARD1_1_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX);
@@ -124,8 +118,14 @@ public class OperatingSystemProvider
         File.Exists("/System/Library/CoreServices/SystemVersion.plist");
 #endif
 
+    [ExcludeFromCodeCoverage]   // We only collect coverage from Windows UTs.
+    private bool IsAlpine() =>
+        IsAlpineRelease("/etc/os-release")
+        || IsAlpineRelease("/usr/lib/os-release");
+
     // See: https://www.freedesktop.org/software/systemd/man/latest/os-release.html
     // Examples: "ID=alpine", "ID=fedora", "ID=debian".
+    [ExcludeFromCodeCoverage]   // We only collect coverage from Windows UTs.
     private bool IsAlpineRelease(string releaseInfoFilePath)
     {
         if (!fileWrapper.Exists(releaseInfoFilePath))
