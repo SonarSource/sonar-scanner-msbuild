@@ -57,7 +57,7 @@ public class JreResolver : IJreResolver
 
     public async Task<string> ResolveJrePath(ProcessedArgs args)
     {
-        logger.LogDebug(Resources.MSG_JreResolver_Resolving, string.Empty);
+        logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", string.Empty);
         if (!IsValid(args))
         {
             return null;
@@ -69,7 +69,7 @@ public class JreResolver : IJreResolver
         }
         else
         {
-            logger.LogDebug(Resources.MSG_JreResolver_Resolving, " Retrying...");
+            logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
             return await DownloadJre(args);
         }
     }
@@ -79,7 +79,7 @@ public class JreResolver : IJreResolver
         var metadata = await server.DownloadJreMetadataAsync(args.OperatingSystem, args.Architecture);
         if (metadata is null)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_MetadataFailure);
+            logger.LogDebug(Resources.MSG_Resolver_MetadataFailure, nameof(JreResolver));
             return null;
         }
 
@@ -90,13 +90,13 @@ public class JreResolver : IJreResolver
             switch (jreDownloader.IsJreCached())
             {
                 case CacheHit hit:
-                    logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.FilePath);
+                    logger.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), hit.FilePath);
                     return hit.FilePath;
                 case CacheMiss:
-                    logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
+                    logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(JreResolver), "JRE");
                     return await DownloadJre(jreDownloader, metadata);
                 case CacheError failure:
-                    logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
+                    logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), failure.Message);
                     return null;
                 default:
                     throw new NotSupportedException("File Resolution is expected to be CacheHit, CacheMiss, or CacheError.");
@@ -104,7 +104,7 @@ public class JreResolver : IJreResolver
         }
         else
         {
-            logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, string.Format(Resources.ERR_JreArchiveFormatNotSupported, descriptor.Filename));
+            logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), string.Format(Resources.ERR_JreArchiveFormatNotSupported, descriptor.Filename));
             return null;
         }
     }
@@ -114,12 +114,12 @@ public class JreResolver : IJreResolver
         var result = await jreDownloader.DownloadJreAsync(() => server.DownloadJreAsync(metadata));
         if (result is DownloadSuccess success)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, success.FilePath);
+            logger.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
             return success.FilePath;
         }
         else if (result is DownloadError error)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, error.Message);
+            logger.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
             return null;
         }
         throw new NotSupportedException("Download result is expected to be DownloadSuccess or DownloadError.");
