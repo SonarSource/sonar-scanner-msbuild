@@ -85,7 +85,7 @@ public class SummaryReportBuilder
         public int SkippedProjects { get; }
         public int ExcludedProjects { get; }
         public bool Succeeded { get; }
-        public string DashboardUrl { get; } // should be Uri https://github.com/SonarSource/sonar-scanner-msbuild/issues/1252
+        public Uri DashboardUrl { get; }
         public string ProjectDescription { get; }
 
         public SummaryReportData(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
@@ -103,13 +103,13 @@ public class SummaryReportBuilder
             ProjectDescription = string.Format(CultureInfo.CurrentCulture, Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
         }
 
-        private static string SonarDashboadUrl(AnalysisConfig config, ILogger logger)
+        private static Uri SonarDashboadUrl(AnalysisConfig config, ILogger logger)
         {
             var hostUrl = config.SonarQubeHostUrl.TrimEnd('/');
             var branch = FindBranch(config, logger);
             return string.IsNullOrWhiteSpace(branch)
-                ? string.Format(CultureInfo.InvariantCulture, DashboardUrlFormat, hostUrl, config.SonarProjectKey)
-                : string.Format(CultureInfo.InvariantCulture, DashboardUrlFormatWithBranch, hostUrl, config.SonarProjectKey, branch);
+                ? new(string.Format(CultureInfo.InvariantCulture, DashboardUrlFormat, hostUrl, config.SonarProjectKey))
+                : new(string.Format(CultureInfo.InvariantCulture, DashboardUrlFormatWithBranch, hostUrl, config.SonarProjectKey, branch));
         }
 
         private static string FindBranch(AnalysisConfig config, ILogger logger)
