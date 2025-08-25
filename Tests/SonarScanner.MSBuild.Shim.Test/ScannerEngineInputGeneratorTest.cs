@@ -71,52 +71,6 @@ public partial class ScannerEngineInputGeneratorTest
             .And.ParamName.Should().Be("additionalFilesService");
 
     [TestMethod]
-    [DataRow("cs")]
-    [DataRow("vbnet")]
-    public void Telemetry_Multitargeting(string languageKey)
-    {
-        var guid = Guid.NewGuid();
-        var propertyKey = $"sonar.{languageKey}.scanner.telemetry";
-        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
-        var projectInfos = new[]
-        {
-            new ProjectInfo
-            {
-                ProjectGuid = guid,
-                Configuration = "Debug",
-                TargetFramework = "netstandard2.0",
-                AnalysisSettings = [new(propertyKey, "1.json")],
-                FullPath = fullPath,
-            },
-            new ProjectInfo
-            {
-                ProjectGuid = guid,
-                Configuration = "Debug",
-                TargetFramework = "net46",
-                AnalysisSettings = [new(propertyKey, "2.json")],
-                FullPath = fullPath,
-            },
-            new ProjectInfo
-            {
-                ProjectGuid = guid,
-                Configuration = "Release",
-                TargetFramework = "netstandard2.0",
-                AnalysisSettings =  [
-                    new(propertyKey, "3.json"),
-                    new(propertyKey, "4.json"),
-                ],
-                FullPath = fullPath,
-            },
-        };
-
-        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
-        var sut = CreateSut(CreateValidConfig(analysisRootDir));
-        var results = sut.ToProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single()).TelemetryPaths.ToList();
-
-        results.Should().BeEquivalentTo([new FileInfo("2.json"), new("1.json"), new("3.json"), new("4.json")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
-    }
-
-    [TestMethod]
     public void SingleClosestProjectOrDefault_WhenNoProjects_ReturnsNull() =>
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo("File.cs"), []).Should().BeNull();
 
@@ -125,9 +79,9 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("D"), "WrongDrive.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~ProjectDir", "Incorrect.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot("C"), "WrongDrive.csproj") }),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot("D"), "WrongDrive.csproj")),
+            CreateProjectData(Path.Combine("~ProjectDir", "Incorrect.csproj")),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot("C"), "WrongDrive.csproj"))
         };
 
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("E"), "File.cs")), projects).Should().BeNull();
@@ -138,9 +92,9 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "InRoot.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~ProjectDir", "Incorrect.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "Winner.csproj") }),
+            CreateProjectData("InRoot.csproj"),
+            CreateProjectData(Path.Combine("~ProjectDir", "Incorrect.csproj")),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "Winner.csproj"))
         };
 
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "File.cs")), projects).Should().Be(projects[2]);
@@ -151,9 +105,9 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "InRoot.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~PROJECTDIR", "Incorrect.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "Winner.csproj") }),
+            CreateProjectData("InRoot.csproj"),
+            CreateProjectData(Path.Combine("~PROJECTDIR", "Incorrect.csproj")),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "Winner.csproj"))
         };
 
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot("C"), "PROJECTDIR", "FILE.cs")), projects).Should().Be(projects[2]);
@@ -164,9 +118,9 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = "InRoot.csproj" }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine("~ProjectDir", "Incorrect.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = $"{TestUtils.DriveRoot()}{Path.AltDirectorySeparatorChar}ProjectDir{Path.AltDirectorySeparatorChar}Winner.csproj" }),
+            CreateProjectData("InRoot.csproj"),
+            CreateProjectData(Path.Combine("~ProjectDir", "Incorrect.csproj")),
+            CreateProjectData($"{TestUtils.DriveRoot()}{Path.AltDirectorySeparatorChar}ProjectDir{Path.AltDirectorySeparatorChar}Winner.csproj")
         };
 
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "File.cs")), projects).Should().Be(projects[2]);
@@ -177,11 +131,11 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "InRoot.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "InProjectDir.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "Winner.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "AnotherInProjectDir.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "Deeper", "TooDeep.csproj") }),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "InRoot.csproj")),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "InProjectDir.csproj")),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "Winner.csproj")),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "AnotherInProjectDir.csproj")),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "Deeper", "TooDeep.csproj"))
         };
 
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "File.cs")), projects).Should().Be(projects[2]);
@@ -192,9 +146,9 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var projects = new[]
         {
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "Net46.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "Xamarin.csproj") }),
-            new ProjectData(new ProjectInfo { FullPath = Path.Combine(TestUtils.DriveRoot(), "NetStd.csproj") }),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "Net46.csproj")),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "Xamarin.csproj")),
+            CreateProjectData(Path.Combine(TestUtils.DriveRoot(), "NetStd.csproj"))
         };
 
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
@@ -278,4 +232,7 @@ public partial class ScannerEngineInputGeneratorTest
         additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance, logger);
         return new(analysisConfig, logger, sarifFixer, runtimeInformation, additionalFileService);
     }
+
+    private static ProjectData CreateProjectData(string fullPath) =>
+        new(new[] { new ProjectInfo { FullPath = fullPath } }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>());
 }

@@ -276,12 +276,12 @@ public class PropertiesWriterTest
             productChineseFile,
             missingFileOutsideProjectDir
         };
-        var productCS = new ProjectData(CreateProjectInfo("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.CSharp, "UTF-8"));
+        var productCS = CreateProjectData("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.CSharp);
         productCS.SonarQubeModuleFiles.Add(productFile);
         productCS.SonarQubeModuleFiles.Add(productChineseFile);
         productCS.SonarQubeModuleFiles.Add(missingFileOutsideProjectDir);
 
-        var productVB = new ProjectData(CreateProjectInfo("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic, "UTF-8"));
+        var productVB = CreateProjectData("vbProject", "B51622CF-82F4-48C9-9F38-FB981FAFAF3A", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.VisualBasic);
         productVB.SonarQubeModuleFiles.Add(productFile);
 
         var testBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "PropertiesWriterTest_TestBaseDir");
@@ -293,7 +293,7 @@ public class PropertiesWriterTest
         {
             testFile
         };
-        var test = new ProjectData(CreateProjectInfo("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, ProjectLanguages.VisualBasic, "UTF-8"));
+        var test = CreateProjectData("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, ProjectLanguages.VisualBasic);
         test.SonarQubeModuleFiles.Add(testFile);
 
         var config = new AnalysisConfig
@@ -450,8 +450,8 @@ public class PropertiesWriterTest
 
         using (new AssertIgnoreScope())
         {
-            Action act = () => writer.WriteSettingsForProject(new ProjectData(new ProjectInfo()));
-            act.Should().ThrowExactly<InvalidOperationException>();
+            FluentActions.Invoking(() => writer.WriteSettingsForProject(new ProjectData(new[] { new ProjectInfo() }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>())))
+                .Should().ThrowExactly<InvalidOperationException>();
         }
     }
 
@@ -468,7 +468,7 @@ public class PropertiesWriterTest
         };
         var productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
 
-        var product = new ProjectData(CreateProjectInfo("AnalysisSettingsTest.proj", "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5", productProject, false, productFiles, productFileListFilePath, null, "language", "UTF-8"));
+        var product = CreateProjectData("AnalysisSettingsTest.proj", "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5", productProject, false, productFiles, productFileListFilePath, null, "language");
 
         // These are the settings we are going to check. The other analysis values are not checked.
         product.Project.AnalysisSettings =
@@ -503,7 +503,7 @@ public class PropertiesWriterTest
         var productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
 
         var projectKey = "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5";
-        var product = new ProjectData(CreateProjectInfo("AnalysisSettingsTest.proj", projectKey, productProject, false, productFiles, productFileListFilePath, null, "language", "UTF-8"));
+        var product = CreateProjectData("AnalysisSettingsTest.proj", projectKey, productProject, false, productFiles, productFileListFilePath, null, "language");
         product.ReferencedFiles.Add(productFile);
 
         var config = new AnalysisConfig
@@ -559,26 +559,25 @@ public class PropertiesWriterTest
     private static string PropertiesPath(params string[] paths) =>
         Path.Combine(paths).Replace(@"\", @"\\"); // We escape `\` when we write the properties file
 
-    private static ProjectInfo CreateProjectInfo(
-        string name,
-        string projectId,
-        FileInfo fullFilePath,
-        bool isTest,
-        IEnumerable<FileInfo> files,
-        string fileListFilePath,
-        string coverageReportPath,
-        string language,
-        string encoding)
+    private static ProjectData CreateProjectData(string name,
+                                                 string guid,
+                                                 FileInfo fullFilePath,
+                                                 bool isTest,
+                                                 IEnumerable<FileInfo> files,
+                                                 string fileListFilePath,
+                                                 string coverageReportPath,
+                                                 string language)
     {
         var projectInfo = new ProjectInfo
         {
             ProjectName = name,
-            ProjectGuid = Guid.Parse(projectId),
+            ProjectGuid = Guid.Parse(guid),
             FullPath = fullFilePath.FullName,
             ProjectType = isTest ? ProjectType.Test : ProjectType.Product,
             AnalysisResults = [],
+            AnalysisSettings = [],
             ProjectLanguage = language,
-            Encoding = encoding
+            Encoding = "UTF-8"
         };
         if (coverageReportPath is not null)
         {
@@ -590,7 +589,7 @@ public class PropertiesWriterTest
             File.WriteAllLines(fileListFilePath, files.Select(x => x.FullName));
             projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, fileListFilePath);
         }
-        return projectInfo;
+        return new(new[] { projectInfo }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>());
     }
 
     private static FileInfo CreateEmptyFile(string parentDir, string fileName) =>
@@ -615,11 +614,7 @@ public class PropertiesWriterTest
         analyzerOutPaths ??= [];
         roslynOutPaths ??= [];
         telemetryPaths ??= [];
-        var projectData = new ProjectData(new ProjectInfo
-        {
-            ProjectGuid = new Guid("5762C17D-1DDF-4C77-86AC-E2B4940926A9"),
-            ProjectLanguage = language
-        });
+        var projectData = CreateProjectData("Name", "5762C17D-1DDF-4C77-86AC-E2B4940926A9", new FileInfo("Name.proj"), false, [], null, null, language);
         foreach (var path in analyzerOutPaths)
         {
             projectData.AnalyzerOutPaths.Add(new FileInfo(path));

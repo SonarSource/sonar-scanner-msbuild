@@ -123,7 +123,7 @@ public class ScannerEngineInputGenerator
 
         var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
         FixSarifAndEncoding(projects, analysisProperties);
-        allProjects = projects.GroupBy(x => x.ProjectGuid).Select(ToProjectData).ToArray();
+        allProjects = projects.GroupBy(x => x.ProjectGuid).Select(x => new ProjectData(x, runtimeInformation.IsWindows, logger)).ToArray();
         var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
         {
@@ -254,64 +254,6 @@ public class ScannerEngineInputGenerator
         return closestProjects.Count >= 1 ? closestProjects[0] : null;
     }
 
-    internal /* for testing */ ProjectData ToProjectData(IGrouping<Guid, ProjectInfo> projectsGroupedByGuid)
-    {
-        // To ensure consistently sending of metrics from the same configuration we sort the project outputs
-        // and use only the first one for metrics.
-        var orderedProjects = projectsGroupedByGuid.OrderBy(x => $"{x.Configuration}_{x.Platform}_{x.TargetFramework}").ToList();
-        var projectData = new ProjectData(orderedProjects[0])
-        {
-            Status = ProjectInfoValidity.ExcludeFlagSet
-        };
-        // Find projects with different paths within the same group
-        var isWindows = runtimeInformation.IsWindows;
-        var projectPathsInGroup = projectsGroupedByGuid
-            .Select(x => isWindows ? x.FullPath?.ToLowerInvariant() : x.FullPath)
-            .Distinct()
-            .ToList();
-
-        if (projectPathsInGroup.Count > 1)
-        {
-            projectData.Status = ProjectInfoValidity.DuplicateGuid;
-            foreach (var projectPath in projectPathsInGroup)
-            {
-                LogDuplicateGuidWarning(projectsGroupedByGuid.Key, projectPath);
-            }
-        }
-        else if (projectsGroupedByGuid.Key == Guid.Empty)
-        {
-            projectData.Status = ProjectInfoValidity.InvalidGuid;
-        }
-        // If a project was created and destroyed during the build, it is no longer valid
-        // For example, "dotnet ef bundle" scaffolds and then removes a project.
-        else if (!File.Exists(projectData.Project.FullPath))
-        {
-            projectData.Status = ProjectInfoValidity.ProjectNotFound;
-        }
-        else
-        {
-            foreach (var project in orderedProjects)
-            {
-                var status = project.Classify(logger);
-                // If we find just one valid configuration, everything is valid
-                if (status == ProjectInfoValidity.Valid)
-                {
-                    projectData.Status = ProjectInfoValidity.Valid;
-                    Array.ForEach(project.GetAllAnalysisFiles(logger), x => projectData.ReferencedFiles.Add(x));
-                    AddRoslynOutputFilePaths(project, projectData);
-                    AddAnalyzerOutputFilePaths(project, projectData);
-                    AddTelemetryFilePaths(project, projectData);
-                }
-            }
-
-            if (projectData.ReferencedFiles.Count == 0)
-            {
-                projectData.Status = ProjectInfoValidity.NoFilesToAnalyze;
-            }
-        }
-        return projectData;
-    }
-
     private static bool IsFileSystemRoot(DirectoryInfo directoryInfo) =>
         directoryInfo.Parent is null;
 
@@ -388,39 +330,6 @@ public class ScannerEngineInputGenerator
             {
                 project.Status = ProjectInfoValidity.NoFilesToAnalyze;
             }
-        }
-    }
-
-    private void LogDuplicateGuidWarning(Guid projectGuid, string projectPath) =>
-        logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectGuid, projectPath);
-
-    private static void AddAnalyzerOutputFilePaths(ProjectInfo project, ProjectData projectData)
-    {
-        if (project.AnalysisSettings.FirstOrDefault(x => IsProjectOutPaths(x.Id)) is { } property)
-        {
-            foreach (var filePath in property.Value.Split(AnalyzerOutputPathsDelimiter))
-            {
-                projectData.AnalyzerOutPaths.Add(new FileInfo(filePath));
-            }
-        }
-    }
-
-    private static void AddRoslynOutputFilePaths(ProjectInfo project, ProjectData projectData)
-    {
-        if (project.AnalysisSettings.FirstOrDefault(x => IsReportFilePaths(x.Id)) is { } property)
-        {
-            foreach (var filePath in property.Value.Split(RoslynReportPathsDelimiter))
-            {
-                projectData.RoslynReportFilePaths.Add(new FileInfo(filePath));
-            }
-        }
-    }
-
-    private static void AddTelemetryFilePaths(ProjectInfo project, ProjectData projectData)
-    {
-        foreach (var property in project.AnalysisSettings.Where(x => IsTelemetryPaths(x.Id)))
-        {
-            projectData.TelemetryPaths.Add(new FileInfo(property.Value));
         }
     }
 
