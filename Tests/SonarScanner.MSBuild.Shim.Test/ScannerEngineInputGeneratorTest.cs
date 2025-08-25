@@ -234,5 +234,5 @@ public partial class ScannerEngineInputGeneratorTest
     }
 
     private static ProjectData CreateProjectData(string fullPath) =>
-        new(new[] { new ProjectInfo { FullPath = fullPath } }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>());
+        new[] { new ProjectInfo { FullPath = fullPath } }.ToProjectData(true, Substitute.For<ILogger>()).Single();
 }

@@ -52,7 +52,11 @@ public partial class ScannerEngineInputGeneratorTest
 
         // In order to force automatic root path detection to point to file system root,
         // create a project in the test run directory and a second one in the temp folder.
-        sut.TryWriteProperties(new PropertiesWriter(config), new ScannerEngineInput(config), [firstProjectInfo, secondProjectInfo], out _);
+        sut.TryWriteProperties(
+            config.ToAnalysisProperties(logger),
+            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(true, logger),
+            new PropertiesWriter(config),
+            new ScannerEngineInput(config));
 
         logger.AssertErrorLogged("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
     }
@@ -83,7 +87,11 @@ public partial class ScannerEngineInputGeneratorTest
         };
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "Second");
-        sut.TryWriteProperties(new PropertiesWriter(config), new ScannerEngineInput(config), [firstProjectInfo, secondProjectInfo], out _);
+        sut.TryWriteProperties(
+            config.ToAnalysisProperties(logger),
+            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(true, logger),
+            new PropertiesWriter(config),
+            new ScannerEngineInput(config));
 
         logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
         logger.AssertErrorLogged("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
@@ -141,6 +149,11 @@ public partial class ScannerEngineInputGeneratorTest
             AnalysisSettings = [],
             AnalysisResults = [new AnalysisResult { Id = AnalysisType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
         };
-        sut.TryWriteProperties(legacyWriter, engineInput, [project], out _).Should().BeTrue();
+        sut.TryWriteProperties(
+            config.ToAnalysisProperties(logger),
+            new[] { project }.ToProjectData(true, logger),
+            legacyWriter,
+            engineInput)
+            .Should().BeTrue();
     }
 }

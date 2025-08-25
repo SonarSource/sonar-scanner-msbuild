@@ -49,13 +49,10 @@ public class SummaryReportBuilder
     public virtual void GenerateReports(IBuildSettings settings, bool ranToCompletion, string fullPropertiesFilePath)
     {
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
-        var engineInput = new ScannerEngineInput(config);
-        // ToDo: SCAN4NET-778 Untangle this mess. TryWriteProperties only needs project list, result doesn't need to be here at all
-        new ScannerEngineInputGenerator(config, logger).TryWriteProperties(new PropertiesWriter(config), engineInput, out var allProjects);
-        var result = new ProjectInfoAnalysisResult(allProjects, engineInput, fullPropertiesFilePath) { RanToCompletion = ranToCompletion };
+        var allProjects = ProjectLoader.LoadFrom(config.SonarOutputDir).ToProjectData(new RuntimeInformationWrapper().IsWindows, logger);
         if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
-            UpdateLegacyTeamBuildSummary(new SummaryReportData(config, result, logger));
+            UpdateLegacyTeamBuildSummary(new SummaryReportData(config, allProjects, ranToCompletion, logger));
         }
     }
 
@@ -88,17 +85,15 @@ public class SummaryReportBuilder
         public Uri DashboardUrl { get; }
         public string ProjectDescription { get; }
 
-        public SummaryReportData(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+        public SummaryReportData(AnalysisConfig config, ProjectData[] allProjects, bool ranToCompletion, ILogger logger)
         {
             _ = config ?? throw new ArgumentNullException(nameof(config));
-            _ = result ?? throw new ArgumentNullException(nameof(result));
-            var validProjects = result.ProjectsByStatus(ProjectInfoValidity.Valid);
-            SkippedProjects = result.Projects.Count(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze);
-            InvalidProjects = result.Projects.Count(x => x.Status == ProjectInfoValidity.InvalidGuid || x.Status == ProjectInfoValidity.DuplicateGuid);
-            ExcludedProjects = result.Projects.Count(x => x.Status == ProjectInfoValidity.ExcludeFlagSet);
-            ProductProjects = validProjects.Count(x => x.ProjectType == ProjectType.Product);
-            TestProjects = validProjects.Count(x => x.ProjectType == ProjectType.Test);
-            Succeeded = result.RanToCompletion;
+            SkippedProjects = allProjects.Count(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze);
+            InvalidProjects = allProjects.Count(x => x.Status == ProjectInfoValidity.InvalidGuid || x.Status == ProjectInfoValidity.DuplicateGuid);
+            ExcludedProjects = allProjects.Count(x => x.Status == ProjectInfoValidity.ExcludeFlagSet);
+            ProductProjects = allProjects.Count(x => x.Status == ProjectInfoValidity.Valid && x.Project.ProjectType == ProjectType.Product);
+            TestProjects = allProjects.Count(x => x.Status == ProjectInfoValidity.Valid && x.Project.ProjectType == ProjectType.Test);
+            Succeeded = ranToCompletion;
             DashboardUrl = SonarDashboadUrl(config, logger);
             ProjectDescription = string.Format(CultureInfo.CurrentCulture, Resources.Report_SonarQubeProjectDescription, config.SonarProjectName, config.SonarProjectKey, config.SonarProjectVersion);
         }

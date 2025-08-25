@@ -47,28 +47,17 @@ public class SummaryReportBuilderTests
     }
 
     [TestMethod]
-    public void SummaryReportData_ConfigIsNull_Throws()
-    {
-        var result = new ProjectInfoAnalysisResult([]) { RanToCompletion = false };
-        FluentActions.Invoking(() => new SummaryReportBuilder.SummaryReportData(null, result, testLogger)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
-    }
-
-    [TestMethod]
-    public void SummaryReportData_ResultIsNull_Throws()
-    {
-        var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = "http://foo" };
-        FluentActions.Invoking(() => new SummaryReportBuilder.SummaryReportData(config, null, testLogger)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("result");
-    }
+    public void SummaryReportData_ConfigIsNull_Throws() =>
+        FluentActions.Invoking(() => new SummaryReportBuilder.SummaryReportData(null, [], true, testLogger)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
 
     [TestMethod]
     public void SummaryReport_NoProjects()
     {
         var hostUrl = "http://mySonarQube:9000";
-        var result = new ProjectInfoAnalysisResult([]) { RanToCompletion = false };
         var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
-        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, result, testLogger);
+        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, [], false, testLogger);
 
-        VerifySummaryReportData(summaryReportData, result, hostUrl, config, new TestLogger());
+        VerifySummaryReportData(summaryReportData, false, hostUrl, config, new TestLogger());
         VerifySummaryProjectCounts(
             summaryReportData,
             expectedExcludedProjects: 0,
@@ -82,12 +71,12 @@ public class SummaryReportBuilderTests
     public void SummaryReport_WithBranch()
     {
         var hostUrl = "http://mySonarQube:9000";
-        var result = new ProjectInfoAnalysisResult(CreateProjects(ProjectInfoValidity.Valid, ProjectType.Product, 4).ToArray()) { RanToCompletion = false };
+        var projects = CreateProjects(ProjectInfoValidity.Valid, ProjectType.Product, 4).ToArray();
         var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
         config.LocalSettings = new AnalysisProperties { new Property(SonarProperties.ProjectBranch, "master") };
-        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, result, testLogger);
+        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, projects.ToArray(), false, testLogger);
 
-        VerifySummaryReportData(summaryReportData, result, hostUrl, config, testLogger);
+        VerifySummaryReportData(summaryReportData, false, hostUrl, config, testLogger);
         VerifySummaryProjectCounts(
             summaryReportData,
             expectedExcludedProjects: 0,
@@ -109,12 +98,12 @@ public class SummaryReportBuilderTests
             .Concat(CreateProjects(ProjectInfoValidity.Valid, ProjectType.Product, 13))
             .Concat(CreateProjects(ProjectInfoValidity.Valid, ProjectType.Test, 17))
             .Concat(CreateProjects(ProjectInfoValidity.DuplicateGuid, ProjectType.Product, 5))
-            .Concat(CreateProjects(ProjectInfoValidity.DuplicateGuid, ProjectType.Test, 3));
-        var result = new ProjectInfoAnalysisResult(projects.ToArray()) { RanToCompletion = true };
+            .Concat(CreateProjects(ProjectInfoValidity.DuplicateGuid, ProjectType.Test, 3))
+            .ToArray();
         var config = new AnalysisConfig() { SonarProjectKey = string.Empty, SonarQubeHostUrl = hostUrl };
-        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, result, testLogger);
+        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, projects, true, testLogger);
 
-        VerifySummaryReportData(summaryReportData, result, hostUrl, config, testLogger);
+        VerifySummaryReportData(summaryReportData, true, hostUrl, config, testLogger);
         VerifySummaryProjectCounts(
             summaryReportData,
             expectedExcludedProjects: 5, // ExcludeFlagSet
@@ -136,18 +125,13 @@ public class SummaryReportBuilderTests
         };
         var summaryLogger = new MockLegacyBuildSummaryLogger();
         var builder = new SummaryReportBuilder(new MockLegacyTeamBuildFactory(summaryLogger, null), config, new TestLogger());
-        config.SonarOutputDir = TestContext.TestDeploymentDir; // this will be cleaned up by VS when there are too many results
+        config.SonarOutputDir = TestContext.TestRunDirectory;
         builder.GenerateReports(settings, result.RanToCompletion, result.FullPropertiesFilePath);
 
         summaryLogger.Messages[0].Should().Be("** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for .NET **");
     }
 
-    private static void VerifySummaryReportData(
-        SummaryReportBuilder.SummaryReportData summaryReportData,
-        ProjectInfoAnalysisResult analysisResult,
-        string expectedHostUrl,
-        AnalysisConfig config,
-        ILogger logger)
+    private static void VerifySummaryReportData(SummaryReportBuilder.SummaryReportData summaryReportData, bool expectedRanToCompletion, string expectedHostUrl, AnalysisConfig config, ILogger logger)
     {
         string expectedUrl;
 
@@ -158,7 +142,7 @@ public class SummaryReportBuilderTests
             : $"{expectedHostUrl}/dashboard/index/{config.SonarProjectKey}:{branch}";
 
         summaryReportData.DashboardUrl.Should().Be(expectedUrl, "Invalid dashboard url");
-        summaryReportData.Succeeded.Should().Be(analysisResult.RanToCompletion, "Invalid outcome");
+        summaryReportData.Succeeded.Should().Be(expectedRanToCompletion, "Invalid outcome");
     }
 
     private static void VerifySummaryProjectCounts(

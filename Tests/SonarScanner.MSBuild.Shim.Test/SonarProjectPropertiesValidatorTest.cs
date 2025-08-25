@@ -78,6 +78,8 @@ public class SonarProjectPropertiesValidatorTest
         var projectFolder = Path.Combine(folder, projectName);
         Directory.CreateDirectory(projectFolder);
         var project = new ProjectInfo { FullPath = Path.Combine(projectFolder, projectName + ".csproj") };
-        return new(new[] { project }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>()) { Status = status };
+        var result = new[] { project }.ToProjectData(true, Substitute.For<ILogger>()).Single();
+        result.Status = status;
+        return result;
     }
 }

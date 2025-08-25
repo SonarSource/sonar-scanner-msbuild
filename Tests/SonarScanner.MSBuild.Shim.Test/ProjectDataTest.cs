@@ -72,7 +72,7 @@ public class ProjectDataTest
                 FullPath = fullPath,
             },
         };
-        var results = new ProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>()).AnalyzerOutPaths.ToList();
+        var results = projectInfos.ToProjectData(true, Substitute.For<ILogger>()).Single().AnalyzerOutPaths.ToList();
 
         results.Should().HaveCount(4);
         results[0].FullName.Should().Be(new FileInfo("2").FullName);
@@ -92,7 +92,7 @@ public class ProjectDataTest
             new ProjectInfo { ProjectGuid = guid, FullPath = "path2" },
             new ProjectInfo { ProjectGuid = guid, FullPath = "path2" }
         };
-        var result = new ProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single(), true, logger);
+        var result = projectInfos.ToProjectData(true, logger).Single();
 
         result.Status.Should().Be(ProjectInfoValidity.DuplicateGuid);
         logger.Warnings.Should().BeEquivalentTo(
@@ -134,7 +134,7 @@ public class ProjectDataTest
         };
         projectInfos[0].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
         projectInfos[1].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
-        var sut = new ProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>());
+        var sut = projectInfos.ToProjectData(true, Substitute.For<ILogger>()).Single();
 
         sut.Status.Should().Be(ProjectInfoValidity.Valid);
         sut.Project.AnalysisSettings.Should().BeEmpty();     // Expected to change when fixed later
@@ -178,7 +178,7 @@ public class ProjectDataTest
                 FullPath = fullPath,
             },
         };
-        var results = new ProjectData(projectInfos.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>()).TelemetryPaths.ToList();
+        var results = projectInfos.ToProjectData(true, Substitute.For<ILogger>()).Single().TelemetryPaths.ToList();
 
         results.Should().BeEquivalentTo([new FileInfo("2.json"), new("1.json"), new("3.json"), new("4.json")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }

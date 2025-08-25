@@ -107,12 +107,5 @@ public class ProgramTests
         var result = Program.Execute(["SummaryReportBuilder", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties"), "true"], logger);
 
         result.Should().Be(0);
-        logger.Errors.Should().HaveCount(1);
-        logger.Errors.Should().Contain(@"The SonarScanner for .NET integration failed: SonarQube was unable to collect the required information about your projects.
-Possible causes:
-  1. The project has not been built - the project must be built in between the begin and end steps.
-  2. An unsupported version of MSBuild has been used to build the project. Supported versions: MSBuild 16 and higher.
-  3. The begin, build and end steps have not all been launched from the same folder.
-  4. None of the analyzed projects have a valid ProjectGuid and you have not used a solution (.sln).");
     }
 }
