@@ -51,17 +51,10 @@ public class SonarWebServerTest
     [TestMethod]
     public void Ctor_Null_Throws()
     {
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, version, logger, null)))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
-
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null)))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
-
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, logger, null)))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
-
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, version, null, null)))
-            .Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, version, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -70,7 +63,6 @@ public class SonarWebServerTest
         downloader
             .TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(true, "trash")));
-
         Func<Task> action = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
         await action.Should().ThrowAsync<Exception>();
@@ -86,78 +78,46 @@ public class SonarWebServerTest
         downloader
             .Download("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue", false)
             .Returns(Task.FromResult<string>(null));
-        sut = CreateServer(new Version("6.4"), "ThisIsInvalidValue");
-
-        Func<Task> act = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
+        Func<Task> act = async () => await CreateServer(new Version("6.4"), "ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
         await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
         logger.AssertErrorLogged("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
     }
 
     [TestMethod]
-    [DataRow("foo bar")]
-    public async Task DownloadQualityProfile_MainProjectProfile_QualityProfileFound(string projectKey)
+    [DataRow(null, null)]
+    [DataRow("aBranch", null)]
+    [DataRow(null, "my Org")]
+    [DataRow("aBranch", "my Org")]
+    public async Task DownloadQualityProfile_QualityProfileFound(string branchName, string organization)
     {
         const string profileKey = "profile1k";
         const string language = "cs";
-        var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}";
-        var profileResponse = $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}";
-        downloader
-            .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
-            .Returns(Task.FromResult(Tuple.Create(true, profileResponse)));
-
-        var result = await sut.DownloadQualityProfile(projectKey, null, language);
-
-        result.Should().Be(profileKey);
-    }
-
-    [TestMethod]
-    [DataRow("foo bar", "aBranch")]
-    public async Task DownloadQualityProfile_BranchSpecificProfile_QualityProfileFound(string projectKey, string branchName)
-    {
-        const string profileKey = "profile1k";
-        const string language = "cs";
-        var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}:{branchName}")}";
-        var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
+        var projectKey = "someKey";
+        var projectTarget = branchName is null ? projectKey : $"{projectKey}:{branchName}";
+        var baseQualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectTarget}")}";
+        var qualityProfileUrl = organization is null ? baseQualityProfileUrl : $"{baseQualityProfileUrl}&organization={WebUtility.UrlEncode(organization)}";
+        var downloadResult = Tuple.Create(true, $$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}""");
         downloader
             .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
-
-        var result = await sut.DownloadQualityProfile(projectKey, branchName, language);
-
-        result.Should().Be(profileKey);
-    }
-
-    [TestMethod]
-    [DataRow("foo bar", "my org")]
-    public async Task DownloadQualityProfile_OrganizationProfile_QualityProfileFound(string projectKey, string organization)
-    {
-        const string profileKey = "orgProfile";
-        const string language = "cs";
-        var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}&organization={WebUtility.UrlEncode($"{organization}")}";
-        var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
-        downloader
-            .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
-            .Returns(Task.FromResult(downloadResult));
-        sut = CreateServer(organization: organization);
-
-        var result = await sut.DownloadQualityProfile(projectKey, null, language);
+        var result = await CreateServer(null, organization).DownloadQualityProfile(projectKey, branchName, language);
 
         result.Should().Be(profileKey);
     }
 
     [TestMethod]
-    [DataRow("foo bar")]
-    public async Task DownloadQualityProfile_FallBackDefaultProfile_QualityProfileFound(string projectKey)
+    public async Task DownloadQualityProfile_FallBackDefaultProfile_QualityProfileFound()
     {
         const string profileKey = "defaultProfile";
         const string language = "cs";
+        var projectKey = "someKey";
         downloader
             .TryDownloadIfExists($"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}", Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
         downloader
             .Download("api/qualityprofiles/search?defaults=true", Arg.Any<bool>())
-            .Returns(Task.FromResult($"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}"));
+            .Returns(Task.FromResult($$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}"""));
 
         var result = await sut.DownloadQualityProfile(projectKey, null, language);
 
@@ -165,27 +125,28 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
-    [DataRow("foo bar", "java")]
-    public async Task DownloadQualityProfile_NoProfileForLanguage_QualityProfileNotFound(string projectKey, string missingLanguage)
+    public async Task DownloadQualityProfile_NoProfileForLanguage_QualityProfileNotFound()
     {
         const string profileKey = "defaultProfile";
         const string language = "cs";
+        var projectKey = "someKey";
+
         var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}";
-        var downloadResult = Tuple.Create(true, $"{{ profiles: [{{\"key\":\"{profileKey}\",\"name\":\"profile1\",\"language\":\"{language}\"}}]}}");
+        var downloadResult = Tuple.Create(true, $$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}""");
         downloader
             .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
 
-        var result = await sut.DownloadQualityProfile(projectKey, null, missingLanguage);
+        var result = await sut.DownloadQualityProfile(projectKey, null, "java");
 
         result.Should().BeNull();
     }
 
     [TestMethod]
-    [DataRow("foo bar")]
-    public async Task DownloadQualityProfile_NoProfileForProject_QualityProfileNotFound(string projectKey)
+    public async Task DownloadQualityProfile_NoProfileForProject_QualityProfileNotFound()
     {
         const string language = "cs";
+        var projectKey = "someKey";
         var downloadResult = Tuple.Create(true, "{ profiles: []}");
         var qualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}";
         downloader
@@ -200,7 +161,7 @@ public class SonarWebServerTest
     [TestMethod]
     public async Task DownloadQualityProfile_MissingProfiles_ReturnsFalseAndEmptyContent()
     {
-        var downloadResult = Tuple.Create(true, @"{""unexpected"": ""valid json""}");
+        var downloadResult = Tuple.Create(true, """{"unexpected": "valid json"}""");
         downloader
             .TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
@@ -213,7 +174,7 @@ public class SonarWebServerTest
     [TestMethod]
     public async Task DownloadQualityProfile_MissingKey_ReturnsFalseAndEmptyContent()
     {
-        var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""language"":""cs"" } ] }");
+        var downloadResult = Tuple.Create(true, """{ profiles: [ { "language":"cs" } ] }""");
         downloader
             .TryDownloadIfExists($"api/qualityprofiles/search?project={ProjectKey}", Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
@@ -285,43 +246,38 @@ public class SonarWebServerTest
     {
         downloader
             .Download(Arg.Any<string>(), Arg.Any<bool>())
-            .Returns(Task.FromResult(@"{ total: 1, p: 1, ps: 1,
-            rules: [{
-                key: ""vbnet:S2368"",
-                repo: ""vbnet"",
-                name: ""Public methods should not have multidimensional array parameters"",
-                severity: ""MAJOR"",
-                lang: ""vbnet"",
-                params: [ ],
-                type: ""CODE_SMELL""
-            }],
-
-            actives: {
-                ""vbnet:S2368"": [
-                {
-                    qProfile: ""qp"",
-                    inherit: ""NONE"",
-                    severity: ""MAJOR"",
-                    params: [
-                    {
-                      key: ""CheckId"",
-                      value: ""OverwrittenId"",
-                      type: ""FLOAT""
-                    }
-                    ]
+            .Returns(Task.FromResult("""
+                { total: 1, p: 1, ps: 1,
+                  rules: [{
+                    key: "vbnet:S2368",
+                    repo: "vbnet",
+                    name: "Public methods should not have multidimensional array parameters",
+                    severity: "MAJOR",
+                    lang: "vbnet",
+                    params: [ ],
+                    type: "CODE_SMELL" }],
+                  actives: {
+                    "vbnet:S2368": [{
+                      qProfile: "qp",
+                      inherit: "NONE",
+                      severity: "MAJOR",
+                      params: [{
+                        key: "CheckId",
+                        value: "OverwrittenId",
+                        type: "FLOAT" }]
+                    }]
+                  }
                 }
-                ]
-            }
-            }"));
+                """));
 
         var actual = sut.DownloadRules("qp").Result;
-        actual.Should().ContainSingle();
 
+        actual.Should().ContainSingle();
         actual[0].RepoKey.Should().Be("vbnet");
         actual[0].RuleKey.Should().Be("OverwrittenId");
         actual[0].InternalKeyOrKey.Should().Be("OverwrittenId");
         actual[0].TemplateKey.Should().BeNull();
-        actual[0].Parameters.Should().HaveCount(1);
+        actual[0].Parameters.Should().ContainSingle();
     }
 
     [TestMethod]
@@ -333,7 +289,7 @@ public class SonarWebServerTest
                 .Download($"api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p={page}")
                 .Returns(
                     $$"""
-                        {
+                    {
                         total: 10500,
                         p: {{page}},
                         ps: 500,
@@ -359,8 +315,7 @@ public class SonarWebServerTest
                                     key: "minimumCommentDensity",
                                     defaultValue: "25",
                                     type: "FLOAT"
-                                }
-                            ],
+                                }],
                             type: "CODE_SMELL"
                         }],
                         actives: {
@@ -370,9 +325,8 @@ public class SonarWebServerTest
                                     inherit: "NONE",
                                     severity:"MAJOR",
                                     params: []
-                                }
-                            ],
-                        "common-vbnet:InsufficientCommentDensity": [
+                                }],
+                            "common-vbnet:InsufficientCommentDensity": [
                             {
                                 qProfile: "vbnet - sonar - way - 34825",
                                 inherit:"NONE",
@@ -381,10 +335,8 @@ public class SonarWebServerTest
                                 {
                                     key:"minimumCommentDensity",
                                     value:"50"
-                                }
-                                ]
-                            }
-                        ]
+                                }]
+                            }]
                         }
                     }
                     """);
@@ -402,68 +354,64 @@ public class SonarWebServerTest
             .Download("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1")
             .Returns("""
                 {
-                total: 3, p: 1, ps: 2,
-                rules: [{
-                    key: "vbnet:S2368",
-                    repo: "vbnet",
-                    name: "Public methods should not have multidimensional array parameters",
-                    severity: "MAJOR",
-                    lang: "vbnet",
-                    params: [ ],
-                    type: "CODE_SMELL"
-                },
-                {
-                    key: "common-vbnet:InsufficientCommentDensity",
-                    repo: "common-vbnet",
-                    internalKey: "InsufficientCommentDensity.internal",
-                    templateKey: "dummy.template.key",
-                    name: "Source files should have a sufficient density of comment lines",
-                    severity: "MAJOR",
-                    lang: "vbnet",
-                    params: [
-                    {
-                        key: "minimumCommentDensity",
-                        defaultValue: "25",
-                        type: "FLOAT"
-                    }
-                    ],
-                    type: "CODE_SMELL"
-                },
-                {
-                    key: "vbnet:S1234",
-                    repo: "vbnet",
-                    name: "This rule is not active",
-                    severity: "MAJOR",
-                    lang: "vbnet",
-                    params: [ ],
-                    type: "CODE_SMELL"
-                },],
-
-                actives: {
-                    "vbnet:S2368": [
-                    {
-                        qProfile: "vbnet - sonar - way - 34825",
-                        inherit: "NONE",
+                    total: 3, p: 1, ps: 2,
+                    rules: [{
+                        key: "vbnet:S2368",
+                        repo: "vbnet",
+                        name: "Public methods should not have multidimensional array parameters",
                         severity: "MAJOR",
-                        params: [ ]
-                    }
-                    ],
-                    "common-vbnet:InsufficientCommentDensity": [
+                        lang: "vbnet",
+                        params: [ ],
+                        type: "CODE_SMELL"
+                    },
                     {
-                        qProfile: "vbnet - sonar - way - 34825",
-                        inherit: "NONE",
+                        key: "common-vbnet:InsufficientCommentDensity",
+                        repo: "common-vbnet",
+                        internalKey: "InsufficientCommentDensity.internal",
+                        templateKey: "dummy.template.key",
+                        name: "Source files should have a sufficient density of comment lines",
                         severity: "MAJOR",
+                        lang: "vbnet",
                         params: [
                         {
                             key: "minimumCommentDensity",
-                            value: "50"
+                            defaultValue: "25",
+                            type: "FLOAT"
                         }
-                        ]
+                        ],
+                        type: "CODE_SMELL"
+                    },
+                    {
+                        key: "vbnet:S1234",
+                        repo: "vbnet",
+                        name: "This rule is not active",
+                        severity: "MAJOR",
+                        lang: "vbnet",
+                        params: [ ],
+                        type: "CODE_SMELL"
+                    }],
+                    actives: {
+                        "vbnet:S2368": [
+                        {
+                            qProfile: "vbnet - sonar - way - 34825",
+                            inherit: "NONE",
+                            severity: "MAJOR",
+                            params: [ ]
+                        }],
+                        "common-vbnet:InsufficientCommentDensity": [
+                        {
+                            qProfile: "vbnet - sonar - way - 34825",
+                            inherit: "NONE",
+                            severity: "MAJOR",
+                            params: [
+                            {
+                                key: "minimumCommentDensity",
+                                value: "50"
+                            }]
+                        }]
                     }
-                    ]
                 }
-                }
-            """);
+                """);
 
         downloader
             .Download("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=2")
@@ -480,7 +428,6 @@ public class SonarWebServerTest
                         params: [ ],
                         type: "CODE_SMELL"
                     }],
-
                     actives: {
                         "vbnet:S2346": [
                         {
@@ -494,20 +441,21 @@ public class SonarWebServerTest
                 """);
 
         var actual = sut.DownloadRules("qp").Result;
+
         actual.Should().HaveCount(4);
 
         actual[0].RepoKey.Should().Be("vbnet");
         actual[0].RuleKey.Should().Be("S2368");
         actual[0].InternalKeyOrKey.Should().Be("S2368");
         actual[0].TemplateKey.Should().BeNull();
-        actual[0].Parameters.Should().HaveCount(0);
+        actual[0].Parameters.Should().BeEmpty();
         actual[0].IsActive.Should().BeTrue();
 
         actual[1].RepoKey.Should().Be("common-vbnet");
         actual[1].RuleKey.Should().Be("InsufficientCommentDensity");
         actual[1].InternalKeyOrKey.Should().Be("InsufficientCommentDensity.internal");
         actual[1].TemplateKey.Should().Be("dummy.template.key");
-        actual[1].Parameters.Should().HaveCount(1);
+        actual[1].Parameters.Should().ContainSingle();
         actual[1].Parameters.First().Should().Be(new KeyValuePair<string, string>("minimumCommentDensity", "50"));
         actual[1].IsActive.Should().BeTrue();
 
@@ -522,63 +470,57 @@ public class SonarWebServerTest
         actual[3].RuleKey.Should().Be("S2346");
         actual[3].InternalKeyOrKey.Should().Be("S2346");
         actual[3].TemplateKey.Should().BeNull();
-        actual[3].Parameters.Should().HaveCount(0);
+        actual[3].Parameters.Should().BeEmpty();
         actual[3].IsActive.Should().BeTrue();
     }
 
     [TestMethod]
     public void DownloadRules_Active_WhenActivesContainsRuleWithMultipleBodies_UseFirst()
     {
-        // Arrange
         downloader
             .Download("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1")
             .Returns("""
                 { total: 1, p: 1, ps: 1,
-                            rules: [{
-                                key: "key1",
-                                repo: "vbnet",
-                                name: "Public methods should not have multidimensional array parameters",
-                                severity: "MAJOR",
-                                lang: "vbnet",
-                                params: [ ],
-                                type: "CODE_SMELL"
-                            }],
-
-                            actives: {
-                                "key1": [
-                                {
-                                    qProfile: "qp",
-                                    inherit: "NONE",
-                                    severity: "MAJOR",
-                                    params: [
-                                    {
-                                      key: "CheckId",
-                                      value: "OverwrittenId-First",
-                                      type: "FLOAT"
-                                    }
-                                    ]
-                                },
-                                {
-                                    qProfile: "qp",
-                                    inherit: "NONE",
-                                    severity: "MAJOR",
-                                    params: [
-                                    {
-                                      key: "CheckId",
-                                      value: "OverwrittenId-Second",
-                                      type: "FLOAT"
-                                    }
-                                    ]
-                                }
-                                ]
-                            }
-                            }
-            """);
+                    rules: [{
+                        key: "key1",
+                        repo: "vbnet",
+                        name: "Public methods should not have multidimensional array parameters",
+                        severity: "MAJOR",
+                        lang: "vbnet",
+                        params: [ ],
+                        type: "CODE_SMELL"
+                    }],
+                    actives: {
+                        "key1": [
+                        {
+                            qProfile: "qp",
+                            inherit: "NONE",
+                            severity: "MAJOR",
+                            params: [
+                            {
+                                key: "CheckId",
+                                value: "OverwrittenId-First",
+                                type: "FLOAT"
+                            }]
+                        },
+                        {
+                            qProfile: "qp",
+                            inherit: "NONE",
+                            severity: "MAJOR",
+                            params: [
+                            {
+                                key: "CheckId",
+                                value: "OverwrittenId-Second",
+                                type: "FLOAT"
+                            }]
+                        }]
+                    }
+                }
+                """);
 
         var actual = sut.DownloadRules("qp").Result;
 
-        // Assert
-        actual.Should().HaveCount(1);
+        actual.Should().ContainSingle();
         actual.Single().IsActive.Should().BeTrue();
         actual.Single().RuleKey.Should().Be("OverwrittenId-First");
     }
@@ -589,11 +531,8 @@ public class SonarWebServerTest
         downloader
             .Download("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1")
             .Returns("""
-                {
-                total: 3,
-                p: 1,
-                ps: 500,
-                rules: [
+                { total: 3, p: 1, ps: 500,
+                    rules: [
                     {
                         "key": "csharpsquid:S2757",
                         "repo": "csharpsquid",
@@ -603,9 +542,9 @@ public class SonarWebServerTest
                         "key": "csharpsquid:S1117",
                         "repo": "csharpsquid",
                         "type": "CODE_SMELL"
-                    }
-                ]}
-            """);
+                    }]
+                }
+                """);
 
         var rules = sut.DownloadRules("qp").Result;
 
@@ -630,23 +569,19 @@ public class SonarWebServerTest
         downloader
             .Download("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1")
             .Returns("""
-                {
-                total: 3,
-                p: 1,
-                ps: 500,
-                rules: [
-                    {
-                        "key": "csharpsquid:S2757",
-                        "repo": "csharpsquid",
-                        "type": "BUG"
-                    },
-                    {
-                        "key": "csharpsquid:S1117",
-                        "repo": "csharpsquid",
-                        "type": "CODE_SMELL"
-                    }
-                ],
-                actives: {}
+                { total: 3, p: 1, ps: 500,
+                    rules: [
+                        {
+                            "key": "csharpsquid:S2757",
+                            "repo": "csharpsquid",
+                            "type": "BUG"
+                        },
+                        {
+                            "key": "csharpsquid:S1117",
+                            "repo": "csharpsquid",
+                            "type": "CODE_SMELL"
+                        }],
+                    actives: {}
                 }
                 """);
 
@@ -673,17 +608,14 @@ public class SonarWebServerTest
         downloader
             .Download("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=my%23qp&p=1")
             .Returns("""
-                {
-                total: 3,
-                p: 1,
-                ps: 500,
-                rules: [
-                    {
-                        "key": "csharpsquid:S2757",
-                        "repo": "csharpsquid",
-                        "type": "BUG"
-                    },
-                ]}
+                { total: 3, p: 1, ps: 500,
+                    rules: [
+                        {
+                            "key": "csharpsquid:S2757",
+                            "repo": "csharpsquid",
+                            "type": "BUG"
+                        }]
+                }
                 """);
 
         var rules = sut.DownloadRules("my#qp").Result;
@@ -709,11 +641,11 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
-    public async Task GetInstalledPlugins()
+    public async Task DownloadAllLanguages_Succeeds()
     {
         downloader
             .Download("api/languages/list", Arg.Any<bool>())
-            .Returns(Task.FromResult("{ languages: [{ key: \"cs\", name: \"C#\" }, { key: \"flex\", name: \"Flex\" } ]}"));
+            .Returns(Task.FromResult("""{ languages: [{ key: "cs", name: "C#" }, { key: "flex", name: "Flex" } ]}"""));
 
         var expected = new List<string> { "cs", "flex" };
 
@@ -823,15 +755,15 @@ public class SonarWebServerTest
         downloader
             .Download("analysis/jres?os=what&arch=ever")
             .Returns("""
-            [{
-                "id": "someId",
-                "filename": "file42.txt",
-                "sha256": "42==",
-                "javaPath": "best/language/java.exe",
-                "os": "lunix",
-                "arch": "manjaro"
-            }]
-            """);
+                [{
+                    "id": "someId",
+                    "filename": "file42.txt",
+                    "sha256": "42==",
+                    "javaPath": "best/language/java.exe",
+                    "os": "lunix",
+                    "arch": "manjaro"
+                }]
+                """);
 
         var jreMetadata = await sut.DownloadJreMetadataAsync("what", "ever");
 
@@ -850,11 +782,11 @@ public class SonarWebServerTest
         downloader
             .Download("analysis/jres?os=what&arch=ever")
             .Returns("""
-            [
-                { "id": "first" },
-                { "id": "second" },
-            ]
-            """);
+                [
+                    { "id": "first" },
+                    { "id": "second" },
+                ]
+                """);
 
         var jreMetadata = await sut.DownloadJreMetadataAsync("what", "ever");
 
@@ -936,7 +868,7 @@ public class SonarWebServerTest
         {
             Filename = "sonarcloud-scanner-engine-11.14.1.763.jar",
             Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
-            DownloadUrl = (string)null,
+            DownloadUrl = (Uri)null,
         });
         logger.AssertNoWarningsLogged();
     }
