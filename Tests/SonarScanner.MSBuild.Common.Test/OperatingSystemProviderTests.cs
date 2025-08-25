@@ -18,20 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using static SonarScanner.MSBuild.Common.OperatingSystemProvider;
+#if NET
+using System.IO;
+using System.Runtime.Versioning;
+#endif
 
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class OperatingSystemProviderTests
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
-    public void GetFolderPath_WithUserProfile()
+    public void FolderPath_WithUserProfile()
     {
         var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
         sut.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None)
@@ -46,6 +46,26 @@ public class OperatingSystemProviderTests
     }
 
     [TestMethod]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void OperatingSystem_Windows() =>
+        new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).OperatingSystem().Should().Be(PlatformOS.Windows);
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoWindows)]
+    [TestCategory(TestCategories.NoLinux)]
+    public void OperatingSystem_MacOS() =>
+        new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).OperatingSystem().Should().Be(PlatformOS.MacOSX);
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoWindows)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void OperatingSystem_Linux() =>
+        new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).OperatingSystem().Should().Be(PlatformOS.Linux);
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoWindows)]
+    [TestCategory(TestCategories.NoMacOS)]
     [DataRow("/etc/os-release", "alpine", true)]
     [DataRow("/etc/os-release", "ubuntu", false)]
     [DataRow("/etc/os-release", "\"rocky\"", false)] // https://github.com/which-distro/os-release/blob/main/rocky/8.6
@@ -53,24 +73,13 @@ public class OperatingSystemProviderTests
     [DataRow("/usr/lib/os-release", "ubuntu", false)]
     [DataRow("/usr/lib/os-release", "\"rhel\"", false)] // https://github.com/chef/os_release/blob/main/redhat_8
     [DataRow("/etc/other-file", "alpine", false)]
-    public void IsAlpine_ChecksFileContent(string path, string id, bool expectedValue)
-    {
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(path).Returns(true);
-        fileWrapper.ReadAllText(path).Returns($"""
-                                               NAME="Alpine Linux"
-                                               ID={id}
-                                               VERSION_ID=3.17.0
-                                               PRETTY_NAME="Alpine Linux v3.17"
-                                               HOME_URL="https://alpinelinux.org/"
-                                               BUG_REPORT_URL="https://gitlab.alpinelinux.org/alpine/aports/-/issues"
-                                               """);
-        var sut = new OperatingSystemProvider(fileWrapper, Substitute.For<ILogger>());
-        sut.IsAlpine().Should().Be(expectedValue);
-    }
+    public void OperatingSystem_Alpine(string path, string id, bool isAlpine) =>
+        new OperatingSystemProvider(FileWrapperWithOSFile(path, id), Substitute.For<ILogger>()).OperatingSystem().Should().Be(isAlpine ? PlatformOS.Alpine : PlatformOS.Linux);
 
     [TestMethod]
-    public void IsAlpine_OnInvalidAccess_ReturnsFalse()
+    [TestCategory(TestCategories.NoWindows)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void OperatingSystem_InvalidAccess_IsLinux()
     {
         var exception = new UnauthorizedAccessException();
         var logger = Substitute.For<ILogger>();
@@ -79,7 +88,65 @@ public class OperatingSystemProviderTests
         fileWrapper.When(x => x.ReadAllText("/etc/os-release")).Do(_ => throw exception);
         var sut = new OperatingSystemProvider(fileWrapper, logger);
 
-        sut.IsAlpine().Should().Be(false);
+        sut.OperatingSystem().Should().Be(PlatformOS.Linux);
         logger.Received(1).LogWarning("Cannot detect the operating system. {0}", exception.Message);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoLinux)]
+    public void OperatingSystem_WindowsAndMacOS_AreNotAlpine() =>
+        new OperatingSystemProvider(FileWrapperForAlpine(), Substitute.For<ILogger>()).OperatingSystem().Should().NotBe(PlatformOS.Alpine);
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void IsUnix_Windows() =>
+        new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).IsUnix().Should().Be(false);
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoWindows)]
+    public void IsUnix_Unix() =>
+        new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).IsUnix().Should().Be(true);
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoWindows)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void IsUnix_Alpine() =>
+        new OperatingSystemProvider(FileWrapperForAlpine(), Substitute.For<ILogger>()).IsUnix().Should().Be(true);
+
+#if NET
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoWindows)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void Set()
+    {
+        var filePath = TestUtils.CreateFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "testfile.txt", "content");
+        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());   // Set does not use fileWrapper
+        var expectedMode = Convert.ToInt32("555", 8);
+
+        File.GetUnixFileMode(filePath).Should().NotBe((UnixFileMode)expectedMode);
+        sut.Set(filePath, expectedMode);
+        File.GetUnixFileMode(filePath).Should().Be((UnixFileMode)expectedMode);
+    }
+
+#endif
+
+    private static IFileWrapper FileWrapperForAlpine() =>
+        FileWrapperWithOSFile("/etc/os-release", "alpine");
+
+    private static IFileWrapper FileWrapperWithOSFile(string path, string id)
+    {
+        var fileWrapper = Substitute.For<IFileWrapper>();
+        fileWrapper.Exists(path).Returns(true);
+        fileWrapper.ReadAllText(path).Returns($"""
+            NAME="Alpine Linux"
+            ID={id}
+            VERSION_ID=3.17.0
+            PRETTY_NAME="Alpine Linux v3.17"
+            HOME_URL="https://alpinelinux.org/"
+            BUG_REPORT_URL="https://gitlab.alpinelinux.org/alpine/aports/-/issues"
+            """);
+        return fileWrapper;
     }
 }
