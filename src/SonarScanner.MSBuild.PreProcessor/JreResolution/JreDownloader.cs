@@ -30,32 +30,36 @@ public class JreDownloader
     private readonly CachedDownloader cachedDownloader;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly UnpackerFactory unpackerFactory;
-    private readonly IFilePermissionsWrapper filePermissionsWrapper;
+    private readonly IUnpacker unpacker;
+    private readonly JreDescriptor jreDescriptor;
+    private readonly string jreExtractionPath;
+    private readonly string extractedJavaExe;
 
     public JreDownloader(ILogger logger,
-                         CachedDownloader cachedDownloader,
                          IDirectoryWrapper directoryWrapper,
                          IFileWrapper fileWrapper,
-                         UnpackerFactory unpackerFactory,
-                         IFilePermissionsWrapper filePermissionsWrapper)
+                         IUnpacker unpacker,
+                         IChecksum checksum,
+                         string sonarUserHome,
+                         JreDescriptor jreDescriptor)
     {
         this.logger = logger;
-        this.cachedDownloader = cachedDownloader;
         this.directoryWrapper = directoryWrapper;
         this.fileWrapper = fileWrapper;
-        this.unpackerFactory = unpackerFactory;
-        this.filePermissionsWrapper = filePermissionsWrapper;
+        this.unpacker = unpacker;
+        this.jreDescriptor = jreDescriptor;
+
+        cachedDownloader = new CachedDownloader(logger, directoryWrapper, fileWrapper, checksum, jreDescriptor, sonarUserHome);
+        jreExtractionPath = $"{cachedDownloader.CacheLocation}_extracted";
+        extractedJavaExe = Path.Combine(jreExtractionPath, jreDescriptor.JavaPath);
     }
 
-    public virtual CacheResult IsJreCached(JreDescriptor jreDescriptor)
+    public virtual CacheResult IsJreCached()
     {
-        if (cachedDownloader.EnsureCacheRoot() is not null)
+        if (cachedDownloader.EnsureCacheRoot())
         {
-            var extractedPath = JreExtractionPath(jreDescriptor);
-            if (directoryWrapper.Exists(extractedPath))
+            if (directoryWrapper.Exists(jreExtractionPath))
             {
-                var extractedJavaExe = Path.Combine(extractedPath, jreDescriptor.JavaPath);
                 return fileWrapper.Exists(extractedJavaExe)
                     ? new CacheHit(extractedJavaExe)
                     : new CacheError(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
@@ -68,25 +72,17 @@ public class JreDownloader
         return new CacheError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(cachedDownloader.CacheRoot)));
     }
 
-    public virtual async Task<DownloadResult> DownloadJreAsync(JreDescriptor jreDescriptor, Func<Task<Stream>> jreDownload)
+    public async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)
     {
-        if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, jreDescriptor.Filename) is { } unpacker)
-        {
-            logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
-            var resolution = await cachedDownloader.DownloadFileAsync(jreDescriptor, jreDownload);
-            return resolution is DownloadSuccess success ? UnpackJre(unpacker, success.FilePath, jreDescriptor) : resolution;
-        }
-        else
-        {
-            return new DownloadError(string.Format(Resources.ERR_JreArchiveFormatNotSupported, jreDescriptor.Filename));
-        }
+        logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
+        var result = await cachedDownloader.DownloadFileAsync(jreDownload);
+        return result is DownloadSuccess success ? UnpackJre(success.FilePath) : result;
     }
 
-    private DownloadResult UnpackJre(IUnpacker unpacker, string jreArchive, JreDescriptor jreDescriptor)
+    private DownloadResult UnpackJre(string jreArchive)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
-        var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath(jreDescriptor), directoryWrapper.GetRandomFileName());
-        var finalExtractionPath = JreExtractionPath(jreDescriptor); // If all goes well, this will be the final folder. We rename the temporary folder to this one.
+        var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath, directoryWrapper.GetRandomFileName());
         try
         {
             logger.LogDebug(Resources.MSG_StartingJreExtraction, jreArchive, tempExtractionPath);
@@ -95,10 +91,10 @@ public class JreDownloader
             var expectedJavaExeInTempPath = Path.Combine(tempExtractionPath, jreDescriptor.JavaPath);
             if (fileWrapper.Exists(expectedJavaExeInTempPath))
             {
-                logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, finalExtractionPath);
-                directoryWrapper.Move(tempExtractionPath, finalExtractionPath);
-                logger.LogDebug(Resources.MSG_JreExtractedSucessfully, finalExtractionPath);
-                return new DownloadSuccess(Path.Combine(finalExtractionPath, jreDescriptor.JavaPath));
+                logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, jreExtractionPath);
+                directoryWrapper.Move(tempExtractionPath, jreExtractionPath);
+                logger.LogDebug(Resources.MSG_JreExtractedSucessfully, jreExtractionPath);
+                return new DownloadSuccess(extractedJavaExe);
             }
             else
             {
@@ -124,7 +120,4 @@ public class JreDownloader
             logger.LogDebug(Resources.ERR_JreExtractionCleanupFailed, tempExtractionPath, ex.Message);
         }
     }
-
-    private string JreExtractionPath(JreDescriptor jreDescriptor) =>
-        Path.Combine(cachedDownloader.FileRootPath(jreDescriptor), $"{jreDescriptor.Filename}_extracted");
 }

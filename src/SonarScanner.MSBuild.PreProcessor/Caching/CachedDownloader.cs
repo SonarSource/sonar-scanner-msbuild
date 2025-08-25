@@ -29,67 +29,54 @@ public class CachedDownloader
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
     private readonly ILogger logger;
-    private readonly string sonarUserHome;
+    private readonly FileDescriptor fileDescriptor;
+    private readonly string downloadTarget;
 
-    public string CacheRoot => Path.Combine(sonarUserHome, "cache");
+    public string CacheRoot { get; }
+    public string FileRootPath { get; }
+    public string CacheLocation { get; }
 
-    public CachedDownloader(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, string sonarUserHome)
+    public CachedDownloader(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, FileDescriptor fileDescriptor, string sonarUserHome)
     {
         this.logger = logger;
         this.directoryWrapper = directoryWrapper;
         this.fileWrapper = fileWrapper;
-        this.sonarUserHome = sonarUserHome;
         this.checksum = checksum;
+        this.fileDescriptor = fileDescriptor;
+
+        CacheRoot = Path.Combine(sonarUserHome, "cache");
+        FileRootPath = Path.Combine(CacheRoot, fileDescriptor.Sha256);
+        CacheLocation = Path.Combine(FileRootPath, fileDescriptor.Filename);
+        downloadTarget = Path.Combine(FileRootPath, fileDescriptor.Filename);
     }
 
-    public virtual CacheResult IsFileCached(FileDescriptor fileDescriptor)
+    public virtual CacheResult IsFileCached()
     {
-        if (EnsureCacheRoot() is { } cacheRoot)
+        if (EnsureCacheRoot())
         {
-            var cacheLocation = CacheLocation(cacheRoot, fileDescriptor);
-            return fileWrapper.Exists(cacheLocation) // We do not check the SHA256 of the found file.
-                ? new CacheHit(cacheLocation)
+            return fileWrapper.Exists(CacheLocation) // We do not check the SHA256 of the found file.
+                ? new CacheHit(CacheLocation)
                 : new CacheMiss();
         }
         return new CacheError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
     }
 
-    public string EnsureCacheRoot() =>
-        EnsureDirectoryExists(CacheRoot);
-
-    public string EnsureDirectoryExists(string directory)
+    public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download)
     {
-        try
+        if (EnsureDownloadDirectory())
         {
-            if (!directoryWrapper.Exists(directory))
-            {
-                directoryWrapper.CreateDirectory(directory);
-            }
-            return directory;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    public async Task<DownloadResult> DownloadFileAsync(FileDescriptor fileDescriptor, Func<Task<Stream>> download)
-    {
-        if (EnsureDownloadDirectory(fileDescriptor) is { } downloadPath)
-        {
-            var downloadTarget = Path.Combine(downloadPath, fileDescriptor.Filename);
-            return await EnsureFileIsDownloaded(downloadPath, downloadTarget, fileDescriptor, download) is { } downloadFailure
-                ? downloadFailure
+            return await EnsureFileIsDownloaded(download) is { } downloadError
+                ? downloadError
                 : new DownloadSuccess(downloadTarget);
         }
         else
         {
-            return new DownloadError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath(fileDescriptor)));
+            return new DownloadError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath));
         }
     }
 
-    public string FileRootPath(FileDescriptor descriptor) =>
-        Path.Combine(CacheRoot, descriptor.Sha256);
+    public virtual bool EnsureCacheRoot() =>
+        EnsureDirectoryExists(CacheRoot);
 
     internal bool ValidateChecksum(string downloadTarget, string sha256)
     {
@@ -107,8 +94,24 @@ public class CachedDownloader
         }
     }
 
-    private string EnsureDownloadDirectory(FileDescriptor fileDescriptor) =>
-        EnsureCacheRoot() is not null && EnsureDirectoryExists(FileRootPath(fileDescriptor)) is { } downloadPath ? downloadPath : null;
+    private bool EnsureDownloadDirectory() =>
+        EnsureCacheRoot() && EnsureDirectoryExists(FileRootPath);
+
+    private bool EnsureDirectoryExists(string directory)
+    {
+        try
+        {
+            if (!directoryWrapper.Exists(directory))
+            {
+                directoryWrapper.CreateDirectory(directory);
+            }
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
     private void TryDeleteFile(string tempFile)
     {
@@ -123,32 +126,32 @@ public class CachedDownloader
         }
     }
 
-    private async Task<DownloadError> EnsureFileIsDownloaded(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    private async Task<DownloadError> EnsureFileIsDownloaded(Func<Task<Stream>> download)
     {
         if (fileWrapper.Exists(downloadTarget))
         {
-            return ValidateFile(downloadTarget, descriptor);
+            return ValidateFile();
         }
         logger.LogDebug(Resources.MSG_StartingFileDownload);
-        if (await DownloadAndValidateFile(downloadPath, downloadTarget, descriptor, download) is { } exception)
+        if (await DownloadAndValidateFile(download) is { } exception)
         {
             logger.LogDebug(Resources.ERR_DownloadFailed, exception.Message);
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
                 logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, downloadTarget);
-                return ValidateFile(downloadTarget, descriptor);
+                return ValidateFile();
             }
             return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
         }
         return null;
     }
 
-    private async Task<Exception> DownloadAndValidateFile(string downloadPath, string downloadTarget, FileDescriptor descriptor, Func<Task<Stream>> download)
+    private async Task<Exception> DownloadAndValidateFile(Func<Task<Stream>> download)
     {
         // We download to a temporary file in the correct folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
         var tempFileName = directoryWrapper.GetRandomFileName();
-        var tempFile = Path.Combine(downloadPath, tempFileName);
+        var tempFile = Path.Combine(FileRootPath, tempFileName);
         try
         {
             using var fileStream = fileWrapper.Create(tempFile);
@@ -161,7 +164,7 @@ public class CachedDownloader
                 }
                 await downloadStream.CopyToAsync(fileStream);
                 fileStream.Close();
-                if (ValidateChecksum(tempFile, descriptor.Sha256))
+                if (ValidateChecksum(tempFile, fileDescriptor.Sha256))
                 {
                     fileWrapper.Move(tempFile, downloadTarget);
                     return null;
@@ -186,10 +189,10 @@ public class CachedDownloader
         }
     }
 
-    private DownloadError ValidateFile(string downloadTarget, FileDescriptor descriptor)
+    private DownloadError ValidateFile()
     {
         logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
-        if (ValidateChecksum(downloadTarget, descriptor.Sha256))
+        if (ValidateChecksum(downloadTarget, fileDescriptor.Sha256))
         {
             return null;
         }
@@ -211,7 +214,4 @@ public class CachedDownloader
             // If closing the file fails, just move on.
         }
     }
-
-    private static string CacheLocation(string cacheRoot, FileDescriptor fileDescriptor) =>
-        Path.Combine(cacheRoot, fileDescriptor.Sha256, fileDescriptor.Filename);
 }

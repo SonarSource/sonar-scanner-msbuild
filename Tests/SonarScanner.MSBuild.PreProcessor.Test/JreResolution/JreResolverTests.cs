@@ -18,7 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Caching;
+using NSubstitute.ExceptionExtensions;
+using NSubstitute.ReturnsExtensions;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
@@ -29,19 +30,29 @@ public class JreResolverTests
 {
     private const string SonarUserHome = "sonarUserHome";
 
+    private static readonly string CacheDir = Path.Combine(SonarUserHome, "cache");
+    private static readonly string ShaPath = Path.Combine(CacheDir, "sha256");
+    private static readonly string DownloadPath = Path.Combine(ShaPath, "filename.tar.gz");
+    private static readonly string ExtractedPath = Path.Combine(ShaPath, "filename.tar.gz_extracted");
+    private static readonly string JavaExePath = Path.Combine("path", "to", "java.exe");
+    private static readonly string ExtractedJavaPath = Path.Combine(ExtractedPath, JavaExePath);
+
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
-    private readonly JreMetadata metadata = new(null, null, null, null, null);
+    private readonly JreMetadata metadata = new("1", "filename.tar.gz", JavaExePath, new Uri("https://localhost.com/path/to-jre"), "sha256");
+    private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
+    private readonly IFilePermissionsWrapper filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
+    private readonly IChecksum checksum = Substitute.For<IChecksum>();
 
     private ListPropertiesProvider provider;
-    private JreDownloader jreDownloader;
     private TestLogger logger;
     private ISonarWebServer server;
     private JreResolver sut;
+    private UnpackerFactory unpackerFactory;
 
     [TestInitialize]
     public void Initialize()
     {
-        provider = new();
+        provider = [];
         provider.AddProperty("sonar.scanner.os", "linux");
         logger = new TestLogger();
         server = Substitute.For<ISonarWebServer>();
@@ -49,80 +60,65 @@ public class JreResolverTests
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
-        var cachedDownloader = Substitute.For<CachedDownloader>(
-            logger,
-            Substitute.For<IDirectoryWrapper>(),
-            fileWrapper,
-            Substitute.For<IChecksum>(),
-            SonarUserHome);
-        jreDownloader = Substitute.For<JreDownloader>(
-            logger,
-            cachedDownloader,
-            Substitute.For<IDirectoryWrapper>(),
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<UnpackerFactory>(),
-            Substitute.For<IFilePermissionsWrapper>());
-        sut = new JreResolver(server, jreDownloader, logger);
+        unpackerFactory = Substitute.For<UnpackerFactory>();
+
+        sut = new JreResolver(server, logger, filePermissionsWrapper, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
     }
 
     [TestMethod]
     public async Task ResolveJrePath_JavaExePathSet()
     {
-        var args = GetArgs();
+        var args = Args();
         args.JavaExePath.Returns("path");
 
         var res = await sut.ResolveJrePath(args);
 
         res.Should().BeNull();
-        logger.DebugMessages.Should().BeEquivalentTo([
+        AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning."
-            ]);
+            "JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning.");
     }
 
     [TestMethod]
     public async Task ResolveJrePath_SkipProvisioningSet()
     {
-        var args = GetArgs();
+        var args = Args();
         args.SkipJreProvisioning.Returns(true);
 
         var res = await sut.ResolveJrePath(args);
 
         res.Should().BeNull();
-        logger.DebugMessages.Should().BeEquivalentTo([
+        AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "JreResolver: sonar.scanner.skipJreProvisioning is set, skipping JRE provisioning."
-            ]);
+            "JreResolver: sonar.scanner.skipJreProvisioning is set, skipping JRE provisioning.");
     }
 
     [TestMethod]
     public async Task ResolveJrePath_ArchitectureEmpty()
     {
-        var args = GetArgs();
+        var args = Args();
         args.Architecture.Returns(string.Empty);
 
         var res = await sut.ResolveJrePath(args);
 
         res.Should().BeNull();
-        logger.DebugMessages.Should().BeEquivalentTo([
+        AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning."
-            ]);
+            "JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning.");
     }
 
     [TestMethod]
     public async Task ResolveJrePath_OperatingSystemEmpty()
     {
-        var args = GetArgs();
+        var args = Args();
         args.OperatingSystem.Returns(string.Empty);
 
         var res = await sut.ResolveJrePath(args);
 
         res.Should().BeNull();
-        logger.DebugMessages.Should().BeEquivalentTo([
+        AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "JreResolver: sonar.scanner.os is not set or detected, skipping JRE provisioning."
-            ]);
+            "JreResolver: sonar.scanner.os is not set or detected, skipping JRE provisioning.");
     }
 
     [TestMethod]
@@ -132,142 +128,165 @@ public class JreResolverTests
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult<JreMetadata>(null));
 
-        var res = await sut.ResolveJrePath(GetArgs());
+        var res = await sut.ResolveJrePath(Args());
 
         res.Should().BeNull();
-        logger.DebugMessages.Should().BeEquivalentTo([
+        AssertDebugMessages(
+            true,
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Metadata could not be retrieved.",
-            "JreResolver: Resolving JRE path. Retrying...",
-            "JreResolver: Metadata could not be retrieved."
-            ]);
+            "JreResolver: Metadata could not be retrieved.");
     }
 
     [TestMethod]
-    public async Task ResolveJrePath_IsJreCached_UnknownResult()
+    public async Task ResolveJrePath_CacheFailure()
     {
-        jreDownloader
-            .IsJreCached(Arg.Any<JreDescriptor>())
-            .Returns(new UnknownCache());
+        directoryWrapper.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
 
-        var func = async () => await sut.ResolveJrePath(GetArgs());
-
-        await func.Should().ThrowExactlyAsync<NotSupportedException>().WithMessage("Cache result is expected to be Hit, Miss, or Failure.");
-        logger.DebugMessages.Should().ContainSingle("JreResolver: Resolving JRE path.");
-    }
-
-    [TestMethod]
-    public async Task ResolveJrePath_IsJreCached_CacheFailure()
-    {
-        jreDownloader
-            .IsJreCached(Arg.Any<JreDescriptor>())
-            .Returns(new CacheError("Reason."));
-
-        var res = await sut.ResolveJrePath(GetArgs());
+        var res = await sut.ResolveJrePath(Args());
 
         res.Should().BeNull();
-        logger.DebugMessages.Should().BeEquivalentTo([
+        AssertDebugMessages(
+            true,
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache failure. Reason.",
-            "JreResolver: Resolving JRE path. Retrying...",
-            "JreResolver: Cache failure. Reason."
-            ]);
+            $"JreResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.");
     }
 
     [TestMethod]
-    public async Task ResolveJrePath_IsJreCached_CacheHit()
+    public async Task ResolveJrePath_ArchiveOnDiskExtractedFileNotFound_CacheFailure()
     {
-        jreDownloader
-            .IsJreCached(Arg.Any<JreDescriptor>())
-            .Returns(new CacheHit("path"));
+        directoryWrapper.Exists(ExtractedPath).Returns(true);
+        fileWrapper.Exists(JavaExePath).Returns(false);
 
-        var res = await sut.ResolveJrePath(GetArgs());
-
-        res.Should().Be("path");
-        logger.DebugMessages.Should().BeEquivalentTo([
-            "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache hit 'path'."
-            ]);
-    }
-
-    [TestMethod]
-    public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadSuccess()
-    {
-        jreDownloader
-            .IsJreCached(Arg.Any<JreDescriptor>())
-            .Returns(new CacheMiss());
-        jreDownloader
-            .DownloadJreAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
-            .Returns(new DownloadSuccess("path"));
-
-        var res = await sut.ResolveJrePath(GetArgs());
-
-        res.Should().Be("path");
-        logger.DebugMessages.Should().BeEquivalentTo([
-            "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache miss. Attempting to download JRE.",
-            "JreResolver: Download success. JRE can be found at 'path'."
-            ]);
-    }
-
-    [TestMethod]
-    public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadFailure()
-    {
-        jreDownloader
-            .IsJreCached(Arg.Any<JreDescriptor>())
-            .Returns(new CacheMiss());
-        jreDownloader
-            .DownloadJreAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
-            .Returns(new DownloadError("Reason."));
-
-        var res = await sut.ResolveJrePath(GetArgs());
+        var res = await sut.ResolveJrePath(Args());
 
         res.Should().BeNull();
-        logger.DebugMessages.Should().BeEquivalentTo([
+        AssertDebugMessages(
+            true,
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache miss. Attempting to download JRE.",
-            "JreResolver: Download failure. Reason.",
-            "JreResolver: Resolving JRE path. Retrying...",
-            "JreResolver: Cache miss. Attempting to download JRE.",
-            "JreResolver: Download failure. Reason.",
-            ]);
+            $"JreResolver: Cache failure. The java executable in the Java runtime environment cache could not be found at the expected location '{ExtractedJavaPath}'.");
     }
 
     [TestMethod]
-    public async Task ResolveJrePath_IsJreCached_CacheMiss_DownloadUnknown()
+    public async Task ResolveJrePath_CacheHit()
     {
-        jreDownloader
-            .IsJreCached(Arg.Any<JreDescriptor>())
-            .Returns(new CacheMiss());
+        directoryWrapper.Exists(null).ReturnsForAnyArgs(true);
+        fileWrapper.Exists(null).ReturnsForAnyArgs(true);
 
-        jreDownloader
-            .DownloadJreAsync(Arg.Any<JreDescriptor>(), Arg.Any<Func<Task<Stream>>>())
-            .Returns(new UnknownResult());
+        var res = await sut.ResolveJrePath(Args());
 
-        var func = async () => await sut.ResolveJrePath(GetArgs());
-
-        await func.Should().ThrowExactlyAsync<NotSupportedException>().WithMessage("Download result is expected to be Hit or Failure.");
-        logger.DebugMessages.Should().BeEquivalentTo([
+        res.Should().Be(ExtractedJavaPath);
+        AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache miss. Attempting to download JRE."
-            ]);
+            $"JreResolver: Cache hit '{ExtractedJavaPath}'.");
+    }
+
+    [TestMethod]
+    public async Task ResolveJrePath_CacheMiss_DownloadSuccess()
+    {
+        var tempArchive = Path.Combine(ShaPath, "tempFile.zip");
+        var downloadContentArray = new byte[] { 1, 2, 3 };
+        using var content = new MemoryStream(downloadContentArray);
+        using var computeHashStream = new MemoryStream();
+
+        // mocks successful download from the server, and unpacking of the jre.
+        server.DownloadJreAsync(metadata).Returns(content);
+        directoryWrapper.GetRandomFileName().Returns("tempFile.zip");
+        fileWrapper.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
+        fileWrapper.Create(tempArchive).Returns(new MemoryStream());
+        fileWrapper.Open(tempArchive).Returns(computeHashStream);
+        checksum.ComputeHash(computeHashStream).Returns("sha256");
+
+        var res = await sut.ResolveJrePath(Args());
+
+        res.Should().Be(ExtractedJavaPath);
+        AssertJreBottleNeckMessage();
+        AssertDebugMessages(
+            "JreResolver: Resolving JRE path.",
+            "JreResolver: Cache miss. Attempting to download JRE.",
+            "Starting the file download.",
+            "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
+            $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
+            $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
+            $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
+    }
+
+    [TestMethod]
+    public async Task ResolveJrePath_ArchiveExists_DoesNotDownloadFromServer()
+    {
+        using var computeHashStream = new MemoryStream();
+
+        var tempArchive = Path.Combine(ShaPath, "tempFile.zip");
+        fileWrapper.Exists(DownloadPath).Returns(true);
+        fileWrapper.Open(DownloadPath).Returns(computeHashStream);
+        checksum.ComputeHash(computeHashStream).Returns("sha256");
+        directoryWrapper.GetRandomFileName().Returns("tempFile.zip");
+        fileWrapper.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
+        fileWrapper.Create(tempArchive).Returns(new MemoryStream());
+        fileWrapper.Open(tempArchive).Returns(computeHashStream);
+
+        var res = await sut.ResolveJrePath(Args());
+
+        await server.DidNotReceive().DownloadJreAsync(Arg.Any<JreMetadata>());
+        res.Should().Be(ExtractedJavaPath);
+        AssertJreBottleNeckMessage();
+        AssertDebugMessages(
+            "JreResolver: Resolving JRE path.",
+            "JreResolver: Cache miss. Attempting to download JRE.",
+            $"The file was already downloaded from the server and stored at '{DownloadPath}'.",
+            "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
+            $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
+            $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
+            $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
+    }
+
+    [TestMethod]
+    public async Task ResolveJrePath_CacheMiss_DownloadFailure()
+    {
+        fileWrapper.Create(Arg.Any<string>()).Throws(new IOException("Reason"));
+        var res = await sut.ResolveJrePath(Args());
+
+        AssertJreBottleNeckMessage(true);
+        res.Should().BeNull();
+        AssertDebugMessages(
+            true,
+            "JreResolver: Resolving JRE path.",
+            "JreResolver: Cache miss. Attempting to download JRE.",
+            "Starting the file download.",
+            "The download of the file from the server failed with the exception 'Reason'.",
+            "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
+    }
+
+    [TestMethod]
+    public async Task ResolveJrePath_CreateUnpackerFails_ReturnsFailure()
+    {
+        unpackerFactory.Create(null, null, null, null, null).ReturnsNullForAnyArgs();
+
+        var res = await sut.ResolveJrePath(Args());
+
+        res.Should().BeNull();
+        AssertDebugMessages(
+            true,
+            "JreResolver: Resolving JRE path.",
+            "JreResolver: Cache failure. The archive format of the JRE archive `filename.tar.gz` is not supported.");
     }
 
     [TestMethod]
     public async Task ResolveJrePath_SkipProvisioningOnUnsupportedServers()
     {
         server.SupportsJreProvisioning.Returns(false);
-        await sut.ResolveJrePath(GetArgs());
+        await sut.ResolveJrePath(Args());
 
-        logger.DebugMessages.Should().BeEquivalentTo([
+        AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it."]);
+            "JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it.");
     }
 
     [TestMethod]
     public async Task Args_IsValid_Priority()
     {
-        var args = GetArgs();
+        var args = Args();
         // The order of evaluation: The first invalid property is the one that will be logged.
         var argProps = new (Action Valid, Action Invalid, string Message)[]
         {
@@ -299,21 +318,17 @@ public class JreResolverTests
             }
 
             await sut.ResolveJrePath(args);
-            logger.DebugMessages.Should().BeEquivalentTo([
-                "JreResolver: Resolving JRE path.",
-                firstInvalid.Message], because: $"The combination {perm.Select((x, i) => new { Index = i, x.Valid }).Aggregate(new StringBuilder(), (sb, x) => sb.Append($"\n{x}"))} is set.");
+            logger.DebugMessages.Should().BeEquivalentTo(
+                ["JreResolver: Resolving JRE path.",
+                firstInvalid.Message],
+                because: $"The combination {perm.Select((x, i) => new { Index = i, x.Valid }).Aggregate(new StringBuilder(), (sb, x) => sb.Append($"\n{x}"))} is set.");
             logger.DebugMessages.Clear();
         }
 
         static IEnumerable<IEnumerable<(T Item, bool Valid)>> Permutations<T>(IEnumerable<T> list)
         {
             var (head, rest) = (list.First(), list.Skip(1));
-            if (!rest.Any())
-            {
-                yield return [(head, true)];
-                yield return [(head, false)];
-            }
-            else
+            if (rest.Any())
             {
                 foreach (var restPerm in Permutations(rest))
                 {
@@ -321,10 +336,15 @@ public class JreResolverTests
                     yield return [(head, false), .. restPerm];
                 }
             }
+            else
+            {
+                yield return [(head, true)];
+                yield return [(head, false)];
+            }
         }
     }
 
-    private ProcessedArgs GetArgs()
+    private ProcessedArgs Args()
     {
         var args = Substitute.For<ProcessedArgs>(
             "valid.key",
@@ -344,7 +364,28 @@ public class JreResolverTests
         return args;
     }
 
-    private record class UnknownCache : CacheResult;
+    private void AssertJreBottleNeckMessage(bool retry = false)
+    {
+        var bottleNeckMessage = """
+            The JRE provisioning is a time consuming operation.
+            JRE provisioned: filename.tar.gz.
+            If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+            """;
+        logger.InfoMessages.Should().BeEquivalentTo(Enumerable.Repeat(bottleNeckMessage, retry ? 2 : 1));
+    }
 
-    private record class UnknownResult : DownloadResult;
+    private void AssertDebugMessages(params string[] messages) =>
+        AssertDebugMessages(false, messages);
+
+    private void AssertDebugMessages(bool retry, params string[] messages)
+    {
+        var expected = new List<string>(messages);
+        if (retry)
+        {
+            var retryMessages = messages.ToArray();
+            retryMessages[0] += " Retrying...";
+            expected.AddRange(retryMessages);
+        }
+        logger.DebugMessages.Should().Equal(expected);
+    }
 }
