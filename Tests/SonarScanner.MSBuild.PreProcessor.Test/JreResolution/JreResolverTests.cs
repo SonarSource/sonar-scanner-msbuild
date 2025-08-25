@@ -152,6 +152,21 @@ public class JreResolverTests
     }
 
     [TestMethod]
+    public async Task ResolveJrePath_ArchiveOnDiskExtractedFileNotFound_CacheFailure()
+    {
+        directoryWrapper.Exists(ExtractedPath).Returns(true);
+        fileWrapper.Exists(JavaExePath).Returns(false);
+
+        var res = await sut.ResolveJrePath(Args());
+
+        res.Should().BeNull();
+        AssertDebugMessages(
+            true,
+            "JreResolver: Resolving JRE path.",
+            $"JreResolver: Cache failure. The java executable in the Java runtime environment cache could not be found at the expected location '{ExtractedJavaPath}'.");
+    }
+
+    [TestMethod]
     public async Task ResolveJrePath_CacheHit()
     {
         directoryWrapper.Exists(null).ReturnsForAnyArgs(true);
@@ -189,6 +204,36 @@ public class JreResolverTests
             "JreResolver: Resolving JRE path.",
             "JreResolver: Cache miss. Attempting to download JRE.",
             "Starting the file download.",
+            "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
+            $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
+            $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
+            $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
+    }
+
+    [TestMethod]
+    public async Task ResolveJrePath_ArchiveExists_DoesNotDownloadFromServer()
+    {
+        using var computeHashStream = new MemoryStream();
+
+        var tempArchive = Path.Combine(ShaPath, "tempFile.zip");
+        fileWrapper.Exists(DownloadPath).Returns(true);
+        fileWrapper.Open(DownloadPath).Returns(computeHashStream);
+        checksum.ComputeHash(computeHashStream).Returns("sha256");
+        directoryWrapper.GetRandomFileName().Returns("tempFile.zip");
+        fileWrapper.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
+        fileWrapper.Create(tempArchive).Returns(new MemoryStream());
+        fileWrapper.Open(tempArchive).Returns(computeHashStream);
+
+        var res = await sut.ResolveJrePath(Args());
+
+        await server.DidNotReceive().DownloadJreAsync(Arg.Any<JreMetadata>());
+        res.Should().Be(ExtractedJavaPath);
+        AssertJreBottleNeckMessage();
+        AssertDebugMessages(
+            "JreResolver: Resolving JRE path.",
+            "JreResolver: Cache miss. Attempting to download JRE.",
+            $"The file was already downloaded from the server and stored at '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
             $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",

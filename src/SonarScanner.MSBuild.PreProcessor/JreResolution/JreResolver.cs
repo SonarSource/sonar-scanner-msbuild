@@ -87,8 +87,7 @@ public class JreResolver : IJreResolver
         if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, descriptor.Filename) is { } unpacker)
         {
             var jreDownloader = new JreDownloader(logger, directoryWrapper, fileWrapper, unpacker, checksum, sonarUserHome, descriptor);
-            var result = jreDownloader.IsJreCached();
-            switch (result)
+            switch (jreDownloader.IsJreCached())
             {
                 case CacheHit hit:
                     logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.FilePath);
