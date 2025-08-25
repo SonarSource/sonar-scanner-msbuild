@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using SonarScanner.MSBuild.Shim.Interfaces;
 using EncodingProvider = SonarScanner.MSBuild.Common.EncodingProvider;
 
@@ -155,10 +156,24 @@ public class ScannerEngineInputGenerator
         engineInput.WriteSonarProjectInfo(projectBaseDir);
         legacyWriter.WriteSharedFiles(analysisFiles);
         engineInput.WriteSharedFiles(analysisFiles);
-        foreach (var validProject in validProjects)
+        foreach (var project in validProjects)
         {
-            legacyWriter.WriteSettingsForProject(validProject);
-            engineInput.WriteSettingsForProject(validProject);
+            legacyWriter.WriteSettingsForProject(project);
+            engineInput.WriteSettingsForProject(project);
+            if (project.Project.AnalysisSettings is not null && project.Project.AnalysisSettings.Any())
+            {
+                foreach (var setting in project.Project.AnalysisSettings.Where(x =>
+                    !IsProjectOutPaths(x.Id)
+                    && !IsReportFilePaths(x.Id)
+                    && !IsTelemetryPaths(x.Id)))
+                {
+                    engineInput.AppendKeyValue(project.Guid, setting.Id, setting.Value);
+                }
+
+                WriteAnalyzerOutputPaths(engineInput, project);
+                WriteRoslynReportPaths(engineInput, project);
+                WriteTelemetryPaths(engineInput, project);
+            }
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
         engineInput.WriteGlobalSettings(analysisProperties);
@@ -221,6 +236,78 @@ public class ScannerEngineInputGenerator
         {
             return null;
         }
+    }
+
+    internal static void WriteTelemetryPaths(ScannerEngineInput engineInput, ProjectData project)
+    {
+        if (project.TelemetryPaths.Count == 0)
+        {
+            return;
+        }
+
+        string property;
+        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
+        {
+            property = ScannerEngineInputGenerator.TelemetryPathsCsharpPropertyKey;
+        }
+        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
+        {
+            property = ScannerEngineInputGenerator.TelemetryPathsVbNetPropertyKey;
+        }
+        else
+        {
+            return;
+        }
+
+        engineInput.AppendKeyValue(project.Guid, property, project.TelemetryPaths);
+    }
+
+    internal static void WriteAnalyzerOutputPaths(ScannerEngineInput engineInput, ProjectData project)
+    {
+        if (project.AnalyzerOutPaths.Count == 0)
+        {
+            return;
+        }
+
+        string property;
+        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
+        {
+            property = ScannerEngineInputGenerator.ProjectOutPathsCsharpPropertyKey;
+        }
+        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
+        {
+            property = ScannerEngineInputGenerator.ProjectOutPathsVbNetPropertyKey;
+        }
+        else
+        {
+            return;
+        }
+
+        engineInput.AppendKeyValue(project.Guid, property, project.AnalyzerOutPaths);
+    }
+
+    internal static void WriteRoslynReportPaths(ScannerEngineInput engineInput, ProjectData project)
+    {
+        if (!project.RoslynReportFilePaths.Any())
+        {
+            return;
+        }
+
+        string property;
+        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
+        {
+            property = ScannerEngineInputGenerator.ReportFilePathsCSharpPropertyKey;
+        }
+        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
+        {
+            property = ScannerEngineInputGenerator.ReportFilePathsVbNetPropertyKey;
+        }
+        else
+        {
+            return;
+        }
+
+        engineInput.AppendKeyValue(project.Guid, property, project.RoslynReportFilePaths);
     }
 
     internal /* for testing */ static ProjectData SingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
