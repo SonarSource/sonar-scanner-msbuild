@@ -24,10 +24,11 @@ namespace TestUtilities;
 
 public class TestLogger : ILogger
 {
-    public List<string> DebugMessages { get; private set; }
-    public List<string> InfoMessages { get; private set; }
-    public List<string> Warnings { get; private set; }
-    public List<string> Errors { get; private set; }
+    // All messages are normalized to Unix line endings, because Resx files contains multiline messages with CRLF and we emit mix of LF and CRFL to logs on *nix system
+    public List<string> DebugMessages { get;  }
+    public List<string> InfoMessages { get; }
+    public List<string> Warnings { get; }
+    public List<string> Errors { get; }
     public List<string> UIWarnings { get; }
     public LoggerVerbosity Verbosity { get; set; }
     public bool IncludeTimestamp { get; set; }
@@ -71,43 +72,47 @@ public class TestLogger : ILogger
         InfoMessages.Should().HaveCount(expectedCount, "Unexpected number of messages logged");
 
     public void AssertDebugLogged(string expected) =>
-        DebugMessages.Should().Contain(expected);
+        DebugMessages.Should().Contain(expected.ToUnixLineEndings());
 
     public void AssertInfoLogged(string expected) =>
-        InfoMessages.Should().Contain(expected);
+        InfoMessages.Should().Contain(expected.ToUnixLineEndings());
 
     public void AssertWarningLogged(string expected) =>
-        Warnings.Should().ContainIgnoringLineEndings(expected);
+        Warnings.Should().ContainIgnoringLineEndings(expected.ToUnixLineEndings());
 
     public void AssertErrorLogged(string expected) =>
-        Errors.Should().Contain(expected);
+        Errors.Should().Contain(expected.ToUnixLineEndings());
 
     public void AssertUIWarningLogged(string expected)
     {
-        UIWarnings.Should().Contain(expected);
+        UIWarnings.Should().Contain(expected.ToUnixLineEndings());
         AssertWarningLogged(expected);
     }
 
     public void AssertMessageNotLogged(string message)
     {
+        message = message.ToUnixLineEndings();
         var found = InfoMessages.Any(x => message.Equals(x, StringComparison.CurrentCulture));
         found.Should().BeFalse("Not expecting the message to have been logged: '{0}'", message);
     }
 
     public void AssertDebugNotLogged(string message)
     {
+        message = message.ToUnixLineEndings();
         var found = DebugMessages.Any(x => message.Equals(x, StringComparison.CurrentCulture));
         found.Should().BeFalse("Not expecting the message to have been logged: '{0}'", message);
     }
 
     public void AssertWarningNotLogged(string warning)
     {
+        warning = warning.ToUnixLineEndings();
         var found = Warnings.Any(x => warning.Equals(x, StringComparison.CurrentCulture));
         found.Should().BeFalse("Not expecting the warning to have been logged: '{0}'", warning);
     }
 
     public void AssertErrorNotLogged(string warning)
     {
+        warning = warning.ToUnixLineEndings();
         var found = Errors.Any(x => warning.Equals(x, StringComparison.CurrentCulture));
         found.Should().BeFalse("Not expecting the warning to have been logged: '{0}'", warning);
     }
@@ -117,8 +122,9 @@ public class TestLogger : ILogger
     /// </summary>
     public void AssertSingleErrorExists(params string[] expected)
     {
+        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
         var matches = Errors.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().ContainSingle("More than one error contains the expected strings: {0}", string.Join(",", expected));
+        matches.Should().ContainSingle("exactly one Error should contain the expected strings: {0}", string.Join(",", expected));
     }
 
     /// <summary>
@@ -126,8 +132,9 @@ public class TestLogger : ILogger
     /// </summary>
     public void AssertSingleWarningExists(params string[] expected)
     {
+        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
         var matches = Warnings.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().ContainSingle("More than one warning contains the expected strings: {0}", string.Join(",", expected));
+        matches.Should().ContainSingle("exactly one WARNING should contain the expected strings: {0}", string.Join(",", expected));
     }
 
     /// <summary>
@@ -135,8 +142,9 @@ public class TestLogger : ILogger
     /// </summary>
     public string AssertSingleInfoMessageExists(params string[] expected)
     {
+        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
         var matches = InfoMessages.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().ContainSingle("More than one INFO message contains the expected strings: {0}", string.Join(",", expected));
+        matches.Should().ContainSingle("exactly one INFO message should contain the expected strings: {0}", string.Join(",", expected));
         return matches.First();
     }
 
@@ -145,8 +153,9 @@ public class TestLogger : ILogger
     /// </summary>
     public string AssertSingleDebugMessageExists(params string[] expected)
     {
+        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
         var matches = DebugMessages.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().ContainSingle("More than one DEBUG message contains the expected strings: {0}", string.Join(",", expected));
+        matches.Should().ContainSingle("exactly one DEBUG message should contain the expected strings: {0}", string.Join(",", expected));
         return matches.First();
     }
 
@@ -155,6 +164,7 @@ public class TestLogger : ILogger
     /// </summary>
     public void AssertInfoMessageExists(params string[] expected)
     {
+        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
         var matches = InfoMessages.Where(x => expected.All(e => x.Contains(e)));
         matches.Should().NotBeEmpty("No INFO message contains the expected strings: {0}", string.Join(",", expected));
     }
@@ -164,6 +174,7 @@ public class TestLogger : ILogger
     /// </summary>
     public void AssertDebugMessageExists(params string[] expected)
     {
+        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
         var matches = DebugMessages.Where(x => expected.All(e => x.Contains(e)));
         matches.Should().NotBeEmpty("No DEBUG message contains the expected strings: {0}", string.Join(",", expected));
     }
@@ -173,6 +184,7 @@ public class TestLogger : ILogger
     /// </summary>
     public void AssertUIWarningExists(params string[] expected)
     {
+        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
         var matches = UIWarnings.Where(x => expected.All(e => x.Contains(e)));
         matches.Should().NotBeEmpty("No UI warning contains the expected strings: {0}", string.Join(",", expected));
     }
@@ -182,6 +194,7 @@ public class TestLogger : ILogger
     /// </summary>
     public void AssertNoErrorsLogged(params string[] expected)
     {
+        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
         var matches = Errors.Where(x => expected.All(e => x.Contains(e)));
         matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
     }
@@ -191,31 +204,31 @@ public class TestLogger : ILogger
 
     public void LogInfo(string message, params object[] args)
     {
-        InfoMessages.Add(GetFormattedMessage(message, args));
+        InfoMessages.Add(FormatMessage(message, args));
         WriteLine("INFO: " + message, args);
     }
 
     public void LogWarning(string message, params object[] args)
     {
-        Warnings.Add(GetFormattedMessage(message, args));
+        Warnings.Add(FormatMessage(message, args));
         WriteLine("WARNING: " + message, args);
     }
 
     public void LogError(string message, params object[] args)
     {
-        Errors.Add(GetFormattedMessage(message, args));
+        Errors.Add(FormatMessage(message, args));
         WriteLine("ERROR: " + message, args);
     }
 
     public void LogDebug(string message, params object[] args)
     {
-        DebugMessages.Add(GetFormattedMessage(message, args));
+        DebugMessages.Add(FormatMessage(message, args));
         WriteLine("DEBUG: " + message, args);
     }
 
     public void LogUIWarning(string message, params object[] args)
     {
-        UIWarnings.Add(GetFormattedMessage(message, args));
+        UIWarnings.Add(FormatMessage(message, args));
         LogWarning(message, args);
     }
 
@@ -245,8 +258,8 @@ public class TestLogger : ILogger
     }
 
     private static void WriteLine(string message, params object[] args) =>
-        Console.WriteLine(GetFormattedMessage(message, args));
+        Console.WriteLine(FormatMessage(message, args));
 
-    private static string GetFormattedMessage(string message, params object[] args) =>
-        string.Format(CultureInfo.CurrentCulture, message, args);
+    private static string FormatMessage(string message, params object[] args) =>
+        string.Format(CultureInfo.CurrentCulture, message, args).ToUnixLineEndings();
 }

@@ -25,8 +25,20 @@ public static class StringExtensions
     /// <summary>
     /// Replaces CRLF and CR line endings with LF.
     /// </summary>
-    public static string NormalizeLineEndings(this string input) =>
+    public static string ToUnixLineEndings(this string input) =>
         input.Replace("\r\n", "\n").Replace("\r", "\n");
+
+    /// <summary>
+    /// Replaces any line endings with Environment.NewLine.
+    /// </summary>
+    public static string ToEnvironmentLineEndings(this string input) =>
+        input.ToUnixLineEndings().Replace("\n", Environment.NewLine);
+
+    /// <summary>
+    /// Replaces any line endings with CRLF.
+    /// </summary>
+    public static string ToWindowsLineEndings(this string input) =>
+        input.ToUnixLineEndings().Replace("\n", "\r\n");
 
     /// <summary>
     /// Remove trailing whitespace at the end of each line.

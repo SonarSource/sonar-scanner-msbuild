@@ -792,7 +792,7 @@ public class JreDownloaderTests
             testLogger.AssertSingleInfoMessageExists("""
                 The JRE provisioning is a time consuming operation.
                 JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip.
-                If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+                If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
                 """);
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be("Starting the file download."),
@@ -846,7 +846,7 @@ public class JreDownloaderTests
             testLogger.AssertSingleInfoMessageExists("""
                 The JRE provisioning is a time consuming operation.
                 JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz.
-                If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+                If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
                 """);
             testLogger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be("Starting the file download."),

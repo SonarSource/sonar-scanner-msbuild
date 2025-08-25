@@ -164,7 +164,7 @@ public static class TestUtils
         var testPath = CreateTestSpecificFolder(context);
         var fileName = Path.Combine(testPath, context.TestName + fileExtension);
         File.Exists(fileName).Should().BeFalse("Not expecting a script file to already exist: {0}", fileName);
-        File.WriteAllText(fileName, content.NormalizeLineEndings());
+        File.WriteAllText(fileName, content.ToUnixLineEndings());
 #if NET
 
         if (!isWindows)
