@@ -921,65 +921,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Cache failure. {0}.
-        /// </summary>
-        internal static string MSG_JreResolver_CacheFailure {
-            get {
-                return ResourceManager.GetString("MSG_JreResolver_CacheFailure", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Cache hit &apos;{0}&apos;..
-        /// </summary>
-        internal static string MSG_JreResolver_CacheHit {
-            get {
-                return ResourceManager.GetString("MSG_JreResolver_CacheHit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Cache miss. Attempting to download JRE..
-        /// </summary>
-        internal static string MSG_JreResolver_CacheMiss {
-            get {
-                return ResourceManager.GetString("MSG_JreResolver_CacheMiss", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Download failure. {0}.
-        /// </summary>
-        internal static string MSG_JreResolver_DownloadFailure {
-            get {
-                return ResourceManager.GetString("MSG_JreResolver_DownloadFailure", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Download success. JRE can be found at &apos;{0}&apos;..
-        /// </summary>
-        internal static string MSG_JreResolver_DownloadSuccess {
-            get {
-                return ResourceManager.GetString("MSG_JreResolver_DownloadSuccess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning..
         /// </summary>
         internal static string MSG_JreResolver_JavaExePathSet {
             get {
                 return ResourceManager.GetString("MSG_JreResolver_JavaExePathSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Metadata could not be retrieved..
-        /// </summary>
-        internal static string MSG_JreResolver_MetadataFailure {
-            get {
-                return ResourceManager.GetString("MSG_JreResolver_MetadataFailure", resourceCulture);
             }
         }
         
@@ -998,15 +944,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_JreResolver_OperatingSystemMissing {
             get {
                 return ResourceManager.GetString("MSG_JreResolver_OperatingSystemMissing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Resolving JRE path.{0}.
-        /// </summary>
-        internal static string MSG_JreResolver_Resolving {
-            get {
-                return ResourceManager.GetString("MSG_JreResolver_Resolving", resourceCulture);
             }
         }
         
@@ -1142,6 +1079,69 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_PullRequestCacheBasePath {
             get {
                 return ResourceManager.GetString("MSG_PullRequestCacheBasePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: Cache failure. {1}.
+        /// </summary>
+        internal static string MSG_Resolver_CacheFailure {
+            get {
+                return ResourceManager.GetString("MSG_Resolver_CacheFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: Cache hit &apos;{1}&apos;..
+        /// </summary>
+        internal static string MSG_Resolver_CacheHit {
+            get {
+                return ResourceManager.GetString("MSG_Resolver_CacheHit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: Cache miss. Attempting to download {1}..
+        /// </summary>
+        internal static string MSG_Resolver_CacheMiss {
+            get {
+                return ResourceManager.GetString("MSG_Resolver_CacheMiss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: Download failure. {1}.
+        /// </summary>
+        internal static string MSG_Resolver_DownloadFailure {
+            get {
+                return ResourceManager.GetString("MSG_Resolver_DownloadFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: Download success. {1} can be found at &apos;{2}&apos;..
+        /// </summary>
+        internal static string MSG_Resolver_DownloadSuccess {
+            get {
+                return ResourceManager.GetString("MSG_Resolver_DownloadSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: Metadata could not be retrieved..
+        /// </summary>
+        internal static string MSG_Resolver_MetadataFailure {
+            get {
+                return ResourceManager.GetString("MSG_Resolver_MetadataFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: Resolving {1} path.{2}.
+        /// </summary>
+        internal static string MSG_Resolver_Resolving {
+            get {
+                return ResourceManager.GetString("MSG_Resolver_Resolving", resourceCulture);
             }
         }
         

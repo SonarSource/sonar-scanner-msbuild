@@ -49,6 +49,7 @@ public class EngineResolver : IEngineResolver
 
     public async Task<string> ResolveEngine(ProcessedArgs args)
     {
+        logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), "Scanner Engine", string.Empty);
         if (args.EngineJarPath is { } localEngine)
         {
             logger.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
@@ -71,7 +72,7 @@ public class EngineResolver : IEngineResolver
         }
         else
         {
-            logger.LogDebug(Resources.MSG_JreResolver_Resolving, " Retrying...");
+            logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), "Scanner Engine", " Retrying...");
             return await ResolveEnginePath(metadata);
         }
     }
@@ -82,13 +83,13 @@ public class EngineResolver : IEngineResolver
         switch (cachedDownloader.IsFileCached())
         {
             case CacheHit hit:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.FilePath);
+                logger.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), hit.FilePath);
                 return hit.FilePath;
             case CacheMiss:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
+                logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), "Scanner Engine");
                 return await DownloadEngine(cachedDownloader, metadata);
             case CacheError error:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, error.Message);
+                logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(EngineResolver), error.Message);
                 return null;
             default:
                 throw new NotSupportedException("File Resolution is expected to be CacheHit, CacheMiss, or CacheError.");
@@ -100,12 +101,12 @@ public class EngineResolver : IEngineResolver
         var result = await cachedDownloader.DownloadFileAsync(() => server.DownloadEngineAsync(metadata));
         if (result is DownloadSuccess success)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, success.FilePath);
+            logger.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), "Scanner Engine", success.FilePath);
             return success.FilePath;
         }
         else if (result is DownloadError error)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, error.Message);
+            logger.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(EngineResolver), error.Message);
             return null;
         }
         throw new NotSupportedException("Download result is expected to be DownloadSuccess or DownloadError.");
