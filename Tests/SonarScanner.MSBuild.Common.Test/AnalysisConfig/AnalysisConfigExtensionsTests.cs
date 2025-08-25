@@ -237,6 +237,7 @@ public class AnalysisConfigExtensionsTests
     {
         var logger = new TestLogger();
         var config = new AnalysisConfig();
+        using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", "Invalid Json to prevent provider SONARQUBE_SCANNER_PARAMS from being created");
 
         // No server settings
         var provider = config.AnalysisSettings(false, logger);
