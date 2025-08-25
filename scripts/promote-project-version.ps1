@@ -7,4 +7,4 @@ Write-Host "Reading the Sonar project version from '${versionFilePath}' ..."
 $sonarProjectVersion = $versionProps.Project.PropertyGroup.MainVersion + $versionProps.Project.PropertyGroup.PrereleaseSuffix
 Write-Host "Sonar project version is '${sonarProjectVersion}'"
 # Set the variable to it can be used by other tasks
-Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION;isOutput=true]$sonarProjectVersion"
+Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$sonarProjectVersion"
