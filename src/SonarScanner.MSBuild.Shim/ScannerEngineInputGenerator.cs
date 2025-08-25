@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarScanner.MSBuild.Shim.Interfaces;
 using EncodingProvider = SonarScanner.MSBuild.Common.EncodingProvider;
 
@@ -26,12 +25,12 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class ScannerEngineInputGenerator
 {
-    public const string ReportFilePathsCSharpPropertyKey = "sonar.cs.roslyn.reportFilePaths";
-    public const string ReportFilePathsVbNetPropertyKey = "sonar.vbnet.roslyn.reportFilePaths";
-    public const string ProjectOutPathsCsharpPropertyKey = "sonar.cs.analyzer.projectOutPaths";
-    public const string ProjectOutPathsVbNetPropertyKey = "sonar.vbnet.analyzer.projectOutPaths";
-    public const string TelemetryPathsCsharpPropertyKey = "sonar.cs.scanner.telemetry";
-    public const string TelemetryPathsVbNetPropertyKey = "sonar.vbnet.scanner.telemetry";
+    public const string ReportFilePathsKeyCS = "sonar.cs.roslyn.reportFilePaths";
+    public const string ReportFilePathsKeyVB = "sonar.vbnet.roslyn.reportFilePaths";
+    public const string ProjectOutPathsKeyCS = "sonar.cs.analyzer.projectOutPaths";
+    public const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
+    public const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
+    public const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
 
     // This delimiter needs to be the same as the one used in the Integration.targets
     internal const char RoslynReportPathsDelimiter = '|';
@@ -76,13 +75,13 @@ public class ScannerEngineInputGenerator
     }
 
     public static bool IsReportFilePaths(string propertyKey) =>
-        propertyKey == ReportFilePathsCSharpPropertyKey || propertyKey == ReportFilePathsVbNetPropertyKey;
+        propertyKey == ReportFilePathsKeyCS || propertyKey == ReportFilePathsKeyVB;
 
     public static bool IsProjectOutPaths(string propertyKey) =>
-        propertyKey == ProjectOutPathsCsharpPropertyKey || propertyKey == ProjectOutPathsVbNetPropertyKey;
+        propertyKey == ProjectOutPathsKeyCS || propertyKey == ProjectOutPathsKeyVB;
 
     public static bool IsTelemetryPaths(string propertyKey) =>
-        propertyKey == TelemetryPathsCsharpPropertyKey || propertyKey == TelemetryPathsVbNetPropertyKey;
+        propertyKey == TelemetryPathsKeyCS || propertyKey == TelemetryPathsKeyVB;
 
     /// <summary>
     /// Locates the ProjectInfo.xml files and uses the information in them to generate a sonar-project.properties file.
@@ -169,11 +168,10 @@ public class ScannerEngineInputGenerator
                 {
                     engineInput.AppendKeyValue(project.Guid, setting.Id, setting.Value);
                 }
-
-                WriteAnalyzerOutputPaths(engineInput, project);
-                WriteRoslynReportPaths(engineInput, project);
-                WriteTelemetryPaths(engineInput, project);
             }
+            AddProperty(engineInput, project, ProjectOutPathsKeyCS, ProjectOutPathsKeyVB, project.AnalyzerOutPaths);
+            AddProperty(engineInput, project, ReportFilePathsKeyCS, ReportFilePathsKeyVB, project.RoslynReportFilePaths);
+            AddProperty(engineInput, project, TelemetryPathsKeyCS, TelemetryPathsKeyVB, project.TelemetryPaths);
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
         engineInput.WriteGlobalSettings(analysisProperties);
@@ -236,78 +234,6 @@ public class ScannerEngineInputGenerator
         {
             return null;
         }
-    }
-
-    internal static void WriteTelemetryPaths(ScannerEngineInput engineInput, ProjectData project)
-    {
-        if (project.TelemetryPaths.Count == 0)
-        {
-            return;
-        }
-
-        string property;
-        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.TelemetryPathsCsharpPropertyKey;
-        }
-        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.TelemetryPathsVbNetPropertyKey;
-        }
-        else
-        {
-            return;
-        }
-
-        engineInput.AppendKeyValue(project.Guid, property, project.TelemetryPaths);
-    }
-
-    internal static void WriteAnalyzerOutputPaths(ScannerEngineInput engineInput, ProjectData project)
-    {
-        if (project.AnalyzerOutPaths.Count == 0)
-        {
-            return;
-        }
-
-        string property;
-        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.ProjectOutPathsCsharpPropertyKey;
-        }
-        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.ProjectOutPathsVbNetPropertyKey;
-        }
-        else
-        {
-            return;
-        }
-
-        engineInput.AppendKeyValue(project.Guid, property, project.AnalyzerOutPaths);
-    }
-
-    internal static void WriteRoslynReportPaths(ScannerEngineInput engineInput, ProjectData project)
-    {
-        if (!project.RoslynReportFilePaths.Any())
-        {
-            return;
-        }
-
-        string property;
-        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.ReportFilePathsCSharpPropertyKey;
-        }
-        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.ReportFilePathsVbNetPropertyKey;
-        }
-        else
-        {
-            return;
-        }
-
-        engineInput.AppendKeyValue(project.Guid, property, project.RoslynReportFilePaths);
     }
 
     internal /* for testing */ static ProjectData SingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
@@ -446,8 +372,8 @@ public class ScannerEngineInputGenerator
 
     private void TryFixSarifReport(ProjectInfo project)
     {
-        TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFilePathsCSharpPropertyKey);
-        TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFilePathsVbNetPropertyKey);
+        TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFilePathsKeyCS);
+        TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFilePathsKeyVB);
     }
 
     /// <summary>
@@ -466,6 +392,30 @@ public class ScannerEngineInputGenerator
             if (listOfPaths.Any())
             {
                 project.AnalysisSettings.Add(new(reportFilesPropertyKey, string.Join(RoslynReportPathsDelimiter.ToString(), listOfPaths)));
+            }
+        }
+    }
+
+    private static void AddProperty(ScannerEngineInput engineInput, ProjectData project, string keySuffixCS, string keySuffixVB, IEnumerable<FileInfo> paths)
+    {
+        if (KeySuffix() is { } keySuffix)
+        {
+            engineInput.AppendKeyValue(project.Guid, keySuffix, paths);
+        }
+
+        string KeySuffix()
+        {
+            if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
+            {
+                return keySuffixCS;
+            }
+            else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
+            {
+                return keySuffixVB;
+            }
+            else
+            {
+                return null;
             }
         }
     }
