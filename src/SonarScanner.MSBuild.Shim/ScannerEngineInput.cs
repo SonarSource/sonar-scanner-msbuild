@@ -64,92 +64,6 @@ public class ScannerEngineInput
         }
         AppendKeyValue(guid, project.Project.ProjectType == ProjectType.Product ? SonarTests : SonarSources, string.Empty);
         AppendKeyValue(guid, project.Project.ProjectType == ProjectType.Product ? SonarSources : SonarTests, project.SonarQubeModuleFiles);
-        if (project.Project.AnalysisSettings is not null && project.Project.AnalysisSettings.Any())
-        {
-            foreach (var setting in project.Project.AnalysisSettings.Where(x =>
-                !ScannerEngineInputGenerator.IsProjectOutPaths(x.Id)
-                && !ScannerEngineInputGenerator.IsReportFilePaths(x.Id)
-                && !ScannerEngineInputGenerator.IsTelemetryPaths(x.Id)))
-            {
-                AppendKeyValue($"{guid}.{setting.Id}", setting.Value);
-            }
-
-            WriteAnalyzerOutputPaths(project);
-            WriteRoslynReportPaths(project);
-            WriteTelemetryPaths(project);
-        }
-    }
-
-    public void WriteTelemetryPaths(ProjectData project)
-    {
-        if (project.TelemetryPaths.Count == 0)
-        {
-            return;
-        }
-
-        string property;
-        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.TelemetryPathsCsharpPropertyKey;
-        }
-        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.TelemetryPathsVbNetPropertyKey;
-        }
-        else
-        {
-            return;
-        }
-
-        AppendKeyValue(project.Guid, property, project.TelemetryPaths);
-    }
-
-    public void WriteAnalyzerOutputPaths(ProjectData project)
-    {
-        if (project.AnalyzerOutPaths.Count == 0)
-        {
-            return;
-        }
-
-        string property;
-        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.ProjectOutPathsCsharpPropertyKey;
-        }
-        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.ProjectOutPathsVbNetPropertyKey;
-        }
-        else
-        {
-            return;
-        }
-
-        AppendKeyValue(project.Guid, property, project.AnalyzerOutPaths);
-    }
-
-    public void WriteRoslynReportPaths(ProjectData project)
-    {
-        if (!project.RoslynReportFilePaths.Any())
-        {
-            return;
-        }
-
-        string property;
-        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.ReportFilePathsCSharpPropertyKey;
-        }
-        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
-        {
-            property = ScannerEngineInputGenerator.ReportFilePathsVbNetPropertyKey;
-        }
-        else
-        {
-            return;
-        }
-
-        AppendKeyValue(project.Guid, property, project.RoslynReportFilePaths);
     }
 
     public void WriteVsTestReportPaths(string[] paths) =>
@@ -184,6 +98,12 @@ public class ScannerEngineInput
         AppendKeyValue("sonar", "tests", analysisFiles.Tests);
     }
 
+    public void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
+        AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
+
+    public void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
+        AppendKeyValue(keyPrefix + "." + keySuffix, value);
+
     internal void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> values)
     {
         if (values.Any())
@@ -191,12 +111,6 @@ public class ScannerEngineInput
             AppendKeyValue($"{keyPrefix}.{keySuffix}", ToMultiValueProperty(values));
         }
     }
-
-    private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
-        AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
-
-    private void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
-        AppendKeyValue(keyPrefix + "." + keySuffix, value);
 
     private void AppendKeyValue(string key, IEnumerable<string> values) =>
         AppendKeyValue(key, ToMultiValueProperty(values));
