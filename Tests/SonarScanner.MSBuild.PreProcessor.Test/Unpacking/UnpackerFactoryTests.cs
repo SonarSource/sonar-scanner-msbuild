@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
@@ -44,7 +38,12 @@ public class UnpackerFactoryTests
     {
         var sut = new UnpackerFactory();
 
-        var unpacker = sut.Create(Substitute.For<ILogger>(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IFilePermissionsWrapper>(), fileName);
+        var unpacker = sut.Create(
+            Substitute.For<ILogger>(),
+            Substitute.For<IDirectoryWrapper>(),
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
+            fileName);
 
         unpacker.Should().BeOfType(expectedUnpacker);
     }
@@ -58,7 +57,12 @@ public class UnpackerFactoryTests
     {
         var sut = new UnpackerFactory();
 
-        var unpacker = sut.Create(Substitute.For<ILogger>(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IFilePermissionsWrapper>(), fileName);
+        var unpacker = sut.Create(
+            Substitute.For<ILogger>(),
+            Substitute.For<IDirectoryWrapper>(),
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
+            fileName);
 
         unpacker.Should().BeNull();
     }

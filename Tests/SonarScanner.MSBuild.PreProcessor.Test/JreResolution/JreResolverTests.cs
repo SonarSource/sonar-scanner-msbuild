@@ -40,7 +40,6 @@ public class JreResolverTests
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly JreMetadata metadata = new("1", "filename.tar.gz", JavaExePath, new Uri("https://localhost.com/path/to-jre"), "sha256");
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
-    private readonly IFilePermissionsWrapper filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
 
     private ListPropertiesProvider provider;
@@ -48,6 +47,7 @@ public class JreResolverTests
     private ISonarWebServer server;
     private JreResolver sut;
     private UnpackerFactory unpackerFactory;
+    private OperatingSystemProvider operatingSystem;
 
     [TestInitialize]
     public void Initialize()
@@ -61,8 +61,9 @@ public class JreResolverTests
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
         unpackerFactory = Substitute.For<UnpackerFactory>();
+        operatingSystem = Substitute.For<OperatingSystemProvider>(fileWrapper, logger);
 
-        sut = new JreResolver(server, logger, filePermissionsWrapper, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
+        sut = new JreResolver(server, logger, operatingSystem, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
     }
 
     [TestMethod]

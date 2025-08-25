@@ -18,19 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 public class UnpackerFactory
 {
     public static UnpackerFactory Instance { get; } = new UnpackerFactory();
 
-    public virtual IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper, string archivePath) =>
+    public virtual IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, OperatingSystemProvider operatingSystem, string archivePath) =>
         archivePath switch
         {
             _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
-            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(logger, directoryWrapper, fileWrapper, filePermissionsWrapper),
+            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(logger, directoryWrapper, fileWrapper, operatingSystem),
             _ => null
         };
 }
