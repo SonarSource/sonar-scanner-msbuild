@@ -283,6 +283,7 @@ stages:
               buildType: 'current'
               targetPath: '$(Build.SourcesDirectory)/build'
               artifactName: build
+
           - powershell: |
               $projectVersion = Get-Content "$(Build.SourcesDirectory)/build/version.txt"
               Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
