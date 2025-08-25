@@ -135,8 +135,6 @@ public class EngineResolverTests
     [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheMiss_DownloadSuccess()
     {
-        server.DownloadEngineMetadataAsync().Returns(Task.FromResult(metadata));
-
         var tempFile = Path.Combine(ShaPath, "tempFile.jar");
         using var content = new MemoryStream([1, 2, 3]);
         using var computeHashStream = new MemoryStream();
@@ -164,7 +162,6 @@ public class EngineResolverTests
     [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheMiss_DownloadError()
     {
-        server.DownloadEngineMetadataAsync().Returns(Task.FromResult(metadata));
         server.DownloadEngineAsync(metadata).ThrowsAsync(new Exception("Reason"));
 
         var result = await resolver.ResolveEngine(args);
