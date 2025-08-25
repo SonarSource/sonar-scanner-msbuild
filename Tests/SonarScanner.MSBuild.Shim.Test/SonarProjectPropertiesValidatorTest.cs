@@ -34,8 +34,7 @@ public class SonarProjectPropertiesValidatorTest
         var result = sut.AreExistingSonarPropertiesFilesPresent(folder, [], out var expectedInvalidFolders);
 
         result.Should().BeTrue();
-        expectedInvalidFolders.Should().ContainSingle();
-        expectedInvalidFolders.First().Should().Be(folder);
+        expectedInvalidFolders.Should().BeEquivalentTo(folder);
     }
 
     [TestMethod]
@@ -52,9 +51,7 @@ public class SonarProjectPropertiesValidatorTest
         var result = sut.AreExistingSonarPropertiesFilesPresent(folder, projects, out var expectedInvalidFolders);
 
         result.Should().BeTrue();
-        expectedInvalidFolders.Should().HaveCount(2);
-        expectedInvalidFolders.ElementAt(0).Should().Be(Path.GetDirectoryName(p1.Project.FullPath));
-        expectedInvalidFolders.ElementAt(1).Should().Be(Path.GetDirectoryName(p3.Project.FullPath));
+        expectedInvalidFolders.Should().BeEquivalentTo(Path.GetDirectoryName(p1.Project.FullPath), Path.GetDirectoryName(p3.Project.FullPath));
     }
 
     [TestMethod]

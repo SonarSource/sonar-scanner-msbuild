@@ -560,7 +560,7 @@ public class PropertiesWriterTest
         Path.Combine(paths).Replace(@"\", @"\\"); // We escape `\` when we write the properties file
 
     private static ProjectData CreateProjectData(string name,
-                                                 string guild,
+                                                 string guid,
                                                  FileInfo fullFilePath,
                                                  bool isTest,
                                                  IEnumerable<FileInfo> files,
@@ -571,7 +571,7 @@ public class PropertiesWriterTest
         var projectInfo = new ProjectInfo
         {
             ProjectName = name,
-            ProjectGuid = Guid.Parse(guild),
+            ProjectGuid = Guid.Parse(guid),
             FullPath = fullFilePath.FullName,
             ProjectType = isTest ? ProjectType.Test : ProjectType.Product,
             AnalysisResults = [],

@@ -61,16 +61,15 @@ public class ProjectData
         // To ensure consistently sending of metrics from the same configuration we sort the project outputs and use only the first one for metrics.
         var orderedProjects = projectsGroupedByGuid.OrderBy(x => $"{x.Configuration}_{x.Platform}_{x.TargetFramework}").ToList();
         Project = orderedProjects[0];
-        Status = ProjectInfoValidity.ExcludeFlagSet;
         // Find projects with different paths within the same group
         var projectPathsInGroup = projectsGroupedByGuid.Select(x => isWindows ? x.FullPath?.ToLowerInvariant() : x.FullPath).Distinct().ToList();
         if (projectPathsInGroup.Count > 1)
         {
-            Status = ProjectInfoValidity.DuplicateGuid;
             foreach (var projectPath in projectPathsInGroup)
             {
                 logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectsGroupedByGuid.Key, projectPath);
             }
+            Status = ProjectInfoValidity.DuplicateGuid;
         }
         else if (projectsGroupedByGuid.Key == System.Guid.Empty)
         {
@@ -81,16 +80,12 @@ public class ProjectData
             foreach (var project in orderedProjects.Where(x => x.IsValid(logger)))
             {
                 // If we find just one valid configuration, everything is valid
-                Status = ProjectInfoValidity.Valid;
                 ReferencedFiles.UnionWith(project.GetAllAnalysisFiles(logger));
                 AddRoslynOutputFilePaths(project);
                 AddAnalyzerOutputFilePaths(project);
                 AddTelemetryFilePaths(project);
             }
-            if (ReferencedFiles.Count == 0)
-            {
-                Status = ProjectInfoValidity.NoFilesToAnalyze;
-            }
+            Status = ReferencedFiles.Any() ? ProjectInfoValidity.Valid : ProjectInfoValidity.NoFilesToAnalyze;
         }
         else
         {
