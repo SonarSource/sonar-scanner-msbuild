@@ -25,6 +25,7 @@ namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
 public class EngineResolver : IEngineResolver
 {
+    private const string ScannerEngine = "Scanner Engine";
     private readonly ISonarWebServer server;
     private readonly ILogger logger;
     private readonly IChecksum checksum;
@@ -49,7 +50,7 @@ public class EngineResolver : IEngineResolver
 
     public async Task<string> ResolveEngine(ProcessedArgs args)
     {
-        logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), "Scanner Engine", string.Empty);
+        logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, string.Empty);
         if (args.EngineJarPath is { } localEngine)
         {
             logger.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
@@ -72,7 +73,7 @@ public class EngineResolver : IEngineResolver
         }
         else
         {
-            logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), "Scanner Engine", " Retrying...");
+            logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, " Retrying...");
             return await ResolveEnginePath(metadata);
         }
     }
@@ -86,7 +87,7 @@ public class EngineResolver : IEngineResolver
                 logger.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), hit.FilePath);
                 return hit.FilePath;
             case CacheMiss:
-                logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), "Scanner Engine");
+                logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
                 return await DownloadEngine(cachedDownloader, metadata);
             case CacheError error:
                 logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(EngineResolver), error.Message);
@@ -101,7 +102,7 @@ public class EngineResolver : IEngineResolver
         var result = await cachedDownloader.DownloadFileAsync(() => server.DownloadEngineAsync(metadata));
         if (result is DownloadSuccess success)
         {
-            logger.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), "Scanner Engine", success.FilePath);
+            logger.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);
             return success.FilePath;
         }
         else if (result is DownloadError error)

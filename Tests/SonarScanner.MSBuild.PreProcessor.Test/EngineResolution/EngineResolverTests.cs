@@ -60,7 +60,7 @@ public class EngineResolverTests
     {
         args.EngineJarPath.Returns("local/path/to/engine.jar");
 
-        var result = await resolver.ResolveEngine(args);
+        var result = await new EngineResolver(server, logger, "sonarUserHome").ResolveEngine(args);
 
         result.Should().Be("local/path/to/engine.jar");
         await server.DidNotReceive().DownloadEngineMetadataAsync();
