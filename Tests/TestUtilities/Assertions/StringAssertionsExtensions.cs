@@ -27,8 +27,8 @@ public static class StringAssertionsExtensions
 {
     public static void BeIgnoringLineEndings(this StringAssertions assertions, string expected)
     {
-        var normalizedExpected = expected.NormalizeLineEndings();
-        var normalizedActual = assertions.Subject.NormalizeLineEndings();
+        var normalizedExpected = expected.ToUnixLineEndings();
+        var normalizedActual = assertions.Subject.ToUnixLineEndings();
         Execute.Assertion
             .ForCondition(normalizedActual.SequenceEqual(normalizedExpected))
             .FailWith("Expected {context:collection} to be {0} ignoring line endings, but it was {1}.", expected, assertions.Subject);

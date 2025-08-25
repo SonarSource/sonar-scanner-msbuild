@@ -27,8 +27,8 @@ public static class StringCollectionAssertionsExtensions
 {
     public static void ContainIgnoringLineEndings(this StringCollectionAssertions assertions, string expected)
     {
-        var normalizedExpected = expected.NormalizeLineEndings().TrimEndOfLineWhitespace();
-        var normalizedCollection = assertions.Subject.Select(x => x.NormalizeLineEndings().TrimEndOfLineWhitespace());
+        var normalizedExpected = expected.ToUnixLineEndings().TrimEndOfLineWhitespace();
+        var normalizedCollection = assertions.Subject.Select(x => x.ToUnixLineEndings().TrimEndOfLineWhitespace());
 
         Execute.Assertion
             .ForCondition(normalizedCollection.Contains(normalizedExpected))

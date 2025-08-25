@@ -58,7 +58,7 @@ public class TarGzUnpackTests
         directoryWrapper.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main") + Path.DirectorySeparatorChar);
         directoryWrapper.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub") + Path.DirectorySeparatorChar);
         directoryWrapper.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub2") + Path.DirectorySeparatorChar);
-        Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().Should().Be("hey beautiful");
+        Encoding.UTF8.GetString(unzipped.ToArray()).ToUnixLineEndings().Should().Be("hey beautiful");
         logger.AssertSingleDebugMessageExists($"""There was an error when trying to set permissions for '{filePath}'. Sample exception message""");
     }
 
@@ -138,7 +138,7 @@ public class TarGzUnpackTests
         CreateUnpacker().Unpack(archive, baseDirectory);
 
         directoryWrapper.Received(1).CreateDirectory(baseDirectory);
-        Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().TrimEnd().Should().Be("hello Costin");
+        Encoding.UTF8.GetString(unzipped.ToArray()).ToUnixLineEndings().TrimEnd().Should().Be("hello Costin");
     }
 
     private TarGzUnpacker CreateUnpacker() =>
