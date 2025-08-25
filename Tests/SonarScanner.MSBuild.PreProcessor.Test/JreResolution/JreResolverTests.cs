@@ -60,10 +60,14 @@ public class JreResolverTests
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
-        unpackerFactory = Substitute.For<UnpackerFactory>();
+        unpackerFactory = Substitute.For<UnpackerFactory>(
+            logger,
+            Substitute.For<OperatingSystemProvider>(fileWrapper, logger),
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>());
         operatingSystem = Substitute.For<OperatingSystemProvider>(fileWrapper, logger);
 
-        sut = new JreResolver(server, logger, operatingSystem, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
+        sut = new JreResolver(server, logger, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
     }
 
     [TestMethod]
@@ -262,7 +266,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_CreateUnpackerFails_ReturnsFailure()
     {
-        unpackerFactory.Create(null, null, null, null, null).ReturnsNullForAnyArgs();
+        unpackerFactory.Create(null).ReturnsNullForAnyArgs();
 
         var res = await sut.ResolveJrePath(Args());
 
