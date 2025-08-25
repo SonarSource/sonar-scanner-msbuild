@@ -285,7 +285,7 @@ stages:
               artifactName: build
           - powershell: |
               $projectVersion = Get-Content "$(Build.SourcesDirectory)/build/version.txt"
-              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$($projectVersion)"
+              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
             displayName: 'Set SONAR_PROJECT_VERSION variable for this job'
 
           - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
