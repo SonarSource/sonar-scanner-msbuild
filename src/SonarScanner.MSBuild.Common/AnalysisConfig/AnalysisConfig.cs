@@ -59,6 +59,11 @@ public class AnalysisConfig
     public string JavaExePath { get; set; }
 
     /// <summary>
+    /// The path to the Scanner Engine jar.
+    /// </summary>
+    public string EngineJarPath { get; set; }
+
+    /// <summary>
     /// The option that enables or disables multi-language analysis.
     /// </summary>
     public bool ScanAllAnalysis { get; set; }
