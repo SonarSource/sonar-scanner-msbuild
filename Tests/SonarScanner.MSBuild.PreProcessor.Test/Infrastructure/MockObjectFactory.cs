@@ -18,18 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using FluentAssertions;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.TFS;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -41,6 +35,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public MockSonarWebServer Server { get; }
     public ITargetsInstaller TargetsInstaller { get; } = Substitute.For<ITargetsInstaller>();
     public IJreResolver JreResolver { get; } = Substitute.For<IJreResolver>();
+    public IEngineResolver EngineResolver { get; } = Substitute.For<IEngineResolver>();
     public string PluginCachePath { get; private set; }
     public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
 
@@ -94,6 +89,9 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
 
     public IJreResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
         JreResolver;
+
+    public IEngineResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
+        EngineResolver;
 
     public void AssertMethodCalled(string methodName, int callCount) =>
         calledMethods.Count(x => x == methodName).Should().Be(callCount, "Method was not called the expected number of times");
