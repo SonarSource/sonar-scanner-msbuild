@@ -107,6 +107,7 @@ stages:
 
           - powershell: .\scripts\promote-project-version.ps1
             displayName: 'Promote project version'
+            name: projectVersion
 
           - task: VSBuild@1
             displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
@@ -272,12 +273,15 @@ stages:
   - stage: qa_windows
     displayName: 'QA - Windows:'
     dependsOn: build
+    variables:
+      SONAR_PROJECT_VERSION: $[stageDependencies.build.build.outputs['projectVersion.SONAR_PROJECT_VERSION']]
     jobs:
       - job: uts_analysis_mend
         displayName: 'Run UTs, SC analysis and Mend scan'
         workspace:
           clean: all
         steps:
+          - powershell: Write-Host "$(SONAR_PROJECT_VERSION)" # For testing
           - task: DownloadPipelineArtifact@2    # Mend needs the Scanner CLI Jar on the disk at the time of scan
             inputs:
               buildType: 'current'
