@@ -21,7 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.JreProvisioningAssertions;
+import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import java.nio.file.Paths;
@@ -33,7 +33,7 @@ import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
-class JreProvisioningTest {
+class ProvisioningTest {
   private static final String DIRECTORY_NAME = "JreProvisioning";
 
   @Test
@@ -50,7 +50,7 @@ class JreProvisioningTest {
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var result = context.runAnalysis();
 
-      JreProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), oldJavaHome, "analysis/jres/[^\s]+");
+      ProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), oldJavaHome, "analysis/jres/[^\s]+");
     }
   }
 
@@ -74,7 +74,7 @@ class JreProvisioningTest {
       // second analysis, cache hits and does not download the JRE
       var secondBegin = context.begin.execute(ORCHESTRATOR);
 
-      JreProvisioningAssertions.cacheHitAssertions(secondBegin, userHome.toString());
+      ProvisioningAssertions.cacheHitAssertions(secondBegin, userHome.toString());
     }
   }
 

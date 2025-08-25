@@ -23,7 +23,7 @@ import com.sonar.orchestrator.build.BuildResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public final class JreProvisioningAssertions {
+public final class ProvisioningAssertions {
   public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, String oldJavaHome, String jreUrlPattern) {
     var os = OSPlatform.current().name().toLowerCase();
     var arch = OSPlatform.currentArchitecture().toLowerCase();
