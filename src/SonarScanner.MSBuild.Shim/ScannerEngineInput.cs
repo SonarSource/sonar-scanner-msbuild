@@ -29,9 +29,6 @@ public class ScannerEngineInput
     private const string SonarTests = "sonar.tests";
     private readonly AnalysisConfig config;
 
-    /// <summary>
-    /// Project guids that have been processed. This is used in <see cref="Flush"/> to write the module keys in the end.
-    /// </summary>
     private readonly HashSet<string> moduleKeys = [];
     private readonly JObject root;
     private readonly JArray scannerProperties = [];
@@ -44,42 +41,32 @@ public class ScannerEngineInput
         {
             new JProperty("scannerProperties", scannerProperties)
         };
-        modules = AppendKeyValue("sonar.modules", string.Empty);
+        modules = new JProperty("value", string.Empty);
+        AppendKeyValue("sonar.modules", modules);
     }
 
     public override string ToString() =>
         JsonConvert.SerializeObject(root, Formatting.Indented);
 
-    public void WriteSettingsForProject(ProjectData projectData)
+    public void WriteSettingsForProject(ProjectData project)
     {
-        if (projectData is null)
-        {
-            throw new ArgumentNullException(nameof(projectData));
-        }
-
-        var guid = projectData.Guid;
-        Debug.Assert(projectData.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
-        Debug.Assert(projectData.SonarQubeModuleFiles.All(x => x.Exists), "Expecting all of the specified files to exist");
-        Debug.Assert(!moduleKeys.Contains(guid), "Expecting the project guids to be unique.");
-
+        _ = project ?? throw new ArgumentNullException(nameof(project));
+        var guid = project.Guid;
         moduleKeys.Add(guid);
         modules.Value = string.Join(",", moduleKeys);
-
         AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
-        AppendKeyValue(guid, SonarProperties.ProjectName, projectData.Project.ProjectName);
-        AppendKeyValue(guid, SonarProperties.ProjectBaseDir, projectData.Project.GetDirectory().FullName);
-
-        if (!string.IsNullOrWhiteSpace(projectData.Project.Encoding))
+        AppendKeyValue(guid, SonarProperties.ProjectName, project.Project.ProjectName);
+        AppendKeyValue(guid, SonarProperties.ProjectBaseDir, project.Project.GetDirectory().FullName);
+        AppendKeyValue(guid, SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"));    // zero-based index
+        if (!string.IsNullOrWhiteSpace(project.Project.Encoding))
         {
-            AppendKeyValue(guid, SonarProperties.SourceEncoding, projectData.Project.Encoding.ToLowerInvariant());
+            AppendKeyValue(guid, SonarProperties.SourceEncoding, project.Project.Encoding.ToLowerInvariant());
         }
-
-        AppendKeyValue(guid, projectData.Project.ProjectType == ProjectType.Product ? SonarTests : SonarSources, string.Empty);
-        AppendKeyValue(guid, projectData.Project.ProjectType == ProjectType.Product ? SonarSources : SonarTests, projectData.SonarQubeModuleFiles);
-
-        if (projectData.Project.AnalysisSettings is not null && projectData.Project.AnalysisSettings.Any())
+        AppendKeyValue(guid, project.Project.ProjectType == ProjectType.Product ? SonarTests : SonarSources, string.Empty);
+        AppendKeyValue(guid, project.Project.ProjectType == ProjectType.Product ? SonarSources : SonarTests, project.SonarQubeModuleFiles);
+        if (project.Project.AnalysisSettings is not null && project.Project.AnalysisSettings.Any())
         {
-            foreach (var setting in projectData.Project.AnalysisSettings.Where(x =>
+            foreach (var setting in project.Project.AnalysisSettings.Where(x =>
                 !ScannerEngineInputGenerator.IsProjectOutPaths(x.Id)
                 && !ScannerEngineInputGenerator.IsReportFilePaths(x.Id)
                 && !ScannerEngineInputGenerator.IsTelemetryPaths(x.Id)))
@@ -87,13 +74,10 @@ public class ScannerEngineInput
                 AppendKeyValue($"{guid}.{setting.Id}", setting.Value);
             }
 
-            WriteAnalyzerOutputPaths(projectData);
-            WriteRoslynReportPaths(projectData);
-            WriteTelemetryPaths(projectData);
+            WriteAnalyzerOutputPaths(project);
+            WriteRoslynReportPaths(project);
+            WriteTelemetryPaths(project);
         }
-
-        var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"); // zero-based index
-        AppendKeyValue(guid, SonarProperties.WorkingDirectory, moduleWorkdir);
     }
 
     public void WriteTelemetryPaths(ProjectData project)
@@ -174,32 +158,21 @@ public class ScannerEngineInput
     public void WriteVsXmlCoverageReportPaths(string[] paths) =>
         AppendKeyValue(SonarProperties.VsCoverageXmlReportsPaths, paths);
 
-    /// <summary>
-    /// Write the supplied global settings into the file.
-    /// </summary>
     public void WriteGlobalSettings(AnalysisProperties properties)
     {
-        if (properties is null)
+        _ = properties ?? throw new ArgumentNullException(nameof(properties));
+        // https://github.com/SonarSource/sonar-scanner-msbuild/issues/543 We should no longer pass the sonar.verbose=true parameter to the scanner CLI
+        foreach (var setting in properties.Where(x => x.Id != SonarProperties.Verbose))
         {
-            throw new ArgumentNullException(nameof(properties));
-        }
-
-        foreach (var setting in properties)
-        {
-            // We should no longer pass the sonar.verbose=true parameter to the scanner CLI.
-            // See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/543
-            if (setting.Id != SonarProperties.Verbose)
-            {
-                AppendKeyValue(setting.Id, setting.Value);
-            }
+            AppendKeyValue(setting.Id, setting.Value);
         }
     }
 
     public void WriteSonarProjectInfo(DirectoryInfo projectBaseDir)
     {
         AppendKeyValue(SonarProperties.ProjectKey, config.SonarProjectKey);
-        AppendKeyValueIfNotEmpty(SonarProperties.ProjectName, config.SonarProjectName);
-        AppendKeyValueIfNotEmpty(SonarProperties.ProjectVersion, config.SonarProjectVersion);
+        AppendKeyValue(SonarProperties.ProjectName, config.SonarProjectName);
+        AppendKeyValue(SonarProperties.ProjectVersion, config.SonarProjectVersion);
         AppendKeyValue(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
         AppendKeyValue(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
         AppendKeyValue(SonarProperties.PullRequestCacheBasePath, config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null));
@@ -207,18 +180,17 @@ public class ScannerEngineInput
 
     public void WriteSharedFiles(AnalysisFiles analysisFiles)
     {
-        if (analysisFiles.Sources.Count > 0)
-        {
-            AppendKeyValue("sonar", "sources", analysisFiles.Sources);
-        }
-        if (analysisFiles.Tests.Count > 0)
-        {
-            AppendKeyValue("sonar", "tests", analysisFiles.Tests);
-        }
+        AppendKeyValue("sonar", "sources", analysisFiles.Sources);
+        AppendKeyValue("sonar", "tests", analysisFiles.Tests);
     }
 
-    internal void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> values) =>
-        AppendKeyValue($"{keyPrefix}.{keySuffix}", ToMultiValueProperty(values));
+    internal void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> values)
+    {
+        if (values.Any())
+        {
+            AppendKeyValue($"{keyPrefix}.{keySuffix}", ToMultiValueProperty(values));
+        }
+    }
 
     private void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
         AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
@@ -229,28 +201,16 @@ public class ScannerEngineInput
     private void AppendKeyValue(string key, IEnumerable<string> values) =>
         AppendKeyValue(key, ToMultiValueProperty(values));
 
-    private JProperty AppendKeyValue(string key, string value)
-    {
-        Debug.Assert(
-            !ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
-            "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}",
-            key);
-        var valueProperty = new JProperty("value", value);
-        scannerProperties.Add(new JObject
-        {
-            new JProperty("key", key),
-            valueProperty
-        });
-        return valueProperty;
-    }
-
-    private void AppendKeyValueIfNotEmpty(string key, string value)
+    private void AppendKeyValue(string key, string value)
     {
         if (!string.IsNullOrEmpty(value))
         {
-            AppendKeyValue(key, value);
+            AppendKeyValue(key, new JProperty("value", value));
         }
     }
+
+    private void AppendKeyValue(string key, JProperty value) =>
+        scannerProperties.Add(new JObject { new JProperty("key", key), value });
 
     private static string ToMultiValueProperty(IEnumerable<string> paths)
     {

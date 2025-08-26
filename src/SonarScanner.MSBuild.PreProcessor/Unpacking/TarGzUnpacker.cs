@@ -21,12 +21,24 @@
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper) : IUnpacker
+public class TarGzUnpacker : IUnpacker
 {
+    private readonly ILogger logger;
+    private readonly IDirectoryWrapper directoryWrapper;
+    private readonly IFileWrapper fileWrapper;
+    private readonly OperatingSystemProvider operatingSystem;
+
+    public TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, OperatingSystemProvider operatingSystem)
+    {
+        this.logger = logger;
+        this.directoryWrapper = directoryWrapper;
+        this.fileWrapper = fileWrapper;
+        this.operatingSystem = operatingSystem;
+    }
+
     // ref https://github.com/icsharpcode/SharpZipLib/blob/ff2d7c30bdb2474d507f001bc555405e9f02a0bb/src/ICSharpCode.SharpZipLib/Tar/TarArchive.cs#L608
     public void Unpack(Stream archive, string destinationDirectory)
     {
@@ -76,7 +88,7 @@ public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, I
             outputStream.Close();
             try
             {
-                filePermissionsWrapper.Set(destinationFile, entry.TarHeader.Mode);
+                operatingSystem.SetPermission(destinationFile, entry.TarHeader.Mode);
             }
             catch (Exception ex)
             {
