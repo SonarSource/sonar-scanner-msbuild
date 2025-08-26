@@ -82,7 +82,7 @@ public class ScannerEngineInput
         }
     }
 
-    public void WriteSonarProjectInfo(DirectoryInfo projectBaseDir)
+    public void AddConfig(DirectoryInfo projectBaseDir)
     {
         Add(SonarProperties.ProjectKey, config.SonarProjectKey);
         Add(SonarProperties.ProjectName, config.SonarProjectName);

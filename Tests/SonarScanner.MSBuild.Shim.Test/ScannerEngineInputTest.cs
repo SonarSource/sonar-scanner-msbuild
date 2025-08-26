@@ -353,7 +353,7 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSonarProjectInfo_WritesAllValues()
+    public void AddConfig_WritesAllValues()
     {
         var projectBaseDir = Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir");
         var sonarOutputDir = @"C:\OutpuDir";
@@ -366,7 +366,7 @@ public class ScannerEngineInputTest
         };
         config.SetConfigValue(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
         var sut = new ScannerEngineInput(config);
-        sut.WriteSonarProjectInfo(new DirectoryInfo(projectBaseDir));
+        sut.AddConfig(new DirectoryInfo(projectBaseDir));
 
         sut.ToString().Should().BeIgnoringLineEndings(
             $$"""
@@ -406,11 +406,11 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSonarProjectInfo_EmptyValues()
+    public void AddConfig_EmptyValues()
     {
         var config = new AnalysisConfig { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
         var sut = new ScannerEngineInput(config);
-        sut.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
+        sut.AddConfig(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
         sut.ToString().Should().BeIgnoringLineEndings(
             $$"""
             {
@@ -450,7 +450,7 @@ public class ScannerEngineInputTest
         };
         var sut = new ScannerEngineInput(config);
         sut.AddProject(product);
-        sut.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
+        sut.AddConfig(new DirectoryInfo("dummy basedir"));
 
         var workDirKey = projectKey + "." + SonarProperties.WorkingDirectory;
         new ScannerEngineInputReader(sut.ToString()).AssertProperty(workDirKey, Path.Combine(TestUtils.DriveRoot(), "my_folder", ".sonar", "mod0"));
