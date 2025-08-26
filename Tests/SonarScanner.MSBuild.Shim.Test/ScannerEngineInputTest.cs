@@ -510,6 +510,47 @@ public class ScannerEngineInputTest
             """);
     }
 
+    [TestMethod]
+    public void CloneWithoutSensitiveData_PreservesDataAndSonarModules()
+    {
+        var root = Path.Combine(TestUtils.DriveRoot(), "Project");
+        var config = new AnalysisConfig { SonarOutputDir = Path.Combine(root, ".sonarqube", "out"), SonarProjectKey = "ProjectKey" };
+        var sut = new ScannerEngineInput(config);
+        sut.Add("sonar", "safe.key", "Safe Value");
+        sut.AddProject(CreateProjectData("Name", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", new FileInfo(Path.Combine(root, "Project.csproj")), false, [], null, null, ProjectLanguages.CSharp));
+        var expected = sut.ToString();
+
+        sut.CloneWithoutSensitiveData().ToString().Should().Be(expected);
+    }
+
+    [TestMethod]
+    public void CloneWithoutSensitiveData_SensitiveKey()
+    {
+        var root = Path.Combine(TestUtils.DriveRoot(), "Project");
+        var config = new AnalysisConfig { SonarOutputDir = Path.Combine(root, ".sonarqube", "out"), SonarProjectKey = "ProjectKey" };
+        var sut = new ScannerEngineInput(config);
+        sut.Add("sonar", "safe.key", "Safe Value");
+        sut.Add("sonar", "token", "!Sacred!Secret!");
+        var reader = new ScannerEngineInputReader(sut.CloneWithoutSensitiveData().ToString());
+
+        reader.AssertProperty("sonar.safe.key", "Safe Value");
+        reader.AssertProperty("sonar.token", "***");
+    }
+
+    [TestMethod]
+    public void CloneWithoutSensitiveData_SensitiveValue()
+    {
+        var root = Path.Combine(TestUtils.DriveRoot(), "Project");
+        var config = new AnalysisConfig { SonarOutputDir = Path.Combine(root, ".sonarqube", "out"), SonarProjectKey = "ProjectKey" };
+        var sut = new ScannerEngineInput(config);
+        sut.Add("sonar", "safe.key", "Safe Value");
+        sut.Add("sonar", "unsafe.value", "<Fragment><Key>sonar.token</Key><Value>!Sacred!Secret! nested in value of a safe key</Value></Fragment>");
+        var reader = new ScannerEngineInputReader(sut.CloneWithoutSensitiveData().ToString());
+
+        reader.AssertProperty("sonar.safe.key", "Safe Value");
+        reader.AssertProperty("sonar.unsafe.value", "***");
+    }
+
     private static ProjectData CreateProjectData(string name,
                                                  string projectId,
                                                  FileInfo fullFilePath,
