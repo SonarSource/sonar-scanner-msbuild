@@ -36,14 +36,14 @@ public class ScannerEngineInputTest
         new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.WriteSettingsForProject(null)).Should().Throw<ArgumentNullException>().WithParameterName("project");
 
     [TestMethod]
-    public void WriteGlobalSettings_ThrowsOnNullArgument() =>
-        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.WriteGlobalSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
+    public void AddGlobalSettings_ThrowsOnNullArgument() =>
+        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddGlobalSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
 
     [TestMethod]
-    public void WriteGlobalSettings_VerboseIsSkipped()
+    public void AddGlobalSettings_VerboseIsSkipped()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteGlobalSettings([
+        sut.AddGlobalSettings([
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
         ]);
@@ -64,10 +64,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
+    public void AddGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteGlobalSettings([
+        sut.AddGlobalSettings([
             new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
         ]);
@@ -469,7 +469,7 @@ public class ScannerEngineInputTest
             new("sonar.branch", "aBranch")
         };
         var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
-        sut.WriteGlobalSettings(globalSettings);
+        sut.AddGlobalSettings(globalSettings);
 
         var reader = new ScannerEngineInputReader(sut.ToString());
         reader.AssertProperty("my.setting1", "setting1");

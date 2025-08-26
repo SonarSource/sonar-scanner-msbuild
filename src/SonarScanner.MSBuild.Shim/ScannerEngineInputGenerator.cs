@@ -174,7 +174,7 @@ public class ScannerEngineInputGenerator
             AddProperty(engineInput, project, TelemetryPathsKeyCS, TelemetryPathsKeyVB, project.TelemetryPaths);
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
-        engineInput.WriteGlobalSettings(analysisProperties);
+        engineInput.AddGlobalSettings(analysisProperties);
         return true;
     }
 
