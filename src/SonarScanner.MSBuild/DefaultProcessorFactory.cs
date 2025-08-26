@@ -38,7 +38,7 @@ public class DefaultProcessorFactory : IProcessorFactory
             new SonarScannerWrapper(runtime.Logger, runtime.OperatingSystem),
             runtime.Logger,
             new TargetsUninstaller(runtime.Logger),
-            new TfsProcessorWrapper(runtime.Logger, runtime.OperatingSystem),
+            new TfsProcessorWrapper(runtime),
             new SonarProjectPropertiesValidator(),
             new BuildVNextCoverageReportProcessor(new BinaryToXmlCoverageReportConverter(runtime.Logger), runtime.Logger));
 

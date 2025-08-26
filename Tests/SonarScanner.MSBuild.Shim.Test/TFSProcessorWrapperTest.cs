@@ -30,7 +30,7 @@ public class TFSProcessorWrapperTest
     [TestMethod]
     public void Execute_WhenConfigIsNull_Throws()
     {
-        var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
+        var testSubject = new TfsProcessorWrapper(new TestRuntime());
         Action act = () => testSubject.Execute(null, [], string.Empty);
 
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
@@ -39,7 +39,7 @@ public class TFSProcessorWrapperTest
     [TestMethod]
     public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
     {
-        var testSubject = new TfsProcessorWrapper(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
+        var testSubject = new TfsProcessorWrapper(new TestRuntime());
         Action act = () => testSubject.Execute(new AnalysisConfig(), null, string.Empty);
 
         act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
@@ -48,7 +48,7 @@ public class TFSProcessorWrapperTest
     [TestMethod]
     public void Execute_ReturnTrue()
     {
-        var testSubject = Substitute.ForPartsOf<TfsProcessorWrapper>(new TestLogger(), Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
+        var testSubject = Substitute.ForPartsOf<TfsProcessorWrapper>(new TestRuntime());
         testSubject
             .Configure()
             .ExecuteProcessorRunner(Arg.Any<AnalysisConfig>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
@@ -56,22 +56,6 @@ public class TFSProcessorWrapperTest
         var result = testSubject.Execute(new AnalysisConfig(), [], "some/path");
 
         result.Should().BeTrue();
-    }
-
-    [TestMethod]
-    public void Ctor_WhenLoggerIsNull_Throws()
-    {
-        Action act = () => _ = new TfsProcessorWrapper(null, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
-
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-    }
-
-    [TestMethod]
-    public void Ctor_WhenOperatingSystemProviderIsNull_Throws()
-    {
-        Action act = () => _ = new TfsProcessorWrapper(new TestLogger(), null);
-
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("operatingSystemProvider");
     }
 
     [TestMethod]
@@ -143,11 +127,11 @@ public class TFSProcessorWrapperTest
     }
 
     private static bool ExecuteTFSProcessorIgnoringAsserts(
-        AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
+        AnalysisConfig config, IEnumerable<string> userCmdLineArguments, TestLogger logger, string exeFileName, string propertiesFileName, IProcessRunner runner)
     {
         using (new AssertIgnoreScope())
         {
-            var wrapper = new TfsProcessorWrapper(logger, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
+            var wrapper = new TfsProcessorWrapper(new TestRuntime { Logger = logger });
             return wrapper.ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, propertiesFileName, runner);
         }
     }

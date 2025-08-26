@@ -25,10 +25,10 @@ public class TfsProcessorWrapper
     private readonly ILogger logger;
     private readonly OperatingSystemProvider operatingSystemProvider;
 
-    public TfsProcessorWrapper(ILogger logger, OperatingSystemProvider operatingSystemProvider)
+    public TfsProcessorWrapper(IRuntime runtime)
     {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+        logger = runtime.Logger;
+        operatingSystemProvider = runtime.OperatingSystem;
     }
 
     public virtual bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
