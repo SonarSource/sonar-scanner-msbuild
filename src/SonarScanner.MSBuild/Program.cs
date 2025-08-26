@@ -86,7 +86,7 @@ Useful links:
                 return ErrorCode;
             }
 
-            var processorFactory = new DefaultProcessorFactory(runtime.Logger);
+            var processorFactory = new DefaultProcessorFactory(runtime);
             var bootstrapper = new BootstrapperClass(processorFactory, settings, runtime.Logger);
             var exitCode = await bootstrapper.Execute();
             Environment.ExitCode = exitCode;
