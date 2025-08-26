@@ -24,10 +24,10 @@ namespace TestUtilities;
 
 public class TestRuntime : IRuntime
 {
-    public OperatingSystemProvider OperatingSystem { get; }
-    public TestLogger Logger { get; }
-    public IFileWrapper File { get; }
-    public IDirectoryWrapper Directory { get; }
+    public OperatingSystemProvider OperatingSystem { get; init; }
+    public TestLogger Logger { get; init; }
+    public IFileWrapper File { get; init; }
+    public IDirectoryWrapper Directory { get; init; }
     ILogger IRuntime.Logger => Logger;
 
     public TestRuntime()
