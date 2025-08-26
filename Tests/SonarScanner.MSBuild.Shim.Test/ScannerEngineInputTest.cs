@@ -479,10 +479,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void AsMultiValueProperty_EncodeValues()
+    public void Add_AsMultiValueProperty_EncodeValues()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.AppendKeyValue(
+        sut.Add(
             "sonar",
             "multivalueproperty",
             [

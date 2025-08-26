@@ -42,7 +42,7 @@ public class ScannerEngineInput
             new JProperty("scannerProperties", scannerProperties)
         };
         modules = new JProperty("value", string.Empty);
-        AppendKeyValue("sonar.modules", modules);
+        Add("sonar.modules", modules);
     }
 
     public override string ToString() =>
@@ -54,23 +54,23 @@ public class ScannerEngineInput
         var guid = project.Guid;
         moduleKeys.Add(guid);
         modules.Value = string.Join(",", moduleKeys);
-        AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
-        AppendKeyValue(guid, SonarProperties.ProjectName, project.Project.ProjectName);
-        AppendKeyValue(guid, SonarProperties.ProjectBaseDir, project.Project.GetDirectory().FullName);
-        AppendKeyValue(guid, SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"));    // zero-based index
+        Add(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
+        Add(guid, SonarProperties.ProjectName, project.Project.ProjectName);
+        Add(guid, SonarProperties.ProjectBaseDir, project.Project.GetDirectory().FullName);
+        Add(guid, SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"));    // zero-based index
         if (!string.IsNullOrWhiteSpace(project.Project.Encoding))
         {
-            AppendKeyValue(guid, SonarProperties.SourceEncoding, project.Project.Encoding.ToLowerInvariant());
+            Add(guid, SonarProperties.SourceEncoding, project.Project.Encoding.ToLowerInvariant());
         }
-        AppendKeyValue(guid, project.Project.ProjectType == ProjectType.Product ? SonarTests : SonarSources, string.Empty);
-        AppendKeyValue(guid, project.Project.ProjectType == ProjectType.Product ? SonarSources : SonarTests, project.SonarQubeModuleFiles);
+        Add(guid, project.Project.ProjectType == ProjectType.Product ? SonarTests : SonarSources, string.Empty);
+        Add(guid, project.Project.ProjectType == ProjectType.Product ? SonarSources : SonarTests, project.SonarQubeModuleFiles);
     }
 
     public void AddVsTestReportPaths(string[] paths) =>
-        AppendKeyValue(SonarProperties.VsTestReportsPaths, paths);
+        Add(SonarProperties.VsTestReportsPaths, paths);
 
     public void AddVsXmlCoverageReportPaths(string[] paths) =>
-        AppendKeyValue(SonarProperties.VsCoverageXmlReportsPaths, paths);
+        Add(SonarProperties.VsCoverageXmlReportsPaths, paths);
 
     public void AddGlobalSettings(AnalysisProperties properties)
     {
@@ -78,52 +78,53 @@ public class ScannerEngineInput
         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/543 We should no longer pass the sonar.verbose=true parameter to the scanner CLI
         foreach (var setting in properties.Where(x => x.Id != SonarProperties.Verbose))
         {
-            AppendKeyValue(setting.Id, setting.Value);
+            Add(setting.Id, setting.Value);
         }
     }
 
     public void WriteSonarProjectInfo(DirectoryInfo projectBaseDir)
     {
-        AppendKeyValue(SonarProperties.ProjectKey, config.SonarProjectKey);
-        AppendKeyValue(SonarProperties.ProjectName, config.SonarProjectName);
-        AppendKeyValue(SonarProperties.ProjectVersion, config.SonarProjectVersion);
-        AppendKeyValue(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
-        AppendKeyValue(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
-        AppendKeyValue(SonarProperties.PullRequestCacheBasePath, config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null));
+        Add(SonarProperties.ProjectKey, config.SonarProjectKey);
+        Add(SonarProperties.ProjectName, config.SonarProjectName);
+        Add(SonarProperties.ProjectVersion, config.SonarProjectVersion);
+        Add(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
+        Add(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
+        Add(SonarProperties.PullRequestCacheBasePath, config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null));
     }
 
     public void AddSharedFiles(AnalysisFiles analysisFiles)
     {
-        AppendKeyValue("sonar", "sources", analysisFiles.Sources);
-        AppendKeyValue("sonar", "tests", analysisFiles.Tests);
+        Add("sonar", "sources", analysisFiles.Sources);
+        Add("sonar", "tests", analysisFiles.Tests);
     }
 
-    public void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
-        AppendKeyValue(keyPrefix, keySuffix, paths.Select(x => x.FullName));
+    public void Add(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
+        Add(keyPrefix, keySuffix, paths.Select(x => x.FullName));
 
-    public void AppendKeyValue(string keyPrefix, string keySuffix, string value) =>
-        AppendKeyValue(keyPrefix + "." + keySuffix, value);
+    // FIXME: Reorder and use correctly
+    private void Add(string keyPrefix, string keySuffix, string value) =>
+        Add(keyPrefix + "." + keySuffix, value);
 
-    internal void AppendKeyValue(string keyPrefix, string keySuffix, IEnumerable<string> values)
+    internal void Add(string keyPrefix, string keySuffix, IEnumerable<string> values)
     {
         if (values.Any())
         {
-            AppendKeyValue($"{keyPrefix}.{keySuffix}", ToMultiValueProperty(values));
+            Add($"{keyPrefix}.{keySuffix}", ToMultiValueProperty(values));
         }
     }
 
-    private void AppendKeyValue(string key, IEnumerable<string> values) =>
-        AppendKeyValue(key, ToMultiValueProperty(values));
+    private void Add(string key, IEnumerable<string> values) =>
+        Add(key, ToMultiValueProperty(values));
 
-    private void AppendKeyValue(string key, string value)
+    private void Add(string key, string value)
     {
         if (!string.IsNullOrEmpty(value))
         {
-            AppendKeyValue(key, new JProperty("value", value));
+            Add(key, new JProperty("value", value));
         }
     }
 
-    private void AppendKeyValue(string key, JProperty value) =>
+    private void Add(string key, JProperty value) =>
         scannerProperties.Add(new JObject { new JProperty("key", key), value });
 
     private static string ToMultiValueProperty(IEnumerable<string> paths)

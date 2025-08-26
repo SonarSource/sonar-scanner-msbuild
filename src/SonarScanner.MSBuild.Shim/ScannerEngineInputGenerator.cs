@@ -166,7 +166,7 @@ public class ScannerEngineInputGenerator
                     && !IsReportFilePaths(x.Id)
                     && !IsTelemetryPaths(x.Id)))
                 {
-                    engineInput.AppendKeyValue(project.Guid, setting.Id, setting.Value);
+                    engineInput.Add(project.Guid, setting.Id, setting.Value);
                 }
             }
             AddProperty(engineInput, project, ProjectOutPathsKeyCS, ProjectOutPathsKeyVB, project.AnalyzerOutPaths);
@@ -400,7 +400,7 @@ public class ScannerEngineInputGenerator
     {
         if (KeySuffix() is { } keySuffix)
         {
-            engineInput.AppendKeyValue(project.Guid, keySuffix, paths);
+            engineInput.Add(project.Guid, keySuffix, paths);
         }
 
         string KeySuffix()
