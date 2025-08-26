@@ -92,10 +92,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSharedProperties_EmptySources_EmptyTests()
+    public void AddSharedFiles_EmptySources_EmptyTests()
     {
         var sut = new ScannerEngineInput(new());
-        sut.WriteSharedFiles(new([], []));
+        sut.AddSharedFiles(new([], []));
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
@@ -109,10 +109,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSharedProperties_WithSources_EmptyTests()
+    public void AddSharedFiles_WithSources_EmptyTests()
     {
         var sut = new ScannerEngineInput(new());
-        sut.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
+        sut.AddSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
@@ -130,10 +130,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSharedProperties_EmptySources_WithTests()
+    public void AddSharedFiles_EmptySources_WithTests()
     {
         var sut = new ScannerEngineInput(new());
-        sut.WriteSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
+        sut.AddSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
@@ -151,10 +151,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSharedProperties_WithSources_WithTests()
+    public void AddSharedFiles_WithSources_WithTests()
     {
         var sut = new ScannerEngineInput(new());
-        sut.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
+        sut.AddSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [

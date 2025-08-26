@@ -92,7 +92,7 @@ public class ScannerEngineInput
         AppendKeyValue(SonarProperties.PullRequestCacheBasePath, config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null));
     }
 
-    public void WriteSharedFiles(AnalysisFiles analysisFiles)
+    public void AddSharedFiles(AnalysisFiles analysisFiles)
     {
         AppendKeyValue("sonar", "sources", analysisFiles.Sources);
         AppendKeyValue("sonar", "tests", analysisFiles.Tests);

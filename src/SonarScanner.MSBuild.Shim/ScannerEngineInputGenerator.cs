@@ -154,7 +154,7 @@ public class ScannerEngineInputGenerator
         legacyWriter.WriteSonarProjectInfo(projectBaseDir);
         engineInput.WriteSonarProjectInfo(projectBaseDir);
         legacyWriter.WriteSharedFiles(analysisFiles);
-        engineInput.WriteSharedFiles(analysisFiles);
+        engineInput.AddSharedFiles(analysisFiles);
         foreach (var project in validProjects)
         {
             legacyWriter.WriteSettingsForProject(project);
