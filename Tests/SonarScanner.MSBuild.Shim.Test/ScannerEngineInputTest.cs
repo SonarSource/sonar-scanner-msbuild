@@ -176,10 +176,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteVsTestReportPaths_WritesEncodedPaths()
+    public void AddVsTestReportPaths_WritesEncodedPaths()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteVsTestReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
+        sut.AddVsTestReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [

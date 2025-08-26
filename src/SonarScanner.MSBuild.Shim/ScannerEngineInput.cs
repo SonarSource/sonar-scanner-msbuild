@@ -66,7 +66,7 @@ public class ScannerEngineInput
         AppendKeyValue(guid, project.Project.ProjectType == ProjectType.Product ? SonarSources : SonarTests, project.SonarQubeModuleFiles);
     }
 
-    public void WriteVsTestReportPaths(string[] paths) =>
+    public void AddVsTestReportPaths(string[] paths) =>
         AppendKeyValue(SonarProperties.VsTestReportsPaths, paths);
 
     public void AddVsXmlCoverageReportPaths(string[] paths) =>
