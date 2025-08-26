@@ -19,10 +19,8 @@
  */
 
 using ICSharpCode.SharpZipLib.Core;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
+namespace SonarScanner.MSBuild.PreProcessor.Unpacking.Test;
 
 [TestClass]
 public class TarGzUnpackTests
@@ -30,7 +28,7 @@ public class TarGzUnpackTests
     private readonly TestLogger logger = new();
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
-    private readonly IFilePermissionsWrapper filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
+    private readonly OperatingSystemProvider operatingSystem = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
 
     [TestMethod]
     public void TarGzUnpacking_Success_CopyFilePermissions_Fails()
@@ -51,7 +49,7 @@ public class TarGzUnpackTests
         using var archive = new MemoryStream(Convert.FromBase64String(sampleTarGzFile));
         using var unzipped = new MemoryStream();
         fileWrapper.Create(filePath).Returns(unzipped);
-        filePermissionsWrapper.When(x => x.Set(Arg.Any<string>(), Arg.Any<int>())).Throw(new Exception("Sample exception message"));
+        operatingSystem.When(x => x.SetPermission(Arg.Any<string>(), Arg.Any<int>())).Throw(new Exception("Sample exception message"));
 
         CreateUnpacker().Unpack(archive, baseDirectory);
 
@@ -142,5 +140,5 @@ public class TarGzUnpackTests
     }
 
     private TarGzUnpacker CreateUnpacker() =>
-        new(logger, directoryWrapper, fileWrapper, filePermissionsWrapper);
+        new(logger, directoryWrapper, fileWrapper, operatingSystem);
 }
