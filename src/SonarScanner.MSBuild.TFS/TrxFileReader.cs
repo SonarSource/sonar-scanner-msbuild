@@ -150,26 +150,7 @@ public class TrxFileReader
 
             try
             {
-                var doc = new XmlDocument();
-                doc.Load(runtime.File.Open(trxPath));
-                var nsmgr = new XmlNamespaceManager(doc.NameTable);
-                nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
-
-                var attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
-                // The deployment root is used in the path for the attachments. It is read by Microsoft's implementation here:
-                // https://github.com/microsoft/testfx/blob/718e38b4558d39afde8bd4a9e6b3566336867c67/src/Platform/Microsoft.Testing.Extensions.TrxReport/TrxReportEngine.cs#L241-L250
-                var deploymentRoot = doc.SelectSingleNode("/x:TestRun/x:TestSettings/x:Deployment", nsmgr) is { } runDeploymentRootNode
-                                        && runDeploymentRootNode.Attributes["runDeploymentRoot"] is { Value: { } runDeploymentRootAttributeValue }
-                                            ? runDeploymentRootAttributeValue
-                                            : string.Empty;
-                foreach (XmlNode attachmentNode in attachmentNodes)
-                {
-                    if (attachmentNode.Attributes["href"]?.Value is { } hrefValue
-                        && TryFindCoverageFileFromUri(trxPath, hrefValue, deploymentRoot) is { } coverageFullPath)
-                    {
-                        attachmentsPerTrx[trxPath].Add(coverageFullPath);
-                    }
-                }
+                attachmentsPerTrx[trxPath] = TryFindCoverageFiles(trxPath).ToList();
             }
             catch (XmlException ex)
             {
@@ -179,6 +160,31 @@ public class TrxFileReader
         }
 
         return attachmentsPerTrx;
+    }
+
+    private IEnumerable<string> TryFindCoverageFiles(string trxPath)
+    {
+        var doc = new XmlDocument();
+        doc.Load(runtime.File.Open(trxPath));
+        var nsmgr = new XmlNamespaceManager(doc.NameTable);
+        nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
+
+        var attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
+        // The deployment root is used in the path for the attachments. It is read by Microsoft's implementation here:
+        // https://github.com/microsoft/testfx/blob/718e38b4558d39afde8bd4a9e6b3566336867c67/src/Platform/Microsoft.Testing.Extensions.TrxReport/TrxReportEngine.cs#L241-L250
+        var deploymentRoot = doc.SelectSingleNode("/x:TestRun/x:TestSettings/x:Deployment", nsmgr) is { } runDeploymentRootNode
+                                && runDeploymentRootNode.Attributes["runDeploymentRoot"] is { Value: { } runDeploymentRootAttributeValue }
+                                    ? runDeploymentRootAttributeValue
+                                    : string.Empty;
+
+        foreach (XmlNode attachmentNode in attachmentNodes)
+        {
+            if (attachmentNode.Attributes["href"]?.Value is { } hrefValue
+                && TryFindCoverageFileFromUri(trxPath, hrefValue, deploymentRoot) is { } coverageFullPath)
+            {
+                yield return coverageFullPath;
+            }
+        }
     }
 
     private string TryFindCoverageFileFromUri(string trx, string attachmentUri, string deploymentRoot)
