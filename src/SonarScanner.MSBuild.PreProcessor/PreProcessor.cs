@@ -19,6 +19,7 @@
  */
 
 using System.Net;
+using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 namespace SonarScanner.MSBuild.PreProcessor;
@@ -87,6 +88,7 @@ public class PreProcessor
             runtime.Logger.LogDebug(ex.StackTrace);
             return false;
         }
+        runtime.Logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.version", server.ServerVersion.ToString());
 
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
