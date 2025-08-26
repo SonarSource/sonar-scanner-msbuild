@@ -686,21 +686,21 @@ public class ArgumentProcessorTests
     [DataRow("True", true)]
     [DataRow("false", false)]
     [DataRow("False", false)]
-    public void PreArgProc_UseSonarScannerCLI_SetValid(string useSonarScannerCLI, bool result) =>
-        CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCLI}").UseSonarScannerCLI.Should().Be(result);
+    public void PreArgProc_UseSonarScannerCli_SetValid(string useSonarScannerCli, bool result) =>
+        CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCli}").UseSonarScannerCli.Should().Be(result);
 
     [TestMethod]
     [DataRow("gibberish")]
     [DataRow(" ")]
-    public void PreArgProc_UseSonarScannerCLI_SetInvalid(string useSonarScannerCLI)
+    public void PreArgProc_UseSonarScannerCli_SetInvalid(string useSonarScannerCli)
     {
-        var logger = CheckProcessingFails("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCLI}");
+        var logger = CheckProcessingFails("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCli}");
         logger.AssertErrorLogged("The argument 'sonar.scanner.useSonarScannerCLI' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
     }
 
     [TestMethod]
-    public void PreArgProc_UseSonarScannerCLI_NotSet() =>
-        CheckProcessingSucceeds("/k:key").UseSonarScannerCLI.Should().BeFalse();
+    public void PreArgProc_UseSonarScannerCli_NotSet() =>
+        CheckProcessingSucceeds("/k:key").UseSonarScannerCli.Should().BeFalse();
 
     [TestMethod]
     [DataRow("true", true)]

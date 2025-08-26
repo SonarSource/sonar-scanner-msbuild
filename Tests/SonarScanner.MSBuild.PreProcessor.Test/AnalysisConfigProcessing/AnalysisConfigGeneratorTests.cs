@@ -92,7 +92,7 @@ public class AnalysisConfigGeneratorTests
         actualConfig.ServerSettings.Should().NotBeNull();
         actualConfig.AnalyzersSettings.Should().HaveElementAt(0, analyzerSettings);
         actualConfig.ScanAllAnalysis.Should().BeTrue();
-        actualConfig.UseSonarScannerCLI.Should().BeFalse();
+        actualConfig.UseSonarScannerCli.Should().BeFalse();
 
         var serverProperty = actualConfig.ServerSettings.SingleOrDefault(x => string.Equals(x.Id, "server.key.1", StringComparison.Ordinal));
         serverProperty.Should().NotBeNull();
@@ -134,7 +134,7 @@ public class AnalysisConfigGeneratorTests
         actualConfig.SourcesDirectory.Should().Be(settings.SourcesDirectory);
         actualConfig.SonarScannerWorkingDirectory.Should().Be(settings.SonarScannerWorkingDirectory);
         actualConfig.ScanAllAnalysis.Should().BeFalse();
-        actualConfig.UseSonarScannerCLI.Should().BeTrue();
+        actualConfig.UseSonarScannerCli.Should().BeTrue();
         AssertExpectedLocalSetting(SonarProperties.Organization, "organization", actualConfig);
     }
 

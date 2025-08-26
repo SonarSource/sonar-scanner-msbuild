@@ -66,7 +66,7 @@ public class AnalysisConfig
     /// <summary>
     /// Use the SonarScanner CLI instead of the engine jar.
     /// </summary>
-    public bool UseSonarScannerCLI { get; set; }
+    public bool UseSonarScannerCli { get; set; }
 
     /// <summary>
     /// The option that enables or disables multi-language analysis.

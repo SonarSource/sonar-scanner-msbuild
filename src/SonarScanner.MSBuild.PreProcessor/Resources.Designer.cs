@@ -453,9 +453,9 @@ namespace SonarScanner.MSBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to The argument &apos;sonar.scanner.useSonarScannerCLI&apos; has an invalid value. Please ensure it is set to either &apos;true&apos; or &apos;false&apos;..
         /// </summary>
-        internal static string ERROR_InvalidUseSonarScannerCLI {
+        internal static string ERROR_InvalidUseSonarScannerCli {
             get {
-                return ResourceManager.GetString("ERROR_InvalidUseSonarScannerCLI", resourceCulture);
+                return ResourceManager.GetString("ERROR_InvalidUseSonarScannerCli", resourceCulture);
             }
         }
         
