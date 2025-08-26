@@ -64,6 +64,11 @@ public class AnalysisConfig
     public string EngineJarPath { get; set; }
 
     /// <summary>
+    /// Use the SonarScanner CLI instead of the engine jar.
+    /// </summary>
+    public bool UseSonarScannerCLI { get; set; }
+
+    /// <summary>
     /// The option that enables or disables multi-language analysis.
     /// </summary>
     public bool ScanAllAnalysis { get; set; }
