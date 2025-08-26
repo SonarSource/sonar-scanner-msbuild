@@ -158,7 +158,7 @@ public class ScannerEngineInputGenerator
         foreach (var project in validProjects)
         {
             legacyWriter.WriteSettingsForProject(project);
-            engineInput.WriteSettingsForProject(project);
+            engineInput.AddProject(project);
             if (project.Project.AnalysisSettings is not null && project.Project.AnalysisSettings.Any())
             {
                 foreach (var setting in project.Project.AnalysisSettings.Where(x =>

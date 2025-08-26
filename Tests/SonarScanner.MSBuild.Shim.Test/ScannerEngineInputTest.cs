@@ -32,8 +32,8 @@ public class ScannerEngineInputTest
         FluentActions.Invoking(() => new ScannerEngineInput(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("config");
 
     [TestMethod]
-    public void WriteSettingsForProject_ThrowsOnNullArgument() =>
-        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.WriteSettingsForProject(null)).Should().Throw<ArgumentNullException>().WithParameterName("project");
+    public void AddProject_ThrowsOnNullArgument() =>
+        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddProject(null)).Should().Throw<ArgumentNullException>().WithParameterName("project");
 
     [TestMethod]
     public void AddGlobalSettings_ThrowsOnNullArgument() =>
@@ -218,7 +218,7 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void JsonBuilderToString()
+    public void AddProject()
     {
         var sonarOutputDir = @"C:\my_folder";
         var productBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonbuilderTest_ProductBaseDir");
@@ -262,9 +262,9 @@ public class ScannerEngineInputTest
             SourcesDirectory = @"d:\source_files\"
         };
         var sut = new ScannerEngineInput(config);
-        sut.WriteSettingsForProject(productCS);
-        sut.WriteSettingsForProject(productVB);
-        sut.WriteSettingsForProject(test);
+        sut.AddProject(productCS);
+        sut.AddProject(productVB);
+        sut.AddProject(test);
         var actual = sut.ToString();
 
         var expected = $$"""
@@ -434,7 +434,7 @@ public class ScannerEngineInputTest
 
     // Tests that .sonar.working.directory is explicitly set per module
     [TestMethod]
-    public void WorkdirPerModuleExplicitlySet()
+    public void AddProject_WorkdirPerModuleExplicitlySet()
     {
         var projectBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonbuilderTest_AnalysisSettingsWritten");
         var productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
@@ -449,7 +449,7 @@ public class ScannerEngineInputTest
             SonarOutputDir = Path.Combine(TestUtils.DriveRoot(), "my_folder")
         };
         var sut = new ScannerEngineInput(config);
-        sut.WriteSettingsForProject(product);
+        sut.AddProject(product);
         sut.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
 
         var workDirKey = projectKey + "." + SonarProperties.WorkingDirectory;

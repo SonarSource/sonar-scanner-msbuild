@@ -48,7 +48,7 @@ public class ScannerEngineInput
     public override string ToString() =>
         JsonConvert.SerializeObject(root, Formatting.Indented);
 
-    public void WriteSettingsForProject(ProjectData project)
+    public void AddProject(ProjectData project)
     {
         _ = project ?? throw new ArgumentNullException(nameof(project));
         var guid = project.Guid;
