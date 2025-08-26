@@ -29,6 +29,7 @@ namespace SonarScanner.MSBuild.Common;
 
 public enum LogLevel
 {
+    None,
     Info,
     Warning,
     Error
@@ -98,16 +99,13 @@ public class ProcessRunnerArguments
         TimeoutInMilliseconds = Timeout.Infinite;
         OutputToLogMessage = (stdOut, outputLine) =>
         {
-            if (stdOut)
-            {
-                // It's important to log this as an important message because
-                // this the log redirection pipeline of the child process
-                return new(LogLevel.Info, outputLine);
-            }
-            else
-            {
-                return outputLine.StartsWith("WARN") ? new(LogLevel.Warning, outputLine) : new(LogLevel.Error, outputLine);
-            }
+            var logLevel = stdOut
+                ? LogLevel.Info
+                : LogLevel.Error;
+            logLevel = logLevel == LogLevel.Error && outputLine.StartsWith("WARN")
+                ? LogLevel.Warning
+                : LogLevel.Error;
+            return new(logLevel, outputLine);
         };
     }
 
