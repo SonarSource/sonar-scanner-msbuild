@@ -23,25 +23,18 @@ namespace SonarScanner.MSBuild.Shim;
 public class TfsProcessorWrapper
 {
     private readonly ILogger logger;
-    private readonly OperatingSystemProvider operatingSystemProvider;
+    private readonly OperatingSystemProvider operatingSystem;
 
     public TfsProcessorWrapper(IRuntime runtime)
     {
         logger = runtime.Logger;
-        operatingSystemProvider = runtime.OperatingSystem;
+        operatingSystem = runtime.OperatingSystem;
     }
 
     public virtual bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
     {
-        if (config is null)
-        {
-            throw new ArgumentNullException(nameof(config));
-        }
-
-        if (userCmdLineArguments is null)
-        {
-            throw new ArgumentNullException(nameof(userCmdLineArguments));
-        }
+        _ = config ?? throw new ArgumentNullException(nameof(config));
+        _ = userCmdLineArguments ?? throw new ArgumentNullException(nameof(userCmdLineArguments));
 
         return InternalExecute(config, userCmdLineArguments, fullPropertiesFilePath);
     }
@@ -60,7 +53,7 @@ public class TfsProcessorWrapper
         Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
         Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-        var converterArgs = new ProcessRunnerArguments(exeFileName, operatingSystemProvider.OperatingSystem() != PlatformOS.Windows)
+        var converterArgs = new ProcessRunnerArguments(exeFileName, operatingSystem.OperatingSystem() != PlatformOS.Windows)
         {
             CmdLineArgs = userCmdLineArguments,
             WorkingDirectory = config.SonarScannerWorkingDirectory,
