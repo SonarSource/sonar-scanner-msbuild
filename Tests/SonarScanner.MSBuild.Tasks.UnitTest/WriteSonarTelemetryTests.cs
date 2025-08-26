@@ -43,10 +43,11 @@ public class WriteSonarTelemetryTests
                 TelemetryTaskItem("key3", "value3"),
                 TelemetryTaskItem("key3", "duplicate"),
                 TelemetryTaskItem("key4", $"""
-                    Special value with
-                    NewLines, <Html Attribute="Value"> tags </Html>
-                    Special characters {'\t'} {'\b'} {'\f'} ' " \ {'\u0007'} {'\u001F'} {'\u0020'}
-                    """),
+                        Special value with
+                        NewLines, <Html Attribute="Value"> tags </Html>
+                        Special characters {'\t'} {'\b'} {'\f'} ' " \ {'\u0007'} {'\u001F'} {'\u0020'}
+                        """
+                    .ToWindowsLineEndings()),
             ]
         };
         sut.Execute();

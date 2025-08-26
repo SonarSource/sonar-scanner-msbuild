@@ -177,13 +177,13 @@ public partial class ScannerEngineInputGeneratorTest
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Solution\Net\Name");
 
         logger.Warnings.Should().BeEquivalentTo(@"Directory 'D:\SomewhereElse' is not located under the base directory 'C:\Solution\Net\Name' and will not be analyzed.");
-        logger.DebugMessages.Should().BeEquivalentTo(
-            """
-            Using longest common projects path as a base directory: 'C:\Solution\Net\Name'. Identified project paths:
-            C:\Solution\Net\Name\Lib
-            C:\Solution\Net\Name\Src
-            D:\SomewhereElse
-            """);
+        logger.DebugMessages.Should().BeEquivalentTo("""
+                Using longest common projects path as a base directory: 'C:\Solution\Net\Name'. Identified project paths:
+                C:\Solution\Net\Name\Lib
+                C:\Solution\Net\Name\Src
+                D:\SomewhereElse
+                """
+            .ToUnixLineEndings());
         logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 

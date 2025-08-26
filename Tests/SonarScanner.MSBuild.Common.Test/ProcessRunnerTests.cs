@@ -64,12 +64,7 @@ public class ProcessRunnerTests
         var expected = string.Empty;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            expected = """
-                'xxx' is not recognized as an internal or external command,
-                operable program or batch file.
-                Testing 1,2,3...
-
-                """;
+            expected = $"'xxx' is not recognized as an internal or external command,{Environment.NewLine}operable program or batch file.{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
@@ -121,12 +116,7 @@ public class ProcessRunnerTests
         var expected = string.Empty;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            expected = """
-                'xxx' is not recognized as an internal or external command,
-                operable program or batch file.
-                Testing 1,2,3...
-
-                """;
+            expected = $"'xxx' is not recognized as an internal or external command,{Environment.NewLine}operable program or batch file.{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
@@ -325,16 +315,16 @@ public class ProcessRunnerTests
             {ScriptInit()}
             {EchoCommand("%*")}
             {EchoCommand("%1")}
-            
+
 
             {EchoCommand("%2")}
-            
+
 
             {EchoCommand("%3")}
-            
+
 
             {EchoCommand("%4")}
-            
+
 
             """;
 
