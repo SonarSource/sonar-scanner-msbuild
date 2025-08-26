@@ -39,10 +39,10 @@ public class SonarScannerWrapper
     private readonly ILogger logger;
     private readonly OperatingSystemProvider operatingSystemProvider;
 
-    public SonarScannerWrapper(ILogger logger, OperatingSystemProvider operatingSystemProvider)
+    public SonarScannerWrapper(IRuntime runtime)
     {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+        logger = runtime.Logger;
+        operatingSystemProvider = runtime.OperatingSystem;
     }
 
     public virtual bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string propertiesFilePath)
