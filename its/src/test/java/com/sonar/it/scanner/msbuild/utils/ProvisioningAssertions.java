@@ -36,13 +36,20 @@ public final class ProvisioningAssertions {
       "Downloading from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
       "Response received from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
       "JreResolver: Cache miss. Attempting to download JRE.",
-      "Starting the file download.");
+      "EngineResolver: Resolving Scanner Engine path.",
+      "Downloading from " + sqApiUrl + "analysis/engine...",
+      "Response received from " + sqApiUrl + "analysis/engine...",
+      "EngineResolver: Cache miss. Attempting to download Scanner Engine.",
+      "Downloading Scanner Engine from analysis/engine"
+      );
     TestUtils.matchesSingleLine(beginLogs, "Downloading Java JRE from " + jreUrlPattern);
     TestUtils.matchesSingleLine(beginLogs, "The checksum of the downloaded file is '.+' and the expected checksum is '.+'");
     TestUtils.matchesSingleLine(beginLogs, "Starting extracting the Java runtime environment from archive '" + cacheFolderPattern + "' to folder '" + cacheFolderPattern + "'");
     TestUtils.matchesSingleLine(beginLogs, "Moving extracted Java runtime environment from '" + cacheFolderPattern + "' to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "The Java runtime environment was successfully added to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + cacheFolderPattern + "_extracted.+java(?:\\.exe)?'");
+    TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern + "scanner-developer.+\\.jar'");
+
     var endLogs = result.end().getLogs();
     TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + cacheFolderPattern + "_extracted.+");
     TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: " + oldJavaHome + ", new value: " + cacheFolderPattern + "_extracted.+");
@@ -50,12 +57,17 @@ public final class ProvisioningAssertions {
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {
     var javaPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+_extracted.+java(?:\\.exe)?";
+    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+scanner-developer.+\\.jar";
     assertThat(secondBegin.isSuccess()).isTrue();
     TestUtils.matchesSingleLine(secondBegin.getLogs(),
       "JreResolver: Cache hit '" + javaPattern + "'");
+    TestUtils.matchesSingleLine(secondBegin.getLogs(),
+      "EngineResolver: Cache hit '" + enginePattern + "'");
     assertThat(secondBegin.getLogs()).doesNotContain(
       "JreResolver: Cache miss",
       "JreResolver: Cache failure",
+      "EngineResolver: Cache miss",
+      "EngineResolver: Cache failure",
       "Starting the file download.");
   }
 }

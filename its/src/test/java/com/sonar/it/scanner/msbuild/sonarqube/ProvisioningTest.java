@@ -24,8 +24,13 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -39,8 +44,8 @@ class ProvisioningTest {
   @Test
   // provisioning does not exist before 10.6
   @ServerMinVersion("10.6")
-  void cacheMiss_DownloadsJre() {
-    try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
+  void cacheMiss_DownloadsCache() {
+    try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
       context.build.useDotNet();
       // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
@@ -57,24 +62,53 @@ class ProvisioningTest {
   @Test
   // provisioning does not exist before 10.6
   @ServerMinVersion("10.6")
-  void cacheHit_ReusesJre() {
-    // provisioning does not exist before 10.6
-    try (var userHome = new TempDirectory("junit-JRE-hit-")) {  // context.projectDir has a test name in it and that leads to too long path
+  void cacheHit_ReusesCachedFiles() {
+    try (var userHome = new TempDirectory("junit-cache-hit-")) {  // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
-      // first analysis, cache misses and downloads the JRE
+      // first analysis, cache misses and downloads the JRE & scanner-engine
       var firstBegin = context.begin.execute(ORCHESTRATOR);
       assertThat(firstBegin.isSuccess()).isTrue();
       assertThat(firstBegin.getLogs()).contains(
-        "JreResolver: Cache miss",
-        "Starting the file download.");
+        "JreResolver: Resolving JRE path.",
+        "JreResolver: Cache miss. Attempting to download JRE",
+        "JreResolver: Download success. JRE can be found at '",
+        "EngineResolver: Resolving Scanner Engine path.",
+        "EngineResolver: Cache miss. Attempting to download Scanner Engine",
+        "EngineResolver: Download success. Scanner Engine can be found at '");
+
       assertThat(firstBegin.getLogs()).doesNotContain(
         "JreResolver: Cache hit",
-        "JreResolver: Cache failure");
+        "JreResolver: Cache failure",
+        "EngineResolver: Cache hit",
+        "EngineResolver: Cache failure");
 
-      // second analysis, cache hits and does not download the JRE
+      // second analysis, cache hits and does not download the JRE or scanner-engine
       var secondBegin = context.begin.execute(ORCHESTRATOR);
 
       ProvisioningAssertions.cacheHitAssertions(secondBegin, userHome.toString());
+    }
+  }
+
+  @Test
+  // provisioning does not exist before 10.6
+  @ServerMinVersion("10.6")
+  void scannerEngineJarPathSet_DoesNotDownloadFromServer() throws IOException {
+    try (var userHome = new TempDirectory("junit-Engine-JarPathSet-")) {  // context.projectDir has a test name in it and that leads to too long path
+      var context = createContext(userHome);
+      var engineJarFolder = Path.of(ORCHESTRATOR.getServer().getHome().getAbsolutePath(), "lib", "scanner").toString(); // this must be a file that exists.
+      try (Stream<Path> paths = Files.list(Paths.get(engineJarFolder))) {
+        var scannerJarPath = paths
+          .map(Path::toString)
+          .findFirst()
+          .orElseThrow();
+
+        var result = context.begin
+          .setProperty("sonar.scanner.engineJarPath", scannerJarPath)
+          .execute(ORCHESTRATOR);
+
+        TestUtils.matchesSingleLine(result.getLogs(), "EngineResolver: Resolving Scanner Engine path.");
+        TestUtils.matchesSingleLine(result.getLogs(), String.format("Using local sonar engine provided by sonar.scanner.engineJarPath=%s", scannerJarPath.replace("\\", "\\\\")));
+      }
     }
   }
 
