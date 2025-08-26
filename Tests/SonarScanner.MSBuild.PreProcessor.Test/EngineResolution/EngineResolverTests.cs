@@ -37,7 +37,7 @@ public class EngineResolverTests
     private readonly EngineResolver resolver;
     private readonly TestRuntime runtime = new();
     private readonly ISonarWebServer server = Substitute.For<ISonarWebServer>();
-    private readonly ProcessedArgs args  = Substitute.For<ProcessedArgs>();
+    private readonly ProcessedArgs args = Substitute.For<ProcessedArgs>();
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
 
     private readonly EngineMetadata metadata = new(
@@ -66,6 +66,20 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "Using local sonar engine provided by sonar.scanner.engineJarPath=local/path/to/engine.jar");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
+                Value = "Disabled"
+            },
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.download",
+                Value = "UserSupplied"
+            }
+            ]);
     }
 
     [TestMethod]
@@ -82,6 +96,15 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
+                Value = "Unsupported"
+            }
+            ]);
     }
 
     [TestMethod]
@@ -97,6 +120,15 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
+                Value = "Enabled"
+            }
+            ]);
     }
 
     [TestMethod]
@@ -112,6 +144,20 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             $"EngineResolver: Cache hit '{CachedEnginePath}'.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
+                Value = "Enabled"
+            },
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.download",
+                Value = "CacheHit"
+            }
+            ]);
     }
 
     [TestMethod]
@@ -128,6 +174,25 @@ public class EngineResolverTests
             true,
             "EngineResolver: Resolving Scanner Engine path.",
             $"EngineResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
+                Value = "Enabled"
+            },
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.download",
+                Value = "Failed"
+            },
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.download",
+                Value = "Failed"
+            },
+            ]);
     }
 
     [TestMethod]
@@ -144,7 +209,7 @@ public class EngineResolverTests
         runtime.File.Create(tempFile).Returns(new MemoryStream());
         runtime.File.Open(tempFile).Returns(computeHashStream);
 
-        var result =  await resolver.ResolvePath(args);
+        var result = await resolver.ResolvePath(args);
 
         result.Should().Be(CachedEnginePath);
         await server.Received(1).DownloadEngineMetadataAsync();
@@ -155,6 +220,20 @@ public class EngineResolverTests
             "Starting the file download.",
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
+                Value = "Enabled"
+            },
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.download",
+                Value = "Downloaded"
+            }
+            ]);
     }
 
     [TestMethod]
@@ -175,6 +254,25 @@ public class EngineResolverTests
             $"Deleting file '{ShaPath}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
+                Value = "Enabled"
+            },
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.download",
+                Value = "Failed"
+            },
+            new
+            {
+                Key = "dotnetenterprise.s4net.scannerEngine.download",
+                Value = "Failed"
+            },
+            ]);
     }
 
     private void AssertDebugMessages(params string[] messages) =>

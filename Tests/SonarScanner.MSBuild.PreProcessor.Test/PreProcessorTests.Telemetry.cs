@@ -38,7 +38,8 @@ public partial class PreProcessorTests
                 new("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI"),
                 new("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI"),
                 new("dotnetenterprise.s4net.serverInfo.product", "SQ_Server"),
-                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
+                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url"),
+                new("dotnetenterprise.s4net.serverInfo.version", "5.6")
             });
     }
 
@@ -59,7 +60,8 @@ public partial class PreProcessorTests
                 new("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI"),
                 new("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_ANALYSIS_XML"),
                 new("dotnetenterprise.s4net.serverInfo.product", "SQ_Server"),
-                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
+                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url"),
+                new("dotnetenterprise.s4net.serverInfo.version", "5.6")
             });
     }
 
@@ -75,7 +77,8 @@ public partial class PreProcessorTests
                 new("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI"),
                 new("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_SCANNER_PARAMS"),
                 new("dotnetenterprise.s4net.serverInfo.product", "SQ_Server"),
-                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
+                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url"),
+                new("dotnetenterprise.s4net.serverInfo.version", "5.6")
             });
     }
 
@@ -95,7 +98,8 @@ public partial class PreProcessorTests
                 new("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI"),
                 new("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI"),
                 new("dotnetenterprise.s4net.serverInfo.product", "SQ_Server"),
-                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
+                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url"),
+                new("dotnetenterprise.s4net.serverInfo.version", "5.6")
             });
     }
 
