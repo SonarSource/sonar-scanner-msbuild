@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace SonarScanner.MSBuild.Common;
 
+[ExcludeFromCodeCoverage]   // container class without any logic
 public class Runtime : IRuntime
 {
     public OperatingSystemProvider OperatingSystem { get; }
