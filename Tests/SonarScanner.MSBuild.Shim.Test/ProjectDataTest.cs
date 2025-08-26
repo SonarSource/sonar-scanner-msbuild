@@ -126,8 +126,8 @@ public class ProjectDataTest
                 Platform = "x86",
                 TargetFramework = "netstandard2.0",
                 AnalysisSettings = [
-                    new(ScannerEngineInputGenerator.ReportFilePathsCSharpPropertyKey, "validRoslyn"),
-                    new(ScannerEngineInputGenerator.ProjectOutPathsCsharpPropertyKey, "validOutPath")
+                    new(ScannerEngineInputGenerator.ReportFilePathsKeyCS, "validRoslyn"),
+                    new(ScannerEngineInputGenerator.ProjectOutPathsKeyCS, "validOutPath")
                 ],
                 FullPath = fullPath,
             }
