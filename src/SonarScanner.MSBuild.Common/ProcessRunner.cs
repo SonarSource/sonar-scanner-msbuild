@@ -159,11 +159,10 @@ public sealed class ProcessRunner : IProcessRunner
             {
                 Action<string, object[]> logMethod = logMessage.Level switch
                 {
-                    LogLevel.None => static (_, _) => { },
                     LogLevel.Info => logger.LogInfo,
                     LogLevel.Warning => logger.LogWarning,
                     LogLevel.Error => logger.LogError,
-                    _ => throw new InvalidOperationException(),
+                    _ => static (_, _) => { },
                 };
                 logMethod(redactedMsg, []);
             }

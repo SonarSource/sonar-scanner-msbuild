@@ -134,6 +134,7 @@ public class ProcessRunnerTests
     [DataRow(LogLevel.Info)]
     [DataRow(LogLevel.Warning)]
     [DataRow(LogLevel.Error)]
+    [DataRow((LogLevel)int.MinValue)]
     public void ProcRunner_OutputToLogMessage_LogLevel_StdOut(LogLevel logLevel)
     {
         var context = new ProcessRunnerContext(TestContext, EchoCommand("Hello World"))
@@ -176,6 +177,7 @@ public class ProcessRunnerTests
     [DataRow(LogLevel.Info)]
     [DataRow(LogLevel.Warning)]
     [DataRow(LogLevel.Error)]
+    [DataRow((LogLevel)int.MinValue)]
     public void ProcRunner_OutputToLogMessage_LogLevel_ErrorOut(LogLevel logLevel)
     {
         var context = new ProcessRunnerContext(TestContext, $"""{EchoCommand("Hello World")}>&2""")
