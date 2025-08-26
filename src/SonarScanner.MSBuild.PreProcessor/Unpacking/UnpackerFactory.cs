@@ -22,9 +22,20 @@ namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 public class UnpackerFactory
 {
-    public static UnpackerFactory Instance { get; } = new UnpackerFactory();
+    private readonly ILogger logger;
+    private readonly IDirectoryWrapper directoryWrapper;
+    private readonly IFileWrapper fileWrapper;
+    private readonly OperatingSystemProvider operatingSystem;
 
-    public virtual IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, OperatingSystemProvider operatingSystem, string archivePath) =>
+    public UnpackerFactory(ILogger logger, OperatingSystemProvider operatingSystem, IFileWrapper fileWrapper = null, IDirectoryWrapper directoryWrapper = null)
+    {
+        this.logger = logger;
+        this.operatingSystem = operatingSystem;
+        this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
+        this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
+    }
+
+    public virtual IUnpacker Create(string archivePath) =>
         archivePath switch
         {
             _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
