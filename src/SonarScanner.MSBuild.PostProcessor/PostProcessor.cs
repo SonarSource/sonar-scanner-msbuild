@@ -112,7 +112,7 @@ public class PostProcessor : IPostProcessor
     {
         scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, logger);
 
-        var result = scannerEngineInputGenerator.GenerateFile();
+        var result = scannerEngineInputGenerator.GenerateResult();
 
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {

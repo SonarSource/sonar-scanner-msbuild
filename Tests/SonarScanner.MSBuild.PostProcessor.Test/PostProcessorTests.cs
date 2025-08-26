@@ -401,7 +401,7 @@ public class PostProcessorTests
             [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(true, logger).Single()],
             withProject ? scannerEngineInput : null,
             withProject ? Path.Combine(testDir, "sonar-project.properties") : null) { RanToCompletion = true };
-        scannerEngineInputGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
+        scannerEngineInputGenerator.GenerateResult().Returns(projectInfoAnalysisResult);
         sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
         return success;
