@@ -130,6 +130,90 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
+    [DataRow(LogLevel.None)]
+    [DataRow(LogLevel.Info)]
+    [DataRow(LogLevel.Warning)]
+    [DataRow(LogLevel.Error)]
+    public void ProcRunner_OutputToLogMessage_LogLevel_StdOut(LogLevel logLevel)
+    {
+        var context = new ProcessRunnerContext(TestContext, EchoCommand("Hello World"))
+        {
+            ProcessArgs = { OutputToLogMessage = (_, message) => new(logLevel, message) }
+        };
+        context.ExecuteAndAssert();
+        context.ResultStandardOutputShouldBe("Hello World" + Environment.NewLine);
+        context.ResultErrorOutputShouldBe(string.Empty);
+        context.Logger.DebugMessages.Should().SatisfyRespectively(
+            x => x.Should().StartWith("Executing file "),
+            x => x.Should().Be("Process returned exit code 0"));
+        switch (logLevel)
+        {
+            case LogLevel.None:
+                context.Logger.InfoMessages.Should().BeEmpty();
+                context.Logger.AssertNoWarningsLogged();
+                context.Logger.AssertNoErrorsLogged();
+                break;
+            case LogLevel.Info:
+                context.Logger.AssertInfoLogged("Hello World");
+                context.Logger.AssertNoWarningsLogged();
+                context.Logger.AssertNoErrorsLogged();
+                break;
+            case LogLevel.Warning:
+                context.Logger.AssertWarningLogged("Hello World");
+                context.Logger.AssertNoErrorsLogged();
+                context.Logger.InfoMessages.Should().BeEmpty();
+                break;
+            case LogLevel.Error:
+                context.Logger.AssertErrorLogged("Hello World");
+                context.Logger.AssertNoWarningsLogged();
+                context.Logger.InfoMessages.Should().BeEmpty();
+                break;
+        }
+    }
+
+    [TestMethod]
+    [DataRow(LogLevel.None)]
+    [DataRow(LogLevel.Info)]
+    [DataRow(LogLevel.Warning)]
+    [DataRow(LogLevel.Error)]
+    public void ProcRunner_OutputToLogMessage_LogLevel_ErrorOut(LogLevel logLevel)
+    {
+        var context = new ProcessRunnerContext(TestContext, $"""{EchoCommand("Hello World")}>&2""")
+        {
+            ProcessArgs = { OutputToLogMessage = (_, message) => new(logLevel, message) }
+        };
+        context.ExecuteAndAssert();
+        context.ResultErrorOutputShouldBe("Hello World" + Environment.NewLine);
+        context.ResultStandardOutputShouldBe(string.Empty);
+        context.Logger.DebugMessages.Should().SatisfyRespectively(
+            x => x.Should().StartWith("Executing file "),
+            x => x.Should().Be("Process returned exit code 0"));
+        switch (logLevel)
+        {
+            case LogLevel.None:
+                context.Logger.InfoMessages.Should().BeEmpty();
+                context.Logger.AssertNoWarningsLogged();
+                context.Logger.AssertNoErrorsLogged();
+                break;
+            case LogLevel.Info:
+                context.Logger.AssertInfoLogged("Hello World");
+                context.Logger.AssertNoWarningsLogged();
+                context.Logger.AssertNoErrorsLogged();
+                break;
+            case LogLevel.Warning:
+                context.Logger.AssertWarningLogged("Hello World");
+                context.Logger.AssertNoErrorsLogged();
+                context.Logger.InfoMessages.Should().BeEmpty();
+                break;
+            case LogLevel.Error:
+                context.Logger.AssertErrorLogged("Hello World");
+                context.Logger.AssertNoWarningsLogged();
+                context.Logger.InfoMessages.Should().BeEmpty();
+                break;
+        }
+    }
+
+    [TestMethod]
     public void ProcRunner_FailsOnTimeout()
     {
         var content = $"""
@@ -256,7 +340,7 @@ public class ProcessRunnerTests
 
         var context = new ProcessRunnerContext(TestContext)
         {
-            ProcessArgs =  new ProcessRunnerArguments(LogArgsPath(), false)
+            ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
             {
                 CmdLineArgs = expected,
                 WorkingDirectory = testDir
