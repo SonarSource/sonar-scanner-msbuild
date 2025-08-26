@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild;
 
@@ -30,28 +28,26 @@ public static class Program
     private const int SuccessCode = 0;
 
     private static async Task<int> Main(string[] args)
-        => await Execute(args);
-
-    private static async Task<int> Execute(string[] args)
     {
         var logger = new ConsoleLogger(includeTimestamp: false);
-        return await Execute(args, logger);
+        var runtime = new Runtime(logger, FileWrapper.Instance, DirectoryWrapper.Instance, new OperatingSystemProvider(FileWrapper.Instance, logger));
+        return await Execute(args, runtime);
     }
 
-    public static async Task<int> Execute(string[] args, ILogger logger)
+    public static async Task<int> Execute(string[] args, IRuntime runtime)
     {
-        Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
+        Utilities.LogAssemblyVersion(runtime.Logger, Resources.AssemblyDescription);
 #if NETFRAMEWORK
-        logger.LogInfo("Using the .NET Framework version of the Scanner for .NET");
+        runtime.Logger.LogInfo("Using the .NET Framework version of the Scanner for .NET");
 #else
-        logger.LogInfo("Using the .NET Core version of the Scanner for .NET");
+        runtime.Logger.LogInfo("Using the .NET Core version of the Scanner for .NET");
 #endif
 
-        logger.SuspendOutput();
+        runtime.Logger.SuspendOutput();
 
         if (ArgumentProcessor.IsHelp(args))
         {
-            logger.LogInfo(@"
+            runtime.Logger.LogInfo(@"
 Usage on SonarQube:
 
   {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.token=token] [/d:sonar.{{property_name}}=value]
@@ -76,22 +72,22 @@ Useful links:
   - Generate a token for analysis on SonarQube: https://docs.sonarqube.org/latest/user-guide/user-token/
   - Generate a token for analysis on SonarCloud: https://docs.sonarcloud.io/advanced-setup/user-accounts/",
                 AppDomain.CurrentDomain.FriendlyName);
-            logger.ResumeOutput();
+            runtime.Logger.ResumeOutput();
             return SuccessCode;
         }
 
         try
         {
-            if (!ArgumentProcessor.TryProcessArgs(args, logger, out var settings))
+            if (!ArgumentProcessor.TryProcessArgs(args, runtime.Logger, out var settings))
             {
-                logger.ResumeOutput();
+                runtime.Logger.ResumeOutput();
                 // The argument processor will have logged errors
                 Environment.ExitCode = ErrorCode;
                 return ErrorCode;
             }
 
-            var processorFactory = new DefaultProcessorFactory(logger);
-            var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
+            var processorFactory = new DefaultProcessorFactory(runtime.Logger);
+            var bootstrapper = new BootstrapperClass(processorFactory, settings, runtime.Logger);
             var exitCode = await bootstrapper.Execute();
             Environment.ExitCode = exitCode;
             return exitCode;
@@ -99,7 +95,7 @@ Useful links:
         finally
         {
 #if DEBUG
-            DEBUG_DumpLoadedAssemblies(logger);
+            DEBUG_DumpLoadedAssemblies(runtime.Logger);
 #endif
         }
     }

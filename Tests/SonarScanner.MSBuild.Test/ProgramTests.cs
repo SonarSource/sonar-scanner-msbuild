@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Test;
 
 [TestClass]
@@ -31,9 +26,10 @@ public class ProgramTests
     [TestMethod]
     public async Task Execute_WhenIsHelp_ReturnsTrue()
     {
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
+        var logger = runtime.Logger;
 
-        var result = await Program.Execute(["/h", "/blah", "/xxx"], logger);
+        var result = await Program.Execute(["/h", "/blah", "/xxx"], runtime);
 
         result.Should().Be(0);
         logger.Warnings.Should().BeEmpty();
@@ -51,11 +47,10 @@ public class ProgramTests
     [TestMethod]
     public void Execute_WhenInvalidDuplicateBeginArgument_ReturnsFalse()
     {
-        var logger = new TestLogger();
-        var result = Program.Execute(["begin", "begin"], logger).Result;
+        var runtime = new TestRuntime();
+        var result = Program.Execute(["begin", "begin"], runtime).Result;
 
-        // Assert
         result.Should().Be(1);
-        logger.Errors.Should().ContainSingle();
+        runtime.Logger.Errors.Should().ContainSingle();
     }
 }
