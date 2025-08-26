@@ -59,7 +59,7 @@ public static class AnalysisConfigGenerator
             SonarScannerWorkingDirectory = buildSettings.SonarScannerWorkingDirectory,
             SourcesDirectory = buildSettings.SourcesDirectory,
             JavaExePath = string.IsNullOrWhiteSpace(localSettings.JavaExePath) ? resolvedJavaExePath : localSettings.JavaExePath, // the user-specified JRE overrides the resolved value
-            EngineJarPath = string.IsNullOrWhiteSpace(localSettings.EngineJarPath) ? resolvedEngineJarPath : localSettings.EngineJarPath, // the user-specified JRE overrides the resolved value
+            EngineJarPath = string.IsNullOrWhiteSpace(localSettings.EngineJarPath) ? resolvedEngineJarPath : localSettings.EngineJarPath, // the user-specified engine.jar overrides the resolved value
             ScanAllAnalysis = localSettings.ScanAllAnalysis,
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
                                                  || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
