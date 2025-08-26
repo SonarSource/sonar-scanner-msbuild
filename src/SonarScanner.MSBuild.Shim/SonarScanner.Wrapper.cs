@@ -37,42 +37,32 @@ public class SonarScannerWrapper
     private const string SonarScannerVersion = "5.0.2.4997";
 
     private readonly ILogger logger;
-    private readonly OperatingSystemProvider operatingSystemProvider;
+    private readonly OperatingSystemProvider operatingSystem;
 
-    public SonarScannerWrapper(ILogger logger, OperatingSystemProvider operatingSystemProvider)
+    public SonarScannerWrapper(IRuntime runtime)
     {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+        logger = runtime.Logger;
+        operatingSystem = runtime.OperatingSystem;
     }
 
     public virtual bool Execute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string propertiesFilePath)
     {
-        if (config is null)
-        {
-            throw new ArgumentNullException(nameof(config));
-        }
-        if (userCmdLineArguments is null)
-        {
-            throw new ArgumentNullException(nameof(userCmdLineArguments));
-        }
+        _ = config ?? throw new ArgumentNullException(nameof(config));
+        _ = userCmdLineArguments ?? throw new ArgumentNullException(nameof(userCmdLineArguments));
 
         return InternalExecute(config, userCmdLineArguments, propertiesFilePath);
     }
 
-    public virtual /* for test purposes */ bool ExecuteJavaRunner(AnalysisConfig config,
-                                                                  IAnalysisPropertyProvider userCmdLineArguments,
-                                                                  string exeFileName,
-                                                                  string propertiesFileName,
-                                                                  IProcessRunner runner)
+    public virtual bool ExecuteJavaRunner(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string exeFileName, string propertiesFileName, IProcessRunner runner)
     {
         Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
         Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
-        IgnoreSonarScannerHome(logger);
+        IgnoreSonarScannerHome();
 
         var stringArgs = userCmdLineArguments.GetAllProperties().Select(x => x.AsSonarScannerArg()).ToArray();
-        var allCmdLineArgs = AllCmdLineArgs(propertiesFileName, stringArgs, config, logger);
-        var envVarsDictionary = AdditionalEnvVariables(config, userCmdLineArguments, logger, operatingSystemProvider);
+        var allCmdLineArgs = AllCmdLineArgs(propertiesFileName, stringArgs, config);
+        var envVarsDictionary = AdditionalEnvVariables(config, userCmdLineArguments);
         Debug.Assert(envVarsDictionary is not null, "Unable to retrieve additional environment variables");
 
         logger.LogInfo(Resources.MSG_SonarScannerCalling);
@@ -80,7 +70,7 @@ public class SonarScannerWrapper
         Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
         Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-        var scannerArgs = new ProcessRunnerArguments(exeFileName, operatingSystemProvider.OperatingSystem() == PlatformOS.Windows)
+        var scannerArgs = new ProcessRunnerArguments(exeFileName, operatingSystem.OperatingSystem() == PlatformOS.Windows)
         {
             CmdLineArgs = allCmdLineArgs,
             WorkingDirectory = config.SonarScannerWorkingDirectory,
@@ -101,10 +91,10 @@ public class SonarScannerWrapper
         return result.Succeeded;
     }
 
-    internal /* for testing */ string FindScannerExe()
+    internal string FindScannerExe()
     {
         var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-        var fileExtension = operatingSystemProvider.OperatingSystem() == PlatformOS.Windows ? ".bat" : string.Empty;
+        var fileExtension = operatingSystem.OperatingSystem() == PlatformOS.Windows ? ".bat" : string.Empty;
         return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
     }
 
@@ -122,7 +112,7 @@ public class SonarScannerWrapper
         return ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(logger));
     }
 
-    private static void IgnoreSonarScannerHome(ILogger logger)
+    private void IgnoreSonarScannerHome()
     {
         if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerHomeVariableName)))
         {
@@ -134,11 +124,7 @@ public class SonarScannerWrapper
     /// <summary>
     /// Returns any additional environment variables that need to be passed to the sonar-scanner.
     /// </summary>
-    private static IDictionary<string, string> AdditionalEnvVariables(
-        AnalysisConfig config,
-        IAnalysisPropertyProvider userCmdLineArguments,
-        ILogger logger,
-        OperatingSystemProvider operatingSystemProvider)
+    private IDictionary<string, string> AdditionalEnvVariables(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments)
     {
         IDictionary<string, string> envVarsDictionary = new Dictionary<string, string>();
         if (!string.IsNullOrWhiteSpace(config.JavaExePath))
@@ -199,7 +185,7 @@ public class SonarScannerWrapper
             || sonarScannerOptsOldValue is null
             || !sonarScannerOptsOldValue.Contains($"-D{SonarProperties.JavaxNetSslTrustStorePassword}="))
         {
-            scannerOptsEnvValue.Append(operatingSystemProvider.IsUnix()
+            scannerOptsEnvValue.Append(operatingSystem.IsUnix()
                 ? $" -D{SonarProperties.JavaxNetSslTrustStorePassword}={truststorePassword}"
                 : $" -D{SonarProperties.JavaxNetSslTrustStorePassword}=\"{truststorePassword}\"");
         }
@@ -215,14 +201,14 @@ public class SonarScannerWrapper
     /// <summary>
     /// Returns all the command line arguments to pass to sonar-scanner.
     /// </summary>
-    private static IEnumerable<string> AllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments, AnalysisConfig config, ILogger logger)
+    private IEnumerable<string> AllCmdLineArgs(string projectSettingsFilePath, IEnumerable<string> userCmdLineArguments, AnalysisConfig config)
     {
         // We don't know what all the valid command line arguments are so we'll
         // just pass them on for the sonar-scanner to validate.
         var args = new List<string>(userCmdLineArguments);
 
         // Add any sensitive arguments supplied in the config should be passed on the command line
-        args.AddRange(SensitiveFileSettings(config, userCmdLineArguments, logger));
+        args.AddRange(SensitiveFileSettings(config, userCmdLineArguments));
 
         // Add the project settings file and the standard options.
         // Experimentation suggests that the sonar-scanner won't error if duplicate arguments
@@ -253,7 +239,7 @@ public class SonarScannerWrapper
         return args;
     }
 
-    private static IEnumerable<string> SensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, ILogger logger) =>
+    private IEnumerable<string> SensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments) =>
         config.AnalysisSettings(false, logger)
             .GetAllProperties()
             .Where(x => x.ContainsSensitiveData() && !UserSettingExists(x, userCmdLineArguments))
