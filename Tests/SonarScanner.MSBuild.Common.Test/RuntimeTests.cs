@@ -47,6 +47,22 @@ public class RuntimeTests
             .Should().ThrowExactly<ArgumentNullException>()
             .WithParameterName("logger");
 
+    [TestMethod]
+    public void Constructor_SetsProperties()
+    {
+        var operatingSystem = OperatingSystemMock();
+        var directory = Substitute.For<IDirectoryWrapper>();
+        var file = Substitute.For<IFileWrapper>();
+        var logger = Substitute.For<ILogger>();
+
+        var sut = new Runtime(operatingSystem, directory, file, logger);
+
+        sut.OperatingSystem.Should().Be(operatingSystem);
+        sut.Directory.Should().Be(directory);
+        sut.File.Should().Be(file);
+        sut.Logger.Should().Be(logger);
+    }
+
     private static OperatingSystemProvider OperatingSystemMock() =>
         Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
 }
