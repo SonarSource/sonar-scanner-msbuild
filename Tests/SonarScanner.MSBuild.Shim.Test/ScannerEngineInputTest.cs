@@ -458,7 +458,7 @@ public class ScannerEngineInputTest
 
     // Tests that global settings in the ProjectInfo are written to the file
     [TestMethod]
-    public void GlobalSettingsWritten()
+    public void AddGlobalSettings()
     {
         var globalSettings = new AnalysisProperties
         {
