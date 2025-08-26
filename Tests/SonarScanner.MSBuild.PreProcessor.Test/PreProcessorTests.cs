@@ -378,6 +378,10 @@ public partial class PreProcessorTests
         factory.JreResolver
             .ResolveJrePath(Arg.Any<ProcessedArgs>())
             .Returns("some/path/bin/java.exe");
+        factory.EngineResolver
+            .ResolveEngine(Arg.Any<ProcessedArgs>())
+            .Returns("some/path/to/engine.jar");
+
         factory.Server.Data.ServerProperties.Add("shared.key1", "server shared value 1");
         factory.Server.Data.ServerProperties.Add("shared.CASING", "server upper case value");
         // Local settings that should override matching server settings
@@ -406,6 +410,7 @@ public partial class PreProcessorTests
         // Check the settings used when creating the config file - settings should be separate
         var actualConfig = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
         actualConfig.JavaExePath.Should().Be("some/path/bin/java.exe");
+        actualConfig.EngineJarPath.Should().Be("some/path/to/engine.jar");
         AssertExpectedLocalSetting(actualConfig, "local.key", "local value 1");
         AssertExpectedLocalSetting(actualConfig, "shared.key1", "local shared value 1 - should override server value");
         AssertExpectedLocalSetting(actualConfig, "shared.casing", "local lower case value");

@@ -91,6 +91,9 @@ public sealed class PreProcessor : IPreProcessor
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolveJrePath(localSettings);
 
+        var engineResolver = factory.CreateEngineResolver(server, localSettings.UserHome);
+        var scannerEngineJarPath = await engineResolver.ResolveEngine(localSettings);
+
         var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
         if (!argumentsAndRuleSets.IsSuccess)
         {
@@ -113,6 +116,7 @@ public sealed class PreProcessor : IPreProcessor
             argumentsAndRuleSets.AnalyzersSettings,
             server.ServerVersion.ToString(),
             resolvedJavaExePath,
+            scannerEngineJarPath,
             logger);
 
         logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
