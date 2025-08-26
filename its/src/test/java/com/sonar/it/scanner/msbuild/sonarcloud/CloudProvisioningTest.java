@@ -54,7 +54,7 @@ class CloudProvisioningTest {
   }
 
   @Test
-  void skipProvisioning_DoesNotDownloadJre() {
+  void skipJreProvisioning_DoesNotDownloadJre() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     var logs = context.begin.execute(null).getLogs(); // sonar.scanner.skipJreProvisioning=true is the default behavior of ScannerCommand in ITs
 
@@ -69,9 +69,9 @@ class CloudProvisioningTest {
   }
 
   @Test
-  void cacheMiss_DownloadsJre() {
+  void cacheMiss_DownloadsCache() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
-    try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
+    try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       context.begin
         .setProperty(activateProvisioning)
         .setProperty("sonar.userHome", userHome.toString());
@@ -81,14 +81,14 @@ class CloudProvisioningTest {
 
       var result = context.runAnalysis();
 
-      ProvisioningAssertions.cacheMissAssertions(result, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), oldJavaHome, "https://[^\s]+/jres/[^\s]+\\.(?:zip|tar\\.gz)");
+      ProvisioningAssertions.cacheMissAssertions(result, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), oldJavaHome, true);
     }
   }
 
   @Test
-  void cacheHit_ReusesJre() {
+  void cacheHit_ReusesCachedFiles() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
-    try (var userHome = new TempDirectory("junit-JRE-hit-")) { // context.projectDir has a test name in it and that leads to too long path
+    try (var userHome = new TempDirectory("junit-cache-hit-")) { // context.projectDir has a test name in it and that leads to too long path
       context.begin
         .setProperty(activateProvisioning)
         .setProperty("sonar.userHome", userHome.toString());
@@ -97,11 +97,17 @@ class CloudProvisioningTest {
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var cacheMissLogs = context.runAnalysis().begin().getLogs();
       assertThat(cacheMissLogs).contains(
-        "JreResolver: Cache miss",
-        "Starting the file download.");
+        "JreResolver: Resolving JRE path.",
+        "JreResolver: Cache miss. Attempting to download JRE",
+        "JreResolver: Download success. JRE can be found at '",
+        "EngineResolver: Resolving Scanner Engine path.",
+        "EngineResolver: Cache miss. Attempting to download Scanner Engine",
+        "EngineResolver: Download success. Scanner Engine can be found at '");
       assertThat(cacheMissLogs).doesNotContain(
         "JreResolver: Cache hit",
-        "JreResolver: Cache failure");
+        "JreResolver: Cache failure",
+        "EngineResolver: Cache hit",
+        "EngineResolver: Cache failure");
 
       // Second analysis, cache hits and does not download the JRE
       var secondBegin = context.runAnalysis().begin();

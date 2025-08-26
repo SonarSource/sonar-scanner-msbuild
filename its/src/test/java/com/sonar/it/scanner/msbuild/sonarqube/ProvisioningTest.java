@@ -55,7 +55,7 @@ class ProvisioningTest {
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var result = context.runAnalysis();
 
-      ProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), oldJavaHome, "analysis/jres/[^\s]+");
+      ProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), oldJavaHome, false);
     }
   }
 
@@ -66,9 +66,9 @@ class ProvisioningTest {
     try (var userHome = new TempDirectory("junit-cache-hit-")) {  // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
       // first analysis, cache misses and downloads the JRE & scanner-engine
-      var firstBegin = context.begin.execute(ORCHESTRATOR);
-      assertThat(firstBegin.isSuccess()).isTrue();
-      assertThat(firstBegin.getLogs()).contains(
+      var cacheMiss = context.begin.execute(ORCHESTRATOR);
+      assertThat(cacheMiss.isSuccess()).isTrue();
+      assertThat(cacheMiss.getLogs()).contains(
         "JreResolver: Resolving JRE path.",
         "JreResolver: Cache miss. Attempting to download JRE",
         "JreResolver: Download success. JRE can be found at '",
@@ -76,16 +76,16 @@ class ProvisioningTest {
         "EngineResolver: Cache miss. Attempting to download Scanner Engine",
         "EngineResolver: Download success. Scanner Engine can be found at '");
 
-      assertThat(firstBegin.getLogs()).doesNotContain(
+      assertThat(cacheMiss.getLogs()).doesNotContain(
         "JreResolver: Cache hit",
         "JreResolver: Cache failure",
         "EngineResolver: Cache hit",
         "EngineResolver: Cache failure");
 
       // second analysis, cache hits and does not download the JRE or scanner-engine
-      var secondBegin = context.begin.execute(ORCHESTRATOR);
+      var cacheHit = context.begin.execute(ORCHESTRATOR);
 
-      ProvisioningAssertions.cacheHitAssertions(secondBegin, userHome.toString());
+      ProvisioningAssertions.cacheHitAssertions(cacheHit, userHome.toString());
     }
   }
 
@@ -106,8 +106,13 @@ class ProvisioningTest {
           .setProperty("sonar.scanner.engineJarPath", scannerJarPath)
           .execute(ORCHESTRATOR);
 
-        TestUtils.matchesSingleLine(result.getLogs(), "EngineResolver: Resolving Scanner Engine path.");
-        TestUtils.matchesSingleLine(result.getLogs(), String.format("Using local sonar engine provided by sonar.scanner.engineJarPath=%s", scannerJarPath.replace("\\", "\\\\")));
+        assertThat(result.getLogs()).contains(
+          "EngineResolver: Resolving Scanner Engine path.",
+          String.format("Using local sonar engine provided by sonar.scanner.engineJarPath=%s", scannerJarPath))
+            .doesNotContain(
+          "EngineResolver: Cache miss.",
+          "EngineResolver: Cache hit",
+          "EngineResolver: Cache failure.");
       }
     }
   }

@@ -24,12 +24,21 @@ import com.sonar.orchestrator.build.BuildResult;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class ProvisioningAssertions {
-  public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, String oldJavaHome, String jreUrlPattern) {
+  public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, String oldJavaHome, Boolean isCloud) {
     var os = OSPlatform.current().name().toLowerCase();
     var arch = OSPlatform.currentArchitecture().toLowerCase();
     oldJavaHome = oldJavaHome.replace("\\", "\\\\");
     var cacheFolderPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+";
     var beginLogs = result.begin().getLogs();
+    String jreUrlPattern;
+    String engineUrlPattern;
+    if (isCloud) {
+      jreUrlPattern = "https://[^\s]+/jres/[^\s]+\\.(?:zip|tar\\.gz)";
+      engineUrlPattern = "https://[^\s]+/engines/sonarcloud-scanner-engine-.+\\.jar";
+    } else {
+      jreUrlPattern = "analysis/jres/[^\s]+";
+      engineUrlPattern = "analysis/engine";
+    }
 
     assertThat(beginLogs).contains(
       "JreResolver: Resolving JRE path.",
@@ -37,18 +46,17 @@ public final class ProvisioningAssertions {
       "Response received from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
       "JreResolver: Cache miss. Attempting to download JRE.",
       "EngineResolver: Resolving Scanner Engine path.",
-      "Downloading from " + sqApiUrl + "analysis/engine...",
-      "Response received from " + sqApiUrl + "analysis/engine...",
-      "EngineResolver: Cache miss. Attempting to download Scanner Engine.",
-      "Downloading Scanner Engine from analysis/engine"
-      );
+      "Downloading from " + sqApiUrl + "/analysis/engine...",
+      "Response received from " + sqApiUrl + "/analysis/engine...",
+      "EngineResolver: Cache miss. Attempting to download Scanner Engine.");
     TestUtils.matchesSingleLine(beginLogs, "Downloading Java JRE from " + jreUrlPattern);
+    TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
     TestUtils.matchesSingleLine(beginLogs, "The checksum of the downloaded file is '.+' and the expected checksum is '.+'");
     TestUtils.matchesSingleLine(beginLogs, "Starting extracting the Java runtime environment from archive '" + cacheFolderPattern + "' to folder '" + cacheFolderPattern + "'");
     TestUtils.matchesSingleLine(beginLogs, "Moving extracted Java runtime environment from '" + cacheFolderPattern + "' to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "The Java runtime environment was successfully added to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + cacheFolderPattern + "_extracted.+java(?:\\.exe)?'");
-    TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern + "scanner-developer.+\\.jar'");
+    TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern + "((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar'");
 
     var endLogs = result.end().getLogs();
     TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + cacheFolderPattern + "_extracted.+");
@@ -57,7 +65,7 @@ public final class ProvisioningAssertions {
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {
     var javaPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+_extracted.+java(?:\\.exe)?";
-    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+scanner-developer.+\\.jar";
+    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar";
     assertThat(secondBegin.isSuccess()).isTrue();
     TestUtils.matchesSingleLine(secondBegin.getLogs(),
       "JreResolver: Cache hit '" + javaPattern + "'");
