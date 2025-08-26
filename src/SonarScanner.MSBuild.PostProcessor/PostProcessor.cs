@@ -227,7 +227,7 @@ public class PostProcessor : IPostProcessor
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
             logger.LogInfo(Resources.MSG_ConvertingCoverageReports);
-            var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings, logger);
+            var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
             WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
             WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
             projectInfoAnalysisResult.ScannerEngineInput.WriteVsTestReportPaths(additionalProperties.VsTestReportsPaths);
