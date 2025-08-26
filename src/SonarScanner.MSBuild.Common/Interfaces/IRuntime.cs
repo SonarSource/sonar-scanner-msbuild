@@ -18,23 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-
 namespace SonarScanner.MSBuild.Common;
 
-[ExcludeFromCodeCoverage]   // container class without any logic
 public class Runtime : IRuntime
 {
     public OperatingSystemProvider OperatingSystem { get; }
-    public ILogger Logger { get; }
-    public IFileWrapper File { get; }
     public IDirectoryWrapper Directory { get; }
+    public IFileWrapper File { get; }
+    public ILogger Logger { get; }
 
-    public Runtime(ILogger logger, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, OperatingSystemProvider operatingSystem)
+    public Runtime(OperatingSystemProvider operatingSystem, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, ILogger logger)
     {
-        Logger = logger;
-        File = fileWrapper;
-        Directory = directoryWrapper;
-        OperatingSystem = operatingSystem;
+        OperatingSystem = operatingSystem ?? throw new ArgumentNullException(nameof(operatingSystem));
+        Directory = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
+        File = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+        Logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 }

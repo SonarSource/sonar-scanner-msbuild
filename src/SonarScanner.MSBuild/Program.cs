@@ -30,7 +30,7 @@ public static class Program
     public static async Task<int> Main(string[] args)
     {
         var logger = new ConsoleLogger(includeTimestamp: false);
-        var runtime = new Runtime(logger, FileWrapper.Instance, DirectoryWrapper.Instance, new OperatingSystemProvider(FileWrapper.Instance, logger));
+        var runtime = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger);
         return await Execute(args, runtime);
     }
 

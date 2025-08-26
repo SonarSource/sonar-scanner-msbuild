@@ -30,10 +30,8 @@ public class DefaultProcessorFactory : IProcessorFactory
 {
     private readonly IRuntime runtime;
 
-    public DefaultProcessorFactory(IRuntime runtime)
-    {
+    public DefaultProcessorFactory(IRuntime runtime) =>
         this.runtime = runtime;
-    }
 
     public IPostProcessor CreatePostProcessor() =>
         new PostProcessor.PostProcessor(
