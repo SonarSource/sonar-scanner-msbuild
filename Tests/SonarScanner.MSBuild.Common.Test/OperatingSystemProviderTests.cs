@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#if NET
-using System.IO;
-using System.Runtime.Versioning;
-#endif
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -100,18 +95,18 @@ public class OperatingSystemProviderTests
     [TestMethod]
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
-    public void IsUnix_Windows() =>
+    public void IsUnix_OnWindows_IsFalse() =>
         new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).IsUnix().Should().Be(false);
 
     [TestMethod]
     [TestCategory(TestCategories.NoWindows)]
-    public void IsUnix_Unix() =>
+    public void IsUnix_OnUnix_IsTrue() =>
         new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()).IsUnix().Should().Be(true);
 
     [TestMethod]
     [TestCategory(TestCategories.NoWindows)]
     [TestCategory(TestCategories.NoMacOS)]
-    public void IsUnix_Alpine() =>
+    public void IsUnix_OnAlpine_IsTrue() =>
         new OperatingSystemProvider(FileWrapperForAlpine(), Substitute.For<ILogger>()).IsUnix().Should().Be(true);
 
 #if NET
@@ -119,14 +114,14 @@ public class OperatingSystemProviderTests
     [TestMethod]
     [TestCategory(TestCategories.NoWindows)]
     [TestCategory(TestCategories.NoMacOS)]
-    public void Set()
+    public void SetPermission()
     {
         var filePath = TestUtils.CreateFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "testfile.txt", "content");
-        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());   // Set does not use fileWrapper
+        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());   // SetPermission does not use fileWrapper
         var expectedMode = Convert.ToInt32("555", 8);
 
         File.GetUnixFileMode(filePath).Should().NotBe((UnixFileMode)expectedMode);
-        sut.Set(filePath, expectedMode);
+        sut.SetPermission(filePath, expectedMode);
         File.GetUnixFileMode(filePath).Should().Be((UnixFileMode)expectedMode);
     }
 

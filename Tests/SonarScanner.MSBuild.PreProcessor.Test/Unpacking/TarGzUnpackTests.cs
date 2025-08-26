@@ -49,7 +49,7 @@ public class TarGzUnpackTests
         using var archive = new MemoryStream(Convert.FromBase64String(sampleTarGzFile));
         using var unzipped = new MemoryStream();
         fileWrapper.Create(filePath).Returns(unzipped);
-        operatingSystem.When(x => x.Set(Arg.Any<string>(), Arg.Any<int>())).Throw(new Exception("Sample exception message"));
+        operatingSystem.When(x => x.SetPermission(Arg.Any<string>(), Arg.Any<int>())).Throw(new Exception("Sample exception message"));
 
         CreateUnpacker().Unpack(archive, baseDirectory);
 

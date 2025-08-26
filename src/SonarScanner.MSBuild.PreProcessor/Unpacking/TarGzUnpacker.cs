@@ -88,7 +88,7 @@ public class TarGzUnpacker : IUnpacker
             outputStream.Close();
             try
             {
-                operatingSystem.Set(destinationFile, entry.TarHeader.Mode);
+                operatingSystem.SetPermission(destinationFile, entry.TarHeader.Mode);
             }
             catch (Exception ex)
             {

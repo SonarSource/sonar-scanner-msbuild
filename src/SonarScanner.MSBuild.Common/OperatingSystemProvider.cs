@@ -57,7 +57,7 @@ public class OperatingSystemProvider
         OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine or PlatformOS.MacOSX;
 
     [ExcludeFromCodeCoverage]   // We only collect coverage from Windows UTs.
-    public virtual void Set(string destinationPath, int mode)
+    public virtual void SetPermission(string destinationPath, int mode)
     {
         if (IsUnix())
         {
