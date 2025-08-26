@@ -69,7 +69,7 @@ public class ScannerEngineInput
     public void WriteVsTestReportPaths(string[] paths) =>
         AppendKeyValue(SonarProperties.VsTestReportsPaths, paths);
 
-    public void WriteVsXmlCoverageReportPaths(string[] paths) =>
+    public void AddVsXmlCoverageReportPaths(string[] paths) =>
         AppendKeyValue(SonarProperties.VsCoverageXmlReportsPaths, paths);
 
     public void AddGlobalSettings(AnalysisProperties properties)

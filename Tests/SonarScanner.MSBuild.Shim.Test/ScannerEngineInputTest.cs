@@ -197,10 +197,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteVsXmlCoverageReportPaths_WritesEncodedPaths()
+    public void AddVsXmlCoverageReportPaths_WritesEncodedPaths()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteVsXmlCoverageReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
+        sut.AddVsXmlCoverageReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [

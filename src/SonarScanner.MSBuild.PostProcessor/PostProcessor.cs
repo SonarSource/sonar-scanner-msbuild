@@ -231,7 +231,7 @@ public class PostProcessor : IPostProcessor
             WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
             WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
             projectInfoAnalysisResult.ScannerEngineInput.WriteVsTestReportPaths(additionalProperties.VsTestReportsPaths);
-            projectInfoAnalysisResult.ScannerEngineInput.WriteVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
+            projectInfoAnalysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
