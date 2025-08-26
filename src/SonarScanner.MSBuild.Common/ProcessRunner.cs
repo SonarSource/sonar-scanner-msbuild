@@ -76,8 +76,8 @@ public sealed class ProcessRunner : IProcessRunner
 
         using var process = new Process();
         process.StartInfo = psi;
-        process.ErrorDataReceived += (_, data) => OnErrorDataReceived(data, runnerArgs.LogOutput, errorOutputWriter, runnerArgs.OutputToLogMessage);
-        process.OutputDataReceived += (_, data) => OnOutputDataReceived(data, runnerArgs.LogOutput, standardOutputWriter, runnerArgs.OutputToLogMessage);
+        process.OutputDataReceived += (_, e) => HandleProcessOutput(e.Data, stdOut: true, runnerArgs.LogOutput, standardOutputWriter, runnerArgs.OutputToLogMessage);
+        process.ErrorDataReceived += (_, e) => HandleProcessOutput(e.Data, stdOut: false, runnerArgs.LogOutput, errorOutputWriter, runnerArgs.OutputToLogMessage);
 
         process.Start();
         process.BeginErrorReadLine();
@@ -149,16 +149,10 @@ public sealed class ProcessRunner : IProcessRunner
         }
     }
 
-    private void OnOutputDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter standardOutputWriter, OutputToLogMessage outputToLogMessage) =>
-        HandleProcessOutput(e, true, logOutput, standardOutputWriter, outputToLogMessage);
-
-    private void OnErrorDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter errorOutputWriter, OutputToLogMessage outputToLogMessage) =>
-        HandleProcessOutput(e, false, logOutput, errorOutputWriter, outputToLogMessage);
-
-    private void HandleProcessOutput(DataReceivedEventArgs e, bool stdIn, bool logOutput, TextWriter outputWriter, OutputToLogMessage outputToLogMessage)
+    private void HandleProcessOutput(string data, bool stdOut, bool logOutput, TextWriter outputWriter, OutputToLogMessage outputToLogMessage)
     {
-        if (e.Data is not null
-            && outputToLogMessage?.Invoke(stdIn, e.Data) is { } logMessage
+        if (data is not null
+            && outputToLogMessage?.Invoke(stdOut, data) is { } logMessage
             && logMessage.Message.RedactSensitiveData() is { } redactedMsg)
         {
             if (logOutput)

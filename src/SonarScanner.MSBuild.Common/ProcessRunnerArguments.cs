@@ -104,7 +104,7 @@ public class ProcessRunnerArguments
                 : LogLevel.Error;
             logLevel = logLevel == LogLevel.Error && outputLine.StartsWith("WARN")
                 ? LogLevel.Warning
-                : LogLevel.Error;
+                : logLevel;
             return new(logLevel, outputLine);
         };
     }
