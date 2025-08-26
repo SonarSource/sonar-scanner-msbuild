@@ -76,8 +76,8 @@ public sealed class ProcessRunner : IProcessRunner
 
         using var process = new Process();
         process.StartInfo = psi;
-        process.ErrorDataReceived += (_, data) => OnErrorDataReceived(data, runnerArgs.LogOutput, errorOutputWriter);
-        process.OutputDataReceived += (_, data) => OnOutputDataReceived(data, runnerArgs.LogOutput, standardOutputWriter);
+        process.ErrorDataReceived += (_, data) => OnErrorDataReceived(data, runnerArgs.LogOutput, errorOutputWriter, runnerArgs.OutputToLogMessage);
+        process.OutputDataReceived += (_, data) => OnOutputDataReceived(data, runnerArgs.LogOutput, standardOutputWriter, runnerArgs.OutputToLogMessage);
 
         process.Start();
         process.BeginErrorReadLine();
@@ -149,35 +149,30 @@ public sealed class ProcessRunner : IProcessRunner
         }
     }
 
-    private void OnOutputDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter standardOutputWriter)
+    private void OnOutputDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter standardOutputWriter, OutputToLogMessage outputToLogMessage) =>
+        HandleProcessOutput(e, true, logOutput, standardOutputWriter, outputToLogMessage);
+
+    private void OnErrorDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter errorOutputWriter, OutputToLogMessage outputToLogMessage) =>
+        HandleProcessOutput(e, false, logOutput, errorOutputWriter, outputToLogMessage);
+
+    private void HandleProcessOutput(DataReceivedEventArgs e, bool stdIn, bool logOutput, TextWriter outputWriter, OutputToLogMessage outputToLogMessage)
     {
-        if (e.Data is not null)
+        if (e.Data is not null
+            && outputToLogMessage?.Invoke(stdIn, e.Data) is { } logMessage
+            && logMessage.Message.RedactSensitiveData() is { } redactedMsg)
         {
-            var redactedMsg = e.Data.RedactSensitiveData();
             if (logOutput)
             {
-                // It's important to log this as an important message because
-                // this the log redirection pipeline of the child process
-                logger.LogInfo(redactedMsg);
+                Action<string, object[]> logMethod = logMessage.Level switch
+                {
+                    LogLevel.Info => logger.LogInfo,
+                    LogLevel.Warning => logger.LogWarning,
+                    LogLevel.Error => logger.LogError,
+                    _ => logger.LogInfo,
+                };
+                logMethod(redactedMsg, []);
             }
-            standardOutputWriter.WriteLine(redactedMsg);
-        }
-    }
-
-    private void OnErrorDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter errorOutputWriter)
-    {
-        if (e.Data is not null)
-        {
-            var redactedMsg = e.Data.RedactSensitiveData();
-            if (logOutput && e.Data.StartsWith("WARN"))
-            {
-                logger.LogWarning(redactedMsg);
-            }
-            else if (logOutput)
-            {
-                logger.LogError(redactedMsg);
-            }
-            errorOutputWriter.WriteLine(redactedMsg);
+            outputWriter.WriteLine(redactedMsg);
         }
     }
 }
