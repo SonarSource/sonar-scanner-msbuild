@@ -25,16 +25,11 @@ namespace TestUtilities;
 public class TestRuntime : IRuntime
 {
     public OperatingSystemProvider OperatingSystem { get; init; }
-    public TestLogger Logger { get; init; }
-    public IFileWrapper File { get; init; }
-    public IDirectoryWrapper Directory { get; init; }
+    public TestLogger Logger { get; init; } = new();
+    public IFileWrapper File { get; init; } = Substitute.For<IFileWrapper>();
+    public IDirectoryWrapper Directory { get; init; } = Substitute.For<IDirectoryWrapper>();
     ILogger IRuntime.Logger => Logger;
 
-    public TestRuntime()
-    {
-        Logger = new();
-        File = Substitute.For<IFileWrapper>();
-        Directory = Substitute.For<IDirectoryWrapper>();
+    public TestRuntime() =>
         OperatingSystem = Substitute.For<OperatingSystemProvider>(File, Logger);
-    }
 }
