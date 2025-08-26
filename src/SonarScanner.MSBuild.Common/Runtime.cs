@@ -18,23 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Test;
+namespace SonarScanner.MSBuild.Common;
 
-[TestClass]
-public class DefaultProcessorFactoryTests
+public interface IRuntime
 {
-    [TestMethod]
-    public void CreatePreProcessor_Returns_New_Instance()
-    {
-        var factory = new DefaultProcessorFactory(new TestRuntime());
-        factory.CreatePreProcessor().Should().BeOfType<PreProcessor.PreProcessor>();
-    }
-
-    [TestMethod]
-    public void CreatePostProcessor_Returns_New_Instance()
-    {
-        var factory = new DefaultProcessorFactory(new TestRuntime());
-
-        factory.CreatePostProcessor().Should().BeOfType<PostProcessor.PostProcessor>();
-    }
+    OperatingSystemProvider OperatingSystem { get; }
+    ILogger Logger { get; }
+    IFileWrapper File { get; }
+    IDirectoryWrapper Directory { get; }
 }

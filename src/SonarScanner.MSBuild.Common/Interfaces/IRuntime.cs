@@ -18,23 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Test;
+namespace SonarScanner.MSBuild.Common;
 
-[TestClass]
-public class DefaultProcessorFactoryTests
+public class Runtime : IRuntime
 {
-    [TestMethod]
-    public void CreatePreProcessor_Returns_New_Instance()
-    {
-        var factory = new DefaultProcessorFactory(new TestRuntime());
-        factory.CreatePreProcessor().Should().BeOfType<PreProcessor.PreProcessor>();
-    }
+    public OperatingSystemProvider OperatingSystem { get; }
+    public IDirectoryWrapper Directory { get; }
+    public IFileWrapper File { get; }
+    public ILogger Logger { get; }
 
-    [TestMethod]
-    public void CreatePostProcessor_Returns_New_Instance()
+    public Runtime(OperatingSystemProvider operatingSystem, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, ILogger logger)
     {
-        var factory = new DefaultProcessorFactory(new TestRuntime());
-
-        factory.CreatePostProcessor().Should().BeOfType<PostProcessor.PostProcessor>();
+        OperatingSystem = operatingSystem ?? throw new ArgumentNullException(nameof(operatingSystem));
+        Directory = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
+        File = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+        Logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 }
