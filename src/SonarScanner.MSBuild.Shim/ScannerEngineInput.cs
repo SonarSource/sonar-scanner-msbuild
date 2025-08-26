@@ -101,15 +101,14 @@ public class ScannerEngineInput
     public void Add(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
         Add(keyPrefix, keySuffix, paths.Select(x => x.FullName));
 
-    // FIXME: Reorder and use correctly
-    private void Add(string keyPrefix, string keySuffix, string value) =>
-        Add(keyPrefix + "." + keySuffix, value);
+    public void Add(string keyPrefix, string keySuffix, string value) =>
+        Add($"{keyPrefix}.{keySuffix}", value);
 
     internal void Add(string keyPrefix, string keySuffix, IEnumerable<string> values)
     {
         if (values.Any())
         {
-            Add($"{keyPrefix}.{keySuffix}", ToMultiValueProperty(values));
+            Add(keyPrefix, keySuffix, ToMultiValueProperty(values));
         }
     }
 
