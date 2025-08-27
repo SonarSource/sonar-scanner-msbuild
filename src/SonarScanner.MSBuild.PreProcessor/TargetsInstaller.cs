@@ -41,7 +41,7 @@ public class TargetsInstaller : ITargetsInstaller
     public TargetsInstaller(IRuntime runtime, IMsBuildPathsSettings msBuildPathsSettings = null)
     {
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
-        this.msBuildPathsSettings = msBuildPathsSettings ?? new MsBuildPathSettings(runtime.Logger);
+        this.msBuildPathsSettings = msBuildPathsSettings ?? new MsBuildPathSettings(runtime.OperatingSystem);
     }
 
     public void InstallLoaderTargets(string workDirectory)

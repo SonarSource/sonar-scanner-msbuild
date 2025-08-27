@@ -42,11 +42,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
 
     private readonly OperatingSystemProvider operatingSystemProvider;
 
-    public MsBuildPathSettings(ILogger logger) : this(new OperatingSystemProvider(FileWrapper.Instance, logger))
-    {
-    }
-
-    public /* for testing purposes */ MsBuildPathSettings(OperatingSystemProvider operatingSystemProvider)
+    public MsBuildPathSettings(OperatingSystemProvider operatingSystemProvider)
     {
         this.operatingSystemProvider = operatingSystemProvider;
     }

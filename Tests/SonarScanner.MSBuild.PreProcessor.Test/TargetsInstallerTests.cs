@@ -72,7 +72,7 @@ public class TargetsInstallerTests
 
         CreateDummySourceTargetsFile(sourceTargetsContent1);
 
-        var msBuildPathSettings = new MsBuildPathSettings(runtime.Logger);
+        var msBuildPathSettings = new MsBuildPathSettings(new OperatingSystemProvider(FileWrapper.Instance, runtime.Logger));
 
         InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
         // If the current user account is LocalSystem, then the local application data folder is inside %windir%\system32.
@@ -307,7 +307,7 @@ public class TargetsInstallerTests
     {
         // SONARMSBRU-149: we used to deploy the targets file to the 4.0 directory but this
         // is no longer supported. To be on the safe side we'll clean up the old location too.
-        var cleanUpDirs = new MsBuildPathSettings(Substitute.For<ILogger>()).GetImportBeforePaths().ToList();
+        var cleanUpDirs = new MsBuildPathSettings(new OperatingSystemProvider(FileWrapper.Instance, Substitute.For<ILogger>())).GetImportBeforePaths().ToList();
 
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         cleanUpDirs.Add(Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"));
@@ -346,7 +346,8 @@ public class TargetsInstallerTests
 
     private void InstallTargetsFileAndAssert(string expectedContent, bool expectCopy)
     {
-        var runtimeIO = new TestRuntime { File = FileWrapper.Instance, Directory = DirectoryWrapper.Instance };
+        var logger = new TestLogger();
+        var runtimeIO = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger);
         var installer = new TargetsInstaller(runtimeIO);
 
         using (new AssertIgnoreScope())
@@ -354,7 +355,7 @@ public class TargetsInstallerTests
             installer.InstallLoaderTargets(workingDirectory);
         }
 
-        var msBuildPathSettings = new MsBuildPathSettings(runtime.Logger);
+        var msBuildPathSettings = new MsBuildPathSettings(new OperatingSystemProvider(FileWrapper.Instance, runtime.Logger));
 
         foreach (var destinationDir in msBuildPathSettings.GetImportBeforePaths())
         {
@@ -362,7 +363,7 @@ public class TargetsInstallerTests
             File.Exists(path).Should().BeTrue(".targets file not found at: " + path);
             File.ReadAllText(path).Should().Be(expectedContent, ".targets does not have expected content at " + path);
 
-            runtimeIO.Logger.DebugMessages.Should().Contain(x => x.Contains(destinationDir));
+            logger.DebugMessages.Should().Contain(x => x.Contains(destinationDir));
         }
 
         var targetsPath = Path.Combine(workingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
@@ -370,7 +371,7 @@ public class TargetsInstallerTests
 
         if (expectCopy)
         {
-            runtimeIO.Logger.DebugMessages.Should().HaveCount(msBuildPathSettings.GetImportBeforePaths().Count() + 1, "All destinations should have been covered");
+            logger.DebugMessages.Should().HaveCount(msBuildPathSettings.GetImportBeforePaths().Count() + 1, "All destinations should have been covered");
         }
     }
 }
