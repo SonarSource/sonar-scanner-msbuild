@@ -26,37 +26,29 @@ public class ProjectInfoTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void ProjectInfo_Serialization_InvalidFileName()
+    public void Save_InvalidFileName()
     {
-        // 0. Setup
         var pi = new ProjectInfo();
+        FluentActions.Invoking(() => pi.Save(null)).Should().ThrowExactly<ArgumentNullException>();
+        FluentActions.Invoking(() => pi.Save(string.Empty)).Should().ThrowExactly<ArgumentNullException>();
+        FluentActions.Invoking(() => pi.Save("\r\t ")).Should().ThrowExactly<ArgumentNullException>();
+    }
 
-        // 1a. Missing file name - save
-        Action act = () => pi.Save(null);
-        act.Should().ThrowExactly<ArgumentNullException>();
-        act = () => pi.Save(string.Empty);
-        act.Should().ThrowExactly<ArgumentNullException>();
-        act = () => pi.Save("\r\t ");
-        act.Should().ThrowExactly<ArgumentNullException>();
-
-        // 1b. Missing file name - load
-        act = () => ProjectInfo.Load(null);
-        act.Should().ThrowExactly<ArgumentNullException>();
-        act = () => ProjectInfo.Load(string.Empty);
-        act.Should().ThrowExactly<ArgumentNullException>();
-        act = () => ProjectInfo.Load("\r\t ");
-        act.Should().ThrowExactly<ArgumentNullException>();
+    [TestMethod]
+    public void Load_InvalidFileName()
+    {
+        var pi = new ProjectInfo();
+        FluentActions.Invoking(() => ProjectInfo.Load(null)).Should().ThrowExactly<ArgumentNullException>();
+        FluentActions.Invoking(() => ProjectInfo.Load(string.Empty)).Should().ThrowExactly<ArgumentNullException>();
+        FluentActions.Invoking(() => ProjectInfo.Load("\r\t ")).Should().ThrowExactly<ArgumentNullException>();
     }
 
     [TestMethod]
     [Description("Checks ProjectInfo can be serialized and deserialized")]
     public void ProjectInfo_Serialization_SaveAndReload()
     {
-        // 0. Setup
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
         var projectGuid = Guid.NewGuid();
-
         var originalProjectInfo = new ProjectInfo
         {
             FullPath = "c:\\fullPath\\project.proj",
@@ -66,9 +58,7 @@ public class ProjectInfoTests
             ProjectName = "MyProject",
             Encoding = "MyEncoding"
         };
-
         var fileName = Path.Combine(testFolder, "ProjectInfo1.xml");
-
         SaveAndReloadProjectInfo(originalProjectInfo, fileName);
     }
 
@@ -76,24 +66,18 @@ public class ProjectInfoTests
     [Description("Checks analysis results can be serialized and deserialized")]
     public void ProjectInfo_Serialization_AnalysisResults()
     {
-        // 0. Setup
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
         var projectGuid = Guid.NewGuid();
+        var originalProjectInfo = new ProjectInfo { ProjectGuid = projectGuid };
 
-        var originalProjectInfo = new ProjectInfo
-        {
-            ProjectGuid = projectGuid
-        };
-
-        // 1. Null list
+        // Null list
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults1.xml"));
 
-        // 2. Empty list
+        // Empty list
         originalProjectInfo.AnalysisResults = [];
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults2.xml"));
 
-        // 3. Non-empty list
+        // Non-empty list
         originalProjectInfo.AnalysisResults.Add(new AnalysisResult { Id = string.Empty, Location = string.Empty }); // empty item
         originalProjectInfo.AnalysisResults.Add(new AnalysisResult { Id = "Id1", Location = "location1" });
         originalProjectInfo.AnalysisResults.Add(new AnalysisResult { Id = "Id2", Location = "location2" });

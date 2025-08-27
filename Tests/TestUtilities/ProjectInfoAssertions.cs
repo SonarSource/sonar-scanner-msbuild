@@ -25,7 +25,6 @@ public static class ProjectInfoAssertions
     public static void AssertExpectedValues(ProjectInfo expected, ProjectInfo actual)
     {
         actual.Should().NotBeNull("Supplied ProjectInfo should not be null");
-
         actual.FullPath.Should().Be(expected.FullPath, "Unexpected FullPath");
         actual.ProjectLanguage.Should().Be(expected.ProjectLanguage, "Unexpected ProjectLanguage");
         actual.ProjectType.Should().Be(expected.ProjectType, "Unexpected ProjectType");
@@ -51,10 +50,8 @@ public static class ProjectInfoAssertions
 
     private static void CompareAnalysisResults(ProjectInfo expected, ProjectInfo actual)
     {
-        // We're assuming the actual analysis results have been reloaded by the serializer
-        // so they should never be null
+        // We're assuming the actual analysis results have been reloaded by the serializer so they should never be null
         actual.AnalysisResults.Should().NotBeNull("actual AnalysisResults should not be null");
-
         if (expected.AnalysisResults is null || !expected.AnalysisResults.Any())
         {
             actual.AnalysisResults.Should().BeEmpty("actual AnalysisResults should be empty");
@@ -65,7 +62,6 @@ public static class ProjectInfoAssertions
             {
                 actual.AssertAnalysisResultExists(expectedResult.Id, expectedResult.Location);
             }
-
             actual.AnalysisResults.Should().HaveCount(expected.AnalysisResults.Count, "Unexpected additional analysis results found");
         }
     }

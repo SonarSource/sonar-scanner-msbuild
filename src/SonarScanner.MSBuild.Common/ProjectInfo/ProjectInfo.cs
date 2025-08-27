@@ -84,24 +84,25 @@ public class ProjectInfo
 
     public FileInfo[] AllAnalysisFiles(ILogger logger)
     {
-        var compiledFilesPath = FindAnalysisResultFile(AnalysisResultFileType.FilesToAnalyze)?.Location;
-        if (compiledFilesPath is null || !File.Exists(compiledFilesPath))
+        if (FindAnalysisResultFile(AnalysisResultFileType.FilesToAnalyze)?.Location is { } filesToAnalyze && File.Exists(filesToAnalyze))
+        {
+            var result = new List<FileInfo>();
+            foreach (var path in File.ReadAllLines(filesToAnalyze))
+            {
+                try
+                {
+                    result.Add(new FileInfo(path));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogDebug(Resources.MSG_AnalysisFileCouldNotBeAdded, path, ex.Message);
+                }
+            }
+            return result.ToArray();
+        }
+        else
         {
             return [];
         }
-
-        var result = new List<FileInfo>();
-        foreach (var path in File.ReadAllLines(compiledFilesPath))
-        {
-            try
-            {
-                result.Add(new FileInfo(path));
-            }
-            catch (Exception ex)
-            {
-                logger.LogDebug(Resources.MSG_AnalysisFileCouldNotBeAdded, path, ex.Message);
-            }
-        }
-        return [.. result];
     }
 }
