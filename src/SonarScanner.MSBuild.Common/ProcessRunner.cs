@@ -157,14 +157,18 @@ public sealed class ProcessRunner : IProcessRunner
         {
             if (logOutput)
             {
-                Action<string, object[]> logMethod = logMessage.Level switch
+                switch (logMessage.Level)
                 {
-                    LogLevel.Info => logger.LogInfo,
-                    LogLevel.Warning => logger.LogWarning,
-                    LogLevel.Error => logger.LogError,
-                    _ => static (_, _) => { },
-                };
-                logMethod(redactedMsg, []);
+                    case LogLevel.Info:
+                        logger.LogInfo(redactedMsg);
+                        break;
+                    case LogLevel.Warning:
+                        logger.LogWarning(redactedMsg);
+                        break;
+                    case LogLevel.Error:
+                        logger.LogError(redactedMsg);
+                        break;
+                }
             }
             outputWriter.WriteLine(redactedMsg);
         }
