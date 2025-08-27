@@ -348,14 +348,13 @@ public class TargetsInstallerTests
     {
         var logger = new TestLogger();
         var runtimeIO = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger);
-        var installer = new TargetsInstaller(runtimeIO);
+        var msBuildPathSettings = new MsBuildPathSettings(runtimeIO.OperatingSystem);
+        var installer = new TargetsInstaller(runtimeIO, msBuildPathSettings);
 
         using (new AssertIgnoreScope())
         {
             installer.InstallLoaderTargets(workingDirectory);
         }
-
-        var msBuildPathSettings = new MsBuildPathSettings(new OperatingSystemProvider(FileWrapper.Instance, runtime.Logger));
 
         foreach (var destinationDir in msBuildPathSettings.GetImportBeforePaths())
         {
