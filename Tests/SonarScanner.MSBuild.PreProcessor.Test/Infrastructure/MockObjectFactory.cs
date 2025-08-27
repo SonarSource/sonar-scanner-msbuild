@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 internal class MockObjectFactory : IPreprocessorObjectFactory
 {
-    private readonly List<string> calledMethods = new();
+    private readonly List<string> calledMethods = [];
 
     public TestLogger Logger { get; } = new();
     public MockSonarWebServer Server { get; }
@@ -65,13 +65,14 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         }
     }
 
-    public Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader downloader = null, IDownloader apiDownloader = null) =>
+    public Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null) =>
         Task.FromResult((ISonarWebServer)Server);
 
     public ITargetsInstaller CreateTargetInstaller() =>
         TargetsInstaller;
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath, BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(
+        ISonarWebServer server, string localCacheTempPath, BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
     {
         LogMethodCalled();
         PluginCachePath = localCacheTempPath;

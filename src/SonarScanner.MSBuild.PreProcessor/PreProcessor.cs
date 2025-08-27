@@ -28,7 +28,7 @@ public sealed class PreProcessor : IPreProcessor
     private const string CSharpLanguage = "cs";
     private const string VBNetLanguage = "vbnet";
 
-    private static readonly string[] Languages = { CSharpLanguage, VBNetLanguage };
+    private static readonly string[] Languages = [CSharpLanguage, VBNetLanguage];
 
     private readonly IPreprocessorObjectFactory factory;
     private readonly ILogger logger;
@@ -160,7 +160,7 @@ public sealed class PreProcessor : IPreProcessor
             foreach (var language in knownLanguages)
             {
                 var qualityProfile = await server.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
-                if (qualityProfile is not { })
+                if (qualityProfile is null)
                 {
                     logger.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
                     continue;
@@ -212,6 +212,6 @@ public sealed class PreProcessor : IPreProcessor
     {
         public bool IsSuccess { get; set; }
         public IDictionary<string, string> ServerSettings { get; set; }
-        public List<AnalyzerSettings> AnalyzersSettings { get; } = new();
+        public List<AnalyzerSettings> AnalyzersSettings { get; } = [];
     }
 }

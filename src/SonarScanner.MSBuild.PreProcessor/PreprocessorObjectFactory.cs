@@ -149,13 +149,13 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 
         try
         {
-            return await GetVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
+            return await QueryVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
         }
         catch
         {
             try
             {
-                return await GetVersion(fallback, "api/server/version", LoggerVerbosity.Info);
+                return await QueryVersion(fallback, "api/server/version", LoggerVerbosity.Info);
             }
             catch
             {
@@ -164,7 +164,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             }
         }
 
-        static async Task<Version> GetVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
+        static async Task<Version> QueryVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
         {
             var contents = await downloader.Download(path, failureVerbosity: failureVerbosity);
             return new Version(contents.Split('-')[0]);
