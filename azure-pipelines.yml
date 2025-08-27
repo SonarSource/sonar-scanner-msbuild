@@ -314,6 +314,7 @@ stages:
               solution: '$(SOLUTION)'
               platform: '$(BUILD_PLATFORM)'
               configuration: '$(BUILD_CONFIGURATION)'
+              msbuildArgs: '/p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true'
 
           - powershell: .\scripts\run-unit-tests.ps1 -sourcesDirectory "$(Build.SourcesDirectory)" -buildConfiguration "$(BUILD_CONFIGURATION)"
             displayName: 'Run UTs and compute coverage'

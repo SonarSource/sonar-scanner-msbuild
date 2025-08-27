@@ -2,6 +2,7 @@
 <Project>
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
   <ItemGroup>
