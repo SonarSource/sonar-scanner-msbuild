@@ -20,14 +20,14 @@
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class ProjectInfoAnalysisResult
+public class AnalysisResult
 {
     public ProjectData[] Projects { get; }
     public ScannerEngineInput ScannerEngineInput { get; }
     public string FullPropertiesFilePath { get; }   // ToDo: Remove in SCAN4NET-721
     public bool RanToCompletion { get; set; }       // ToDo: Remove this tangle in SCAN4NET-721, it can only be false when sonar-project.properties file already exists
 
-    public ProjectInfoAnalysisResult(ProjectData[] projects, ScannerEngineInput scannerEngineInput = null, string fullPropertiesFilePath = null)
+    public AnalysisResult(ProjectData[] projects, ScannerEngineInput scannerEngineInput = null, string fullPropertiesFilePath = null)
     {
         Projects = projects;
         ScannerEngineInput = scannerEngineInput;            // Can be null when there are no valid projects

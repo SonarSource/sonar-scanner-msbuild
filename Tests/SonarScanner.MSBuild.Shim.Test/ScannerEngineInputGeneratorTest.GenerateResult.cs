@@ -785,7 +785,7 @@ public partial class ScannerEngineInputGeneratorTest
     /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
     /// Checks that a property file is created.
     /// </summary>
-    private ProjectInfoAnalysisResult GenerateResultAndAssert(string projectName, TestLogger logger, params Property[] localSettings)
+    private AnalysisResult GenerateResultAndAssert(string projectName, TestLogger logger, params Property[] localSettings)
     {
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, projectName);
         TestUtils.CreateProjectWithFiles(TestContext, projectName, analysisRootDir);
@@ -798,6 +798,6 @@ public partial class ScannerEngineInputGeneratorTest
         return result;
     }
 
-    private static ScannerEngineInputReader CreateInputReader(ProjectInfoAnalysisResult result) =>
+    private static ScannerEngineInputReader CreateInputReader(AnalysisResult result) =>
         new(result.ScannerEngineInput.ToString());
 }

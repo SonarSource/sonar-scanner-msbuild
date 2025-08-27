@@ -38,14 +38,13 @@ public class PostProcessor : IPostProcessor
 
     private ScannerEngineInputGenerator scannerEngineInputGenerator;
 
-    public PostProcessor(
-        SonarScannerWrapper sonarScanner,
-        ILogger logger,
-        TargetsUninstaller targetUninstaller,
-        TfsProcessorWrapper tfsProcessor,
-        SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
-        BuildVNextCoverageReportProcessor coverageReportProcessor,
-        IFileWrapper fileWrapper = null)
+    public PostProcessor(SonarScannerWrapper sonarScanner,
+                         ILogger logger,
+                         TargetsUninstaller targetUninstaller,
+                         TfsProcessorWrapper tfsProcessor,
+                         SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
+                         BuildVNextCoverageReportProcessor coverageReportProcessor,
+                         IFileWrapper fileWrapper = null)
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -56,37 +55,32 @@ public class PostProcessor : IPostProcessor
         this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
     }
 
-    public void /* for testing purposes */ SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
-        this.scannerEngineInputGenerator = scannerEngineInputGenerator;
-
     public bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
         _ = config ?? throw new ArgumentNullException(nameof(config));
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
         logger.SuspendOutput();
-
         targetUninstaller.UninstallTargets(config.SonarBinDir);
-
-        if (!ArgumentProcessor.TryProcessArgs(args, logger, out IAnalysisPropertyProvider provider))
+        if (!ArgumentProcessor.TryProcessArgs(args, logger, out var provider))
         {
             logger.ResumeOutput();
-            // logging already done
-            return false;
+            return false;   // logging already done
         }
-
         logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.AnalysisSettings(true, logger), logger);
         logger.ResumeOutput();
         LogStartupSettings(config, settings);
-
         if (!CheckCredentialsInCommandLineArgs(config, provider) || !CheckEnvironmentConsistency(config, settings))
         {
-            // logging already done
-            return false;
+            return false;   // logging already done
         }
 
-        var analysisResult = GenerateAndValidatePropertiesFile(config);
-        if (analysisResult.FullPropertiesFilePath is not null)
+        var analysisResult = CreateAnalysisResult(config);
+        if (analysisResult.FullPropertiesFilePath is null)
+        {
+            return false;
+        }
+        else
         {
 #if NETFRAMEWORK
             ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult);
@@ -106,16 +100,15 @@ public class PostProcessor : IPostProcessor
 #endif
             return result;
         }
-
-        return false;
     }
 
-    private ProjectInfoAnalysisResult GenerateAndValidatePropertiesFile(AnalysisConfig config)
+    internal void SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
+        this.scannerEngineInputGenerator = scannerEngineInputGenerator;
+
+    private AnalysisResult CreateAnalysisResult(AnalysisConfig config)
     {
         scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, logger);
-
         var result = scannerEngineInputGenerator.GenerateResult();
-
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
             logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
@@ -126,30 +119,22 @@ public class PostProcessor : IPostProcessor
             ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
             result.RanToCompletion = true;
         }
-
         return result;
     }
 
     private void LogStartupSettings(AnalysisConfig config, IBuildSettings settings)
     {
-        logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
-
-        switch (settings.BuildEnvironment)
+        var environmentMessage = settings.BuildEnvironment switch
         {
-            case BuildEnvironment.LegacyTeamBuild:
-                logger.LogDebug(Resources.SETTINGS_InLegacyTeamBuild);
-                break;
-
-            case BuildEnvironment.TeamBuild:
-                logger.LogDebug(Resources.SETTINGS_InTeamBuild);
-                break;
-
-            case BuildEnvironment.NotTeamBuild:
-                logger.LogDebug(Resources.SETTINGS_NotInTeamBuild);
-                break;
-        }
-
-        logger.LogDebug(Resources.SETTING_DumpSettings,
+            BuildEnvironment.LegacyTeamBuild => Resources.SETTINGS_InLegacyTeamBuild,
+            BuildEnvironment.TeamBuild => Resources.SETTINGS_InTeamBuild,
+            BuildEnvironment.NotTeamBuild => Resources.SETTINGS_NotInTeamBuild,
+            _ => throw new InvalidOperationException($"Unexpected BuildEnvironment: {settings.BuildEnvironment}")
+        };
+        logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
+        logger.LogDebug(environmentMessage);
+        logger.LogDebug(
+            Resources.SETTING_DumpSettings,
             settings.AnalysisBaseDirectory,
             settings.BuildDirectory,
             settings.SonarBinDirectory,
@@ -159,31 +144,26 @@ public class PostProcessor : IPostProcessor
     }
 
     /// <summary>
-    /// Returns a boolean indicating whether the information in the environment variables
-    /// matches that in the analysis config file.
-    /// Used to detect invalid setups on the build agent.
+    /// Returns a boolean indicating whether the information in the environment variables matches that in the analysis config file to detect invalid Agent setup.
     /// </summary>
     private bool CheckEnvironmentConsistency(AnalysisConfig config, IBuildSettings settings)
     {
-        // Currently we're only checking that the build uris match as this is the most likely error
-        // - it probably means that an old analysis config file has been left behind somehow
-        // e.g. a build definition used to include analysis but has changed so that it is no
-        // longer an analysis build, but there is still an old analysis config on disc.
-
+        // Currently we're only checking that the build Uris match as this is the most likely error - it probably means that an old analysis config file has been left behind somehow.
+        // e.g. a build definition used to include analysis but has changed so that it is no longer an analysis build, but there is still an old analysis config on disc.
         if (settings.BuildEnvironment == BuildEnvironment.NotTeamBuild)
         {
             return true;
         }
 
         var configUri = config.GetBuildUri();
-        var environmentUi = settings.BuildUri;
-        if (string.Equals(configUri, environmentUi, StringComparison.OrdinalIgnoreCase))
+        var environmentUri = settings.BuildUri;
+        if (string.Equals(configUri, environmentUri, StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
         else
         {
-            logger.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUi, configUri, settings.AnalysisConfigFilePath);
+            logger.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUri, configUri, settings.AnalysisConfigFilePath);
             return false;
         }
     }
@@ -224,22 +204,22 @@ public class PostProcessor : IPostProcessor
         logger.IncludeTimestamp = true;
     }
 
-    private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, string sonarAnalysisConfigFilePath, ProjectInfoAnalysisResult projectInfoAnalysisResult)
+    private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, string sonarAnalysisConfigFilePath, AnalysisResult analysisResult)
     {
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
             logger.LogInfo(Resources.MSG_ConvertingCoverageReports);
             var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
-            WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
-            WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
-            projectInfoAnalysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
-            projectInfoAnalysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
+            WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
+            WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
+            analysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
+            analysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
             logger.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
             logger.IncludeTimestamp = false;
-            tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, projectInfoAnalysisResult.FullPropertiesFilePath]);
+            tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, analysisResult.FullPropertiesFilePath]);
             logger.IncludeTimestamp = true;
         }
     }

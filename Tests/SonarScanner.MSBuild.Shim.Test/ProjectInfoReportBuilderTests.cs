@@ -29,7 +29,7 @@ public class ProjectInfoReportBuilderTests
     public void PIRB_WriteSummaryReport_InvalidArgs_Throws()
     {
         var analysisConfig = new AnalysisConfig();
-        var analysisResult = new ProjectInfoAnalysisResult([]);
+        var analysisResult = new AnalysisResult([]);
         var loggerMock = Substitute.For<ILogger>();
 
         // 1. Invalid analysis config
@@ -50,7 +50,7 @@ public class ProjectInfoReportBuilderTests
     {
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var analysisConfig = new AnalysisConfig() { SonarOutputDir = testDir };
-        var analysisResult = new ProjectInfoAnalysisResult([
+        var analysisResult = new AnalysisResult([
             CreateProjectData("project1", ProjectType.Product, ProjectInfoValidity.ExcludeFlagSet),
             CreateProjectData("project2", ProjectType.Product, ProjectInfoValidity.InvalidGuid),
             CreateProjectData("project3", ProjectType.Product, ProjectInfoValidity.InvalidGuid),

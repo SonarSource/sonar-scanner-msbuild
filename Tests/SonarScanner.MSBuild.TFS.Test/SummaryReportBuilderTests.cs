@@ -117,7 +117,7 @@ public class SummaryReportBuilderTests
     public void Deprecated_Warning_Logged_On_XAML_Build()
     {
         var hostUrl = "http://mySonarQube:9000";
-        var result = new ProjectInfoAnalysisResult([]);
+        var result = new AnalysisResult([]);
         var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
         var settings = new MockBuildSettings
         {

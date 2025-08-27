@@ -88,7 +88,7 @@ public class ScannerEngineInputGenerator
     /// </summary>
     /// <returns>Information about each of the project info files that was processed, together with the full path to the generated sonar-project.properties file.
     /// Note: The path to the generated file will be null if the file could not be generated.</returns>
-    public virtual ProjectInfoAnalysisResult GenerateResult()
+    public virtual AnalysisResult GenerateResult()
     {
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var legacyWriter = new PropertiesWriter(analysisConfig);
@@ -99,7 +99,7 @@ public class ScannerEngineInputGenerator
         {
             logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
             logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
-            return new ProjectInfoAnalysisResult([]);
+            return new([]);
         }
         var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
         FixSarifAndEncoding(projects, analysisProperties);
@@ -109,12 +109,12 @@ public class ScannerEngineInputGenerator
             var contents = legacyWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
             logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
-            return new ProjectInfoAnalysisResult(allProjects, engineInput, projectPropertiesPath);
+            return new(allProjects, engineInput, projectPropertiesPath);
         }
         else
         {
             logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
-            return new ProjectInfoAnalysisResult(allProjects);
+            return new(allProjects);
         }
     }
 
