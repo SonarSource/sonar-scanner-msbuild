@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-
 namespace TestUtilities;
 
 /// <summary>
@@ -35,6 +31,8 @@ public sealed class WorkingDirectoryScope : IDisposable
 {
     private readonly string originalDirectory;
 
+    private bool disposed;
+
     public WorkingDirectoryScope(string workingDirectory)
     {
         Directory.Exists(workingDirectory).Should().BeTrue("Test setup error: specified directory should exist - " + workingDirectory);
@@ -43,15 +41,8 @@ public sealed class WorkingDirectoryScope : IDisposable
         Directory.SetCurrentDirectory(workingDirectory);
     }
 
-    #region IDispose implementation
-
-    private bool disposed;
-
-    public void Dispose()
-    {
+    public void Dispose() =>
         Dispose(true);
-        GC.SuppressFinalize(this);
-    }
 
     private void Dispose(bool disposing)
     {
@@ -66,6 +57,4 @@ public sealed class WorkingDirectoryScope : IDisposable
             Directory.SetCurrentDirectory(originalDirectory);
         }
     }
-
-    #endregion IDispose implementation
 }
