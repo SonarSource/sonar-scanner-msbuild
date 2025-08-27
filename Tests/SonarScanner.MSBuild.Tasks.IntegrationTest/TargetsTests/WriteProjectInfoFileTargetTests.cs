@@ -363,11 +363,11 @@ public class WriteProjectInfoFileTargetTests
         var projectInfo = ExecuteWriteProjectInfo(filePath, context.OutputFolder);
         if (expectedFiles.Length == 0)
         {
-            AssertResultFileDoesNotExist(projectInfo, AnalysisType.FilesToAnalyze);
+            AssertResultFileDoesNotExist(projectInfo, AnalysisResultFileType.FilesToAnalyze);
         }
         else
         {
-            AssertResultFileExists(projectInfo, AnalysisType.FilesToAnalyze, [.. expectedFiles.Select(x => Path.GetDirectoryName(filePath) + Path.DirectorySeparatorChar + x)]);
+            AssertResultFileExists(projectInfo, AnalysisResultFileType.FilesToAnalyze, [.. expectedFiles.Select(x => Path.GetDirectoryName(filePath) + Path.DirectorySeparatorChar + x)]);
         }
     }
 
@@ -412,7 +412,7 @@ public class WriteProjectInfoFileTargetTests
     private static void AssertProjectIsNotExcluded(ProjectInfo projectInfo) =>
         projectInfo.IsExcluded.Should().BeFalse("Not expecting the project to be excluded");
 
-    private void AssertResultFileDoesNotExist(ProjectInfo projectInfo, AnalysisType resultType)
+    private void AssertResultFileDoesNotExist(ProjectInfo projectInfo, AnalysisResultFileType resultType)
     {
         var found = projectInfo.TryGetAnalyzerResult(resultType, out var result);
         if (found)
@@ -422,7 +422,7 @@ public class WriteProjectInfoFileTargetTests
         found.Should().BeFalse("Analysis result found unexpectedly. Result type: {0}", resultType);
     }
 
-    private void AssertResultFileExists(ProjectInfo projectInfo, AnalysisType resultType, params string[] expected)
+    private void AssertResultFileExists(ProjectInfo projectInfo, AnalysisResultFileType resultType, params string[] expected)
     {
         var found = projectInfo.TryGetAnalyzerResult(resultType, out var result);
         found.Should().BeTrue("Analysis result not found: {0}", resultType);

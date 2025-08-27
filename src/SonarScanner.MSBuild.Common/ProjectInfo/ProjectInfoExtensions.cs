@@ -35,9 +35,9 @@ public static class ProjectInfoExtensions
     /// Attempts to find and return the analyzer result with the specified id
     /// </summary>
     /// <returns>True if the analyzer result was found, otherwise false</returns>
-    public static bool TryGetAnalyzerResult(this ProjectInfo projectInfo, AnalysisType analyzerType, out AnalysisResult result)
+    public static bool TryGetAnalyzerResult(this ProjectInfo projectInfo, AnalysisResultFileType fileType, out AnalysisResult result)
     {
-        return TryGetAnalyzerResult(projectInfo, analyzerType.ToString(), out result);
+        return TryGetAnalyzerResult(projectInfo, fileType.ToString(), out result);
     }
 
     /// <summary>
@@ -84,9 +84,9 @@ public static class ProjectInfoExtensions
     /// Adds an analysis result of the specified type
     /// </summary>
     /// <remarks>The method does not check whether an analysis result with the same id already exists i.e. duplicate results are allowed</remarks>
-    public static void AddAnalyzerResult(this ProjectInfo projectInfo, AnalysisType analyzerType, string location)
+    public static void AddAnalyzerResult(this ProjectInfo projectInfo, AnalysisResultFileType fileType, string location)
     {
-        AddAnalyzerResult(projectInfo, analyzerType.ToString(), location);
+        AddAnalyzerResult(projectInfo, fileType.ToString(), location);
     }
 
     /// <summary>
@@ -150,9 +150,9 @@ public static class ProjectInfoExtensions
     /// Returns null if there is not a result for the specified type.
     /// Note that callers must check if the file exists before attempting to read.
     /// </summary>
-    public static string TryGetAnalysisFileLocation(this ProjectInfo projectInfo, AnalysisType analysisType)
+    public static string TryGetAnalysisFileLocation(this ProjectInfo projectInfo, AnalysisResultFileType fileType)
     {
-        if (projectInfo.TryGetAnalyzerResult(analysisType, out var result))
+        if (projectInfo.TryGetAnalyzerResult(fileType, out var result))
         {
             return result.Location;
         }
@@ -166,7 +166,7 @@ public static class ProjectInfoExtensions
     /// </summary>
     public static FileInfo[] GetAllAnalysisFiles(this ProjectInfo projectInfo, ILogger logger)
     {
-        var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisType.FilesToAnalyze);
+        var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisResultFileType.FilesToAnalyze);
         if (compiledFilesPath is null
             || !File.Exists(compiledFilesPath))
         {

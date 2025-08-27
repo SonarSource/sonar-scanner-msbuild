@@ -145,7 +145,7 @@ public class ProjectInfoExtensionsTests
     public void GetAllAnalysisFilesTest()
     {
         var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var filesToAnalyze = Path.Combine(dir, TestUtils.FilesToAnalyze);
+        var filesToAnalyze = Path.Combine(dir, AnalysisResultFileType.FilesToAnalyze.ToString());
         var logger = new TestLogger();
         var projectInfo = new ProjectInfo
         {
@@ -153,7 +153,7 @@ public class ProjectInfoExtensionsTests
             [
                 new AnalysisResult
                 {
-                    Id = TestUtils.FilesToAnalyze,
+                    Id = AnalysisResultFileType.FilesToAnalyze.ToString(),
                     Location = filesToAnalyze,
                 }
             ]
