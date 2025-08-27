@@ -36,14 +36,14 @@ public class BuildVNextCoverageReportProcessor
 
     // ToDo: SCAN4NET-786 Test report discovery is flawed
     // ToDo: SCAN4NET-787 Coverage fallback should be in AzDo Extension
-    public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings, ILogger logger)
+    public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings)
     {
         runtime.Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
         string[] vsTestReportsPaths = null;
         string[] vsCoverageXmlReportsPaths = null;
-        var trxFilePaths = new TrxFileReader(logger, runtime.File, runtime.Directory).FindTrxFiles(settings.BuildDirectory);
+        var trxFilePaths = new TrxFileReader(runtime.Logger, runtime.File, runtime.Directory).FindTrxFiles(settings.BuildDirectory);
 
-        if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, logger) is null)
+        if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, runtime.Logger) is null)
         {
             if (trxFilePaths.Any())
             {
@@ -59,7 +59,7 @@ public class BuildVNextCoverageReportProcessor
         if (vsCoverageFilePaths.Any()
             && TryConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths)
             && coverageReportPaths.Any()
-            && config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, logger) is null)
+            && config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, runtime.Logger) is null)
         {
             vsCoverageXmlReportsPaths = coverageReportPaths.ToArray();
         }
