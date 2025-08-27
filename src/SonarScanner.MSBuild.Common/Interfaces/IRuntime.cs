@@ -23,7 +23,7 @@ namespace SonarScanner.MSBuild.Common;
 public interface IRuntime
 {
     OperatingSystemProvider OperatingSystem { get; }
-    ILogger Logger { get; }
-    IFileWrapper File { get; }
     IDirectoryWrapper Directory { get; }
+    IFileWrapper File { get; }
+    ILogger Logger { get; }
 }
