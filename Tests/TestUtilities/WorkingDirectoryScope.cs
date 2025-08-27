@@ -41,8 +41,11 @@ public sealed class WorkingDirectoryScope : IDisposable
         Directory.SetCurrentDirectory(workingDirectory);
     }
 
-    public void Dispose() =>
+    public void Dispose()
+    {
         Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
     private void Dispose(bool disposing)
     {
