@@ -574,7 +574,7 @@ public class PropertiesWriterTest
             ProjectGuid = Guid.Parse(guid),
             FullPath = fullFilePath.FullName,
             ProjectType = isTest ? ProjectType.Test : ProjectType.Product,
-            AnalysisResults = [],
+            AnalysisResultFiles = [],
             AnalysisSettings = [],
             ProjectLanguage = language,
             Encoding = "UTF-8"

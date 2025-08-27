@@ -36,7 +36,7 @@ public class ProjectDescriptor
     public bool IsTestProject { get; set; }
     public bool IsExcluded { get; set; }
     public Encoding Encoding { get; set; } = Encoding.UTF8;
-    public List<AnalysisResult> AnalysisResults { get; } = [];
+    public List<AnalysisResultFile> AnalysisResultFiles { get; } = [];
     public string ParentDirectoryPath { get; set; }
     public string ProjectFolderName { get; set; }
     public string ProjectFileName { get; set; }
@@ -57,7 +57,7 @@ public class ProjectDescriptor
             ProjectType = IsTestProject ? ProjectType.Test : ProjectType.Product,
             IsExcluded = IsExcluded,
             Encoding = Encoding.WebName,
-            AnalysisResults = new(AnalysisResults)
+            AnalysisResultFiles = new(AnalysisResultFiles)
         };
 
     public void AddContentFile(string filePath, bool shouldAnalyse) =>

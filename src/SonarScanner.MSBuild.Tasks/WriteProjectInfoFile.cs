@@ -105,7 +105,7 @@ public class WriteProjectInfoFile : Task
         {
             Log.LogMessage(MessageImportance.High, Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
         }
-        pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
+        pi.AnalysisResultFiles = TryCreateAnalysisResultFiles(AnalysisResults);
         pi.AnalysisSettings = TryCreateAnalysisSettings(AnalysisSettings);
         pi.Save(outputFileName);
         return true;
@@ -175,10 +175,10 @@ public class WriteProjectInfoFile : Task
         return null;
     }
 
-    private List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems) =>
-        resultItems?.Select(TryCreateResultFromItem).Where(x => x is not null).ToList() ?? [];
+    private List<AnalysisResultFile> TryCreateAnalysisResultFiles(ITaskItem[] resultItems) =>
+        resultItems?.Select(TryCreateResultFileFromItem).Where(x => x is not null).ToList() ?? [];
 
-    private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
+    private AnalysisResultFile TryCreateResultFileFromItem(ITaskItem taskItem)
     {
         Debug.Assert(taskItem is not null, "Supplied task item should not be null");
         var id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);
@@ -189,7 +189,7 @@ public class WriteProjectInfoFile : Task
         var path = taskItem.ItemSpec;
         if (Path.IsPathRooted(path))
         {
-            return new AnalysisResult { Id = id, Location = path };
+            return new AnalysisResultFile { Id = id, Location = path };
         }
         Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
         var projectDir = Path.GetDirectoryName(FullProjectPath);
@@ -203,11 +203,7 @@ public class WriteProjectInfoFile : Task
         {
             Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
         }
-        return new AnalysisResult
-        {
-            Id = id,
-            Location = path
-        };
+        return new AnalysisResultFile { Id = id, Location = path };
     }
 
     private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)

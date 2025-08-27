@@ -497,10 +497,10 @@ public class E2EAnalysisTests
         projectInfo.ProjectLanguage.Should().BeNull("Expecting the project language to be null");
         projectInfo.IsExcluded.Should().BeFalse("Project should not be marked as excluded");
         projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
-        projectInfo.AnalysisResults.Should().ContainSingle("Unexpected number of analysis results created");
+        projectInfo.AnalysisResultFiles.Should().ContainSingle("Unexpected number of analysis results created");
 
         // Check the correct list of files to analyze were returned
-        var filesToAnalyze = projectInfo.AssertAnalysisResultExists(nameof(AnalysisResultFileType.FilesToAnalyze));
+        var filesToAnalyze = projectInfo.AssertAnalysisResultFileExists(nameof(AnalysisResultFileType.FilesToAnalyze));
         var actualFilesToAnalyze = File.ReadAllLines(filesToAnalyze.Location);
         actualFilesToAnalyze.Should().BeEquivalentTo([codeFile, contentFile], "Unexpected list of files to analyze");
     }
@@ -560,7 +560,7 @@ public class E2EAnalysisTests
         projectInfo.IsExcluded.Should().BeTrue("Expecting the project to be marked as excluded");
         projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
         projectInfo.ProjectType.Should().Be(ProjectType.Test, "Project should be marked as a test project");
-        projectInfo.AnalysisResults.Should().BeEmpty("Unexpected number of analysis results created");
+        projectInfo.AnalysisResultFiles.Should().BeEmpty("Unexpected number of analysis results created");
     }
 
     // Checks that projects that don't include the standard managed targets are still
@@ -887,7 +887,7 @@ public class E2EAnalysisTests
                                                  string expectedTelemetryPath)
     {
         projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
-        projectInfo.AnalysisResults.Should().ContainSingle(x => x.Id.Equals(AnalysisResultFileType.FilesToAnalyze.ToString())).Which.Location.Should().Be(expectedFilesToAnalyzePath);
+        projectInfo.AnalysisResultFiles.Should().ContainSingle(x => x.Id.Equals(AnalysisResultFileType.FilesToAnalyze.ToString())).Which.Location.Should().Be(expectedFilesToAnalyzePath);
         projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Which.Value.Should().Be(expectedReportFilePaths);
         projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Which.Value.Should().Be(expectedProjectOutPaths);
         if (expectedTelemetryPath is null)
@@ -968,7 +968,7 @@ public class E2EAnalysisTests
             var expectedFullPaths = fileNames.Select(x => Path.Combine(context.InputFolder, x));
             File.ReadLines(filesToAnalyzeFile.FullPath).Should().BeEquivalentTo(expectedFullPaths);
 
-            var actualFilesToAnalyze = ProjectInfo.AssertAnalysisResultExists(AnalysisResultFileType.FilesToAnalyze.ToString());
+            var actualFilesToAnalyze = ProjectInfo.AssertAnalysisResultFileExists(AnalysisResultFileType.FilesToAnalyze.ToString());
             actualFilesToAnalyze.Location.Should().Be(filesToAnalyzeFile.FullPath);
 
             AssertFileIsUtf8Bom(filesToAnalyzeFile.FullPath);

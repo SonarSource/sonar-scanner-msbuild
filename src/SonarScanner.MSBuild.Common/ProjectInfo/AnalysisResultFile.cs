@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.Common;
 /// Data class to describe the output of a single type of analyzer.
 /// </summary>
 /// <remarks>The class is XML-serializable. Examples of types of analyzer: CodeCoverage, Roslyn Analyzers...</remarks>
-public class AnalysisResult
+public class AnalysisResultFile
 {
     public static readonly IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
 

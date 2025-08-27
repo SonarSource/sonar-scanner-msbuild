@@ -652,9 +652,9 @@ public class WriteProjectInfoFileTests
     private static void AssertAnalysisResultExists(ProjectInfo actual, string expectedId, string expectedLocation)
     {
         actual.Should().NotBeNull("Supplied project info should not be null");
-        actual.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
+        actual.AnalysisResultFiles.Should().NotBeNull("AnalysisResults should not be null");
 
-        var result = actual.AnalysisResults.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
+        var result = actual.AnalysisResultFiles.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
         result.Should().NotBeNull("AnalysisResult with the expected id does not exist. Id: {0}", expectedId);
 
         result.Location.Should().Be(expectedLocation, "Analysis result does not have the expected location");
@@ -663,9 +663,9 @@ public class WriteProjectInfoFileTests
     private static void AssertExpectedAnalysisResultCount(int count, ProjectInfo actual)
     {
         actual.Should().NotBeNull("Supplied project info should not be null");
-        actual.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
+        actual.AnalysisResultFiles.Should().NotBeNull("AnalysisResults should not be null");
 
-        actual.AnalysisResults.Should().HaveCount(count, "Unexpected number of AnalysisResult items");
+        actual.AnalysisResultFiles.Should().HaveCount(count, "Unexpected number of AnalysisResult items");
     }
 
     private static void AssertAnalysisSettingExists(ProjectInfo actual, string expectedId, string expectedValue)

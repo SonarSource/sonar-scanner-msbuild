@@ -448,7 +448,7 @@ public partial class ScannerEngineInputGeneratorTest
         var projectInfo = new ProjectInfo
         {
             FullPath = projectFullPath,
-            AnalysisResults = [],
+            AnalysisResultFiles = [],
             IsExcluded = false,
             ProjectGuid = Guid.NewGuid(),
             ProjectName = "project1.proj",
