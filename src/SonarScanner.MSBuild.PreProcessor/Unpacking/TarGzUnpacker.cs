@@ -31,12 +31,12 @@ public class TarGzUnpacker : IUnpacker
     private readonly IFileWrapper fileWrapper;
     private readonly OperatingSystemProvider operatingSystem;
 
-    public TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, OperatingSystemProvider operatingSystem)
+    public TarGzUnpacker(IRuntime runtime)
     {
-        this.logger = logger;
-        this.directoryWrapper = directoryWrapper;
-        this.fileWrapper = fileWrapper;
-        this.operatingSystem = operatingSystem;
+        logger = runtime.Logger;
+        directoryWrapper = runtime.Directory;
+        fileWrapper = runtime.File;
+        operatingSystem = runtime.OperatingSystem;
     }
 
     // ref https://github.com/icsharpcode/SharpZipLib/blob/ff2d7c30bdb2474d507f001bc555405e9f02a0bb/src/ICSharpCode.SharpZipLib/Tar/TarArchive.cs#L608
