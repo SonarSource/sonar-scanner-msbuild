@@ -35,7 +35,7 @@ public class ProjectDescriptor
     public IList<string> ManagedSourceFiles => Files.Where(x => x.ItemGroup == CompilerInputItemGroup).Select(x => x.FilePath).ToList();
     public bool IsTestProject { get; set; }
     public bool IsExcluded { get; set; }
-    public Encoding Encoding { get; set; }
+    public Encoding Encoding { get; set; } = Encoding.UTF8;
     public List<AnalysisResult> AnalysisResults { get; } = [];
     public string ParentDirectoryPath { get; set; }
     public string ProjectFolderName { get; set; }
@@ -47,9 +47,8 @@ public class ProjectDescriptor
     public IEnumerable<string> FilesNotToAnalyse => Files.Where(x => !x.ShouldBeAnalysed).Select(x => x.FilePath);
     public bool IsVbProject => ProjectLanguages.IsVbProject(ProjectLanguage);
 
-    public ProjectInfo CreateProjectInfo()
-    {
-        var info = new ProjectInfo
+    public ProjectInfo CreateProjectInfo() =>
+        new()
         {
             FullPath = FullFilePath,
             ProjectLanguage = ProjectLanguage,
@@ -60,9 +59,6 @@ public class ProjectDescriptor
             Encoding = Encoding.WebName,
             AnalysisResults = new List<AnalysisResult>(AnalysisResults)
         };
-
-        return info;
-    }
 
     public void AddContentFile(string filePath, bool shouldAnalyse) =>
         Files.Add(new FileInProject(ProjectDescriptor.ContentItemGroup, filePath, shouldAnalyse));
