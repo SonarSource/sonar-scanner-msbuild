@@ -376,10 +376,10 @@ public partial class PreProcessorTests
         using var scope = new TestScope(TestContext);
         var factory = new MockObjectFactory();
         factory.JreResolver
-            .ResolveJrePath(Arg.Any<ProcessedArgs>())
+            .ResolvePath(Arg.Any<ProcessedArgs>())
             .Returns("some/path/bin/java.exe");
         factory.EngineResolver
-            .ResolveEngine(Arg.Any<ProcessedArgs>())
+            .ResolvePath(Arg.Any<ProcessedArgs>())
             .Returns("some/path/to/engine.jar");
 
         factory.Server.Data.ServerProperties.Add("shared.key1", "server shared value 1");

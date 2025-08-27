@@ -20,6 +20,7 @@
 
 using System.Net;
 using SonarScanner.MSBuild.PreProcessor.EngineResolution;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -99,12 +100,12 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
                                                                string language) =>
         new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger, teamBuildSettings, sonarProperties, rules, language);
 
-    public IJreResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome)
+    public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome)
     {
         return new JreResolver(server, logger, ChecksumSha256.Instance, sonarUserHome);
     }
 
-    public IEngineResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
+    public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
         new EngineResolver(server, logger, sonarUserHome);
 
     private bool ValidateServerUrl(string serverUrl)

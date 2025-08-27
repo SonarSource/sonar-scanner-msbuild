@@ -80,7 +80,7 @@ public class ProcessedArgs
     public virtual bool SkipJreProvisioning { get; }
 
     /// <summary>
-    /// Path to the Java executable.
+    /// Path to the scanner-engine.jar.
     /// </summary>
     public virtual string EngineJarPath { get; }
 
