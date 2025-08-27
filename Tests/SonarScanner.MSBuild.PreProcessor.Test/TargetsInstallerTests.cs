@@ -20,15 +20,11 @@
 
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using NSubstitute.ReceivedExtensions;
 
 using static TestUtilities.TestUtils;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
-// TODO: The tests should be made platform-aware.
-// They currently assume the running platform is Windows.
-// Some of them (like InstallTargetsFile_Overwrite) would fail if run on other OSes.
 [TestClass]
 public class TargetsInstallerTests
 {
@@ -41,7 +37,7 @@ public class TargetsInstallerTests
     [TestInitialize]
     public void Init()
     {
-        CleanupMsbuildDirectories();
+        CleanupMsBuildDirectories();
         workingDirectory = CreateTestSpecificFolderWithSubPaths(TestContext, "sonarqube");
 
         runtime = new();
@@ -50,7 +46,7 @@ public class TargetsInstallerTests
 
     [TestCleanup]
     public void TearDown() =>
-        CleanupMsbuildDirectories();
+        CleanupMsBuildDirectories();
 
     [TestMethod]
     [Description("The targets file should be copied if none are present. The files should not be copied if they already exist and have not been changed.")]
@@ -168,10 +164,10 @@ public class TargetsInstallerTests
         runtime.File
             .When(x => x.Copy(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()))
             .Do(x =>
-            {
-                exceptionThrown = true;
-                throw new InvalidOperationException("This exception should be caught and suppressed by the product code");
-            });
+                {
+                    exceptionThrown = true;
+                    throw new InvalidOperationException("This exception should be caught and suppressed by the product code");
+                });
 
         using (new AssertIgnoreScope())
         {
@@ -264,15 +260,15 @@ public class TargetsInstallerTests
         }
 
         var sameContent = sourceContent.Equals(destinationContent);
-        if (!destinationExists || !sameContent)
-        {
-            // Copy is executed once, overwriting existing files
-            runtime.File.Received(1).Copy(sourcePath, destinationPath, true);
-        }
-        else
+        if (destinationExists && sameContent)
         {
             // Copy is not executed
             runtime.File.DidNotReceive().Copy(sourcePath, destinationPath, Arg.Any<bool>());
+        }
+        else
+        {
+            // Copy is executed once, overwriting existing files
+            runtime.File.Received(1).Copy(sourcePath, destinationPath, true);
         }
     }
 
@@ -295,19 +291,19 @@ public class TargetsInstallerTests
         }
 
         var sameContent = sourceContent.Equals(destinationContent);
-        if (!destinationExists || !sameContent)
-        {
-            // Copy is executed once, overwriting existing files
-            runtime.File.Received(1).Copy(sourcePath, Path.Combine(DriveRoot(), "global paths", "SonarQube.Integration.ImportBefore.targets"), true);
-        }
-        else
+        if (destinationExists && sameContent)
         {
             // Copy is not executed
             runtime.File.DidNotReceive().Copy(sourcePath, Path.Combine(DriveRoot(), "global paths", "SonarQube.Integration.ImportBefore.targets"), Arg.Any<bool>());
         }
+        else
+        {
+            // Copy is executed once, overwriting existing files
+            runtime.File.Received(1).Copy(sourcePath, Path.Combine(DriveRoot(), "global paths", "SonarQube.Integration.ImportBefore.targets"), true);
+        }
     }
 
-    private static void CleanupMsbuildDirectories()
+    private static void CleanupMsBuildDirectories()
     {
         // SONARMSBRU-149: we used to deploy the targets file to the 4.0 directory but this
         // is no longer supported. To be on the safe side we'll clean up the old location too.
@@ -355,7 +351,7 @@ public class TargetsInstallerTests
 
         using (new AssertIgnoreScope())
         {
-            installer.InstallLoaderTargets(this.workingDirectory);
+            installer.InstallLoaderTargets(workingDirectory);
         }
 
         var msBuildPathSettings = new MsBuildPathSettings(runtime.Logger);
@@ -364,19 +360,17 @@ public class TargetsInstallerTests
         {
             var path = Path.Combine(destinationDir, FileConstants.ImportBeforeTargetsName);
             File.Exists(path).Should().BeTrue(".targets file not found at: " + path);
-            File.ReadAllText(path).Should().Be(expectedContent,
-                ".targets does not have expected content at " + path);
+            File.ReadAllText(path).Should().Be(expectedContent, ".targets does not have expected content at " + path);
 
             runtimeIO.Logger.DebugMessages.Should().Contain(x => x.Contains(destinationDir));
         }
 
-        var targetsPath = Path.Combine(this.workingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
+        var targetsPath = Path.Combine(workingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
         File.Exists(targetsPath).Should().BeTrue(".targets file not found at: " + targetsPath);
 
         if (expectCopy)
         {
-            runtimeIO.Logger.DebugMessages.Should().HaveCount(msBuildPathSettings.GetImportBeforePaths().Count() + 1,
-                "All destinations should have been covered");
+            runtimeIO.Logger.DebugMessages.Should().HaveCount(msBuildPathSettings.GetImportBeforePaths().Count() + 1, "All destinations should have been covered");
         }
     }
 }
