@@ -85,9 +85,12 @@ public static class ProjectInfoAssertions
     public static AnalysisResult AssertAnalysisResultExists(this ProjectInfo projectInfo, string resultId, string expectedLocation)
     {
         var result = AssertAnalysisResultExists(projectInfo, resultId);
-        result.Location.Should().Be(expectedLocation,
+        result.Location.Should().Be(
+            expectedLocation,
             "Analysis result exists but does not have the expected location. Id: {0}, expected: {1}, actual: {2}",
-                resultId, expectedLocation, result.Location);
+            resultId,
+            expectedLocation,
+            result.Location);
         return result;
     }
 
@@ -103,7 +106,7 @@ public static class ProjectInfoAssertions
         }
         else
         {
-            foreach(var expectedResult in expected.AnalysisResults)
+            foreach (var expectedResult in expected.AnalysisResults)
             {
                 AssertAnalysisResultExists(actual, expectedResult.Id, expectedResult.Location);
             }

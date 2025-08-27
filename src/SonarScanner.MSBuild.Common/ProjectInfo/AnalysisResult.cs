@@ -28,6 +28,9 @@ public class AnalysisResult
 {
     public static readonly IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
 
-    [XmlAttribute] public string Id { get; set; }
-    [XmlAttribute] public string Location { get; set; }
+    [XmlAttribute]
+    public string Id { get; set; }
+
+    [XmlAttribute]
+    public string Location { get; set; }
 }
