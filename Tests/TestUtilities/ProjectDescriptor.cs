@@ -32,8 +32,6 @@ public class ProjectDescriptor
 
     public IList<FileInProject> Files { get; set; }
 
-    #region Public properties
-
     public string ProjectLanguage { get; set; }
 
     public Guid ProjectGuid { get; set; }
@@ -117,8 +115,6 @@ public class ProjectDescriptor
         }
     }
 
-    #endregion Public properties
-
     public ProjectDescriptor()
     {
         AnalysisResults = new List<AnalysisResult>();
@@ -127,8 +123,6 @@ public class ProjectDescriptor
         // set default encoding
         Encoding = Encoding.UTF8;
     }
-
-    #region Public methods
 
     public ProjectInfo CreateProjectInfo()
     {
@@ -156,8 +150,6 @@ public class ProjectDescriptor
     {
         Files.Add(new FileInProject(ProjectDescriptor.CompilerInputItemGroup, filePath, shouldAnalyse));
     }
-
-    #endregion Public methods
 
     /// <summary>
     /// Data class to describe a single file in a project.

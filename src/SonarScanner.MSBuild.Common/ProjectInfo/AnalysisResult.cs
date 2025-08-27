@@ -32,8 +32,6 @@ public class AnalysisResult
     /// </summary>
     public static readonly IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
 
-    #region Data
-
     /// <summary>
     /// The identifier for the type of analyzer
     /// </summary>
@@ -47,10 +45,4 @@ public class AnalysisResult
     /// <remarks>This will normally be an absolute file path</remarks>
     [XmlAttribute]
     public string Location { get; set; }
-
-    #endregion Data
-
-    #region Static helpers
-
-    #endregion Static helpers
 }

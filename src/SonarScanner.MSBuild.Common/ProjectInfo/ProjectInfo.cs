@@ -29,8 +29,6 @@ public class ProjectInfo
 {
     public const string XmlNamespace = "http://www.sonarsource.com/msbuild/integration/2015/1";
 
-    #region Public properties
-
     /// <summary>
     /// The project file name
     /// </summary>
@@ -91,10 +89,6 @@ public class ProjectInfo
     /// </summary>
     public string TargetFramework { get; set; }
 
-    #endregion Public properties
-
-    #region Serialization
-
     /// <summary>
     /// Saves the project to the specified file as XML
     /// </summary>
@@ -106,6 +100,4 @@ public class ProjectInfo
     /// </summary>
     public static ProjectInfo Load(string fileName) =>
         Serializer.LoadModel<ProjectInfo>(fileName);
-
-    #endregion Serialization
 }

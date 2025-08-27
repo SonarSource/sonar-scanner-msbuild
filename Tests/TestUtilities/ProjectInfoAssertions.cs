@@ -22,8 +22,6 @@ namespace TestUtilities;
 
 public static class ProjectInfoAssertions
 {
-    #region Public methods
-
     /// <summary>
     /// Returns the list of project info objects beneath the specified root output folder
     /// </summary>
@@ -44,10 +42,6 @@ public static class ProjectInfoAssertions
         }
         return items;
     }
-
-    #endregion Public methods
-
-    #region Assertions
 
     /// <summary>
     /// Checks that the project info contains the expected values
@@ -121,10 +115,6 @@ public static class ProjectInfoAssertions
         return result;
     }
 
-    #endregion Assertions
-
-    #region Private methods
-
     private static void CompareAnalysisResults(ProjectInfo expected, ProjectInfo actual)
     {
         // We're assuming the actual analysis results have been reloaded by the serializer
@@ -145,6 +135,4 @@ public static class ProjectInfoAssertions
             actual.AnalysisResults.Should().HaveCount(expected.AnalysisResults.Count, "Unexpected additional analysis results found");
         }
     }
-
-    #endregion Private methods
 }

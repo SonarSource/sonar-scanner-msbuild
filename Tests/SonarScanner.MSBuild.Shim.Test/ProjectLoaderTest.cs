@@ -25,8 +25,6 @@ public class ProjectLoaderTest
 {
     public TestContext TestContext { get; set; }
 
-    #region Tests
-
     [TestMethod]
     public void ProjectLoader()
     {
@@ -117,10 +115,6 @@ public class ProjectLoaderTest
         projects.Should().ContainSingle();
     }
 
-    #endregion Tests
-
-    #region Helper methods
-
     /// <summary>
     /// Creates a folder containing a ProjectInfo.xml and compiled file list as
     /// specified in the supplied descriptor
@@ -160,15 +154,9 @@ public class ProjectLoaderTest
         projectInfo.Save(Path.Combine(descriptor.FullDirectoryPath, FileConstants.ProjectInfoFileName));
     }
 
-    #endregion Helper methods
-
-    #region Assertions
-
     private static void AssertProjectResultExists(string expectedProjectName, IEnumerable<ProjectInfo> actualProjects)
     {
         var actual = actualProjects.FirstOrDefault(p => expectedProjectName.Equals(p.ProjectName));
         actual.Should().NotBeNull("Failed to find project with the expected name: {0}", expectedProjectName);
     }
-
-    #endregion Assertions
 }
