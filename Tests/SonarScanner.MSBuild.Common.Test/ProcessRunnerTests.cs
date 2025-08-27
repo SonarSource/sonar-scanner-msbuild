@@ -220,7 +220,7 @@ public class ProcessRunnerTests
     {
         var context = new ProcessRunnerContext(TestContext, $"""
             {ReadCommand("var1")}
-            {EchoCommand("You entered: %var1%")}
+            {EchoCommand($"You entered: {EnvVar("var1")}")}
             """)
         {
             ProcessArgs = { InputWriter = x => x.WriteLine("Hello World") }
@@ -541,8 +541,11 @@ public class ProcessRunnerTests
         }
     }
 
+    private static string EnvVar(string text) =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"%{text}%" : $"${text}";
+
     private static string EchoEnvVar(string text) =>
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? EchoCommand($"%{text}%") : EchoCommand($"${text}");
+        EchoCommand(EnvVar(text));
 
     private static string EchoCommand(string text) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"@echo {text}" : $"echo \"{text.Replace('%', '$')}\"";
