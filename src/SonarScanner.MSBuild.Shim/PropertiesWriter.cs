@@ -154,11 +154,11 @@ public class PropertiesWriter
         string property;
         if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
         {
-            property = ScannerEngineInputGenerator.TelemetryPathsCsharpPropertyKey;
+            property = ScannerEngineInputGenerator.TelemetryPathsKeyCS;
         }
         else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
         {
-            property = ScannerEngineInputGenerator.TelemetryPathsVbNetPropertyKey;
+            property = ScannerEngineInputGenerator.TelemetryPathsKeyVB;
         }
         else
         {
@@ -178,11 +178,11 @@ public class PropertiesWriter
         string property;
         if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
         {
-            property = ScannerEngineInputGenerator.ProjectOutPathsCsharpPropertyKey;
+            property = ScannerEngineInputGenerator.ProjectOutPathsKeyCS;
         }
         else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
         {
-            property = ScannerEngineInputGenerator.ProjectOutPathsVbNetPropertyKey;
+            property = ScannerEngineInputGenerator.ProjectOutPathsKeyVB;
         }
         else
         {
@@ -202,11 +202,11 @@ public class PropertiesWriter
         string property;
         if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
         {
-            property = ScannerEngineInputGenerator.ReportFilePathsCSharpPropertyKey;
+            property = ScannerEngineInputGenerator.ReportFilePathsKeyCS;
         }
         else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
         {
-            property = ScannerEngineInputGenerator.ReportFilePathsVbNetPropertyKey;
+            property = ScannerEngineInputGenerator.ReportFilePathsKeyVB;
         }
         else
         {

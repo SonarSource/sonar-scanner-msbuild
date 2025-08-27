@@ -218,7 +218,7 @@ public class PostProcessor : IPostProcessor
     private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, string sonarAnalysisConfigFilePath, string propertiesFilePath)
     {
         logger.IncludeTimestamp = false;
-        tfsProcessor.Execute(config, ["SummaryReportBuilder", sonarAnalysisConfigFilePath, propertiesFilePath, ranToCompletion.ToString()], propertiesFilePath);
+        tfsProcessor.Execute(config, ["SummaryReportBuilder", sonarAnalysisConfigFilePath, propertiesFilePath, ranToCompletion.ToString()]);
         logger.IncludeTimestamp = true;
     }
 
@@ -237,7 +237,7 @@ public class PostProcessor : IPostProcessor
         {
             logger.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
             logger.IncludeTimestamp = false;
-            tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, projectInfoAnalysisResult.FullPropertiesFilePath], projectInfoAnalysisResult.FullPropertiesFilePath);
+            tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, projectInfoAnalysisResult.FullPropertiesFilePath]);
             logger.IncludeTimestamp = true;
         }
     }

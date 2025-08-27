@@ -18,19 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 public class UnpackerFactory
 {
-    public static UnpackerFactory Instance { get; } = new UnpackerFactory();
+    private readonly ILogger logger;
+    private readonly IDirectoryWrapper directoryWrapper;
+    private readonly IFileWrapper fileWrapper;
+    private readonly OperatingSystemProvider operatingSystem;
 
-    public virtual IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper, string archivePath) =>
+    public UnpackerFactory(ILogger logger, OperatingSystemProvider operatingSystem, IFileWrapper fileWrapper = null, IDirectoryWrapper directoryWrapper = null)
+    {
+        this.logger = logger;
+        this.operatingSystem = operatingSystem;
+        this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
+        this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
+    }
+
+    public virtual IUnpacker Create(string archivePath) =>
         archivePath switch
         {
             _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
-            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(logger, directoryWrapper, fileWrapper, filePermissionsWrapper),
+            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(logger, directoryWrapper, fileWrapper, operatingSystem),
             _ => null
         };
 }
