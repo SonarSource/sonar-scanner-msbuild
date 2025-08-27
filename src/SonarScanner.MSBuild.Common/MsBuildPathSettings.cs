@@ -68,16 +68,16 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
 
         if (string.IsNullOrWhiteSpace(programFiles))
         {
-            return Enumerable.Empty<string>();
+            return [];
         }
 
-        return new[]
-        {
+        return
+        [
             // Up to v15, global targets are dropped under Program Files (x86)\MSBuild.
             // This doesn't appear to be the case for later versions.
             Path.Combine(programFiles, "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore"),
             Path.Combine(programFiles, "MSBuild", "15.0", "Microsoft.Common.Targets", "ImportBefore")
-        };
+        ];
     }
 
     private IEnumerable<string> DotnetImportBeforePathsLinuxMac()
