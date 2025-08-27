@@ -31,22 +31,20 @@ public class TfsProcessorWrapper
         operatingSystem = runtime.OperatingSystem;
     }
 
-    public virtual bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    public virtual bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
     {
         _ = config ?? throw new ArgumentNullException(nameof(config));
         _ = userCmdLineArguments ?? throw new ArgumentNullException(nameof(userCmdLineArguments));
 
-        return InternalExecute(config, userCmdLineArguments, fullPropertiesFilePath);
+        return InternalExecute(config, userCmdLineArguments);
     }
 
     public virtual /* for test purposes */ bool ExecuteProcessorRunner(AnalysisConfig config,
                                                                        string exeFileName,
                                                                        IEnumerable<string> userCmdLineArguments,
-                                                                       string propertiesFileName,
                                                                        IProcessRunner runner)
     {
         Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
-        Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
         logger.LogInfo(Resources.MSG_TFSProcessorCalling);
 
@@ -71,10 +69,10 @@ public class TfsProcessorWrapper
         return result.Succeeded;
     }
 
-    private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
     {
         var exeFileName = FindProcessorExe();
-        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, fullPropertiesFilePath, new ProcessRunner(logger));
+        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, new ProcessRunner(logger));
     }
 
     private static string FindProcessorExe()

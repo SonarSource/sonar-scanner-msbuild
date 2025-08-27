@@ -18,22 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
-
 namespace SonarScanner.MSBuild.TFS;
 
 public interface ICoverageReportProcessor
 {
-    /// <summary>
-    /// Initializes the converter
-    /// </summary>
-    /// <returns>Operation success.</returns>
     bool Initialize(AnalysisConfig config, IBuildSettings settings, string propertiesFilePath);
 
     /// <summary>
-    /// Locate, download and convert the code coverage report
+    /// Locate, download and convert the code coverage report.
     /// </summary>
-    /// <returns>Operation success.</returns>
     bool ProcessCoverageReports(ILogger logger);
 }
