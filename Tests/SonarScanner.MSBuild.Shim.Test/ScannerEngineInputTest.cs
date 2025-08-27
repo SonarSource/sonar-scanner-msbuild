@@ -532,13 +532,13 @@ public class ScannerEngineInputTest
         };
         if (coverageReportPath is not null)
         {
-            projectInfo.AddAnalyzerResult(AnalysisType.VisualStudioCodeCoverage, coverageReportPath);
+            projectInfo.AddAnalyzerResult(AnalysisResultFileType.VisualStudioCodeCoverage, coverageReportPath);
         }
         if (files is not null && files.Any())
         {
             fileListFilePath.Should().NotBeNullOrWhiteSpace("Test setup error: must supply the managedFileListFilePath as a list of files has been supplied");
             File.WriteAllLines(fileListFilePath, files.Select(x => x.FullName));
-            projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, fileListFilePath);
+            projectInfo.AddAnalyzerResult(AnalysisResultFileType.FilesToAnalyze, fileListFilePath);
         }
         return new[] { projectInfo }.ToProjectData(true, Substitute.For<ILogger>()).Single();
     }

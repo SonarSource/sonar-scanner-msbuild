@@ -119,7 +119,7 @@ public partial class ScannerEngineInputGeneratorTest
             // Create content / managed files to make it valid
             var contentFile = TestUtils.CreateEmptyFile(projectDir, "ContentFile.txt");
             var contentFileList = TestUtils.CreateFile(projectDir, "ContentList.txt", contentFile);
-            TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileList);
+            TestUtils.AddAnalysisResult(projectInfo, AnalysisResultFileType.FilesToAnalyze, contentFileList);
             return projectFile;
         }
     }
@@ -289,7 +289,7 @@ public partial class ScannerEngineInputGeneratorTest
         // the "contentList.txt" which is placed inside the projectDir folder.
         var contentFileListPath = TestUtils.CreateFile(projectDir, "contentList.txt", string.Join(Environment.NewLine, filesToBeAnalyzedPaths));
         // Add the file path of "contentList.txt" to the projectInfo.xml
-        TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileListPath);
+        TestUtils.AddAnalysisResult(projectInfo, AnalysisResultFileType.FilesToAnalyze, contentFileListPath);
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, logger).GenerateResult();
 
@@ -318,7 +318,7 @@ public partial class ScannerEngineInputGeneratorTest
         // the "contentList.txt" which is placed inside the projectDir folder.
         var contentFileListPath = TestUtils.CreateFile(projectDir, "contentList.txt", fileInNugetCache);
         // Add the file path of "contentList.txt" to the projectInfo.xml
-        TestUtils.AddAnalysisResult(projectInfo, AnalysisType.FilesToAnalyze, contentFileListPath);
+        TestUtils.AddAnalysisResult(projectInfo, AnalysisResultFileType.FilesToAnalyze, contentFileListPath);
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, logger).GenerateResult();
 
@@ -347,13 +347,13 @@ public partial class ScannerEngineInputGeneratorTest
         var sharedFile = TestUtils.CreateEmptyFile(testDir, "contentFile.txt");
         // Reference shared file, but not under the project directory
         var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", sharedFile);
-        TestUtils.AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
+        TestUtils.AddAnalysisResult(project1Info, AnalysisResultFileType.FilesToAnalyze, contentFileList1);
         var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
         var project2Path = TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
         var project2Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName2", null, Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
         // Reference shared file, but not under the project directory
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFile);
-        TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
+        TestUtils.AddAnalysisResult(project2Info, AnalysisResultFileType.FilesToAnalyze, contentFileList2);
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, logger).GenerateResult();
 
@@ -381,13 +381,13 @@ public partial class ScannerEngineInputGeneratorTest
         var sharedFileDifferentCase = Path.Combine(testDir, "ContentFile.TXT");
         // Reference shared file, but not under the project directory
         var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", sharedFile);
-        TestUtils.AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
+        TestUtils.AddAnalysisResult(project1Info, AnalysisResultFileType.FilesToAnalyze, contentFileList1);
         var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
         var project2Path = TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
         var project2Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName2", null, uuids[1], ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
         // Reference shared file, but not under the project directory
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFileDifferentCase);
-        TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
+        TestUtils.AddAnalysisResult(project2Info, AnalysisResultFileType.FilesToAnalyze, contentFileList2);
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, logger).GenerateResult();
 
@@ -412,13 +412,13 @@ public partial class ScannerEngineInputGeneratorTest
         var fileInProject1 = TestUtils.CreateEmptyFile(project1Dir, "contentFile.txt");
         // Reference shared file, but not under the project directory
         var contentFileList1 = TestUtils.CreateFile(project1Dir, "contentList.txt", fileInProject1);
-        TestUtils.AddAnalysisResult(project1Info, AnalysisType.FilesToAnalyze, contentFileList1);
+        TestUtils.AddAnalysisResult(project1Info, AnalysisResultFileType.FilesToAnalyze, contentFileList1);
         var project2Dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project2");
         var project2Path = TestUtils.CreateEmptyFile(project2Dir, "project2.proj");
         var project2Info = TestUtils.CreateProjectInfoInSubDir(testDir, "projectName2", null, Guid.NewGuid(), ProjectType.Product, false, project2Path, "UTF-8"); // not excluded
         // Reference shared file, but not under the project directory
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", fileInProject1);
-        TestUtils.AddAnalysisResult(project2Info, AnalysisType.FilesToAnalyze, contentFileList2);
+        TestUtils.AddAnalysisResult(project2Info, AnalysisResultFileType.FilesToAnalyze, contentFileList2);
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, logger).GenerateResult();
 
@@ -456,7 +456,7 @@ public partial class ScannerEngineInputGeneratorTest
             Encoding = "UTF-8"
         };
         var analysisFileList = CreateFileList(projectBaseDir, TestUtils.FilesToAnalyze, existingManagedFile, missingManagedFile, existingContentFile, missingContentFile);
-        projectInfo.AddAnalyzerResult(AnalysisType.FilesToAnalyze, analysisFileList);
+        projectInfo.AddAnalyzerResult(AnalysisResultFileType.FilesToAnalyze, analysisFileList);
         var projectInfoDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "ProjectInfo1Dir");
         var projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);
         projectInfo.Save(projectInfoFilePath);

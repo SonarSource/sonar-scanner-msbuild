@@ -235,7 +235,7 @@ public partial class ScannerEngineInputGeneratorTest
             ProjectName = "Project",
             IsExcluded = false,
             AnalysisSettings = [],
-            AnalysisResults = [new AnalysisResult { Id = AnalysisType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
+            AnalysisResults = [new AnalysisResult { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
         };
         sut.GenerateProperties(
             config.ToAnalysisProperties(logger),

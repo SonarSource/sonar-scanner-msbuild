@@ -20,24 +20,18 @@
 
 namespace SonarScanner.MSBuild.Common;
 
-/* If we move to a plug-in model (i.e. so handlers for new types of analyzers
-   can be plugged in at runtime e.g. using MEF) then this enum would be removed.
-   For the time being we are only supported a known set of analyzers.
-*/
-
 /// <summary>
 /// Lists the known types of analyzers that are handled by the properties generator
 /// </summary>
-public enum AnalysisType
+public enum AnalysisResultFileType
 {
     /// <summary>
-    /// List of files that should be analyzed
+    /// List of files that should be analyzed, of any type and any language.
     /// </summary>
-    /// <remarks>The files could be of any type and any language</remarks>
     FilesToAnalyze,
 
     /// <summary>
-    /// An XML code coverage report produced by the Visual Studio code coverage tool
+    /// An XML code coverage report produced by the Visual Studio code coverage tool.
     /// </summary>
     VisualStudioCodeCoverage
 }

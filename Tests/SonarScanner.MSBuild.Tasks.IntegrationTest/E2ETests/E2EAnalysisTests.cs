@@ -500,7 +500,7 @@ public class E2EAnalysisTests
         projectInfo.AnalysisResults.Should().ContainSingle("Unexpected number of analysis results created");
 
         // Check the correct list of files to analyze were returned
-        var filesToAnalyze = projectInfo.AssertAnalysisResultExists(nameof(AnalysisType.FilesToAnalyze));
+        var filesToAnalyze = projectInfo.AssertAnalysisResultExists(nameof(AnalysisResultFileType.FilesToAnalyze));
         var actualFilesToAnalyze = File.ReadAllLines(filesToAnalyze.Location);
         actualFilesToAnalyze.Should().BeEquivalentTo([codeFile, contentFile], "Unexpected list of files to analyze");
     }
