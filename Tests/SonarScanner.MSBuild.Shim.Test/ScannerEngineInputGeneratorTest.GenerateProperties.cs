@@ -138,7 +138,7 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var context = new PropertiesContext(TestContext, "unexpected", logger);
         context.AddAnalyzerOutPath("ProjectDir", ".sonarqube", "out", "0");
-        context.TryWriteProperties();
+        context.GenerateProperties();
 
         context.EngineInput.ToString().Should().NotContain("ProjectDir");
     }
@@ -151,7 +151,7 @@ public partial class ScannerEngineInputGeneratorTest
         var context = new PropertiesContext(TestContext, language, logger);
         var path1 = context.AddAnalyzerOutPath("ProjectDir", ".sonarqube", "out", "0");
         var path2 = context.AddAnalyzerOutPath("ProjectDir", ".sonarqube", "out", "1");
-        context.TryWriteProperties();
+        context.GenerateProperties();
 
         context.CreateEngineInputReader().AssertProperty($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}", path1 + "," + path2);
     }
@@ -161,7 +161,7 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var context = new PropertiesContext(TestContext, "unexpected", logger);
         context.AddRoslynReportFilePath("ProjectDir", ".sonarqube", "out", "0", "Issues.json");
-        context.TryWriteProperties();
+        context.GenerateProperties();
 
         context.EngineInput.ToString().Should().NotContain("ProjectDir");
     }
@@ -174,7 +174,7 @@ public partial class ScannerEngineInputGeneratorTest
         var context = new PropertiesContext(TestContext, language, logger);
         var path1 = context.AddRoslynReportFilePath("ProjectDir", ".sonarqube", "out", "0", "Issues.json");
         var path2 = context.AddRoslynReportFilePath("ProjectDir", ".sonarqube", "out", "1", "Issues.json");
-        context.TryWriteProperties();
+        context.GenerateProperties();
 
         context.CreateEngineInputReader().AssertProperty($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}", path1 + "," + path2);
     }
@@ -184,7 +184,7 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var context = new PropertiesContext(TestContext, "unexpected", logger);
         context.AddTelemetryPath("ProjectDir", ".sonarqube", "out", "0", "Telemetry.json");
-        context.TryWriteProperties();
+        context.GenerateProperties();
 
         context.EngineInput.ToString().Should().NotContain("ProjectDir");
     }
@@ -197,7 +197,7 @@ public partial class ScannerEngineInputGeneratorTest
         var context = new PropertiesContext(TestContext, language, logger);
         var path1 = context.AddTelemetryPath("ProjectDir", ".sonarqube", "out", "0", "Telemetry.json");
         var path2 = context.AddTelemetryPath("ProjectDir", ".sonarqube", "out", "1", "Telemetry.json");
-        context.TryWriteProperties();
+        context.GenerateProperties();
 
         context.CreateEngineInputReader().AssertProperty($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}", path1 + "," + path2);
     }
@@ -212,7 +212,7 @@ public partial class ScannerEngineInputGeneratorTest
             new("my.setting2", "setting 2 with spaces"),
             new("my.setting.3", @"c:\dir1\dir2\foo.txt")
         ];
-        context.TryWriteProperties();
+        context.GenerateProperties();
 
         logger.AssertNoErrorsLogged();
         var reader = context.CreateEngineInputReader();
@@ -272,7 +272,7 @@ public partial class ScannerEngineInputGeneratorTest
             Project.Status.Should().Be(ProjectInfoValidity.Valid);
         }
 
-        public void TryWriteProperties()
+        public void GenerateProperties()
         {
             var sut = new ScannerEngineInputGenerator(Config, logger);
             sut.GenerateProperties(Config.ToAnalysisProperties(logger), [Project], new PropertiesWriter(Config), EngineInput).Should().BeTrue();

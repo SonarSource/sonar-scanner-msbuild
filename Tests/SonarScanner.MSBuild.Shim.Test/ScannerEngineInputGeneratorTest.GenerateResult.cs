@@ -543,7 +543,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122
     public void GenerateResult_VSBootstrapperIsDisabled()
     {
-        var result = ExecuteAndCheckSucceeds("disableBootstrapper", logger);
+        var result = GenerateResultAndAssert("disableBootstrapper", logger);
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
@@ -556,7 +556,7 @@ public partial class ScannerEngineInputGeneratorTest
     {
         // Try to explicitly enable the setting
         var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "true");
-        var result = ExecuteAndCheckSucceeds("disableBootstrapperDiff", logger, bootstrapperProperty);
+        var result = GenerateResultAndAssert("disableBootstrapperDiff", logger, bootstrapperProperty);
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
@@ -568,7 +568,7 @@ public partial class ScannerEngineInputGeneratorTest
     public void GenerateResult_VSBootstrapperIsDisabled_OverrideUserSettings_SameValue()
     {
         var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        var result = ExecuteAndCheckSucceeds("disableBootstrapperSame", logger, bootstrapperProperty);
+        var result = GenerateResultAndAssert("disableBootstrapperSame", logger, bootstrapperProperty);
 
         var provider = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         provider.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
@@ -785,7 +785,7 @@ public partial class ScannerEngineInputGeneratorTest
     /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
     /// Checks that a property file is created.
     /// </summary>
-    private ProjectInfoAnalysisResult ExecuteAndCheckSucceeds(string projectName, TestLogger logger, params Property[] localSettings)
+    private ProjectInfoAnalysisResult GenerateResultAndAssert(string projectName, TestLogger logger, params Property[] localSettings)
     {
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, projectName);
         TestUtils.CreateProjectWithFiles(TestContext, projectName, analysisRootDir);
