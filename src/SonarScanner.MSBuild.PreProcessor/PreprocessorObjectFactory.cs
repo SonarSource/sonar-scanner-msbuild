@@ -36,10 +36,10 @@ namespace SonarScanner.MSBuild.PreProcessor;
 /// </remarks>
 public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 {
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
 
-    public PreprocessorObjectFactory(ILogger logger) =>
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    public PreprocessorObjectFactory(IRuntime runtime) =>
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
     public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
     {
@@ -69,19 +69,19 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         {
             if (string.IsNullOrWhiteSpace(args.Organization))
             {
-                logger.LogError(Resources.ERR_MissingOrganization);
-                logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+                runtime.Logger.LogError(Resources.ERR_MissingOrganization);
+                runtime.Logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                 return null;
             }
-            return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
+            return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization, args.HttpTimeout);
         }
         else
         {
-            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
+            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization);
         }
 
         IDownloader CreateDownloader(string baseUrl) =>
-            new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
+            new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, runtime.Logger)
                 .AddAuthorization(userName, password)
                 .AddCertificate(clientCertPath, clientCertPassword)
                 .AddServerCertificate(args.TruststorePath, args.TruststorePassword)
@@ -89,11 +89,11 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     }
 
     public ITargetsInstaller CreateTargetInstaller() =>
-        new TargetsInstaller(logger);
+        new TargetsInstaller(runtime.Logger);
 
     public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
                                                                string localCacheTempPath,
-                                                               ILogger logger,
+                                                               ILogger logger,  // TODO can logger be removed?
                                                                BuildSettings teamBuildSettings,
                                                                IAnalysisPropertyProvider sonarProperties,
                                                                IEnumerable<SonarRule> rules,
@@ -102,17 +102,17 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 
     public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome)
     {
-        return new JreResolver(server, logger, ChecksumSha256.Instance, sonarUserHome);
+        return new JreResolver(server, runtime.Logger, ChecksumSha256.Instance, sonarUserHome);
     }
 
     public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
-        new EngineResolver(server, logger, sonarUserHome);
+        new EngineResolver(server, runtime.Logger, sonarUserHome);
 
     private bool ValidateServerUrl(string serverUrl)
     {
         if (!Uri.IsWellFormedUriString(serverUrl, UriKind.Absolute))
         {
-            logger.LogError(Resources.ERR_InvalidSonarHostUrl, serverUrl);
+            runtime.Logger.LogError(Resources.ERR_InvalidSonarHostUrl, serverUrl);
             return false;
         }
 
@@ -122,7 +122,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         var serverUri = WebUtils.CreateUri(serverUrl);
         if (serverUri.Scheme != Uri.UriSchemeHttp && serverUri.Scheme != Uri.UriSchemeHttps)
         {
-            logger.LogError(Resources.ERR_MissingUriScheme, serverUrl);
+            runtime.Logger.LogError(Resources.ERR_MissingUriScheme, serverUrl);
             return false;
         }
         return true;
@@ -140,7 +140,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             var errorMessage = serverInfo.IsSonarCloud
                 ? Resources.ERR_DetectedErroneouslySonarCloud
                 : Resources.ERR_DetectedErroneouslySonarQube;
-            logger.LogError(errorMessage);
+            runtime.Logger.LogError(errorMessage);
             return false;
         }
         return true;
@@ -148,7 +148,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 
     private async Task<Version> QueryServerVersion(IDownloader downloader, IDownloader fallback)
     {
-        logger.LogDebug(Resources.MSG_FetchingVersion);
+        runtime.Logger.LogDebug(Resources.MSG_FetchingVersion);
 
         try
         {
@@ -162,7 +162,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             }
             catch
             {
-                logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
+                runtime.Logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
                 return null;
             }
         }
@@ -182,9 +182,9 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         var response = await downloader.DownloadResource("api/settings/values?component=unknown");
         if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
         {
-            logger.LogWarning(Resources.WARN_AuthenticationFailed);
+            runtime.Logger.LogWarning(Resources.WARN_AuthenticationFailed);
             // This might fail in the scenario where the user does not specify sonar.host.url.
-            logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+            runtime.Logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
             return false;
         }
         else
