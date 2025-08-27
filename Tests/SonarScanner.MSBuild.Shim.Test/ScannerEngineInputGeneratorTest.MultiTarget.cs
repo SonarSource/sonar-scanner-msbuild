@@ -203,8 +203,8 @@ public partial class ScannerEngineInputGeneratorTest
         Directory.CreateDirectory(@out);
         // Create FilesToAnalyze.txt in each folder, they are the same,
         // because are the result of the compilation of the same project
-        var filesToAnalyze_txt = Path.Combine(@out, AnalysisResultFileType.FilesToAnalyze.ToString());
-        File.WriteAllLines(filesToAnalyze_txt, files.ToArray());
+        var filesToAnalyze = Path.Combine(@out, AnalysisResultFileType.FilesToAnalyze.ToString());
+        File.WriteAllLines(filesToAnalyze, files.ToArray());
         // Create project info for the configuration, the project path is important, the name is ignored
         var projectInfo = new ProjectInfo
         {
@@ -214,7 +214,7 @@ public partial class ScannerEngineInputGeneratorTest
             ProjectType = ProjectType.Product,
             Encoding = "UTF-8",
             IsExcluded = isExcluded,
-            AnalysisResultFiles = [new() { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyze_txt }]
+            AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyze)]
         };
         TestUtils.CreateEmptyFile(projectRoot, "Project1.csproj");
         projectInfo.Save(Path.Combine(@out, FileConstants.ProjectInfoFileName));

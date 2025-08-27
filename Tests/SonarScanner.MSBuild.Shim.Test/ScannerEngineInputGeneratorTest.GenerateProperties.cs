@@ -37,7 +37,7 @@ public partial class ScannerEngineInputGeneratorTest
             FullPath = Path.Combine(TestContext.TestRunDirectory, "First"),
             ProjectName = "First",
             AnalysisSettings = [],
-            AnalysisResultFiles = [new AnalysisResultFile { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }]
+            AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)]
         };
         var secondProjectInfo = new ProjectInfo
         {
@@ -45,7 +45,7 @@ public partial class ScannerEngineInputGeneratorTest
             FullPath = Path.Combine(Path.GetTempPath(), "Second"),
             ProjectName = "Second",
             AnalysisSettings = [],
-            AnalysisResultFiles = [new AnalysisResultFile { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }]
+            AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)]
         };
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
         TestUtils.CreateEmptyFile(Path.GetTempPath(), "Second");
@@ -235,7 +235,7 @@ public partial class ScannerEngineInputGeneratorTest
             ProjectName = "Project",
             IsExcluded = false,
             AnalysisSettings = [],
-            AnalysisResultFiles = [new AnalysisResultFile { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
+            AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)],
         };
         sut.GenerateProperties(
             config.ToAnalysisProperties(logger),
@@ -265,7 +265,7 @@ public partial class ScannerEngineInputGeneratorTest
                 ProjectGuid = new("5762C17D-1DDF-4C77-86AC-E2B4940926A9"),
                 ProjectLanguage = language,
                 FullPath = TestUtils.CreateEmptyFile(testContext.TestRunDirectory, "Project.proj"),
-                AnalysisResultFiles = [new AnalysisResultFile { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
+                AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)],
                 AnalysisSettings = []
             };
             Project = new[] { info }.ToProjectData(true, logger).Single();

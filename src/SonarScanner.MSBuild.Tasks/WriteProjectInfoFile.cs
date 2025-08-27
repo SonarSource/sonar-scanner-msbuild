@@ -189,7 +189,7 @@ public class WriteProjectInfoFile : Task
         var path = taskItem.ItemSpec;
         if (Path.IsPathRooted(path))
         {
-            return new AnalysisResultFile { Id = id, Location = path };
+            return new() { Id = id, Location = path };
         }
         Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
         var projectDir = Path.GetDirectoryName(FullProjectPath);
@@ -203,7 +203,7 @@ public class WriteProjectInfoFile : Task
         {
             Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
         }
-        return new AnalysisResultFile { Id = id, Location = path };
+        return new() { Id = id, Location = path };
     }
 
     private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)
