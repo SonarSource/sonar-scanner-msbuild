@@ -40,7 +40,7 @@ public static class ProjectInfoExtensions
 
         if (projectInfo.AnalysisResults != null)
         {
-            result = projectInfo.AnalysisResults.FirstOrDefault(ar => AnalysisResult.ResultKeyComparer.Equals(id, ar.Id));
+            result = projectInfo.AnalysisResults.FirstOrDefault(x => AnalysisResult.ResultKeyComparer.Equals(id, x.Id));
         }
         return result != null;
     }
@@ -56,7 +56,7 @@ public static class ProjectInfoExtensions
 
         if (projectInfo.AnalysisSettings != null)
         {
-            result = projectInfo.AnalysisSettings.FirstOrDefault(ar => Property.AreKeysEqual(id, ar.Id));
+            result = projectInfo.AnalysisSettings.FirstOrDefault(x => Property.AreKeysEqual(id, x.Id));
         }
         return result != null;
     }

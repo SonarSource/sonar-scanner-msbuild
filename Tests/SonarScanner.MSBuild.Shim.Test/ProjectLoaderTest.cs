@@ -143,7 +143,7 @@ public class ProjectLoaderTest
 
     private static void AssertProjectResultExists(string expectedProjectName, IEnumerable<ProjectInfo> actualProjects)
     {
-        var actual = actualProjects.FirstOrDefault(p => expectedProjectName.Equals(p.ProjectName));
+        var actual = actualProjects.FirstOrDefault(x => expectedProjectName.Equals(x.ProjectName));
         actual.Should().NotBeNull("Failed to find project with the expected name: {0}", expectedProjectName);
     }
 }

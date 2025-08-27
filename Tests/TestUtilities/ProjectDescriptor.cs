@@ -39,7 +39,7 @@ public class ProjectDescriptor
     {
         get
         {
-            return Files.Where(f => f.ItemGroup == CompilerInputItemGroup).Select(f => f.FilePath).ToList();
+            return Files.Where(x => x.ItemGroup == CompilerInputItemGroup).Select(x => x.FilePath).ToList();
         }
     }
 
@@ -79,7 +79,7 @@ public class ProjectDescriptor
     {
         get
         {
-            return Files.Where(f => f.ShouldBeAnalysed).Select(f => f.FilePath);
+            return Files.Where(x => x.ShouldBeAnalysed).Select(x => x.FilePath);
         }
     }
 
@@ -87,7 +87,7 @@ public class ProjectDescriptor
     {
         get
         {
-            return Files.Where(f => !f.ShouldBeAnalysed).Select(f => f.FilePath);
+            return Files.Where(x => !x.ShouldBeAnalysed).Select(x => x.FilePath);
         }
     }
 
