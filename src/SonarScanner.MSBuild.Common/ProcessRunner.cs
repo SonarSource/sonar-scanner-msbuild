@@ -157,20 +157,20 @@ public sealed class ProcessRunner : IProcessRunner
         {
             if (logOutput)
             {
-switch (logMessage.Level)
-{
-    case LogLevel.Info:
-        logger.LogInfo(redactedMsg);
-        break;
-    case LogLevel.Warning:
-        logger.LogWarning(redactedMsg);
-        break;
-    case LogLevel.Error:
-        logger.LogError(redactedMsg);
-        break;
-    default:
-        break;
-}
+                switch (logMessage.Level)
+                {
+                    case LogLevel.Info:
+                        logger.LogInfo(redactedMsg);
+                        break;
+                    case LogLevel.Warning:
+                        logger.LogWarning(redactedMsg);
+                        break;
+                    case LogLevel.Error:
+                        logger.LogError(redactedMsg);
+                        break;
+                    default:
+                        break;
+                }
             }
             outputWriter.WriteLine(redactedMsg);
         }
