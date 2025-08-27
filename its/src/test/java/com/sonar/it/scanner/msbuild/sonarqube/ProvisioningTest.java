@@ -67,20 +67,8 @@ class ProvisioningTest {
       var context = createContext(userHome);
       // first analysis, cache misses and downloads the JRE & scanner-engine
       var cacheMiss = context.begin.execute(ORCHESTRATOR);
-      assertThat(cacheMiss.isSuccess()).isTrue();
-      assertThat(cacheMiss.getLogs()).contains(
-        "JreResolver: Resolving JRE path.",
-        "JreResolver: Cache miss. Attempting to download JRE",
-        "JreResolver: Download success. JRE can be found at '",
-        "EngineResolver: Resolving Scanner Engine path.",
-        "EngineResolver: Cache miss. Attempting to download Scanner Engine",
-        "EngineResolver: Download success. Scanner Engine can be found at '");
 
-      assertThat(cacheMiss.getLogs()).doesNotContain(
-        "JreResolver: Cache hit",
-        "JreResolver: Cache failure",
-        "EngineResolver: Cache hit",
-        "EngineResolver: Cache failure");
+      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), false);
 
       // second analysis, cache hits and does not download the JRE or scanner-engine
       var cacheHit = context.begin.execute(ORCHESTRATOR);
@@ -95,24 +83,24 @@ class ProvisioningTest {
   void scannerEngineJarPathSet_DoesNotDownloadFromServer() throws IOException {
     try (var userHome = new TempDirectory("junit-Engine-JarPathSet-")) {  // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
-      var engineJarFolder = Path.of(ORCHESTRATOR.getServer().getHome().getAbsolutePath(), "lib", "scanner").toString(); // this must be a file that exists.
-      try (Stream<Path> paths = Files.list(Paths.get(engineJarFolder))) {
+      var engineJarFolder = Path.of(ORCHESTRATOR.getServer().getHome().getAbsolutePath(), "lib", "scanner"); // this must be a file that exists.
+      try (Stream<Path> paths = Files.list(engineJarFolder)) {
         var scannerJarPath = paths
-          .map(Path::toString)
           .findFirst()
           .orElseThrow();
 
         var result = context.begin
-          .setProperty("sonar.scanner.engineJarPath", scannerJarPath)
+          .setProperty("sonar.scanner.engineJarPath", scannerJarPath.toString())
           .execute(ORCHESTRATOR);
 
-        assertThat(result.getLogs()).contains(
-          "EngineResolver: Resolving Scanner Engine path.",
-          String.format("Using local sonar engine provided by sonar.scanner.engineJarPath=%s", scannerJarPath))
-            .doesNotContain(
-          "EngineResolver: Cache miss.",
-          "EngineResolver: Cache hit",
-          "EngineResolver: Cache failure.");
+        assertThat(result.getLogs())
+          .contains(
+            "EngineResolver: Resolving Scanner Engine path.",
+            String.format("Using local sonar engine provided by sonar.scanner.engineJarPath=%s", scannerJarPath))
+          .doesNotContain(
+            "EngineResolver: Cache miss.",
+            "EngineResolver: Cache hit",
+            "EngineResolver: Cache failure.");
       }
     }
   }

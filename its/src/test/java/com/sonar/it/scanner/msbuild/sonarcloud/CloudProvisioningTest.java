@@ -95,19 +95,8 @@ class CloudProvisioningTest {
 
       // First analysis, cache misses and downloads the JRE
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
-      var cacheMissLogs = context.runAnalysis().begin().getLogs();
-      assertThat(cacheMissLogs).contains(
-        "JreResolver: Resolving JRE path.",
-        "JreResolver: Cache miss. Attempting to download JRE",
-        "JreResolver: Download success. JRE can be found at '",
-        "EngineResolver: Resolving Scanner Engine path.",
-        "EngineResolver: Cache miss. Attempting to download Scanner Engine",
-        "EngineResolver: Download success. Scanner Engine can be found at '");
-      assertThat(cacheMissLogs).doesNotContain(
-        "JreResolver: Cache hit",
-        "JreResolver: Cache failure",
-        "EngineResolver: Cache hit",
-        "EngineResolver: Cache failure");
+      var cacheMiss = context.runAnalysis().begin();
+      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), true);
 
       // Second analysis, cache hits and does not download the JRE
       var secondBegin = context.runAnalysis().begin();
