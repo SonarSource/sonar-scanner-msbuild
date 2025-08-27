@@ -32,9 +32,9 @@ namespace SonarScanner.MSBuild.Tasks;
 /// <remarks>The task does not make any assumptions about the type of project from which it is
 /// being called so it should work for projects of any type - C#, VB, UML, C++, and any new project types
 /// that are created.</remarks>
-public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
+public class WriteProjectInfoFile : Task
 {
-    private readonly IEncodingProvider encodingProvider = encodingProvider ?? throw new ArgumentNullException(nameof(encodingProvider));
+    private readonly IEncodingProvider encodingProvider;
     private readonly IEqualityComparer<FileInfo> fileInfoComparer = new FileInfoEqualityComparer();
 
     // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
@@ -76,6 +76,9 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
     public string OutputFolder { get; set; }
 
     public WriteProjectInfoFile() : this(new Common.EncodingProvider()) { }
+
+    public WriteProjectInfoFile(IEncodingProvider encodingProvider) =>
+        this.encodingProvider = encodingProvider ?? throw new ArgumentNullException(nameof(encodingProvider));
 
     public override bool Execute()
     {
