@@ -424,7 +424,7 @@ public class WriteProjectInfoFileTargetTests
 
     private void AssertResultFileExists(ProjectInfo projectInfo, AnalysisResultFileType resultType, params string[] expected)
     {
-        var result= projectInfo.FindAnalysisResultFile(resultType);
+        var result = projectInfo.FindAnalysisResultFile(resultType);
         result.Should().NotBeNull("Analysis result not found: {0}", resultType);
         File.Exists(result.Location).Should().BeTrue("Analysis result file not found");
         TestContext.AddResultFile(result.Location);
