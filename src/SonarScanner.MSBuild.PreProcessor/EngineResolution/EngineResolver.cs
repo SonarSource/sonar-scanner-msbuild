@@ -27,43 +27,37 @@ public class EngineResolver : IResolver
 {
     private const string ScannerEngine = "Scanner Engine";
     private readonly ISonarWebServer server;
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
     private readonly IChecksum checksum;
     private readonly string sonarUserHome;
-    private readonly IDirectoryWrapper directoryWrapper;
-    private readonly IFileWrapper fileWrapper;
 
     public EngineResolver(ISonarWebServer server,
-                          ILogger logger,
                           string sonarUserHome,
-                          IChecksum checksum = null,
-                          IDirectoryWrapper directoryWrapper = null,
-                          IFileWrapper fileWrapper = null)
+                          IRuntime runtime,
+                          IChecksum checksum = null)
     {
         this.server = server;
-        this.logger = logger;
         this.sonarUserHome = sonarUserHome;
+        this.runtime = runtime;
         this.checksum = checksum ?? ChecksumSha256.Instance;
-        this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
-        this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
     }
 
     public async Task<string> ResolvePath(ProcessedArgs args)
     {
-        logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, string.Empty);
+        runtime.Logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, string.Empty);
         if (args.EngineJarPath is { } localEngine)
         {
-            logger.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
+            runtime.Logger.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
             return localEngine;
         }
         if (!server.SupportsJreProvisioning) // JRE and sonar engine provisioning were introduced by the same version of SQ  S
         {
-            logger.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
+            runtime.Logger.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
             return null;
         }
         if (await server.DownloadEngineMetadataAsync() is not { } metadata)
         {
-            logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
+            runtime.Logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
             return null;
         }
 
@@ -73,24 +67,24 @@ public class EngineResolver : IResolver
         }
         else
         {
-            logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, " Retrying...");
+            runtime.Logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, " Retrying...");
             return await ResolveEnginePath(metadata);
         }
     }
 
     private async Task<string> ResolveEnginePath(EngineMetadata metadata)
     {
-        var cachedDownloader = new CachedDownloader(logger, directoryWrapper, fileWrapper, checksum, metadata.ToDescriptor(), sonarUserHome);
+        var cachedDownloader = new CachedDownloader(runtime.Logger, runtime.Directory, runtime.File, checksum, metadata.ToDescriptor(), sonarUserHome);
         switch (cachedDownloader.IsFileCached())
         {
             case CacheHit hit:
-                logger.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), hit.FilePath);
+                runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), hit.FilePath);
                 return hit.FilePath;
             case CacheMiss:
-                logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
+                runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
                 return await DownloadEngine(cachedDownloader, metadata);
             case CacheError error:
-                logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(EngineResolver), error.Message);
+                runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(EngineResolver), error.Message);
                 return null;
             default:
                 throw new NotSupportedException("File Resolution is expected to be CacheHit, CacheMiss, or CacheError.");
@@ -102,12 +96,12 @@ public class EngineResolver : IResolver
         var result = await cachedDownloader.DownloadFileAsync(() => server.DownloadEngineAsync(metadata));
         if (result is DownloadSuccess success)
         {
-            logger.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);
+            runtime.Logger.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);
             return success.FilePath;
         }
         else if (result is DownloadError error)
         {
-            logger.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(EngineResolver), error.Message);
+            runtime.Logger.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(EngineResolver), error.Message);
             return null;
         }
         throw new NotSupportedException("Download result is expected to be DownloadSuccess or DownloadError.");
