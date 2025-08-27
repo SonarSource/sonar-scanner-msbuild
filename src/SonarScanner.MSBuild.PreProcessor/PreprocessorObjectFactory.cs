@@ -89,7 +89,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     }
 
     public ITargetsInstaller CreateTargetInstaller() =>
-        new TargetsInstaller(runtime.Logger);
+        new TargetsInstaller(runtime);
 
     public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
                                                                string localCacheTempPath,

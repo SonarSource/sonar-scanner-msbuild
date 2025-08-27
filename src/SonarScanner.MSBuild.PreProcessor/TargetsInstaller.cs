@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -41,23 +35,18 @@ public class TargetsInstaller : ITargetsInstaller
     /// <remarks> Can be overridden from the command line</remarks>
     public const bool DefaultInstallSetting = true;
 
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
     private readonly IMsBuildPathsSettings msBuildPathsSettings;
-    private readonly IFileWrapper fileWrapper;
-    private readonly IDirectoryWrapper directoryWrapper;
 
-    public TargetsInstaller(ILogger logger)
-        : this(logger, new MsBuildPathSettings(logger), FileWrapper.Instance, DirectoryWrapper.Instance)
+    public TargetsInstaller(IRuntime runtime)
+        : this(runtime, new MsBuildPathSettings(runtime.Logger))
     {
     }
 
-    public /*for testing*/ TargetsInstaller(ILogger logger, IMsBuildPathsSettings msBuildPathsSettings,
-        IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper)
+    public /*for testing*/ TargetsInstaller(IRuntime runtime, IMsBuildPathsSettings msBuildPathsSettings)
     {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.msBuildPathsSettings = msBuildPathsSettings ?? throw new ArgumentNullException(nameof(msBuildPathsSettings));
-        this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
-        this.directoryWrapper = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
     }
 
     public void InstallLoaderTargets(string workDirectory)
@@ -74,7 +63,7 @@ public class TargetsInstaller : ITargetsInstaller
 
     private void InternalCopyTargetsFile()
     {
-        this.logger.LogInfo(Resources.MSG_UpdatingMSBuildTargets);
+        runtime.Logger.LogInfo(Resources.MSG_UpdatingMSBuildTargets);
 
         CopyIfDifferent(
             GetTargetSourcePath(FileConstants.ImportBeforeTargetsName),
@@ -86,10 +75,10 @@ public class TargetsInstaller : ITargetsInstaller
 
     private void CopyIfDifferent(string sourcePath, IEnumerable<string> destinationDirs)
     {
-        Debug.Assert(this.fileWrapper.Exists(sourcePath),
+        Debug.Assert(runtime.File.Exists(sourcePath),
             string.Format(CultureInfo.InvariantCulture, "Could not find the loader .targets file at {0}", sourcePath));
 
-        var sourceContent = this.fileWrapper.ReadAllText(sourcePath);
+        var sourceContent = runtime.File.ReadAllText(sourcePath);
         var fileName = Path.GetFileName(sourcePath);
 
         foreach (var destinationDir in destinationDirs)
@@ -98,33 +87,33 @@ public class TargetsInstaller : ITargetsInstaller
 
             try
             {
-                if (!this.fileWrapper.Exists(destinationPath))
+                if (!runtime.File.Exists(destinationPath))
                 {
-                    this.directoryWrapper.CreateDirectory(destinationDir); // creates all the directories in the path if needed
+                    runtime.Directory.CreateDirectory(destinationDir); // creates all the directories in the path if needed
 
                     // always overwrite to avoid intermittent exceptions: https://github.com/SonarSource/sonar-scanner-msbuild/issues/647
-                    this.fileWrapper.Copy(sourcePath, destinationPath, overwrite: true);
-                    this.logger.LogDebug(Resources.MSG_InstallTargets_Copy, fileName, destinationDir);
+                    runtime.File.Copy(sourcePath, destinationPath, overwrite: true);
+                    runtime.Logger.LogDebug(Resources.MSG_InstallTargets_Copy, fileName, destinationDir);
                 }
                 else
                 {
-                    var destinationContent = this.fileWrapper.ReadAllText(destinationPath);
+                    var destinationContent = runtime.File.ReadAllText(destinationPath);
 
                     if (!string.Equals(sourceContent, destinationContent, StringComparison.Ordinal))
                     {
-                        this.fileWrapper.Copy(sourcePath, destinationPath, overwrite: true);
-                        this.logger.LogDebug(Resources.MSG_InstallTargets_Overwrite, fileName, destinationDir);
+                        runtime.File.Copy(sourcePath, destinationPath, overwrite: true);
+                        runtime.Logger.LogDebug(Resources.MSG_InstallTargets_Overwrite, fileName, destinationDir);
                     }
                     else
                     {
-                        this.logger.LogDebug(Resources.MSG_InstallTargets_UpToDate, fileName, destinationDir);
+                        runtime.Logger.LogDebug(Resources.MSG_InstallTargets_UpToDate, fileName, destinationDir);
                     }
                 }
             }
             catch (Exception e)
             {
-                this.logger.LogWarning(Resources.MSG_InstallTargets_Error, destinationPath, e.Message);
-                this.logger.LogDebug(e.StackTrace);
+                runtime.Logger.LogWarning(Resources.MSG_InstallTargets_Error, destinationPath, e.Message);
+                runtime.Logger.LogDebug(e.StackTrace);
             }
         }
     }
@@ -141,9 +130,9 @@ public class TargetsInstaller : ITargetsInstaller
             .ForEach(LogWarning);
 
         bool ImportBeforeTargetExists(string globalTargetPath) =>
-            this.fileWrapper.Exists(Path.Combine(globalTargetPath, FileConstants.ImportBeforeTargetsName));
+            runtime.File.Exists(Path.Combine(globalTargetPath, FileConstants.ImportBeforeTargetsName));
 
         void LogWarning(string globalTargetPath) =>
-            this.logger.LogWarning(Resources.WARN_ExistingGlobalTargets, FileConstants.ImportBeforeTargetsName, globalTargetPath);
+            runtime.Logger.LogWarning(Resources.WARN_ExistingGlobalTargets, FileConstants.ImportBeforeTargetsName, globalTargetPath);
     }
 }
