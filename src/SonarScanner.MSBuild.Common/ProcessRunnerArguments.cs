@@ -84,7 +84,7 @@ public class ProcessRunnerArguments
 
     public OutputToLogMessage OutputToLogMessage { get; set; }
 
-    public Action<StreamWriter> InputWriter { get; set; }
+    public string StandardInput { get; set; }
 
     private bool IsBatchScript { get; set; }
 

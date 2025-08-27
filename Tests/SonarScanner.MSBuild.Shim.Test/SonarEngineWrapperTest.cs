@@ -67,8 +67,8 @@ public class SonarEngineWrapperTest
         {
             ExeName = "java.exe",
             CmdLineArgs = (string[])["-jar", "engine.jar"],
+            StandardInput = SampleInput,
         });
-        WrittenInput(runner.SuppliedArguments.InputWriter).Should().Be(SampleInput);
         runtime.Logger.AssertInfoLogged("The scanner engine has finished successfully");
     }
 
@@ -80,16 +80,5 @@ public class SonarEngineWrapperTest
         var result = engine.Execute(new AnalysisConfig() { JavaExePath = "java.exe", EngineJarPath = "engine.jar" }, SampleInput);
         result.Should().BeFalse();
         runtime.Logger.AssertErrorLogged("The scanner engine did not complete successfully");
-    }
-
-    private static string WrittenInput(Action<StreamWriter> writer)
-    {
-        using var ms = new MemoryStream();
-        using var sw = new StreamWriter(ms);
-        writer(sw);
-        sw.Flush();
-        ms.Position = 0;
-        using var sr = new StreamReader(ms);
-        return sr.ReadToEnd();
     }
 }

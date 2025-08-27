@@ -46,7 +46,7 @@ public class SonarEngineWrapper
         {
             CmdLineArgs = ["-jar", engine],
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
-            InputWriter = x => x.Write(propertiesJsonInput),
+            StandardInput = propertiesJsonInput,
         };
         var result = processRunner.Execute(args);
         if (result.Succeeded)

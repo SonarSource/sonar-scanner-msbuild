@@ -223,7 +223,7 @@ public class ProcessRunnerTests
             {EchoCommand($"You entered: {EnvVar("var1")}")}
             """)
         {
-            ProcessArgs = { InputWriter = x => x.WriteLine("Hello World") }
+            ProcessArgs = { StandardInput = "Hello World" }
         };
 
         context.ExecuteAndAssert();
