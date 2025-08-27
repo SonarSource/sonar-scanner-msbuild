@@ -100,7 +100,7 @@ public static class ProjectInfoExtensions
         return string.IsNullOrWhiteSpace(projectInfo.FullPath) ? null : new FileInfo(projectInfo.FullPath).Directory;
     }
 
-    public static string GetProjectGuidAsString(this ProjectInfo projectInfo)
+    public static string ProjectGuidAsString(this ProjectInfo projectInfo)
     {
         if (projectInfo == null)
         {
@@ -120,7 +120,7 @@ public static class ProjectInfoExtensions
         return null;
     }
 
-    public static FileInfo[] GetAllAnalysisFiles(this ProjectInfo projectInfo, ILogger logger)
+    public static FileInfo[] AllAnalysisFiles(this ProjectInfo projectInfo, ILogger logger)
     {
         var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisResultFileType.FilesToAnalyze);
         if (compiledFilesPath is null

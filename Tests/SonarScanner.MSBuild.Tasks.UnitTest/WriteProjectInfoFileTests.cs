@@ -418,19 +418,19 @@ public class WriteProjectInfoFileTests
     }
 
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreNull_ReturnsNull() =>
+    public void CalculateProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreNull_ReturnsNull() =>
         AssertProjectGuidIsRandomlyGenerated(null, null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsRandomGuid() =>
+    public void CalculateProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsRandomGuid() =>
         AssertProjectGuidIsRandomlyGenerated(string.Empty, string.Empty, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull() =>
+    public void CalculateProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull() =>
         AssertProjectGuidIsRandomlyGenerated(null, string.Empty, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidEmptyStringAndSolutionConfigurationContentsNull_ReturnsNull() =>
+    public void CalculateProjectGuid_WhenProjectGuidEmptyStringAndSolutionConfigurationContentsNull_ReturnsNull() =>
         AssertProjectGuidIsRandomlyGenerated(string.Empty, null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
     private void AssertProjectGuidIsRandomlyGenerated(string projectGuid, string solutionConfigurationContents, string fullProjectPath)
@@ -447,7 +447,7 @@ public class WriteProjectInfoFileTests
         sut.BuildEngine = engine;
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().NotBeNullOrEmpty();
@@ -455,21 +455,21 @@ public class WriteProjectInfoFileTests
     }
 
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidHasValue_ReturnsProjectGuid()
+    public void CalculateProjectGuid_WhenProjectGuidHasValue_ReturnsProjectGuid()
     {
         // Arrange
         var expectedGuid = Guid.Empty.ToString();
         var sut = new WriteProjectInfoFile { ProjectGuid = expectedGuid, SolutionConfigurationContents = null };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().Be(expectedGuid);
     }
 
     [TestMethod]
-    public void GetProjectGuid_WhenSolutionConfigurationContentsHasValueAndProjectFound_ReturnsProjectGuidInSolution()
+    public void CalculateProjectGuid_WhenSolutionConfigurationContentsHasValueAndProjectFound_ReturnsProjectGuidInSolution()
     {
         var netStdAppPath = Path.Combine("C:", "NetStdApp");
         var projPath = Path.Combine(netStdAppPath, "NetStdApp.csproj");
@@ -497,14 +497,14 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().Be(expectedGuid);
     }
 
     [TestMethod]
-    public void GetProjectGuid_WhenSolutionConfigurationContentsHasNoProjectAttribute_ReturnsNull()
+    public void CalculateProjectGuid_WhenSolutionConfigurationContentsHasNoProjectAttribute_ReturnsNull()
     {
         // Arrange
         var sut = new WriteProjectInfoFile
@@ -517,14 +517,14 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().BeNull();
     }
 
     [TestMethod]
-    public void GetProjectGuid_WhenSolutionConfigurationContentsHasNoAbsolutePathAttribute_ReturnsNull()
+    public void CalculateProjectGuid_WhenSolutionConfigurationContentsHasNoAbsolutePathAttribute_ReturnsNull()
     {
         // Arrange
         var sut = new WriteProjectInfoFile
@@ -537,14 +537,14 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().BeNull();
     }
 
     [TestMethod]
-    public void GetProjectGuid_WhenSolutionConfigurationContentsHasMultipleMatch_ReturnsFirstGuid()
+    public void CalculateProjectGuid_WhenSolutionConfigurationContentsHasMultipleMatch_ReturnsFirstGuid()
     {
         // Arrange
         var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
@@ -559,14 +559,14 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().Be(expectedGuid);
     }
 
     [TestMethod]
-    public void GetProjectGuid_InvalidPath_DoesNotThrow()
+    public void CalculateProjectGuid_InvalidPath_DoesNotThrow()
     {
         var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
         var notValidPath = @"D:\a\1\s\src\https://someUrl.me:1623";
@@ -582,14 +582,14 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().Be(expectedGuid);
     }
 
     [TestMethod]
-    public void GetProjectGuid_TwoProjectsWithSamePath_FirstProjectIsReturned()
+    public void CalculateProjectGuid_TwoProjectsWithSamePath_FirstProjectIsReturned()
     {
         var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
         var fullProjectPath = @"C:\NetStdApp\NetStdApp.csproj";
@@ -604,7 +604,7 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().Be(expectedGuid);

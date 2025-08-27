@@ -92,7 +92,7 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
             TargetFramework = TargetFramework
         };
 
-        var guid = GetProjectGuid();
+        var guid = CalculateProjectGuid();
         if (guid is not null && Guid.TryParse(guid, out var projectId))
         {
             pi.ProjectGuid = projectId;
@@ -111,7 +111,7 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         return true;
     }
 
-    internal /* for testing purpose */ string GetProjectGuid()
+    internal /* for testing purpose */ string CalculateProjectGuid()
     {
         if (!string.IsNullOrEmpty(ProjectGuid))
         {

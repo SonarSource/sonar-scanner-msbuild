@@ -106,9 +106,9 @@ public class ProjectInfoExtensionsTests
     }
 
     [TestMethod]
-    public void GetProjectGuidAsString_WhenProjectInfoIsNull_ThrowsArgumentNullException()
+    public void ProjectGuidAsString_WhenProjectInfoIsNull_ThrowsArgumentNullException()
     {
-        Action action = () => ProjectInfoExtensions.GetProjectGuidAsString(null);
+        Action action = () => ProjectInfoExtensions.ProjectGuidAsString(null);
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
     }
@@ -139,7 +139,7 @@ public class ProjectInfoExtensionsTests
                 "C:\\baz",
             ]);
 
-        var result = projectInfo.GetAllAnalysisFiles(logger);
+        var result = projectInfo.AllAnalysisFiles(logger);
 
 #if NETFRAMEWORK
         result.Should().HaveCount(3);

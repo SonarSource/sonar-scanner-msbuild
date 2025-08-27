@@ -25,7 +25,7 @@ namespace SonarScanner.MSBuild.Shim;
 /// </summary>
 public class ProjectData
 {
-    public string Guid => Project.GetProjectGuidAsString();
+    public string Guid => Project.ProjectGuidAsString();
 
     public ProjectInfoValidity Status { get; set; }
 
@@ -80,7 +80,7 @@ public class ProjectData
             foreach (var project in orderedProjects.Where(x => x.IsValid(logger)))
             {
                 // If we find just one valid configuration, everything is valid
-                ReferencedFiles.UnionWith(project.GetAllAnalysisFiles(logger));
+                ReferencedFiles.UnionWith(project.AllAnalysisFiles(logger));
                 AddRoslynOutputFilePaths(project);
                 AddAnalyzerOutputFilePaths(project);
                 AddTelemetryFilePaths(project);
