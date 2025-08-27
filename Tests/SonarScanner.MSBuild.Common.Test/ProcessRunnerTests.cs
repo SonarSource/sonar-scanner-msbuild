@@ -216,6 +216,21 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
+    public void ProcRunner_InputWriter()
+    {
+        var context = new ProcessRunnerContext(TestContext, $"""
+            {ReadCommand("var1")}
+            {EchoCommand("You entered: %var1%")}
+            """)
+        {
+            ProcessArgs = { InputWriter = x => x.WriteLine("Hello World") }
+        };
+
+        context.ExecuteAndAssert();
+        context.ResultStandardOutputShouldBe("You entered: Hello World" + Environment.NewLine);
+    }
+
+    [TestMethod]
     public void ProcRunner_FailsOnTimeout()
     {
         var content = $"""
@@ -531,6 +546,9 @@ public class ProcessRunnerTests
 
     private static string EchoCommand(string text) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"@echo {text}" : $"echo \"{text.Replace('%', '$')}\"";
+
+    private static string ReadCommand(string variableName = "var1") =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"set /P {variableName}=" : $"read {variableName}";
 
     private static string ScriptInit() =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "@echo off" : "#!/bin/sh";
