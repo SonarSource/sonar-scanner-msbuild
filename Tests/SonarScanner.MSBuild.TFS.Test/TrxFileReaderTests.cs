@@ -46,6 +46,10 @@ public class TrxFileReaderTests
     }
 
     [TestMethod]
+    public void Constructor_RuntimeNull_Throws() =>
+        FluentActions.Invoking(() => new TrxFileReader(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+
+    [TestMethod]
     public void TrxReader_TestsResultsDirectoryMissing() =>
         // With no call to CreateDirectories, Directory.GetDirectories(RootDirectory) will return an empty array.
         AssertFindCodeCoverageFiles();
