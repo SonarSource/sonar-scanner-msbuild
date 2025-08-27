@@ -185,11 +185,13 @@ public class PreprocessorObjectFactoryTests
         var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: "org"), downloader);
 
         server.Should().BeNull();
-        runtime.Logger.Warnings.Should().BeEquivalentTo("Authentication with the server has failed.", """
-                In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-                If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
-                """
-            .ToUnixLineEndings());
+        runtime.Logger.Warnings.Should().BeEquivalentTo(
+            "Authentication with the server has failed.",
+            """
+            In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
+            If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
+            """
+                .ToUnixLineEndings());
     }
 
     [TestMethod]
