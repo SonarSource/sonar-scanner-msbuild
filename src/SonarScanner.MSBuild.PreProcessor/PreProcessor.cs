@@ -94,9 +94,6 @@ public sealed class PreProcessor : IPreProcessor
         var engineResolver = factory.CreateEngineResolver(server, localSettings.UserHome);
         var scannerEngineJarPath = await engineResolver.ResolvePath(localSettings);
 
-        var engineResolver = factory.CreateEngineResolver(server, localSettings.UserHome);
-        var scannerEngineJarPath = await engineResolver.ResolveEngine(localSettings);
-
         var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
         if (!argumentsAndRuleSets.IsSuccess)
         {
