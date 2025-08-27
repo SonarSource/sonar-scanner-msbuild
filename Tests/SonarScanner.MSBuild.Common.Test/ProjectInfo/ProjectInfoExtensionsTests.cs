@@ -60,7 +60,7 @@ public class ProjectInfoExtensionsTests
     [TestMethod]
     public void AddAnalyzerResult_WhenIdIsEmpty_ThrowsArgumentNullException()
     {
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "", "bar");
+        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), string.Empty, "bar");
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
     }
@@ -84,7 +84,7 @@ public class ProjectInfoExtensionsTests
     [TestMethod]
     public void AddAnalyzerResult_WhenLocationIsEmpty_ThrowsArgumentNullException()
     {
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", "");
+        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", string.Empty);
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
     }
