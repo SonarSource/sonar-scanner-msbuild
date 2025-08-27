@@ -168,8 +168,6 @@ public sealed class ProcessRunner : IProcessRunner
                     case LogLevel.Error:
                         logger.LogError(redactedMsg);
                         break;
-                    default:
-                        break;
                 }
             }
             outputWriter.WriteLine(redactedMsg);
