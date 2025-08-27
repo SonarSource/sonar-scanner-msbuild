@@ -37,12 +37,11 @@ public class PostProcessorTests
     private readonly TargetsUninstaller targetsUninstaller;
     private readonly AnalysisConfig config;
     private readonly SonarScannerWrapper scanner;
-    private readonly TestLogger logger;
     private readonly TfsProcessorWrapper tfsProcessor;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly ScannerEngineInput scannerEngineInput;
-    private readonly IFileWrapper fileWrapper;
+    private readonly TestRuntime runtime;
     private IBuildSettings settings;
 
     public PostProcessorTests(TestContext testContext)
@@ -55,26 +54,25 @@ public class PostProcessorTests
         };
         config.SetBuildUri("http://test-build-uri");
         settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
-        logger = new();
-        tfsProcessor = Substitute.For<TfsProcessorWrapper>(new TestRuntime { Logger = logger });
+        runtime = new();
+        tfsProcessor = Substitute.For<TfsProcessorWrapper>(runtime);
         tfsProcessor.Execute(null, null).ReturnsForAnyArgs(true);
-        scanner = Substitute.For<SonarScannerWrapper>(new TestRuntime());
+        scanner = Substitute.For<SonarScannerWrapper>(runtime);
         scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
-        targetsUninstaller = Substitute.For<TargetsUninstaller>(logger);
+        targetsUninstaller = Substitute.For<TargetsUninstaller>(runtime.Logger);
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         coverageReportProcessor = Substitute
-            .For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>());
+            .For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), runtime);
         coverageReportProcessor.ProcessCoverageReports(null, null, null).ReturnsForAnyArgs(new AdditionalProperties([@"VS\Test\Path"], [@"VS\XML\Coverage\Path"]));
         scannerEngineInput = new ScannerEngineInput(config);
-        fileWrapper = Substitute.For<IFileWrapper>();
         sut = new PostProcessor(
             scanner,
-            logger,
+            runtime.Logger,
             targetsUninstaller,
             tfsProcessor,
             sonarProjectPropertiesValidator,
             coverageReportProcessor,
-            fileWrapper);
+            runtime.File);
     }
 
     [TestMethod]
@@ -88,19 +86,19 @@ public class PostProcessorTests
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("logger");
 
-        Invoking(() => new PostProcessor(scanner, logger, null, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, runtime.Logger, null, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("targetUninstaller");
 
-        Invoking(() => new PostProcessor(scanner, logger, targetsUninstaller, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, runtime.Logger, targetsUninstaller, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("tfsProcessor");
 
-        Invoking(() => new PostProcessor(scanner, logger, targetsUninstaller, tfsProcessor, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, runtime.Logger, targetsUninstaller, tfsProcessor, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("sonarProjectPropertiesValidator");
 
-        Invoking(() => new PostProcessor(scanner, logger, targetsUninstaller, tfsProcessor, Substitute.For<SonarProjectPropertiesValidator>(), null)).Should()
+        Invoking(() => new PostProcessor(scanner, runtime.Logger, targetsUninstaller, tfsProcessor, Substitute.For<SonarProjectPropertiesValidator>(), null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("coverageReportProcessor");
     }
@@ -110,24 +108,24 @@ public class PostProcessorTests
     {
         Execute(withProject: false).Should().BeFalse("Expecting post-processor to have failed");
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        logger.AssertNoErrorsLogged();
-        logger.AssertNoWarningsLogged();
-        logger.AssertNoUIWarningsLogged();
+        runtime.Logger.AssertNoErrorsLogged();
+        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Logger.AssertNoUIWarningsLogged();
         VerifyTargetsUninstaller();
     }
 
     [TestMethod]
     public void PostProc_ExecutionSucceedsWithErrorLogs()
     {
-        scanner.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => logger.LogError("Errors"));
+        scanner.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => runtime.Logger.LogError("Errors"));
 
         Execute().Should().BeTrue("Expecting post-processor to have succeeded");
         scanner.Received().Execute(
             config,
             Arg.Is<IAnalysisPropertyProvider>(x => !x.GetAllProperties().Any()),
             Arg.Any<string>());
-        logger.AssertErrorsLogged(1);
-        logger.AssertWarningsLogged(0);
+        runtime.Logger.AssertErrorsLogged(1);
+        runtime.Logger.AssertWarningsLogged(0);
         VerifyTargetsUninstaller();
     }
 
@@ -136,8 +134,8 @@ public class PostProcessorTests
     {
         Execute("/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        logger.AssertErrorsLogged(1);
-        logger.AssertWarningsLogged(0);
+        runtime.Logger.AssertErrorsLogged(1);
+        runtime.Logger.AssertWarningsLogged(0);
         VerifyTargetsUninstaller();
     }
 
@@ -163,7 +161,7 @@ public class PostProcessorTests
             config,
             Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)),
             Arg.Any<string>());
-        logger.AssertErrorsLogged(0);
+        runtime.Logger.AssertErrorsLogged(0);
         VerifyTargetsUninstaller();
     }
 
@@ -173,7 +171,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineCredentials = true;
 
         Execute().Should().BeFalse();
-        logger.AssertErrorLogged(CredentialsErrorMessage);
+        runtime.Logger.AssertErrorLogged(CredentialsErrorMessage);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -184,7 +182,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineTruststorePassword = true;
 
         Execute().Should().BeFalse();
-        logger.AssertErrorLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.AssertErrorLogged(TruststorePasswordErrorMessage);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -195,7 +193,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineTruststorePassword = true;
 
         Execute("/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
-        logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -209,7 +207,7 @@ public class PostProcessorTests
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, $"-D{truststorePasswordProp}");
 
         Execute().Should().BeTrue();
-        logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -220,7 +218,7 @@ public class PostProcessorTests
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=foo");
 
         Execute().Should().BeTrue();
-        logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -231,7 +229,7 @@ public class PostProcessorTests
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
 
         Execute("/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
-        logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -242,7 +240,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineTruststorePassword = true;
 
         Execute($"/d:{truststorePasswordProperty}").Should().BeFalse();
-        logger.AssertErrorLogged($"The format of the analysis property {truststorePasswordProperty} is invalid");
+        runtime.Logger.AssertErrorLogged($"The format of the analysis property {truststorePasswordProperty} is invalid");
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -263,7 +261,7 @@ public class PostProcessorTests
     public void PostProc_WhenNoSettingInFileAndCommandLineArg_Fail()
     {
         Execute("/d:sonar.token=foo").Should().BeFalse();
-        logger.AssertErrorLogged(CredentialsErrorMessage);
+        runtime.Logger.AssertErrorLogged(CredentialsErrorMessage);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -272,8 +270,8 @@ public class PostProcessorTests
     public void PostProc_WhenNoSettingInFileAndNoCommandLineArg_DoesNotFail()
     {
         Execute().Should().BeTrue();
-        logger.AssertNoErrorsLogged(CredentialsErrorMessage);
-        logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.AssertNoErrorsLogged(CredentialsErrorMessage);
+        runtime.Logger.AssertNoErrorsLogged(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -282,7 +280,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineCredentials = true;
 
         Execute("/d:sonar.token=foo").Should().BeTrue();
-        logger.AssertNoErrorsLogged(CredentialsErrorMessage);
+        runtime.Logger.AssertNoErrorsLogged(CredentialsErrorMessage);
     }
 
     [TestMethod]
@@ -295,7 +293,7 @@ public class PostProcessorTests
             });
         Execute().Should().BeFalse();
         sonarProjectPropertiesValidator.ReceivedWithAnyArgs().AreExistingSonarPropertiesFilesPresent(null, null, out var _);
-        logger.AssertErrorLogged("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: Some Path");
+        runtime.Logger.AssertErrorLogged("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: Some Path");
     }
 
     [TestMethod]
@@ -332,10 +330,10 @@ public class PostProcessorTests
         AssertProcessCoverageReportsCalledIfNetFramework();
 
 #if NETFRAMEWORK
-        fileWrapper.Received().AppendAllText(
+        runtime.File.Received().AppendAllText(
             Arg.Any<string>(),
             Arg.Is<string>(x => x.Contains("sonar.cs.vstest.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "Test", "Path"))));
-        fileWrapper.Received().AppendAllText(
+        runtime.File.Received().AppendAllText(
             Arg.Any<string>(),
             Arg.Is<string>(x => x.Contains("sonar.cs.vscoveragexml.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "XML", "Coverage", "Path"))));
         var reader = new ScannerEngineInputReader(scannerEngineInput.ToString());
@@ -365,7 +363,7 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null, null);
-        logger.AssertErrorLogged("""
+        runtime.Logger.AssertErrorLogged("""
             Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
             Build Uri from environment: http://test-build-uri
             Build Uri from config: http://other-uri
@@ -395,10 +393,10 @@ public class PostProcessorTests
         args ??= [];
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
         var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
-        var scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, logger);
+        var scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, runtime.Logger);
 
         var projectInfoAnalysisResult = new ProjectInfoAnalysisResult(
-            [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(true, logger).Single()],
+            [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(true, runtime.Logger).Single()],
             withProject ? scannerEngineInput : null,
             withProject ? Path.Combine(testDir, "sonar-project.properties") : null) { RanToCompletion = true };
         scannerEngineInputGenerator.GenerateFile().Returns(projectInfoAnalysisResult);
