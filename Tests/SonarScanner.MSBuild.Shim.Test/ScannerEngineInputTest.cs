@@ -29,25 +29,15 @@ public class ScannerEngineInputTest
 
     [TestMethod]
     public void Constructor_ConfigIsNull_ThrowsOnNullArgument() =>
-        ((Func<ScannerEngineInput>)(() => new ScannerEngineInput(null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        FluentActions.Invoking(() => new ScannerEngineInput(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("config");
 
     [TestMethod]
-    public void WriteSettingsForProject_ThrowsOnNullArgument()
-    {
-        var sut = new ScannerEngineInput(new AnalysisConfig());
-        Action action = () => sut.WriteSettingsForProject(null);
-
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectData");
-    }
+    public void WriteSettingsForProject_ThrowsOnNullArgument() =>
+        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.WriteSettingsForProject(null)).Should().Throw<ArgumentNullException>().WithParameterName("project");
 
     [TestMethod]
-    public void WriteGlobalSettings_ThrowsOnNullArgument()
-    {
-        var sut = new ScannerEngineInput(new AnalysisConfig());
-        Action action = () => sut.WriteGlobalSettings(null);
-
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("properties");
-    }
+    public void WriteGlobalSettings_ThrowsOnNullArgument() =>
+        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.WriteGlobalSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
 
     [TestMethod]
     public void WriteGlobalSettings_VerboseIsSkipped()
@@ -186,91 +176,6 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteAnalyzerOutputPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
-    {
-        var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths("unexpected", analyzerOutPaths: [@"c:\dir1\dir2"]));
-
-        sut.ToString().Should().BeIgnoringLineEndings("""
-            {
-              "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                }
-              ]
-            }
-            """);
-    }
-
-    [TestMethod]
-    [DataRow(ProjectLanguages.CSharp, "sonar.cs.analyzer.projectOutPaths")]
-    [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.analyzer.projectOutPaths")]
-    public void WriteAnalyzerOutputPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
-    {
-        var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteAnalyzerOutputPaths(CreateTestProjectDataWithPaths(
-            language,
-            analyzerOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
-        sut.ToString().Should().BeIgnoringLineEndings($$"""
-            {
-              "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
-                  "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
-                }
-              ]
-            }
-            """);
-    }
-
-    [TestMethod]
-    public void WriteRoslynReportPaths_ForUnexpectedLanguage_DoNotWritesOutPaths()
-    {
-        var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteRoslynReportPaths(CreateTestProjectDataWithPaths("unexpected"));
-        sut.ToString().Should().BeIgnoringLineEndings("""
-            {
-              "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                }
-              ]
-            }
-            """);
-    }
-
-    [TestMethod]
-    [DataRow(ProjectLanguages.CSharp, "sonar.cs.roslyn.reportFilePaths")]
-    [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths")]
-    public void WriteRoslynReportPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
-    {
-        var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteRoslynReportPaths(CreateTestProjectDataWithPaths(
-            language,
-            roslynOutPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]));
-        sut.ToString().Should().BeIgnoringLineEndings($$"""
-            {
-              "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
-                  "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
-                }
-              ]
-            }
-            """);
-    }
-
-    [TestMethod]
     public void WriteVsTestReportPaths_WritesEncodedPaths()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
@@ -313,70 +218,25 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void Telemetry_ForUnexpectedLanguage_DoNotWritePaths()
-    {
-        var sut = new ScannerEngineInput(new AnalysisConfig());
-
-        sut.WriteTelemetryPaths(CreateTestProjectDataWithPaths("unexpected", telemetryPaths: [@"c:\dir1\dir2\Telemetry.json"]));
-
-        sut.ToString().Should().BeIgnoringLineEndings("""
-            {
-              "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                }
-              ]
-            }
-            """);
-    }
-
-    [TestMethod]
-    [DataRow(ProjectLanguages.CSharp, "sonar.cs.scanner.telemetry")]
-    [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.scanner.telemetry")]
-    public void Telemetry_WritesEncodedPaths(string language, string expectedPropertyKey)
-    {
-        var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteTelemetryPaths(CreateTestProjectDataWithPaths(
-            language,
-            telemetryPaths: [Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json")]));
-        sut.ToString().Should().BeIgnoringLineEndings($$"""
-            {
-              "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
-                  "key": "5762C17D-1DDF-4C77-86AC-E2B4940926A9.{{expectedPropertyKey}}",
-                  "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first", "Telemetry.json") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second", "Telemetry.json"))}}
-                }
-              ]
-            }
-            """);
-    }
-
-    [TestMethod]
     public void JsonBuilderToString()
     {
+        var sonarOutputDir = @"C:\my_folder";
         var productBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonbuilderTest_ProductBaseDir");
         var productProject = CreateEmptyFile(productBaseDir, "MyProduct.csproj");
         var productFile = CreateEmptyFile(productBaseDir, "File.cs");
         var productChineseFile = CreateEmptyFile(productBaseDir, "你好.cs");
-
         var productCoverageFilePath = CreateEmptyFile(productBaseDir, "productCoverageReport.txt").FullName;
         CreateEmptyFile(productBaseDir, "productTrx.trx");
         var productFileListFilePath = Path.Combine(productBaseDir, "productManagedFiles.txt");
-
         var otherDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonbuilderTest_OtherDir");
         var missingFileOutsideProjectDir = new FileInfo(Path.Combine(otherDir, "missing.cs"));
-
         var productFiles = new List<FileInfo>
         {
             productFile,
             productChineseFile,
             missingFileOutsideProjectDir
         };
+
         var productCS = CreateProjectData("你好", "DB2E5521-3172-47B9-BA50-864F12E6DFFF", productProject, false, productFiles, productFileListFilePath, productCoverageFilePath, ProjectLanguages.CSharp);
         productCS.SonarQubeModuleFiles.Add(productFile);
         productCS.SonarQubeModuleFiles.Add(productChineseFile);
@@ -389,15 +249,9 @@ public class ScannerEngineInputTest
         var testProject = CreateEmptyFile(testBaseDir, "MyTest.csproj");
         var testFile = CreateEmptyFile(testBaseDir, "File.cs");
         var testFileListFilePath = Path.Combine(testBaseDir, "testManagedFiles.txt");
-
-        var testFiles = new List<FileInfo>
-        {
-            testFile
-        };
+        var testFiles = new List<FileInfo> { testFile };
         var test = CreateProjectData("my_test_project", "DA0FCD82-9C5C-4666-9370-C7388281D49B", testProject, true, testFiles, testFileListFilePath, null, ProjectLanguages.VisualBasic);
         test.SonarQubeModuleFiles.Add(testFile);
-
-        var sonarOutputDir = @"C:\my_folder";
 
         var config = new AnalysisConfig
         {
@@ -407,17 +261,11 @@ public class ScannerEngineInputTest
             SonarOutputDir = sonarOutputDir,
             SourcesDirectory = @"d:\source_files\"
         };
-
-        string actual = null;
-        using (new AssertIgnoreScope()) // expecting the property writer to complain about the missing file
-        {
-            var sut = new ScannerEngineInput(config);
-            sut.WriteSettingsForProject(productCS);
-            sut.WriteSettingsForProject(productVB);
-            sut.WriteSettingsForProject(test);
-
-            actual = sut.ToString();
-        }
+        var sut = new ScannerEngineInput(config);
+        sut.WriteSettingsForProject(productCS);
+        sut.WriteSettingsForProject(productVB);
+        sut.WriteSettingsForProject(test);
+        var actual = sut.ToString();
 
         var expected = $$"""
             {
@@ -439,20 +287,16 @@ public class ScannerEngineInputTest
                   "value": {{JsonConvert.ToString(productBaseDir)}}
                 },
                 {
+                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.working.directory",
+                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod0"))}}
+                },
+                {
                   "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sourceEncoding",
                   "value": "utf-8"
                 },
                 {
-                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.tests",
-                  "value": ""
-                },
-                {
                   "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources",
                   "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs") + "," + Path.Combine(productBaseDir, "你好.cs") + "," + missingFileOutsideProjectDir.FullName)}}
-                },
-                {
-                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.working.directory",
-                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod0"))}}
                 },
                 {
                   "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.projectKey",
@@ -467,20 +311,16 @@ public class ScannerEngineInputTest
                   "value": {{JsonConvert.ToString(productBaseDir)}}
                 },
                 {
+                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.working.directory",
+                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod1"))}}
+                },
+                {
                   "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sourceEncoding",
                   "value": "utf-8"
                 },
                 {
-                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.tests",
-                  "value": ""
-                },
-                {
                   "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources",
                   "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs"))}}
-                },
-                {
-                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.working.directory",
-                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod1"))}}
                 },
                 {
                   "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.projectKey",
@@ -495,20 +335,16 @@ public class ScannerEngineInputTest
                   "value": {{JsonConvert.ToString(testBaseDir)}}
                 },
                 {
+                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.working.directory",
+                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod2"))}}
+                },
+                {
                   "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding",
                   "value": "utf-8"
                 },
                 {
-                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources",
-                  "value": ""
-                },
-                {
                   "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests",
                   "value": {{JsonConvert.ToString(Path.Combine(testBaseDir, "File.cs"))}}
-                },
-                {
-                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.working.directory",
-                  "value": {{JsonConvert.ToString(Path.Combine(sonarOutputDir, ".sonar", "mod2"))}}
                 }
               ]
             }
@@ -521,7 +357,6 @@ public class ScannerEngineInputTest
     {
         var projectBaseDir = Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir");
         var sonarOutputDir = @"C:\OutpuDir";
-        var sonarDir = Path.Combine(sonarOutputDir, ".sonar");
         var config = new AnalysisConfig
         {
             SonarProjectKey = "my_project_key",
@@ -585,57 +420,16 @@ public class ScannerEngineInputTest
                   "value": ""
                 },
                 {
-                  "key": "sonar.projectKey",
-                  "value": null
-                },
-                {
                   "key": "sonar.working.directory",
                   "value": {{JsonConvert.ToString(Path.Combine(@"C:\OutputDir\CannotBeEmpty", ".sonar"))}}
                 },
                 {
                   "key": "sonar.projectBaseDir",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir"))}}
-                },
-                {
-                  "key": "sonar.pullrequest.cache.basepath",
-                  "value": null
                 }
               ]
             }
             """);
-    }
-
-    // Tests that analysis settings in the ProjectInfo are written to the file
-    [TestMethod]
-    public void AnalysisSettingsWritten()
-    {
-        var projectBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "ScannerEngineInputBuilderTest_AnalysisSettingsWritten");
-        var productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
-        var productFile = CreateEmptyFile(projectBaseDir, "File.cs");
-        var productFiles = new List<FileInfo>
-        {
-            productFile
-        };
-        var productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
-
-        var product = CreateProjectData("AnalysisSettingsTest.proj", "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5", productProject, false, productFiles, productFileListFilePath, null, "language");
-
-        // These are the settings we are going to check. The other analysis values are not checked.
-        product.Project.AnalysisSettings =
-        [
-            new("my.setting1", "setting1"),
-            new("my.setting2", "setting 2 with spaces"),
-            new("my.setting.3", @"c:\dir1\dir2\foo.txt")
-        ];
-        product.ReferencedFiles.Add(productFile);
-
-        var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
-        sut.WriteSettingsForProject(product);
-
-        var reader = new ScannerEngineInputReader(sut.ToString());
-        reader.AssertProperty("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting1", "setting1");
-        reader.AssertProperty("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting2", "setting 2 with spaces");
-        reader.AssertProperty("7B3B7244-5031-4D74-9BBD-3316E6B5E7D5.my.setting.3", @"c:\dir1\dir2\foo.txt");
     }
 
     // Tests that .sonar.working.directory is explicitly set per module
@@ -644,23 +438,16 @@ public class ScannerEngineInputTest
     {
         var projectBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonbuilderTest_AnalysisSettingsWritten");
         var productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
-
         var productFile = CreateEmptyFile(projectBaseDir, "File.cs");
-        var productFiles = new List<FileInfo>
-        {
-            productFile
-        };
+        var productFiles = new List<FileInfo> { productFile };
         var productFileListFilePath = Path.Combine(projectBaseDir, "productManagedFiles.txt");
-
         var projectKey = "7B3B7244-5031-4D74-9BBD-3316E6B5E7D5";
         var product = CreateProjectData("AnalysisSettingsTest.proj", projectKey, productProject, false, productFiles, productFileListFilePath, null, "language");
         product.ReferencedFiles.Add(productFile);
-
         var config = new AnalysisConfig
         {
             SonarOutputDir = Path.Combine(TestUtils.DriveRoot(), "my_folder")
         };
-
         var sut = new ScannerEngineInput(config);
         sut.WriteSettingsForProject(product);
         sut.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
@@ -681,7 +468,6 @@ public class ScannerEngineInputTest
             // Specific test for sonar.branch property
             new("sonar.branch", "aBranch")
         };
-
         var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
         sut.WriteGlobalSettings(globalSettings);
 
@@ -765,26 +551,5 @@ public class ScannerEngineInputTest
         var fullPath = Path.Combine(parentDir, fileName);
         File.WriteAllText(fullPath, content);
         return fullPath;
-    }
-
-    private static ProjectData CreateTestProjectDataWithPaths(string language, string[] analyzerOutPaths = null, string[] roslynOutPaths = null, string[] telemetryPaths = null)
-    {
-        analyzerOutPaths ??= [];
-        roslynOutPaths ??= [];
-        telemetryPaths ??= [];
-        var projectData = CreateProjectData("Name", "5762C17D-1DDF-4C77-86AC-E2B4940926A9", new FileInfo("Name.proj"), false, [], null, null, language);
-        foreach (var path in analyzerOutPaths)
-        {
-            projectData.AnalyzerOutPaths.Add(new FileInfo(path));
-        }
-        foreach (var path in roslynOutPaths)
-        {
-            projectData.RoslynReportFilePaths.Add(new FileInfo(path));
-        }
-        foreach (var path in telemetryPaths)
-        {
-            projectData.TelemetryPaths.Add(new FileInfo(path));
-        }
-        return projectData;
     }
 }

@@ -40,7 +40,6 @@ public class JreResolverTests
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly JreMetadata metadata = new("1", "filename.tar.gz", JavaExePath, new Uri("https://localhost.com/path/to-jre"), "sha256");
     private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
-    private readonly IFilePermissionsWrapper filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
 
     private ListPropertiesProvider provider;
@@ -48,6 +47,7 @@ public class JreResolverTests
     private ISonarWebServer server;
     private JreResolver sut;
     private UnpackerFactory unpackerFactory;
+    private OperatingSystemProvider operatingSystem;
 
     [TestInitialize]
     public void Initialize()
@@ -60,9 +60,14 @@ public class JreResolverTests
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
-        unpackerFactory = Substitute.For<UnpackerFactory>();
+        unpackerFactory = Substitute.For<UnpackerFactory>(
+            logger,
+            Substitute.For<OperatingSystemProvider>(fileWrapper, logger),
+            Substitute.For<IFileWrapper>(),
+            Substitute.For<IDirectoryWrapper>());
+        operatingSystem = Substitute.For<OperatingSystemProvider>(fileWrapper, logger);
 
-        sut = new JreResolver(server, logger, filePermissionsWrapper, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
+        sut = new JreResolver(server, logger, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
     }
 
     [TestMethod]
@@ -71,7 +76,7 @@ public class JreResolverTests
         var args = Args();
         args.JavaExePath.Returns("path");
 
-        var res = await sut.ResolveJrePath(args);
+        var res = await sut.ResolvePath(args);
 
         res.Should().BeNull();
         AssertDebugMessages(
@@ -85,7 +90,7 @@ public class JreResolverTests
         var args = Args();
         args.SkipJreProvisioning.Returns(true);
 
-        var res = await sut.ResolveJrePath(args);
+        var res = await sut.ResolvePath(args);
 
         res.Should().BeNull();
         AssertDebugMessages(
@@ -99,7 +104,7 @@ public class JreResolverTests
         var args = Args();
         args.Architecture.Returns(string.Empty);
 
-        var res = await sut.ResolveJrePath(args);
+        var res = await sut.ResolvePath(args);
 
         res.Should().BeNull();
         AssertDebugMessages(
@@ -113,7 +118,7 @@ public class JreResolverTests
         var args = Args();
         args.OperatingSystem.Returns(string.Empty);
 
-        var res = await sut.ResolveJrePath(args);
+        var res = await sut.ResolvePath(args);
 
         res.Should().BeNull();
         AssertDebugMessages(
@@ -128,7 +133,7 @@ public class JreResolverTests
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult<JreMetadata>(null));
 
-        var res = await sut.ResolveJrePath(Args());
+        var res = await sut.ResolvePath(Args());
 
         res.Should().BeNull();
         AssertDebugMessages(
@@ -142,7 +147,7 @@ public class JreResolverTests
     {
         directoryWrapper.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
 
-        var res = await sut.ResolveJrePath(Args());
+        var res = await sut.ResolvePath(Args());
 
         res.Should().BeNull();
         AssertDebugMessages(
@@ -157,7 +162,7 @@ public class JreResolverTests
         directoryWrapper.Exists(ExtractedPath).Returns(true);
         fileWrapper.Exists(JavaExePath).Returns(false);
 
-        var res = await sut.ResolveJrePath(Args());
+        var res = await sut.ResolvePath(Args());
 
         res.Should().BeNull();
         AssertDebugMessages(
@@ -172,7 +177,7 @@ public class JreResolverTests
         directoryWrapper.Exists(null).ReturnsForAnyArgs(true);
         fileWrapper.Exists(null).ReturnsForAnyArgs(true);
 
-        var res = await sut.ResolveJrePath(Args());
+        var res = await sut.ResolvePath(Args());
 
         res.Should().Be(ExtractedJavaPath);
         AssertDebugMessages(
@@ -196,7 +201,7 @@ public class JreResolverTests
         fileWrapper.Open(tempArchive).Returns(computeHashStream);
         checksum.ComputeHash(computeHashStream).Returns("sha256");
 
-        var res = await sut.ResolveJrePath(Args());
+        var res = await sut.ResolvePath(Args());
 
         res.Should().Be(ExtractedJavaPath);
         AssertJreBottleNeckMessage();
@@ -225,7 +230,7 @@ public class JreResolverTests
         fileWrapper.Create(tempArchive).Returns(new MemoryStream());
         fileWrapper.Open(tempArchive).Returns(computeHashStream);
 
-        var res = await sut.ResolveJrePath(Args());
+        var res = await sut.ResolvePath(Args());
 
         await server.DidNotReceive().DownloadJreAsync(Arg.Any<JreMetadata>());
         res.Should().Be(ExtractedJavaPath);
@@ -245,7 +250,7 @@ public class JreResolverTests
     public async Task ResolveJrePath_CacheMiss_DownloadFailure()
     {
         fileWrapper.Create(Arg.Any<string>()).Throws(new IOException("Reason"));
-        var res = await sut.ResolveJrePath(Args());
+        var res = await sut.ResolvePath(Args());
 
         AssertJreBottleNeckMessage(true);
         res.Should().BeNull();
@@ -261,9 +266,9 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_CreateUnpackerFails_ReturnsFailure()
     {
-        unpackerFactory.Create(null, null, null, null, null).ReturnsNullForAnyArgs();
+        unpackerFactory.Create(null).ReturnsNullForAnyArgs();
 
-        var res = await sut.ResolveJrePath(Args());
+        var res = await sut.ResolvePath(Args());
 
         res.Should().BeNull();
         AssertDebugMessages(
@@ -276,7 +281,7 @@ public class JreResolverTests
     public async Task ResolveJrePath_SkipProvisioningOnUnsupportedServers()
     {
         server.SupportsJreProvisioning.Returns(false);
-        await sut.ResolveJrePath(Args());
+        await sut.ResolvePath(Args());
 
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
@@ -317,7 +322,7 @@ public class JreResolverTests
                 }
             }
 
-            await sut.ResolveJrePath(args);
+            await sut.ResolvePath(args);
             logger.DebugMessages.Should().BeEquivalentTo(
                 ["JreResolver: Resolving JRE path.",
                 firstInvalid.Message],

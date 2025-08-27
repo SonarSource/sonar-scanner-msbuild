@@ -18,14 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor.Interfaces;
+namespace SonarScanner.MSBuild.Common;
 
-public interface IFilePermissionsWrapper
+public interface IRuntime
 {
-    /// <summary>
-    /// Set the *nix file permission on a file.
-    /// </summary>
-    /// <param name="destinationPath">The path to the file.</param>
-    /// <param name="mode">The numeric notation of file permissions as used by chmod.</param>
-    void Set(string destinationPath, int mode);
+    OperatingSystemProvider OperatingSystem { get; }
+    ILogger Logger { get; }
+    IFileWrapper File { get; }
+    IDirectoryWrapper Directory { get; }
 }

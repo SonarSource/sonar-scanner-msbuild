@@ -33,8 +33,8 @@ public static class AnalysisConfigGenerator
     /// <param name="serverProperties">Analysis properties downloaded from the SonarQube server.</param>
     /// <param name="analyzersSettings">Specifies the Roslyn analyzers to use. Can be empty.</param>
     /// <param name="sonarQubeVersion">SonarQube/SonarCloud server version.</param>
-    /// <param name="resolvedJavaExePath">Java exe path calculated from IJreResolver.</param>
-    /// <param name="resolvedEngineJarPath">Scanner Enging jar path calculated from EngineResolver.</param>
+    /// <param name="resolvedJavaExePath">Java exe path calculated from JreResolver.</param>
+    /// <param name="resolvedEngineJarPath">Scanner Engine jar path calculated from EngineResolver.</param>
     public static AnalysisConfig GenerateFile(ProcessedArgs localSettings,
                                               BuildSettings buildSettings,
                                               Dictionary<string, string> additionalSettings,
@@ -59,7 +59,7 @@ public static class AnalysisConfigGenerator
             SonarScannerWorkingDirectory = buildSettings.SonarScannerWorkingDirectory,
             SourcesDirectory = buildSettings.SourcesDirectory,
             JavaExePath = string.IsNullOrWhiteSpace(localSettings.JavaExePath) ? resolvedJavaExePath : localSettings.JavaExePath, // the user-specified JRE overrides the resolved value
-            EngineJarPath = string.IsNullOrWhiteSpace(localSettings.EngineJarPath) ? resolvedEngineJarPath : localSettings.EngineJarPath, // the user-specified JRE overrides the resolved value
+            EngineJarPath = string.IsNullOrWhiteSpace(localSettings.EngineJarPath) ? resolvedEngineJarPath : localSettings.EngineJarPath, // the user-specified engine.jar overrides the resolved value
             ScanAllAnalysis = localSettings.ScanAllAnalysis,
             UseSonarScannerCli = localSettings.UseSonarScannerCli,
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)

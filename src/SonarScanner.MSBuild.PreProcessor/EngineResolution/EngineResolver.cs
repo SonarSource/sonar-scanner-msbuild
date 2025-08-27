@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
-public class EngineResolver : IEngineResolver
+public class EngineResolver : IResolver
 {
     private const string ScannerEngine = "Scanner Engine";
     private readonly ISonarWebServer server;
@@ -48,7 +48,7 @@ public class EngineResolver : IEngineResolver
         this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
     }
 
-    public async Task<string> ResolveEngine(ProcessedArgs args)
+    public async Task<string> ResolvePath(ProcessedArgs args)
     {
         logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, string.Empty);
         if (args.EngineJarPath is { } localEngine)
@@ -78,7 +78,7 @@ public class EngineResolver : IEngineResolver
         }
     }
 
-    public async Task<string> ResolveEnginePath(EngineMetadata metadata)
+    private async Task<string> ResolveEnginePath(EngineMetadata metadata)
     {
         var cachedDownloader = new CachedDownloader(logger, directoryWrapper, fileWrapper, checksum, metadata.ToDescriptor(), sonarUserHome);
         switch (cachedDownloader.IsFileCached())
@@ -97,7 +97,7 @@ public class EngineResolver : IEngineResolver
         }
     }
 
-    public async Task<string> DownloadEngine(CachedDownloader cachedDownloader, EngineMetadata metadata)
+    private async Task<string> DownloadEngine(CachedDownloader cachedDownloader, EngineMetadata metadata)
     {
         var result = await cachedDownloader.DownloadFileAsync(() => server.DownloadEngineAsync(metadata));
         if (result is DownloadSuccess success)

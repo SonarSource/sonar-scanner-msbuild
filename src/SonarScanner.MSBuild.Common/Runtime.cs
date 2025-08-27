@@ -18,9 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
+namespace SonarScanner.MSBuild.Common;
 
-public interface IJreResolver
+public class Runtime : IRuntime
 {
-    Task<string> ResolveJrePath(ProcessedArgs args);
+    public OperatingSystemProvider OperatingSystem { get; }
+    public IDirectoryWrapper Directory { get; }
+    public IFileWrapper File { get; }
+    public ILogger Logger { get; }
+
+    public Runtime(OperatingSystemProvider operatingSystem, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, ILogger logger)
+    {
+        OperatingSystem = operatingSystem ?? throw new ArgumentNullException(nameof(operatingSystem));
+        Directory = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
+        File = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+        Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 }

@@ -56,9 +56,9 @@ public class PostProcessorTests
         config.SetBuildUri("http://test-build-uri");
         settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
         logger = new();
-        tfsProcessor = Substitute.For<TfsProcessorWrapper>(logger, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
-        tfsProcessor.Execute(null, null, null).ReturnsForAnyArgs(true);
-        scanner = Substitute.For<SonarScannerWrapper>(logger, Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()));
+        tfsProcessor = Substitute.For<TfsProcessorWrapper>(new TestRuntime { Logger = logger });
+        tfsProcessor.Execute(null, null).ReturnsForAnyArgs(true);
+        scanner = Substitute.For<SonarScannerWrapper>(new TestRuntime());
         scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(logger);
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
@@ -425,14 +425,14 @@ public class PostProcessorTests
 #if NETFRAMEWORK
         if (shouldBeCalled)
         {
-            tfsProcessor.Received().Execute(Arg.Any<AnalysisConfig>(), Arg.Is<IEnumerable<string>>(x => x.Contains(command)), Arg.Any<string>());
+            tfsProcessor.Received().Execute(Arg.Any<AnalysisConfig>(), Arg.Is<IEnumerable<string>>(x => x.Contains(command)));
         }
         else
         {
-            tfsProcessor.DidNotReceive().Execute(Arg.Any<AnalysisConfig>(), Arg.Is<IEnumerable<string>>(x => x.Contains(command)), Arg.Any<string>());
+            tfsProcessor.DidNotReceive().Execute(Arg.Any<AnalysisConfig>(), Arg.Is<IEnumerable<string>>(x => x.Contains(command)));
         }
 #else
-        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null);
 #endif
     }
 

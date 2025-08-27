@@ -18,23 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Test;
+using NSubstitute;
 
-[TestClass]
-public class DefaultProcessorFactoryTests
+namespace TestUtilities;
+
+public class TestRuntime : IRuntime
 {
-    [TestMethod]
-    public void CreatePreProcessor_Returns_New_Instance()
-    {
-        var factory = new DefaultProcessorFactory(new TestRuntime());
-        factory.CreatePreProcessor().Should().BeOfType<PreProcessor.PreProcessor>();
-    }
+    public OperatingSystemProvider OperatingSystem { get; init; }
+    public TestLogger Logger { get; init; } = new();
+    public IFileWrapper File { get; init; } = Substitute.For<IFileWrapper>();
+    public IDirectoryWrapper Directory { get; init; } = Substitute.For<IDirectoryWrapper>();
+    ILogger IRuntime.Logger => Logger;
 
-    [TestMethod]
-    public void CreatePostProcessor_Returns_New_Instance()
-    {
-        var factory = new DefaultProcessorFactory(new TestRuntime());
-
-        factory.CreatePostProcessor().Should().BeOfType<PostProcessor.PostProcessor>();
-    }
+    public TestRuntime() =>
+        OperatingSystem = Substitute.For<OperatingSystemProvider>(File, Logger);
 }

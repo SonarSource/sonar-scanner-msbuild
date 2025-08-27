@@ -25,20 +25,18 @@ using SonarScanner.MSBuild.PreProcessor.Unpacking;
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
-public class JreResolver : IJreResolver
+public class JreResolver : IResolver
 {
     private readonly ISonarWebServer server;
     private readonly ILogger logger;
     private readonly UnpackerFactory unpackerFactory;
     private readonly IDirectoryWrapper directoryWrapper;
     private readonly IFileWrapper fileWrapper;
-    private readonly IFilePermissionsWrapper filePermissionsWrapper;
     private readonly IChecksum checksum;
     private readonly string sonarUserHome;
 
     public JreResolver(ISonarWebServer server,
                        ILogger logger,
-                       IFilePermissionsWrapper filePermissionsWrapper,
                        IChecksum checksum,
                        string sonarUserHome,
                        UnpackerFactory unpackerFactory = null,
@@ -47,15 +45,14 @@ public class JreResolver : IJreResolver
     {
         this.server = server;
         this.logger = logger;
-        this.filePermissionsWrapper = filePermissionsWrapper;
         this.checksum = checksum;
         this.sonarUserHome = sonarUserHome;
-        this.unpackerFactory = unpackerFactory ?? UnpackerFactory.Instance;
+        this.unpackerFactory = unpackerFactory ?? new UnpackerFactory(logger, new OperatingSystemProvider(FileWrapper.Instance, logger));
         this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
         this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
     }
 
-    public async Task<string> ResolveJrePath(ProcessedArgs args)
+    public async Task<string> ResolvePath(ProcessedArgs args)
     {
         logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", string.Empty);
         if (!IsValid(args))
@@ -84,7 +81,7 @@ public class JreResolver : IJreResolver
         }
 
         var descriptor = metadata.ToDescriptor();
-        if (unpackerFactory.Create(logger, directoryWrapper, fileWrapper, filePermissionsWrapper, descriptor.Filename) is { } unpacker)
+        if (unpackerFactory.Create(descriptor.Filename) is { } unpacker)
         {
             var jreDownloader = new JreDownloader(logger, directoryWrapper, fileWrapper, unpacker, checksum, sonarUserHome, descriptor);
             switch (jreDownloader.IsJreCached())

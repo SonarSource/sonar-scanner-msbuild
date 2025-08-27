@@ -89,7 +89,10 @@ public sealed class PreProcessor : IPreProcessor
         }
 
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
-        var resolvedJavaExePath = await jreResolver.ResolveJrePath(localSettings);
+        var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
+
+        var engineResolver = factory.CreateEngineResolver(server, localSettings.UserHome);
+        var scannerEngineJarPath = await engineResolver.ResolvePath(localSettings);
 
         var engineResolver = factory.CreateEngineResolver(server, localSettings.UserHome);
         var scannerEngineJarPath = await engineResolver.ResolveEngine(localSettings);
