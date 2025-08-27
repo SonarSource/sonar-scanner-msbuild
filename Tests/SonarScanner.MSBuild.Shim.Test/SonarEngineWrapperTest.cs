@@ -69,7 +69,7 @@ public class SonarEngineWrapperTest
             CmdLineArgs = (string[])["-jar", "engine.jar"],
         });
         WrittenInput(runner.SuppliedArguments.InputWriter).Should().Be(SampleInput);
-        runtime.Logger.AssertInfoLogged("The scanner engine has finished");
+        runtime.Logger.AssertInfoLogged("The scanner engine has finished successfully");
     }
 
     [TestMethod]

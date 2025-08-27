@@ -231,7 +231,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The scanner engine has finished.
+        ///   Looks up a localized string similar to The scanner engine has finished successfully.
         /// </summary>
         internal static string MSG_ScannerEngineCompleted {
             get {
