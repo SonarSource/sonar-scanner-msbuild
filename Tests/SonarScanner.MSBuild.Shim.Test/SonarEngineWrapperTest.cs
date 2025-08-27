@@ -34,6 +34,29 @@ public class SonarEngineWrapperTest
     private readonly TestRuntime runtime = new();
 
     [TestMethod]
+    public void Ctor_Runtime_ThrowsArgumentNullException()
+    {
+        Action act = () => new SonarEngineWrapper(null, Substitute.For<IProcessRunner>());
+        act.Should().Throw<ArgumentNullException>().WithParameterName("runtime");
+    }
+
+    [TestMethod]
+    public void Ctor_ProcessRunner_ThrowsArgumentNullException()
+    {
+        Action act = () => new SonarEngineWrapper(runtime, null);
+        act.Should().Throw<ArgumentNullException>().WithParameterName("processRunner");
+    }
+
+    [TestMethod]
+    public void Execute_Config_ThrowsArgumentNullException()
+    {
+        var wrapper = new SonarEngineWrapper(runtime, Substitute.For<IProcessRunner>());
+
+        Action act = () => wrapper.Execute(null, "{}");
+        act.Should().Throw<ArgumentNullException>().WithParameterName("config");
+    }
+
+    [TestMethod]
     public void Execute_Success()
     {
         var runner = new MockProcessRunner(true);
@@ -45,7 +68,7 @@ public class SonarEngineWrapperTest
             ExeName = "java.exe",
             CmdLineArgs = (string[])["-jar", "engine.jar"],
         });
-        AssertWrittenInput(runner, SampleInput);
+        WrittenInput(runner.SuppliedArguments.InputWriter).Should().Be(SampleInput);
         runtime.Logger.AssertInfoLogged("The scanner engine has finished");
     }
 
@@ -59,14 +82,14 @@ public class SonarEngineWrapperTest
         runtime.Logger.AssertErrorLogged("The scanner engine did not complete successfully");
     }
 
-    private static void AssertWrittenInput(MockProcessRunner runner, string expectedInput)
+    private static string WrittenInput(Action<StreamWriter> writer)
     {
-        runner.SuppliedArguments.InputWriter.Should().NotBeNull();
-        using var writer = new StreamWriter(new MemoryStream());
-        runner.SuppliedArguments.InputWriter(writer);
-        writer.Flush();
-        writer.BaseStream.Seek(0, SeekOrigin.Begin);
-        using var reader = new StreamReader(writer.BaseStream);
-        reader.ReadToEnd().Should().Be(expectedInput);
+        using var ms = new MemoryStream();
+        using var sw = new StreamWriter(ms);
+        writer(sw);
+        sw.Flush();
+        ms.Position = 0;
+        using var sr = new StreamReader(ms);
+        return sr.ReadToEnd();
     }
 }

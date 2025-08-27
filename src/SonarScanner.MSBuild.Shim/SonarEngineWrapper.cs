@@ -27,8 +27,8 @@ public class SonarEngineWrapper
 
     public SonarEngineWrapper(IRuntime runtime, IProcessRunner processRunner)
     {
-        this.runtime = runtime;
-        this.processRunner = processRunner;
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+        this.processRunner = processRunner ?? throw new ArgumentNullException(nameof(processRunner));
     }
 
     public virtual bool Execute(AnalysisConfig config, string propertiesJsonInput)
