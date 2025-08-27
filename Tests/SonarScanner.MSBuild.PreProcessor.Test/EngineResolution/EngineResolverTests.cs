@@ -60,7 +60,7 @@ public class EngineResolverTests
     {
         args.EngineJarPath.Returns("local/path/to/engine.jar");
 
-        var result = await new EngineResolver(server, logger, "sonarUserHome").ResolveEngine(args);
+        var result = await new EngineResolver(server, logger, "sonarUserHome").ResolvePath(args);
 
         result.Should().Be("local/path/to/engine.jar");
         await server.DidNotReceive().DownloadEngineMetadataAsync();
@@ -76,7 +76,7 @@ public class EngineResolverTests
         server.SupportsJreProvisioning.Returns(false);
         args.EngineJarPath.ReturnsNull();
 
-        var result = await resolver.ResolveEngine(args);
+        var result = await resolver.ResolvePath(args);
 
         result.Should().BeNull();
         await server.DidNotReceive().DownloadEngineMetadataAsync();
@@ -91,7 +91,7 @@ public class EngineResolverTests
     {
         server.DownloadEngineMetadataAsync().Returns(Task.FromResult<EngineMetadata>(null));
 
-        var result = await resolver.ResolveEngine(args);
+        var result = await resolver.ResolvePath(args);
 
         result.Should().BeNull();
         await server.Received(1).DownloadEngineMetadataAsync();
@@ -106,7 +106,7 @@ public class EngineResolverTests
     {
         fileWrapper.Exists(CachedEnginePath).Returns(true);
 
-        var result = await resolver.ResolveEngine(args);
+        var result = await resolver.ResolvePath(args);
 
         result.Should().Be(CachedEnginePath);
         await server.Received(1).DownloadEngineMetadataAsync();
@@ -121,7 +121,7 @@ public class EngineResolverTests
     {
         directoryWrapper.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
 
-        var result = await resolver.ResolveEngine(args);
+        var result = await resolver.ResolvePath(args);
 
         result.Should().BeNull();
         await server.Received(1).DownloadEngineMetadataAsync();
@@ -146,7 +146,7 @@ public class EngineResolverTests
         fileWrapper.Create(tempFile).Returns(new MemoryStream());
         fileWrapper.Open(tempFile).Returns(computeHashStream);
 
-        var result =  await resolver.ResolveEngine(args);
+        var result =  await resolver.ResolvePath(args);
 
         result.Should().Be(CachedEnginePath);
         await server.Received(1).DownloadEngineMetadataAsync();
@@ -164,7 +164,7 @@ public class EngineResolverTests
     {
         server.DownloadEngineAsync(metadata).ThrowsAsync(new Exception("Reason"));
 
-        var result = await resolver.ResolveEngine(args);
+        var result = await resolver.ResolvePath(args);
 
         result.Should().BeNull();
         await server.Received(1).DownloadEngineMetadataAsync();
