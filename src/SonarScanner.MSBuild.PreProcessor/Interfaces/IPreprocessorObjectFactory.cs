@@ -45,7 +45,6 @@ public interface IPreprocessorObjectFactory
     /// </summary>
     RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
                                                         string localCacheTempPath,
-                                                        ILogger logger,
                                                         BuildSettings teamBuildSettings,
                                                         IAnalysisPropertyProvider sonarProperties,
                                                         IEnumerable<SonarRule> rules,
