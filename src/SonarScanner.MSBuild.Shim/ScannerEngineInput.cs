@@ -45,6 +45,26 @@ public class ScannerEngineInput
         Add("sonar.modules", modules);
     }
 
+    public ScannerEngineInput CloneWithoutSensitiveData()
+    {
+        var result = new ScannerEngineInput(config);
+        result.moduleKeys.UnionWith(moduleKeys);
+        foreach (var property in scannerProperties)
+        {
+            var key = property["key"].Value<string>();
+            var value = property["value"].Value<string>();
+            if (key == "sonar.modules")
+            {
+                result.modules.Value = value;
+            }
+            else
+            {
+                result.Add(key, ProcessRunnerArguments.ContainsSensitiveData(key) || ProcessRunnerArguments.ContainsSensitiveData(value) ? "***" : value);
+            }
+        }
+        return result;
+    }
+
     public override string ToString() =>
         JsonConvert.SerializeObject(root, Formatting.Indented);
 
