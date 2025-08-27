@@ -57,7 +57,7 @@ public class ProjectDescriptor
             ProjectType = IsTestProject ? ProjectType.Test : ProjectType.Product,
             IsExcluded = IsExcluded,
             Encoding = Encoding.WebName,
-            AnalysisResults = new List<AnalysisResult>(AnalysisResults)
+            AnalysisResults = new(AnalysisResults)
         };
 
     public void AddContentFile(string filePath, bool shouldAnalyse) =>

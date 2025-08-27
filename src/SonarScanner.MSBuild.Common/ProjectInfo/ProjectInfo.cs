@@ -49,30 +49,14 @@ public class ProjectInfo
     public static ProjectInfo Load(string fileName) =>
         Serializer.LoadModel<ProjectInfo>(fileName);
 
-    public bool TryGetAnalyzerResult(AnalysisResultFileType fileType, out AnalysisResult result) =>
-        TryGetAnalyzerResult(fileType.ToString(), out result);
+    public AnalysisResult FindAnalysisResultFile(AnalysisResultFileType fileType) =>
+        FindAnalysisResultFile(fileType.ToString());
 
-    public bool TryGetAnalyzerResult(string id, out AnalysisResult result)
-    {
-        result = null;
+    public AnalysisResult FindAnalysisResultFile(string id) =>
+        AnalysisResults?.FirstOrDefault(x => AnalysisResult.ResultKeyComparer.Equals(id, x.Id));
 
-        if (AnalysisResults != null)
-        {
-            result = AnalysisResults.FirstOrDefault(x => AnalysisResult.ResultKeyComparer.Equals(id, x.Id));
-        }
-        return result != null;
-    }
-
-    public bool TryGetAnalysisSetting(string id, out Property result)
-    {
-        result = null;
-
-        if (AnalysisSettings != null)
-        {
-            result = AnalysisSettings.FirstOrDefault(x => Property.AreKeysEqual(id, x.Id));
-        }
-        return result != null;
-    }
+    public Property FindAnalysisSetting(string id) =>
+        AnalysisSettings?.FirstOrDefault(x => Property.AreKeysEqual(id, x.Id));
 
     public void AddAnalyzerResult(AnalysisResultFileType fileType, string location) =>
         AddAnalyzerResult(fileType.ToString(), location);
@@ -88,13 +72,8 @@ public class ProjectInfo
             throw new ArgumentNullException(nameof(location));
         }
 
-        if (AnalysisResults == null)
-        {
-            AnalysisResults = new List<AnalysisResult>();
-        }
-
-        var result = new AnalysisResult { Id = id, Location = location };
-        AnalysisResults.Add(result);
+        AnalysisResults ??= [];
+        AnalysisResults.Add(new() { Id = id, Location = location });
     }
 
     public DirectoryInfo ProjectFileDirectory() =>
@@ -103,14 +82,10 @@ public class ProjectInfo
     public string ProjectGuidAsString() =>
         ProjectGuid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant();
 
-    public string TryGetAnalysisFileLocation(AnalysisResultFileType fileType) =>
-        TryGetAnalyzerResult(fileType, out var result) ? result.Location : null;
-
     public FileInfo[] AllAnalysisFiles(ILogger logger)
     {
-        var compiledFilesPath = TryGetAnalysisFileLocation(AnalysisResultFileType.FilesToAnalyze);
-        if (compiledFilesPath is null
-            || !File.Exists(compiledFilesPath))
+        var compiledFilesPath = FindAnalysisResultFile(AnalysisResultFileType.FilesToAnalyze)?.Location;
+        if (compiledFilesPath is null || !File.Exists(compiledFilesPath))
         {
             return [];
         }

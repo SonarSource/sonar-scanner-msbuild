@@ -126,7 +126,7 @@ public class ProjectLoaderTest
         }
 
         // Create the Visual Studio Code Coverage report file
-        if (visualStudioCodeCoverageReportFileName != null)
+        if (visualStudioCodeCoverageReportFileName is not null)
         {
             var fullVisualStudioCodeCoverageName = Path.Combine(descriptor.FullDirectoryPath, visualStudioCodeCoverageReportFileName);
             File.Create(fullVisualStudioCodeCoverageName);

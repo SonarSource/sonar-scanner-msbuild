@@ -55,7 +55,7 @@ public static class ProjectInfoAssertions
         // so they should never be null
         actual.AnalysisResults.Should().NotBeNull("actual AnalysisResults should not be null");
 
-        if (expected.AnalysisResults == null || !expected.AnalysisResults.Any())
+        if (expected.AnalysisResults is null || !expected.AnalysisResults.Any())
         {
             actual.AnalysisResults.Should().BeEmpty("actual AnalysisResults should be empty");
         }

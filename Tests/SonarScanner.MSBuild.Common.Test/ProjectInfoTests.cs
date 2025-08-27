@@ -90,7 +90,7 @@ public class ProjectInfoTests
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults1.xml"));
 
         // 2. Empty list
-        originalProjectInfo.AnalysisResults = new List<AnalysisResult>();
+        originalProjectInfo.AnalysisResults = [];
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults2.xml"));
 
         // 3. Non-empty list
