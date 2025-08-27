@@ -97,9 +97,7 @@ public static class ProjectInfoExtensions
             throw new ArgumentNullException(nameof(projectInfo));
         }
 
-        return !string.IsNullOrWhiteSpace(projectInfo.FullPath)
-            ? new FileInfo(projectInfo.FullPath).Directory
-            : null;
+        return string.IsNullOrWhiteSpace(projectInfo.FullPath) ? null : new FileInfo(projectInfo.FullPath).Directory;
     }
 
     public static string GetProjectGuidAsString(this ProjectInfo projectInfo)
