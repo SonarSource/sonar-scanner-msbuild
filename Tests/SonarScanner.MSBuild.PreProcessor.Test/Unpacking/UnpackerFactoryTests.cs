@@ -34,26 +34,14 @@ public class UnpackerFactoryTests
     [DataRow("File.TAR.GZ", typeof(TarGzUnpacker))]
     [DataRow(@"/usr/File.TAR.gz", typeof(TarGzUnpacker))]
     [DataRow(@"/usr/File.tar.GZ", typeof(TarGzUnpacker))]
-    public void SupportedFileExtensions(string fileName, Type expectedUnpacker)
-    {
-        var sut = new UnpackerFactory(new TestRuntime());
-
-        var unpacker = sut.Create(fileName);
-
-        unpacker.Should().BeOfType(expectedUnpacker);
-    }
+    public void SupportedFileExtensions(string fileName, Type expectedUnpacker) =>
+        new UnpackerFactory(new TestRuntime()).Create(fileName).Should().BeOfType(expectedUnpacker);
 
     [TestMethod]
     [DataRow("File.rar")]
     [DataRow("File.7z")]
     [DataRow("File.gz")]
     [DataRow("File.tar")]
-    public void UnsupportedFileExtensions(string fileName)
-    {
-        var sut = new UnpackerFactory(new TestRuntime());
-
-        var unpacker = sut.Create(fileName);
-
-        unpacker.Should().BeNull();
-    }
+    public void UnsupportedFileExtensions(string fileName) =>
+        new UnpackerFactory(new TestRuntime()).Create(fileName).Should().BeNull();
 }
