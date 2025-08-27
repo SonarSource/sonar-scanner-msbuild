@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using SonarScanner.MSBuild.Common;
-
 namespace TestUtilities;
 
 /// <summary>
@@ -38,7 +31,7 @@ public class ProjectDescriptor
     private const string ContentItemGroup = "Content";
 
     /// <summary>
-    /// Data class to describe a single file in a project
+    /// Data class to describe a single file in a project.
     /// </summary>
     public class FileInProject
     {
