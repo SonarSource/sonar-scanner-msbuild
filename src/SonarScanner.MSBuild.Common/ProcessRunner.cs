@@ -76,8 +76,8 @@ public sealed class ProcessRunner : IProcessRunner
 
         using var process = new Process();
         process.StartInfo = psi;
-        process.ErrorDataReceived += (_, data) => OnErrorDataReceived(data, runnerArgs.LogOutput, errorOutputWriter);
-        process.OutputDataReceived += (_, data) => OnOutputDataReceived(data, runnerArgs.LogOutput, standardOutputWriter);
+        process.OutputDataReceived += (_, e) => HandleProcessOutput(e.Data, stdOut: true, runnerArgs.LogOutput, standardOutputWriter, runnerArgs.OutputToLogMessage);
+        process.ErrorDataReceived += (_, e) => HandleProcessOutput(e.Data, stdOut: false, runnerArgs.LogOutput, errorOutputWriter, runnerArgs.OutputToLogMessage);
 
         process.Start();
         process.BeginErrorReadLine();
@@ -149,35 +149,28 @@ public sealed class ProcessRunner : IProcessRunner
         }
     }
 
-    private void OnOutputDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter standardOutputWriter)
+    private void HandleProcessOutput(string data, bool stdOut, bool logOutput, TextWriter outputWriter, OutputToLogMessage outputToLogMessage)
     {
-        if (e.Data is not null)
+        if (data is not null
+            && outputToLogMessage?.Invoke(stdOut, data) is { } logMessage
+            && logMessage.Message.RedactSensitiveData() is { } redactedMsg)
         {
-            var redactedMsg = e.Data.RedactSensitiveData();
             if (logOutput)
             {
-                // It's important to log this as an important message because
-                // this the log redirection pipeline of the child process
-                logger.LogInfo(redactedMsg);
+                switch (logMessage.Level)
+                {
+                    case LogLevel.Info:
+                        logger.LogInfo(redactedMsg);
+                        break;
+                    case LogLevel.Warning:
+                        logger.LogWarning(redactedMsg);
+                        break;
+                    case LogLevel.Error:
+                        logger.LogError(redactedMsg);
+                        break;
+                }
             }
-            standardOutputWriter.WriteLine(redactedMsg);
-        }
-    }
-
-    private void OnErrorDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter errorOutputWriter)
-    {
-        if (e.Data is not null)
-        {
-            var redactedMsg = e.Data.RedactSensitiveData();
-            if (logOutput && e.Data.StartsWith("WARN"))
-            {
-                logger.LogWarning(redactedMsg);
-            }
-            else if (logOutput)
-            {
-                logger.LogError(redactedMsg);
-            }
-            errorOutputWriter.WriteLine(redactedMsg);
+            outputWriter.WriteLine(redactedMsg);
         }
     }
 }

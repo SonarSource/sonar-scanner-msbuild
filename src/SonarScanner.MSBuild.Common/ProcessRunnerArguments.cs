@@ -27,6 +27,18 @@ using System.Threading;
 
 namespace SonarScanner.MSBuild.Common;
 
+public enum LogLevel
+{
+    None,
+    Info,
+    Warning,
+    Error
+}
+
+public readonly record struct LogMessage(LogLevel Level, string Message);
+
+public delegate LogMessage? OutputToLogMessage(bool stdOut, string outputLine);
+
 /// <summary>
 /// Data class containing parameters required to execute a new process
 /// </summary>
@@ -70,6 +82,8 @@ public class ProcessRunnerArguments
     /// </summary>
     public IDictionary<string, string> EnvironmentVariables { get; set; }
 
+    public OutputToLogMessage OutputToLogMessage { get; set; }
+
     private bool IsBatchScript { get; set; }
 
     public ProcessRunnerArguments(string exeName, bool isBatchScript)
@@ -83,6 +97,16 @@ public class ProcessRunnerArguments
         IsBatchScript = isBatchScript;
 
         TimeoutInMilliseconds = Timeout.Infinite;
+        OutputToLogMessage = (stdOut, outputLine) =>
+        {
+            var logLevel = stdOut
+                ? LogLevel.Info
+                : LogLevel.Error;
+            logLevel = logLevel == LogLevel.Error && outputLine.StartsWith("WARN")
+                ? LogLevel.Warning
+                : logLevel;
+            return new(logLevel, outputLine);
+        };
     }
 
     /// <summary>
