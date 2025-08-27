@@ -54,7 +54,7 @@ public class TrxFileReaderTests
     public void TrxReader_InvalidTrxFile()
     {
         CreateDirectory(RootDirectory, "dummy.trx", "this is not a trx file");
-        var trxFiles = trxReader.FindTrxFiles(RootDirectory, false);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
         runtime.Logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
         runtime.Logger.Warnings.Should().ContainSingle().Which.Should()
@@ -101,7 +101,7 @@ public class TrxFileReaderTests
     public void TrxReader_TrxWithMultipleAttachments()
     {
         CreateDirectory(RootDirectory, "multiple_attachments.trx", TrxContent("MACHINENAME\\AAA.coverage", "XXX.coverage"));
-        var trxFiles = trxReader.FindTrxFiles(RootDirectory, false);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
         runtime.Logger.Warnings.OrderBy(x => x).Should().SatisfyRespectively(
             x => x.Should().Match(
@@ -124,7 +124,7 @@ public class TrxFileReaderTests
     public void TrxReader_SingleAttachment_PathDoesNotExist()
     {
         CreateDirectory(RootDirectory, "single_attachment.trx", TrxContent("MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage"));
-        var trxFiles = trxReader.FindTrxFiles(RootDirectory, false);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
         runtime.Logger.Warnings.Should().ContainSingle().Which.Should().Match(
             "None of the following coverage attachments could be found: "
@@ -143,7 +143,7 @@ public class TrxFileReaderTests
         var fullCoveragePath = Path.Combine(resultsDir, "single attachment", "In", relativeCoveragePath);
         CreateFile(Path.GetDirectoryName(fullCoveragePath), Path.GetFileName(fullCoveragePath));
 
-        var trxFiles = trxReader.FindTrxFiles(RootDirectory, false);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(fullCoveragePath);
         runtime.Logger.AssertDebugMessageExists(relativeCoveragePath);
     }
@@ -158,7 +158,7 @@ public class TrxFileReaderTests
         var fullCoveragePath = Path.Combine(resultsDir, "single_attachment", "In", relativeCoveragePath);
         CreateFile(Path.GetDirectoryName(fullCoveragePath), Path.GetFileName(fullCoveragePath));
 
-        var trxFiles = trxReader.FindTrxFiles(RootDirectory, false);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(fullCoveragePath);
         runtime.Logger.AssertDebugMessageExists(relativeCoveragePath);
     }
@@ -171,7 +171,7 @@ public class TrxFileReaderTests
         var coverageFileName = CreateFile(coverageResults, "xxx.coverage");
         CreateDirectory(RootDirectory, "single_attachment.trx", TrxContent(coverageFileName));
 
-        var trxFiles = trxReader.FindTrxFiles(RootDirectory, false);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(coverageFileName);
         runtime.Logger.AssertDebugMessageExists($"Absolute path to coverage file: {Path.Combine(@"x:\dir1", "TestResults", "xxx.coverage")}");
     }
@@ -185,7 +185,7 @@ public class TrxFileReaderTests
         var coverageFileName = Path.Combine(resultsDir, "pathFromDeploymentRoot", "In", relativeCoveragePath);
         CreateFile(Path.GetDirectoryName(coverageFileName), Path.GetFileName(coverageFileName));
 
-        var trxFiles = trxReader.FindTrxFiles(RootDirectory, false);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().ContainSingle()
             .Which.Should().EndWith($"{Path.Combine("TestResults", "pathFromDeploymentRoot", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}")
             .And.Be(coverageFileName);
@@ -201,7 +201,7 @@ public class TrxFileReaderTests
         var coverageFileName = Path.Combine(resultsDir, "pathFromDeploymentRoot", "In", relativeCoveragePath);
         CreateFile(Path.GetDirectoryName(coverageFileName), Path.GetFileName(coverageFileName));
 
-        var trxFiles = trxReader.FindTrxFiles(RootDirectory, false);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
         runtime.Logger.AssertWarningLogged(
             "None of the following coverage attachments could be found: "
@@ -286,7 +286,7 @@ public class TrxFileReaderTests
 
     private void AssertFindCodeCoverageFiles()
     {
-        var trxFiles = trxReader.FindTrxFiles(RootDirectory, false);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
         runtime.Logger.AssertErrorsLogged(0);
         runtime.Logger.AssertWarningsLogged(0);

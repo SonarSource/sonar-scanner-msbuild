@@ -96,45 +96,33 @@ public class TrxFileReader
         return coverageReportPaths;
     }
 
-    public IEnumerable<string> FindTrxFiles(string buildRootDirectory, bool shouldLog = true)
+    public IEnumerable<string> FindTrxFiles(string buildRootDirectory)
     {
         Debug.Assert(!string.IsNullOrEmpty(buildRootDirectory), $"{nameof(buildRootDirectory)} should not be 'null'");
         Debug.Assert(runtime.Directory.Exists(buildRootDirectory), "The specified build root directory should exist: " + buildRootDirectory);
 
-        if (shouldLog)
-        {
-            runtime.Logger.LogInfo(Resources.TRX_DIAG_LocatingTrx);
-        }
+        runtime.Logger.LogInfo(Resources.TRX_DIAG_LocatingTrx);
 
         var testDirectories = runtime.Directory.GetDirectories(buildRootDirectory, TestResultsFolderName, SearchOption.AllDirectories);
 
         if (testDirectories is null || !testDirectories.Any())
         {
-            if (shouldLog)
-            {
-                runtime.Logger.LogInfo(Resources.TRX_DIAG_TestResultsDirectoryNotFound, buildRootDirectory);
-            }
+            runtime.Logger.LogInfo(Resources.TRX_DIAG_TestResultsDirectoryNotFound, buildRootDirectory);
 
             return [];
         }
 
-        if (shouldLog)
-        {
-            runtime.Logger.LogInfo(Resources.TRX_DIAG_FolderPaths, string.Join(", ", testDirectories));
-        }
+        runtime.Logger.LogInfo(Resources.TRX_DIAG_FolderPaths, string.Join(", ", testDirectories));
 
         var trxFiles = testDirectories.SelectMany(x => runtime.Directory.GetFiles(x, "*.trx")).ToArray();
 
-        if (shouldLog)
+        if (trxFiles.Length == 0)
         {
-            if (trxFiles.Length == 0)
-            {
-                runtime.Logger.LogInfo(Resources.TRX_DIAG_NoTestResultsFound);
-            }
-            else
-            {
-                runtime.Logger.LogInfo(Resources.TRX_DIAG_TrxFilesFound, string.Join(", ", trxFiles));
-            }
+            runtime.Logger.LogInfo(Resources.TRX_DIAG_NoTestResultsFound);
+        }
+        else
+        {
+            runtime.Logger.LogInfo(Resources.TRX_DIAG_TrxFilesFound, string.Join(", ", trxFiles));
         }
 
         return trxFiles;
