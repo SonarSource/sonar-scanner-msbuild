@@ -27,6 +27,11 @@ namespace SonarScanner.MSBuild.Common;
 /// Examples of types of analyzer: CodeCoverage, Roslyn Analyzers...</remarks>
 public class AnalysisResult
 {
+    /// <summary>
+    /// Comparer to use when comparing keys of analysis results
+    /// </summary>
+    public static readonly IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
+
     #region Data
 
     /// <summary>
@@ -46,11 +51,6 @@ public class AnalysisResult
     #endregion Data
 
     #region Static helpers
-
-    /// <summary>
-    /// Comparer to use when comparing keys of analysis results
-    /// </summary>
-    public static readonly IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
 
     #endregion Static helpers
 }

@@ -30,44 +30,7 @@ public class ProjectDescriptor
     private const string CompilerInputItemGroup = "Compile";
     private const string ContentItemGroup = "Content";
 
-    /// <summary>
-    /// Data class to describe a single file in a project.
-    /// </summary>
-    public class FileInProject
-    {
-        public FileInProject(string itemGroup, string filePath, bool shouldAnalyse)
-        {
-            ItemGroup = itemGroup;
-            FilePath = filePath;
-            ShouldBeAnalysed = shouldAnalyse;
-        }
-
-        /// <summary>
-        /// The path to the file
-        /// </summary>
-        public string FilePath { get; set; }
-
-        /// <summary>
-        /// The ItemGroup to which the file belongs
-        /// </summary>
-        public string ItemGroup { get; set; }
-
-        /// <summary>
-        /// Whether the file should be include in analysis or not
-        /// </summary>
-        public bool ShouldBeAnalysed { get; set; }
-    }
-
     public IList<FileInProject> Files { get; set; }
-
-    public ProjectDescriptor()
-    {
-        AnalysisResults = new List<AnalysisResult>();
-        Files = new List<FileInProject>();
-
-        // set default encoding
-        Encoding = Encoding.UTF8;
-    }
 
     #region Public properties
 
@@ -156,6 +119,15 @@ public class ProjectDescriptor
 
     #endregion Public properties
 
+    public ProjectDescriptor()
+    {
+        AnalysisResults = new List<AnalysisResult>();
+        Files = new List<FileInProject>();
+
+        // set default encoding
+        Encoding = Encoding.UTF8;
+    }
+
     #region Public methods
 
     public ProjectInfo CreateProjectInfo()
@@ -186,4 +158,32 @@ public class ProjectDescriptor
     }
 
     #endregion Public methods
+
+    /// <summary>
+    /// Data class to describe a single file in a project.
+    /// </summary>
+    public class FileInProject
+    {
+        /// <summary>
+        /// The path to the file
+        /// </summary>
+        public string FilePath { get; set; }
+
+        /// <summary>
+        /// The ItemGroup to which the file belongs
+        /// </summary>
+        public string ItemGroup { get; set; }
+
+        /// <summary>
+        /// Whether the file should be include in analysis or not
+        /// </summary>
+        public bool ShouldBeAnalysed { get; set; }
+
+        public FileInProject(string itemGroup, string filePath, bool shouldAnalyse)
+        {
+            ItemGroup = itemGroup;
+            FilePath = filePath;
+            ShouldBeAnalysed = shouldAnalyse;
+        }
+    }
 }

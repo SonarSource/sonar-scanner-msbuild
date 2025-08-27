@@ -111,6 +111,51 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         return true;
     }
 
+    internal /* for testing purpose */ string GetProjectGuid()
+    {
+        if (!string.IsNullOrEmpty(ProjectGuid))
+        {
+            return ProjectGuid;
+        }
+
+        if (!string.IsNullOrEmpty(SolutionConfigurationContents))
+        {
+            var fullProject = new FileInfo(FullProjectPath);
+
+            // Try to get GUID from the Solution
+            return XDocument.Parse(SolutionConfigurationContents)
+                .Descendants("ProjectConfiguration")
+                .Where(x => ArePathEquals(x.Attribute("AbsolutePath")?.Value, fullProject))
+                .Select(x => x.Attribute("Project")?.Value)
+                .FirstOrDefault();
+        }
+
+        var generatedGuid = Guid.NewGuid().ToString();
+
+        Log.LogMessage(Resources.WPIF_GeneratingRandomGuid, FullProjectPath, generatedGuid);
+
+        // Generating a new guid for projects without one.
+        return generatedGuid;
+
+        bool ArePathEquals(string filePath, FileInfo file)
+        {
+            if (filePath is null)
+            {
+                return false;
+            }
+
+            try
+            {
+                var fileInfo = new FileInfo(filePath);
+                return fileInfoComparer.Equals(fileInfo, file);
+            }
+            catch (NotSupportedException nse) when (nse.Message.Equals("The given path's format is not supported."))
+            {
+                return false;
+            }
+        }
+    }
+
     private Encoding ComputeEncoding(string codePage)
     {
         var cleanedCodePage = (codePage ?? string.Empty)
@@ -242,50 +287,5 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
             success = true;
         }
         return success;
-    }
-
-    internal /* for testing purpose */ string GetProjectGuid()
-    {
-        if (!string.IsNullOrEmpty(ProjectGuid))
-        {
-            return ProjectGuid;
-        }
-
-        if (!string.IsNullOrEmpty(SolutionConfigurationContents))
-        {
-            var fullProject = new FileInfo(FullProjectPath);
-
-            // Try to get GUID from the Solution
-            return XDocument.Parse(SolutionConfigurationContents)
-                .Descendants("ProjectConfiguration")
-                .Where(x => ArePathEquals(x.Attribute("AbsolutePath")?.Value, fullProject))
-                .Select(x => x.Attribute("Project")?.Value)
-                .FirstOrDefault();
-        }
-
-        var generatedGuid = Guid.NewGuid().ToString();
-
-        Log.LogMessage(Resources.WPIF_GeneratingRandomGuid, FullProjectPath, generatedGuid);
-
-        // Generating a new guid for projects without one.
-        return generatedGuid;
-
-        bool ArePathEquals(string filePath, FileInfo file)
-        {
-            if (filePath is null)
-            {
-                return false;
-            }
-
-            try
-            {
-                var fileInfo = new FileInfo(filePath);
-                return fileInfoComparer.Equals(fileInfo, file);
-            }
-            catch (NotSupportedException nse) when (nse.Message.Equals("The given path's format is not supported."))
-            {
-                return false;
-            }
-        }
     }
 }
