@@ -137,13 +137,9 @@ public partial class PreProcessorTests
     public async Task Execute_ServerNotAvailable_ReturnsFalse()
     {
         using var scope = new TestScope(TestContext);
-        // Factory needs to be mocked, so cannot use TestScopes built-in factory/pre-processor, but still want to use working directory scope
-        var factory = Substitute.For<IPreprocessorObjectFactory>();
-        factory.CreateTargetInstaller().Returns(Substitute.For<ITargetsInstaller>());
-        factory.CreateSonarWebServer(Arg.Any<ProcessedArgs>(), null).Returns(Task.FromResult<ISonarWebServer>(null));
-        var preProcessor = new PreProcessor(factory, new TestLogger());
+        scope.Factory.Server = null;
 
-        var result = await preProcessor.Execute(CreateArgs());
+        var result = await scope.Execute();
 
         result.Should().BeFalse();
     }
