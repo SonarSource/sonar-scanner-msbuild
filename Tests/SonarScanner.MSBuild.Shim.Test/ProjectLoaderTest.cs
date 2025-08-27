@@ -28,7 +28,6 @@ public class ProjectLoaderTest
     [TestMethod]
     public void ProjectLoader()
     {
-        // Arrange
         var testSourcePath = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
         // Create sub-directories, some with project info XML files and some without
@@ -71,17 +70,11 @@ public class ProjectLoaderTest
         };
         validNonTestNoReportsProject.AddContentFile("SomeFile.cs", true);
         CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null);
-
-        // Act
         IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(testSourcePath);
 
-        // Assert
         projects.Should().HaveCount(3);
-
         AssertProjectResultExists(validTestProject.ProjectName, projects);
-
         AssertProjectResultExists(validNonTestProject.ProjectName, projects);
-
         AssertProjectResultExists(validNonTestNoReportsProject.ProjectName, projects);
     }
 
@@ -89,10 +82,8 @@ public class ProjectLoaderTest
     [Description("Checks that the loader only looks in the top-level folder for project folders")]
     public void ProjectLoader_NonRecursive()
     {
-        // 0. Setup
         var rootTestDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var childDir = Path.Combine(rootTestDir, "Child1");
-
         // Create a valid project in the child directory
         var validNonTestProject = new ProjectDescriptor()
         {
