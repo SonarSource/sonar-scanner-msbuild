@@ -55,10 +55,10 @@ public class SonarEngineOutput
             }
             catch (JsonException)
             {
-                return new LogMessage(LogLevel.Info, outputLine);
+                return new(LogLevel.Info, outputLine);
             }
         }
-        return new LogMessage(LogLevel.Error, outputLine);
+        return new(LogLevel.Error, outputLine);
     }
 
     // https://xtranet-sonarsource.atlassian.net/wiki/spaces/CodeOrches/pages/3155001372/Scanner+Bootstrapping#Scanner-Engine-contract
