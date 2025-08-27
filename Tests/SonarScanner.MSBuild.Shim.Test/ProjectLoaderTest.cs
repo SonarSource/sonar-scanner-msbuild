@@ -70,7 +70,7 @@ public class ProjectLoaderTest
         };
         validNonTestNoReportsProject.AddContentFile("SomeFile.cs", true);
         CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null);
-        IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(testSourcePath);
+        var projects = Shim.ProjectLoader.LoadFrom(testSourcePath);
 
         projects.Should().HaveCount(3);
         AssertProjectResultExists(validTestProject.ProjectName, projects);
@@ -98,7 +98,7 @@ public class ProjectLoaderTest
         CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null);
 
         // 1. Run against the root dir -> not expecting the project to be found
-        IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(rootTestDir);
+        var projects = Shim.ProjectLoader.LoadFrom(rootTestDir);
         projects.Should().BeEmpty();
 
         // 2. Run against the child dir -> project should be found
