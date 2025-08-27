@@ -112,7 +112,7 @@ public class PostProcessor : IPostProcessor
     {
         scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, logger);
 
-        var result = scannerEngineInputGenerator.GenerateFile();
+        var result = scannerEngineInputGenerator.GenerateResult();
 
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
@@ -230,8 +230,8 @@ public class PostProcessor : IPostProcessor
             var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
             WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
             WriteProperty(projectInfoAnalysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
-            projectInfoAnalysisResult.ScannerEngineInput.WriteVsTestReportPaths(additionalProperties.VsTestReportsPaths);
-            projectInfoAnalysisResult.ScannerEngineInput.WriteVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
+            projectInfoAnalysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
+            projectInfoAnalysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {

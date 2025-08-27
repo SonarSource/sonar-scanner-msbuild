@@ -88,7 +88,7 @@ public class ScannerEngineInputGenerator
     /// </summary>
     /// <returns>Information about each of the project info files that was processed, together with the full path to the generated sonar-project.properties file.
     /// Note: The path to the generated file will be null if the file could not be generated.</returns>
-    public virtual ProjectInfoAnalysisResult GenerateFile()
+    public virtual ProjectInfoAnalysisResult GenerateResult()
     {
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var legacyWriter = new PropertiesWriter(analysisConfig);
@@ -104,7 +104,7 @@ public class ScannerEngineInputGenerator
         var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
         FixSarifAndEncoding(projects, analysisProperties);
         var allProjects = projects.ToProjectData(runtimeInformation.IsWindows, logger);
-        if (TryWriteProperties(analysisProperties, allProjects, legacyWriter, engineInput))
+        if (GenerateProperties(analysisProperties, allProjects, legacyWriter, engineInput))
         {
             var contents = legacyWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
@@ -118,7 +118,7 @@ public class ScannerEngineInputGenerator
         }
     }
 
-    public bool TryWriteProperties(AnalysisProperties analysisProperties, ProjectData[] allProjects, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
+    internal bool GenerateProperties(AnalysisProperties analysisProperties, ProjectData[] allProjects, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
     {
         var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
@@ -152,13 +152,13 @@ public class ScannerEngineInputGenerator
         }
 
         legacyWriter.WriteSonarProjectInfo(projectBaseDir);
-        engineInput.WriteSonarProjectInfo(projectBaseDir);
+        engineInput.AddConfig(projectBaseDir);
         legacyWriter.WriteSharedFiles(analysisFiles);
-        engineInput.WriteSharedFiles(analysisFiles);
+        engineInput.AddSharedFiles(analysisFiles);
         foreach (var project in validProjects)
         {
             legacyWriter.WriteSettingsForProject(project);
-            engineInput.WriteSettingsForProject(project);
+            engineInput.AddProject(project);
             if (project.Project.AnalysisSettings is not null && project.Project.AnalysisSettings.Any())
             {
                 foreach (var setting in project.Project.AnalysisSettings.Where(x =>
@@ -166,7 +166,7 @@ public class ScannerEngineInputGenerator
                     && !IsReportFilePaths(x.Id)
                     && !IsTelemetryPaths(x.Id)))
                 {
-                    engineInput.AppendKeyValue(project.Guid, setting.Id, setting.Value);
+                    engineInput.Add(project.Guid, setting.Id, setting.Value);
                 }
             }
             AddProperty(engineInput, project, ProjectOutPathsKeyCS, ProjectOutPathsKeyVB, project.AnalyzerOutPaths);
@@ -174,7 +174,7 @@ public class ScannerEngineInputGenerator
             AddProperty(engineInput, project, TelemetryPathsKeyCS, TelemetryPathsKeyVB, project.TelemetryPaths);
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
-        engineInput.WriteGlobalSettings(analysisProperties);
+        engineInput.AddGlobalSettings(analysisProperties);
         return true;
     }
 
@@ -186,7 +186,7 @@ public class ScannerEngineInputGenerator
     /// 4. the common path prefix of projects in case there's a majority with a common root
     /// 5. otherwise, return null.
     /// </summary>
-    public DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths)
+    internal DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths)
     {
         var projectBaseDir = analysisConfig.GetSettingOrDefault(SonarProperties.ProjectBaseDir, includeServerSettings: true, defaultValue: null, logger);
         if (!string.IsNullOrWhiteSpace(projectBaseDir))
@@ -236,7 +236,7 @@ public class ScannerEngineInputGenerator
         }
     }
 
-    internal /* for testing */ static ProjectData SingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
+    internal static ProjectData SingleClosestProjectOrDefault(FileInfo fileInfo, IEnumerable<ProjectData> projects)
     {
         var length = 0;
         var closestProjects = new List<ProjectData>();
@@ -400,7 +400,7 @@ public class ScannerEngineInputGenerator
     {
         if (KeySuffix() is { } keySuffix)
         {
-            engineInput.AppendKeyValue(project.Guid, keySuffix, paths);
+            engineInput.Add(project.Guid, keySuffix, paths);
         }
 
         string KeySuffix()
