@@ -32,18 +32,18 @@ public class ScannerEngineInputTest
         FluentActions.Invoking(() => new ScannerEngineInput(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("config");
 
     [TestMethod]
-    public void WriteSettingsForProject_ThrowsOnNullArgument() =>
-        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.WriteSettingsForProject(null)).Should().Throw<ArgumentNullException>().WithParameterName("project");
+    public void AddProject_ThrowsOnNullArgument() =>
+        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddProject(null)).Should().Throw<ArgumentNullException>().WithParameterName("project");
 
     [TestMethod]
-    public void WriteGlobalSettings_ThrowsOnNullArgument() =>
-        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.WriteGlobalSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
+    public void AddGlobalSettings_ThrowsOnNullArgument() =>
+        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddGlobalSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
 
     [TestMethod]
-    public void WriteGlobalSettings_VerboseIsSkipped()
+    public void AddGlobalSettings_VerboseIsSkipped()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteGlobalSettings([
+        sut.AddGlobalSettings([
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
         ]);
@@ -64,10 +64,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
+    public void AddGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteGlobalSettings([
+        sut.AddGlobalSettings([
             new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
         ]);
@@ -92,10 +92,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSharedProperties_EmptySources_EmptyTests()
+    public void AddSharedFiles_EmptySources_EmptyTests()
     {
         var sut = new ScannerEngineInput(new());
-        sut.WriteSharedFiles(new([], []));
+        sut.AddSharedFiles(new([], []));
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
@@ -109,10 +109,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSharedProperties_WithSources_EmptyTests()
+    public void AddSharedFiles_WithSources_EmptyTests()
     {
         var sut = new ScannerEngineInput(new());
-        sut.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
+        sut.AddSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))], []));
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
@@ -130,10 +130,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSharedProperties_EmptySources_WithTests()
+    public void AddSharedFiles_EmptySources_WithTests()
     {
         var sut = new ScannerEngineInput(new());
-        sut.WriteSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
+        sut.AddSharedFiles(new([], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs")), new(Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))]));
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
@@ -151,10 +151,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSharedProperties_WithSources_WithTests()
+    public void AddSharedFiles_WithSources_WithTests()
     {
         var sut = new ScannerEngineInput(new());
-        sut.WriteSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
+        sut.AddSharedFiles(new([new(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))], [new(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs"))]));
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
@@ -176,10 +176,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteVsTestReportPaths_WritesEncodedPaths()
+    public void AddVsTestReportPaths_WritesEncodedPaths()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteVsTestReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
+        sut.AddVsTestReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
@@ -197,10 +197,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteVsXmlCoverageReportPaths_WritesEncodedPaths()
+    public void AddVsXmlCoverageReportPaths_WritesEncodedPaths()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.WriteVsXmlCoverageReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
+        sut.AddVsXmlCoverageReportPaths([Path.Combine(TestUtils.DriveRoot(), "dir1", "first"), Path.Combine(TestUtils.DriveRoot(), "dir1", "second")]);
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
@@ -218,7 +218,7 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void JsonBuilderToString()
+    public void AddProject()
     {
         var sonarOutputDir = @"C:\my_folder";
         var productBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonbuilderTest_ProductBaseDir");
@@ -262,9 +262,9 @@ public class ScannerEngineInputTest
             SourcesDirectory = @"d:\source_files\"
         };
         var sut = new ScannerEngineInput(config);
-        sut.WriteSettingsForProject(productCS);
-        sut.WriteSettingsForProject(productVB);
-        sut.WriteSettingsForProject(test);
+        sut.AddProject(productCS);
+        sut.AddProject(productVB);
+        sut.AddProject(test);
         var actual = sut.ToString();
 
         var expected = $$"""
@@ -353,7 +353,7 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSonarProjectInfo_WritesAllValues()
+    public void AddConfig_WritesAllValues()
     {
         var projectBaseDir = Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir");
         var sonarOutputDir = @"C:\OutpuDir";
@@ -366,7 +366,7 @@ public class ScannerEngineInputTest
         };
         config.SetConfigValue(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
         var sut = new ScannerEngineInput(config);
-        sut.WriteSonarProjectInfo(new DirectoryInfo(projectBaseDir));
+        sut.AddConfig(new DirectoryInfo(projectBaseDir));
 
         sut.ToString().Should().BeIgnoringLineEndings(
             $$"""
@@ -406,11 +406,11 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void WriteSonarProjectInfo_EmptyValues()
+    public void AddConfig_EmptyValues()
     {
         var config = new AnalysisConfig { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
         var sut = new ScannerEngineInput(config);
-        sut.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
+        sut.AddConfig(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
         sut.ToString().Should().BeIgnoringLineEndings(
             $$"""
             {
@@ -434,7 +434,7 @@ public class ScannerEngineInputTest
 
     // Tests that .sonar.working.directory is explicitly set per module
     [TestMethod]
-    public void WorkdirPerModuleExplicitlySet()
+    public void AddProject_WorkdirPerModuleExplicitlySet()
     {
         var projectBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "JsonbuilderTest_AnalysisSettingsWritten");
         var productProject = CreateEmptyFile(projectBaseDir, "MyProduct.csproj");
@@ -449,8 +449,8 @@ public class ScannerEngineInputTest
             SonarOutputDir = Path.Combine(TestUtils.DriveRoot(), "my_folder")
         };
         var sut = new ScannerEngineInput(config);
-        sut.WriteSettingsForProject(product);
-        sut.WriteSonarProjectInfo(new DirectoryInfo("dummy basedir"));
+        sut.AddProject(product);
+        sut.AddConfig(new DirectoryInfo("dummy basedir"));
 
         var workDirKey = projectKey + "." + SonarProperties.WorkingDirectory;
         new ScannerEngineInputReader(sut.ToString()).AssertProperty(workDirKey, Path.Combine(TestUtils.DriveRoot(), "my_folder", ".sonar", "mod0"));
@@ -458,7 +458,7 @@ public class ScannerEngineInputTest
 
     // Tests that global settings in the ProjectInfo are written to the file
     [TestMethod]
-    public void GlobalSettingsWritten()
+    public void AddGlobalSettings()
     {
         var globalSettings = new AnalysisProperties
         {
@@ -469,7 +469,7 @@ public class ScannerEngineInputTest
             new("sonar.branch", "aBranch")
         };
         var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
-        sut.WriteGlobalSettings(globalSettings);
+        sut.AddGlobalSettings(globalSettings);
 
         var reader = new ScannerEngineInputReader(sut.ToString());
         reader.AssertProperty("my.setting1", "setting1");
@@ -479,10 +479,10 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void AsMultiValueProperty_EncodeValues()
+    public void Add_AsMultiValueProperty_EncodeValues()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.AppendKeyValue(
+        sut.Add(
             "sonar",
             "multivalueproperty",
             [
