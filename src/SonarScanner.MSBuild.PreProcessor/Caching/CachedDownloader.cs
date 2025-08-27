@@ -36,11 +36,11 @@ public class CachedDownloader
     public string FileRootPath { get; }
     public string CacheLocation { get; }
 
-    public CachedDownloader(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IChecksum checksum, FileDescriptor fileDescriptor, string sonarUserHome)
+    public CachedDownloader(IRuntime runtime, IChecksum checksum, FileDescriptor fileDescriptor, string sonarUserHome)
     {
-        this.logger = logger;
-        this.directoryWrapper = directoryWrapper;
-        this.fileWrapper = fileWrapper;
+        logger = runtime.Logger;
+        directoryWrapper = runtime.Directory;
+        fileWrapper = runtime.File;
         this.checksum = checksum;
         this.fileDescriptor = fileDescriptor;
 
