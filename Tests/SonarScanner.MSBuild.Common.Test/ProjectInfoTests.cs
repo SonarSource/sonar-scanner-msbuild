@@ -94,9 +94,9 @@ public class ProjectInfoTests
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults2.xml"));
 
         // 3. Non-empty list
-        originalProjectInfo.AnalysisResults.Add(new AnalysisResult() { Id = string.Empty, Location = string.Empty }); // empty item
-        originalProjectInfo.AnalysisResults.Add(new AnalysisResult() { Id = "Id1", Location = "location1" });
-        originalProjectInfo.AnalysisResults.Add(new AnalysisResult() { Id = "Id2", Location = "location2" });
+        originalProjectInfo.AnalysisResults.Add(new AnalysisResult { Id = string.Empty, Location = string.Empty }); // empty item
+        originalProjectInfo.AnalysisResults.Add(new AnalysisResult { Id = "Id1", Location = "location1" });
+        originalProjectInfo.AnalysisResults.Add(new AnalysisResult { Id = "Id2", Location = "location2" });
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults3.xml"));
     }
 

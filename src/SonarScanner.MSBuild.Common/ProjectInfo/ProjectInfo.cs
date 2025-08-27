@@ -93,7 +93,7 @@ public class ProjectInfo
             AnalysisResults = new List<AnalysisResult>();
         }
 
-        var result = new AnalysisResult() { Id = id, Location = location };
+        var result = new AnalysisResult { Id = id, Location = location };
         AnalysisResults.Add(result);
     }
 

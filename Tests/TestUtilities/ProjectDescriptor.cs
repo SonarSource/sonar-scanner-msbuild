@@ -49,7 +49,7 @@ public class ProjectDescriptor
 
     public ProjectInfo CreateProjectInfo()
     {
-        var info = new ProjectInfo()
+        var info = new ProjectInfo
         {
             FullPath = FullFilePath,
             ProjectLanguage = ProjectLanguage,
