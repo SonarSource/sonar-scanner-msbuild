@@ -40,7 +40,7 @@ public class DefaultProcessorFactory : IProcessorFactory
             new TargetsUninstaller(runtime.Logger),
             new TfsProcessorWrapper(runtime),
             new SonarProjectPropertiesValidator(),
-            new BuildVNextCoverageReportProcessor(new BinaryToXmlCoverageReportConverter(runtime.Logger), runtime.Logger));
+            new BuildVNextCoverageReportProcessor(new BinaryToXmlCoverageReportConverter(runtime.Logger), runtime));
 
     public IPreProcessor CreatePreProcessor() =>
         new PreProcessor.PreProcessor(new PreprocessorObjectFactory(runtime.Logger), runtime.Logger);
