@@ -49,10 +49,8 @@ public class ProjectInfo
     public static ProjectInfo Load(string fileName) =>
         Serializer.LoadModel<ProjectInfo>(fileName);
 
-    public bool TryGetAnalyzerResult(AnalysisResultFileType fileType, out AnalysisResult result)
-    {
-        return TryGetAnalyzerResult(fileType.ToString(), out result);
-    }
+    public bool TryGetAnalyzerResult(AnalysisResultFileType fileType, out AnalysisResult result) =>
+        TryGetAnalyzerResult(fileType.ToString(), out result);
 
     public bool TryGetAnalyzerResult(string id, out AnalysisResult result)
     {
@@ -76,10 +74,8 @@ public class ProjectInfo
         return result != null;
     }
 
-    public void AddAnalyzerResult(AnalysisResultFileType fileType, string location)
-    {
+    public void AddAnalyzerResult(AnalysisResultFileType fileType, string location) =>
         AddAnalyzerResult(fileType.ToString(), location);
-    }
 
     public void AddAnalyzerResult(string id, string location)
     {
@@ -101,25 +97,14 @@ public class ProjectInfo
         AnalysisResults.Add(result);
     }
 
-    public DirectoryInfo ProjectFileDirectory()
-    {
-        return string.IsNullOrWhiteSpace(FullPath) ? null : new FileInfo(FullPath).Directory;
-    }
+    public DirectoryInfo ProjectFileDirectory() =>
+        string.IsNullOrWhiteSpace(FullPath) ? null : new FileInfo(FullPath).Directory;
 
-    public string ProjectGuidAsString()
-    {
-        return ProjectGuid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant();
-    }
+    public string ProjectGuidAsString() =>
+        ProjectGuid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant();
 
-    public string TryGetAnalysisFileLocation(AnalysisResultFileType fileType)
-    {
-        if (TryGetAnalyzerResult(fileType, out var result))
-        {
-            return result.Location;
-        }
-
-        return null;
-    }
+    public string TryGetAnalysisFileLocation(AnalysisResultFileType fileType) =>
+        TryGetAnalyzerResult(fileType, out var result) ? result.Location : null;
 
     public FileInfo[] AllAnalysisFiles(ILogger logger)
     {

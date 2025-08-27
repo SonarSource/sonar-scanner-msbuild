@@ -29,84 +29,23 @@ public class ProjectDescriptor
     private const string CompilerInputItemGroup = "Compile";
     private const string ContentItemGroup = "Content";
 
-    public IList<FileInProject> Files { get; set; }
-
+    public List<FileInProject> Files { get; set; } = [];
     public string ProjectLanguage { get; set; }
-
     public Guid ProjectGuid { get; set; }
-
-    public IList<string> ManagedSourceFiles
-    {
-        get
-        {
-            return Files.Where(x => x.ItemGroup == CompilerInputItemGroup).Select(x => x.FilePath).ToList();
-        }
-    }
-
+    public IList<string> ManagedSourceFiles => Files.Where(x => x.ItemGroup == CompilerInputItemGroup).Select(x => x.FilePath).ToList();
     public bool IsTestProject { get; set; }
-
     public bool IsExcluded { get; set; }
-
     public Encoding Encoding { get; set; }
-
-    public List<AnalysisResult> AnalysisResults { get; private set; }
-
+    public List<AnalysisResult> AnalysisResults { get; } = [];
     public string ParentDirectoryPath { get; set; }
-
     public string ProjectFolderName { get; set; }
-
     public string ProjectFileName { get; set; }
-
-    public string FullDirectoryPath
-    {
-        get { return Path.Combine(ParentDirectoryPath, ProjectFolderName); }
-    }
-
-    public string FullFilePath
-    {
-        get { return Path.Combine(FullDirectoryPath, ProjectFileName); }
-    }
-
-    public string ProjectName
-    {
-        get
-        {
-            return Path.GetFileNameWithoutExtension(ProjectFileName);
-        }
-    }
-
-    public IEnumerable<string> FilesToAnalyse
-    {
-        get
-        {
-            return Files.Where(x => x.ShouldBeAnalysed).Select(x => x.FilePath);
-        }
-    }
-
-    public IEnumerable<string> FilesNotToAnalyse
-    {
-        get
-        {
-            return Files.Where(x => !x.ShouldBeAnalysed).Select(x => x.FilePath);
-        }
-    }
-
-    public bool IsVbProject
-    {
-        get
-        {
-            return ProjectLanguages.IsVbProject(ProjectLanguage);
-        }
-    }
-
-    public ProjectDescriptor()
-    {
-        AnalysisResults = new List<AnalysisResult>();
-        Files = new List<FileInProject>();
-
-        // set default encoding
-        Encoding = Encoding.UTF8;
-    }
+    public string FullDirectoryPath => Path.Combine(ParentDirectoryPath, ProjectFolderName);
+    public string FullFilePath => Path.Combine(FullDirectoryPath, ProjectFileName);
+    public string ProjectName => Path.GetFileNameWithoutExtension(ProjectFileName);
+    public IEnumerable<string> FilesToAnalyse => Files.Where(x => x.ShouldBeAnalysed).Select(x => x.FilePath);
+    public IEnumerable<string> FilesNotToAnalyse => Files.Where(x => !x.ShouldBeAnalysed).Select(x => x.FilePath);
+    public bool IsVbProject => ProjectLanguages.IsVbProject(ProjectLanguage);
 
     public ProjectInfo CreateProjectInfo()
     {
@@ -125,15 +64,11 @@ public class ProjectDescriptor
         return info;
     }
 
-    public void AddContentFile(string filePath, bool shouldAnalyse)
-    {
+    public void AddContentFile(string filePath, bool shouldAnalyse) =>
         Files.Add(new FileInProject(ProjectDescriptor.ContentItemGroup, filePath, shouldAnalyse));
-    }
 
-    public void AddCompileInputFile(string filePath, bool shouldAnalyse)
-    {
+    public void AddCompileInputFile(string filePath, bool shouldAnalyse) =>
         Files.Add(new FileInProject(ProjectDescriptor.CompilerInputItemGroup, filePath, shouldAnalyse));
-    }
 
     public class FileInProject
     {
