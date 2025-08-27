@@ -100,7 +100,7 @@ public class ProjectInfoExtensionsTests
     [TestMethod]
     public void GetDirectory_WhenProjectInfoIsNull_ThrowsArgumentNullException()
     {
-        Action action = () => ProjectInfoExtensions.GetDirectory(null);
+        Action action = () => ProjectInfoExtensions.ProjectFileDirectory(null);
 
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
     }

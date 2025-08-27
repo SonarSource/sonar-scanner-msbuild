@@ -31,7 +31,7 @@ public class SonarProjectPropertiesValidator
     {
         invalidFolders = projects
             .Where(x => x.Status == ProjectInfoValidity.Valid)
-            .Select(x => x.Project.GetDirectory().FullName)
+            .Select(x => x.Project.ProjectFileDirectory().FullName)
             .Union([sonarScannerCwd])
             .Where(SonarProjectPropertiesExists)
             .ToList();

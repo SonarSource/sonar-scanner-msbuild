@@ -23,10 +23,9 @@ namespace TestUtilities;
 public static class ProjectInfoAssertions
 {
     /// <summary>
-    /// Returns the list of project info objects beneath the specified root output folder
+    /// Returns the list of project info objects beneath the specified root output folder.
     /// </summary>
-    /// <param name="rootOutputFolder">The root Sonary analysis output folder. Project info files will be searched for in
-    /// immediate sub-directories of this folder only.</param>
+    /// <param name="rootOutputFolder">The root Sonar analysis output folder. Project info files will be searched for in immediate sub-directories of this folder only.</param>
     public static IList<ProjectInfo> GetProjectInfosFromOutputFolder(string rootOutputFolder)
     {
         var items = new List<ProjectInfo>();
@@ -43,9 +42,6 @@ public static class ProjectInfoAssertions
         return items;
     }
 
-    /// <summary>
-    /// Checks that the project info contains the expected values
-    /// </summary>
     public static void AssertExpectedValues(ProjectInfo expected, ProjectInfo actual)
     {
         actual.Should().NotBeNull("Supplied ProjectInfo should not be null");
@@ -60,21 +56,12 @@ public static class ProjectInfoAssertions
         CompareAnalysisResults(expected, actual);
     }
 
-    /// <summary>
-    /// Checks that not project info files exist under the output folder
-    /// </summary>
-    /// <param name="rootOutputFolder">The root SonarQube analysis output folder i.e. the folder that contains the per-project folders</param>
     public static void AssertNoProjectInfoFilesExists(string rootOutputFolder)
     {
         var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
         items.Should().BeEmpty("Not expecting any project info files to exist");
     }
 
-    /// <summary>
-    /// Checks that a project info file exists for the specified project
-    /// </summary>
-    /// <param name="rootOutputFolder">The root SonarQube analysis output folder i.e. the folder that contains the per-project folders</param>
-    /// <param name="fullProjectFileName">The full path and file name of the project file to which the project info file relates</param>
     public static ProjectInfo AssertProjectInfoExists(string rootOutputFolder, string fullProjectFileName)
     {
         var items = GetProjectInfosFromOutputFolder(rootOutputFolder);

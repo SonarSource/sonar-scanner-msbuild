@@ -22,24 +22,13 @@ using System.Globalization;
 
 namespace SonarScanner.MSBuild.Common;
 
-/// <summary>
-/// Extension methods for <see cref="ProjectInfo"/>
-/// </summary>
 public static class ProjectInfoExtensions
 {
-    /// <summary>
-    /// Attempts to find and return the analyzer result with the specified id
-    /// </summary>
-    /// <returns>True if the analyzer result was found, otherwise false</returns>
     public static bool TryGetAnalyzerResult(this ProjectInfo projectInfo, AnalysisResultFileType fileType, out AnalysisResult result)
     {
         return TryGetAnalyzerResult(projectInfo, fileType.ToString(), out result);
     }
 
-    /// <summary>
-    /// Attempts to find and return the analyzer result with the specified id
-    /// </summary>
-    /// <returns>True if the analyzer result was found, otherwise false</returns>
     public static bool TryGetAnalyzerResult(this ProjectInfo projectInfo, string id, out AnalysisResult result)
     {
         if (projectInfo == null)
@@ -56,10 +45,6 @@ public static class ProjectInfoExtensions
         return result != null;
     }
 
-    /// <summary>
-    /// Attempts to find and return the analysis setting with the specified id
-    /// </summary>
-    /// <returns>True if the setting was found, otherwise false</returns>
     public static bool TryGetAnalysisSetting(this ProjectInfo projectInfo, string id, out Property result)
     {
         if (projectInfo == null)
@@ -76,19 +61,11 @@ public static class ProjectInfoExtensions
         return result != null;
     }
 
-    /// <summary>
-    /// Adds an analysis result of the specified type
-    /// </summary>
-    /// <remarks>The method does not check whether an analysis result with the same id already exists i.e. duplicate results are allowed</remarks>
     public static void AddAnalyzerResult(this ProjectInfo projectInfo, AnalysisResultFileType fileType, string location)
     {
         AddAnalyzerResult(projectInfo, fileType.ToString(), location);
     }
 
-    /// <summary>
-    /// Adds an analysis result of the specified kind
-    /// </summary>
-    /// <remarks>The method does not check whether an analysis result with the same id already exists i.e. duplicate results are allowed</remarks>
     public static void AddAnalyzerResult(this ProjectInfo projectInfo, string id, string location)
     {
         if (projectInfo == null)
@@ -113,10 +90,7 @@ public static class ProjectInfoExtensions
         projectInfo.AnalysisResults.Add(result);
     }
 
-    /// <summary>
-    /// Returns the full path of the directory containing the project file
-    /// </summary>
-    public static DirectoryInfo GetDirectory(this ProjectInfo projectInfo)
+    public static DirectoryInfo ProjectFileDirectory(this ProjectInfo projectInfo)
     {
         if (projectInfo == null)
         {
@@ -128,9 +102,6 @@ public static class ProjectInfoExtensions
             : null;
     }
 
-    /// <summary>
-    /// Returns the ProjectGuid formatted as a string
-    /// </summary>
     public static string GetProjectGuidAsString(this ProjectInfo projectInfo)
     {
         if (projectInfo == null)
@@ -141,11 +112,6 @@ public static class ProjectInfoExtensions
         return projectInfo.ProjectGuid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant();
     }
 
-    /// <summary>
-    /// Attempts to return the file location for the specified type of analysis result.
-    /// Returns null if there is not a result for the specified type.
-    /// Note that callers must check if the file exists before attempting to read.
-    /// </summary>
     public static string TryGetAnalysisFileLocation(this ProjectInfo projectInfo, AnalysisResultFileType fileType)
     {
         if (projectInfo.TryGetAnalyzerResult(fileType, out var result))
@@ -156,10 +122,6 @@ public static class ProjectInfoExtensions
         return null;
     }
 
-    /// <summary>
-    /// Returns the list of files to be analyzed. If there are no files to be analyzed
-    /// then an empty list will be returned.
-    /// </summary>
     public static FileInfo[] GetAllAnalysisFiles(this ProjectInfo projectInfo, ILogger logger)
     {
         var compiledFilesPath = projectInfo.TryGetAnalysisFileLocation(AnalysisResultFileType.FilesToAnalyze);

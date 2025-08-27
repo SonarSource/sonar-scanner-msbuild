@@ -179,16 +179,9 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         return null;
     }
 
-    /// <summary>
-    /// Attempts to convert the supplied task items into a list of <see cref="AnalysisResult"/> objects.
-    /// </summary>
     private List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems) =>
         resultItems?.Select(TryCreateResultFromItem).Where(x => x is not null).ToList() ?? [];
 
-    /// <summary>
-    /// Attempts to create an <see cref="AnalysisResult"/> from the supplied task item.
-    /// Returns null if the task item does not have the required metadata.
-    /// </summary>
     private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
     {
         Debug.Assert(taskItem is not null, "Supplied task item should not be null");
@@ -221,9 +214,6 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         };
     }
 
-    /// <summary>
-    /// Attempts to convert the supplied task items into a list of <see cref="ConfigSetting"/> objects.
-    /// </summary>
     private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)
     {
         var settings = new AnalysisProperties();
@@ -231,10 +221,6 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         return settings;
     }
 
-    /// <summary>
-    /// Attempts to create an <see cref="ConfigSetting"/> from the supplied task item.
-    /// Returns null if the task item does not have the required metadata.
-    /// </summary>
     private Property TryCreateSettingFromItem(ITaskItem taskItem)
     {
         Debug.Assert(taskItem is not null, "Supplied task item should not be null");
@@ -245,10 +231,6 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
             : null;
     }
 
-    /// <summary>
-    /// Attempts to extract the setting id from the supplied task item.
-    /// Logs warnings if the task item does not contain valid data.
-    /// </summary>
     private bool TryGetSettingId(ITaskItem taskItem, out string settingId)
     {
         settingId = null;
@@ -265,11 +247,6 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         return isValid;
     }
 
-    /// <summary>
-    /// Attempts to return the value to use for the setting.
-    /// Logs warnings if the task item does not contain valid data.
-    /// </summary>
-    /// <remarks>The task should have a "Value" metadata item.</remarks>
     private bool TryGetSettingValue(ITaskItem taskItem, out string metadataValue)
     {
         bool success;

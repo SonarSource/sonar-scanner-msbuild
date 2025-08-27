@@ -106,10 +106,6 @@ public class ProjectLoaderTest
         projects.Should().ContainSingle();
     }
 
-    /// <summary>
-    /// Creates a folder containing a ProjectInfo.xml and compiled file list as
-    /// specified in the supplied descriptor
-    /// </summary>
     private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileFiles, string visualStudioCodeCoverageReportFileName)
     {
         if (!Directory.Exists(descriptor.FullDirectoryPath))
