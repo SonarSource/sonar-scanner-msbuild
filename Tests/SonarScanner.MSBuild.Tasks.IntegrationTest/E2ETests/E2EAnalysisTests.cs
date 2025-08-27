@@ -203,7 +203,7 @@ public class E2EAnalysisTests
         actualStructure.AssertConfigFileDoesNotExist(ExpectedAnalysisFilesListFileName);
 
         // Check the projectInfo.xml does not have an analysis result
-        actualStructure.ProjectInfo.AssertAnalysisResultDoesNotExists(TestUtils.FilesToAnalyze);
+        actualStructure.ProjectInfo.AssertAnalysisResultDoesNotExists(AnalysisResultFileType.FilesToAnalyze.ToString());
     }
 
     [TestMethod]
@@ -887,7 +887,7 @@ public class E2EAnalysisTests
                                                  string expectedTelemetryPath)
     {
         projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
-        projectInfo.AnalysisResults.Should().ContainSingle(x => x.Id.Equals(TestUtils.FilesToAnalyze)).Which.Location.Should().Be(expectedFilesToAnalyzePath);
+        projectInfo.AnalysisResults.Should().ContainSingle(x => x.Id.Equals(AnalysisResultFileType.FilesToAnalyze.ToString())).Which.Location.Should().Be(expectedFilesToAnalyzePath);
         projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.roslyn.reportFilePaths")).Which.Value.Should().Be(expectedReportFilePaths);
         projectInfo.AnalysisSettings.Should().ContainSingle(x => x.Id.Equals("sonar.cs.analyzer.projectOutPaths")).Which.Value.Should().Be(expectedProjectOutPaths);
         if (expectedTelemetryPath is null)
@@ -968,7 +968,7 @@ public class E2EAnalysisTests
             var expectedFullPaths = fileNames.Select(x => Path.Combine(context.InputFolder, x));
             File.ReadLines(filesToAnalyzeFile.FullPath).Should().BeEquivalentTo(expectedFullPaths);
 
-            var actualFilesToAnalyze = ProjectInfo.AssertAnalysisResultExists(TestUtils.FilesToAnalyze);
+            var actualFilesToAnalyze = ProjectInfo.AssertAnalysisResultExists(AnalysisResultFileType.FilesToAnalyze.ToString());
             actualFilesToAnalyze.Location.Should().Be(filesToAnalyzeFile.FullPath);
 
             AssertFileIsUtf8Bom(filesToAnalyzeFile.FullPath);

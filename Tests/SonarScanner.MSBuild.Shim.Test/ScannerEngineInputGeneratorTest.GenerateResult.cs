@@ -455,7 +455,7 @@ public partial class ScannerEngineInputGeneratorTest
             ProjectType = ProjectType.Product,
             Encoding = "UTF-8"
         };
-        var analysisFileList = CreateFileList(projectBaseDir, TestUtils.FilesToAnalyze, existingManagedFile, missingManagedFile, existingContentFile, missingContentFile);
+        var analysisFileList = CreateFileList(projectBaseDir, AnalysisResultFileType.FilesToAnalyze.ToString(), existingManagedFile, missingManagedFile, existingContentFile, missingContentFile);
         projectInfo.AddAnalyzerResult(AnalysisResultFileType.FilesToAnalyze, analysisFileList);
         var projectInfoDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "ProjectInfo1Dir");
         var projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);

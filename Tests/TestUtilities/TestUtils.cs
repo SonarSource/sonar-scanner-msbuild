@@ -25,7 +25,6 @@ namespace TestUtilities;
 
 public static class TestUtils
 {
-    public const string FilesToAnalyze = nameof(FilesToAnalyze);
     // Target file names
     public const string AnalysisTargetFile = "SonarQube.Integration.targets";
     public const string ImportsBeforeFile = "SonarQube.Integration.ImportBefore.targets";
