@@ -93,12 +93,11 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 
     public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
                                                                string localCacheTempPath,
-                                                               ILogger logger,  // TODO can logger be removed?
                                                                BuildSettings teamBuildSettings,
                                                                IAnalysisPropertyProvider sonarProperties,
                                                                IEnumerable<SonarRule> rules,
                                                                string language) =>
-        new(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger, teamBuildSettings, sonarProperties, rules, language);
+        new(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
 
     public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
         new JreResolver(server, runtime.Logger, ChecksumSha256.Instance, sonarUserHome);

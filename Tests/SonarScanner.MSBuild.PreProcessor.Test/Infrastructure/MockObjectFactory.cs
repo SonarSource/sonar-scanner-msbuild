@@ -71,7 +71,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public ITargetsInstaller CreateTargetInstaller() =>
         TargetsInstaller;
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath, ILogger logger, BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server, string localCacheTempPath, BuildSettings teamBuildSettings, IAnalysisPropertyProvider sonarProperties, IEnumerable<SonarRule> rules, string language)
     {
         LogMethodCalled();
         PluginCachePath = localCacheTempPath;

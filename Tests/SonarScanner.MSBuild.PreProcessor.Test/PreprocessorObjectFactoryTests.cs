@@ -197,7 +197,7 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        sut.CreateRoslynAnalyzerProvider(Substitute.For<ISonarWebServer>(), "cache", runtime.Logger, settings, new ListPropertiesProvider(), [], "cs").Should().NotBeNull();
+        sut.CreateRoslynAnalyzerProvider(Substitute.For<ISonarWebServer>(), "cache", settings, new ListPropertiesProvider(), [], "cs").Should().NotBeNull();
     }
 
     [TestMethod]
@@ -205,7 +205,7 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        FluentActions.Invoking(() => sut.CreateRoslynAnalyzerProvider(null, "cache", runtime.Logger, settings, new ListPropertiesProvider(), [], "cs")).Should()
+        FluentActions.Invoking(() => sut.CreateRoslynAnalyzerProvider(null, "cache", settings, new ListPropertiesProvider(), [], "cs")).Should()
             .ThrowExactly<ArgumentNullException>()
             .WithParameterName("server");
     }
