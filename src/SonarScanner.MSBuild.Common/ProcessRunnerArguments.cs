@@ -86,6 +86,7 @@ public class ProcessRunnerArguments
 
     public string StandardInput { get; set; }
 
+    // ToDo: Remove this in https://sonarsource.atlassian.net/browse/SCAN4NET-721
     private bool IsBatchScript { get; set; }
 
     public ProcessRunnerArguments(string exeName, bool isBatchScript)

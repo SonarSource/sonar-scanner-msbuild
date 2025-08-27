@@ -31,22 +31,17 @@ public class SonarEngineWrapper
         this.processRunner = processRunner ?? throw new ArgumentNullException(nameof(processRunner));
     }
 
-    public virtual bool Execute(AnalysisConfig config, string propertiesJsonInput)
+    public virtual bool Execute(AnalysisConfig config, string standardInput)
     {
         _ = config ?? throw new ArgumentNullException(nameof(config));
 
-        return InternalExecute(config, propertiesJsonInput);
-    }
-
-    private bool InternalExecute(AnalysisConfig config, string propertiesJsonInput)
-    {
         var engine = config.EngineJarPath;
         var javaExe = config.JavaExePath;
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
             CmdLineArgs = ["-jar", engine],
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
-            StandardInput = propertiesJsonInput,
+            StandardInput = standardInput,
         };
         var result = processRunner.Execute(args);
         if (result.Succeeded)
