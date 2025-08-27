@@ -56,12 +56,6 @@ public static class ProjectInfoAssertions
         CompareAnalysisResults(expected, actual);
     }
 
-    public static void AssertNoProjectInfoFilesExists(string rootOutputFolder)
-    {
-        var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
-        items.Should().BeEmpty("Not expecting any project info files to exist");
-    }
-
     public static ProjectInfo AssertProjectInfoExists(string rootOutputFolder, string fullProjectFileName)
     {
         var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
@@ -70,11 +64,6 @@ public static class ProjectInfoAssertions
         var match = items.FirstOrDefault(pi => fullProjectFileName.Equals(pi.FullPath, StringComparison.OrdinalIgnoreCase));
         match.Should().NotBeNull("Failed to retrieve a project info file for the specified project: {0}", fullProjectFileName);
         return match;
-    }
-
-    public static void AssertNoAnalysisResultsExist(this ProjectInfo projectInfo)
-    {
-        projectInfo.AnalysisResults.Should().BeNullOrEmpty("Not expecting analysis results to exist. Count: {0}", projectInfo.AnalysisResults.Count);
     }
 
     public static void AssertAnalysisResultDoesNotExists(this ProjectInfo projectInfo, string resultId)
