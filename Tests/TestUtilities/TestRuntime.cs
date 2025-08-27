@@ -22,12 +22,28 @@ using NSubstitute;
 
 namespace TestUtilities;
 
+/// <summary>
+/// Mock for IRuntime that contains configurable mocks for its properties.
+/// </summary>
 public class TestRuntime : IRuntime
 {
+    /// <summary>
+    /// A Substitute for OperatingSystemProvider.
+    /// </summary>
     public OperatingSystemProvider OperatingSystem { get; init; }
-    public TestLogger Logger { get; init; } = new();
-    public IFileWrapper File { get; init; } = Substitute.For<IFileWrapper>();
+
+    /// <summary>
+    /// A Substitute for IDirectoryWrapper.
+    /// </summary>
     public IDirectoryWrapper Directory { get; init; } = Substitute.For<IDirectoryWrapper>();
+
+    /// <summary>
+    /// A Substitute for IFileWrapper.
+    /// </summary>
+    public IFileWrapper File { get; init; } = Substitute.For<IFileWrapper>();
+
+    public TestLogger Logger { get; init; } = new();
+
     ILogger IRuntime.Logger => Logger;
 
     public TestRuntime() =>
