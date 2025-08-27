@@ -49,34 +49,6 @@ public static class ProjectInfoAssertions
         return match;
     }
 
-    public static void AssertAnalysisResultDoesNotExists(this ProjectInfo projectInfo, string resultId)
-    {
-        projectInfo.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
-        var found = ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
-        found.Should().BeFalse("Not expecting to find an analysis result for id. Id: {0}", resultId);
-    }
-
-    public static AnalysisResult AssertAnalysisResultExists(this ProjectInfo projectInfo, string resultId)
-    {
-        projectInfo.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
-        var found = ProjectInfoExtensions.TryGetAnalyzerResult(projectInfo, resultId, out AnalysisResult result);
-        found.Should().BeTrue("Failed to find an analysis result with the expected id. Id: {0}", resultId);
-        result.Should().NotBeNull("Returned analysis result should not be null. Id: {0}", resultId);
-        return result;
-    }
-
-    public static AnalysisResult AssertAnalysisResultExists(this ProjectInfo projectInfo, string resultId, string expectedLocation)
-    {
-        var result = AssertAnalysisResultExists(projectInfo, resultId);
-        result.Location.Should().Be(
-            expectedLocation,
-            "Analysis result exists but does not have the expected location. Id: {0}, expected: {1}, actual: {2}",
-            resultId,
-            expectedLocation,
-            result.Location);
-        return result;
-    }
-
     private static void CompareAnalysisResults(ProjectInfo expected, ProjectInfo actual)
     {
         // We're assuming the actual analysis results have been reloaded by the serializer
@@ -91,7 +63,7 @@ public static class ProjectInfoAssertions
         {
             foreach (var expectedResult in expected.AnalysisResults)
             {
-                AssertAnalysisResultExists(actual, expectedResult.Id, expectedResult.Location);
+                actual.AssertAnalysisResultExists(expectedResult.Id, expectedResult.Location);
             }
 
             actual.AnalysisResults.Should().HaveCount(expected.AnalysisResults.Count, "Unexpected additional analysis results found");
