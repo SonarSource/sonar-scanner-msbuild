@@ -36,11 +36,7 @@ public class UnpackerFactoryTests
     [DataRow(@"/usr/File.tar.GZ", typeof(TarGzUnpacker))]
     public void SupportedFileExtensions(string fileName, Type expectedUnpacker)
     {
-        var sut = new UnpackerFactory(
-            Substitute.For<ILogger>(),
-            Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>());
+        var sut = new UnpackerFactory(new TestRuntime());
 
         var unpacker = sut.Create(fileName);
 
@@ -54,11 +50,7 @@ public class UnpackerFactoryTests
     [DataRow("File.tar")]
     public void UnsupportedFileExtensions(string fileName)
     {
-        var sut = new UnpackerFactory(
-            Substitute.For<ILogger>(),
-            Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>());
+        var sut = new UnpackerFactory(new TestRuntime());
 
         var unpacker = sut.Create(fileName);
 

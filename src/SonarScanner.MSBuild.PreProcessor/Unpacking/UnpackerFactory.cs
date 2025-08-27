@@ -22,24 +22,18 @@ namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 public class UnpackerFactory
 {
-    private readonly ILogger logger;
-    private readonly IDirectoryWrapper directoryWrapper;
-    private readonly IFileWrapper fileWrapper;
-    private readonly OperatingSystemProvider operatingSystem;
+    private readonly IRuntime runtime;
 
-    public UnpackerFactory(ILogger logger, OperatingSystemProvider operatingSystem, IFileWrapper fileWrapper = null, IDirectoryWrapper directoryWrapper = null)
+    public UnpackerFactory(IRuntime runtime)
     {
-        this.logger = logger;
-        this.operatingSystem = operatingSystem;
-        this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
-        this.directoryWrapper = directoryWrapper ?? DirectoryWrapper.Instance;
+        this.runtime = runtime;
     }
 
     public virtual IUnpacker Create(string archivePath) =>
         archivePath switch
         {
             _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
-            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(logger, directoryWrapper, fileWrapper, operatingSystem),
+            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(runtime.Logger, runtime.Directory, runtime.File, runtime.OperatingSystem),
             _ => null
         };
 }

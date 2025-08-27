@@ -43,7 +43,7 @@ public class JreResolver : IResolver
         this.checksum = checksum;
         this.sonarUserHome = sonarUserHome;
         this.runtime = runtime;
-        this.unpackerFactory = unpackerFactory ?? new UnpackerFactory(runtime.Logger, new OperatingSystemProvider(FileWrapper.Instance, runtime.Logger));
+        this.unpackerFactory = unpackerFactory ?? new UnpackerFactory(runtime);
     }
 
     public async Task<string> ResolvePath(ProcessedArgs args)
