@@ -98,12 +98,10 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
                                                                IAnalysisPropertyProvider sonarProperties,
                                                                IEnumerable<SonarRule> rules,
                                                                string language) =>
-        new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger, teamBuildSettings, sonarProperties, rules, language);
+        new(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger, teamBuildSettings, sonarProperties, rules, language);
 
-    public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome)
-    {
-        return new JreResolver(server, runtime.Logger, ChecksumSha256.Instance, sonarUserHome);
-    }
+    public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
+        new JreResolver(server, runtime.Logger, ChecksumSha256.Instance, sonarUserHome);
 
     public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
         new EngineResolver(server, runtime.Logger, sonarUserHome);
