@@ -20,10 +20,18 @@
 
 namespace SonarScanner.MSBuild.Common;
 
-public interface IRuntime
+public class Runtime : IRuntime
 {
-    OperatingSystemProvider OperatingSystem { get; }
-    ILogger Logger { get; }
-    IFileWrapper File { get; }
-    IDirectoryWrapper Directory { get; }
+    public OperatingSystemProvider OperatingSystem { get; }
+    public IDirectoryWrapper Directory { get; }
+    public IFileWrapper File { get; }
+    public ILogger Logger { get; }
+
+    public Runtime(OperatingSystemProvider operatingSystem, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, ILogger logger)
+    {
+        OperatingSystem = operatingSystem ?? throw new ArgumentNullException(nameof(operatingSystem));
+        Directory = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
+        File = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+        Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 }
