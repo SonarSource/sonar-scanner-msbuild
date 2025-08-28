@@ -55,20 +55,23 @@ public class EngineResolver : IResolver
             runtime.Logger.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
             return null;
         }
-        if (await server.DownloadEngineMetadataAsync() is not { } metadata)
-        {
-            runtime.Logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
-            return null;
-        }
 
-        if (await ResolveEnginePath(metadata) is { } enginePath)
+        if (await server.DownloadEngineMetadataAsync() is { } metadata)
         {
-            return enginePath;
+            if (await ResolveEnginePath(metadata) is { } enginePath)
+            {
+                return enginePath;
+            }
+            else
+            {
+                runtime.Logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, " Retrying...");
+                return await ResolveEnginePath(metadata);
+            }
         }
         else
         {
-            runtime.Logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, " Retrying...");
-            return await ResolveEnginePath(metadata);
+            runtime.Logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
+            return null;
         }
     }
 

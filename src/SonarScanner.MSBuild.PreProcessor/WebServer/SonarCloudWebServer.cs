@@ -76,7 +76,7 @@ internal class SonarCloudWebServer : SonarWebServer
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
             return empty;
         }
-        if (AuthToken(localSettings) is not { } token)
+        if (AuthToken(localSettings) is not string token)
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
             return empty;
