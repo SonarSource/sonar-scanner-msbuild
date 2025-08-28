@@ -41,7 +41,7 @@ public class TargetsInstaller : ITargetsInstaller
     public TargetsInstaller(IRuntime runtime, IMsBuildPathsSettings msBuildPathsSettings = null)
     {
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
-        this.msBuildPathsSettings = msBuildPathsSettings ?? new MsBuildPathSettings(runtime.Logger);
+        this.msBuildPathsSettings = msBuildPathsSettings ?? new MsBuildPathSettings(runtime.OperatingSystem);
     }
 
     public void InstallLoaderTargets(string workDirectory)
@@ -62,7 +62,7 @@ public class TargetsInstaller : ITargetsInstaller
 
         CopyIfDifferent(
             TargetSourcePath(FileConstants.ImportBeforeTargetsName),
-            msBuildPathsSettings.GetImportBeforePaths());
+            msBuildPathsSettings.ImportBeforePaths());
     }
 
     private void CopyIfDifferent(string sourcePath, IEnumerable<string> destinationDirs)
@@ -113,7 +113,7 @@ public class TargetsInstaller : ITargetsInstaller
     private void WarnOnGlobalTargetsFile()
     {
         // Giving a warning is best effort - if the user has installed MSBUILD in a non-standard location then this will not work
-        foreach (var path in msBuildPathsSettings.GetGlobalTargetsPaths().Where(ImportBeforeTargetExists))
+        foreach (var path in msBuildPathsSettings.GlobalTargetsPaths().Where(ImportBeforeTargetExists))
         {
             LogWarning(path);
         }

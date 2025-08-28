@@ -72,7 +72,7 @@ public class TargetsInstallerTests
 
         CreateDummySourceTargetsFile(sourceTargetsContent1);
 
-        var msBuildPathSettings = new MsBuildPathSettings(runtime.Logger);
+        var msBuildPathSettings = new MsBuildPathSettings(new OperatingSystemProvider(FileWrapper.Instance, runtime.Logger));
 
         InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
         // If the current user account is LocalSystem, then the local application data folder is inside %windir%\system32.
@@ -86,14 +86,14 @@ public class TargetsInstallerTests
             (_, _, true) => [16], // MacOS
             _ => [],
         };
-        var actualCount = msBuildPathSettings.GetImportBeforePaths().Count();
+        var actualCount = msBuildPathSettings.ImportBeforePaths().Count();
         validCount.Should().Contain(
             actualCount,
             "Expecting ({0}) destination directories but found {1}.",
             string.Join(", ", validCount),
-            string.Join(Environment.NewLine, msBuildPathSettings.GetImportBeforePaths()));
+            string.Join(Environment.NewLine, msBuildPathSettings.ImportBeforePaths()));
 
-        var path = Path.Combine(msBuildPathSettings.GetImportBeforePaths().First(), FileConstants.ImportBeforeTargetsName);
+        var path = Path.Combine(msBuildPathSettings.ImportBeforePaths().First(), FileConstants.ImportBeforeTargetsName);
         File.Delete(path);
 
         CreateDummySourceTargetsFile(sourceTargetsContent2);
@@ -105,7 +105,7 @@ public class TargetsInstallerTests
     public void InstallLoaderTargets_GlobalTargets_Exist()
     {
         var targetsInstaller = new TargetsInstaller(runtime, msBuildPathSettingsMock);
-        msBuildPathSettingsMock.GetGlobalTargetsPaths().Returns(["global"]);
+        msBuildPathSettingsMock.GlobalTargetsPaths().Returns(["global"]);
         runtime.File.Exists(Path.Combine("global", "SonarQube.Integration.ImportBefore.targets")).Returns(true);
 
         using (new AssertIgnoreScope())
@@ -121,7 +121,7 @@ public class TargetsInstallerTests
     {
         var targetsInstaller = new TargetsInstaller(runtime, msBuildPathSettingsMock);
 
-        msBuildPathSettingsMock.GetGlobalTargetsPaths().Returns(["global"]);
+        msBuildPathSettingsMock.GlobalTargetsPaths().Returns(["global"]);
         runtime.File.Exists(Path.Combine("global", "SonarQube.Integration.ImportBefore.targets")).Returns(false);
 
         using (new AssertIgnoreScope())
@@ -137,7 +137,7 @@ public class TargetsInstallerTests
     public void InstallLoaderTargets_Running_Under_LocalSystem_Account()
     {
         var targetsInstaller = new TargetsInstaller(runtime, msBuildPathSettingsMock);
-        msBuildPathSettingsMock.GetGlobalTargetsPaths().Returns(["c:\\windows\\system32\\appdata"]);
+        msBuildPathSettingsMock.GlobalTargetsPaths().Returns(["c:\\windows\\system32\\appdata"]);
 
         Action act = () =>
         {
@@ -280,7 +280,7 @@ public class TargetsInstallerTests
             "Targets",
             "SonarQube.Integration.ImportBefore.targets");
 
-        msBuildPathSettingsMock.GetImportBeforePaths().Returns([Path.Combine(DriveRoot(), "global paths")]);
+        msBuildPathSettingsMock.ImportBeforePaths().Returns([Path.Combine(DriveRoot(), "global paths")]);
         runtime.File.ReadAllText(sourcePath).Returns(sourceContent);
         runtime.File.ReadAllText(Path.Combine(DriveRoot(), "global paths", "SonarQube.Integration.ImportBefore.targets")).Returns(destinationContent);
         runtime.File.Exists(Path.Combine(DriveRoot(), "global paths", "SonarQube.Integration.ImportBefore.targets")).Returns(destinationExists);
@@ -307,7 +307,7 @@ public class TargetsInstallerTests
     {
         // SONARMSBRU-149: we used to deploy the targets file to the 4.0 directory but this
         // is no longer supported. To be on the safe side we'll clean up the old location too.
-        var cleanUpDirs = new MsBuildPathSettings(Substitute.For<ILogger>()).GetImportBeforePaths().ToList();
+        var cleanUpDirs = new MsBuildPathSettings(new OperatingSystemProvider(FileWrapper.Instance, Substitute.For<ILogger>())).ImportBeforePaths().ToList();
 
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         cleanUpDirs.Add(Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"));
@@ -346,23 +346,23 @@ public class TargetsInstallerTests
 
     private void InstallTargetsFileAndAssert(string expectedContent, bool expectCopy)
     {
-        var runtimeIO = new TestRuntime { File = FileWrapper.Instance, Directory = DirectoryWrapper.Instance };
-        var installer = new TargetsInstaller(runtimeIO);
+        var logger = new TestLogger();
+        var runtimeIO = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger);
+        var msBuildPathSettings = new MsBuildPathSettings(runtimeIO.OperatingSystem);
+        var installer = new TargetsInstaller(runtimeIO, msBuildPathSettings);
 
         using (new AssertIgnoreScope())
         {
             installer.InstallLoaderTargets(workingDirectory);
         }
 
-        var msBuildPathSettings = new MsBuildPathSettings(runtime.Logger);
-
-        foreach (var destinationDir in msBuildPathSettings.GetImportBeforePaths())
+        foreach (var destinationDir in msBuildPathSettings.ImportBeforePaths())
         {
             var path = Path.Combine(destinationDir, FileConstants.ImportBeforeTargetsName);
             File.Exists(path).Should().BeTrue(".targets file not found at: " + path);
             File.ReadAllText(path).Should().Be(expectedContent, ".targets does not have expected content at " + path);
 
-            runtimeIO.Logger.DebugMessages.Should().Contain(x => x.Contains(destinationDir));
+            logger.DebugMessages.Should().Contain(x => x.Contains(destinationDir));
         }
 
         var targetsPath = Path.Combine(workingDirectory, "bin", "targets", FileConstants.IntegrationTargetsName);
@@ -370,7 +370,7 @@ public class TargetsInstallerTests
 
         if (expectCopy)
         {
-            runtimeIO.Logger.DebugMessages.Should().HaveCount(msBuildPathSettings.GetImportBeforePaths().Count() + 1, "All destinations should have been covered");
+            logger.DebugMessages.Should().HaveCount(msBuildPathSettings.ImportBeforePaths().Count() + 1, "All destinations should have been covered");
         }
     }
 }

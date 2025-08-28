@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
 namespace SonarScanner.MSBuild.Common;
 
 public interface IMsBuildPathsSettings
 {
-    IEnumerable<string> GetImportBeforePaths();
-    IEnumerable<string> GetGlobalTargetsPaths();
+    IEnumerable<string> ImportBeforePaths();
+    IEnumerable<string> GlobalTargetsPaths();
 }
