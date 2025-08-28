@@ -237,7 +237,7 @@ public sealed class CachedDownloaderTests : IDisposable
         result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
         runtime.File.Received(1).Create(TempFilePath);
         runtime.File.Received(1).Move(TempFilePath, DownloadFilePath);
-        runtime.File.DebugMessages.Should().BeEquivalentTo(
+        runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"The file was already downloaded from the server and stored at '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
             $"Deleting file '{DownloadFilePath}'.",
