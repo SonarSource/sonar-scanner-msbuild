@@ -128,9 +128,9 @@ public class CachedDownloader
 
     private async Task<DownloadError> EnsureFileIsDownloaded(Func<Task<Stream>> download)
     {
-        if (fileWrapper.Exists(downloadTarget))
+        if (fileWrapper.Exists(downloadTarget) && ValidateFile() is null)
         {
-            return ValidateFile();
+            return null;
         }
         logger.LogDebug(Resources.MSG_StartingFileDownload);
         if (await DownloadAndValidateFile(download) is { } exception)
