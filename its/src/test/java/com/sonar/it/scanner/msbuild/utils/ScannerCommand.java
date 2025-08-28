@@ -70,7 +70,7 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
       .setProperty("sonar.scm.disabled", "true")
       .setProperty("sonar.branch.autoconfig.disabled", "true")
       .setProperty("sonar.scanner.skipJreProvisioning", "true")  // Desired default behavior in ITs. Specific tests should set null or false to remove this.
-      .setProperty("sonar.scanner.useSonarScannerCLI", "true");  // Turn off the engine code path by default. TODO: The engine should be turned on by default.
+      .setProperty("sonar.scanner.useSonarScannerCLI", "true");  // Turn off the engine code path by default. TODO: The engine should be turned on by default. https://sonarsource.atlassian.net/browse/SCAN4NET-841
   }
 
   public static ScannerCommand createEndStep(ScannerClassifier classifier, String token, Path projectDir) {
