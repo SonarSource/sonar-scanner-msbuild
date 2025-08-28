@@ -30,7 +30,7 @@ public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrap
         if (javaHome is null)
         {
             logger.LogDebug(Resources.MSG_JavaHomeNotSet);
-            if (ResolveJavaExecutable(args) is { Length: > 0 } javaExecutable)
+            if (ResolveJavaExecutable(args)?.Trim() is { Length: > 0} javaExecutable)
             {
                 javaHome = Path.GetDirectoryName(Path.GetDirectoryName(javaExecutable));
             }
