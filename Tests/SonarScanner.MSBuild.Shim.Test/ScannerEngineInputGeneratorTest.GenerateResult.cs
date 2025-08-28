@@ -209,7 +209,7 @@ public partial class ScannerEngineInputGeneratorTest
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", projectLanguage, testDir, projectGuid, true, projectSettings);
         var config = CreateValidConfig(testDir);
         // Mock SARIF fixer simulates fixable SARIF with fixed name
-        var returnPathFileName = Path.GetFileNameWithoutExtension(testSarifPath) + RoslynV1SarifFixer.FixedFileSuffix + Path.GetExtension(testSarifPath);
+        var returnPathFileName = Path.GetFileNameWithoutExtension(testSarifPath) + "_fixed" + Path.GetExtension(testSarifPath);
         var sarifFixer = new MockRoslynV1SarifFixer(Path.Combine(testDir, returnPathFileName));
         var result = CreateSut(config, sarifFixer).GenerateResult();
 

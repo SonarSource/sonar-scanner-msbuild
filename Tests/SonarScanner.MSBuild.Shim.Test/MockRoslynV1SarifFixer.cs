@@ -22,11 +22,9 @@ namespace SonarScanner.MSBuild.Shim.Test;
 
 internal class MockRoslynV1SarifFixer : RoslynV1SarifFixer
 {
-    public string ReturnVal { get; set; }
-
-    public int CallCount { get; set; }
-
-    public string LastLanguage { get; set; }
+    public string ReturnVal { get; }
+    public string LastLanguage { get; private set; }
+    public int CallCount { get; private set; }
 
     /// <param name="returnVal">Provide null to return the original input value with ".fixed.mock.json" suffix</param>
     public MockRoslynV1SarifFixer(string returnVal) : base(Substitute.For<ILogger>()) =>
