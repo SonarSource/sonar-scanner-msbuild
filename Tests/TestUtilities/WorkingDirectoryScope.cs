@@ -31,8 +31,6 @@ public sealed class WorkingDirectoryScope : IDisposable
 {
     private readonly string originalDirectory;
 
-    private bool disposed;
-
     public WorkingDirectoryScope(string workingDirectory)
     {
         Directory.Exists(workingDirectory).Should().BeTrue("Test setup error: specified directory should exist - " + workingDirectory);
@@ -41,23 +39,6 @@ public sealed class WorkingDirectoryScope : IDisposable
         Directory.SetCurrentDirectory(workingDirectory);
     }
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    private void Dispose(bool disposing)
-    {
-        if (disposed)
-        {
-            return;
-        }
-        disposed = true;
-
-        if (disposing)
-        {
-            Directory.SetCurrentDirectory(originalDirectory);
-        }
-    }
+    public void Dispose() =>
+        Directory.SetCurrentDirectory(originalDirectory);
 }
