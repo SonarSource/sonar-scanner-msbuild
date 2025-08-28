@@ -1,22 +1,22 @@
 ﻿/*
- * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
- * mailto: info AT sonarsource DOT com
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+* SonarScanner for .NET
+* Copyright (C) 2016-2025 SonarSource SA
+* mailto: info AT sonarsource DOT com
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public
+* License as published by the Free Software Foundation; either
+* version 3 of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public License
+* along with this program; if not, write to the Free Software Foundation,
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
@@ -29,6 +29,7 @@ namespace SonarScanner.MSBuild.PostProcessor;
 public class PostProcessor : IPostProcessor
 {
     private readonly SonarScannerWrapper sonarScanner;
+    private readonly SonarEngineWrapper sonarEngine;
     private readonly ILogger logger;
     private readonly TargetsUninstaller targetUninstaller;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
@@ -40,6 +41,7 @@ public class PostProcessor : IPostProcessor
 
     public PostProcessor(
         SonarScannerWrapper sonarScanner,
+        SonarEngineWrapper sonarEngine,
         ILogger logger,
         TargetsUninstaller targetUninstaller,
         TfsProcessorWrapper tfsProcessor,
@@ -48,6 +50,7 @@ public class PostProcessor : IPostProcessor
         IFileWrapper fileWrapper = null)
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
+        this.sonarEngine = sonarEngine ?? throw new ArgumentNullException(nameof(sonarEngine));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
         this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
@@ -96,7 +99,9 @@ public class PostProcessor : IPostProcessor
             {
                 var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
                 fileWrapper.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
-                result = InvokeSonarScanner(provider, config, analysisResult.FullPropertiesFilePath);
+                result = config.UseSonarScannerCli || config.EngineJarPath is null
+                    ? InvokeSonarScanner(provider, config, analysisResult.FullPropertiesFilePath)
+                    : InvokeScannerEngine(config, analysisResult.ScannerEngineInput);
             }
 #if NETFRAMEWORK
             if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
@@ -258,6 +263,14 @@ public class PostProcessor : IPostProcessor
     {
         logger.IncludeTimestamp = false;
         var result = sonarScanner.Execute(config, cmdLineArgs, propertiesFilePath);
+        logger.IncludeTimestamp = true;
+        return result;
+    }
+
+    private bool InvokeScannerEngine(AnalysisConfig config, ScannerEngineInput input)
+    {
+        logger.IncludeTimestamp = false;
+        var result = sonarEngine.Execute(config, input.ToString());
         logger.IncludeTimestamp = true;
         return result;
     }
