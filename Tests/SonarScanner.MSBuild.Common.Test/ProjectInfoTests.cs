@@ -92,6 +92,10 @@ public class ProjectInfoTests
     public void ProjectFileDirectory_NoFullPath_ReturnsNull() =>
         new ProjectInfo { FullPath = null }.ProjectFileDirectory().Should().BeNull();
 
+    [TestMethod]
+    public void FindAnalysisSetting_Null_ReturnsNull() =>
+        new ProjectInfo { AnalysisSettings = null }.FindAnalysisSetting("id").Should().BeNull();
+
     private void SaveAndReloadProjectInfo(ProjectInfo original, string outputFileName)
     {
         File.Exists(outputFileName).Should().BeFalse("Test error: file should not exist at the start of the test. File: {0}", outputFileName);
