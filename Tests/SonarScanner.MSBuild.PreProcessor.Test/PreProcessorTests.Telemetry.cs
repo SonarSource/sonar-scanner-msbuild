@@ -119,11 +119,11 @@ public partial class PreProcessorTests
             }
         }
         var content = $"""
-           <?xml version="1.0" encoding="utf-8" ?>
-           <SonarQubeAnalysisProperties  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
-             {xmlProperties.ToString()}
-           </SonarQubeAnalysisProperties>
-           """;
+            <?xml version="1.0" encoding="utf-8" ?>
+            <SonarQubeAnalysisProperties  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
+                {xmlProperties.ToString()}
+            </SonarQubeAnalysisProperties>
+            """;
 
         File.WriteAllText(fullPath, content);
         return fullPath;
@@ -131,20 +131,15 @@ public partial class PreProcessorTests
 
     private async Task<BuildSettings> SetUpTest(IEnumerable<string> args = null, params KeyValuePair<string, string>[] environmentVariables)
     {
-        using var scope = new TestScope(TestContext);
+        using var context = new Context(TestContext, logger: new ConsoleLogger(false));
         using var env = new EnvironmentVariableScope();
         foreach (var envVariable in environmentVariables)
         {
             env.SetVariable(envVariable.Key, envVariable.Value);
         }
-        var factory = new MockObjectFactory();
-        var settings = factory.ReadSettings();
-        var preProcessor = new PreProcessor(factory, new ConsoleLogger(false));
 
-        var success = await preProcessor.Execute(args ?? CreateArgs());
-
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
-        return settings;
+        (await context.Execute(args)).Should().BeTrue();
+        return context.Factory.ReadSettings();
     }
 
     private static string TelemetryContent(BuildSettings settings)
