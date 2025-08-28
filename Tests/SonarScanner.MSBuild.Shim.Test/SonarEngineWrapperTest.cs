@@ -32,27 +32,16 @@ public class SonarEngineWrapperTest
         """;
 
     [TestMethod]
-    public void Ctor_Runtime_ThrowsArgumentNullException()
-    {
-        Action act = () => new SonarEngineWrapper(null, Substitute.For<IProcessRunner>());
-        act.Should().Throw<ArgumentNullException>().WithParameterName("runtime");
-    }
+    public void Ctor_Runtime_ThrowsArgumentNullException() =>
+        FluentActions.Invoking(() => new SonarEngineWrapper(null, Substitute.For<IProcessRunner>())).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
 
     [TestMethod]
-    public void Ctor_ProcessRunner_ThrowsArgumentNullException()
-    {
-        Action act = () => new SonarEngineWrapper(new TestRuntime(), null);
-        act.Should().Throw<ArgumentNullException>().WithParameterName("processRunner");
-    }
+    public void Ctor_ProcessRunner_ThrowsArgumentNullException() =>
+        FluentActions.Invoking(() => new SonarEngineWrapper(new TestRuntime(), null)).Should().Throw<ArgumentNullException>().WithParameterName("processRunner");
 
     [TestMethod]
-    public void Execute_Config_ThrowsArgumentNullException()
-    {
-        var wrapper = new SonarEngineWrapper(new TestRuntime(), Substitute.For<IProcessRunner>());
-
-        Action act = () => wrapper.Execute(null, "{}");
-        act.Should().Throw<ArgumentNullException>().WithParameterName("config");
-    }
+    public void Execute_Config_ThrowsArgumentNullException() =>
+        new SonarEngineWrapper(new TestRuntime(), Substitute.For<IProcessRunner>()).Invoking(x => x.Execute(null, "{}")).Should().Throw<ArgumentNullException>().WithParameterName("config");
 
     [TestMethod]
     public void Execute_Success()
