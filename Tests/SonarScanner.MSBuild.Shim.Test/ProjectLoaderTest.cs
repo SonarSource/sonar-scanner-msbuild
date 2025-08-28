@@ -18,15 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Shim.Test;
 
 [TestClass]
@@ -34,12 +25,9 @@ public class ProjectLoaderTest
 {
     public TestContext TestContext { get; set; }
 
-    #region Tests
-
     [TestMethod]
     public void ProjectLoader()
     {
-        // Arrange
         var testSourcePath = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
         // Create sub-directories, some with project info XML files and some without
@@ -82,17 +70,11 @@ public class ProjectLoaderTest
         };
         validNonTestNoReportsProject.AddContentFile("SomeFile.cs", true);
         CreateFilesFromDescriptor(validNonTestNoReportsProject, "SomeList.txt", null);
+        var projects = Shim.ProjectLoader.LoadFrom(testSourcePath);
 
-        // Act
-        IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(testSourcePath);
-
-        // Assert
         projects.Should().HaveCount(3);
-
         AssertProjectResultExists(validTestProject.ProjectName, projects);
-
         AssertProjectResultExists(validNonTestProject.ProjectName, projects);
-
         AssertProjectResultExists(validNonTestNoReportsProject.ProjectName, projects);
     }
 
@@ -100,10 +82,8 @@ public class ProjectLoaderTest
     [Description("Checks that the loader only looks in the top-level folder for project folders")]
     public void ProjectLoader_NonRecursive()
     {
-        // 0. Setup
         var rootTestDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var childDir = Path.Combine(rootTestDir, "Child1");
-
         // Create a valid project in the child directory
         var validNonTestProject = new ProjectDescriptor()
         {
@@ -118,7 +98,7 @@ public class ProjectLoaderTest
         CreateFilesFromDescriptor(validNonTestProject, "CompileList.txt", null);
 
         // 1. Run against the root dir -> not expecting the project to be found
-        IEnumerable<ProjectInfo> projects = SonarScanner.MSBuild.Shim.ProjectLoader.LoadFrom(rootTestDir);
+        var projects = Shim.ProjectLoader.LoadFrom(rootTestDir);
         projects.Should().BeEmpty();
 
         // 2. Run against the child dir -> project should be found
@@ -126,14 +106,6 @@ public class ProjectLoaderTest
         projects.Should().ContainSingle();
     }
 
-    #endregion Tests
-
-    #region Helper methods
-
-    /// <summary>
-    /// Creates a folder containing a ProjectInfo.xml and compiled file list as
-    /// specified in the supplied descriptor
-    /// </summary>
     private static void CreateFilesFromDescriptor(ProjectDescriptor descriptor, string compileFiles, string visualStudioCodeCoverageReportFileName)
     {
         if (!Directory.Exists(descriptor.FullDirectoryPath))
@@ -169,15 +141,9 @@ public class ProjectLoaderTest
         projectInfo.Save(Path.Combine(descriptor.FullDirectoryPath, FileConstants.ProjectInfoFileName));
     }
 
-    #endregion Helper methods
-
-    #region Assertions
-
     private static void AssertProjectResultExists(string expectedProjectName, IEnumerable<ProjectInfo> actualProjects)
     {
         var actual = actualProjects.FirstOrDefault(p => expectedProjectName.Equals(p.ProjectName));
         actual.Should().NotBeNull("Failed to find project with the expected name: {0}", expectedProjectName);
     }
-
-    #endregion Assertions
 }

@@ -18,65 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using SonarScanner.MSBuild.Common;
-
 namespace TestUtilities;
 
 /// <summary>
-/// Describes the expected contents of a single project
+/// Describes the expected contents of a single project.
 /// </summary>
-/// <remarks>Used to dynamically create folders and files for tests,
-/// and to check actual results against</remarks>
+/// <remarks>Used to dynamically create folders and files for tests, and to check actual results against.</remarks>
 public class ProjectDescriptor
 {
     private const string CompilerInputItemGroup = "Compile";
     private const string ContentItemGroup = "Content";
 
-    /// <summary>
-    /// Data class to describe a single file in a project
-    /// </summary>
-    public class FileInProject
-    {
-        public FileInProject(string itemGroup, string filePath, bool shouldAnalyse)
-        {
-            ItemGroup = itemGroup;
-            FilePath = filePath;
-            ShouldBeAnalysed = shouldAnalyse;
-        }
-
-        /// <summary>
-        /// The path to the file
-        /// </summary>
-        public string FilePath { get; set; }
-
-        /// <summary>
-        /// The ItemGroup to which the file belongs
-        /// </summary>
-        public string ItemGroup { get; set; }
-
-        /// <summary>
-        /// Whether the file should be include in analysis or not
-        /// </summary>
-        public bool ShouldBeAnalysed { get; set; }
-    }
-
     public IList<FileInProject> Files { get; set; }
-
-    public ProjectDescriptor()
-    {
-        AnalysisResults = new List<AnalysisResult>();
-        Files = new List<FileInProject>();
-
-        // set default encoding
-        Encoding = Encoding.UTF8;
-    }
-
-    #region Public properties
 
     public string ProjectLanguage { get; set; }
 
@@ -98,19 +51,10 @@ public class ProjectDescriptor
 
     public List<AnalysisResult> AnalysisResults { get; private set; }
 
-    /// <summary>
-    /// The full path to the parent directory
-    /// </summary>
     public string ParentDirectoryPath { get; set; }
 
-    /// <summary>
-    /// The name of the folder in which the project exists
-    /// </summary>
     public string ProjectFolderName { get; set; }
 
-    /// <summary>
-    /// The name of the project file
-    /// </summary>
     public string ProjectFileName { get; set; }
 
     public string FullDirectoryPath
@@ -123,9 +67,6 @@ public class ProjectDescriptor
         get { return Path.Combine(FullDirectoryPath, ProjectFileName); }
     }
 
-    /// <summary>
-    /// The user-friendly name for the project
-    /// </summary>
     public string ProjectName
     {
         get
@@ -142,9 +83,6 @@ public class ProjectDescriptor
         }
     }
 
-    /// <summary>
-    /// List of files that should not be analyzed
-    /// </summary>
     public IEnumerable<string> FilesNotToAnalyse
     {
         get
@@ -161,9 +99,14 @@ public class ProjectDescriptor
         }
     }
 
-    #endregion Public properties
+    public ProjectDescriptor()
+    {
+        AnalysisResults = new List<AnalysisResult>();
+        Files = new List<FileInProject>();
 
-    #region Public methods
+        // set default encoding
+        Encoding = Encoding.UTF8;
+    }
 
     public ProjectInfo CreateProjectInfo()
     {
@@ -192,5 +135,19 @@ public class ProjectDescriptor
         Files.Add(new FileInProject(ProjectDescriptor.CompilerInputItemGroup, filePath, shouldAnalyse));
     }
 
-    #endregion Public methods
+    public class FileInProject
+    {
+        public string FilePath { get; set; }
+
+        public string ItemGroup { get; set; }
+
+        public bool ShouldBeAnalysed { get; set; }
+
+        public FileInProject(string itemGroup, string filePath, bool shouldAnalyse)
+        {
+            ItemGroup = itemGroup;
+            FilePath = filePath;
+            ShouldBeAnalysed = shouldAnalyse;
+        }
+    }
 }

@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -34,110 +28,88 @@ public class ProjectInfoExtensionsTests
     [TestMethod]
     public void TryGetAnalysisSetting_WhenProjectInfoIsNull_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => ProjectInfoExtensions.TryGetAnalyzerResult(null, "foo", out var result);
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
     }
 
     [TestMethod]
     public void TryGetAnalyzerResult_WhenProjectInfoIsNull_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => ProjectInfoExtensions.TryGetAnalysisSetting(null, "foo", out var result);
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
     }
 
     [TestMethod]
     public void AddAnalyzerResult_WhenProjectInfoIsNull_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => ProjectInfoExtensions.AddAnalyzerResult(null, "foo", "bar");
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
     }
 
     [TestMethod]
     public void AddAnalyzerResult_WhenIdIsNull_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), null, "bar");
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
     }
 
     [TestMethod]
     public void AddAnalyzerResult_WhenIdIsEmpty_ThrowsArgumentNullException()
     {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "", "bar");
+        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), string.Empty, "bar");
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
     }
 
     [TestMethod]
     public void AddAnalyzerResult_WhenIdIsWhitespaces_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "   ", "bar");
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
     }
 
     [TestMethod]
     public void AddAnalyzerResult_WhenLocationIsNull_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", null);
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
     }
 
     [TestMethod]
     public void AddAnalyzerResult_WhenLocationIsEmpty_ThrowsArgumentNullException()
     {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", "");
+        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", string.Empty);
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
     }
 
     [TestMethod]
     public void AddAnalyzerResult_WhenLocationIsWhitespaces_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", "   ");
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
     }
 
     [TestMethod]
     public void GetDirectory_WhenProjectInfoIsNull_ThrowsArgumentNullException()
     {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.GetDirectory(null);
+        Action action = () => ProjectInfoExtensions.ProjectFileDirectory(null);
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
     }
 
     [TestMethod]
     public void GetProjectGuidAsString_WhenProjectInfoIsNull_ThrowsArgumentNullException()
     {
-        // Arrange
         Action action = () => ProjectInfoExtensions.GetProjectGuidAsString(null);
 
-        // Assert
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
     }
 

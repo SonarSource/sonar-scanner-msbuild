@@ -18,17 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.Tasks;
@@ -118,139 +111,6 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         return true;
     }
 
-    private Encoding ComputeEncoding(string codePage)
-    {
-        var cleanedCodePage = (codePage ?? string.Empty)
-            .Replace("\\", string.Empty)
-            .Replace("\"", string.Empty);
-
-        // Try to return the CodePage specified into the .xxproj
-        if (!string.IsNullOrWhiteSpace(cleanedCodePage)
-            && long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out var codepageValue)
-            && codepageValue > 0)
-        {
-            try
-            {
-                return encodingProvider.GetEncoding((int)codepageValue);
-            }
-            catch (Exception)
-            {
-                // encoding doesn't exist
-            }
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Attempts to convert the supplied task items into a list of <see cref="AnalysisResult"/> objects.
-    /// </summary>
-    private List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems) =>
-        resultItems?.Select(TryCreateResultFromItem).Where(x => x is not null).ToList() ?? [];
-
-    /// <summary>
-    /// Attempts to create an <see cref="AnalysisResult"/> from the supplied task item.
-    /// Returns null if the task item does not have the required metadata.
-    /// </summary>
-    private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
-    {
-        Debug.Assert(taskItem is not null, "Supplied task item should not be null");
-        var id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);
-        if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(taskItem.ItemSpec))
-        {
-            return null;
-        }
-        var path = taskItem.ItemSpec;
-        if (Path.IsPathRooted(path))
-        {
-            return new AnalysisResult { Id = id, Location = path };
-        }
-        Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
-        var projectDir = Path.GetDirectoryName(FullProjectPath);
-        var absPath = Path.Combine(projectDir, path);
-        if (File.Exists(absPath))
-        {
-            Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvedPath, absPath);
-            path = absPath;
-        }
-        else
-        {
-            Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
-        }
-        return new AnalysisResult
-        {
-            Id = id,
-            Location = path
-        };
-    }
-
-    /// <summary>
-    /// Attempts to convert the supplied task items into a list of <see cref="ConfigSetting"/> objects.
-    /// </summary>
-    private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)
-    {
-        var settings = new AnalysisProperties();
-        settings.AddRange(resultItems?.Select(TryCreateSettingFromItem).Where(x => x is not null).ToList() ?? []);
-        return settings;
-    }
-
-    /// <summary>
-    /// Attempts to create an <see cref="ConfigSetting"/> from the supplied task item.
-    /// Returns null if the task item does not have the required metadata.
-    /// </summary>
-    private Property TryCreateSettingFromItem(ITaskItem taskItem)
-    {
-        Debug.Assert(taskItem is not null, "Supplied task item should not be null");
-
-        // No validation for the value: can be anything, but the "Value" metadata item must exist.
-        return TryGetSettingId(taskItem, out var settingId) && TryGetSettingValue(taskItem, out var settingValue)
-            ? new(settingId, settingValue)
-            : null;
-    }
-
-    /// <summary>
-    /// Attempts to extract the setting id from the supplied task item.
-    /// Logs warnings if the task item does not contain valid data.
-    /// </summary>
-    private bool TryGetSettingId(ITaskItem taskItem, out string settingId)
-    {
-        settingId = null;
-        var possibleKey = taskItem.ItemSpec;
-        var isValid = Property.IsValidKey(possibleKey);
-        if (isValid)
-        {
-            settingId = possibleKey;
-        }
-        else
-        {
-            Log.LogWarning(Resources.WPIF_WARN_InvalidSettingKey, possibleKey);
-        }
-        return isValid;
-    }
-
-    /// <summary>
-    /// Attempts to return the value to use for the setting.
-    /// Logs warnings if the task item does not contain valid data.
-    /// </summary>
-    /// <remarks>The task should have a "Value" metadata item.</remarks>
-    private bool TryGetSettingValue(ITaskItem taskItem, out string metadataValue)
-    {
-        bool success;
-
-        metadataValue = taskItem.GetMetadata(BuildTaskConstants.SettingValueMetadataName);
-        Debug.Assert(metadataValue is not null, "Not expecting the metadata value to be null even if the setting is missing");
-
-        if (metadataValue == string.Empty)
-        {
-            Log.LogWarning(Resources.WPIF_WARN_MissingValueMetadata, taskItem.ItemSpec);
-            success = false;
-        }
-        else
-        {
-            success = true;
-        }
-        return success;
-    }
-
     internal /* for testing purpose */ string GetProjectGuid()
     {
         if (!string.IsNullOrEmpty(ProjectGuid))
@@ -294,5 +154,115 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
                 return false;
             }
         }
+    }
+
+    private Encoding ComputeEncoding(string codePage)
+    {
+        var cleanedCodePage = (codePage ?? string.Empty)
+            .Replace("\\", string.Empty)
+            .Replace("\"", string.Empty);
+
+        // Try to return the CodePage specified into the .xxproj
+        if (!string.IsNullOrWhiteSpace(cleanedCodePage)
+            && long.TryParse(cleanedCodePage, NumberStyles.None, CultureInfo.InvariantCulture, out var codepageValue)
+            && codepageValue > 0)
+        {
+            try
+            {
+                return encodingProvider.GetEncoding((int)codepageValue);
+            }
+            catch (Exception)
+            {
+                // encoding doesn't exist
+            }
+        }
+        return null;
+    }
+
+    private List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems) =>
+        resultItems?.Select(TryCreateResultFromItem).Where(x => x is not null).ToList() ?? [];
+
+    private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
+    {
+        Debug.Assert(taskItem is not null, "Supplied task item should not be null");
+        var id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);
+        if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(taskItem.ItemSpec))
+        {
+            return null;
+        }
+        var path = taskItem.ItemSpec;
+        if (Path.IsPathRooted(path))
+        {
+            return new AnalysisResult { Id = id, Location = path };
+        }
+        Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
+        var projectDir = Path.GetDirectoryName(FullProjectPath);
+        var absPath = Path.Combine(projectDir, path);
+        if (File.Exists(absPath))
+        {
+            Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvedPath, absPath);
+            path = absPath;
+        }
+        else
+        {
+            Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
+        }
+        return new AnalysisResult
+        {
+            Id = id,
+            Location = path
+        };
+    }
+
+    private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)
+    {
+        var settings = new AnalysisProperties();
+        settings.AddRange(resultItems?.Select(TryCreateSettingFromItem).Where(x => x is not null).ToList() ?? []);
+        return settings;
+    }
+
+    private Property TryCreateSettingFromItem(ITaskItem taskItem)
+    {
+        Debug.Assert(taskItem is not null, "Supplied task item should not be null");
+
+        // No validation for the value: can be anything, but the "Value" metadata item must exist.
+        return TryGetSettingId(taskItem, out var settingId) && TryGetSettingValue(taskItem, out var settingValue)
+            ? new(settingId, settingValue)
+            : null;
+    }
+
+    private bool TryGetSettingId(ITaskItem taskItem, out string settingId)
+    {
+        settingId = null;
+        var possibleKey = taskItem.ItemSpec;
+        var isValid = Property.IsValidKey(possibleKey);
+        if (isValid)
+        {
+            settingId = possibleKey;
+        }
+        else
+        {
+            Log.LogWarning(Resources.WPIF_WARN_InvalidSettingKey, possibleKey);
+        }
+        return isValid;
+    }
+
+    private bool TryGetSettingValue(ITaskItem taskItem, out string metadataValue)
+    {
+        bool success;
+
+        metadataValue = taskItem.GetMetadata(BuildTaskConstants.SettingValueMetadataName);
+        Debug.Assert(metadataValue is not null, "Not expecting the metadata value to be null even if the setting is missing");
+
+        if (metadataValue == string.Empty)
+        {
+            Log.LogWarning(Resources.WPIF_WARN_MissingValueMetadata, taskItem.ItemSpec);
+            success = false;
+        }
+        else
+        {
+            success = true;
+        }
+        return success;
     }
 }

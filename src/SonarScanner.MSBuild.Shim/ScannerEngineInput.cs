@@ -76,7 +76,7 @@ public class ScannerEngineInput
         modules.Value = string.Join(",", moduleKeys);
         Add(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
         Add(guid, SonarProperties.ProjectName, project.Project.ProjectName);
-        Add(guid, SonarProperties.ProjectBaseDir, project.Project.GetDirectory().FullName);
+        Add(guid, SonarProperties.ProjectBaseDir, project.Project.ProjectFileDirectory().FullName);
         Add(guid, SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"));    // zero-based index
         if (!string.IsNullOrWhiteSpace(project.Project.Encoding))
         {
