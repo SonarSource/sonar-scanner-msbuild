@@ -18,16 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim;
 
-public class RoslynV1SarifFixer : IRoslynV1SarifFixer
+public class RoslynV1SarifFixer
 {
     public /* for test */ const string FixedFileSuffix = "_fixed";
 
@@ -120,7 +116,10 @@ public class RoslynV1SarifFixer : IRoslynV1SarifFixer
         return string.Join(Environment.NewLine, inputLines);
     }
 
-    public string LoadAndFixFile(string sarifFilePath, string language)
+    /// <summary>
+    /// Attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
+    /// </summary>
+    public virtual string LoadAndFixFile(string sarifFilePath, string language)
     {
         if (!File.Exists(sarifFilePath))
         {

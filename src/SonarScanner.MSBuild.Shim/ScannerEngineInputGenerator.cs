@@ -40,7 +40,7 @@ public class ScannerEngineInputGenerator
 
     private readonly AnalysisConfig analysisConfig;
     private readonly ILogger logger;
-    private readonly IRoslynV1SarifFixer fixer;
+    private readonly RoslynV1SarifFixer fixer;
     private readonly RuntimeInformationWrapper runtimeInformation;
     private readonly IAdditionalFilesService additionalFilesService;
     private readonly StringComparer pathComparer;
@@ -53,7 +53,7 @@ public class ScannerEngineInputGenerator
 
     internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
                                          ILogger logger,
-                                         IRoslynV1SarifFixer fixer,
+                                         RoslynV1SarifFixer fixer,
                                          RuntimeInformationWrapper runtimeInformation,
                                          IAdditionalFilesService additionalFilesService)
     {
