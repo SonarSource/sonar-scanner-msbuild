@@ -1,22 +1,23 @@
-﻿/*
- * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
- * mailto: info AT sonarsource DOT com
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
+﻿
+/*
+* SonarScanner for .NET
+* Copyright (C) 2016-2025 SonarSource SA
+* mailto: info AT sonarsource DOT com
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public
+* License as published by the Free Software Foundation; either
+* version 3 of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+* Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public License
+* along with this program; if not, write to the Free Software Foundation,
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
@@ -37,6 +38,7 @@ public class PostProcessorTests
     private readonly TargetsUninstaller targetsUninstaller;
     private readonly AnalysisConfig config;
     private readonly SonarScannerWrapper scanner;
+    private readonly SonarEngineWrapper engine;
     private readonly TfsProcessorWrapper tfsProcessor;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
@@ -59,6 +61,7 @@ public class PostProcessorTests
         tfsProcessor = Substitute.For<TfsProcessorWrapper>(runtime);
         tfsProcessor.Execute(null, null).ReturnsForAnyArgs(true);
         scanner = Substitute.For<SonarScannerWrapper>(runtime);
+        engine = Substitute.For<SonarEngineWrapper>(runtime, Substitute.For<IProcessRunner>());
         scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(runtime.Logger);
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
@@ -68,6 +71,7 @@ public class PostProcessorTests
         scannerEngineInput = new ScannerEngineInput(config);
         sut = new PostProcessor(
             scanner,
+            engine,
             runtime.Logger,
             targetsUninstaller,
             tfsProcessor,
@@ -79,27 +83,31 @@ public class PostProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        Invoking(() => new PostProcessor(null, null, null, null, null, null)).Should()
+        Invoking(() => new PostProcessor(null, null, null, null, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("sonarScanner");
 
-        Invoking(() => new PostProcessor(scanner, null, null, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, null, null, null, null, null, null)).Should()
+            .Throw<ArgumentNullException>()
+            .And.ParamName.Should().Be("sonarEngine");
+
+        Invoking(() => new PostProcessor(scanner, engine, null, null, null, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("logger");
 
-        Invoking(() => new PostProcessor(scanner, runtime.Logger, null, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, engine, runtime.Logger, null, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("targetUninstaller");
 
-        Invoking(() => new PostProcessor(scanner, runtime.Logger, targetsUninstaller, null, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, engine, runtime.Logger, targetsUninstaller, null, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("tfsProcessor");
 
-        Invoking(() => new PostProcessor(scanner, runtime.Logger, targetsUninstaller, tfsProcessor, null, null)).Should()
+        Invoking(() => new PostProcessor(scanner, engine, runtime.Logger, targetsUninstaller, tfsProcessor, null, null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("sonarProjectPropertiesValidator");
 
-        Invoking(() => new PostProcessor(scanner, runtime.Logger, targetsUninstaller, tfsProcessor, Substitute.For<SonarProjectPropertiesValidator>(), null)).Should()
+        Invoking(() => new PostProcessor(scanner, engine, runtime.Logger, targetsUninstaller, tfsProcessor, Substitute.For<SonarProjectPropertiesValidator>(), null)).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("coverageReportProcessor");
     }
@@ -307,10 +315,10 @@ public class PostProcessorTests
     public void Execute_ExistingSonarPropertiesFilesPresent_Fail()
     {
         sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(null, null, out var _).ReturnsForAnyArgs(x =>
-            {
-                x[2] = new[] { "Some Path" };
-                return true;
-            });
+        {
+            x[2] = new[] { "Some Path" };
+            return true;
+        });
         Execute().Should().BeFalse();
         sonarProjectPropertiesValidator.ReceivedWithAnyArgs().AreExistingSonarPropertiesFilesPresent(null, null, out var _);
         runtime.Logger.AssertErrorLogged("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: Some Path");
@@ -418,7 +426,8 @@ public class PostProcessorTests
         var projectInfoAnalysisResult = new ProjectInfoAnalysisResult(
             [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(true, runtime.Logger).Single()],
             withProject ? scannerEngineInput : null,
-            withProject ? Path.Combine(testDir, "sonar-project.properties") : null) { RanToCompletion = true };
+            withProject ? Path.Combine(testDir, "sonar-project.properties") : null)
+        { RanToCompletion = true };
         scannerEngineInputGenerator.GenerateResult().Returns(projectInfoAnalysisResult);
         sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
