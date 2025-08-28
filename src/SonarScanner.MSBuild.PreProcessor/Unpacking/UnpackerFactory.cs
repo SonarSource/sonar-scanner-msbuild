@@ -33,7 +33,7 @@ public class UnpackerFactory
         archivePath switch
         {
             _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
-            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(runtime.Logger, runtime.Directory, runtime.File, runtime.OperatingSystem),
+            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(runtime),
             _ => null
         };
 }

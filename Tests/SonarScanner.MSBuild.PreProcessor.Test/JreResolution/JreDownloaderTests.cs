@@ -232,7 +232,7 @@ public class JreDownloaderTests
             Directory = DirectoryWrapper.Instance,
             File = FileWrapper.Instance
         };
-        var targzUnpacker = new TarGzUnpacker(runtimeIO.Logger, runtimeIO.Directory, runtimeIO.File, runtimeIO.OperatingSystem);
+        var targzUnpacker = new TarGzUnpacker(runtimeIO);
         var downloadContentArray = new byte[] { 1, 2, 3 };
 
         var sut = new JreDownloader(runtimeIO, targzUnpacker, ChecksumSha256.Instance, home, new JreDescriptor("filename.tar.gz", sha, "javaPath"));
@@ -271,7 +271,7 @@ public class JreDownloaderTests
             Directory = DirectoryWrapper.Instance,
             File = FileWrapper.Instance
         };
-        var targzUnpacker = new TarGzUnpacker(runtimeIO.Logger, runtimeIO.Directory, runtimeIO.File, runtimeIO.OperatingSystem);
+        var targzUnpacker = new TarGzUnpacker(runtimeIO);
 
         var sut = new JreDownloader(runtimeIO, targzUnpacker, ChecksumSha256.Instance, home, new JreDescriptor("filename.tar.gz", sha, "javaPath"));
         try
@@ -834,7 +834,7 @@ public class JreDownloaderTests
             Directory = DirectoryWrapper.Instance,
             File = FileWrapper.Instance
         };
-        var targzUnpacker = new TarGzUnpacker(runtimeIO.Logger, runtimeIO.Directory, runtimeIO.File, runtimeIO.OperatingSystem);
+        var targzUnpacker = new TarGzUnpacker(runtimeIO);
 
         var sut = new JreDownloader(runtimeIO, targzUnpacker, ChecksumSha256.Instance, home, jreDescriptor);
 
