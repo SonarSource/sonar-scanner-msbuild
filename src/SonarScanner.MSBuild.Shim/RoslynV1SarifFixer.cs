@@ -35,6 +35,49 @@ public class RoslynV1SarifFixer
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
+    /// Attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
+    /// </summary>
+    public virtual string LoadAndFixFile(string sarifFilePath, string language)
+    {
+        if (!File.Exists(sarifFilePath))
+        {
+            // file cannot be found -> inherently unfixable
+            logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
+            return null;
+        }
+
+        var inputSarifFileString = File.ReadAllText(sarifFilePath);
+        if (IsValidJson(inputSarifFileString))
+        {
+            // valid input -> no fix required
+            logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
+            return sarifFilePath;
+        }
+        logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifFilePath);
+
+        if (!IsSarifFromRoslynV1(inputSarifFileString, language))
+        {
+            // invalid input NOT from Roslyn V1 -> unfixable
+            logger.LogWarning(Resources.WARN_SarifFixFail);
+            return null;
+        }
+
+        var changedSarif = ApplyFixToSarif(inputSarifFileString);
+        if (IsValidJson(changedSarif))
+        {
+            var newSarifFilePath = Path.Combine(Path.GetDirectoryName(sarifFilePath), Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath));
+            File.WriteAllText(newSarifFilePath, changedSarif);
+            logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
+            return newSarifFilePath;
+        }
+        else
+        {
+            logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Returns true if the given SARIF came from the VS 2015 RTM Roslyn, which does not provide correct output.
     /// </summary>
     private static bool IsSarifFromRoslynV1(string input, string language)
@@ -108,48 +151,5 @@ public class RoslynV1SarifFixer
             }
         }
         return string.Join(Environment.NewLine, inputLines);
-    }
-
-    /// <summary>
-    /// Attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
-    /// </summary>
-    public virtual string LoadAndFixFile(string sarifFilePath, string language)
-    {
-        if (!File.Exists(sarifFilePath))
-        {
-            // file cannot be found -> inherently unfixable
-            logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
-            return null;
-        }
-
-        var inputSarifFileString = File.ReadAllText(sarifFilePath);
-        if (IsValidJson(inputSarifFileString))
-        {
-            // valid input -> no fix required
-            logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
-            return sarifFilePath;
-        }
-        logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifFilePath);
-
-        if (!IsSarifFromRoslynV1(inputSarifFileString, language))
-        {
-            // invalid input NOT from Roslyn V1 -> unfixable
-            logger.LogWarning(Resources.WARN_SarifFixFail);
-            return null;
-        }
-
-        var changedSarif = ApplyFixToSarif(inputSarifFileString);
-        if (IsValidJson(changedSarif))
-        {
-            var newSarifFilePath = Path.Combine(Path.GetDirectoryName(sarifFilePath), Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath));
-            File.WriteAllText(newSarifFilePath, changedSarif);
-            logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
-            return newSarifFilePath;
-        }
-        else
-        {
-            logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
-            return null;
-        }
     }
 }
