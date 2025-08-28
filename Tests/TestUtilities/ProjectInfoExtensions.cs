@@ -35,16 +35,4 @@ public static class ProjectInfoExtensions
         result.Should().NotBeNull("Returned analysis result should not be null. Id: {0}", resultId);
         return result;
     }
-
-    public static AnalysisResult AssertAnalysisResultExists(this ProjectInfo projectInfo, string resultId, string expectedLocation)
-    {
-        var result = AssertAnalysisResultExists(projectInfo, resultId);
-        result.Location.Should().Be(
-            expectedLocation,
-            "Analysis result exists but does not have the expected location. Id: {0}, expected: {1}, actual: {2}",
-            resultId,
-            expectedLocation,
-            result.Location);
-        return result;
-    }
 }

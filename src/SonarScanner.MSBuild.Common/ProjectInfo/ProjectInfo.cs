@@ -86,12 +86,13 @@ public class ProjectInfo
     {
         if (FindAnalysisResultFile(AnalysisResultFileType.FilesToAnalyze)?.Location is { } filesToAnalyze && File.Exists(filesToAnalyze))
         {
-            var result = new List<FileInfo>();
-            foreach (var path in File.ReadAllLines(filesToAnalyze))
+            var paths = File.ReadAllLines(filesToAnalyze);
+            var result = new List<FileInfo>(paths.Length);
+            foreach (var path in paths)
             {
                 try
                 {
-                    result.Add(new FileInfo(path));
+                    result.Add(new(path));
                 }
                 catch (Exception ex)
                 {
