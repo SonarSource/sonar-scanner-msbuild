@@ -216,7 +216,7 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
-    public void ProcRunner_InputWriter()
+    public void ProcRunner_StandardInput()
     {
         var context = new ProcessRunnerContext(TestContext, $"""
             {ReadCommand("var1")}

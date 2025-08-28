@@ -108,7 +108,7 @@ public class PropertiesWriter
 
         AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
         AppendKeyValue(guid, SonarProperties.ProjectName, projectData.Project.ProjectName);
-        AppendKeyValue(guid, SonarProperties.ProjectBaseDir, projectData.Project.GetDirectory().FullName);
+        AppendKeyValue(guid, SonarProperties.ProjectBaseDir, projectData.Project.ProjectFileDirectory().FullName);
 
         if (!string.IsNullOrWhiteSpace(projectData.Project.Encoding))
         {

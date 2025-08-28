@@ -45,6 +45,26 @@ public class ScannerEngineInput
         Add("sonar.modules", modules);
     }
 
+    public ScannerEngineInput CloneWithoutSensitiveData()
+    {
+        var result = new ScannerEngineInput(config);
+        result.moduleKeys.UnionWith(moduleKeys);
+        foreach (var property in scannerProperties)
+        {
+            var key = property["key"].Value<string>();
+            var value = property["value"].Value<string>();
+            if (key == "sonar.modules")
+            {
+                result.modules.Value = value;
+            }
+            else
+            {
+                result.Add(key, ProcessRunnerArguments.ContainsSensitiveData(key) || ProcessRunnerArguments.ContainsSensitiveData(value) ? "***" : value);
+            }
+        }
+        return result;
+    }
+
     public override string ToString() =>
         JsonConvert.SerializeObject(root, Formatting.Indented);
 
@@ -56,7 +76,7 @@ public class ScannerEngineInput
         modules.Value = string.Join(",", moduleKeys);
         Add(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
         Add(guid, SonarProperties.ProjectName, project.Project.ProjectName);
-        Add(guid, SonarProperties.ProjectBaseDir, project.Project.GetDirectory().FullName);
+        Add(guid, SonarProperties.ProjectBaseDir, project.Project.ProjectFileDirectory().FullName);
         Add(guid, SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"));    // zero-based index
         if (!string.IsNullOrWhiteSpace(project.Project.Encoding))
         {

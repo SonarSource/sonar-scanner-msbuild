@@ -28,7 +28,7 @@ public partial class ScannerEngineInputGeneratorTest
         var outPath = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out");
         Directory.CreateDirectory(outPath);
         var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "file.cs");
-        var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, TestUtils.FilesToAnalyze, fileToAnalyzePath);
+        var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, AnalysisResultFileType.FilesToAnalyze.ToString(), fileToAnalyzePath);
         var config = new AnalysisConfig { SonarOutputDir = outPath };
         var sut = new ScannerEngineInputGenerator(config, logger);
         var firstProjectInfo = new ProjectInfo
@@ -37,7 +37,7 @@ public partial class ScannerEngineInputGeneratorTest
             FullPath = Path.Combine(TestContext.TestRunDirectory, "First"),
             ProjectName = "First",
             AnalysisSettings = [],
-            AnalysisResults = [new AnalysisResult { Id = TestUtils.FilesToAnalyze, Location = filesToAnalyzePath }]
+            AnalysisResults = [new AnalysisResult { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }]
         };
         var secondProjectInfo = new ProjectInfo
         {
@@ -45,7 +45,7 @@ public partial class ScannerEngineInputGeneratorTest
             FullPath = Path.Combine(Path.GetTempPath(), "Second"),
             ProjectName = "Second",
             AnalysisSettings = [],
-            AnalysisResults = [new AnalysisResult { Id = TestUtils.FilesToAnalyze, Location = filesToAnalyzePath }]
+            AnalysisResults = [new AnalysisResult { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }]
         };
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
         TestUtils.CreateEmptyFile(Path.GetTempPath(), "Second");
@@ -235,7 +235,7 @@ public partial class ScannerEngineInputGeneratorTest
             ProjectName = "Project",
             IsExcluded = false,
             AnalysisSettings = [],
-            AnalysisResults = [new AnalysisResult { Id = AnalysisType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
+            AnalysisResults = [new AnalysisResult { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
         };
         sut.GenerateProperties(
             config.ToAnalysisProperties(logger),
@@ -265,7 +265,7 @@ public partial class ScannerEngineInputGeneratorTest
                 ProjectGuid = new("5762C17D-1DDF-4C77-86AC-E2B4940926A9"),
                 ProjectLanguage = language,
                 FullPath = TestUtils.CreateEmptyFile(testContext.TestRunDirectory, "Project.proj"),
-                AnalysisResults = [new AnalysisResult { Id = "FilesToAnalyze", Location = filesToAnalyzePath }],
+                AnalysisResults = [new AnalysisResult { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyzePath }],
                 AnalysisSettings = []
             };
             Project = new[] { info }.ToProjectData(true, logger).Single();

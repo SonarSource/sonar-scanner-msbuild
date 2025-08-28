@@ -48,13 +48,14 @@ public class PostProcessorTests
     public PostProcessorTests(TestContext testContext)
     {
         this.testContext = testContext;
+        settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
+        Directory.CreateDirectory(settings.SonarOutputDirectory);
         config = new()
         {
-            SonarOutputDir = Environment.CurrentDirectory,
-            SonarConfigDir = Environment.CurrentDirectory,
+            SonarOutputDir = settings.SonarOutputDirectory,
+            SonarConfigDir = settings.SonarConfigDirectory,
         };
         config.SetBuildUri("http://test-build-uri");
-        settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
         runtime = new();
         tfsProcessor = Substitute.For<TfsProcessorWrapper>(runtime);
         tfsProcessor.Execute(null, null).ReturnsForAnyArgs(true);
@@ -162,12 +163,31 @@ public class PostProcessorTests
             "-Dsonar.login=login",
             "-Dsonar.token=token"
         };
+        scannerEngineInput.Add("sonar", "unsafe.value", "This value contains sensitive sonar.token and should be sanitized in the file dump");
 
         Execute(suppliedArgs).Should().BeTrue("Expecting post-processor to have succeeded");
         scanner.Received().Execute(
             config,
             Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)),
             Arg.Any<string>());
+
+        runtime.File.Received().WriteAllText(
+            Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json"),
+            """
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.unsafe.value",
+                  "value": "***"
+                }
+              ]
+            }
+            """
+                .ToEnvironmentLineEndings());
         runtime.Logger.AssertErrorsLogged(0);
         VerifyTargetsUninstaller();
     }

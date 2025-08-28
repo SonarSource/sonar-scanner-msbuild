@@ -21,7 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarcloud;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.JreProvisioningAssertions;
+import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.Property;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith({CloudTests.class, ContextExtension.class})
-class CloudJreProvisioningTest {
+class CloudProvisioningTest {
   private static final String DIRECTORY_NAME = "JreProvisioning";
   private static final Property activateProvisioning = new Property("sonar.scanner.skipJreProvisioning", null); // Default ScannerCommand behavior turns it off
 
@@ -54,7 +54,7 @@ class CloudJreProvisioningTest {
   }
 
   @Test
-  void skipProvisioning_DoesNotDownloadJre() {
+  void skipJreProvisioning_DoesNotDownloadJre() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     var logs = context.begin.execute(null).getLogs(); // sonar.scanner.skipJreProvisioning=true is the default behavior of ScannerCommand in ITs
 
@@ -69,9 +69,9 @@ class CloudJreProvisioningTest {
   }
 
   @Test
-  void cacheMiss_DownloadsJre() {
+  void cacheMiss_DownloadsCache() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
-    try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
+    try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       context.begin
         .setProperty(activateProvisioning)
         .setProperty("sonar.userHome", userHome.toString());
@@ -81,31 +81,26 @@ class CloudJreProvisioningTest {
 
       var result = context.runAnalysis();
 
-      JreProvisioningAssertions.cacheMissAssertions(result, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), oldJavaHome, "https://[^\s]+/jres/[^\s]+\\.(?:zip|tar\\.gz)");
+      ProvisioningAssertions.cacheMissAssertions(result, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), oldJavaHome, true);
     }
   }
 
   @Test
-  void cacheHit_ReusesJre() {
+  void cacheHit_ReusesCachedFiles() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
-    try (var userHome = new TempDirectory("junit-JRE-hit-")) { // context.projectDir has a test name in it and that leads to too long path
+    try (var userHome = new TempDirectory("junit-cache-hit-")) { // context.projectDir has a test name in it and that leads to too long path
       context.begin
         .setProperty(activateProvisioning)
         .setProperty("sonar.userHome", userHome.toString());
 
       // First analysis, cache misses and downloads the JRE
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
-      var cacheMissLogs = context.runAnalysis().begin().getLogs();
-      assertThat(cacheMissLogs).contains(
-        "JreResolver: Cache miss",
-        "Starting the file download.");
-      assertThat(cacheMissLogs).doesNotContain(
-        "JreResolver: Cache hit",
-        "JreResolver: Cache failure");
+      var cacheMiss = context.runAnalysis().begin();
+      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), true);
 
       // Second analysis, cache hits and does not download the JRE
       var secondBegin = context.runAnalysis().begin();
-      JreProvisioningAssertions.cacheHitAssertions(secondBegin, userHome.toString());
+      ProvisioningAssertions.cacheHitAssertions(secondBegin, userHome.toString());
     }
   }
 

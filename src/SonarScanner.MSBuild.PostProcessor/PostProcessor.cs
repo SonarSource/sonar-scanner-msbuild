@@ -88,15 +88,17 @@ public class PostProcessor : IPostProcessor
             return false;
         }
 
-        var propertyResult = GenerateAndValidatePropertiesFile(config);
-        if (propertyResult.FullPropertiesFilePath is not null)
+        var analysisResult = GenerateAndValidatePropertiesFile(config);
+        if (analysisResult.FullPropertiesFilePath is not null)
         {
 #if NETFRAMEWORK
-            ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult);
+            ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult);
 #endif
             var result = false;
-            if (propertyResult.RanToCompletion)
+            if (analysisResult.RanToCompletion)
             {
+                var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
+                fileWrapper.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
                     ? InvokeSonarScanner(provider, config, propertyResult.FullPropertiesFilePath)
                     : InvokeScannerEngine(config, propertyResult.ScannerEngineInput);
@@ -104,7 +106,7 @@ public class PostProcessor : IPostProcessor
 #if NETFRAMEWORK
             if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
             {
-                ProcessSummaryReportBuilder(config, result, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
+                ProcessSummaryReportBuilder(config, result, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath);
             }
 #endif
             return result;

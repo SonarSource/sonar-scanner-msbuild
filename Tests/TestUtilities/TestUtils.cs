@@ -25,7 +25,6 @@ namespace TestUtilities;
 
 public static class TestUtils
 {
-    public const string FilesToAnalyze = nameof(FilesToAnalyze);
     // Target file names
     public const string AnalysisTargetFile = "SonarQube.Integration.targets";
     public const string ImportsBeforeFile = "SonarQube.Integration.ImportBefore.targets";
@@ -211,7 +210,7 @@ public static class TestUtils
         {
             var contentFile = CreateEmptyFile(projectDir, "contentFile1.txt");
             var contentFileList = CreateFile(projectDir, "contentList.txt", contentFile);
-            AddAnalysisResult(contentProjectInfo, AnalysisType.FilesToAnalyze, contentFileList);
+            AddAnalysisResult(contentProjectInfo, AnalysisResultFileType.FilesToAnalyze, contentFileList);
         }
 
         return contentProjectInfo;
@@ -272,10 +271,10 @@ public static class TestUtils
         return filePath;
     }
 
-    public static void AddAnalysisResult(string projectInfoFile, AnalysisType resultType, string location)
+    public static void AddAnalysisResult(string projectInfoFile, AnalysisResultFileType fileType, string location)
     {
         var projectInfo = ProjectInfo.Load(projectInfoFile);
-        projectInfo.AddAnalyzerResult(resultType, location);
+        projectInfo.AddAnalyzerResult(fileType, location);
         projectInfo.Save(projectInfoFile);
     }
 

@@ -132,8 +132,8 @@ public class ProjectDataTest
                 FullPath = fullPath,
             }
         };
-        projectInfos[0].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
-        projectInfos[1].AddAnalyzerResult(AnalysisType.FilesToAnalyze, contentFileList1);
+        projectInfos[0].AddAnalyzerResult(AnalysisResultFileType.FilesToAnalyze, contentFileList1);
+        projectInfos[1].AddAnalyzerResult(AnalysisResultFileType.FilesToAnalyze, contentFileList1);
         var sut = projectInfos.ToProjectData(true, Substitute.For<ILogger>()).Single();
 
         sut.Status.Should().Be(ProjectInfoValidity.Valid);
