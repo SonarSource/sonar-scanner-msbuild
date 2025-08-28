@@ -57,11 +57,7 @@ public class JreResolverTests
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
         runtime = new();
-        unpackerFactory = Substitute.For<UnpackerFactory>(
-            runtime.Logger,
-            runtime.OperatingSystem,
-            runtime.File,
-            runtime.Directory);
+        unpackerFactory = Substitute.For<UnpackerFactory>(runtime);
 
         sut = new JreResolver(server, checksum, SonarUserHome, runtime, unpackerFactory);
     }
