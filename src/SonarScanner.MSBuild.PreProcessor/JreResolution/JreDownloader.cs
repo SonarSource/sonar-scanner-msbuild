@@ -26,30 +26,24 @@ namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 public class JreDownloader
 {
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
     private readonly CachedDownloader cachedDownloader;
-    private readonly IDirectoryWrapper directoryWrapper;
-    private readonly IFileWrapper fileWrapper;
     private readonly IUnpacker unpacker;
     private readonly JreDescriptor jreDescriptor;
     private readonly string jreExtractionPath;
     private readonly string extractedJavaExe;
 
-    public JreDownloader(ILogger logger,
-                         IDirectoryWrapper directoryWrapper,
-                         IFileWrapper fileWrapper,
+    public JreDownloader(IRuntime runtime,
                          IUnpacker unpacker,
                          IChecksum checksum,
                          string sonarUserHome,
                          JreDescriptor jreDescriptor)
     {
-        this.logger = logger;
-        this.directoryWrapper = directoryWrapper;
-        this.fileWrapper = fileWrapper;
+        this.runtime = runtime;
         this.unpacker = unpacker;
         this.jreDescriptor = jreDescriptor;
 
-        cachedDownloader = new CachedDownloader(logger, directoryWrapper, fileWrapper, checksum, jreDescriptor, sonarUserHome);
+        cachedDownloader = new CachedDownloader(runtime.Logger, runtime.Directory, runtime.File, checksum, jreDescriptor, sonarUserHome);
         jreExtractionPath = $"{cachedDownloader.CacheLocation}_extracted";
         extractedJavaExe = Path.Combine(jreExtractionPath, jreDescriptor.JavaPath);
     }
@@ -58,9 +52,9 @@ public class JreDownloader
     {
         if (cachedDownloader.EnsureCacheRoot())
         {
-            if (directoryWrapper.Exists(jreExtractionPath))
+            if (runtime.Directory.Exists(jreExtractionPath))
             {
-                return fileWrapper.Exists(extractedJavaExe)
+                return runtime.File.Exists(extractedJavaExe)
                     ? new CacheHit(extractedJavaExe)
                     : new CacheError(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
             }
@@ -74,7 +68,7 @@ public class JreDownloader
 
     public async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)
     {
-        logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
+        runtime.Logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
         var result = await cachedDownloader.DownloadFileAsync(jreDownload);
         return result is DownloadSuccess success ? UnpackJre(success.FilePath) : result;
     }
@@ -82,18 +76,18 @@ public class JreDownloader
     private DownloadResult UnpackJre(string jreArchive)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
-        var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath, directoryWrapper.GetRandomFileName());
+        var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath, runtime.Directory.GetRandomFileName());
         try
         {
-            logger.LogDebug(Resources.MSG_StartingJreExtraction, jreArchive, tempExtractionPath);
-            using var archiveStream = fileWrapper.Open(jreArchive);
+            runtime.Logger.LogDebug(Resources.MSG_StartingJreExtraction, jreArchive, tempExtractionPath);
+            using var archiveStream = runtime.File.Open(jreArchive);
             unpacker.Unpack(archiveStream, tempExtractionPath);
             var expectedJavaExeInTempPath = Path.Combine(tempExtractionPath, jreDescriptor.JavaPath);
-            if (fileWrapper.Exists(expectedJavaExeInTempPath))
+            if (runtime.File.Exists(expectedJavaExeInTempPath))
             {
-                logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, jreExtractionPath);
-                directoryWrapper.Move(tempExtractionPath, jreExtractionPath);
-                logger.LogDebug(Resources.MSG_JreExtractedSucessfully, jreExtractionPath);
+                runtime.Logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, jreExtractionPath);
+                runtime.Directory.Move(tempExtractionPath, jreExtractionPath);
+                runtime.Logger.LogDebug(Resources.MSG_JreExtractedSucessfully, jreExtractionPath);
                 return new DownloadSuccess(extractedJavaExe);
             }
             else
@@ -103,7 +97,7 @@ public class JreDownloader
         }
         catch (Exception ex)
         {
-            logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
+            runtime.Logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
             CleanupFolder(tempExtractionPath);
             return new DownloadError(Resources.ERR_JreExtractionFailed);
         }
@@ -113,11 +107,11 @@ public class JreDownloader
     {
         try
         {
-            directoryWrapper.Delete(tempExtractionPath, true);
+            runtime.Directory.Delete(tempExtractionPath, true);
         }
         catch (Exception ex)
         {
-            logger.LogDebug(Resources.ERR_JreExtractionCleanupFailed, tempExtractionPath, ex.Message);
+            runtime.Logger.LogDebug(Resources.ERR_JreExtractionCleanupFailed, tempExtractionPath, ex.Message);
         }
     }
 }

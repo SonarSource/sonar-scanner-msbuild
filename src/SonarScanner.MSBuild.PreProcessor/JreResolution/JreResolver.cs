@@ -77,7 +77,7 @@ public class JreResolver : IResolver
         var descriptor = metadata.ToDescriptor();
         if (unpackerFactory.Create(descriptor.Filename) is { } unpacker)
         {
-            var jreDownloader = new JreDownloader(runtime.Logger, runtime.Directory, runtime.File, unpacker, checksum, sonarUserHome, descriptor);
+            var jreDownloader = new JreDownloader(runtime, unpacker, checksum, sonarUserHome, descriptor);
             switch (jreDownloader.IsJreCached())
             {
                 case CacheHit hit:
