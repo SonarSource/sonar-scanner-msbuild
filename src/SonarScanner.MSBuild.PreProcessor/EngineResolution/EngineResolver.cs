@@ -26,8 +26,8 @@ namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 public class EngineResolver : IResolver
 {
     private const string ScannerEngine = "Scanner Engine";
-    private const string NewBootstrappingEnabledTelemetryKey = "ScannerEngine.NewBootstrapping";
-    private const string ScannerEngineDownloadTelemetryKey = "ScannerEngine.Download";
+    private const string NewBootstrappingEnabledTelemetryKey = "dotnetenterprise.s4net.scannerEngine.newBootstrapping";
+    private const string ScannerEngineDownloadTelemetryKey = "dotnetenterprise.s4net.scannerEngine.download";
 
     private enum ScannerEngineDownloadStatus
     {

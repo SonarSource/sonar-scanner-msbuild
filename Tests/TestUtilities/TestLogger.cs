@@ -24,6 +24,8 @@ namespace TestUtilities;
 
 public class TestLogger : ILogger
 {
+    private ConsoleLogger consoleLogger = new(false);
+
     // All messages are normalized to Unix line endings, because Resx files contains multiline messages with CRLF and we emit mix of LF and CRFL to logs on *nix system
     public List<string> DebugMessages { get;  }
     public List<string> InfoMessages { get; }
@@ -247,15 +249,11 @@ public class TestLogger : ILogger
         // no-op
     }
 
-    public void AddTelemetryMessage(string key, object value)
-    {
-        // no-op
-    }
+    public void AddTelemetryMessage(string key, object value) =>
+        consoleLogger.AddTelemetryMessage(key, value);
 
-    public void WriteTelemetry(string outputFolder)
-    {
-        // no-op
-    }
+    public void WriteTelemetry(string outputFolder) =>
+        consoleLogger.WriteTelemetry(outputFolder);
 
     private static void WriteLine(string message, params object[] args) =>
         Console.WriteLine(FormatMessage(message, args));

@@ -39,7 +39,6 @@ public partial class PreProcessorTests
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
                 """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
                 """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
-                """{"scanner.legacyTFS":"NotCalled"}""",
                 """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
     }
 
@@ -61,7 +60,6 @@ public partial class PreProcessorTests
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_ANALYSIS_XML"}""",
                 """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
                 """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
-                """{"scanner.legacyTFS":"NotCalled"}""",
                 """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
     }
 
@@ -78,7 +76,6 @@ public partial class PreProcessorTests
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_SCANNER_PARAMS"}""",
                 """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
                 """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
-                """{"scanner.legacyTFS":"NotCalled"}""",
                 """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
     }
 
@@ -99,7 +96,6 @@ public partial class PreProcessorTests
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
                 """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
                 """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
-                """{"scanner.legacyTFS":"NotCalled"}""",
                 """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
     }
 

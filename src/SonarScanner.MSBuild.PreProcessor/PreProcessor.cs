@@ -64,7 +64,6 @@ public sealed class PreProcessor : IPreProcessor
         logger.ResumeOutput();
         InstallLoaderTargets(localSettings);
         var buildSettings = BuildSettings.GetSettingsFromEnvironment();
-        logger.AddTelemetryMessage("scanner.legacyTFS", buildSettings.BuildEnvironment == Common.TFS.BuildEnvironment.LegacyTeamBuild ? "Called" : "NotCalled");
 
         // Create the directories
         logger.LogDebug(Resources.MSG_CreatingFolders);
@@ -89,7 +88,7 @@ public sealed class PreProcessor : IPreProcessor
             logger.LogDebug(ex.StackTrace);
             return false;
         }
-        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.version", server.ServerVersion is null ? "null" : server.ServerVersion.ToString());
+        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.version", server.ServerVersion.ToString());
 
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
