@@ -103,7 +103,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         new JreResolver(server, runtime.Logger, ChecksumSha256.Instance, sonarUserHome);
 
     public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
-        new EngineResolver(server, runtime.Logger, sonarUserHome);
+        new EngineResolver(server, sonarUserHome, runtime);
 
     private bool ValidateServerUrl(string serverUrl)
     {
