@@ -60,6 +60,7 @@ public sealed class ProcessRunner : IProcessRunner
             FileName = runnerArgs.ExeName,
             RedirectStandardError = true,
             RedirectStandardOutput = true,
+            RedirectStandardInput = runnerArgs.StandardInput is not null,
             UseShellExecute = false, // required if we want to capture the error output
             ErrorDialog = false,
             CreateNoWindow = true,
@@ -91,7 +92,11 @@ public sealed class ProcessRunner : IProcessRunner
             runnerArgs.WorkingDirectory,
             runnerArgs.TimeoutInMilliseconds,
             process.Id);
-
+        if (runnerArgs.StandardInput is { } input)
+        {
+            using var standardInput = process.StandardInput;
+            standardInput.Write(input);
+        }
         var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
         // false means we asked the process to stop but it didn't.
         // true: we might still have timed out, but the process ended when we asked it to

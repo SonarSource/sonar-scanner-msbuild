@@ -216,6 +216,21 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
+    public void ProcRunner_StandardInput()
+    {
+        var context = new ProcessRunnerContext(TestContext, $"""
+            {ReadCommand("var1")}
+            {EchoCommand($"You entered: {EnvVar("var1")}")}
+            """)
+        {
+            ProcessArgs = { StandardInput = "Hello World" }
+        };
+
+        context.ExecuteAndAssert();
+        context.ResultStandardOutputShouldBe("You entered: Hello World" + Environment.NewLine);
+    }
+
+    [TestMethod]
     public void ProcRunner_FailsOnTimeout()
     {
         var content = $"""
@@ -526,11 +541,17 @@ public class ProcessRunnerTests
         }
     }
 
+    private static string EnvVar(string text) =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"%{text}%" : $"${text}";
+
     private static string EchoEnvVar(string text) =>
-        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? EchoCommand($"%{text}%") : EchoCommand($"${text}");
+        EchoCommand(EnvVar(text));
 
     private static string EchoCommand(string text) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"@echo {text}" : $"echo \"{text.Replace('%', '$')}\"";
+
+    private static string ReadCommand(string variableName = "var1") =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"set /P {variableName}=" : $"read {variableName}";
 
     private static string ScriptInit() =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "@echo off" : "#!/bin/sh";

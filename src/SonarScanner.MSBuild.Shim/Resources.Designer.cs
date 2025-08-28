@@ -123,6 +123,15 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The scanner engine did not complete successfully.
+        /// </summary>
+        internal static string ERR_ScannerEngineExecutionFailed {
+            get {
+                return ResourceManager.GetString("ERR_ScannerEngineExecutionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The SonarScanner did not complete successfully.
         /// </summary>
         internal static string ERR_SonarScannerExecutionFailed {
@@ -218,6 +227,15 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_SarifFixSuccess {
             get {
                 return ResourceManager.GetString("MSG_SarifFixSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The scanner engine has finished successfully.
+        /// </summary>
+        internal static string MSG_ScannerEngineCompleted {
+            get {
+                return ResourceManager.GetString("MSG_ScannerEngineCompleted", resourceCulture);
             }
         }
         
