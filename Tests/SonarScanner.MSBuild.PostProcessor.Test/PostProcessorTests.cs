@@ -186,18 +186,23 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineCredentials = true;
         config.EngineJarPath = "engine.jar";
         config.UseSonarScannerCli = false;
+        scannerEngineInput.Add("sonar", "unsafe.value", "Sensitive data"); // Sensitive data is safe to pass via StdIn
 
         Execute(["/d:sonar.token=token"]).Should().BeTrue("Expecting post-processor to have succeeded");
 
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         engine.Received(1).Execute(config, """
             {
-                "scannerProperties": [
+              "scannerProperties": [
                 {
-                    "key": "sonar.modules",
-                    "value": ""
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.unsafe.value",
+                  "value": "Sensitive data"
                 }
-                ]
+              ]
             }
             """
                 .ToEnvironmentLineEndings());
@@ -218,12 +223,12 @@ public class PostProcessorTests
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         engine.Received(1).Execute(config, """
             {
-                "scannerProperties": [
+              "scannerProperties": [
                 {
-                    "key": "sonar.modules",
-                    "value": ""
+                  "key": "sonar.modules",
+                  "value": ""
                 }
-                ]
+              ]
             }
             """
                 .ToEnvironmentLineEndings());
