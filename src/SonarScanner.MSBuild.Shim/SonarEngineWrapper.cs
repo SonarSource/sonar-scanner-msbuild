@@ -36,7 +36,7 @@ public class SonarEngineWrapper
         _ = config ?? throw new ArgumentNullException(nameof(config));
 
         var engine = config.EngineJarPath;
-        var javaExe = config.JavaExePath;
+        var javaExe = FindJavaExe(config.JavaExePath);
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
             CmdLineArgs = ["-jar", engine],
@@ -53,5 +53,36 @@ public class SonarEngineWrapper
             runtime.Logger.LogError(Resources.ERR_ScannerEngineExecutionFailed);
         }
         return result.Succeeded;
+    }
+
+    private string FindJavaExe(string configJavaExe)
+    {
+        if (runtime.File.Exists(configJavaExe))
+        {
+            runtime.Logger.LogInfo(Resources.MSG_JavaExe_Found, "Analysis Config", configJavaExe);
+            return configJavaExe;
+        }
+        runtime.Logger.LogInfo(Resources.MSG_JavaExe_NotFound, "Analysis Config", configJavaExe);
+
+        var javaExe = runtime.OperatingSystem.IsUnix() ? "java" : "java.exe";
+        if (Environment.GetEnvironmentVariable(EnvironmentVariables.JavaHomeVariableName) is { } javaHome
+            && !string.IsNullOrEmpty(javaHome))
+        {
+            runtime.Logger.LogInfo(Resources.MSG_JavaHomeSet, javaHome);
+            var javaHomeExe = Path.Combine(javaHome, "bin", javaExe);
+            if (runtime.File.Exists(javaHomeExe))
+            {
+                runtime.Logger.LogInfo(Resources.MSG_JavaExe_Found, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
+                return javaHomeExe;
+            }
+            runtime.Logger.LogInfo(Resources.MSG_JavaExe_NotFound, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
+        }
+        else
+        {
+            runtime.Logger.LogInfo(Resources.MSG_JavaHomeNotSet);
+        }
+
+        runtime.Logger.LogInfo(Resources.MSG_JavaExe_UsePath, javaExe);
+        return javaExe; // Rely on Proccess inbuilt PATH support
     }
 }
