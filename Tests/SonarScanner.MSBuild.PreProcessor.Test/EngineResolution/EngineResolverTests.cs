@@ -66,6 +66,18 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "Using local sonar engine provided by sonar.scanner.engineJarPath=local/path/to/engine.jar");
+
+        runtime.Logger.TelemetryMessages.Should().SatisfyRespectively(
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.newBootstrapping");
+                x.Value.ToString().Should().Be("Disabled");
+            },
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.download");
+                x.Value.ToString().Should().Be("UserSupplied");
+            });
     }
 
     [TestMethod]
@@ -82,6 +94,13 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
+
+        runtime.Logger.TelemetryMessages.Should().SatisfyRespectively(
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.newBootstrapping");
+                x.Value.ToString().Should().Be("Unsupported");
+            });
     }
 
     [TestMethod]
@@ -97,6 +116,13 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.");
+
+        runtime.Logger.TelemetryMessages.Should().SatisfyRespectively(
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.newBootstrapping");
+                x.Value.ToString().Should().Be("Enabled");
+            });
     }
 
     [TestMethod]
@@ -112,6 +138,18 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             $"EngineResolver: Cache hit '{CachedEnginePath}'.");
+
+        runtime.Logger.TelemetryMessages.Should().SatisfyRespectively(
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.newBootstrapping");
+                x.Value.ToString().Should().Be("Enabled");
+            },
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.download");
+                x.Value.ToString().Should().Be("CacheHit");
+            });
     }
 
     [TestMethod]
@@ -128,6 +166,23 @@ public class EngineResolverTests
             true,
             "EngineResolver: Resolving Scanner Engine path.",
             $"EngineResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.");
+
+        runtime.Logger.TelemetryMessages.Should().SatisfyRespectively(
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.newBootstrapping");
+                x.Value.ToString().Should().Be("Enabled");
+            },
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.download");
+                x.Value.ToString().Should().Be("Failed");
+            },
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.download");
+                x.Value.ToString().Should().Be("Failed");
+            });
     }
 
     [TestMethod]
@@ -155,6 +210,18 @@ public class EngineResolverTests
             "Starting the file download.",
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
+
+        runtime.Logger.TelemetryMessages.Should().SatisfyRespectively(
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.newBootstrapping");
+                x.Value.ToString().Should().Be("Enabled");
+            },
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.download");
+                x.Value.ToString().Should().Be("Downloaded");
+            });
     }
 
     [TestMethod]
@@ -175,6 +242,23 @@ public class EngineResolverTests
             $"Deleting file '{ShaPath}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
+
+        runtime.Logger.TelemetryMessages.Should().SatisfyRespectively(
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.newBootstrapping");
+                x.Value.ToString().Should().Be("Enabled");
+            },
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.download");
+                x.Value.ToString().Should().Be("Failed");
+            },
+            x =>
+            {
+                x.Key.Should().Be("dotnetenterprise.s4net.scannerEngine.download");
+                x.Value.ToString().Should().Be("Failed");
+            });
     }
 
     private void AssertDebugMessages(params string[] messages) =>
