@@ -74,7 +74,7 @@ public class EngineResolver : IResolver
 
     private async Task<string> ResolveEnginePath(EngineMetadata metadata)
     {
-        var cachedDownloader = new CachedDownloader(runtime.Logger, runtime.Directory, runtime.File, checksum, metadata.ToDescriptor(), sonarUserHome);
+        var cachedDownloader = new CachedDownloader(runtime, checksum, metadata.ToDescriptor(), sonarUserHome);
         switch (cachedDownloader.IsFileCached())
         {
             case CacheHit hit:

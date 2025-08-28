@@ -43,7 +43,7 @@ public class JreDownloader
         this.unpacker = unpacker;
         this.jreDescriptor = jreDescriptor;
 
-        cachedDownloader = new CachedDownloader(runtime.Logger, runtime.Directory, runtime.File, checksum, jreDescriptor, sonarUserHome);
+        cachedDownloader = new CachedDownloader(runtime, checksum, jreDescriptor, sonarUserHome);
         jreExtractionPath = $"{cachedDownloader.CacheLocation}_extracted";
         extractedJavaExe = Path.Combine(jreExtractionPath, jreDescriptor.JavaPath);
     }
