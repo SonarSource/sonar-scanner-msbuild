@@ -31,7 +31,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     private readonly List<string> calledMethods = [];
 
     public TestLogger Logger { get; } = new();
-    public MockSonarWebServer Server { get; }
+    public MockSonarWebServer Server { get; set; }
     public ITargetsInstaller TargetsInstaller { get; } = Substitute.For<ITargetsInstaller>();
     public IResolver JreResolver { get; } = Substitute.For<IResolver>();
     public IResolver EngineResolver { get; } = Substitute.For<IResolver>();
