@@ -414,18 +414,18 @@ public class WriteProjectInfoFileTargetTests
 
     private void AssertResultFileDoesNotExist(ProjectInfo projectInfo, AnalysisResultFileType resultType)
     {
-        var found = projectInfo.TryGetAnalyzerResult(resultType, out var result);
-        if (found)
+        var result = projectInfo.FindAnalysisResultFile(resultType);
+        if (result is not null)
         {
             TestContext.AddResultFile(result.Location);
         }
-        found.Should().BeFalse("Analysis result found unexpectedly. Result type: {0}", resultType);
+        result.Should().BeNull("Analysis result found unexpectedly. Result type: {0}", resultType);
     }
 
     private void AssertResultFileExists(ProjectInfo projectInfo, AnalysisResultFileType resultType, params string[] expected)
     {
-        var found = projectInfo.TryGetAnalyzerResult(resultType, out var result);
-        found.Should().BeTrue("Analysis result not found: {0}", resultType);
+        var result = projectInfo.FindAnalysisResultFile(resultType);
+        result.Should().NotBeNull("Analysis result not found: {0}", resultType);
         File.Exists(result.Location).Should().BeTrue("Analysis result file not found");
         TestContext.AddResultFile(result.Location);
         var actualFiles = File.ReadAllLines(result.Location);
@@ -443,9 +443,8 @@ public class WriteProjectInfoFileTargetTests
 
     private static void AssertSettingExists(ProjectInfo projectInfo, string expectedId, string expectedValue)
     {
-        var found = projectInfo.TryGetAnalysisSetting(expectedId, out var actualSetting);
-        found.Should().BeTrue("Expecting the analysis setting to be found. Id: {0}", expectedId);
-        actualSetting.Should().NotBeNull("The returned setting should not be null if the function returned true");
+        var actualSetting = projectInfo.FindAnalysisSetting(expectedId);
+        actualSetting.Should().NotBeNull("Expecting the analysis setting to be found. Id: {0}", expectedId);
         actualSetting.Id.Should().Be(expectedId, "TryGetAnalysisSetting returned a setting with an unexpected id");
         actualSetting.Value.Should().Be(expectedValue, "Setting has an unexpected value. Id: {0}", expectedId);
     }

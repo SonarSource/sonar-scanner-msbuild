@@ -382,7 +382,7 @@ public class ScannerEngineInputGenerator
     /// </summary>
     private void TryFixSarifReport(ProjectInfo project, string language, string reportFilesPropertyKey)
     {
-        if (project.TryGetAnalysisSetting(reportFilesPropertyKey, out Property reportPathsProperty))
+        if (project.FindAnalysisSetting(reportFilesPropertyKey) is { } reportPathsProperty)
         {
             project.AnalysisSettings.Remove(reportPathsProperty);
             var listOfPaths = reportPathsProperty.Value.Split(RoslynReportPathsDelimiter)

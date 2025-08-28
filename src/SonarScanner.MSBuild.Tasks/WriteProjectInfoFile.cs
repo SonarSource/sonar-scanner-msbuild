@@ -96,7 +96,8 @@ public class WriteProjectInfoFile : Task
         };
 
         var guid = CalculateProjectGuid();
-        if (guid is not null && Guid.TryParse(guid, out var projectId))
+        var outputFileName = Path.Combine(OutputFolder, FileConstants.ProjectInfoFileName);
+        if (Guid.TryParse(guid, out var projectId))
         {
             pi.ProjectGuid = projectId;
         }
@@ -104,13 +105,9 @@ public class WriteProjectInfoFile : Task
         {
             Log.LogMessage(MessageImportance.High, Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
         }
-
         pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
         pi.AnalysisSettings = TryCreateAnalysisSettings(AnalysisSettings);
-
-        var outputFileName = Path.Combine(OutputFolder, FileConstants.ProjectInfoFileName);
         pi.Save(outputFileName);
-
         return true;
     }
 
@@ -124,7 +121,6 @@ public class WriteProjectInfoFile : Task
         if (!string.IsNullOrEmpty(SolutionConfigurationContents))
         {
             var fullProject = new FileInfo(FullProjectPath);
-
             // Try to get GUID from the Solution
             return XDocument.Parse(SolutionConfigurationContents)
                 .Descendants("ProjectConfiguration")
@@ -134,10 +130,7 @@ public class WriteProjectInfoFile : Task
         }
 
         var generatedGuid = Guid.NewGuid().ToString();
-
         Log.LogMessage(Resources.WPIF_GeneratingRandomGuid, FullProjectPath, generatedGuid);
-
-        // Generating a new guid for projects without one.
         return generatedGuid;
 
         bool ArePathEquals(string filePath, FileInfo file)

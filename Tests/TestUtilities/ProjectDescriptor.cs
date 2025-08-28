@@ -57,7 +57,7 @@ public class ProjectDescriptor
             ProjectType = IsTestProject ? ProjectType.Test : ProjectType.Product,
             IsExcluded = IsExcluded,
             Encoding = Encoding.WebName,
-            AnalysisResults = new List<AnalysisResult>(AnalysisResults)
+            AnalysisResults = new(AnalysisResults)
         };
 
     public void AddContentFile(string filePath, bool shouldAnalyse) =>
@@ -66,19 +66,5 @@ public class ProjectDescriptor
     public void AddCompileInputFile(string filePath, bool shouldAnalyse) =>
         Files.Add(new FileInProject(ProjectDescriptor.CompilerInputItemGroup, filePath, shouldAnalyse));
 
-    public class FileInProject
-    {
-        public string FilePath { get; set; }
-
-        public string ItemGroup { get; set; }
-
-        public bool ShouldBeAnalysed { get; set; }
-
-        public FileInProject(string itemGroup, string filePath, bool shouldAnalyse)
-        {
-            ItemGroup = itemGroup;
-            FilePath = filePath;
-            ShouldBeAnalysed = shouldAnalyse;
-        }
-    }
+    public record FileInProject(string FilePath, string ItemGroup, bool ShouldBeAnalysed);
 }
