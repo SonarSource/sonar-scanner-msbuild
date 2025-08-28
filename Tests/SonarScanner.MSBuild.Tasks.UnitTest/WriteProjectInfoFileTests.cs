@@ -36,6 +36,10 @@ public class WriteProjectInfoFileTests
     #region Tests
 
     [TestMethod]
+    public void Constructor_Null_Throws() =>
+        FluentActions.Invoking(() => new WriteProjectInfoFile(null)).Should().Throw<ArgumentNullException>().WithParameterName("encodingProvider");
+
+    [TestMethod]
     [Description("Tests that the project info file is created when the task is executed")]
     public void WriteProjectInfoFile_FileCreated()
     {

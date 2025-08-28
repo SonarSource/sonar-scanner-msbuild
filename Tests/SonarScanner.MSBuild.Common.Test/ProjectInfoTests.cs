@@ -100,6 +100,20 @@ public class ProjectInfoTests
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults3.xml"));
     }
 
+    [TestMethod]
+    public void AddAnalyzerResult_NullOrEmpty_Throws()
+    {
+        var sut = new ProjectInfo();
+        sut.Invoking(x => x.AddAnalyzerResult(null, "value")).Should().Throw<ArgumentNullException>().WithParameterName("id");
+        sut.Invoking(x => x.AddAnalyzerResult(string.Empty, "value")).Should().Throw<ArgumentNullException>().WithParameterName("id");
+        sut.Invoking(x => x.AddAnalyzerResult("id", null)).Should().Throw<ArgumentNullException>().WithParameterName("location");
+        sut.Invoking(x => x.AddAnalyzerResult("id", string.Empty)).Should().Throw<ArgumentNullException>().WithParameterName("location");
+    }
+
+    [TestMethod]
+    public void ProjectFileDirectory_NoFullPath_ReturnsNull() =>
+        new ProjectInfo { FullPath = null }.ProjectFileDirectory().Should().BeNull();
+
     private void SaveAndReloadProjectInfo(ProjectInfo original, string outputFileName)
     {
         File.Exists(outputFileName).Should().BeFalse("Test error: file should not exist at the start of the test. File: {0}", outputFileName);
