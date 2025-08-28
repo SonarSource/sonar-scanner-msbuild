@@ -45,7 +45,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
     public MsBuildPathSettings(OperatingSystemProvider operatingSystemProvider) =>
         this.operatingSystemProvider = operatingSystemProvider;
 
-    public IEnumerable<string> GetImportBeforePaths()
+    public IEnumerable<string> ImportBeforePaths()
     {
         var msBuildUserExtensionsPaths = LocalApplicationDataPaths()
             .Distinct()
@@ -62,7 +62,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
         return msBuildUserExtensionsPaths;
     }
 
-    public IEnumerable<string> GetGlobalTargetsPaths()
+    public IEnumerable<string> GlobalTargetsPaths()
     {
         var programFiles = operatingSystemProvider.FolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
 
