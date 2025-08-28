@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ReceivedExtensions;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
@@ -60,8 +61,9 @@ public class PostProcessorTests
         tfsProcessor = Substitute.For<TfsProcessorWrapper>(runtime);
         tfsProcessor.Execute(null, null).ReturnsForAnyArgs(true);
         scanner = Substitute.For<SonarScannerWrapper>(runtime);
-        engine = Substitute.For<SonarEngineWrapper>(runtime, Substitute.For<IProcessRunner>());
         scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
+        engine = Substitute.For<SonarEngineWrapper>(runtime, Substitute.For<IProcessRunner>());
+        engine.Execute(null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(runtime.Logger);
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         coverageReportProcessor = Substitute
@@ -188,6 +190,57 @@ public class PostProcessorTests
             }
             """
                 .ToEnvironmentLineEndings());
+        runtime.Logger.AssertErrorsLogged(0);
+        VerifyTargetsUninstaller();
+    }
+
+    [TestMethod]
+    public void PostProc_ScannerEngine_Success()
+    {
+        config.HasBeginStepCommandLineCredentials = true;
+        config.EngineJarPath = "engine.jar";
+        config.UseSonarScannerCli = false;
+
+        Execute(["/d:sonar.token=token"]).Should().BeTrue("Expecting post-processor to have succeeded");
+
+        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.Received(1).Execute(config, """
+                {
+                  "scannerProperties": [
+                    {
+                      "key": "sonar.modules",
+                      "value": ""
+                    }
+                  ]
+                }
+                """
+            .ToEnvironmentLineEndings());
+        runtime.Logger.AssertErrorsLogged(0);
+        VerifyTargetsUninstaller();
+    }
+
+    [TestMethod]
+    public void PostProc_ScannerEngine_Failure()
+    {
+        config.HasBeginStepCommandLineCredentials = true;
+        config.EngineJarPath = "engine.jar";
+        config.UseSonarScannerCli = false;
+        engine.Execute(null, null).ReturnsForAnyArgs(false);
+
+        Execute(["/d:sonar.token=token"]).Should().BeFalse("Expecting post-processor to fail");
+
+        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.Received(1).Execute(config, """
+                {
+                  "scannerProperties": [
+                    {
+                      "key": "sonar.modules",
+                      "value": ""
+                    }
+                  ]
+                }
+                """
+            .ToEnvironmentLineEndings());
         runtime.Logger.AssertErrorsLogged(0);
         VerifyTargetsUninstaller();
     }
