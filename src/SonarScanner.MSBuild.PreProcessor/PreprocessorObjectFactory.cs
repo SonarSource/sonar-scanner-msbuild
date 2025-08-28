@@ -89,7 +89,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     }
 
     public ITargetsInstaller CreateTargetInstaller() =>
-        new TargetsInstaller(runtime.Logger);
+        new TargetsInstaller(runtime);
 
     public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
                                                                string localCacheTempPath,
@@ -100,10 +100,11 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         new(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
 
     public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
-        new JreResolver(server, runtime.Logger, ChecksumSha256.Instance, sonarUserHome);
+
+        new JreResolver(server, ChecksumSha256.Instance, sonarUserHome, runtime);
 
     public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
-        new EngineResolver(server, runtime.Logger, sonarUserHome);
+        new EngineResolver(server, sonarUserHome, runtime);
 
     private bool ValidateServerUrl(string serverUrl)
     {

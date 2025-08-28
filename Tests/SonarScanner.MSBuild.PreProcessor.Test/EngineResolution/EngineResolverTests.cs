@@ -35,12 +35,10 @@ public class EngineResolverTests
     private static readonly string CachedEnginePath = Path.Combine(ShaPath, EngineJar);
 
     private readonly EngineResolver resolver;
-    private readonly TestLogger logger = new();
+    private readonly TestRuntime runtime = new();
     private readonly ISonarWebServer server = Substitute.For<ISonarWebServer>();
     private readonly ProcessedArgs args  = Substitute.For<ProcessedArgs>();
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
-    private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
-    private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
 
     private readonly EngineMetadata metadata = new(
         EngineJar,
@@ -52,7 +50,7 @@ public class EngineResolverTests
         server.SupportsJreProvisioning.Returns(true);
         args.EngineJarPath.ReturnsNull();
         server.DownloadEngineMetadataAsync().Returns(Task.FromResult(metadata));
-        resolver = new EngineResolver(server, logger, "sonarUserHome", checksum, directoryWrapper, fileWrapper);
+        resolver = new EngineResolver(server, "sonarUserHome", runtime, checksum);
     }
 
     [TestMethod]
@@ -60,7 +58,7 @@ public class EngineResolverTests
     {
         args.EngineJarPath.Returns("local/path/to/engine.jar");
 
-        var result = await new EngineResolver(server, logger, "sonarUserHome").ResolvePath(args);
+        var result = await new EngineResolver(server, "sonarUserHome", runtime).ResolvePath(args);
 
         result.Should().Be("local/path/to/engine.jar");
         await server.DidNotReceive().DownloadEngineMetadataAsync();
@@ -104,7 +102,7 @@ public class EngineResolverTests
     [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheHit()
     {
-        fileWrapper.Exists(CachedEnginePath).Returns(true);
+        runtime.File.Exists(CachedEnginePath).Returns(true);
 
         var result = await resolver.ResolvePath(args);
 
@@ -119,7 +117,7 @@ public class EngineResolverTests
     [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheError()
     {
-        directoryWrapper.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
+        runtime.Directory.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
 
         var result = await resolver.ResolvePath(args);
 
@@ -141,10 +139,10 @@ public class EngineResolverTests
 
         // mocks successful download from the server
         server.DownloadEngineAsync(metadata).Returns(content);
-        directoryWrapper.GetRandomFileName().Returns("tempFile.jar");
+        runtime.Directory.GetRandomFileName().Returns("tempFile.jar");
         checksum.ComputeHash(computeHashStream).Returns(ChecksumValue);
-        fileWrapper.Create(tempFile).Returns(new MemoryStream());
-        fileWrapper.Open(tempFile).Returns(computeHashStream);
+        runtime.File.Create(tempFile).Returns(new MemoryStream());
+        runtime.File.Open(tempFile).Returns(computeHashStream);
 
         var result =  await resolver.ResolvePath(args);
 
@@ -191,6 +189,6 @@ public class EngineResolverTests
             retryMessages[0] += " Retrying...";
             expected.AddRange(retryMessages);
         }
-        logger.DebugMessages.Should().Equal(expected);
+        runtime.Logger.DebugMessages.Should().Equal(expected);
     }
 }
