@@ -321,7 +321,7 @@ public class WriteProjectInfoFileTargetTests
         projectInfo.ProjectLanguage.Should().BeNull("Expecting the project language to be null");
         projectInfo.IsExcluded.Should().BeFalse("Project should not be marked as excluded");
         projectInfo.ProjectType.Should().Be(ProjectType.Product, "Project should be marked as a product project");
-        projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");
+        projectInfo.AnalysisResultFiles.Should().BeEmpty("Not expecting any analysis results to have been created");
     }
 
     // Checks the WriteProjectInfo target handles projects with unrecognized languages.
@@ -353,7 +353,7 @@ public class WriteProjectInfoFileTargetTests
         result.AssertTargetSucceeded(TargetConstants.SonarWriteProjectData);
         var projectInfo = ProjectInfoAssertions.AssertProjectInfoExists(rootOutputFolder, projectRoot.FullPath);
         projectInfo.ProjectLanguage.Should().Be("my.special.language", "Unexpected project language");
-        projectInfo.AnalysisResults.Should().BeEmpty("Not expecting any analysis results to have been created");
+        projectInfo.AnalysisResultFiles.Should().BeEmpty("Not expecting any analysis results to have been created");
     }
 
     private void AssertWriteProjectInfo(string projectXml, params string[] expectedFiles)

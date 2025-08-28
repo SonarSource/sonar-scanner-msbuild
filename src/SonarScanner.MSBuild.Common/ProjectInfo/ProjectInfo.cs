@@ -37,7 +37,7 @@ public class ProjectInfo
     public string FullPath { get; set; }    // Path to csproj/vbproj/*proj
     public bool IsExcluded { get; set; }
     public string Encoding { get; set; }    // Default encoding for files without BOM
-    public List<AnalysisResult> AnalysisResults { get; set; }
+    public List<AnalysisResultFile> AnalysisResultFiles { get; set; }
     public AnalysisProperties AnalysisSettings { get; set; }
     public string Configuration { get; set; }   // MsBuild /p:Configuration:Release|Debug|SomethingElse parameter
     public string Platform { get; set; }        // MsBuild /p:Platform parameter
@@ -49,11 +49,11 @@ public class ProjectInfo
     public static ProjectInfo Load(string fileName) =>
         Serializer.LoadModel<ProjectInfo>(fileName);
 
-    public AnalysisResult FindAnalysisResultFile(AnalysisResultFileType fileType) =>
+    public AnalysisResultFile FindAnalysisResultFile(AnalysisResultFileType fileType) =>
         FindAnalysisResultFile(fileType.ToString());
 
-    public AnalysisResult FindAnalysisResultFile(string id) =>
-        AnalysisResults?.FirstOrDefault(x => AnalysisResult.ResultKeyComparer.Equals(id, x.Id));
+    public AnalysisResultFile FindAnalysisResultFile(string id) =>
+        AnalysisResultFiles?.FirstOrDefault(x => AnalysisResultFile.ResultKeyComparer.Equals(id, x.Id));
 
     public Property FindAnalysisSetting(string id) =>
         AnalysisSettings?.FirstOrDefault(x => Property.AreKeysEqual(id, x.Id));
@@ -72,8 +72,8 @@ public class ProjectInfo
             throw new ArgumentNullException(nameof(location));
         }
 
-        AnalysisResults ??= [];
-        AnalysisResults.Add(new() { Id = id, Location = location });
+        AnalysisResultFiles ??= [];
+        AnalysisResultFiles.Add(new() { Id = id, Location = location });
     }
 
     public DirectoryInfo ProjectFileDirectory() =>

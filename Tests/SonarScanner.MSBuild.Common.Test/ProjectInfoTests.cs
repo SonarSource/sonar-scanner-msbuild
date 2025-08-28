@@ -53,7 +53,7 @@ public class ProjectInfoTests
             ProjectGuid = projectGuid,
             ProjectName = "MyProject",
             Encoding = "MyEncoding",
-            AnalysisResults = [],
+            AnalysisResultFiles = [],
             AnalysisSettings = []
         };
         var fileName = Path.Combine(testFolder, "ProjectInfo1.xml");
@@ -66,15 +66,15 @@ public class ProjectInfoTests
     {
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var projectGuid = Guid.NewGuid();
-        var originalProjectInfo = new ProjectInfo { ProjectGuid = projectGuid, AnalysisResults = [], AnalysisSettings = [] };
+        var originalProjectInfo = new ProjectInfo { ProjectGuid = projectGuid, AnalysisResultFiles = [], AnalysisSettings = [] };
 
         // Empty list
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults2.xml"));
 
         // Non-empty list
-        originalProjectInfo.AnalysisResults.Add(new AnalysisResult { Id = string.Empty, Location = string.Empty }); // empty item
-        originalProjectInfo.AnalysisResults.Add(new AnalysisResult { Id = "Id1", Location = "location1" });
-        originalProjectInfo.AnalysisResults.Add(new AnalysisResult { Id = "Id2", Location = "location2" });
+        originalProjectInfo.AnalysisResultFiles.Add(new() { Id = string.Empty, Location = string.Empty }); // empty item
+        originalProjectInfo.AnalysisResultFiles.Add(new() { Id = "Id1", Location = "location1" });
+        originalProjectInfo.AnalysisResultFiles.Add(new() { Id = "Id2", Location = "location2" });
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults3.xml"));
     }
 

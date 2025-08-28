@@ -24,13 +24,13 @@ public static class ProjectInfoExtensions
 {
     public static void AssertAnalysisResultDoesNotExists(this ProjectInfo projectInfo, string resultId)
     {
-        projectInfo.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
+        projectInfo.AnalysisResultFiles.Should().NotBeNull("AnalysisResults should not be null");
         projectInfo.FindAnalysisResultFile(resultId).Should().BeNull("Not expecting to find an analysis result for id. Id: {0}", resultId);
     }
 
-    public static AnalysisResult AssertAnalysisResultExists(this ProjectInfo projectInfo, string resultId)
+    public static AnalysisResultFile AssertAnalysisResultFileExists(this ProjectInfo projectInfo, string resultId)
     {
-        projectInfo.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
+        projectInfo.AnalysisResultFiles.Should().NotBeNull("AnalysisResults should not be null");
         var result = projectInfo.FindAnalysisResultFile(resultId);
         result.Should().NotBeNull("Returned analysis result should not be null. Id: {0}", resultId);
         return result;

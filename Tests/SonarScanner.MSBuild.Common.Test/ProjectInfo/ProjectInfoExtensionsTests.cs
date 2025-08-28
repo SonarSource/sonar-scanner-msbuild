@@ -33,14 +33,7 @@ public class ProjectInfoExtensionsTests
         var logger = new TestLogger();
         var projectInfo = new ProjectInfo
         {
-            AnalysisResults =
-            [
-                new AnalysisResult
-                {
-                    Id = AnalysisResultFileType.FilesToAnalyze.ToString(),
-                    Location = filesToAnalyze,
-                }
-            ]
+            AnalysisResultFiles = [new AnalysisResultFile { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyze }]
         };
         File.WriteAllLines(
             filesToAnalyze,

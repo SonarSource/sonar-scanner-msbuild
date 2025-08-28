@@ -214,7 +214,7 @@ public partial class ScannerEngineInputGeneratorTest
             ProjectType = ProjectType.Product,
             Encoding = "UTF-8",
             IsExcluded = isExcluded,
-            AnalysisResults = [new() { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyze_txt }]
+            AnalysisResultFiles = [new() { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = filesToAnalyze_txt }]
         };
         TestUtils.CreateEmptyFile(projectRoot, "Project1.csproj");
         projectInfo.Save(Path.Combine(@out, FileConstants.ProjectInfoFileName));
