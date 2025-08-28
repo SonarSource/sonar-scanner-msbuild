@@ -76,35 +76,35 @@ internal class SonarCloudWebServer : SonarWebServer
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
             return empty;
         }
-        if (AuthToken(localSettings) is not string token)
+        if (AuthToken(localSettings) is { } token)
         {
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
-            return empty;
-        }
-        var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
-        if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
-        {
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
-            return empty;
-        }
-
-        try
-        {
-            logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
-            var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
-            if (ephemeralUrl is null)
+            var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
+            if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
             {
+                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
                 return empty;
             }
-            using var stream = await DownloadCacheStream(ephemeralUrl);
-            return ParseCacheEntries(stream);
+
+            try
+            {
+                logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
+                var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
+                if (ephemeralUrl is null)
+                {
+                    return empty;
+                }
+                using var stream = await DownloadCacheStream(ephemeralUrl);
+                return ParseCacheEntries(stream);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+                logger.LogDebug(e.ToString());
+                return empty;
+            }
         }
-        catch (Exception e)
-        {
-            logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
-            logger.LogDebug(e.ToString());
-            return empty;
-        }
+        logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
+        return empty;
     }
 
     // Do not use the downloaders here, as this is an unauthenticated request
