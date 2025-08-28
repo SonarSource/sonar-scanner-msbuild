@@ -314,10 +314,10 @@ public class PostProcessorTests
     public void Execute_ExistingSonarPropertiesFilesPresent_Fail()
     {
         sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(null, null, out var _).ReturnsForAnyArgs(x =>
-        {
-            x[2] = new[] { "Some Path" };
-            return true;
-        });
+            {
+                x[2] = new[] { "Some Path" };
+                return true;
+            });
         Execute().Should().BeFalse();
         sonarProjectPropertiesValidator.ReceivedWithAnyArgs().AreExistingSonarPropertiesFilesPresent(null, null, out var _);
         runtime.Logger.AssertErrorLogged("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: Some Path");
