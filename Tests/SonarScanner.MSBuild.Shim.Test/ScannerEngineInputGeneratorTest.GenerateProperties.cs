@@ -223,7 +223,6 @@ public partial class ScannerEngineInputGeneratorTest
 
     private void GenerateProperties_HostUrl_Execute(AnalysisConfig config, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
     {
-        Directory.CreateDirectory(config.SonarOutputDir);
         var sut = new ScannerEngineInputGenerator(config, logger);
         var projectPath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Project.csproj");
         var sourceFilePath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Program.cs");

@@ -199,12 +199,9 @@ public partial class ScannerEngineInputGeneratorTest
                                                            string outDir,
                                                            bool isExcluded = false)
     {
-        var @out = Path.Combine(outDir, $"Project1_{configuration}");
-        Directory.CreateDirectory(@out);
-        // Create FilesToAnalyze.txt in each folder, they are the same,
-        // because are the result of the compilation of the same project
-        var filesToAnalyze = Path.Combine(@out, AnalysisResultFileType.FilesToAnalyze.ToString());
-        File.WriteAllLines(filesToAnalyze, files.ToArray());
+        // Create FilesToAnalyze.txt in each folder, they are the same, because are the result of the compilation of the same project
+        var projectOutDir = Path.Combine(outDir, $"Project1_{configuration}");
+        var filesToAnalyze = TestUtils.CreateFile(projectOutDir, "FilesToAnalyze.txt", string.Join(Environment.NewLine, files));
         // Create project info for the configuration, the project path is important, the name is ignored
         var projectInfo = new ProjectInfo
         {
@@ -217,7 +214,7 @@ public partial class ScannerEngineInputGeneratorTest
             AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyze)]
         };
         TestUtils.CreateEmptyFile(projectRoot, "Project1.csproj");
-        projectInfo.Save(Path.Combine(@out, FileConstants.ProjectInfoFileName));
+        projectInfo.Save(Path.Combine(projectOutDir, FileConstants.ProjectInfoFileName));
     }
 
     private static string CreateProject(string destination, out List<string> files)
