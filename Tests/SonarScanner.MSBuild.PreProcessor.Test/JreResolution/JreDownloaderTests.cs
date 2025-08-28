@@ -155,19 +155,28 @@ public class JreDownloaderTests
     }
 
     [TestMethod]
-    public async Task Download_DownloadFileExists_ChecksumInvalid()
+    public async Task Download_DownloadFileExists_ChecksumInvalid_DeletesAndReDownloadsTheFile()
     {
         runtime.Directory.Exists(SonarCache).Returns(true);
         runtime.Directory.Exists(ShaPath).Returns(true);
+        runtime.File.Exists(Path.Combine(ShaPath, "javaPath")).Returns(true);
         runtime.File.Exists(Path.Combine(ShaPath, "filename.tar.gz")).Returns(true);
+
+        runtime.File.Create(null).ReturnsForAnyArgs(new MemoryStream(new byte[3], writable: true));
+        checksum.ComputeHash(null).ReturnsForAnyArgs(x => "notValid", x => "sha256");
 
         var result = await ExecuteDownloadAndUnpack();
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The checksum of the downloaded file does not match the expected checksum.");
+        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(Path.Combine(ShaPath, "filename.tar.gz_extracted", "javaPath"));
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"The file was already downloaded from the server and stored at '{Path.Combine(ShaPath, "filename.tar.gz")}'.",
-            "The checksum of the downloaded file is '' and the expected checksum is 'sha256'.",
-            $"Deleting file '{Path.Combine(ShaPath, "filename.tar.gz")}'.");
+            "The checksum of the downloaded file is 'notValid' and the expected checksum is 'sha256'.",
+            $"Deleting file '{Path.Combine(ShaPath, "filename.tar.gz")}'.",
+            "Starting the file download.",
+            "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
+            $"Starting extracting the Java runtime environment from archive '{Path.Combine(ShaPath, "filename.tar.gz")}' to folder '{ShaPath}'.",
+            $"Moving extracted Java runtime environment from '{ShaPath}' to '{Path.Combine(ShaPath, "filename.tar.gz_extracted")}'.",
+            $"The Java runtime environment was successfully added to '{Path.Combine(ShaPath, "filename.tar.gz_extracted")}'.");
     }
 
     [TestMethod]

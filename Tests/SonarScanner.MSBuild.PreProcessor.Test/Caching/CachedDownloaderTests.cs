@@ -227,21 +227,22 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_InvalidFileCached_ReturnsCacheFailure()
+    public async Task DownloadFileAsync_InvalidFileCached_DeletesAndRedownloads()
     {
         runtime.File.Exists(DownloadFilePath).Returns(true);
-        checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
+        checksum.ComputeHash(null).ReturnsForAnyArgs(x => "someOtherHash", x => ExpectedSha);
 
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<DownloadError>().Which.Message
-            .Should().Be("The checksum of the downloaded file does not match the expected checksum.");
-        runtime.File.DidNotReceiveWithAnyArgs().Create(null);
-        runtime.File.DidNotReceiveWithAnyArgs().Move(null, null);
-        runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
+        runtime.File.Received(1).Create(TempFilePath);
+        runtime.File.Received(1).Move(TempFilePath, DownloadFilePath);
+        runtime.File.DebugMessages.Should().BeEquivalentTo(
             $"The file was already downloaded from the server and stored at '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
-            $"Deleting file '{DownloadFilePath}'.");
+            $"Deleting file '{DownloadFilePath}'.",
+            "Starting the file download.",
+            $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
 
     [TestMethod]
