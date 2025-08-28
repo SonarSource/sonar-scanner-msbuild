@@ -84,33 +84,19 @@ public class PostProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        Invoking(() => new PostProcessor(null, null, null, null, null, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("sonarScanner");
-
-        Invoking(() => new PostProcessor(scanner, null, null, null, null, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("sonarEngine");
-
-        Invoking(() => new PostProcessor(scanner, engine, null, null, null, null, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("logger");
-
-        Invoking(() => new PostProcessor(scanner, engine, runtime.Logger, null, null, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("targetUninstaller");
-
-        Invoking(() => new PostProcessor(scanner, engine, runtime.Logger, targetsUninstaller, null, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("tfsProcessor");
-
-        Invoking(() => new PostProcessor(scanner, engine, runtime.Logger, targetsUninstaller, tfsProcessor, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("sonarProjectPropertiesValidator");
-
-        Invoking(() => new PostProcessor(scanner, engine, runtime.Logger, targetsUninstaller, tfsProcessor, Substitute.For<SonarProjectPropertiesValidator>(), null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("coverageReportProcessor");
+        var scnr = scanner;
+        var engn = engine;
+        var lggr = runtime.Logger;
+        var tuin = targetsUninstaller;
+        var tfsp = tfsProcessor;
+        var sppv = Substitute.For<SonarProjectPropertiesValidator>();
+        Invoking(() => new PostProcessor(null, null, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarScanner");
+        Invoking(() => new PostProcessor(scnr, null, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarEngine");
+        Invoking(() => new PostProcessor(scnr, engn, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("logger");
+        Invoking(() => new PostProcessor(scnr, engn, lggr, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
+        Invoking(() => new PostProcessor(scnr, engn, lggr, tuin, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("tfsProcessor");
+        Invoking(() => new PostProcessor(scnr, engn, lggr, tuin, tfsp, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarProjectPropertiesValidator");
+        Invoking(() => new PostProcessor(scnr, engn, lggr, tuin, tfsp, sppv, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
     }
 
     [TestMethod]
@@ -205,16 +191,16 @@ public class PostProcessorTests
 
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         engine.Received(1).Execute(config, """
+            {
+                "scannerProperties": [
                 {
-                  "scannerProperties": [
-                    {
-                      "key": "sonar.modules",
-                      "value": ""
-                    }
-                  ]
+                    "key": "sonar.modules",
+                    "value": ""
                 }
-                """
-            .ToEnvironmentLineEndings());
+                ]
+            }
+            """
+                .ToEnvironmentLineEndings());
         runtime.Logger.AssertErrorsLogged(0);
         VerifyTargetsUninstaller();
     }
@@ -231,16 +217,16 @@ public class PostProcessorTests
 
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         engine.Received(1).Execute(config, """
+            {
+                "scannerProperties": [
                 {
-                  "scannerProperties": [
-                    {
-                      "key": "sonar.modules",
-                      "value": ""
-                    }
-                  ]
+                    "key": "sonar.modules",
+                    "value": ""
                 }
-                """
-            .ToEnvironmentLineEndings());
+                ]
+            }
+            """
+                .ToEnvironmentLineEndings());
         runtime.Logger.AssertErrorsLogged(0);
         VerifyTargetsUninstaller();
     }
