@@ -18,8 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PostProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor;
+using SonarScanner.MSBuild.PostProcessor;
+using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.Test;
 
@@ -29,9 +30,9 @@ public class BootstrapperClassTests
     private const int ErrorCode = 1;
     private string rootDir;
     private string tempDir;
-    private IProcessorFactory mockProcessorFactory;
-    private IPreProcessor mockPreProcessor;
-    private IPostProcessor mockPostProcessor;
+    private IProcessorFactory processorFactory;
+    private PreProcessor.PreProcessor preProcessor;
+    private PostProcessor.PostProcessor postProcessor;
 
     public TestContext TestContext { get; set; }
 
@@ -280,23 +281,23 @@ public class BootstrapperClassTests
         config.Save(filePath);
     }
 
-    private static string DefaultPropertiesFilePath()
-    {
-        var defaultPropertiesFilePath = Path.Combine(
-            Path.GetDirectoryName(typeof(SonarScanner.MSBuild.Program).Assembly.Location),
-            FilePropertyProvider.DefaultFileName);
-        return defaultPropertiesFilePath;
-    }
-
     private void MockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
     {
-        mockPreProcessor = Substitute.For<IPreProcessor>();
-        mockPostProcessor = Substitute.For<IPostProcessor>();
-        mockProcessorFactory = Substitute.For<IProcessorFactory>();
-        mockPreProcessor.Execute(Arg.Any<string[]>()).Returns(Task.FromResult(preProcessorOutcome));
-        mockPostProcessor.Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>()).Returns(postProcessorOutcome);
-        mockProcessorFactory.CreatePostProcessor().Returns(mockPostProcessor);
-        mockProcessorFactory.CreatePreProcessor().Returns(mockPreProcessor);
+        preProcessor = Substitute.For<PreProcessor.PreProcessor>(Substitute.For<PreProcessor.IPreprocessorObjectFactory>(), Substitute.For<ILogger>());
+        postProcessor = Substitute.For<PostProcessor.PostProcessor>(
+            Substitute.For<SonarScannerWrapper>(Substitute.For<IRuntime>()),
+            Substitute.For<SonarEngineWrapper>(Substitute.For<IRuntime>(), Substitute.For<IProcessRunner>()),
+            Substitute.For<ILogger>(),
+            Substitute.For<TargetsUninstaller>(Substitute.For<ILogger>()),
+            Substitute.For<TfsProcessorWrapper>(Substitute.For<IRuntime>()),
+            Substitute.For<SonarProjectPropertiesValidator>(),
+            Substitute.For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), Substitute.For<IRuntime>()),
+            Substitute.For<IFileWrapper>());
+        processorFactory = Substitute.For<IProcessorFactory>();
+        preProcessor.Execute(Arg.Any<string[]>()).Returns(Task.FromResult(preProcessorOutcome));
+        postProcessor.Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>()).Returns(postProcessorOutcome);
+        processorFactory.CreatePostProcessor().Returns(postProcessor);
+        processorFactory.CreatePreProcessor().Returns(preProcessor);
     }
 
     private static EnvironmentVariableScope InitializeNonTeamBuildEnvironment(string workingDirectory)
@@ -312,8 +313,8 @@ public class BootstrapperClassTests
         var logger = new TestLogger();
         var settings = MockBootstrapSettings(phase, debug, args);
         var bootstrapper = getAssemblyVersion is null
-            ? new BootstrapperClass(mockProcessorFactory, settings, logger)
-            : new BootstrapperClass(mockProcessorFactory, settings, logger, getAssemblyVersion);
+            ? new BootstrapperClass(processorFactory, settings, logger)
+            : new BootstrapperClass(processorFactory, settings, logger, getAssemblyVersion);
 
         var exitCode = bootstrapper.Execute().Result;
         exitCode.Should().Be(ErrorCode, "Bootstrapper did not return the expected exit code");
@@ -326,8 +327,8 @@ public class BootstrapperClassTests
         var logger = new TestLogger();
         var settings = MockBootstrapSettings(phase, debug, args);
         var bootstrapper = getAssemblyVersion is null
-            ? new BootstrapperClass(mockProcessorFactory, settings, logger)
-            : new BootstrapperClass(mockProcessorFactory, settings, logger, getAssemblyVersion);
+            ? new BootstrapperClass(processorFactory, settings, logger)
+            : new BootstrapperClass(processorFactory, settings, logger, getAssemblyVersion);
         var exitCode = bootstrapper.Execute().Result;
 
         exitCode.Should().Be(0, "Bootstrapper did not return the expected exit code");
@@ -354,11 +355,11 @@ public class BootstrapperClassTests
     }
 
     private void AssertPostProcessorNotCalled() =>
-        mockPostProcessor.DidNotReceive().Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
+        postProcessor.DidNotReceive().Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
 
     private void AssertPostProcessorArgs(params string[] expectedArgs) =>
-        mockPostProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
+        postProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
 
     private void AssertPreProcessorArgs(params string[] expectedArgs) =>
-        mockPreProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)));
+        preProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)));
 }

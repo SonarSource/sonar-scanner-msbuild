@@ -19,7 +19,6 @@
  */
 
 using SonarScanner.MSBuild.PostProcessor;
-using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
@@ -33,8 +32,8 @@ public class DefaultProcessorFactory : IProcessorFactory
     public DefaultProcessorFactory(IRuntime runtime) =>
         this.runtime = runtime;
 
-    public IPostProcessor CreatePostProcessor() =>
-        new PostProcessor.PostProcessor(
+    public PostProcessor.PostProcessor CreatePostProcessor() =>
+        new(
             new SonarScannerWrapper(runtime),
             new SonarEngineWrapper(runtime, new ProcessRunner(runtime.Logger)),
             runtime.Logger,
@@ -43,6 +42,6 @@ public class DefaultProcessorFactory : IProcessorFactory
             new SonarProjectPropertiesValidator(),
             new BuildVNextCoverageReportProcessor(new BinaryToXmlCoverageReportConverter(runtime.Logger), runtime));
 
-    public IPreProcessor CreatePreProcessor() =>
-        new PreProcessor.PreProcessor(new PreprocessorObjectFactory(runtime), runtime.Logger);
+    public PreProcessor.PreProcessor CreatePreProcessor() =>
+        new(new PreprocessorObjectFactory(runtime), runtime.Logger);
 }

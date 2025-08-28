@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
-public sealed class PreProcessor : IPreProcessor
+public class PreProcessor
 {
     private const string CSharpLanguage = "cs";
     private const string VBNetLanguage = "vbnet";
@@ -39,7 +39,7 @@ public sealed class PreProcessor : IPreProcessor
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<bool> Execute(IEnumerable<string> args)
+    public virtual async Task<bool> Execute(IEnumerable<string> args)
     {
         logger.SuspendOutput();
         var processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
