@@ -29,6 +29,7 @@ namespace SonarScanner.MSBuild.PostProcessor;
 public class PostProcessor : IPostProcessor
 {
     private readonly SonarScannerWrapper sonarScanner;
+    private readonly SonarEngineWrapper sonarEngine;
     private readonly ILogger logger;
     private readonly TargetsUninstaller targetUninstaller;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
@@ -39,6 +40,7 @@ public class PostProcessor : IPostProcessor
     private ScannerEngineInputGenerator scannerEngineInputGenerator;
 
     public PostProcessor(SonarScannerWrapper sonarScanner,
+                         SonarEngineWrapper sonarEngine,
                          ILogger logger,
                          TargetsUninstaller targetUninstaller,
                          TfsProcessorWrapper tfsProcessor,
@@ -47,6 +49,7 @@ public class PostProcessor : IPostProcessor
                          IFileWrapper fileWrapper = null)
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
+        this.sonarEngine = sonarEngine ?? throw new ArgumentNullException(nameof(sonarEngine));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
         this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
@@ -90,7 +93,9 @@ public class PostProcessor : IPostProcessor
             {
                 var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
                 fileWrapper.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
-                result = InvokeSonarScanner(provider, config, analysisResult.FullPropertiesFilePath);
+                result = config.UseSonarScannerCli || config.EngineJarPath is null
+                    ? InvokeSonarScanner(provider, config, analysisResult.FullPropertiesFilePath)
+                    : InvokeScannerEngine(config, analysisResult.ScannerEngineInput);
             }
 #if NETFRAMEWORK
             if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
@@ -238,6 +243,14 @@ public class PostProcessor : IPostProcessor
     {
         logger.IncludeTimestamp = false;
         var result = sonarScanner.Execute(config, cmdLineArgs, propertiesFilePath);
+        logger.IncludeTimestamp = true;
+        return result;
+    }
+
+    private bool InvokeScannerEngine(AnalysisConfig config, ScannerEngineInput input)
+    {
+        logger.IncludeTimestamp = false;
+        var result = sonarEngine.Execute(config, input.ToString());
         logger.IncludeTimestamp = true;
         return result;
     }

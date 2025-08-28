@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using NSubstitute.ReceivedExtensions;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
@@ -37,6 +38,7 @@ public class PostProcessorTests
     private readonly TargetsUninstaller targetsUninstaller;
     private readonly AnalysisConfig config;
     private readonly SonarScannerWrapper scanner;
+    private readonly SonarEngineWrapper engine;
     private readonly TfsProcessorWrapper tfsProcessor;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
@@ -60,6 +62,8 @@ public class PostProcessorTests
         tfsProcessor.Execute(null, null).ReturnsForAnyArgs(true);
         scanner = Substitute.For<SonarScannerWrapper>(runtime);
         scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
+        engine = Substitute.For<SonarEngineWrapper>(runtime, Substitute.For<IProcessRunner>());
+        engine.Execute(null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(runtime.Logger);
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         coverageReportProcessor = Substitute
@@ -68,6 +72,7 @@ public class PostProcessorTests
         scannerEngineInput = new ScannerEngineInput(config);
         sut = new PostProcessor(
             scanner,
+            engine,
             runtime.Logger,
             targetsUninstaller,
             tfsProcessor,
@@ -79,29 +84,19 @@ public class PostProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        Invoking(() => new PostProcessor(null, null, null, null, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("sonarScanner");
-
-        Invoking(() => new PostProcessor(scanner, null, null, null, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("logger");
-
-        Invoking(() => new PostProcessor(scanner, runtime.Logger, null, null, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("targetUninstaller");
-
-        Invoking(() => new PostProcessor(scanner, runtime.Logger, targetsUninstaller, null, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("tfsProcessor");
-
-        Invoking(() => new PostProcessor(scanner, runtime.Logger, targetsUninstaller, tfsProcessor, null, null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("sonarProjectPropertiesValidator");
-
-        Invoking(() => new PostProcessor(scanner, runtime.Logger, targetsUninstaller, tfsProcessor, Substitute.For<SonarProjectPropertiesValidator>(), null)).Should()
-            .Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("coverageReportProcessor");
+        var scnr = scanner;
+        var engn = engine;
+        var lggr = runtime.Logger;
+        var tuin = targetsUninstaller;
+        var tfsp = tfsProcessor;
+        var sppv = Substitute.For<SonarProjectPropertiesValidator>();
+        Invoking(() => new PostProcessor(null, null, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarScanner");
+        Invoking(() => new PostProcessor(scnr, null, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarEngine");
+        Invoking(() => new PostProcessor(scnr, engn, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("logger");
+        Invoking(() => new PostProcessor(scnr, engn, lggr, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
+        Invoking(() => new PostProcessor(scnr, engn, lggr, tuin, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("tfsProcessor");
+        Invoking(() => new PostProcessor(scnr, engn, lggr, tuin, tfsp, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarProjectPropertiesValidator");
+        Invoking(() => new PostProcessor(scnr, engn, lggr, tuin, tfsp, sppv, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
     }
 
     [TestMethod]
@@ -176,6 +171,62 @@ public class PostProcessorTests
                 {
                   "key": "sonar.unsafe.value",
                   "value": "***"
+                }
+              ]
+            }
+            """
+                .ToEnvironmentLineEndings());
+        runtime.Logger.AssertErrorsLogged(0);
+        VerifyTargetsUninstaller();
+    }
+
+    [TestMethod]
+    public void PostProc_ScannerEngine_Success()
+    {
+        config.HasBeginStepCommandLineCredentials = true;
+        config.EngineJarPath = "engine.jar";
+        config.UseSonarScannerCli = false;
+        scannerEngineInput.Add("sonar", "unsafe.value", "Sensitive data"); // Sensitive data is safe to pass via StdIn
+
+        Execute(["/d:sonar.token=token"]).Should().BeTrue("Expecting post-processor to have succeeded");
+
+        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.Received(1).Execute(config, """
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.unsafe.value",
+                  "value": "Sensitive data"
+                }
+              ]
+            }
+            """
+                .ToEnvironmentLineEndings());
+        runtime.Logger.AssertErrorsLogged(0);
+        VerifyTargetsUninstaller();
+    }
+
+    [TestMethod]
+    public void PostProc_ScannerEngine_Failure()
+    {
+        config.HasBeginStepCommandLineCredentials = true;
+        config.EngineJarPath = "engine.jar";
+        config.UseSonarScannerCli = false;
+        engine.Execute(null, null).ReturnsForAnyArgs(false);
+
+        Execute(["/d:sonar.token=token"]).Should().BeFalse("Expecting post-processor to fail");
+
+        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.Received(1).Execute(config, """
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.modules",
+                  "value": ""
                 }
               ]
             }
@@ -418,7 +469,8 @@ public class PostProcessorTests
         var analysisResult = new AnalysisResult(
             [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(true, runtime.Logger).Single()],
             withProject ? scannerEngineInput : null,
-            withProject ? Path.Combine(testDir, "sonar-project.properties") : null) { RanToCompletion = true };
+            withProject ? Path.Combine(testDir, "sonar-project.properties") : null)
+        { RanToCompletion = true };
         scannerEngineInputGenerator.GenerateResult().Returns(analysisResult);
         sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
