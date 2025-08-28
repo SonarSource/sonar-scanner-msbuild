@@ -122,7 +122,7 @@ public class ProjectLoaderTest
             File.WriteAllLines(fullAnalysisFileListPath, descriptor.FilesToAnalyse);
 
             // Add the compile list as an analysis result
-            projectInfo.AnalysisResultFiles.Add(new() { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = fullAnalysisFileListPath });
+            projectInfo.AnalysisResultFiles.Add(new(AnalysisResultFileType.FilesToAnalyze, fullAnalysisFileListPath));
         }
 
         // Create the Visual Studio Code Coverage report file
@@ -132,9 +132,8 @@ public class ProjectLoaderTest
             File.Create(fullVisualStudioCodeCoverageName);
 
             // Add the Visual Studio Code Coverage report as an analysis result
-            var analysisResultFile = new AnalysisResultFile { Id = AnalysisResultFileType.VisualStudioCodeCoverage.ToString(), Location = fullVisualStudioCodeCoverageName };
-            descriptor.AnalysisResultFiles.Add(analysisResultFile);
-            projectInfo.AnalysisResultFiles.Add(analysisResultFile);
+            descriptor.AnalysisResultFiles.Add(new(AnalysisResultFileType.VisualStudioCodeCoverage, fullVisualStudioCodeCoverageName));
+            projectInfo.AnalysisResultFiles.Add(new(AnalysisResultFileType.VisualStudioCodeCoverage, fullVisualStudioCodeCoverageName));
         }
 
         // Save a project info file in the target directory

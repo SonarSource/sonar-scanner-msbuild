@@ -228,6 +228,7 @@ public static class TestUtils
 
     public static string CreateFile(string parentDir, string fileName, string content)
     {
+        Directory.CreateDirectory(parentDir);
         var fullPath = Path.Combine(parentDir, fileName);
         File.WriteAllText(fullPath, content);
         return fullPath;

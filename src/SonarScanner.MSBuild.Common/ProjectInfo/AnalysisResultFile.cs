@@ -33,4 +33,12 @@ public class AnalysisResultFile
 
     [XmlAttribute]
     public string Location { get; set; }
+
+    public AnalysisResultFile() { } // Xml serialization
+
+    public AnalysisResultFile(AnalysisResultFileType id, string location)
+    {
+        Id = id.ToString();
+        Location = location;
+    }
 }
