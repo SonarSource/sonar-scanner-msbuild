@@ -37,37 +37,33 @@ public class JreResolverTests
     private static readonly string JavaExePath = Path.Combine("path", "to", "java.exe");
     private static readonly string ExtractedJavaPath = Path.Combine(ExtractedPath, JavaExePath);
 
-    private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
     private readonly JreMetadata metadata = new("1", "filename.tar.gz", JavaExePath, new Uri("https://localhost.com/path/to-jre"), "sha256");
-    private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
 
     private ListPropertiesProvider provider;
-    private TestLogger logger;
     private ISonarWebServer server;
     private JreResolver sut;
     private UnpackerFactory unpackerFactory;
-    private OperatingSystemProvider operatingSystem;
+    private TestRuntime runtime;
 
     [TestInitialize]
     public void Initialize()
     {
         provider = [];
         provider.AddProperty("sonar.scanner.os", "linux");
-        logger = new TestLogger();
         server = Substitute.For<ISonarWebServer>();
         server
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult(metadata));
         server.SupportsJreProvisioning.Returns(true);
+        runtime = new();
         unpackerFactory = Substitute.For<UnpackerFactory>(
-            logger,
-            Substitute.For<OperatingSystemProvider>(fileWrapper, logger),
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>());
-        operatingSystem = Substitute.For<OperatingSystemProvider>(fileWrapper, logger);
+            runtime.Logger,
+            runtime.OperatingSystem,
+            runtime.File,
+            runtime.Directory);
 
-        sut = new JreResolver(server, logger, checksum, SonarUserHome, unpackerFactory, directoryWrapper, fileWrapper);
+        sut = new JreResolver(server, checksum, SonarUserHome, runtime, unpackerFactory);
     }
 
     [TestMethod]
@@ -145,7 +141,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_CacheFailure()
     {
-        directoryWrapper.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
+        runtime.Directory.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
 
         var res = await sut.ResolvePath(Args());
 
@@ -159,8 +155,8 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_ArchiveOnDiskExtractedFileNotFound_CacheFailure()
     {
-        directoryWrapper.Exists(ExtractedPath).Returns(true);
-        fileWrapper.Exists(JavaExePath).Returns(false);
+        runtime.Directory.Exists(ExtractedPath).Returns(true);
+        runtime.File.Exists(JavaExePath).Returns(false);
 
         var res = await sut.ResolvePath(Args());
 
@@ -174,8 +170,8 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_CacheHit()
     {
-        directoryWrapper.Exists(null).ReturnsForAnyArgs(true);
-        fileWrapper.Exists(null).ReturnsForAnyArgs(true);
+        runtime.Directory.Exists(null).ReturnsForAnyArgs(true);
+        runtime.File.Exists(null).ReturnsForAnyArgs(true);
 
         var res = await sut.ResolvePath(Args());
 
@@ -195,10 +191,10 @@ public class JreResolverTests
 
         // mocks successful download from the server, and unpacking of the jre.
         server.DownloadJreAsync(metadata).Returns(content);
-        directoryWrapper.GetRandomFileName().Returns("tempFile.zip");
-        fileWrapper.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
-        fileWrapper.Create(tempArchive).Returns(new MemoryStream());
-        fileWrapper.Open(tempArchive).Returns(computeHashStream);
+        runtime.Directory.GetRandomFileName().Returns("tempFile.zip");
+        runtime.File.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
+        runtime.File.Create(tempArchive).Returns(new MemoryStream());
+        runtime.File.Open(tempArchive).Returns(computeHashStream);
         checksum.ComputeHash(computeHashStream).Returns("sha256");
 
         var res = await sut.ResolvePath(Args());
@@ -222,13 +218,13 @@ public class JreResolverTests
         using var computeHashStream = new MemoryStream();
 
         var tempArchive = Path.Combine(ShaPath, "tempFile.zip");
-        fileWrapper.Exists(DownloadPath).Returns(true);
-        fileWrapper.Open(DownloadPath).Returns(computeHashStream);
+        runtime.File.Exists(DownloadPath).Returns(true);
+        runtime.File.Open(DownloadPath).Returns(computeHashStream);
         checksum.ComputeHash(computeHashStream).Returns("sha256");
-        directoryWrapper.GetRandomFileName().Returns("tempFile.zip");
-        fileWrapper.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
-        fileWrapper.Create(tempArchive).Returns(new MemoryStream());
-        fileWrapper.Open(tempArchive).Returns(computeHashStream);
+        runtime.Directory.GetRandomFileName().Returns("tempFile.zip");
+        runtime.File.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
+        runtime.File.Create(tempArchive).Returns(new MemoryStream());
+        runtime.File.Open(tempArchive).Returns(computeHashStream);
 
         var res = await sut.ResolvePath(Args());
 
@@ -249,7 +245,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_CacheMiss_DownloadFailure()
     {
-        fileWrapper.Create(Arg.Any<string>()).Throws(new IOException("Reason"));
+        runtime.File.Create(Arg.Any<string>()).Throws(new IOException("Reason"));
         var res = await sut.ResolvePath(Args());
 
         AssertJreBottleNeckMessage(true);
@@ -323,11 +319,11 @@ public class JreResolverTests
             }
 
             await sut.ResolvePath(args);
-            logger.DebugMessages.Should().BeEquivalentTo(
+            runtime.Logger.DebugMessages.Should().BeEquivalentTo(
                 ["JreResolver: Resolving JRE path.",
                 firstInvalid.Message],
                 because: $"The combination {perm.Select((x, i) => new { Index = i, x.Valid }).Aggregate(new StringBuilder(), (sb, x) => sb.Append($"\n{x}"))} is set.");
-            logger.DebugMessages.Clear();
+            runtime.Logger.DebugMessages.Clear();
         }
 
         static IEnumerable<IEnumerable<(T Item, bool Valid)>> Permutations<T>(IEnumerable<T> list)
@@ -360,10 +356,10 @@ public class JreResolverTests
             provider,
             EmptyPropertyProvider.Instance,
             EmptyPropertyProvider.Instance,
-            fileWrapper,
-            Substitute.For<IDirectoryWrapper>(),
-            Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
-            Substitute.For<ILogger>());
+            runtime.File,
+            runtime.Directory,
+            runtime.OperatingSystem,
+            Substitute.For<ILogger>()); // not using runtime.Logger to avoid message pollution
         args.OperatingSystem.Returns("os");
         args.Architecture.Returns("arch");
         return args;
@@ -376,7 +372,7 @@ public class JreResolverTests
             JRE provisioned: filename.tar.gz.
             If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
             """;
-        logger.InfoMessages.Should().BeEquivalentTo(Enumerable.Repeat(bottleNeckMessage, retry ? 2 : 1));
+        runtime.Logger.InfoMessages.Should().BeEquivalentTo(Enumerable.Repeat(bottleNeckMessage, retry ? 2 : 1));
     }
 
     private void AssertDebugMessages(params string[] messages) =>
@@ -391,6 +387,6 @@ public class JreResolverTests
             retryMessages[0] += " Retrying...";
             expected.AddRange(retryMessages);
         }
-        logger.DebugMessages.Should().Equal(expected);
+        runtime.Logger.DebugMessages.Should().Equal(expected);
     }
 }
