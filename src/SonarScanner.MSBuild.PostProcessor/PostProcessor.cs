@@ -85,21 +85,23 @@ public class PostProcessor : IPostProcessor
             return false;
         }
 
-        var propertyResult = GenerateAndValidatePropertiesFile(config);
-        if (propertyResult.FullPropertiesFilePath is not null)
+        var analysisResult = GenerateAndValidatePropertiesFile(config);
+        if (analysisResult.FullPropertiesFilePath is not null)
         {
 #if NETFRAMEWORK
-            ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult);
+            ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult);
 #endif
             var result = false;
-            if (propertyResult.RanToCompletion)
+            if (analysisResult.RanToCompletion)
             {
-                result = InvokeSonarScanner(provider, config, propertyResult.FullPropertiesFilePath);
+                var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
+                fileWrapper.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
+                result = InvokeSonarScanner(provider, config, analysisResult.FullPropertiesFilePath);
             }
 #if NETFRAMEWORK
             if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
             {
-                ProcessSummaryReportBuilder(config, result, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), propertyResult.FullPropertiesFilePath);
+                ProcessSummaryReportBuilder(config, result, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath);
             }
 #endif
             return result;

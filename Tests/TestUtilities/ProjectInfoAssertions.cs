@@ -18,25 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-
 namespace TestUtilities;
 
 public static class ProjectInfoAssertions
 {
-    #region Public methods
-
     /// <summary>
-    /// Returns the list of project info objects beneath the specified root output folder
+    /// Returns the list of project info objects beneath the specified root output folder.
     /// </summary>
-    /// <param name="rootOutputFolder">The root Sonary analysis output folder. Project info files will be searched for in
-    /// immediate sub-directories of this folder only.</param>
+    /// <param name="rootOutputFolder">The root Sonar analysis output folder. Project info files will be searched for in immediate sub-directories of this folder only.</param>
     public static IList<ProjectInfo> GetProjectInfosFromOutputFolder(string rootOutputFolder)
     {
         var items = new List<ProjectInfo>();
@@ -53,13 +42,6 @@ public static class ProjectInfoAssertions
         return items;
     }
 
-    #endregion Public methods
-
-    #region Assertions
-
-    /// <summary>
-    /// Checks that the project info contains the expected values
-    /// </summary>
     public static void AssertExpectedValues(ProjectInfo expected, ProjectInfo actual)
     {
         actual.Should().NotBeNull("Supplied ProjectInfo should not be null");
@@ -74,21 +56,6 @@ public static class ProjectInfoAssertions
         CompareAnalysisResults(expected, actual);
     }
 
-    /// <summary>
-    /// Checks that not project info files exist under the output folder
-    /// </summary>
-    /// <param name="rootOutputFolder">The root SonarQube analysis output folder i.e. the folder that contains the per-project folders</param>
-    public static void AssertNoProjectInfoFilesExists(string rootOutputFolder)
-    {
-        var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
-        items.Should().BeEmpty("Not expecting any project info files to exist");
-    }
-
-    /// <summary>
-    /// Checks that a project info file exists for the specified project
-    /// </summary>
-    /// <param name="rootOutputFolder">The root SonarQube analysis output folder i.e. the folder that contains the per-project folders</param>
-    /// <param name="fullProjectFileName">The full path and file name of the project file to which the project info file relates</param>
     public static ProjectInfo AssertProjectInfoExists(string rootOutputFolder, string fullProjectFileName)
     {
         var items = GetProjectInfosFromOutputFolder(rootOutputFolder);
@@ -97,11 +64,6 @@ public static class ProjectInfoAssertions
         var match = items.FirstOrDefault(pi => fullProjectFileName.Equals(pi.FullPath, StringComparison.OrdinalIgnoreCase));
         match.Should().NotBeNull("Failed to retrieve a project info file for the specified project: {0}", fullProjectFileName);
         return match;
-    }
-
-    public static void AssertNoAnalysisResultsExist(this ProjectInfo projectInfo)
-    {
-        projectInfo.AnalysisResults.Should().BeNullOrEmpty("Not expecting analysis results to exist. Count: {0}", projectInfo.AnalysisResults.Count);
     }
 
     public static void AssertAnalysisResultDoesNotExists(this ProjectInfo projectInfo, string resultId)
@@ -123,15 +85,14 @@ public static class ProjectInfoAssertions
     public static AnalysisResult AssertAnalysisResultExists(this ProjectInfo projectInfo, string resultId, string expectedLocation)
     {
         var result = AssertAnalysisResultExists(projectInfo, resultId);
-        result.Location.Should().Be(expectedLocation,
+        result.Location.Should().Be(
+            expectedLocation,
             "Analysis result exists but does not have the expected location. Id: {0}, expected: {1}, actual: {2}",
-                resultId, expectedLocation, result.Location);
+            resultId,
+            expectedLocation,
+            result.Location);
         return result;
     }
-
-    #endregion Assertions
-
-    #region Private methods
 
     private static void CompareAnalysisResults(ProjectInfo expected, ProjectInfo actual)
     {
@@ -145,7 +106,7 @@ public static class ProjectInfoAssertions
         }
         else
         {
-            foreach(var expectedResult in expected.AnalysisResults)
+            foreach (var expectedResult in expected.AnalysisResults)
             {
                 AssertAnalysisResultExists(actual, expectedResult.Id, expectedResult.Location);
             }
@@ -153,6 +114,4 @@ public static class ProjectInfoAssertions
             actual.AnalysisResults.Should().HaveCount(expected.AnalysisResults.Count, "Unexpected additional analysis results found");
         }
     }
-
-    #endregion Private methods
 }

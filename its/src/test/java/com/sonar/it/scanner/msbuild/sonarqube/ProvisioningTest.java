@@ -21,11 +21,16 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.JreProvisioningAssertions;
+import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -33,14 +38,14 @@ import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
-class JreProvisioningTest {
+class ProvisioningTest {
   private static final String DIRECTORY_NAME = "JreProvisioning";
 
   @Test
   // provisioning does not exist before 10.6
   @ServerMinVersion("10.6")
-  void cacheMiss_DownloadsJre() {
-    try (var userHome = new TempDirectory("junit-JRE-miss-")) { // context.projectDir has a test name in it and that leads to too long path
+  void cacheMiss_DownloadsCache() {
+    try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
       context.build.useDotNet();
       // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
@@ -50,31 +55,53 @@ class JreProvisioningTest {
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var result = context.runAnalysis();
 
-      JreProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), oldJavaHome, "analysis/jres/[^\s]+");
+      ProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), oldJavaHome, false);
     }
   }
 
   @Test
   // provisioning does not exist before 10.6
   @ServerMinVersion("10.6")
-  void cacheHit_ReusesJre() {
-    // provisioning does not exist before 10.6
-    try (var userHome = new TempDirectory("junit-JRE-hit-")) {  // context.projectDir has a test name in it and that leads to too long path
+  void cacheHit_ReusesCachedFiles() {
+    try (var userHome = new TempDirectory("junit-cache-hit-")) {  // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
-      // first analysis, cache misses and downloads the JRE
-      var firstBegin = context.begin.execute(ORCHESTRATOR);
-      assertThat(firstBegin.isSuccess()).isTrue();
-      assertThat(firstBegin.getLogs()).contains(
-        "JreResolver: Cache miss",
-        "Starting the file download.");
-      assertThat(firstBegin.getLogs()).doesNotContain(
-        "JreResolver: Cache hit",
-        "JreResolver: Cache failure");
+      // first analysis, cache misses and downloads the JRE & scanner-engine
+      var cacheMiss = context.begin.execute(ORCHESTRATOR);
 
-      // second analysis, cache hits and does not download the JRE
-      var secondBegin = context.begin.execute(ORCHESTRATOR);
+      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), false);
 
-      JreProvisioningAssertions.cacheHitAssertions(secondBegin, userHome.toString());
+      // second analysis, cache hits and does not download the JRE or scanner-engine
+      var cacheHit = context.begin.execute(ORCHESTRATOR);
+
+      ProvisioningAssertions.cacheHitAssertions(cacheHit, userHome.toString());
+    }
+  }
+
+  @Test
+  // provisioning does not exist before 10.6
+  @ServerMinVersion("10.6")
+  void scannerEngineJarPathSet_DoesNotDownloadFromServer() throws IOException {
+    try (var userHome = new TempDirectory("junit-Engine-JarPathSet-")) {  // context.projectDir has a test name in it and that leads to too long path
+      var context = createContext(userHome);
+      var engineJarFolder = Path.of(ORCHESTRATOR.getServer().getHome().getAbsolutePath(), "lib", "scanner"); // this must be a file that exists.
+      try (Stream<Path> paths = Files.list(engineJarFolder)) {
+        var scannerJarPath = paths
+          .findFirst()
+          .orElseThrow();
+
+        var result = context.begin
+          .setProperty("sonar.scanner.engineJarPath", scannerJarPath.toString())
+          .execute(ORCHESTRATOR);
+
+        assertThat(result.getLogs())
+          .contains(
+            "EngineResolver: Resolving Scanner Engine path.",
+            String.format("Using local sonar engine provided by sonar.scanner.engineJarPath=%s", scannerJarPath))
+          .doesNotContain(
+            "EngineResolver: Cache miss.",
+            "EngineResolver: Cache hit",
+            "EngineResolver: Cache failure.");
+      }
     }
   }
 

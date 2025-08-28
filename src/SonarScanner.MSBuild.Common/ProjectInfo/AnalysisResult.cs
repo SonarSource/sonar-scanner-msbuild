@@ -18,43 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Xml.Serialization;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
-/// Data class to describe the output of a single type of analyzer
+/// Data class to describe the output of a single type of analyzer.
 /// </summary>
-/// <remarks>The class is XML-serializable.
-/// Examples of types of analyzer: CodeCoverage, Roslyn Analyzers...</remarks>
+/// <remarks>The class is XML-serializable. Examples of types of analyzer: CodeCoverage, Roslyn Analyzers...</remarks>
 public class AnalysisResult
 {
-    #region Data
+    public static readonly IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
 
-    /// <summary>
-    /// The identifier for the type of analyzer
-    /// </summary>
-    /// <remarks>Each type </remarks>
     [XmlAttribute]
     public string Id { get; set; }
 
-    /// <summary>
-    /// The location of the output produced by the analyzer
-    /// </summary>
-    /// <remarks>This will normally be an absolute file path</remarks>
     [XmlAttribute]
     public string Location { get; set; }
-
-    #endregion Data
-
-    #region Static helpers
-
-    /// <summary>
-    /// Comparer to use when comparing keys of analysis results
-    /// </summary>
-    public static readonly IEqualityComparer<string> ResultKeyComparer = StringComparer.Ordinal;
-
-    #endregion Static helpers
 }

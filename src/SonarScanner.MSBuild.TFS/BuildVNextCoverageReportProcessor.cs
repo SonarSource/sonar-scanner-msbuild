@@ -41,7 +41,7 @@ public class BuildVNextCoverageReportProcessor
         runtime.Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
         string[] vsTestReportsPaths = null;
         string[] vsCoverageXmlReportsPaths = null;
-        var trxFilePaths = new TrxFileReader(runtime.Logger, runtime.File, runtime.Directory).FindTrxFiles(settings.BuildDirectory);
+        var trxFilePaths = new TrxFileReader(runtime).FindTrxFiles(settings.BuildDirectory);
 
         if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, runtime.Logger) is null)
         {
@@ -134,7 +134,7 @@ public class BuildVNextCoverageReportProcessor
 
     private IEnumerable<string> FindVsCoverageFiles(IEnumerable<string> trxFilePaths, bool disableFallback)
     {
-        var binaryFilePaths = new TrxFileReader(runtime.Logger, runtime.File, runtime.Directory).FindCodeCoverageFiles(trxFilePaths);
+        var binaryFilePaths = new TrxFileReader(runtime).FindCodeCoverageFiles(trxFilePaths);
         if (binaryFilePaths.Any() || disableFallback)
         {
             runtime.Logger.LogDebug(Resources.TRX_DIAG_NotUsingFallback);

@@ -127,7 +127,7 @@ public class ScannerEngineInputGenerator
             return false;
         }
 
-        var projectDirectories = validProjects.Select(x => x.Project.GetDirectory()).ToArray();
+        var projectDirectories = validProjects.Select(x => x.Project.ProjectFileDirectory()).ToArray();
         var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
         if (projectBaseDir is null)
         {
@@ -242,7 +242,7 @@ public class ScannerEngineInputGenerator
         var closestProjects = new List<ProjectData>();
         foreach (var project in projects)
         {
-            var projectDirectory = project.Project.GetDirectory();
+            var projectDirectory = project.Project.ProjectFileDirectory();
             if (fileInfo.IsInDirectory(projectDirectory))
             {
                 if (projectDirectory.FullName.Length == length)

@@ -43,5 +43,5 @@ public class DefaultProcessorFactory : IProcessorFactory
             new BuildVNextCoverageReportProcessor(new BinaryToXmlCoverageReportConverter(runtime.Logger), runtime));
 
     public IPreProcessor CreatePreProcessor() =>
-        new PreProcessor.PreProcessor(new PreprocessorObjectFactory(runtime.Logger), runtime.Logger);
+        new PreProcessor.PreProcessor(new PreprocessorObjectFactory(runtime), runtime.Logger);
 }

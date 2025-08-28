@@ -18,21 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class ProjectInfoTests
 {
     public TestContext TestContext { get; set; }
-
-    #region Tests
 
     [TestMethod]
     public void ProjectInfo_Serialization_InvalidFileName()
@@ -109,10 +100,6 @@ public class ProjectInfoTests
         SaveAndReloadProjectInfo(originalProjectInfo, Path.Combine(testFolder, "ProjectInfo_AnalysisResults3.xml"));
     }
 
-    #endregion Tests
-
-    #region Helper methods
-
     private void SaveAndReloadProjectInfo(ProjectInfo original, string outputFileName)
     {
         File.Exists(outputFileName).Should().BeFalse("Test error: file should not exist at the start of the test. File: {0}", outputFileName);
@@ -125,6 +112,4 @@ public class ProjectInfoTests
 
         ProjectInfoAssertions.AssertExpectedValues(original, reloadedProjectInfo);
     }
-
-    #endregion Helper methods
 }
