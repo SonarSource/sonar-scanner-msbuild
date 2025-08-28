@@ -100,8 +100,8 @@ public class PostProcessor : IPostProcessor
                 var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
                 fileWrapper.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
-                    ? InvokeSonarScanner(provider, config, propertyResult.FullPropertiesFilePath)
-                    : InvokeScannerEngine(config, propertyResult.ScannerEngineInput);
+                    ? InvokeSonarScanner(provider, config, analysisResult.FullPropertiesFilePath)
+                    : InvokeScannerEngine(config, analysisResult.ScannerEngineInput);
             }
 #if NETFRAMEWORK
             if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
