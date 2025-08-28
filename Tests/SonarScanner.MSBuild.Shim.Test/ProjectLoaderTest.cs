@@ -33,7 +33,7 @@ public class ProjectLoaderTest
         // Create sub-directories, some with project info XML files and some without
         TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "EmptyDir1");
 
-        var validTestProject = new ProjectDescriptor()
+        var validTestProject = new ProjectDescriptor
         {
             ParentDirectoryPath = testSourcePath,
             ProjectFolderName = "validTestProjectDir",
@@ -48,7 +48,7 @@ public class ProjectLoaderTest
 
         TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "EmptyDir2");
 
-        var validNonTestProject = new ProjectDescriptor()
+        var validNonTestProject = new ProjectDescriptor
         {
             ParentDirectoryPath = testSourcePath,
             ProjectFolderName = "validNonTestProjectDir",
@@ -60,7 +60,7 @@ public class ProjectLoaderTest
         validNonTestProject.AddContentFile("AnotherSourceFile.vb", true);
         CreateFilesFromDescriptor(validNonTestProject, "list.txt", "visualstudio-codecoverage.xml");
 
-        var validNonTestNoReportsProject = new ProjectDescriptor()
+        var validNonTestNoReportsProject = new ProjectDescriptor
         {
             ParentDirectoryPath = testSourcePath,
             ProjectFolderName = "validNonTestNoReportsProjectDir",
@@ -85,7 +85,7 @@ public class ProjectLoaderTest
         var rootTestDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var childDir = Path.Combine(rootTestDir, "Child1");
         // Create a valid project in the child directory
-        var validNonTestProject = new ProjectDescriptor()
+        var validNonTestProject = new ProjectDescriptor
         {
             ParentDirectoryPath = childDir,
             ProjectFolderName = "validNonTestProjectDir",
@@ -122,7 +122,7 @@ public class ProjectLoaderTest
             File.WriteAllLines(fullAnalysisFileListPath, descriptor.FilesToAnalyse);
 
             // Add the compile list as an analysis result
-            projectInfo.AnalysisResults.Add(new AnalysisResult() { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = fullAnalysisFileListPath });
+            projectInfo.AnalysisResults.Add(new AnalysisResult { Id = AnalysisResultFileType.FilesToAnalyze.ToString(), Location = fullAnalysisFileListPath });
         }
 
         // Create the Visual Studio Code Coverage report file
@@ -132,7 +132,7 @@ public class ProjectLoaderTest
             File.Create(fullVisualStudioCodeCoverageName);
 
             // Add the Visual Studio Code Coverage report as an analysis result
-            var analysisResult = new AnalysisResult() { Id = AnalysisResultFileType.VisualStudioCodeCoverage.ToString(), Location = fullVisualStudioCodeCoverageName };
+            var analysisResult = new AnalysisResult { Id = AnalysisResultFileType.VisualStudioCodeCoverage.ToString(), Location = fullVisualStudioCodeCoverageName };
             descriptor.AnalysisResults.Add(analysisResult);
             projectInfo.AnalysisResults.Add(analysisResult);
         }
@@ -143,7 +143,7 @@ public class ProjectLoaderTest
 
     private static void AssertProjectResultExists(string expectedProjectName, IEnumerable<ProjectInfo> actualProjects)
     {
-        var actual = actualProjects.FirstOrDefault(p => expectedProjectName.Equals(p.ProjectName));
+        var actual = actualProjects.FirstOrDefault(x => expectedProjectName.Equals(x.ProjectName));
         actual.Should().NotBeNull("Failed to find project with the expected name: {0}", expectedProjectName);
     }
 }

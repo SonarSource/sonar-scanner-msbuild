@@ -171,7 +171,7 @@ public class E2EAnalysisTests
 
         // Check the list of files to be analyzed
         actualStructure.AssertExpectedFileList("none1.txt", "content1.txt", "code1.txt", "content2.txt");
-        actualStructure.ProjectInfo.GetProjectGuidAsString().Should().Be("4077C120-AF29-422F-8360-8D7192FA03F3");
+        actualStructure.ProjectInfo.ProjectGuidAsString().Should().Be("4077C120-AF29-422F-8360-8D7192FA03F3");
 
         AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName, ExpectedProjectConfigFileName, ExpectedProjectOutFolderFileName);
         AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName, FileConstants.TelemetryProjectFileName);

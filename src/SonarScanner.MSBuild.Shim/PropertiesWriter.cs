@@ -104,7 +104,7 @@ public class PropertiesWriter
         Debug.Assert(projectData.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
         Debug.Assert(projectData.SonarQubeModuleFiles.All(x => x.Exists), "Expecting all of the specified files to exist");
 
-        var guid = projectData.Project.GetProjectGuidAsString();
+        var guid = projectData.Project.ProjectGuidAsString();
 
         AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
         AppendKeyValue(guid, SonarProperties.ProjectName, projectData.Project.ProjectName);

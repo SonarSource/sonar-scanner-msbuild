@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Globalization;
+
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -46,4 +48,85 @@ public class ProjectInfo
 
     public static ProjectInfo Load(string fileName) =>
         Serializer.LoadModel<ProjectInfo>(fileName);
+
+    public bool TryGetAnalyzerResult(AnalysisResultFileType fileType, out AnalysisResult result) =>
+        TryGetAnalyzerResult(fileType.ToString(), out result);
+
+    public bool TryGetAnalyzerResult(string id, out AnalysisResult result)
+    {
+        result = null;
+
+        if (AnalysisResults != null)
+        {
+            result = AnalysisResults.FirstOrDefault(x => AnalysisResult.ResultKeyComparer.Equals(id, x.Id));
+        }
+        return result != null;
+    }
+
+    public bool TryGetAnalysisSetting(string id, out Property result)
+    {
+        result = null;
+
+        if (AnalysisSettings != null)
+        {
+            result = AnalysisSettings.FirstOrDefault(x => Property.AreKeysEqual(id, x.Id));
+        }
+        return result != null;
+    }
+
+    public void AddAnalyzerResult(AnalysisResultFileType fileType, string location) =>
+        AddAnalyzerResult(fileType.ToString(), location);
+
+    public void AddAnalyzerResult(string id, string location)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentNullException(nameof(id));
+        }
+        if (string.IsNullOrWhiteSpace(location))
+        {
+            throw new ArgumentNullException(nameof(location));
+        }
+
+        if (AnalysisResults == null)
+        {
+            AnalysisResults = new List<AnalysisResult>();
+        }
+
+        var result = new AnalysisResult { Id = id, Location = location };
+        AnalysisResults.Add(result);
+    }
+
+    public DirectoryInfo ProjectFileDirectory() =>
+        string.IsNullOrWhiteSpace(FullPath) ? null : new FileInfo(FullPath).Directory;
+
+    public string ProjectGuidAsString() =>
+        ProjectGuid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant();
+
+    public string TryGetAnalysisFileLocation(AnalysisResultFileType fileType) =>
+        TryGetAnalyzerResult(fileType, out var result) ? result.Location : null;
+
+    public FileInfo[] AllAnalysisFiles(ILogger logger)
+    {
+        var compiledFilesPath = TryGetAnalysisFileLocation(AnalysisResultFileType.FilesToAnalyze);
+        if (compiledFilesPath is null
+            || !File.Exists(compiledFilesPath))
+        {
+            return [];
+        }
+
+        var result = new List<FileInfo>();
+        foreach (var path in File.ReadAllLines(compiledFilesPath))
+        {
+            try
+            {
+                result.Add(new FileInfo(path));
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(Resources.MSG_AnalysisFileCouldNotBeAdded, path, ex.Message);
+            }
+        }
+        return [.. result];
+    }
 }
