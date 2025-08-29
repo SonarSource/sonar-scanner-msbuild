@@ -530,9 +530,12 @@ public class ScannerEngineInputTest
     {
         var root = Path.Combine(TestUtils.DriveRoot(), "Project");
         var config = new AnalysisConfig { SonarOutputDir = Path.Combine(root, ".sonarqube", "out"), SonarProjectKey = "ProjectKey" };
-        var sut = new ScannerEngineInput(config, provider);
+        var secretsProvider = new ListPropertiesProvider
+        {
+            { "sonar.token", "!Sacred!Secret!" }
+        };
+        var sut = new ScannerEngineInput(config, secretsProvider);
         sut.Add("sonar", "safe.key", "Safe Value");
-        sut.Add("sonar", "token", "!Sacred!Secret!");
         var reader = new ScannerEngineInputReader(sut.CloneWithoutSensitiveData().ToString());
 
         reader.AssertProperty("sonar.safe.key", "Safe Value");
@@ -551,6 +554,30 @@ public class ScannerEngineInputTest
 
         reader.AssertProperty("sonar.safe.key", "Safe Value");
         reader.AssertProperty("sonar.unsafe.value", "***");
+    }
+
+    [TestMethod]
+    public void SonarToken_PopulatesInput()
+    {
+        var sut = new ScannerEngineInput(new AnalysisConfig(), new ListPropertiesProvider
+        {
+            { SonarProperties.SonarToken, "TokenValue" }
+        });
+        var reader = new ScannerEngineInputReader(sut.ToString());
+        reader.AssertProperty(SonarProperties.SonarToken, "TokenValue");
+    }
+
+    [TestMethod]
+    public void SonarLogin_PopulatesInput()
+    {
+        var sut = new ScannerEngineInput(new AnalysisConfig(), new ListPropertiesProvider
+        {
+            { SonarProperties.SonarUserName, "UserName" },
+            { SonarProperties.SonarPassword, "Password" }
+        });
+        var reader = new ScannerEngineInputReader(sut.ToString());
+        reader.AssertProperty(SonarProperties.SonarUserName, "UserName");
+        reader.AssertProperty(SonarProperties.SonarPassword, "Password");
     }
 
     private static ProjectData CreateProjectData(string name,
