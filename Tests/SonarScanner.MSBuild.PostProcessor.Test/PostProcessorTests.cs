@@ -73,7 +73,7 @@ public class PostProcessorTests
         sut = new PostProcessor(
             scanner,
             engine,
-            runtime.Logger,
+            runtime,
             targetsUninstaller,
             tfsProcessor,
             sonarProjectPropertiesValidator,
@@ -86,17 +86,17 @@ public class PostProcessorTests
     {
         var scnr = scanner;
         var engn = engine;
-        var lggr = runtime.Logger;
+        var rntm = runtime;
         var tuin = targetsUninstaller;
         var tfsp = tfsProcessor;
         var sppv = Substitute.For<SonarProjectPropertiesValidator>();
         Invoking(() => new PostProcessor(null, null, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarScanner");
         Invoking(() => new PostProcessor(scnr, null, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarEngine");
-        Invoking(() => new PostProcessor(scnr, engn, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("logger");
-        Invoking(() => new PostProcessor(scnr, engn, lggr, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
-        Invoking(() => new PostProcessor(scnr, engn, lggr, tuin, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("tfsProcessor");
-        Invoking(() => new PostProcessor(scnr, engn, lggr, tuin, tfsp, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarProjectPropertiesValidator");
-        Invoking(() => new PostProcessor(scnr, engn, lggr, tuin, tfsp, sppv, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
+        Invoking(() => new PostProcessor(scnr, engn, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
+        Invoking(() => new PostProcessor(scnr, engn, rntm, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
+        Invoking(() => new PostProcessor(scnr, engn, rntm, tuin, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("tfsProcessor");
+        Invoking(() => new PostProcessor(scnr, engn, rntm, tuin, tfsp, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarProjectPropertiesValidator");
+        Invoking(() => new PostProcessor(scnr, engn, rntm, tuin, tfsp, sppv, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
     }
 
     [TestMethod]
