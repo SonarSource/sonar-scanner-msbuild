@@ -30,7 +30,7 @@ public class PostProcessor : IPostProcessor
 {
     private readonly SonarScannerWrapper sonarScanner;
     private readonly SonarEngineWrapper sonarEngine;
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
     private readonly TargetsUninstaller targetUninstaller;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly TfsProcessorWrapper tfsProcessor;
@@ -41,7 +41,7 @@ public class PostProcessor : IPostProcessor
 
     public PostProcessor(SonarScannerWrapper sonarScanner,
                          SonarEngineWrapper sonarEngine,
-                         ILogger logger,
+                         IRuntime runtime,
                          TargetsUninstaller targetUninstaller,
                          TfsProcessorWrapper tfsProcessor,
                          SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
@@ -50,7 +50,7 @@ public class PostProcessor : IPostProcessor
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
         this.sonarEngine = sonarEngine ?? throw new ArgumentNullException(nameof(sonarEngine));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
         this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
         this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
@@ -63,15 +63,15 @@ public class PostProcessor : IPostProcessor
         _ = args ?? throw new ArgumentNullException(nameof(args));
         _ = config ?? throw new ArgumentNullException(nameof(config));
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
-        logger.SuspendOutput();
+        runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
         targetUninstaller.UninstallTargets(config.SonarBinDir);
-        if (!ArgumentProcessor.TryProcessArgs(args, logger, out var provider))
+        if (!ArgumentProcessor.TryProcessArgs(args, runtime.Logger, out var provider))
         {
-            logger.ResumeOutput();
+            runtime.Logger.ResumeOutput();
             return false;   // logging already done
         }
-        logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.AnalysisSettings(true, logger), logger);
-        logger.ResumeOutput();
+        runtime.Logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.AnalysisSettings(true, runtime.Logger), runtime.Logger);
+        runtime.Logger.ResumeOutput();
         LogStartupSettings(config, settings);
         if (!CheckCredentialsInCommandLineArgs(config, provider) || !CheckEnvironmentConsistency(config, settings))
         {
@@ -112,16 +112,16 @@ public class PostProcessor : IPostProcessor
 
     private AnalysisResult CreateAnalysisResult(AnalysisConfig config)
     {
-        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, logger);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, runtime.Logger);
         var result = scannerEngineInputGenerator.GenerateResult();
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
-            logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
+            runtime.Logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
             result.RanToCompletion = false;
         }
         else
         {
-            ProjectInfoReportBuilder.WriteSummaryReport(config, result, logger);
+            ProjectInfoReportBuilder.WriteSummaryReport(config, result, runtime.Logger);
             result.RanToCompletion = true;
         }
         return result;
@@ -136,9 +136,9 @@ public class PostProcessor : IPostProcessor
             BuildEnvironment.NotTeamBuild => Resources.SETTINGS_NotInTeamBuild,
             _ => throw new InvalidOperationException($"Unexpected BuildEnvironment: {settings.BuildEnvironment}")
         };
-        logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
-        logger.LogDebug(environmentMessage);
-        logger.LogDebug(
+        runtime.Logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
+        runtime.Logger.LogDebug(environmentMessage);
+        runtime.Logger.LogDebug(
             Resources.SETTING_DumpSettings,
             settings.AnalysisBaseDirectory,
             settings.BuildDirectory,
@@ -168,7 +168,7 @@ public class PostProcessor : IPostProcessor
         }
         else
         {
-            logger.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUri, configUri, settings.AnalysisConfigFilePath);
+            runtime.Logger.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUri, configUri, settings.AnalysisConfigFilePath);
             return false;
         }
     }
@@ -182,7 +182,7 @@ public class PostProcessor : IPostProcessor
         var hasCredentialsInEndStep = provider.HasProperty(SonarProperties.SonarToken) || provider.HasProperty(SonarProperties.SonarUserName);
         if (config.HasBeginStepCommandLineCredentials ^ hasCredentialsInEndStep)
         {
-            logger.LogError(Resources.ERROR_CredentialsNotSpecified);
+            runtime.Logger.LogError(Resources.ERROR_CredentialsNotSpecified);
             return false;
         }
 
@@ -193,7 +193,7 @@ public class PostProcessor : IPostProcessor
         // However, it is not mandatory to pass it to the begin step to pass it to the end step
         if (config.HasBeginStepCommandLineTruststorePassword && !hasTruststorePasswordInEndStep)
         {
-            logger.LogError(Resources.ERROR_TruststorePasswordNotSpecified);
+            runtime.Logger.LogError(Resources.ERROR_TruststorePasswordNotSpecified);
             return false;
         }
 
@@ -204,16 +204,16 @@ public class PostProcessor : IPostProcessor
 
     private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, string sonarAnalysisConfigFilePath, string propertiesFilePath)
     {
-        logger.IncludeTimestamp = false;
+        runtime.Logger.IncludeTimestamp = false;
         tfsProcessor.Execute(config, ["SummaryReportBuilder", sonarAnalysisConfigFilePath, propertiesFilePath, ranToCompletion.ToString()]);
-        logger.IncludeTimestamp = true;
+        runtime.Logger.IncludeTimestamp = true;
     }
 
     private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, string sonarAnalysisConfigFilePath, AnalysisResult analysisResult)
     {
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
-            logger.LogInfo(Resources.MSG_ConvertingCoverageReports);
+            runtime.Logger.LogInfo(Resources.MSG_ConvertingCoverageReports);
             var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
             WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
             WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
@@ -222,10 +222,10 @@ public class PostProcessor : IPostProcessor
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
-            logger.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
-            logger.IncludeTimestamp = false;
+            runtime.Logger.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
+            runtime.Logger.IncludeTimestamp = false;
             tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, analysisResult.FullPropertiesFilePath]);
-            logger.IncludeTimestamp = true;
+            runtime.Logger.IncludeTimestamp = true;
         }
     }
 
@@ -241,17 +241,17 @@ public class PostProcessor : IPostProcessor
 
     private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, string propertiesFilePath)
     {
-        logger.IncludeTimestamp = false;
+        runtime.Logger.IncludeTimestamp = false;
         var result = sonarScanner.Execute(config, cmdLineArgs, propertiesFilePath);
-        logger.IncludeTimestamp = true;
+        runtime.Logger.IncludeTimestamp = true;
         return result;
     }
 
     private bool InvokeScannerEngine(AnalysisConfig config, ScannerEngineInput input)
     {
-        logger.IncludeTimestamp = false;
+        runtime.Logger.IncludeTimestamp = false;
         var result = sonarEngine.Execute(config, input.ToString());
-        logger.IncludeTimestamp = true;
+        runtime.Logger.IncludeTimestamp = true;
         return result;
     }
 }
