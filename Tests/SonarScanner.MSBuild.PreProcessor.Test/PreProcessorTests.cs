@@ -30,8 +30,8 @@ public partial class PreProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        FluentActions.Invoking(() => new PreProcessor(null, new TestRuntime())).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
-        FluentActions.Invoking(() => new PreProcessor(Substitute.For<IPreprocessorObjectFactory>(), null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("runtime");
+        FluentActions.Invoking(() => new PreProcessor(null, new TestRuntime())).Should().Throw<ArgumentNullException>().WithParameterName("factory");
+        FluentActions.Invoking(() => new PreProcessor(Substitute.For<IPreprocessorObjectFactory>(), null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
     }
 
     [TestMethod]
