@@ -26,7 +26,7 @@ namespace SonarScanner.MSBuild.Shim;
 // https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/ProjectFilePreprocessor.java#L96
 // and
 // https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/LanguageDetection.java#L70
-public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger logger)
+public class AdditionalFilesService
 {
     private const string SearchPatternAll = "*";
     private static readonly char[] Comma = [','];
@@ -97,21 +97,34 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "spec"
     ];
 
-    /// <summary>
-    /// Searches projectBaseDir for files with extensions that match the languages specified in analysisConfig.
-    /// </summary>
-    public AdditionalFiles AdditionalFiles(AnalysisConfig analysisConfig, DirectoryInfo projectBaseDir)
+    // ToDo: SCAN4NET-846 Use IRuntime
+    private readonly IDirectoryWrapper directoryWrapper;
+    private readonly ILogger logger;
+
+    public AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger logger)
     {
-        if (!analysisConfig.ScanAllAnalysis)
+        this.directoryWrapper = directoryWrapper;
+        this.logger = logger;
+    }
+
+    /// <summary>
+    /// Searches projectBaseDir for files with extensions that match the languages specified in AnalysisConfig.
+    /// </summary>
+    public AdditionalFiles AdditionalFiles(AnalysisConfig config, DirectoryInfo projectBaseDir)
+    {
+        if (config.ScanAllAnalysis)
+        {
+            var extensions = SupportedLanguagesExtensions(config);
+            var wildcardExpressions = WildcardExpressions(config);
+            return PartitionAdditionalFiles(FindAllFiles(extensions, wildcardExpressions, projectBaseDir), config);
+        }
+        else
         {
             return new([], []);
         }
-        var extensions = GetExtensions(analysisConfig);
-        var wildcardExpressions = WildcardExpressions(analysisConfig);
-        return PartitionAdditionalFiles(GetAllFiles(extensions, wildcardExpressions, projectBaseDir), analysisConfig);
     }
 
-    private FileInfo[] GetAllFiles(IReadOnlyList<string> extensions, IReadOnlyList<string> wildcardExpressions, DirectoryInfo projectBaseDir) =>
+    private FileInfo[] FindAllFiles(IReadOnlyList<string> extensions, IReadOnlyList<string> wildcardExpressions, DirectoryInfo projectBaseDir) =>
         CallDirectoryQuerySafe(projectBaseDir, "directories", () => directoryWrapper.EnumerateDirectories(projectBaseDir, SearchPatternAll, SearchOption.AllDirectories))
             .Concat([projectBaseDir]) // also include the root directory
             .Where(x => !IsExcludedDirectory(x))
@@ -144,67 +157,58 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         {
             logger.LogWarning(Resources.WARN_DirectoryGetContentFailure, entryType, path.FullName);
             logger.LogDebug("HResult: {0}, Exception: {1}", exception.HResult, exception);
+            return [];
         }
-        return Array.Empty<T>();
     }
 
     private static bool IsExcludedDirectory(DirectoryInfo directory) =>
         ExcludedDirectories.Any(x => Array.Exists(
-            directory.FullName.Split(Path.DirectorySeparatorChar), // split it so that we also exclude subdirectories like .sonarqube/conf.
-            part => part.Equals(x, StringComparison.OrdinalIgnoreCase)));
+                                        directory.FullName.Split(Path.DirectorySeparatorChar), // split it so that we also exclude subdirectories like .sonarqube/conf.
+                                        part => part.Equals(x, StringComparison.OrdinalIgnoreCase)));
 
     private static bool IsExcludedFile(FileInfo file) =>
         ExcludedFiles.Any(x => x.Equals(file.Name, StringComparison.OrdinalIgnoreCase));
 
-    private static AdditionalFiles PartitionAdditionalFiles(FileInfo[] allFiles, AnalysisConfig analysisConfig)
+    private AdditionalFiles PartitionAdditionalFiles(FileInfo[] allFiles, AnalysisConfig config)
     {
-        var testExtensions = GetTestExtensions(analysisConfig);
+        var testExtensions = SupportedLanguagesTestExtensions(config);
         if (testExtensions.Length == 0)
         {
             return new(allFiles, []);
         }
-        var sources = new List<FileInfo>();
-        var tests = new List<FileInfo>();
+        var result = new AdditionalFiles([], []);
         foreach (var file in allFiles)
         {
             if (Array.Exists(testExtensions, x => file.Name.EndsWith(x, StringComparison.OrdinalIgnoreCase) && !file.Name.Equals(x, StringComparison.OrdinalIgnoreCase)))
             {
-                tests.Add(file);
+                result.Tests.Add(file);
             }
             else
             {
-                sources.Add(file);
+                result.Sources.Add(file);
             }
         }
-        return new(sources, tests);
+        return result;
     }
 
-    private static string[] GetExtensions(AnalysisConfig config) =>
-        GetProperties(config, SupportedLanguages)
-            .Select(EnsureDot)
-            .ToArray();
+    private string[] SupportedLanguagesExtensions(AnalysisConfig config) =>
+        AllPropertyValues(config, SupportedLanguages).Select(EnsureDot).ToArray();
 
-    private static string[] WildcardExpressions(AnalysisConfig config) =>
-        GetProperties(config, GlobingExpressions)
-            .ToArray();
+    private string[] WildcardExpressions(AnalysisConfig config) =>
+        AllPropertyValues(config, GlobingExpressions).ToArray();
 
-    private static string[] GetTestExtensions(AnalysisConfig config) =>
-        GetProperties(config, SupportedTestLanguages)
+    private string[] SupportedLanguagesTestExtensions(AnalysisConfig config) =>
+        AllPropertyValues(config, SupportedTestLanguages)
             .Select(EnsureDot)
             .SelectMany(x => SupportedTestInfixes.Select(infix => $".{infix}{x}"))
             .Distinct()
             .ToArray();
 
-    private static IEnumerable<string> GetProperties(AnalysisConfig config, IReadOnlyList<string> ids) =>
+    private IEnumerable<string> AllPropertyValues(AnalysisConfig config, IReadOnlyList<string> ids) =>
         ids
-            .Select(x => GetProperty(config, x))
-            .Where(x => x is { Value: { } })
-            .SelectMany(x => x.Value.Split(Comma, StringSplitOptions.RemoveEmptyEntries));
-
-    // Local settings take priority over Server settings.
-    private static Property GetProperty(AnalysisConfig config, string id) =>
-        config.LocalSettings?.Find(x => x.Id == id)
-        ?? config.ServerSettings?.Find(x => x.Id == id);
+            .Select(x => config.GetSettingOrDefault(x, true, null, logger))
+            .Where(x => x is not null)
+            .SelectMany(x => x.Split(Comma, StringSplitOptions.RemoveEmptyEntries));
 
     private static string EnsureDot(string x)
     {
@@ -213,8 +217,4 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
     }
 }
 
-public sealed class AdditionalFiles(ICollection<FileInfo> sources, ICollection<FileInfo> tests)
-{
-    public ICollection<FileInfo> Sources { get; } = sources;
-    public ICollection<FileInfo> Tests { get; } = tests;
-}
+public sealed record AdditionalFiles(ICollection<FileInfo> Sources, ICollection<FileInfo> Tests);
