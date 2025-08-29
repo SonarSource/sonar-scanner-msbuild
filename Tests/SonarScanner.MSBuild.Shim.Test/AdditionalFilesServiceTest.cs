@@ -27,17 +27,13 @@ public class AdditionalFilesServiceTest
 {
     private static readonly DirectoryInfo ProjectBaseDir = new(Path.Combine(TestUtils.DriveRoot(), "dev"));
 
-    private readonly IDirectoryWrapper wrapper;
-    private readonly TestLogger logger = new();
+    private readonly TestRuntime runtime = new();
     private readonly AdditionalFilesService sut;
 
     public AdditionalFilesServiceTest()
     {
-        wrapper = Substitute.For<IDirectoryWrapper>();
-        wrapper
-            .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
-            .Returns([]);
-        sut = new(wrapper, logger);
+        runtime.Directory.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Returns([]);
+        sut = new(runtime);
     }
 
     [TestMethod]
@@ -47,8 +43,8 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        wrapper.ReceivedWithAnyArgs(1).EnumerateDirectories(null, null, default);
-        wrapper.ReceivedWithAnyArgs(1).EnumerateFiles(null, null, default);
+        runtime.Directory.ReceivedWithAnyArgs(1).EnumerateDirectories(null, null, default);
+        runtime.Directory.ReceivedWithAnyArgs(1).EnumerateFiles(null, null, default);
     }
 
     [TestMethod]
@@ -58,14 +54,14 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        wrapper.ReceivedWithAnyArgs(1).EnumerateDirectories(null, null, default);
-        wrapper.ReceivedWithAnyArgs(1).EnumerateFiles(null, null, default);
+        runtime.Directory.ReceivedWithAnyArgs(1).EnumerateDirectories(null, null, default);
+        runtime.Directory.ReceivedWithAnyArgs(1).EnumerateFiles(null, null, default);
     }
 
     [TestMethod]
     public void AdditionalFiles_ScanAllAnalysisDisabled()
     {
-        wrapper
+        runtime.Directory
             .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
             .Returns([new("valid.js")]);
         var config = new AnalysisConfig
@@ -92,10 +88,10 @@ public class AdditionalFilesServiceTest
         var valid = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "valid"));
         var invalid = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, template));
         var invalidNested = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, template, "conf"));
-        wrapper
+        runtime.Directory
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([valid, invalid, invalidNested]);
-        wrapper
+        runtime.Directory
             .EnumerateFiles(valid, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 // sources
@@ -107,14 +103,14 @@ public class AdditionalFilesServiceTest
                 new($"{template}.test.js"),
                 new($"not{template}{Path.DirectorySeparatorChar}not{template}.spec.js"),
             ]);
-        wrapper
+        runtime.Directory
             .EnumerateFiles(invalid, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 new("invalid.js"),
                 new("invalid.test.js"),
                 new("invalid.spec.js"),
             ]);
-        wrapper
+        runtime.Directory
             .EnumerateFiles(invalidNested, "*", SearchOption.TopDirectoryOnly)
             .Returns([
                 new("alsoInvalid.js"),
@@ -146,7 +142,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     public void AdditionalFiles_LocalSettingsTakePrecedence()
     {
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns([new("valid.haskell"), new(Path.Combine(ProjectBaseDir.FullName, "invalid.js"))]);
         var config = new AnalysisConfig
@@ -183,7 +179,7 @@ public class AdditionalFilesServiceTest
             $"{TestUtils.DriveRoot()}.js",
             $"{TestUtils.DriveRoot()}.jsx",
         };
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns(allFiles.Select(x => new FileInfo(x)));
         var config = new AnalysisConfig
@@ -240,7 +236,7 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.go.file.suffixes")]
     public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
     {
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns([new("valid.sql"), new("valid.js"), new("invalid.cs")]);
         var config = new AnalysisConfig
@@ -273,7 +269,7 @@ public class AdditionalFilesServiceTest
             "invalid.html",
             "invalid.vb.html",
         };
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns(allFiles.Select(x => new FileInfo(Path.Combine(ProjectBaseDir.FullName, x))));
         var analysisConfig = new AnalysisConfig
@@ -324,7 +320,7 @@ public class AdditionalFilesServiceTest
             // random invalid file
             "invalid.html"
         };
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns(allFiles.Select(x => new FileInfo(Path.Combine(ProjectBaseDir.FullName, x))));
         var analysisConfig = new AnalysisConfig
@@ -350,13 +346,13 @@ public class AdditionalFilesServiceTest
             "file10.test.TS",
             "file11.spec.tsx",
             "file12.test.TSx");
-        logger.AssertNoWarningsLogged();
+        runtime.Logger.AssertNoWarningsLogged();
     }
 
     [TestMethod]
     public void AdditionalFiles_DirectoryAccessFail()
     {
-        wrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Throws(_ => new DirectoryNotFoundException("Error message"));
+        runtime.Directory.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Throws(_ => new DirectoryNotFoundException("Error message"));
         var analysisConfig = new AnalysisConfig
         {
             ScanAllAnalysis = true,
@@ -368,13 +364,15 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
-        wrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
-        logger.DebugMessages[0].Should().Be($"Reading directories from: '{ProjectBaseDir}'.");
-        logger.DebugMessages[1].Should().MatchEquivalentOf(@"HResult: -2147024893, Exception: System.IO.DirectoryNotFoundException: Error message
-   at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *");
-        logger.DebugMessages[2].Should().Be($"Reading files from: '{ProjectBaseDir}'.");
-        logger.DebugMessages[3].Should().Be($"Found 0 files in: '{ProjectBaseDir}'.");
-        logger.AssertSingleWarningExists($"Failed to get directories from: '{ProjectBaseDir}'.");
+        runtime.Directory.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
+        runtime.Logger.DebugMessages[0].Should().Be($"Reading directories from: '{ProjectBaseDir}'.");
+        runtime.Logger.DebugMessages[1].Should().MatchEquivalentOf("""
+            HResult: -2147024893, Exception: System.IO.DirectoryNotFoundException: Error message
+               at NSubstitute.ExceptionExtensions.ExceptionExtensions.<>c__DisplayClass2_0.<Throws>b__0(CallInfo ci) *
+            """);
+        runtime.Logger.DebugMessages[2].Should().Be($"Reading files from: '{ProjectBaseDir}'.");
+        runtime.Logger.DebugMessages[3].Should().Be($"Found 0 files in: '{ProjectBaseDir}'.");
+        runtime.Logger.AssertSingleWarningExists($"Failed to get directories from: '{ProjectBaseDir}'.");
     }
 
     [TestMethod]
@@ -382,10 +380,10 @@ public class AdditionalFilesServiceTest
     {
         var firstDirectory = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "first directory"));
         var secondDirectory = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "second directory"));
-        wrapper.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Returns([firstDirectory, secondDirectory]);
-        wrapper.EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in base dir.ts")]);
-        wrapper.EnumerateFiles(firstDirectory, "*", SearchOption.TopDirectoryOnly).Throws(_ => new PathTooLongException("Error message"));
-        wrapper.EnumerateFiles(secondDirectory, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in second dir.ts")]);
+        runtime.Directory.EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories).Returns([firstDirectory, secondDirectory]);
+        runtime.Directory.EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in base dir.ts")]);
+        runtime.Directory.EnumerateFiles(firstDirectory, "*", SearchOption.TopDirectoryOnly).Throws(_ => new PathTooLongException("Error message"));
+        runtime.Directory.EnumerateFiles(secondDirectory, "*", SearchOption.TopDirectoryOnly).Returns([new FileInfo("file in second dir.ts")]);
         var analysisConfig = new AnalysisConfig
         {
             ScanAllAnalysis = true,
@@ -397,10 +395,10 @@ public class AdditionalFilesServiceTest
 
         files.Sources.Select(x => x.Name).Should().BeEquivalentTo("file in base dir.ts", "file in second dir.ts");
         files.Tests.Should().BeEmpty();
-        wrapper.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
-        wrapper.Received(3).EnumerateFiles(Arg.Any<DirectoryInfo>(), "*", SearchOption.TopDirectoryOnly);
+        runtime.Directory.Received(1).EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories);
+        runtime.Directory.Received(3).EnumerateFiles(Arg.Any<DirectoryInfo>(), "*", SearchOption.TopDirectoryOnly);
 
-        logger.DebugMessages.Should().SatisfyRespectively(
+        runtime.Logger.DebugMessages.Should().SatisfyRespectively(
             x => x.Should().Be(@$"Reading directories from: '{ProjectBaseDir}'."),
             x => x.Should().Be(@$"Found 2 directories in: '{ProjectBaseDir}'."),
             x => x.Should().Be(@$"Reading files from: '{Path.Combine(ProjectBaseDir.FullName, "first directory")}'."),
@@ -413,36 +411,36 @@ public class AdditionalFilesServiceTest
             x => x.Should().Be(@$"Reading files from: '{ProjectBaseDir}'."),
             x => x.Should().Be(@$"Found 1 files in: '{ProjectBaseDir}'."));
 
-        logger.AssertSingleWarningExists(@$"Failed to get files from: '{Path.Combine(ProjectBaseDir.FullName, "first directory")}'.");
+        runtime.Logger.AssertSingleWarningExists(@$"Failed to get files from: '{Path.Combine(ProjectBaseDir.FullName, "first directory")}'.");
     }
 
     [TestMethod]
     public void AdditionalFiles_WildcardPattern()
     {
         var nestedFolder = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "nested"));
-        wrapper
+        runtime.Directory
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([nestedFolder]);
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(ProjectBaseDir.FullName, "Dfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyApp.dfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyOtherApp.Dfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "Dfile.production")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyDfile.production"))
-            ]);
-        wrapper
+                [
+                    new(Path.Combine(ProjectBaseDir.FullName, "Dfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyApp.dfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyOtherApp.Dfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "Dfile.production")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyDfile.production"))
+                ]);
+        runtime.Directory
             .EnumerateFiles(nestedFolder, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(nestedFolder.FullName, "Dfile")),
-                new(Path.Combine(nestedFolder.FullName, "MyApp.dfile")),
-                new(Path.Combine(nestedFolder.FullName, "MyOtherApp.Dfile")),
-                new(Path.Combine(nestedFolder.FullName, "Dfile.production")),
-                new(Path.Combine(nestedFolder.FullName, "MyDfile.production"))
-            ]);
+                [
+                    new(Path.Combine(nestedFolder.FullName, "Dfile")),
+                    new(Path.Combine(nestedFolder.FullName, "MyApp.dfile")),
+                    new(Path.Combine(nestedFolder.FullName, "MyOtherApp.Dfile")),
+                    new(Path.Combine(nestedFolder.FullName, "Dfile.production")),
+                    new(Path.Combine(nestedFolder.FullName, "MyDfile.production"))
+                ]);
         var config = new AnalysisConfig { ScanAllAnalysis = true, LocalSettings = [], ServerSettings = [new("sonar.docker.file.patterns", "**/Dfile,**/*.dfile,**/*.Dfile")] };
 
         var files = sut.AdditionalFiles(config, ProjectBaseDir);
@@ -461,29 +459,29 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_WildcardPattern_BaseDir()
     {
         var nestedFolder = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "nested"));
-        wrapper
+        runtime.Directory
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([nestedFolder]);
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(ProjectBaseDir.FullName, "Dfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyApp.dfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyOtherApp.Dfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "Dfile.production")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyDfile.production"))
-            ]);
-        wrapper
+                [
+                    new(Path.Combine(ProjectBaseDir.FullName, "Dfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyApp.dfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyOtherApp.Dfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "Dfile.production")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyDfile.production"))
+                ]);
+        runtime.Directory
             .EnumerateFiles(nestedFolder, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(nestedFolder.FullName, "Dfile")),
-                new(Path.Combine(nestedFolder.FullName, "MyApp.dfile")),
-                new(Path.Combine(nestedFolder.FullName, "MyOtherApp.Dfile")),
-                new(Path.Combine(nestedFolder.FullName, "Dfile.production")),
-                new(Path.Combine(nestedFolder.FullName, "MyDfile.production"))
-            ]);
+                [
+                    new(Path.Combine(nestedFolder.FullName, "Dfile")),
+                    new(Path.Combine(nestedFolder.FullName, "MyApp.dfile")),
+                    new(Path.Combine(nestedFolder.FullName, "MyOtherApp.Dfile")),
+                    new(Path.Combine(nestedFolder.FullName, "Dfile.production")),
+                    new(Path.Combine(nestedFolder.FullName, "MyDfile.production"))
+                ]);
         var config = new AnalysisConfig { ScanAllAnalysis = true, LocalSettings = [], ServerSettings = [new("sonar.docker.file.patterns", "Dfile,*.dfile,*.Dfile")] };
 
         var files = sut.AdditionalFiles(config, ProjectBaseDir);
@@ -502,29 +500,29 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_WildcardPattern_RelativePattern(string property)
     {
         var nestedFolder = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "nested"));
-        wrapper
+        runtime.Directory
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([nestedFolder]);
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(ProjectBaseDir.FullName, "Dfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyApp.dfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyOtherApp.Dfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "Dfile.production")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyDfile.production"))
-            ]);
-        wrapper
+                [
+                    new(Path.Combine(ProjectBaseDir.FullName, "Dfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyApp.dfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyOtherApp.Dfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "Dfile.production")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyDfile.production"))
+                ]);
+        runtime.Directory
             .EnumerateFiles(nestedFolder, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(nestedFolder.FullName, "Dfile")),
-                new(Path.Combine(nestedFolder.FullName, "MyApp.dfile")),
-                new(Path.Combine(nestedFolder.FullName, "MyOtherApp.Dfile")),
-                new(Path.Combine(nestedFolder.FullName, "Dfile.production")),
-                new(Path.Combine(nestedFolder.FullName, "MyDfile.production"))
-            ]);
+                [
+                    new(Path.Combine(nestedFolder.FullName, "Dfile")),
+                    new(Path.Combine(nestedFolder.FullName, "MyApp.dfile")),
+                    new(Path.Combine(nestedFolder.FullName, "MyOtherApp.Dfile")),
+                    new(Path.Combine(nestedFolder.FullName, "Dfile.production")),
+                    new(Path.Combine(nestedFolder.FullName, "MyDfile.production"))
+                ]);
         var config = new AnalysisConfig { ScanAllAnalysis = true, LocalSettings = [], ServerSettings = [new(property, "nested/Dfile,nested/*.dfile,nested/*.Dfile")] };
 
         var files = sut.AdditionalFiles(config, ProjectBaseDir);
@@ -540,29 +538,29 @@ public class AdditionalFilesServiceTest
     public void AdditionalFiles_WildcardPattern_UsingHardCodedPatterns()
     {
         var nestedFolder = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "folder"));
-        wrapper
+        runtime.Directory
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([nestedFolder]);
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(ProjectBaseDir.FullName, "Dockerfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyApp.dockerfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyOtherApp.Dockerfile")),
-                new(Path.Combine(ProjectBaseDir.FullName, "Dockerfile.production")),
-                new(Path.Combine(ProjectBaseDir.FullName, "MyDockerfile.production"))
-            ]);
-        wrapper
+                [
+                    new(Path.Combine(ProjectBaseDir.FullName, "Dockerfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyApp.dockerfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyOtherApp.Dockerfile")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "Dockerfile.production")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "MyDockerfile.production"))
+                ]);
+        runtime.Directory
             .EnumerateFiles(nestedFolder, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(nestedFolder.FullName, "Dockerfile")),
-                new(Path.Combine(nestedFolder.FullName, "MyApp.dockerfile")),
-                new(Path.Combine(nestedFolder.FullName, "MyOtherApp.Dockerfile")),
-                new(Path.Combine(nestedFolder.FullName, "Dockerfile.production")),
-                new(Path.Combine(nestedFolder.FullName, "MyDockerfile.production"))
-            ]);
+                [
+                    new(Path.Combine(nestedFolder.FullName, "Dockerfile")),
+                    new(Path.Combine(nestedFolder.FullName, "MyApp.dockerfile")),
+                    new(Path.Combine(nestedFolder.FullName, "MyOtherApp.Dockerfile")),
+                    new(Path.Combine(nestedFolder.FullName, "Dockerfile.production")),
+                    new(Path.Combine(nestedFolder.FullName, "MyDockerfile.production"))
+                ]);
         var config = new AnalysisConfig
         {
             ScanAllAnalysis = true,
@@ -590,20 +588,20 @@ public class AdditionalFilesServiceTest
         var src = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "src"));
         var main = new DirectoryInfo(Path.Combine(src.FullName, "main"));
         var resources = new DirectoryInfo(Path.Combine(main.FullName, "resources"));
-        wrapper
+        runtime.Directory
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([src, main, resources]);
-        wrapper
+        runtime.Directory
             .EnumerateFiles(resources, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(resources.FullName, "application.yaml")),
-                new(Path.Combine(resources.FullName, "application.yml")),
-                new(Path.Combine(resources.FullName, "application.properties")),
-                new(Path.Combine(resources.FullName, "docker-compose.yaml")),
-                new(Path.Combine(resources.FullName, "docker-compose.yml")),
-                new(Path.Combine(resources.FullName, "sonar-project.properties")),
-            ]);
+                [
+                    new(Path.Combine(resources.FullName, "application.yaml")),
+                    new(Path.Combine(resources.FullName, "application.yml")),
+                    new(Path.Combine(resources.FullName, "application.properties")),
+                    new(Path.Combine(resources.FullName, "docker-compose.yaml")),
+                    new(Path.Combine(resources.FullName, "docker-compose.yml")),
+                    new(Path.Combine(resources.FullName, "sonar-project.properties")),
+                ]);
         var config = new AnalysisConfig
         {
             ScanAllAnalysis = true,
@@ -630,46 +628,46 @@ public class AdditionalFilesServiceTest
         var src = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, "src"));
         var nested = new DirectoryInfo(Path.Combine(src.FullName, "nested"));
         var aws = new DirectoryInfo(Path.Combine(ProjectBaseDir.FullName, ".aws"));
-        wrapper
+        runtime.Directory
             .EnumerateDirectories(ProjectBaseDir, "*", SearchOption.AllDirectories)
             .Returns([src, nested, aws]);
-        wrapper
+        runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(ProjectBaseDir.FullName, "file.sh")),
-                new(Path.Combine(ProjectBaseDir.FullName, "file.bash")),
-                new(Path.Combine(ProjectBaseDir.FullName, "file.conf")),
-                new(Path.Combine(ProjectBaseDir.FullName, "file.cs")),
-                new(Path.Combine(ProjectBaseDir.FullName, ".env")),
-            ]);
-        wrapper
+                [
+                    new(Path.Combine(ProjectBaseDir.FullName, "file.sh")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "file.bash")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "file.conf")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "file.cs")),
+                    new(Path.Combine(ProjectBaseDir.FullName, ".env")),
+                ]);
+        runtime.Directory
             .EnumerateFiles(src, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(src.FullName, "file.zsh")),
-                new(Path.Combine(src.FullName, "file.ksh")),
-                new(Path.Combine(src.FullName, "file.pem")),
-                new(Path.Combine(src.FullName, "file.java")),
-                new(Path.Combine(src.FullName, ".env")),
-            ]);
-        wrapper
+                [
+                    new(Path.Combine(src.FullName, "file.zsh")),
+                    new(Path.Combine(src.FullName, "file.ksh")),
+                    new(Path.Combine(src.FullName, "file.pem")),
+                    new(Path.Combine(src.FullName, "file.java")),
+                    new(Path.Combine(src.FullName, ".env")),
+                ]);
+        runtime.Directory
             .EnumerateFiles(nested, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(nested.FullName, "file.ps1")),
-                new(Path.Combine(nested.FullName, "file.properties")),
-                new(Path.Combine(nested.FullName, "file.config")),
-                new(Path.Combine(nested.FullName, ".env")),
-            ]);
-        wrapper
+                [
+                    new(Path.Combine(nested.FullName, "file.ps1")),
+                    new(Path.Combine(nested.FullName, "file.properties")),
+                    new(Path.Combine(nested.FullName, "file.config")),
+                    new(Path.Combine(nested.FullName, ".env")),
+                ]);
+        runtime.Directory
             .EnumerateFiles(aws, "*", SearchOption.TopDirectoryOnly)
             .Returns(
-            [
-                new(Path.Combine(aws.FullName, "config")),
-                new(Path.Combine(aws.FullName, "workflow.yaml")),
-                new(Path.Combine(aws.FullName, ".env")),
-            ]);
+                [
+                    new(Path.Combine(aws.FullName, "config")),
+                    new(Path.Combine(aws.FullName, "workflow.yaml")),
+                    new(Path.Combine(aws.FullName, ".env")),
+                ]);
         var config = new AnalysisConfig
         {
             ScanAllAnalysis = true,
@@ -700,13 +698,13 @@ public class AdditionalFilesServiceTest
 
     private void AdditionalFiles_ExcludedFilesIgnored(string excluded)
     {
-        wrapper
+        runtime.Directory
             .EnumerateFiles(Arg.Any<DirectoryInfo>(), Arg.Any<string>(), Arg.Any<SearchOption>())
             .Returns(
-            [
-                new("valid.json"),
-                new(excluded)
-            ]);
+                [
+                    new("valid.json"),
+                    new(excluded)
+                ]);
 
         var config = new AnalysisConfig
         {
