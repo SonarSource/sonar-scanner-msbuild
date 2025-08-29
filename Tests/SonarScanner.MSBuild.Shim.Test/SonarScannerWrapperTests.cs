@@ -542,7 +542,9 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void FindScannerExe_WhenNonWindows_ReturnsNoExtension()
     {
-        var scannerCliScriptPath = new SonarScannerWrapper(new TestRuntime { OperatingSystem = UnixOperatingSystemProvider() }).FindScannerExe();
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(PlatformOS.Linux);
+        var scannerCliScriptPath = new SonarScannerWrapper(runtime).FindScannerExe();
 
         Path.GetExtension(scannerCliScriptPath).Should().BeNullOrEmpty();
     }
@@ -585,12 +587,6 @@ public class SonarScannerWrapperTests
     private static string QuoteEnvironmentValue(string value) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @$"""{value}""" : value;
 
-    private static OperatingSystemProvider UnixOperatingSystemProvider()
-    {
-        var provider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
-        provider.OperatingSystem().Returns(PlatformOS.Linux);
-        return provider;
-    }
 
     private sealed class SonarScannerWrapperTestRunner
     {

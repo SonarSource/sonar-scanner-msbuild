@@ -40,28 +40,25 @@ public class ScannerEngineInputGenerator
     private readonly AnalysisConfig analysisConfig;
     private readonly IRuntime runtime;
     private readonly RoslynV1SarifFixer fixer;
-    private readonly RuntimeInformationWrapper runtimeInformation;
     private readonly AdditionalFilesService additionalFilesService;
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
 
     public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IRuntime runtime)
-        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance, runtime.Logger))
+        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), new AdditionalFilesService(DirectoryWrapper.Instance, runtime.Logger))
     {
     }
 
     internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
                                          IRuntime runtime,
                                          RoslynV1SarifFixer fixer,
-                                         RuntimeInformationWrapper runtimeInformation,
                                          AdditionalFilesService additionalFilesService)
     {
         this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
-        this.runtimeInformation = runtimeInformation ?? throw new ArgumentNullException(nameof(runtimeInformation));
         this.additionalFilesService = additionalFilesService ?? throw new ArgumentNullException(nameof(additionalFilesService));
-        if (runtimeInformation.IsWindows)
+        if (runtime.OperatingSystem.IsWindows())
         {
             pathComparer = StringComparer.OrdinalIgnoreCase;
             pathComparison = StringComparison.OrdinalIgnoreCase;
@@ -102,7 +99,7 @@ public class ScannerEngineInputGenerator
         }
         var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
         FixSarifAndEncoding(projects, analysisProperties);
-        var allProjects = projects.ToProjectData(runtimeInformation.IsWindows, runtime.Logger);
+        var allProjects = projects.ToProjectData(runtime.OperatingSystem.IsWindows(), runtime.Logger);
         if (GenerateProperties(analysisProperties, allProjects, legacyWriter, engineInput))
         {
             var contents = legacyWriter.Flush();

@@ -48,4 +48,7 @@ public class TestRuntime : IRuntime
 
     public TestRuntime() =>
         OperatingSystem = Substitute.For<OperatingSystemProvider>(File, Logger);
+
+    public void ConfigureOS(PlatformOS os) =>
+        OperatingSystem.OperatingSystem().Returns(os);
 }
