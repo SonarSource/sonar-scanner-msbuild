@@ -37,7 +37,7 @@ public class DefaultProcessorFactory : IProcessorFactory
         new PostProcessor.PostProcessor(
             new SonarScannerWrapper(runtime),
             new SonarEngineWrapper(runtime, new ProcessRunner(runtime.Logger)),
-            runtime.Logger,
+            runtime,
             new TargetsUninstaller(runtime.Logger),
             new TfsProcessorWrapper(runtime),
             new SonarProjectPropertiesValidator(),
