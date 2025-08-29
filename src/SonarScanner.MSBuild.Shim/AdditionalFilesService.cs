@@ -19,7 +19,6 @@
  */
 
 using SonarScanner.MSBuild.Common.RegularExpressions;
-using SonarScanner.MSBuild.Shim.Interfaces;
 
 namespace SonarScanner.MSBuild.Shim;
 
@@ -27,7 +26,7 @@ namespace SonarScanner.MSBuild.Shim;
 // https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/ProjectFilePreprocessor.java#L96
 // and
 // https://github.com/SonarSource/sonar-scanner-engine/blob/0d222f01c0b3a15e95c5c7d335d29c40ddf5d628/sonarcloud/sonar-scanner-engine/src/main/java/org/sonar/scanner/scan/filesystem/LanguageDetection.java#L70
-public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger logger) : IAdditionalFilesService
+public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger logger)
 {
     private const string SearchPatternAll = "*";
     private static readonly char[] Comma = [','];
@@ -98,6 +97,9 @@ public class AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger 
         "spec"
     ];
 
+    /// <summary>
+    /// Searches projectBaseDir for files with extensions that match the languages specified in analysisConfig.
+    /// </summary>
     public AdditionalFiles AdditionalFiles(AnalysisConfig analysisConfig, DirectoryInfo projectBaseDir)
     {
         if (!analysisConfig.ScanAllAnalysis)
