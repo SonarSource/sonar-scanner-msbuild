@@ -63,7 +63,7 @@ public static class AnalysisConfigGenerator
             ScanAllAnalysis = localSettings.ScanAllAnalysis,
             UseSonarScannerCli = localSettings.UseSonarScannerCli,
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
-                                                 || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
+                || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
             SonarQubeHostUrl = localSettings.ServerInfo.ServerUrl,
             SonarQubeVersion = sonarQubeVersion,
             SonarProjectKey = localSettings.ProjectKey,
