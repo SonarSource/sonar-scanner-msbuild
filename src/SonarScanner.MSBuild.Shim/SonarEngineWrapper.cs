@@ -55,34 +55,52 @@ public class SonarEngineWrapper
         return result.Succeeded;
     }
 
-    private string FindJavaExe(string configJavaExe)
+    private string FindJavaExe(string configJavaExe) =>
+        JavaFromConfig(configJavaExe)
+        ?? JavaFromJavaHome()
+        ?? JavaFromPath();
+
+    private string JavaFromConfig(string configJavaExe)
     {
         if (runtime.File.Exists(configJavaExe))
         {
             runtime.Logger.LogInfo(Resources.MSG_JavaExe_Found, "Analysis Config", configJavaExe);
             return configJavaExe;
         }
-        runtime.Logger.LogInfo(Resources.MSG_JavaExe_NotFound, "Analysis Config", configJavaExe);
+        else
+        {
+            runtime.Logger.LogInfo(Resources.MSG_JavaExe_NotFound, "Analysis Config", configJavaExe);
+            return null;
+        }
+    }
 
-        var javaExe = runtime.OperatingSystem.IsUnix() ? "java" : "java.exe";
-        if (Environment.GetEnvironmentVariable(EnvironmentVariables.JavaHomeVariableName) is { } javaHome
-            && !string.IsNullOrEmpty(javaHome))
+    private string JavaFromJavaHome()
+    {
+        if (Environment.GetEnvironmentVariable(EnvironmentVariables.JavaHomeVariableName) is { Length: > 0 } javaHome)
         {
             runtime.Logger.LogInfo(Resources.MSG_JavaHomeSet, javaHome);
-            var javaHomeExe = Path.Combine(javaHome, "bin", javaExe);
+            var javaHomeExe = Path.Combine(javaHome, "bin", runtime.OperatingSystem.IsUnix() ? "java" : "java.exe");
             if (runtime.File.Exists(javaHomeExe))
             {
                 runtime.Logger.LogInfo(Resources.MSG_JavaExe_Found, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
                 return javaHomeExe;
             }
-            runtime.Logger.LogInfo(Resources.MSG_JavaExe_NotFound, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
+            else
+            {
+                runtime.Logger.LogInfo(Resources.MSG_JavaExe_NotFound, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
+                return null;
+            }
         }
         else
         {
             runtime.Logger.LogInfo(Resources.MSG_JavaHomeNotSet);
+            return null;
         }
+    }
 
-        runtime.Logger.LogInfo(Resources.MSG_JavaExe_UsePath, javaExe);
-        return javaExe; // Rely on Proccess inbuilt PATH support
+    private string JavaFromPath()
+    {
+        runtime.Logger.LogInfo(Resources.MSG_JavaExe_UsePath, runtime.OperatingSystem.IsUnix() ? "java" : "java.exe");
+        return runtime.OperatingSystem.IsUnix() ? "java" : "java.exe"; // Rely on Proccess inbuilt PATH support
     }
 }
