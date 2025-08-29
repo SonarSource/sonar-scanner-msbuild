@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Shim.Interfaces;
-
 namespace SonarScanner.MSBuild.Shim.Test;
 
 [TestClass]
@@ -224,13 +222,11 @@ public partial class ScannerEngineInputGeneratorTest
 
     private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig,
                                                   RoslynV1SarifFixer sarifFixer = null,
-                                                  RuntimeInformationWrapper runtimeInformation = null,
-                                                  IAdditionalFilesService additionalFileService = null)
+                                                  RuntimeInformationWrapper runtimeInformation = null)
     {
         sarifFixer ??= new RoslynV1SarifFixer(logger);
         runtimeInformation ??= new RuntimeInformationWrapper();
-        additionalFileService ??= new AdditionalFilesService(DirectoryWrapper.Instance, logger);
-        return new(analysisConfig, logger, sarifFixer, runtimeInformation, additionalFileService);
+        return new(analysisConfig, logger, sarifFixer, runtimeInformation, new AdditionalFilesService(DirectoryWrapper.Instance, logger));
     }
 
     private static ProjectData CreateProjectData(string fullPath) =>
