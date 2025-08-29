@@ -34,7 +34,7 @@ public class ScannerEngineInput
     private readonly JArray scannerProperties = [];
     private readonly JProperty modules;
 
-    public ScannerEngineInput(AnalysisConfig config, IAnalysisPropertyProvider provider = null)
+    public ScannerEngineInput(AnalysisConfig config, IAnalysisPropertyProvider provider)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
         root = new JObject
@@ -57,7 +57,7 @@ public class ScannerEngineInput
 
     public ScannerEngineInput CloneWithoutSensitiveData()
     {
-        var result = new ScannerEngineInput(config);
+        var result = new ScannerEngineInput(config, new ListPropertiesProvider());
         result.moduleKeys.UnionWith(moduleKeys);
         foreach (var property in scannerProperties)
         {
