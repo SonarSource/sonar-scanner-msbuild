@@ -481,6 +481,37 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
+    public void AddGlobalSettings_DoesNotAddProjectBaseDir()
+    {
+        var globalSettings = new AnalysisProperties
+        {
+            new(SonarProperties.ProjectBaseDir, "somePath"),
+        };
+        var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" }, new ListPropertiesProvider());
+        sut.AddGlobalSettings(globalSettings);
+
+        var reader = new ScannerEngineInputReader(sut.ToString());
+        reader.AssertPropertyDoesNotExist(SonarProperties.ProjectBaseDir);
+    }
+
+    [TestMethod]
+    public void ProjectBaseDir_FromConfigAndGlobalSettings_IsNotDuplicated()
+    {
+        var basedir = new DirectoryInfo("somePath");
+        var globalSettings = new AnalysisProperties
+        {
+            new(SonarProperties.ProjectBaseDir, basedir.FullName),
+        };
+        var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" }, new ListPropertiesProvider());
+
+        sut.AddConfig(basedir);
+        sut.AddGlobalSettings(globalSettings);
+
+        var reader = new ScannerEngineInputReader(sut.ToString());
+        reader.AssertProperty(SonarProperties.ProjectBaseDir, basedir.FullName);
+    }
+
+    [TestMethod]
     public void Add_AsMultiValueProperty_EncodeValues()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig(), new ListPropertiesProvider());
