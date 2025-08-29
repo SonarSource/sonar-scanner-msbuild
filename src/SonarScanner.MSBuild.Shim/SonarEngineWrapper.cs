@@ -24,11 +24,13 @@ public class SonarEngineWrapper
 {
     private readonly IRuntime runtime;
     private readonly IProcessRunner processRunner;
+    private readonly string javaFileName;
 
     public SonarEngineWrapper(IRuntime runtime, IProcessRunner processRunner)
     {
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.processRunner = processRunner ?? throw new ArgumentNullException(nameof(processRunner));
+        javaFileName = runtime.OperatingSystem.IsUnix() ? "java" : "java.exe";
     }
 
     public virtual bool Execute(AnalysisConfig config, string standardInput)
@@ -79,7 +81,7 @@ public class SonarEngineWrapper
         if (Environment.GetEnvironmentVariable(EnvironmentVariables.JavaHomeVariableName) is { Length: > 0 } javaHome)
         {
             runtime.Logger.LogInfo(Resources.MSG_JavaHomeSet, javaHome);
-            var javaHomeExe = Path.Combine(javaHome, "bin", runtime.OperatingSystem.IsUnix() ? "java" : "java.exe");
+            var javaHomeExe = Path.Combine(javaHome, "bin", javaFileName);
             if (runtime.File.Exists(javaHomeExe))
             {
                 runtime.Logger.LogInfo(Resources.MSG_JavaExe_Found, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
@@ -100,7 +102,7 @@ public class SonarEngineWrapper
 
     private string JavaFromPath()
     {
-        runtime.Logger.LogInfo(Resources.MSG_JavaExe_UsePath, runtime.OperatingSystem.IsUnix() ? "java" : "java.exe");
-        return runtime.OperatingSystem.IsUnix() ? "java" : "java.exe"; // Rely on Proccess inbuilt PATH support
+        runtime.Logger.LogInfo(Resources.MSG_JavaExe_UsePath, javaFileName);
+        return javaFileName; // Rely on Proccess inbuilt PATH support
     }
 }
