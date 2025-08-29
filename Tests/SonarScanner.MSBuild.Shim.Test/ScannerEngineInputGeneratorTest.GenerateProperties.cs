@@ -62,6 +62,34 @@ public partial class ScannerEngineInputGeneratorTest
     }
 
     [TestMethod]
+    public void GenerateProperties_WhenProjectBaseDirDoesNotExist_LogsError()
+    {
+        var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
+        Directory.CreateDirectory(outPath);
+        var project = new ProjectInfo
+        {
+            ProjectGuid = Guid.NewGuid(),
+            FullPath = Path.Combine(TestContext.TestRunDirectory, "Project"),
+            ProjectName = "Project",
+            AnalysisSettings = [],
+            AnalysisResultFiles = []
+        };
+        var config = new AnalysisConfig
+        {
+            SonarOutputDir = outPath,
+            LocalSettings = [new Property(SonarProperties.ProjectBaseDir, "This path does not exist")]
+        };
+        var sut = new ScannerEngineInputGenerator(config, runtime);
+        sut.GenerateProperties(
+            config.ToAnalysisProperties(runtime.Logger),
+            [new ProjectData(new[] { project }.GroupBy(x => x.ProjectGuid).Single(), true, runtime.Logger) { Status = ProjectInfoValidity.Valid }],
+            new PropertiesWriter(config),
+            new ScannerEngineInput(config));
+
+        runtime.Logger.AssertErrorLogged("The project base directory doesn't exist.");
+    }
+
+    [TestMethod]
     public void GenerateProperties_WhenThereAreNoValidProjects_LogsError()
     {
         var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
