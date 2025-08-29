@@ -42,7 +42,7 @@ public partial class ScannerEngineInputGeneratorTest
         var rntm = runtime;
         var rvsf = new RoslynV1SarifFixer(runtime.Logger);
         var rinf = new RuntimeInformationWrapper();
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, runtime)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("fixer");
