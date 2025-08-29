@@ -236,6 +236,7 @@ public sealed class CachedDownloaderTests : IDisposable
 
         result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
         runtime.File.Received(1).Create(TempFilePath);
+        runtime.File.Received(1).Delete(DownloadFilePath);
         runtime.File.Received(1).Move(TempFilePath, DownloadFilePath);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"The file was already downloaded from the server and stored at '{DownloadFilePath}'.",
