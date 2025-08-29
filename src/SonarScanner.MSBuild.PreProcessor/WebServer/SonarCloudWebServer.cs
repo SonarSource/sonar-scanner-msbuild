@@ -64,17 +64,15 @@ internal class SonarCloudWebServer : SonarWebServer
     public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
-        var empty = new List<SensorCacheEntry>();
-
         if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
-            return empty;
+            return [];
         }
         if (!TryGetBaseBranch(localSettings, out var branch))
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
-            return empty;
+            return [];
         }
         if (AuthToken(localSettings) is { } token)
         {
@@ -82,7 +80,7 @@ internal class SonarCloudWebServer : SonarWebServer
             if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
             {
                 logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
-                return empty;
+                return [];
             }
 
             try
@@ -91,7 +89,7 @@ internal class SonarCloudWebServer : SonarWebServer
                 var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
                 if (ephemeralUrl is null)
                 {
-                    return empty;
+                    return [];
                 }
                 using var stream = await DownloadCacheStream(ephemeralUrl);
                 return ParseCacheEntries(stream);
@@ -100,11 +98,14 @@ internal class SonarCloudWebServer : SonarWebServer
             {
                 logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
                 logger.LogDebug(e.ToString());
-                return empty;
+                return [];
             }
         }
-        logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
-        return empty;
+        else
+        {
+            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
+            return [];
+        }
     }
 
     // Do not use the downloaders here, as this is an unauthenticated request
