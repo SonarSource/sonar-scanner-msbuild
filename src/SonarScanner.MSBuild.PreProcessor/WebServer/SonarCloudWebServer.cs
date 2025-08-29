@@ -64,46 +64,47 @@ internal class SonarCloudWebServer : SonarWebServer
     public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
-        var empty = new List<SensorCacheEntry>();
-
         if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
-            return empty;
+            return [];
         }
         if (!TryGetBaseBranch(localSettings, out var branch))
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
-            return empty;
+            return [];
         }
-        if (AuthToken(localSettings) is not { } token)
+        if (AuthToken(localSettings) is { } token)
+        {
+            var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
+            if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
+            {
+                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
+                return [];
+            }
+
+            try
+            {
+                logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
+                var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
+                if (ephemeralUrl is null)
+                {
+                    return [];
+                }
+                using var stream = await DownloadCacheStream(ephemeralUrl);
+                return ParseCacheEntries(stream);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+                logger.LogDebug(e.ToString());
+                return [];
+            }
+        }
+        else
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
-            return empty;
-        }
-        var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
-        if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
-        {
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
-            return empty;
-        }
-
-        try
-        {
-            logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
-            var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
-            if (ephemeralUrl is null)
-            {
-                return empty;
-            }
-            using var stream = await DownloadCacheStream(ephemeralUrl);
-            return ParseCacheEntries(stream);
-        }
-        catch (Exception e)
-        {
-            logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
-            logger.LogDebug(e.ToString());
-            return empty;
+            return [];
         }
     }
 

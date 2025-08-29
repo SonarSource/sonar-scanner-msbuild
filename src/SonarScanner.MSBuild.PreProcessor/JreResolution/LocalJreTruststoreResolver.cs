@@ -30,13 +30,15 @@ public class LocalJreTruststoreResolver(IFileWrapper fileWrapper, IDirectoryWrap
         if (javaHome is null)
         {
             logger.LogDebug(Resources.MSG_JavaHomeNotSet);
-            if (ResolveJavaExecutable(args) is not { } javaExecutable
-                || string.IsNullOrWhiteSpace(javaExecutable))
+            if (ResolveJavaExecutable(args)?.Trim() is { Length: > 0} javaExecutable)
+            {
+                javaHome = Path.GetDirectoryName(Path.GetDirectoryName(javaExecutable));
+            }
+            else
             {
                 logger.LogDebug(Resources.MSG_CouldNotInferJavaHome);
                 return null;
             }
-            javaHome = Path.GetDirectoryName(Path.GetDirectoryName(javaExecutable));
         }
 
         if (!directoryWrapper.Exists(javaHome))
