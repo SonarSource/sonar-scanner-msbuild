@@ -40,10 +40,10 @@ public class SummaryReportBuilderTests
     {
         var cnfg = Substitute.For<AnalysisConfig>();
         var ltbf = Substitute.For<ILegacyTeamBuildFactory>();
-        var lggr = Substitute.For<ILogger>();
-        FluentActions.Invoking(() => new SummaryReportBuilder(null, cnfg, lggr)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
-        FluentActions.Invoking(() => new SummaryReportBuilder(ltbf, null, lggr)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
-        FluentActions.Invoking(() => new SummaryReportBuilder(ltbf, cnfg, null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        var rntm = Substitute.For<IRuntime>();
+        FluentActions.Invoking(() => new SummaryReportBuilder(null, cnfg, rntm)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyTeamBuildFactory");
+        FluentActions.Invoking(() => new SummaryReportBuilder(ltbf, null, rntm)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        FluentActions.Invoking(() => new SummaryReportBuilder(ltbf, cnfg, null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runtime");
     }
 
     [TestMethod]
@@ -124,7 +124,7 @@ public class SummaryReportBuilderTests
             BuildEnvironment = BuildEnvironment.LegacyTeamBuild
         };
         var summaryLogger = new MockLegacyBuildSummaryLogger();
-        var builder = new SummaryReportBuilder(new MockLegacyTeamBuildFactory(summaryLogger, null), config, new TestLogger());
+        var builder = new SummaryReportBuilder(new MockLegacyTeamBuildFactory(summaryLogger, null), config, new TestRuntime());
         config.SonarOutputDir = TestContext.TestRunDirectory;
         builder.GenerateReports(settings, result.RanToCompletion, result.FullPropertiesFilePath);
 
