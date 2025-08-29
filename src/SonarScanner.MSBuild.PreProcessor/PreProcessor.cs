@@ -41,7 +41,7 @@ public class PreProcessor
 
     public virtual async Task<bool> Execute(IEnumerable<string> args)
     {
-        runtime.Logger.SuspendOutput();
+        runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
         var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime.Logger);
 
         if (processedArgs is null)
