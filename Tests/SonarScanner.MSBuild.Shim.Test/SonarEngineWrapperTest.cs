@@ -70,14 +70,13 @@ public class SonarEngineWrapperTest
             $"Using Java found in Analysis Config: {context.ResolvedJavaExe}");
     }
 
-    [DataRow(true, "java")]
-    [DataRow(false, "java.exe")]
+    [DataRow(true)]
+    [DataRow(false)]
     [TestMethod]
-    public void FindJavaExe_ConfiguredPath_DoesNotExist(bool isUnix, string javaFileName)
+    public void FindJavaExe_ConfiguredPath_DoesNotExist(bool isUnix)
     {
-        var context = new Context(javaFileName);
+        var context = new Context(isUnix);
         context.Runtime.File.Exists(context.ResolvedJavaExe).Returns(false);
-        context.Runtime.OperatingSystem.IsUnix().Returns(isUnix);
 
         context.Execute().Should().BeTrue();
 
@@ -89,13 +88,12 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
-    [DataRow(true, "java")]
-    [DataRow(false, "java.exe")]
-    public void FindJavaExe_JavaHomeSet_Exists(bool isUnix, string javaFileName)
+    [DataRow(true)]
+    [DataRow(false)]
+    public void FindJavaExe_JavaHomeSet_Exists(bool isUnix)
     {
-        var context = new Context(javaFileName);
+        var context = new Context(isUnix);
         using var environmentVariableScope = new EnvironmentVariableScope();
-        context.Runtime.OperatingSystem.IsUnix().Returns(isUnix);
         environmentVariableScope.SetVariable(EnvironmentVariables.JavaHomeVariableName, context.JavaHome);
         context.Runtime.File.Exists(context.ResolvedJavaExe).Returns(false);
         context.Runtime.File.Exists(context.JavaHomeExePath).Returns(true);
@@ -133,18 +131,17 @@ public class SonarEngineWrapperTest
         public readonly SonarEngineWrapper Engine;
         public readonly MockProcessRunner Runner;
         public readonly TestRuntime Runtime = new();
-
         public readonly string ResolvedJavaExe = "resolved-java.exe";
         public readonly string JavaHome = Path.Combine("Java", "Home");
-        public readonly string JavaFileName;
-        public readonly string JavaHomeExePath;
 
-        public Context(string javaFileName = "java.exe", bool processSucceeds = true)
+        public string JavaFileName => Runtime.OperatingSystem.IsUnix() ? "java" : "java.exe";
+        public string JavaHomeExePath => Path.Combine(JavaHome, "bin", JavaFileName);
+
+        public Context(bool isUnix = false, bool processSucceeds = true)
         {
             Runner = new MockProcessRunner(processSucceeds);
+            Runtime.OperatingSystem.IsUnix().Returns(isUnix);
             Engine = new SonarEngineWrapper(Runtime, Runner);
-            JavaFileName = javaFileName;
-            JavaHomeExePath = Path.Combine(JavaHome, "bin", JavaFileName);
             Runtime.File.Exists(ResolvedJavaExe).Returns(true);
         }
 
