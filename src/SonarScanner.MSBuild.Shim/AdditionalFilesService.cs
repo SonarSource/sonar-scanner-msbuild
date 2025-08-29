@@ -97,15 +97,10 @@ public class AdditionalFilesService
         "spec"
     ];
 
-    // ToDo: SCAN4NET-846 Use IRuntime
-    private readonly IDirectoryWrapper directoryWrapper;
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
 
-    public AdditionalFilesService(IDirectoryWrapper directoryWrapper, ILogger logger)
-    {
-        this.directoryWrapper = directoryWrapper;
-        this.logger = logger;
-    }
+    public AdditionalFilesService(IRuntime runtime) =>
+        this.runtime = runtime;
 
     /// <summary>
     /// Searches projectBaseDir for files with extensions that match the languages specified in AnalysisConfig.
@@ -125,10 +120,10 @@ public class AdditionalFilesService
     }
 
     private FileInfo[] FindAllFiles(IReadOnlyList<string> extensions, IReadOnlyList<string> wildcardExpressions, DirectoryInfo projectBaseDir) =>
-        CallDirectoryQuerySafe(projectBaseDir, "directories", () => directoryWrapper.EnumerateDirectories(projectBaseDir, SearchPatternAll, SearchOption.AllDirectories))
+        CallDirectoryQuerySafe(projectBaseDir, "directories", () => runtime.Directory.EnumerateDirectories(projectBaseDir, SearchPatternAll, SearchOption.AllDirectories))
             .Concat([projectBaseDir]) // also include the root directory
             .Where(x => !IsExcludedDirectory(x))
-            .SelectMany(x => CallDirectoryQuerySafe(x, "files", () => directoryWrapper.EnumerateFiles(x, SearchPatternAll, SearchOption.TopDirectoryOnly)))
+            .SelectMany(x => CallDirectoryQuerySafe(x, "files", () => runtime.Directory.EnumerateFiles(x, SearchPatternAll, SearchOption.TopDirectoryOnly)))
             .Where(x => !IsExcludedFile(x) && AdditionalFiles(x, projectBaseDir, extensions, wildcardExpressions))
             .ToArray();
 
@@ -148,15 +143,15 @@ public class AdditionalFilesService
     {
         try
         {
-            logger.LogDebug("Reading {0} from: '{1}'.", entryType, path.FullName);
+            runtime.Logger.LogDebug("Reading {0} from: '{1}'.", entryType, path.FullName);
             var result = query().ToArray();
-            logger.LogDebug("Found {0} {1} in: '{2}'.", result.Length, entryType, path.FullName);
+            runtime.Logger.LogDebug("Found {0} {1} in: '{2}'.", result.Length, entryType, path.FullName);
             return result;
         }
         catch (Exception exception)
         {
-            logger.LogWarning(Resources.WARN_DirectoryGetContentFailure, entryType, path.FullName);
-            logger.LogDebug("HResult: {0}, Exception: {1}", exception.HResult, exception);
+            runtime.Logger.LogWarning(Resources.WARN_DirectoryGetContentFailure, entryType, path.FullName);
+            runtime.Logger.LogDebug("HResult: {0}, Exception: {1}", exception.HResult, exception);
             return [];
         }
     }
@@ -206,7 +201,7 @@ public class AdditionalFilesService
 
     private IEnumerable<string> AllPropertyValues(AnalysisConfig config, IReadOnlyList<string> ids) =>
         ids
-            .Select(x => config.GetSettingOrDefault(x, true, null, logger))
+            .Select(x => config.GetSettingOrDefault(x, true, null, runtime.Logger))
             .Where(x => x is not null)
             .SelectMany(x => x.Split(Comma, StringSplitOptions.RemoveEmptyEntries));
 
