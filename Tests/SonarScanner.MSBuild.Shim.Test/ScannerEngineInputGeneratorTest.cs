@@ -154,7 +154,7 @@ public partial class ScannerEngineInputGeneratorTest
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
-    private static void AssertFailedToCreateScannerInput(ProjectInfoAnalysisResult result, TestLogger logger)
+    private static void AssertFailedToCreateScannerInput(AnalysisResult result, TestLogger logger)
     {
         result.FullPropertiesFilePath.Should().BeNull();
         result.ScannerEngineInput.Should().BeNull();
@@ -163,7 +163,7 @@ public partial class ScannerEngineInputGeneratorTest
         logger.AssertErrorsLogged();
     }
 
-    private void AssertScannerInputCreated(ProjectInfoAnalysisResult result, TestLogger logger)
+    private void AssertScannerInputCreated(AnalysisResult result, TestLogger logger)
     {
         result.FullPropertiesFilePath.Should().NotBeNull();
         result.ScannerEngineInput.Should().NotBeNull();
@@ -173,17 +173,17 @@ public partial class ScannerEngineInputGeneratorTest
         logger.AssertErrorsLogged(0);
     }
 
-    private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, ProjectInfoAnalysisResult actual) =>
+    private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, AnalysisResult actual) =>
         actual.ProjectsByStatus(expectedStatus).Where(x => x.ProjectName.Equals(expectedProjectName))
             .Should().ContainSingle("ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}", expectedProjectName, expectedStatus);
 
-    private static void AssertNoValidProjects(ProjectInfoAnalysisResult actual) =>
+    private static void AssertNoValidProjects(AnalysisResult actual) =>
         actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().BeEmpty();
 
-    private static void AssertValidProjectsExist(ProjectInfoAnalysisResult actual) =>
+    private static void AssertValidProjectsExist(AnalysisResult actual) =>
         actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().NotBeEmpty();
 
-    private static void AssertExpectedProjectCount(int expected, ProjectInfoAnalysisResult actual) =>
+    private static void AssertExpectedProjectCount(int expected, AnalysisResult actual) =>
         actual.Projects.Should().HaveCount(expected);
 
     private static void AssertFileIsReferenced(string fullFilePath, string content) =>
