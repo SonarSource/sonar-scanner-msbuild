@@ -280,14 +280,6 @@ public class BootstrapperClassTests
         config.Save(filePath);
     }
 
-    private static string DefaultPropertiesFilePath()
-    {
-        var defaultPropertiesFilePath = Path.Combine(
-            Path.GetDirectoryName(typeof(SonarScanner.MSBuild.Program).Assembly.Location),
-            FilePropertyProvider.DefaultFileName);
-        return defaultPropertiesFilePath;
-    }
-
     private void MockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
     {
         mockPreProcessor = Substitute.For<IPreProcessor>();
