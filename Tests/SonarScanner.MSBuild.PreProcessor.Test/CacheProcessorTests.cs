@@ -67,7 +67,7 @@ public class CacheProcessorTests
         var utf16 = CreateFile(root, "Utf16.cs", diacritics, Encoding.Unicode);
         var ansi = CreateFile(root, "Ansi.cs", diacritics, Encoding.GetEncoding(1250));
         File.ReadAllBytes(emptyWithBom).Should().HaveCount(3, "UTF8 encoding should generate BOM");
-        File.ReadAllBytes(emptyNoBom).Should().HaveCount(0, "ASCII encoding should not generate BOM");
+        File.ReadAllBytes(emptyNoBom).Should().BeEmpty("ASCII encoding should not generate BOM");
 
         Serialize(sut.ContentHash(emptyWithBom)).Should().Be("f1945cd6c19e56b3c1c78943ef5ec18116907a4ca1efc40a57d48ab1db7adfc5");
         Serialize(sut.ContentHash(emptyNoBom)).Should().Be("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
@@ -229,8 +229,8 @@ public class CacheProcessorTests
     {
         using var context = new CacheContext(this);
         CreateFile(context.Root, "AddedFile.cs", "// This file is not in cache", Encoding.UTF8);
-        File.Delete(context.Paths.First());       // This file was in cache, but doesn't exist anymore
-        File.WriteAllText(context.Paths.Last(), " // This file was modified");
+        File.Delete(context.Paths[0]);       // This file was in cache, but doesn't exist anymore
+        File.WriteAllText(context.Paths[context.Paths.Count - 1], " // This file was modified");
         context.ProcessPullRequest();
 
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
@@ -302,19 +302,20 @@ public class CacheProcessorTests
             // - are part of a directory structure
             // The tests should reflect that.
             (string RelativeFilePath, string Content)[] fileData =
-                {
-                    new("Project/File1.cs", "// Hello"),
-                    new("Project/Common/File2.cs", "// Hello World"),
-                    new("File3.vb", "' Hello World!")
-                };
+            [
+                new("Project/File1.cs", "// Hello"),
+                new("Project/Common/File2.cs", "// Hello World"),
+                new("File3.vb", "' Hello World!")
+            ];
             Root = TestUtils.CreateTestSpecificFolderWithSubPaths(owner.TestContext);
-            var factory = new MockObjectFactory(owner.logger);
+            var runtime = new TestRuntime { Logger = owner.logger };
+            var factory = new MockObjectFactory(runtime);
             var settings = Substitute.For<IBuildSettings>();
             settings.SourcesDirectory.Returns(Root);
             settings.SonarConfigDirectory.Returns(Root);
             factory.Server.Cache = cache;
             factory.Server.Data.SonarQubeVersion = SonarQubeVersion99;
-            Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(factory.Logger, commandLineArgs), settings, factory.Logger);
+            Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(runtime.Logger, commandLineArgs), settings, runtime.Logger);
             foreach (var (relativeFilePath, content) in fileData)
             {
                 var fullFilePath = Path.GetFullPath(CreateFile(Root, relativeFilePath, content, Encoding.UTF8));
