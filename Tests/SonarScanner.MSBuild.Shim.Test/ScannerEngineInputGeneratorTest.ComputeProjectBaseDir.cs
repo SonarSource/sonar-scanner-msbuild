@@ -25,7 +25,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_AllInRoot_NoWarning()
     {
-        var sut = new ScannerEngineInputGenerator(new(), logger);
+        var sut = new ScannerEngineInputGenerator(new(), runtime);
         var projectPaths = new[]
         {
             new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Lib")),
@@ -34,8 +34,8 @@ public partial class ScannerEngineInputGeneratorTest
         };
 
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name"));
-        logger.AssertNoWarningsLogged();
-        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
+        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     // On Unix, there always is a best common root "/" and there are never projects outside of the root.
@@ -44,7 +44,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_ProjectOutsideRoot_LogsWarning()
     {
-        var sut = new ScannerEngineInputGenerator(new(), logger);
+        var sut = new ScannerEngineInputGenerator(new(), runtime);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Src"),
@@ -54,9 +54,9 @@ public partial class ScannerEngineInputGeneratorTest
         };
 
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
-        logger.AssertWarningLogged(@"Directory 'D:\OutsideRoot' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
-        logger.AssertWarningLogged(@"Directory 'E:\AlsoOutside' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
-        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
+        runtime.Logger.AssertWarningLogged(@"Directory 'D:\OutsideRoot' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
+        runtime.Logger.AssertWarningLogged(@"Directory 'E:\AlsoOutside' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
+        runtime.Logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     // On Linux there always is a best common root "/".
@@ -65,7 +65,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_NoBestCommonRoot_ReturnsNull()
     {
-        var sut = new ScannerEngineInputGenerator(new AnalysisConfig(), logger);
+        var sut = new ScannerEngineInputGenerator(new AnalysisConfig(), runtime);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\RootOnce"),
@@ -74,15 +74,15 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).Should().BeNull();
 
-        logger.AssertNoErrorsLogged();
-        logger.AssertNoWarningsLogged();
-        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
+        runtime.Logger.AssertNoErrorsLogged();
+        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_AllFilesInWorkingDirectory()
     {
-        var sut = new ScannerEngineInputGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Projects") }, logger);
+        var sut = new ScannerEngineInputGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Projects") }, runtime);
         var projectPaths = new[]
         {
             new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name", "Lib")),
@@ -91,15 +91,15 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Projects"));
 
-        logger.AssertNoWarningsLogged();
-        logger.DebugMessages.Should().BeEquivalentTo($"Using working directory as project base directory: '{Path.Combine(TestUtils.DriveRoot(), "Projects")}'.");
-        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
+        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Logger.DebugMessages.Should().BeEquivalentTo($"Using working directory as project base directory: '{Path.Combine(TestUtils.DriveRoot(), "Projects")}'.");
+        runtime.Logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_FallsBackToCommonPath()
     {
-        var sut = new ScannerEngineInputGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Solution", "Net") }, logger);
+        var sut = new ScannerEngineInputGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = Path.Combine(TestUtils.DriveRoot(), "Solution", "Net") }, runtime);
         var projectPaths = new[]
         {
             new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Lib")),
@@ -108,15 +108,15 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Solution"));
 
-        logger.AssertNoWarningsLogged();
-        logger.DebugMessages.Should().ContainSingle().Which.Should().BeIgnoringLineEndings(
+        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Logger.DebugMessages.Should().ContainSingle().Which.Should().BeIgnoringLineEndings(
             $"""
             Using longest common projects path as a base directory: '{Path.Combine(TestUtils.DriveRoot(), "Solution")}'. Identified project paths:
             {Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Lib")}
             {Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Src")}
             {Path.Combine(TestUtils.DriveRoot(), "Solution", "JS")}
             """);
-        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
+        runtime.Logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     // On Unix, there always is a best common root "/".
@@ -125,8 +125,8 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseSensitive_NoRoot_ReturnsNull()
     {
-        var additionalFileService = Substitute.For<AdditionalFilesService>(Substitute.For<IDirectoryWrapper>(), logger);
-        var sut = new ScannerEngineInputGenerator(new() { SonarOutputDir = @"C:\fallback" }, logger, new RoslynV1SarifFixer(logger), MockRuntimeInformation.NonWindows, additionalFileService);
+        var additionalFileService = Substitute.For<AdditionalFilesService>(Substitute.For<IDirectoryWrapper>(), runtime.Logger);
+        var sut = new ScannerEngineInputGenerator(new() { SonarOutputDir = @"C:\fallback" }, runtime, new RoslynV1SarifFixer(runtime.Logger), MockRuntimeInformation.NonWindows, additionalFileService);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),
@@ -134,9 +134,9 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).Should().BeNull();
 
-        logger.AssertNoWarningsLogged();
-        logger.AssertNoErrorsLogged();
-        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
+        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Logger.AssertNoErrorsLogged();
+        runtime.Logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     // Case sensitive tests don't apply to Unix.
@@ -145,8 +145,8 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseInsensitive()
     {
-        var additionalFileService = Substitute.For<AdditionalFilesService>(Substitute.For<IDirectoryWrapper>(), logger);
-        var sut = new ScannerEngineInputGenerator(new(), logger, new RoslynV1SarifFixer(logger), MockRuntimeInformation.Windows, additionalFileService);
+        var additionalFileService = Substitute.For<AdditionalFilesService>(Substitute.For<IDirectoryWrapper>(), runtime.Logger);
+        var sut = new ScannerEngineInputGenerator(new(), runtime, new RoslynV1SarifFixer(runtime.Logger), MockRuntimeInformation.Windows, additionalFileService);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),
@@ -154,8 +154,8 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
 
-        logger.AssertNoWarningsLogged();
-        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
+        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     // On Unix, there always is a best common root "/".
@@ -164,7 +164,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_WorkingDirectory_FilesOutsideWorkingDirectory_NoCommonRoot()
     {
-        var sut = new ScannerEngineInputGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Solution" }, logger);
+        var sut = new ScannerEngineInputGenerator(new AnalysisConfig { SonarScannerWorkingDirectory = @"C:\Solution" }, runtime);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Solution\Net\Name\Lib"),
@@ -173,15 +173,15 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Solution\Net\Name");
 
-        logger.Warnings.Should().BeEquivalentTo(@"Directory 'D:\SomewhereElse' is not located under the base directory 'C:\Solution\Net\Name' and will not be analyzed.");
-        logger.DebugMessages.Should().BeEquivalentTo("""
-                Using longest common projects path as a base directory: 'C:\Solution\Net\Name'. Identified project paths:
-                C:\Solution\Net\Name\Lib
-                C:\Solution\Net\Name\Src
-                D:\SomewhereElse
-                """
-            .ToUnixLineEndings());
-        logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
+        runtime.Logger.Warnings.Should().BeEquivalentTo(@"Directory 'D:\SomewhereElse' is not located under the base directory 'C:\Solution\Net\Name' and will not be analyzed.");
+        runtime.Logger.DebugMessages.Should().BeEquivalentTo("""
+            Using longest common projects path as a base directory: 'C:\Solution\Net\Name'. Identified project paths:
+            C:\Solution\Net\Name\Lib
+            C:\Solution\Net\Name\Src
+            D:\SomewhereElse
+            """
+                .ToUnixLineEndings());
+        runtime.Logger.AssertSingleInfoMessageExists(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod] // the priority is local > scannerEnv > server.
@@ -210,11 +210,11 @@ public partial class ScannerEngineInputGeneratorTest
             scope.SetVariable("SONARQUBE_SCANNER_PARAMS", $$"""{"{{projectBaseDirKey}}": "{{scannerEnv}}"}""");
         }
 
-        new ScannerEngineInputGenerator(config, logger).ComputeProjectBaseDir([]).Name.Should().Be(expected);
-        logger.DebugMessages.Should().ContainSingle(x => x.StartsWith("Using user supplied project base directory:"));
+        new ScannerEngineInputGenerator(config, runtime).ComputeProjectBaseDir([]).Name.Should().Be(expected);
+        runtime.Logger.DebugMessages.Should().ContainSingle(x => x.StartsWith("Using user supplied project base directory:"));
     }
 
-    private static string ComputeProjectBaseDir(string teamBuildValue, string userValue, string[] projectPaths)
+    private string ComputeProjectBaseDir(string teamBuildValue, string userValue, string[] projectPaths)
     {
         var config = new AnalysisConfig();
         var logger = new TestLogger();
@@ -222,9 +222,9 @@ public partial class ScannerEngineInputGeneratorTest
         config.SourcesDirectory = teamBuildValue;
         config.LocalSettings ??= new();
         config.LocalSettings.Add(new(SonarProperties.ProjectBaseDir, userValue));
-        return new ScannerEngineInputGenerator(config, logger).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())?.FullName;
+        return new ScannerEngineInputGenerator(config, runtime).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())?.FullName;
     }
 
-    private static void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths) =>
+    private void VerifyProjectBaseDir(string expectedValue, string teamBuildValue, string userValue, string[] projectPaths) =>
         ComputeProjectBaseDir(teamBuildValue, userValue, projectPaths).Should().Be(expectedValue);
 }
