@@ -42,7 +42,9 @@ class CodeCoverageTest {
   @Test
   void whenRunningOutsideAzureDevops_coverageIsNotImported() {
     try (var buildDirectory = new TempDirectory("junit-CodeCoverage.BuildDirectory.Local-")) {
-      var logs = createContextWithCoverage(buildDirectory, ScannerClassifier.NET).runAnalysis().end().getLogs();
+      var context = createContextWithCoverage(buildDirectory, ScannerClassifier.NET);
+      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-862
+      var logs = context.runAnalysis().end().getLogs();
 
       if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
         assertThat(logs).contains(

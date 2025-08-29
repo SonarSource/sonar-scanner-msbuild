@@ -116,7 +116,10 @@ class SslTest {
   void trustedSelfSignedCertificate_WindowsRoot() {
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET_FRAMEWORK);
-      context.begin.setProperty("sonar.host.url", server.getUrl());
+      context.begin
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true");  // TODO: remove this in SCAN4NET-859
+
       var logs = context.runAnalysis().end().getLogs();
 
       assertThat(logs)
@@ -129,7 +132,9 @@ class SslTest {
   void trustedSelfSignedCertificate_ExistingValueInScannerOpts() {
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
-      context.begin.setProperty("sonar.host.url", server.getUrl());
+      context.begin
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       var logs = context.runAnalysis().end().getLogs();
 
       assertThat(logs).contains("SONAR_SCANNER_OPTS=-Xmx2048m");
@@ -157,7 +162,8 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
@@ -176,7 +182,8 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       var logs = context.runAnalysis().end().getLogs();
 
       assertThat(logs)
@@ -210,7 +217,8 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
@@ -270,7 +278,9 @@ class SslTest {
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
         .setDebugLogs()
-        .setProperty("sonar.userHome", sonarHome);
+        .setProperty("sonar.userHome", sonarHome)
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+
       var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
@@ -304,6 +314,7 @@ class SslTest {
         .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true") // TODO: remove this in SCAN4NET-859
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
@@ -320,6 +331,7 @@ class SslTest {
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
         .setProperty("sonar.userHome", sonarHome)
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true") // TODO: remove this in SCAN4NET-859
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
@@ -335,7 +347,8 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setDebugLogs()
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
 
       var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {

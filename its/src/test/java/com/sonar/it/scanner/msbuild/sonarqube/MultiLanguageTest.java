@@ -130,6 +130,7 @@ class MultiLanguageTest {
   @MSBuildMinVersion(16)
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-866
     context.begin.setDebugLogs();
     context.begin.CreateAndSetUserHomeFolder("junit-sdkFormat-");
     // Begin step runs in MultiLanguageSupport
@@ -235,6 +236,7 @@ class MultiLanguageTest {
 
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.begin.CreateAndSetUserHomeFolder("junit-react-");
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-866
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
@@ -269,6 +271,7 @@ class MultiLanguageTest {
     }
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.begin.CreateAndSetUserHomeFolder("junit-angular-");
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-866
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
