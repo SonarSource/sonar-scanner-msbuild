@@ -145,15 +145,14 @@ public class ConsoleLogger : ILogger
     public void AddTelemetryMessage(string key, object value) =>
         telemetryMessages.Add(new(key, value));
 
-    public void WriteTelemetry(string outputFolder)
+    public void WriteTelemetry(string outputFolder, bool postProcessing = false)
     {
         var telemetryMessagesJson = new StringBuilder();
         foreach (var message in telemetryMessages)
         {
             telemetryMessagesJson.AppendLine(ParseMessage(message));
         }
-
-        var path = Path.Combine(outputFolder, FileConstants.TelemetryFileName);
+        var path = Path.Combine(outputFolder, postProcessing ? FileConstants.PostProcessTelemetryFileName : FileConstants.TelemetryFileName);
         var telemetry = telemetryMessagesJson.ToString();
         try
         {
