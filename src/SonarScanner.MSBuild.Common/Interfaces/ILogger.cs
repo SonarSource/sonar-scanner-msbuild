@@ -79,7 +79,7 @@ public interface ILogger
     /// <summary>
     /// Writes the collection of telemetry messages to the specified output folder.
     /// </summary>
-    void WriteTelemetry(string outputFolder, bool postProcessing = false);
+    void WriteTelemetry(string outputFolder, bool isPostProcess = false);
 
     /// <summary>
     /// Gets or sets the level of detail to show in the log

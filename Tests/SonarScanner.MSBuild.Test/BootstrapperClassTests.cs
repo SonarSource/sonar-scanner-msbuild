@@ -72,6 +72,8 @@ public class BootstrapperClassTests
                 "/d:sonar.host.url=http://host:9",
                 "/d:another.key=will be ignored");
             AssertPostProcessorNotCalled();
+            // PostProcessor was not called so no telemetry should have been written
+            TelemetryTestUtils.AssertTelemetryContent(logger, TelemetryPath());
         }
     }
 
@@ -226,6 +228,7 @@ public class BootstrapperClassTests
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(1);
             AssertPostProcessorArgs();
+            TelemetryTestUtils.AssertTelemetryContent(logger, TelemetryPath(), """{"dotnetenterprise.s4net.scannerEngine.analysisResult":"failure"}""");
         }
     }
 
@@ -238,6 +241,7 @@ public class BootstrapperClassTests
         {
             var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
             logger.AssertErrorsLogged(2);
+            TelemetryTestUtils.AssertTelemetryContent(logger, TelemetryPath(), """{"dotnetenterprise.s4net.scannerEngine.analysisResult":"failure"}""");
         }
     }
 
@@ -253,6 +257,7 @@ public class BootstrapperClassTests
             // The bootstrapper passes through any parameters it doesn't recognize so the post-processor
             // can decide whether to handle them or not
             AssertPostProcessorArgs("other params", "yet.more.params");
+            TelemetryTestUtils.AssertTelemetryContent(logger, TelemetryPath(), """{"dotnetenterprise.s4net.scannerEngine.analysisResult":"success"}""");
         }
     }
 
@@ -270,6 +275,7 @@ public class BootstrapperClassTests
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(2);
             AssertPostProcessorNotCalled();
+            TelemetryTestUtils.AssertTelemetryContent(logger, TelemetryPath(), """{"dotnetenterprise.s4net.scannerEngine.analysisResult":"failure"}""");
         }
     }
 
@@ -353,4 +359,7 @@ public class BootstrapperClassTests
 
     private void AssertPreProcessorArgs(params string[] expectedArgs) =>
         mockPreProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)));
+
+    private string TelemetryPath() =>
+        Path.Combine(TestContext.TestRunDirectory, TestContext.TestName);
 }

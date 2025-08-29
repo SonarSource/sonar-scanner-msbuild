@@ -19,7 +19,6 @@
  */
 
 using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild;
 
@@ -79,7 +78,7 @@ public class BootstrapperClass
         LogProcessingCompleted(phase, exitCode);
         if (phase == AnalysisPhase.PostProcessing)
         {
-            logger.WriteTelemetry(BuildSettings.GetSettingsFromEnvironment().SonarOutputDirectory, postProcessing: true);
+            logger.WriteTelemetry(BuildSettings.GetSettingsFromEnvironment().SonarOutputDirectory, isPostProcess: true);
         }
         return exitCode;
     }
@@ -144,6 +143,7 @@ public class BootstrapperClass
         if (!Directory.Exists(bootstrapSettings.TempDirectory))
         {
             logger.LogError(Resources.ERROR_TempDirDoesNotExist);
+            logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineAnalysisResult, "failure");
             return ErrorCode;
         }
 
