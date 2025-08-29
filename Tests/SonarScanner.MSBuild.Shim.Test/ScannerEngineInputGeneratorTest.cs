@@ -31,42 +31,22 @@ public partial class ScannerEngineInputGeneratorTest
         + "If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. "
         + "The path may be relative (to the directory from which the analysis was started) or absolute.";
 
-    private readonly TestLogger logger = new();
+    private readonly TestRuntime runtime = new();
 
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void Constructor_WhenConfigIsNull_Throws() =>
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, new TestLogger())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisConfig");
-
-    [TestMethod]
-    public void Constructor_FirstConstructor_WhenLoggerIsNull_Throws() =>
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), null, new RoslynV1SarifFixer(new TestLogger()), new RuntimeInformationWrapper(), null))
-            .Should().ThrowExactly<ArgumentNullException>()
-            .And.ParamName.Should().Be("logger");
-
-    [TestMethod]
-    public void Constructor_SecondConstructor_WhenLoggerIsNull_Throws() =>
-        // the RoslynV1SarifFixer will throw
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), null)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-
-    [TestMethod]
-    public void Constructor_WhenFixerIsNull_Throws() =>
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), new TestLogger(), null, new RuntimeInformationWrapper(), null))
-            .Should().ThrowExactly<ArgumentNullException>()
-            .And.ParamName.Should().Be("fixer");
-
-    [TestMethod]
-    public void Constructor_WhenRuntimeInformationWrapperIsNull_Throws() =>
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), null, null))
-            .Should().ThrowExactly<ArgumentNullException>()
-            .And.ParamName.Should().Be("runtimeInformation");
-
-    [TestMethod]
-    public void Constructor_WhenAdditionalFileServiceIsNull_Throws() =>
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(new AnalysisConfig(), logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), null))
-            .Should().ThrowExactly<ArgumentNullException>()
-            .And.ParamName.Should().Be("additionalFilesService");
+    public void Constructor_Null_Throws()
+    {
+        var cnfg = new AnalysisConfig();
+        var rntm = runtime;
+        var rvsf = new RoslynV1SarifFixer(runtime.Logger);
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("fixer");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("additionalFilesService");
+    }
 
     [TestMethod]
     public void SingleClosestProjectOrDefault_WhenNoProjects_ReturnsNull() =>
@@ -152,23 +132,23 @@ public partial class ScannerEngineInputGeneratorTest
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
-    private static void AssertFailedToCreateScannerInput(AnalysisResult result, TestLogger logger)
+    private void AssertFailedToCreateScannerInput(AnalysisResult result)
     {
         result.FullPropertiesFilePath.Should().BeNull();
         result.ScannerEngineInput.Should().BeNull();
         result.RanToCompletion.Should().BeFalse();
         AssertNoValidProjects(result);
-        logger.AssertErrorsLogged();
+        runtime.Logger.AssertErrorsLogged();
     }
 
-    private void AssertScannerInputCreated(AnalysisResult result, TestLogger logger)
+    private void AssertScannerInputCreated(AnalysisResult result)
     {
         result.FullPropertiesFilePath.Should().NotBeNull();
         result.ScannerEngineInput.Should().NotBeNull();
         AssertValidProjectsExist(result);
         TestContext.AddResultFile(result.FullPropertiesFilePath);
         Console.WriteLine(result.ScannerEngineInput.ToString());
-        logger.AssertErrorsLogged(0);
+        runtime.Logger.AssertErrorsLogged(0);
     }
 
     private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, AnalysisResult actual) =>
@@ -222,11 +202,14 @@ public partial class ScannerEngineInputGeneratorTest
 
     private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig,
                                                   RoslynV1SarifFixer sarifFixer = null,
-                                                  RuntimeInformationWrapper runtimeInformation = null)
+                                                  PlatformOS os = PlatformOS.Unknown)
     {
-        sarifFixer ??= new RoslynV1SarifFixer(logger);
-        runtimeInformation ??= new RuntimeInformationWrapper();
-        return new(analysisConfig, logger, sarifFixer, runtimeInformation, new AdditionalFilesService(DirectoryWrapper.Instance, logger));
+        sarifFixer ??= new RoslynV1SarifFixer(runtime.Logger);
+        if (os != PlatformOS.Unknown)
+        {
+            runtime.ConfigureOS(os);
+        }
+        return new(analysisConfig, runtime, sarifFixer, new AdditionalFilesService(DirectoryWrapper.Instance, runtime.Logger));
     }
 
     private static ProjectData CreateProjectData(string fullPath) =>
