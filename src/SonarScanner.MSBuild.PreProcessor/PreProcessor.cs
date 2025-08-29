@@ -117,7 +117,7 @@ public class PreProcessor
             server.ServerVersion.ToString(),
             resolvedJavaExePath,
             scannerEngineJarPath,
-            runtime.Logger);
+            runtime);
 
         runtime.Logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
         runtime.Logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
