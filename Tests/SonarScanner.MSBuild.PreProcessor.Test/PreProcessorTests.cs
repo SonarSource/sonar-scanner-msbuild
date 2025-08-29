@@ -38,7 +38,7 @@ public partial class PreProcessorTests
     public void Execute_NullArguments_ThrowsArgumentNullException()
     {
         var factory = new MockObjectFactory();
-        var sut = new PreProcessor(factory, factory.Logger);
+        var sut = new PreProcessor(factory, factory.Runtime.Logger);
         sut.Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
     }
 
@@ -46,10 +46,10 @@ public partial class PreProcessorTests
     public async Task Execute_InvalidArguments_ReturnsFalseAndLogsError()
     {
         var factory = new MockObjectFactory();
-        var sut = new PreProcessor(factory, factory.Logger);
+        var sut = new PreProcessor(factory, factory.Runtime.Logger);
 
         (await sut.Execute(["invalid args"])).Should().Be(false);
-        factory.Logger.AssertErrorLogged("""
+        factory.Runtime.Logger.AssertErrorLogged("""
             Expecting at least the following command line argument:
             - SonarQube/SonarCloud project key
             The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
@@ -70,7 +70,7 @@ public partial class PreProcessorTests
         using var lockedFile = new FileStream(Path.Combine(configDirectory, "LockedFile.txt"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Logger.Errors.Should().ContainMatch($"Failed to create an empty directory '{configDirectory}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.*  Detailed error message: The process cannot access the file 'LockedFile.txt' because it is being used by another process.");
+        context.Factory.Runtime.Logger.Errors.Should().ContainMatch($"Failed to create an empty directory '{configDirectory}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.*  Detailed error message: The process cannot access the file 'LockedFile.txt' because it is being used by another process.");
     }
 
     [TestMethod]
@@ -91,7 +91,7 @@ public partial class PreProcessorTests
         context.Factory.Server.IsServerLicenseValidImplementation = () => throw new InvalidOperationException("Some error was thrown during license check.");
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Logger.AssertErrorLogged("Some error was thrown during license check.");
+        context.Factory.Runtime.Logger.AssertErrorLogged("Some error was thrown during license check.");
     }
 
     [TestMethod]
@@ -99,7 +99,7 @@ public partial class PreProcessorTests
     {
         using var context = new Context(TestContext);
         (await context.Execute(CreateArgs().Append("/install:false"))).Should().BeTrue();
-        context.Factory.Logger.AssertDebugLogged("Skipping installing the ImportsBefore targets file.");
+        context.Factory.Runtime.Logger.AssertDebugLogged("Skipping installing the ImportsBefore targets file.");
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ public partial class PreProcessorTests
         context.Factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Logger.AssertErrorLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
+        context.Factory.Runtime.Logger.AssertErrorLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
     }
 
     [TestMethod]
@@ -126,8 +126,8 @@ public partial class PreProcessorTests
 
         (await context.Execute(args)).Should().BeTrue();
 
-        context.Factory.Logger.AssertNoWarningsLogged();
-        context.Factory.Logger.AssertNoUIWarningsLogged();
+        context.Factory.Runtime.Logger.AssertNoWarningsLogged();
+        context.Factory.Runtime.Logger.AssertNoUIWarningsLogged();
     }
 
     [TestMethod]
@@ -167,8 +167,8 @@ public partial class PreProcessorTests
         context.AssertDirectoriesCreated();
         context.AssertDownloadMethodsCalled(1, 1, 2, 2);
 
-        context.Factory.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
-        context.Factory.Logger.AssertDebugLogged("Processing analysis cache");
+        context.Factory.Runtime.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
+        context.Factory.Runtime.Logger.AssertDebugLogged("Processing analysis cache");
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("9.10.1.2");
@@ -200,8 +200,8 @@ public partial class PreProcessorTests
 
         context.Factory.AssertMethodCalled(nameof(context.Factory.CreateRoslynAnalyzerProvider), 2); // C# and VBNet
         context.Factory.PluginCachePath.Should().Be(tmpCachePath);
-        context.Factory.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
-        context.Factory.Logger.AssertDebugLogged("Processing analysis cache");
+        context.Factory.Runtime.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
+        context.Factory.Runtime.Logger.AssertDebugLogged("Processing analysis cache");
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("9.10.1.2");
@@ -248,7 +248,7 @@ public partial class PreProcessorTests
 
         (await context.Execute()).Should().BeFalse();
 
-        context.Factory.Logger.AssertErrorLogged("Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!");
+        context.Factory.Runtime.Logger.AssertErrorLogged("Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!");
     }
 
     [TestMethod]
@@ -391,7 +391,7 @@ public partial class PreProcessorTests
             WorkingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             workingDirectory = new WorkingDirectoryScope(WorkingDir);
             Factory = factory ?? new MockObjectFactory();
-            PreProcessor = new PreProcessor(Factory, logger ?? Factory.Logger);
+            PreProcessor = new PreProcessor(Factory, logger ?? Factory.Runtime.Logger);
         }
 
         public void AssertDirectoriesCreated()
@@ -410,8 +410,8 @@ public partial class PreProcessorTests
         public AnalysisConfig AssertAnalysisConfig(int numAnalyzers)
         {
             var filePath = Factory.ReadSettings().AnalysisConfigFilePath;
-            Factory.Logger.AssertNoErrorsLogged();
-            Factory.Logger.AssertVerbosity(LoggerVerbosity.Debug);
+            Factory.Runtime.Logger.AssertNoErrorsLogged();
+            Factory.Runtime.Logger.AssertVerbosity(LoggerVerbosity.Debug);
 
             AssertConfigFileExists(filePath);
             var actualConfig = AnalysisConfig.Load(filePath);
