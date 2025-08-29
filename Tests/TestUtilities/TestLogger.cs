@@ -199,6 +199,14 @@ public class TestLogger : ILogger
         matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
     }
 
+    public void AssertInfoLogs(params string[] messages)
+    {
+        foreach (var message in messages)
+        {
+            AssertInfoLogged(message);
+        }
+    }
+
     public void AssertVerbosity(LoggerVerbosity expected) =>
         Verbosity.Should().Be(expected, "Logger verbosity mismatch");
 
