@@ -31,7 +31,7 @@ public partial class ScannerEngineInputGeneratorTest
         + "If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. "
         + "The path may be relative (to the directory from which the analysis was started) or absolute.";
 
-    private readonly TestRuntime runtime = new();
+    private readonly TestRuntime runtime = new() { Directory = DirectoryWrapper.Instance };
 
     public TestContext TestContext { get; set; }
 
@@ -209,7 +209,7 @@ public partial class ScannerEngineInputGeneratorTest
         {
             runtime.ConfigureOS(os);
         }
-        return new(analysisConfig, runtime, sarifFixer, new AdditionalFilesService(DirectoryWrapper.Instance, runtime.Logger));
+        return new(analysisConfig, runtime, sarifFixer, new(runtime));
     }
 
     private static ProjectData CreateProjectData(string fullPath) =>
