@@ -43,14 +43,14 @@ public static class AnalysisConfigGenerator
                                               string sonarQubeVersion,
                                               string resolvedJavaExePath,
                                               string resolvedEngineJarPath,
-                                              ILogger logger)
+                                              IRuntime runtime)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         _ = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
         _ = additionalSettings ?? throw new ArgumentNullException(nameof(additionalSettings));
         _ = serverProperties ?? throw new ArgumentNullException(nameof(serverProperties));
         _ = analyzersSettings ?? throw new ArgumentNullException(nameof(analyzersSettings));
-        _ = logger ?? throw new ArgumentNullException(nameof(logger));
+        _ = runtime ?? throw new ArgumentNullException(nameof(runtime));
         var config = new AnalysisConfig
         {
             SonarConfigDir = buildSettings.SonarConfigDirectory,
@@ -63,7 +63,7 @@ public static class AnalysisConfigGenerator
             ScanAllAnalysis = localSettings.ScanAllAnalysis,
             UseSonarScannerCli = localSettings.UseSonarScannerCli,
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
-                                                 || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
+                || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
             SonarQubeHostUrl = localSettings.ServerInfo.ServerUrl,
             SonarQubeVersion = sonarQubeVersion,
             SonarProjectKey = localSettings.ProjectKey,
@@ -73,8 +73,8 @@ public static class AnalysisConfigGenerator
             LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
-        var processRunner = new ProcessRunner(logger);
-        foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, processRunner, logger))
+        var processRunner = new ProcessRunner(runtime.Logger);
+        foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, processRunner, runtime))
         {
             processor.Update(config);
         }
@@ -87,7 +87,7 @@ public static class AnalysisConfigGenerator
                                                                           Dictionary<string, string> additionalSettings,
                                                                           IDictionary<string, string> serverProperties,
                                                                           IProcessRunner processRunner,
-                                                                          ILogger logger) =>
+                                                                          IRuntime runtime) =>
     [
         new InitializationProcessor(buildSettings, localSettings, additionalSettings, serverProperties), // this must be first
         new CoverageExclusionsProcessor(localSettings, serverProperties),
@@ -98,7 +98,7 @@ public static class AnalysisConfigGenerator
             FileWrapper.Instance,
             DirectoryWrapper.Instance,
             processRunner,
-            logger,
-            new OperatingSystemProvider(FileWrapper.Instance, logger))
+            runtime.Logger,
+            runtime.OperatingSystem)
     ];
 }
