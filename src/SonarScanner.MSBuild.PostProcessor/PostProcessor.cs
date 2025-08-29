@@ -78,7 +78,7 @@ public class PostProcessor : IPostProcessor
             return false;   // logging already done
         }
 
-        var analysisResult = GenerateAndValidatePropertiesFile(config, provider);
+        var analysisResult = CreateAnalysisResult(config, provider);
         if (analysisResult.FullPropertiesFilePath is null)
         {
             return false;
