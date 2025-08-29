@@ -23,9 +23,9 @@ using static SonarScanner.MSBuild.Common.CommandLine.CommandLineFlagPrefix;
 namespace SonarScanner.MSBuild.PreProcessor;
 
 /// <summary>
-/// Process and validates the pre-processor command line arguments and reports any errors
+/// Process and validates the pre-processor command line arguments and reports any errors.
 /// </summary>
-public static class ArgumentProcessor // was internal
+public static class ArgumentProcessor
 {
     private const string ProjectKeyId = "projectKey.id";
     private const string ProjectNameId = "projectName.id";
@@ -33,8 +33,8 @@ public static class ArgumentProcessor // was internal
     private const string OrganizationId = "organization.id";
     private const string InstallLoaderTargetsId = "installLoaderTargets.id";
 
-    private static readonly IList<ArgumentDescriptor> Descriptors = new List<ArgumentDescriptor>
-    {
+    private static readonly IList<ArgumentDescriptor> Descriptors =
+    [
         new(id: ProjectKeyId, prefixes: GetPrefixedFlags("key:", "k:"), required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectKey),
         new(id: ProjectNameId, prefixes: GetPrefixedFlags("name:", "n:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName),
         new(id: ProjectVersionId, prefixes: GetPrefixedFlags("version:", "v:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion),
@@ -43,7 +43,7 @@ public static class ArgumentProcessor // was internal
 
         FilePropertyProvider.Descriptor,
         CmdLineArgPropertyProvider.Descriptor
-    };
+    ];
 
     static ArgumentProcessor()
     {

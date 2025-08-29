@@ -63,8 +63,8 @@ public class ArgumentProcessorTests
 
     [TestMethod]
     public void PreArgProc_HostAndSonarcloudUrlError() =>
-        CheckProcessingFails("/k:key", "/d:sonar.host.url=firstUrl", "/d:sonar.scanner.sonarcloudUrl=secondUrl")
-            .Logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
+        CheckProcessingFails("/k:key", "/d:sonar.host.url=firstUrl", "/d:sonar.scanner.sonarcloudUrl=secondUrl").Logger
+            .AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
             + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
 
     [TestMethod]
@@ -158,13 +158,13 @@ public class ArgumentProcessorTests
     [DataRow("global")]
     [DataRow(@"""us""")]
     public void PreArgProc_Region_Unknown(string region) =>
-        CheckProcessingFails("/k:key", $"/d:sonar.region={region}")
-            .Logger.AssertErrorLogged($"Unsupported region '{region}'. List of supported regions: 'us'. Please check the 'sonar.region' property.");
+        CheckProcessingFails("/k:key", $"/d:sonar.region={region}").Logger
+            .AssertErrorLogged($"Unsupported region '{region}'. List of supported regions: 'us'. Please check the 'sonar.region' property.");
 
     [TestMethod]
     public void PreArgProc_Region_Invalid() =>
-        CheckProcessingFails("/k:key", "/d:sonar.region=")
-            .Logger.AssertErrorLogged("The format of the analysis property sonar.region= is invalid");
+        CheckProcessingFails("/k:key", "/d:sonar.region=").Logger
+            .AssertErrorLogged("The format of the analysis property sonar.region= is invalid");
 
     [TestMethod]
     [DataRow("us", null, null, null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
@@ -411,9 +411,9 @@ public class ArgumentProcessorTests
         runtime.Logger.AssertSingleErrorExists("/versIOn:1.0");
     }
 
-    [DataRow(new string[] { "/key:my.key", "/name:my name", "/version:1.2", "/k:key2" }, new string[] { "/k:key2", "my.key" })]
-    [DataRow(new string[] { "/key:my.key", "/name:my name", "/version:1.2", "/name:dupName" }, new string[] { "/name:dupName", "my name" })]
-    [DataRow(new string[] { "/key:my.key", "/name:my name", "/version:1.2", "/v:version2.0" }, new string[] { "/v:version2.0", "1.2" })]
+    [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/k:key2" }, new[] { "/k:key2", "my.key" })]
+    [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/name:dupName" }, new[] { "/name:dupName", "my name" })]
+    [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/v:version2.0" }, new[] { "/v:version2.0", "1.2" })]
     [TestMethod]
     public void PreArgProc_SingleDuplicate_ProcessingFails(string[] args, string[] expectedError)
     {
@@ -521,15 +521,15 @@ public class ArgumentProcessorTests
         runtime.Logger.AssertErrorsLogged(2);
     }
 
-    [DataRow(new string[] { "/d:sonar.projectKey=value1" }, new string[] { SonarProperties.ProjectKey, "/k" })]
-    [DataRow(new string[] { "/d:sonar.projectName=value1" }, new string[] { SonarProperties.ProjectName, "/n" })]
-    [DataRow(new string[] { "/d:sonar.projectVersion=value1" }, new string[] { SonarProperties.ProjectVersion, "/v" })]
-    [DataRow(new string[] { "/organization:my_org", "/d:sonar.organization=value1" }, new string[] { SonarProperties.Organization, "/o" })]
-    [DataRow(new string[] { "/key:my.key", "/name:my name", "/version:1.2", "/d:sonar.working.directory=value1" }, new string[] { SonarProperties.WorkingDirectory })]
+    [DataRow(new[] { "/d:sonar.projectKey=value1" }, new[] { SonarProperties.ProjectKey, "/k" })]
+    [DataRow(new[] { "/d:sonar.projectName=value1" }, new[] { SonarProperties.ProjectName, "/n" })]
+    [DataRow(new[] { "/d:sonar.projectVersion=value1" }, new[] { SonarProperties.ProjectVersion, "/v" })]
+    [DataRow(new[] { "/organization:my_org", "/d:sonar.organization=value1" }, new[] { SonarProperties.Organization, "/o" })]
+    [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/d:sonar.working.directory=value1" }, new[] { SonarProperties.WorkingDirectory })]
     [TestMethod]
     public void PreArgProc_Disallowed_DynamicSettings_ProcessingFails(string[] args, string[] errors) =>
-        CheckProcessingFails([.. args, "/key:my.key", "/name:my name", "/version:1.2"])
-            .Logger.AssertSingleErrorExists(errors);
+        CheckProcessingFails([.. args, "/key:my.key", "/name:my name", "/version:1.2"]).Logger
+            .AssertSingleErrorExists(errors);
 
     [DataRow("/organization:my_org", "my_org")]
     [DataRow("/o:my_org", "my_org")]
@@ -616,8 +616,8 @@ public class ArgumentProcessorTests
     [DataRow("gibberish")]
     [DataRow(" ")]
     public void PreArgProc_SkipJreProvisioning_SetInvalid(string skipJreProvisioning) =>
-        CheckProcessingFails("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}")
-            .Logger.AssertErrorLogged("The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
+        CheckProcessingFails("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}").Logger
+            .AssertErrorLogged("The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
 
     [TestMethod]
     public void PreArgProc_SkipJreProvisioning_NotSet() =>
@@ -658,8 +658,8 @@ public class ArgumentProcessorTests
     [DataRow("gibberish")]
     [DataRow(" ")]
     public void PreArgProc_UseSonarScannerCli_SetInvalid(string useSonarScannerCli) =>
-        CheckProcessingFails("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCli}")
-            .Logger.AssertErrorLogged("The argument 'sonar.scanner.useSonarScannerCLI' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
+        CheckProcessingFails("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCli}").Logger
+            .AssertErrorLogged("The argument 'sonar.scanner.useSonarScannerCLI' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
 
     [TestMethod]
     public void PreArgProc_UseSonarScannerCli_NotSet() =>
@@ -677,8 +677,8 @@ public class ArgumentProcessorTests
     [DataRow("gibberish")]
     [DataRow(" ")]
     public void PreArgProc_ScanAllAnalysis_SetInvalid(string scanAll) =>
-        CheckProcessingFails("/k:key", $"/d:sonar.scanner.scanAll={scanAll}")
-            .Logger.AssertErrorLogged("The argument 'sonar.scanner.scanAll' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
+        CheckProcessingFails("/k:key", $"/d:sonar.scanner.scanAll={scanAll}").Logger
+            .AssertErrorLogged("The argument 'sonar.scanner.scanAll' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
 
     [TestMethod]
     public void PreArgProc_ScanAllAnalysis_NotSet() =>
@@ -789,8 +789,8 @@ public class ArgumentProcessorTests
 
     [TestMethod]
     public void PreArgProc_Fail_TruststorePassword_Only() =>
-        CheckProcessingFails("/k:key", @"/d:sonar.scanner.truststorePassword=changeit")
-            .Logger.Errors.Should().Contain("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
+        CheckProcessingFails("/k:key", @"/d:sonar.scanner.truststorePassword=changeit").Logger.Errors
+            .Should().Contain("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
 
     [TestMethod]
     [DataRow(@"/d:sonar.scanner.truststorePassword=changeit", "changeit")]
@@ -983,7 +983,7 @@ public class ArgumentProcessorTests
         actualValue.Should().Be(value, "Dynamic setting does not have the expected value");
 
         // Check the public list of properties
-        var found = Property.TryGetProperty(key, actual.AllProperties(), out Property match);
+        var found = Property.TryGetProperty(key, actual.AllProperties(), out var match);
         found.Should().BeTrue("Failed to find the expected property. Key: {0}", key);
         match.Should().NotBeNull("Returned property should not be null. Key: {0}", key);
         match.Value.Should().Be(value, "Property does not have the expected value");
