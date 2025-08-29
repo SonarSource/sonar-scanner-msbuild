@@ -391,7 +391,7 @@ public class SonarScannerWrapperTests
     public void SonarScanner_TruststorePasswordLinux_ShouldBeInEnv()
     {
         var osProvider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
-        osProvider.IsUnix().Returns(true);
+        osProvider.OperatingSystem().Returns(PlatformOS.Linux);
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable("SONAR_SCANNER_OPTS", null);
 

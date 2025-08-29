@@ -53,8 +53,11 @@ public class OperatingSystemProvider
     public virtual PlatformOS OperatingSystem() =>
         operatingSystem.Value;
 
-    public virtual bool IsUnix() =>
+    public bool IsUnix() =>
         OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine or PlatformOS.MacOSX;
+
+    public bool IsWindows() =>
+        OperatingSystem() == PlatformOS.Windows;
 
     [ExcludeFromCodeCoverage]   // We only collect coverage from Windows UTs.
     public virtual void SetPermission(string destinationPath, int mode)

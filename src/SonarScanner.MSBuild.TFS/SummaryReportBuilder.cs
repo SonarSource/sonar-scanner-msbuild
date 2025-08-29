@@ -34,13 +34,13 @@ public class SummaryReportBuilder
 
     private readonly ILegacyTeamBuildFactory legacyTeamBuildFactory;
     private readonly AnalysisConfig config;
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
 
-    public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, AnalysisConfig config, ILogger logger)
+    public SummaryReportBuilder(ILegacyTeamBuildFactory legacyTeamBuildFactory, AnalysisConfig config, IRuntime runtime)
     {
         this.legacyTeamBuildFactory = legacyTeamBuildFactory ?? throw new ArgumentNullException(nameof(legacyTeamBuildFactory));
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
     }
 
     /// <summary>
@@ -49,16 +49,16 @@ public class SummaryReportBuilder
     public virtual void GenerateReports(IBuildSettings settings, bool ranToCompletion, string fullPropertiesFilePath)
     {
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
-        var allProjects = ProjectLoader.LoadFrom(config.SonarOutputDir).ToProjectData(new RuntimeInformationWrapper().IsWindows, logger);
+        var allProjects = ProjectLoader.LoadFrom(config.SonarOutputDir).ToProjectData(runtime.OperatingSystem.IsWindows(), runtime.Logger);
         if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
-            UpdateLegacyTeamBuildSummary(new SummaryReportData(config, allProjects, ranToCompletion, logger));
+            UpdateLegacyTeamBuildSummary(new SummaryReportData(config, allProjects, ranToCompletion, runtime.Logger));
         }
     }
 
     private void UpdateLegacyTeamBuildSummary(SummaryReportData summary)
     {
-        logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
+        runtime.Logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
         using var summaryLogger = legacyTeamBuildFactory.BuildLegacyBuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri());
         summaryLogger.WriteMessage(Resources.WARN_XamlBuildDeprecated);
         // Add a link to SonarQube dashboard if analysis succeeded
