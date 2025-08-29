@@ -74,6 +74,7 @@ class BaseDirTest {
   @EnabledOnOs(OS.WINDOWS)
   void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() {
     var context = createContextWithoutProjectBasedDir("TwoDrivesThreeProjects");
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-861
     try {
       TestUtils.createVirtualDrive("Y:", context.projectDir, "DriveY");
       var logs = context.runAnalysis().end().getLogs();
@@ -147,7 +148,9 @@ class BaseDirTest {
     // tempDirectoryName = "junit5-ContextExtension-projectBaseDir_Relative-11477225628510485675"
     // projectBaseDir = "..\.." is relative to the projectDir. That is "C:\Windows\Temp\", so component keys should start with tempDirectoryName.
     var tempDirectoryName = context.projectDir.getParent().getFileName().toString();
-    context.begin.setProperty("sonar.projectBaseDir", Paths.get("..", "..").toString());  // Relative from scanner working directory
+    context.begin
+      .setProperty("sonar.projectBaseDir", Paths.get("..", "..").toString())  // Relative from scanner working directory
+      .setProperty("sonar.scanner.useSonarScannerCLI", "true");   // TODO: remove in SCAN4NET-861
     context.runAnalysis();
 
     assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
