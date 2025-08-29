@@ -42,7 +42,7 @@ public sealed class PreProcessor : IPreProcessor
     public async Task<bool> Execute(IEnumerable<string> args)
     {
         runtime.Logger.SuspendOutput();
-        var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime.Logger);
+        var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime);
 
         if (processedArgs is null)
         {
