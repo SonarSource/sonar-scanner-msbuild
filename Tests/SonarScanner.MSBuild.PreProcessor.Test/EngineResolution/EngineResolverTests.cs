@@ -69,11 +69,11 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "Using local sonar engine provided by sonar.scanner.engineJarPath=local/path/to/engine.jar");
 
-        TelemetryContent(Path.Combine(TestContext.TestRunDirectory, TestContext.TestName))
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Disabled"}""",
-                """{"dotnetenterprise.s4net.scannerEngine.download":"UserSupplied"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            runtime.Logger,
+            TelemetryDirectory(),
+            """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Disabled"}""",
+            """{"dotnetenterprise.s4net.scannerEngine.download":"UserSupplied"}""");
     }
 
     [TestMethod]
@@ -91,10 +91,10 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
 
-        TelemetryContent(Path.Combine(TestContext.TestRunDirectory, TestContext.TestName))
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Unsupported"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            runtime.Logger,
+            TelemetryDirectory(),
+            """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Unsupported"}""");
     }
 
     [TestMethod]
@@ -111,10 +111,10 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.");
 
-        TelemetryContent(Path.Combine(TestContext.TestRunDirectory, TestContext.TestName))
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            runtime.Logger,
+            TelemetryDirectory(),
+            """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}""");
     }
 
     [TestMethod]
@@ -131,11 +131,11 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             $"EngineResolver: Cache hit '{CachedEnginePath}'.");
 
-        TelemetryContent(Path.Combine(TestContext.TestRunDirectory, TestContext.TestName))
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}""",
-                """{"dotnetenterprise.s4net.scannerEngine.download":"CacheHit"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            runtime.Logger,
+            TelemetryDirectory(),
+            """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}""",
+            """{"dotnetenterprise.s4net.scannerEngine.download":"CacheHit"}""");
     }
 
     [TestMethod]
@@ -153,12 +153,12 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             $"EngineResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.");
 
-        TelemetryContent(Path.Combine(TestContext.TestRunDirectory, TestContext.TestName))
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}""",
-                """{"dotnetenterprise.s4net.scannerEngine.download":"Failed"}""",
-                """{"dotnetenterprise.s4net.scannerEngine.download":"Failed"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            runtime.Logger,
+            TelemetryDirectory(),
+            """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}""",
+            """{"dotnetenterprise.s4net.scannerEngine.download":"Failed"}""",
+            """{"dotnetenterprise.s4net.scannerEngine.download":"Failed"}""");
     }
 
     [TestMethod]
@@ -187,11 +187,11 @@ public class EngineResolverTests
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
-        TelemetryContent(Path.Combine(TestContext.TestRunDirectory, TestContext.TestName))
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}""",
-                """{"dotnetenterprise.s4net.scannerEngine.download":"Downloaded"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            runtime.Logger,
+            TelemetryDirectory(),
+            """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}""",
+            """{"dotnetenterprise.s4net.scannerEngine.download":"Downloaded"}""");
     }
 
     [TestMethod]
@@ -213,12 +213,12 @@ public class EngineResolverTests
             "The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
 
-        TelemetryContent(Path.Combine(TestContext.TestRunDirectory, TestContext.TestName))
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}""",
-                """{"dotnetenterprise.s4net.scannerEngine.download":"Failed"}""",
-                """{"dotnetenterprise.s4net.scannerEngine.download":"Failed"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            runtime.Logger,
+            TelemetryDirectory(),
+            """{"dotnetenterprise.s4net.scannerEngine.newBootstrapping":"Enabled"}""",
+            """{"dotnetenterprise.s4net.scannerEngine.download":"Failed"}""",
+            """{"dotnetenterprise.s4net.scannerEngine.download":"Failed"}""");
     }
 
     private void AssertDebugMessages(params string[] messages) =>
@@ -236,23 +236,6 @@ public class EngineResolverTests
         runtime.Logger.DebugMessages.Should().Equal(expected);
     }
 
-    private string TelemetryContent(string telemetryDirectory)
-    {
-        Directory.CreateDirectory(telemetryDirectory);
-        runtime.Logger.WriteTelemetry(telemetryDirectory);
-        var expectedTelemetryLocation = Path.Combine(telemetryDirectory, FileConstants.TelemetryFileName);
-        File.Exists(expectedTelemetryLocation).Should().BeTrue();
-        return File.ReadAllText(expectedTelemetryLocation);
-    }
-
-    // Contents are created with string builder to have the correct line endings for each OS
-    private static string Contents(params string[] telemetryMessages)
-    {
-        var st = new StringBuilder();
-        foreach (var message in telemetryMessages)
-        {
-            st.AppendLine(message);
-        }
-        return st.ToString();
-    }
+    private string TelemetryDirectory() =>
+        Path.Combine(TestContext.TestRunDirectory, TestContext.TestName);
 }
