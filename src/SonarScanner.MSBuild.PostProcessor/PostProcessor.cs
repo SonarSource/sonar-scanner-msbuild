@@ -20,13 +20,12 @@
 
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
-using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.PostProcessor;
 
-public class PostProcessor : IPostProcessor
+public class PostProcessor
 {
     private readonly SonarScannerWrapper sonarScanner;
     private readonly SonarEngineWrapper sonarEngine;
@@ -58,7 +57,7 @@ public class PostProcessor : IPostProcessor
         this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
     }
 
-    public bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings)
+    public virtual bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
         _ = config ?? throw new ArgumentNullException(nameof(config));
