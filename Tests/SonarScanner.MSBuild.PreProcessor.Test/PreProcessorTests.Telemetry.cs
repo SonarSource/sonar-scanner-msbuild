@@ -38,7 +38,8 @@ public partial class PreProcessorTests
                 """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
                 """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
-                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}"""));
+                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
+                """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
     }
 
     [TestMethod]
@@ -58,7 +59,8 @@ public partial class PreProcessorTests
                 """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_ANALYSIS_XML"}""",
                 """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
-                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}"""));
+                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
+                """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
     }
 
     [TestMethod]
@@ -73,7 +75,8 @@ public partial class PreProcessorTests
                 """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_SCANNER_PARAMS"}""",
                 """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
-                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}"""));
+                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
+                """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
     }
 
     [TestMethod]
@@ -92,7 +95,8 @@ public partial class PreProcessorTests
                 """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
                 """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
                 """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
-                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}"""));
+                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
+                """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
     }
 
     // Contents are created with string builder to have the correct line endings for each OS
