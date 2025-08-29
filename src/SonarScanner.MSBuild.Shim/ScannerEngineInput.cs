@@ -34,7 +34,7 @@ public class ScannerEngineInput
     private readonly JArray scannerProperties = [];
     private readonly JProperty modules;
 
-    public ScannerEngineInput(AnalysisConfig config)
+    public ScannerEngineInput(AnalysisConfig config, IAnalysisPropertyProvider provider)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
         root = new JObject
@@ -43,11 +43,21 @@ public class ScannerEngineInput
         };
         modules = new JProperty("value", string.Empty);
         Add("sonar.modules", modules);
+        if (provider.TryGetValue(SonarProperties.SonarToken, out var token))
+        {
+            Add(SonarProperties.SonarToken, token);
+        }
+        else if (provider.TryGetValue(SonarProperties.SonarUserName, out var userName)
+            && provider.TryGetValue(SonarProperties.SonarPassword, out var password))
+        {
+            Add(SonarProperties.SonarUserName, userName);
+            Add(SonarProperties.SonarPassword, password);
+        }
     }
 
     public ScannerEngineInput CloneWithoutSensitiveData()
     {
-        var result = new ScannerEngineInput(config);
+        var result = new ScannerEngineInput(config, new ListPropertiesProvider());
         result.moduleKeys.UnionWith(moduleKeys);
         foreach (var property in scannerProperties)
         {
@@ -96,7 +106,8 @@ public class ScannerEngineInput
     {
         _ = properties ?? throw new ArgumentNullException(nameof(properties));
         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/543 We should no longer pass the sonar.verbose=true parameter to the scanner CLI
-        foreach (var setting in properties.Where(x => x.Id != SonarProperties.Verbose))
+        // We add ProjectBaseDir in AddConfig, if the user specifies it, this results in a duplicate property.
+        foreach (var setting in properties.Where(x => x.Id != SonarProperties.Verbose && x.Id != SonarProperties.ProjectBaseDir))
         {
             Add(setting.Id, setting.Value);
         }

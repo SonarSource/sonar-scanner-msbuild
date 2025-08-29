@@ -44,6 +44,7 @@ public class PostProcessorTests
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly ScannerEngineInput scannerEngineInput;
     private readonly TestRuntime runtime;
+    private readonly IAnalysisPropertyProvider propertyProvider = new ListPropertiesProvider();
     private IBuildSettings settings;
 
     public PostProcessorTests(TestContext testContext)
@@ -69,7 +70,7 @@ public class PostProcessorTests
         coverageReportProcessor = Substitute
             .For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), runtime);
         coverageReportProcessor.ProcessCoverageReports(null, null).ReturnsForAnyArgs(new AdditionalProperties([@"VS\Test\Path"], [@"VS\XML\Coverage\Path"]));
-        scannerEngineInput = new ScannerEngineInput(config);
+        scannerEngineInput = new ScannerEngineInput(config, propertyProvider);
         sut = new PostProcessor(
             scanner,
             engine,
@@ -471,7 +472,7 @@ public class PostProcessorTests
             withProject ? scannerEngineInput : null,
             withProject ? Path.Combine(testDir, "sonar-project.properties") : null)
         { RanToCompletion = true };
-        scannerEngineInputGenerator.GenerateResult().Returns(analysisResult);
+        scannerEngineInputGenerator.GenerateResult(Arg.Any<IAnalysisPropertyProvider>()).Returns(analysisResult);
         sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
         return success;

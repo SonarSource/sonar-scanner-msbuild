@@ -56,7 +56,7 @@ public partial class ScannerEngineInputGeneratorTest
             config.ToAnalysisProperties(logger),
             new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(true, logger),
             new PropertiesWriter(config),
-            new ScannerEngineInput(config));
+            new ScannerEngineInput(config, new ListPropertiesProvider()));
 
         logger.AssertErrorLogged("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
     }
@@ -91,7 +91,7 @@ public partial class ScannerEngineInputGeneratorTest
             config.ToAnalysisProperties(logger),
             new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(true, logger),
             new PropertiesWriter(config),
-            new ScannerEngineInput(config));
+            new ScannerEngineInput(config, new ListPropertiesProvider()));
 
         logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
         logger.AssertErrorLogged("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
@@ -106,7 +106,7 @@ public partial class ScannerEngineInputGeneratorTest
         var outPath = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out");
         var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = outPath, SonarQubeHostUrl = sonarQubeHost };
         var legacyWriter = new PropertiesWriter(config);
-        var engineInput = new ScannerEngineInput(config);
+        var engineInput = new ScannerEngineInput(config, new ListPropertiesProvider());
         GenerateProperties_HostUrl_Execute(config, legacyWriter, engineInput);
 
         legacyWriter.Flush().Should().Contain($"sonar.host.url={sonarQubeHost}");
@@ -126,7 +126,7 @@ public partial class ScannerEngineInputGeneratorTest
             LocalSettings = [new Property(SonarProperties.HostUrl, "http://localhost:9000")]
         };
         var legacyWriter = new PropertiesWriter(config);
-        var engineInput = new ScannerEngineInput(config);
+        var engineInput = new ScannerEngineInput(config, new ListPropertiesProvider());
         GenerateProperties_HostUrl_Execute(config, legacyWriter, engineInput);
 
         legacyWriter.Flush().Should().Contain("sonar.host.url=http://localhost:9000");
@@ -255,7 +255,7 @@ public partial class ScannerEngineInputGeneratorTest
         {
             this.logger = logger;
             Config = new AnalysisConfig { SonarOutputDir = testContext.TestRunDirectory };
-            EngineInput = new ScannerEngineInput(Config);
+            EngineInput = new ScannerEngineInput(Config, new ListPropertiesProvider());
             var sourceFilePath = TestUtils.CreateEmptyFile(testContext.TestRunDirectory, "File.cs");
             var filesToAnalyzePath = TestUtils.CreateFile(testContext.TestRunDirectory, "FilesToAnalyze.txt", sourceFilePath);
             var info = new ProjectInfo
