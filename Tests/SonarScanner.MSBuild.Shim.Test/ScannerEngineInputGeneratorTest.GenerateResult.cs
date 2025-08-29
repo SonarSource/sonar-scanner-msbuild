@@ -508,7 +508,7 @@ public partial class ScannerEngineInputGeneratorTest
         AssertScannerInputCreated(result, logger);
 
         var sqProps = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProps .AssertSettingExists("key1", "value1");
+        sqProps.AssertSettingExists("key1", "value1");
         sqProps.AssertSettingExists("key.2", "value two");
         sqProps.AssertSettingExists("key.3", string.Empty);
         sqProps.AssertSettingDoesNotExist("server.key");
