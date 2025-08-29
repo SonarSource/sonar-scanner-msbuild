@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
-using SonarScanner.MSBuild.Shim.Interfaces;
-
 namespace SonarScanner.MSBuild.Shim.Test;
 
 public partial class ScannerEngineInputGeneratorTest
@@ -128,7 +125,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseSensitive_NoRoot_ReturnsNull()
     {
-        var additionalFileService = Substitute.For<IAdditionalFilesService>();
+        var additionalFileService = Substitute.For<AdditionalFilesService>(Substitute.For<IDirectoryWrapper>(), logger);
         var sut = new ScannerEngineInputGenerator(new() { SonarOutputDir = @"C:\fallback" }, logger, new RoslynV1SarifFixer(logger), MockRuntimeInformation.NonWindows, additionalFileService);
         var projectPaths = new[]
         {
@@ -148,7 +145,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void ComputeProjectBaseDir_BestCommonRoot_CaseInsensitive()
     {
-        var additionalFileService = Substitute.For<IAdditionalFilesService>();
+        var additionalFileService = Substitute.For<AdditionalFilesService>(Substitute.For<IDirectoryWrapper>(), logger);
         var sut = new ScannerEngineInputGenerator(new(), logger, new RoslynV1SarifFixer(logger), MockRuntimeInformation.Windows, additionalFileService);
         var projectPaths = new[]
         {
