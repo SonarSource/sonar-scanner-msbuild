@@ -24,12 +24,19 @@ public static class TelemetryTestUtils
 {
     public static void AssertTelemetryContent(ILogger logger, string telemetryDirectory, params string[] telemetryMessages)
     {
-        Directory.CreateDirectory(telemetryDirectory);
-        logger.WriteTelemetry(telemetryDirectory);
         var expectedTelemetryLocation = Path.Combine(telemetryDirectory, FileConstants.TelemetryFileName);
-        File.Exists(expectedTelemetryLocation).Should().BeTrue();
-        var actualTelemetry = File.ReadAllText(expectedTelemetryLocation);
+        if (!File.Exists(expectedTelemetryLocation))
+        {
+            Directory.CreateDirectory(telemetryDirectory);
+            logger.WriteTelemetry(telemetryDirectory);
+        }
+        AssertTelemetryContent(telemetryDirectory, telemetryMessages);
+    }
 
+    public static void AssertTelemetryContent(string telemetryDirectory, params string[] telemetryMessages)
+    {
+        var expectedTelemetryLocation = Path.Combine(telemetryDirectory, FileConstants.TelemetryFileName);
+        var actualTelemetry = File.ReadAllText(expectedTelemetryLocation);
         actualTelemetry.Should().BeEquivalentTo(Contents(telemetryMessages));
     }
 

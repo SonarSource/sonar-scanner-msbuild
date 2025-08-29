@@ -31,15 +31,14 @@ public partial class PreProcessorTests
         };
         var settings = await SetUpTest(args);
 
-        TelemetryContent(settings)
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
-                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
-                """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            settings.SonarOutputDirectory,
+            """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
+            """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
+            """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}""");
     }
 
     [TestMethod]
@@ -52,15 +51,14 @@ public partial class PreProcessorTests
         };
         var settings = await SetUpTest(args);
 
-        TelemetryContent(settings)
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_ANALYSIS_XML"}""",
-                """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
-                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
-                """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            settings.SonarOutputDirectory,
+            """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_ANALYSIS_XML"}""",
+            """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
+            """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
+            """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}""");
     }
 
     [TestMethod]
@@ -68,15 +66,14 @@ public partial class PreProcessorTests
     {
         var settings = await SetUpTest(environmentVariables: new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "false"}"""));
 
-        TelemetryContent(settings)
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_SCANNER_PARAMS"}""",
-                """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
-                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
-                """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            settings.SonarOutputDirectory,
+            """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"SONARQUBE_SCANNER_PARAMS"}""",
+            """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
+            """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
+            """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}""");
     }
 
     [TestMethod]
@@ -88,15 +85,14 @@ public partial class PreProcessorTests
         };
         var settings = await SetUpTest(args, new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "true"}"""));
 
-        TelemetryContent(settings)
-            .Should()
-            .BeEquivalentTo(Contents(
-                """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
-                """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
-                """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
-                """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}"""));
+        TelemetryTestUtils.AssertTelemetryContent(
+            settings.SonarOutputDirectory,
+            """{"dotnetenterprise.s4net.params.cmd_line1.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.params.sonar_log_level.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.params.sonar_scanner_scanall.source":"CLI"}""",
+            """{"dotnetenterprise.s4net.serverInfo.product":"SQ_Server"}""",
+            """{"dotnetenterprise.s4net.serverInfo.serverUrl":"custom_url"}""",
+            """{"dotnetenterprise.s4net.serverInfo.version":"5.6"}""");
     }
 
     // Contents are created with string builder to have the correct line endings for each OS
@@ -108,6 +104,13 @@ public partial class PreProcessorTests
             st.AppendLine(message);
         }
         return st.ToString();
+    }
+
+    private static string TelemetryContent(BuildSettings settings)
+    {
+        var expectedTelemetryLocation = Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName);
+        File.Exists(expectedTelemetryLocation).Should().BeTrue();
+        return File.ReadAllText(expectedTelemetryLocation);
     }
 
     private static string CreateAnalysisXml(string parentDir, Dictionary<string, string> properties = null)
@@ -144,12 +147,5 @@ public partial class PreProcessorTests
 
         (await context.Execute(args)).Should().BeTrue();
         return context.Factory.ReadSettings();
-    }
-
-    private static string TelemetryContent(BuildSettings settings)
-    {
-        var expectedTelemetryLocation = Path.Combine(settings.SonarOutputDirectory, FileConstants.TelemetryFileName);
-        File.Exists(expectedTelemetryLocation).Should().BeTrue();
-        return File.ReadAllText(expectedTelemetryLocation);
     }
 }
