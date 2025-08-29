@@ -64,6 +64,11 @@ public static class FileConstants
     public const string TelemetryFileName = "Telemetry.S4NET.json";
 
     /// <summary>
+    /// Name of the file containing the telemetry messages.
+    /// </summary>
+    public const string PostProcessTelemetryFileName = "Processed.Telemetry.S4NET.json";
+
+    /// <summary>
     /// Name of the file containing the telemetry messages coming from the Integreation targets.
     /// </summary>
     public const string TelemetryTargetsFileName = "Telemetry.Targets.S4NET.json";

@@ -252,8 +252,8 @@ public class TestLogger : ILogger
     public void AddTelemetryMessage(string key, object value) =>
         consoleLogger.AddTelemetryMessage(key, value);
 
-    public void WriteTelemetry(string outputFolder) =>
-        consoleLogger.WriteTelemetry(outputFolder);
+    public void WriteTelemetry(string outputFolder, bool postProcess = false) =>
+        consoleLogger.WriteTelemetry(outputFolder, postProcess);
 
     private static void WriteLine(string message, params object[] args) =>
         Console.WriteLine(FormatMessage(message, args));

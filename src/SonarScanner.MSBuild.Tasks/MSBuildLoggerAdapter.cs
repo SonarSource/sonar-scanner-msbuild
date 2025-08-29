@@ -73,7 +73,7 @@ internal class MSBuildLoggerAdapter : ILogger
         // no-op
     }
 
-    void ILogger.WriteTelemetry(string outputFolder)
+    void ILogger.WriteTelemetry(string outputFolder, bool postProcess)
     {
         // no-op
     }
