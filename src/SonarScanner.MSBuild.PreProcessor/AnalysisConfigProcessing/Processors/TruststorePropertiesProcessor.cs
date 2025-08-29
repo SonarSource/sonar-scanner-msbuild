@@ -29,11 +29,8 @@ namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 public class TruststorePropertiesProcessor(
     ProcessedArgs localSettings,
     IDictionary<string, string> serverProperties,
-    IFileWrapper fileWrapper,
-    IDirectoryWrapper directoryWrapper,
     IProcessRunner processRunner,
-    ILogger logger,
-    OperatingSystemProvider operatingSystemProvider)
+    IRuntime runtime)
     : AnalysisConfigProcessorBase(localSettings, serverProperties)
 {
     public override void Update(AnalysisConfig config)
@@ -47,9 +44,9 @@ public class TruststorePropertiesProcessor(
 
         if (truststorePath is null)
         {
-            if (operatingSystemProvider.IsUnix())
+            if (runtime.OperatingSystem.IsUnix())
             {
-                var truststoreResolver = new LocalJreTruststoreResolver(fileWrapper, directoryWrapper, processRunner, logger);
+                var truststoreResolver = new LocalJreTruststoreResolver(runtime.File, runtime.Directory, processRunner, runtime.Logger);
                 truststorePath = truststoreResolver.UnixTruststorePath(LocalSettings);
             }
             else
@@ -89,7 +86,7 @@ public class TruststorePropertiesProcessor(
     private string EnsureSurroundedByQuotes(string str)
     {
         if (str is null
-            || operatingSystemProvider.IsUnix()
+            || runtime.OperatingSystem.IsUnix()
             || (str.StartsWith("\"") && str.EndsWith("\"")))
         {
             return str;
