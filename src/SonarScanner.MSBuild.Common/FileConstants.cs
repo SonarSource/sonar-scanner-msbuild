@@ -64,7 +64,8 @@ public static class FileConstants
     public const string TelemetryFileName = "Telemetry.S4NET.json";
 
     /// <summary>
-    /// Name of the file containing the telemetry messages.
+    /// Name of the file containing the processed telemetry messages. This file is created by the sonar-dotnet plugin.
+    /// See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/bf6dac53bfd8258a673386c546acf68ec4438d84/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/sensors/TelemetryJsonProjectCollector.java#L63
     /// </summary>
     public const string PostProcessTelemetryFileName = "Processed.Telemetry.S4NET.json";
 

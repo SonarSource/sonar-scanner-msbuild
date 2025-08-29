@@ -83,6 +83,10 @@ public class BootstrapperClass
         }
 
         LogProcessingCompleted(phase, exitCode);
+        if (phase == AnalysisPhase.PostProcessing)
+        {
+            logger.WriteTelemetry(BuildSettings.GetSettingsFromEnvironment().SonarOutputDirectory, postProcessing: true);
+        }
         return exitCode;
     }
 
@@ -163,7 +167,7 @@ public class BootstrapperClass
             var postProcessor = processorFactory.CreatePostProcessor();
             succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
         }
-
+        logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineAnalysisResult, succeeded ? "success" : "failure");
         return succeeded ? SuccessCode : ErrorCode;
     }
 

@@ -23,13 +23,15 @@ namespace SonarScanner.MSBuild.Common;
 public static class TelemetryKeys
 {
     // New Scanner Engine
-    public const string NewBootstrappingEnabled = "dotnetenterprise.s4net.scannerEngine.newBootstrapping";
-    public const string ScannerEngineDownload   = "dotnetenterprise.s4net.scannerEngine.download";
+    public const string NewBootstrappingEnabled     = "dotnetenterprise.s4net.scannerEngine.newBootstrapping";
+    public const string ScannerEngineDownload       = "dotnetenterprise.s4net.scannerEngine.download";
     // Server Info
-    public const string ServerInfoRegion        = "dotnetenterprise.s4net.serverInfo.region";
-    public const string ServerInfoProduct       = "dotnetenterprise.s4net.serverInfo.product";
-    public const string ServerInfoServerUrl     = "dotnetenterprise.s4net.serverInfo.serverUrl";
-    public const string ServerInfoVersion       = "dotnetenterprise.s4net.serverInfo.version";
+    public const string ServerInfoRegion            = "dotnetenterprise.s4net.serverInfo.region";
+    public const string ServerInfoProduct           = "dotnetenterprise.s4net.serverInfo.product";
+    public const string ServerInfoServerUrl         = "dotnetenterprise.s4net.serverInfo.serverUrl";
+    public const string ServerInfoVersion           = "dotnetenterprise.s4net.serverInfo.version";
     // TFS Legacy
-    public const string ScannerLegacyTFS        = "dotnetenterprise.s4net.scanner.legacyTFS";
+    public const string ScannerLegacyTFS            = "dotnetenterprise.s4net.scanner.legacyTFS";
+    // Post processing telemetry
+    public const string ScannerEngineAnalysisResult = "dotnetenterprise.s4net.scannerEngine.analysisResult";
 }
