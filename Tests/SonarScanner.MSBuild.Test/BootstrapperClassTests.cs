@@ -72,6 +72,8 @@ public class BootstrapperClassTests
                 "/d:sonar.host.url=http://host:9",
                 "/d:another.key=will be ignored");
             AssertPostProcessorNotCalled();
+            // PostProcessor was not called so no telemetry should have been written
+            TelemetryTestUtils.AssertTelemetryContent(logger, TestContext.TestRunDirectory);
         }
     }
 
@@ -238,6 +240,7 @@ public class BootstrapperClassTests
         {
             var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
             logger.AssertErrorsLogged(2);
+            TelemetryTestUtils.AssertTelemetryContent(logger, TestContext.TestRunDirectory);
         }
     }
 
@@ -253,6 +256,7 @@ public class BootstrapperClassTests
             // The bootstrapper passes through any parameters it doesn't recognize so the post-processor
             // can decide whether to handle them or not
             AssertPostProcessorArgs("other params", "yet.more.params");
+            TelemetryTestUtils.AssertTelemetryContent(logger, TestContext.TestRunDirectory, """{"dotnetenterprise.s4net.scannerEngine.analysisResult":"success"}""");
         }
     }
 
@@ -270,6 +274,7 @@ public class BootstrapperClassTests
             logger.AssertWarningsLogged(0);
             logger.AssertErrorsLogged(2);
             AssertPostProcessorNotCalled();
+            TelemetryTestUtils.AssertTelemetryContent(logger, TestContext.TestRunDirectory, """{"dotnetenterprise.s4net.scannerEngine.analysisResult":"failure"}""");
         }
     }
 
