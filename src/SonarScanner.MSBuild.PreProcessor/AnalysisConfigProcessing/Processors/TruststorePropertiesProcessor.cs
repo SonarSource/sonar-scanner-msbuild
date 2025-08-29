@@ -26,13 +26,18 @@ namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 /// Map property name to another property name and/or value to pass them through the SONAR_SCANNER_OPTS
 /// environment variable to Scanner CLI 5.
 /// </summary>
-public class TruststorePropertiesProcessor(
-    ProcessedArgs localSettings,
-    IDictionary<string, string> serverProperties,
-    IProcessRunner processRunner,
-    IRuntime runtime)
-    : AnalysisConfigProcessorBase(localSettings, serverProperties)
+public class TruststorePropertiesProcessor : AnalysisConfigProcessorBase
 {
+    private readonly IProcessRunner processRunner;
+    private readonly IRuntime runtime;
+
+    public TruststorePropertiesProcessor(ProcessedArgs localSettings, IDictionary<string, string> serverProperties, IProcessRunner processRunner, IRuntime runtime)
+         : base(localSettings, serverProperties)
+    {
+        this.processRunner = processRunner;
+        this.runtime = runtime;
+    }
+
     public override void Update(AnalysisConfig config)
     {
         if (Uri.TryCreate(LocalSettings.ServerInfo.ServerUrl, UriKind.Absolute, out var uri) && uri.Scheme != Uri.UriSchemeHttps)
