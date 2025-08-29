@@ -78,7 +78,7 @@ public class PostProcessor : IPostProcessor
             return false;   // logging already done
         }
 
-        var analysisResult = CreateAnalysisResult(config);
+        var analysisResult = GenerateAndValidatePropertiesFile(config, provider);
         if (analysisResult.FullPropertiesFilePath is null)
         {
             return false;
@@ -110,10 +110,10 @@ public class PostProcessor : IPostProcessor
     internal void SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
         this.scannerEngineInputGenerator = scannerEngineInputGenerator;
 
-    private AnalysisResult CreateAnalysisResult(AnalysisConfig config)
+    private AnalysisResult CreateAnalysisResult(AnalysisConfig config, IAnalysisPropertyProvider provider)
     {
         scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, runtime.Logger);
-        var result = scannerEngineInputGenerator.GenerateResult();
+        var result = scannerEngineInputGenerator.GenerateResult(provider);
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
             runtime.Logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));

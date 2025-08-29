@@ -34,7 +34,7 @@ public class ScannerEngineInput
     private readonly JArray scannerProperties = [];
     private readonly JProperty modules;
 
-    public ScannerEngineInput(AnalysisConfig config)
+    public ScannerEngineInput(AnalysisConfig config, IAnalysisPropertyProvider provider = null)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
         root = new JObject
@@ -43,6 +43,16 @@ public class ScannerEngineInput
         };
         modules = new JProperty("value", string.Empty);
         Add("sonar.modules", modules);
+        if (provider.TryGetValue(SonarProperties.SonarToken, out var token))
+        {
+            Add(SonarProperties.SonarToken, token);
+        }
+        else if (provider.TryGetValue(SonarProperties.SonarUserName, out var userName)
+            && provider.TryGetValue(SonarProperties.SonarPassword, out var password))
+        {
+            Add(SonarProperties.SonarUserName, userName);
+            Add(SonarProperties.SonarPassword, password);
+        }
     }
 
     public ScannerEngineInput CloneWithoutSensitiveData()

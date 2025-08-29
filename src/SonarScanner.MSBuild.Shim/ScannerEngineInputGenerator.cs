@@ -88,11 +88,11 @@ public class ScannerEngineInputGenerator
     /// </summary>
     /// <returns>Information about each of the project info files that was processed, together with the full path to the generated sonar-project.properties file.
     /// Note: The path to the generated file will be null if the file could not be generated.</returns>
-    public virtual AnalysisResult GenerateResult()
+    public virtual AnalysisResult GenerateResult(IAnalysisPropertyProvider provider)
     {
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var legacyWriter = new PropertiesWriter(analysisConfig);
-        var engineInput = new ScannerEngineInput(analysisConfig);
+        var engineInput = new ScannerEngineInput(analysisConfig, provider);
         logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
         var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray();
         if (projects.Length == 0)
