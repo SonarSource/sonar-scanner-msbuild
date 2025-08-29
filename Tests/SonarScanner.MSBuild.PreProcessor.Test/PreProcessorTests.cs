@@ -30,15 +30,15 @@ public partial class PreProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        FluentActions.Invoking(() => new PreProcessor(null, Substitute.For<ILogger>())).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
-        FluentActions.Invoking(() => new PreProcessor(Substitute.For<IPreprocessorObjectFactory>(), null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        FluentActions.Invoking(() => new PreProcessor(null, new TestRuntime())).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
+        FluentActions.Invoking(() => new PreProcessor(Substitute.For<IPreprocessorObjectFactory>(), null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("runtime");
     }
 
     [TestMethod]
     public void Execute_NullArguments_ThrowsArgumentNullException()
     {
         var factory = new MockObjectFactory();
-        var sut = new PreProcessor(factory, factory.Runtime.Logger);
+        var sut = new PreProcessor(factory, factory.Runtime);
         sut.Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
     }
 
@@ -46,7 +46,7 @@ public partial class PreProcessorTests
     public async Task Execute_InvalidArguments_ReturnsFalseAndLogsError()
     {
         var factory = new MockObjectFactory();
-        var sut = new PreProcessor(factory, factory.Runtime.Logger);
+        var sut = new PreProcessor(factory, factory.Runtime);
 
         (await sut.Execute(["invalid args"])).Should().Be(false);
         factory.Runtime.Logger.AssertErrorLogged("""
@@ -385,13 +385,13 @@ public partial class PreProcessorTests
         private readonly WorkingDirectoryScope workingDirectory;
         private readonly TestContext testContext;
 
-        public Context(TestContext testContext, MockObjectFactory factory = null, ILogger logger = null)
+        public Context(TestContext testContext, MockObjectFactory factory = null, IRuntime runtime = null)
         {
             this.testContext = testContext;
             WorkingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             workingDirectory = new WorkingDirectoryScope(WorkingDir);
             Factory = factory ?? new MockObjectFactory();
-            PreProcessor = new PreProcessor(Factory, logger ?? Factory.Runtime.Logger);
+            PreProcessor = new PreProcessor(Factory, runtime ?? Factory.Runtime);
         }
 
         public void AssertDirectoriesCreated()

@@ -31,23 +31,23 @@ public class PreProcessor
     private static readonly string[] Languages = [CSharpLanguage, VBNetLanguage];
 
     private readonly IPreprocessorObjectFactory factory;
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
 
-    public PreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
+    public PreProcessor(IPreprocessorObjectFactory factory, IRuntime runtime)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
     }
 
     public virtual async Task<bool> Execute(IEnumerable<string> args)
     {
-        logger.SuspendOutput();
-        var processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
+        runtime.Logger.SuspendOutput();
+        var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime.Logger);
 
         if (processedArgs is null)
         {
-            logger.ResumeOutput();
-            logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
+            runtime.Logger.ResumeOutput();
+            runtime.Logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
             return false;
         }
         else
@@ -59,14 +59,14 @@ public class PreProcessor
     private async Task<bool> DoExecute(ProcessedArgs localSettings)
     {
         Debug.Assert(localSettings is not null, "Not expecting the process arguments to be null");
-        logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, logger);
-        logger.ResumeOutput();
+        runtime.Logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, runtime.Logger);
+        runtime.Logger.ResumeOutput();
         InstallLoaderTargets(localSettings);
         var buildSettings = BuildSettings.GetSettingsFromEnvironment();
 
         // Create the directories
-        logger.LogDebug(Resources.MSG_CreatingFolders);
-        if (!Utilities.TryEnsureEmptyDirectories(logger, buildSettings.SonarConfigDirectory, buildSettings.SonarOutputDirectory))
+        runtime.Logger.LogDebug(Resources.MSG_CreatingFolders);
+        if (!Utilities.TryEnsureEmptyDirectories(runtime.Logger, buildSettings.SonarConfigDirectory, buildSettings.SonarOutputDirectory))
         {
             return false;
         }
@@ -83,8 +83,8 @@ public class PreProcessor
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
-            logger.LogDebug(ex.StackTrace);
+            runtime.Logger.LogError(ex.Message);
+            runtime.Logger.LogDebug(ex.StackTrace);
             return false;
         }
 
@@ -101,7 +101,7 @@ public class PreProcessor
         }
         Debug.Assert(argumentsAndRuleSets.AnalyzersSettings is not null, "Not expecting the analyzers settings to be null");
 
-        using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
+        using var cache = new CacheProcessor(server, localSettings, buildSettings, runtime.Logger);
         await cache.Execute();
         var additionalSettings = new Dictionary<string, string>
         {
@@ -117,10 +117,10 @@ public class PreProcessor
             server.ServerVersion.ToString(),
             resolvedJavaExePath,
             scannerEngineJarPath,
-            logger);
+            runtime.Logger);
 
-        logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
-        logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
+        runtime.Logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
+        runtime.Logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
         return true;
     }
 
@@ -134,7 +134,7 @@ public class PreProcessor
         }
         else
         {
-            logger.LogDebug(Resources.MSG_NotCopyingTargets);
+            runtime.Logger.LogDebug(Resources.MSG_NotCopyingTargets);
         }
     }
 
@@ -144,7 +144,7 @@ public class PreProcessor
 
         try
         {
-            logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
+            runtime.Logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
 
             args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
             argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
@@ -152,7 +152,7 @@ public class PreProcessor
             var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
             if (knownLanguages.Count == 0)
             {
-                logger.LogError(Resources.ERR_DotNetAnalyzersNotFound);
+                runtime.Logger.LogError(Resources.ERR_DotNetAnalyzersNotFound);
                 argumentsAndRuleSets.IsSuccess = false;
                 return argumentsAndRuleSets;
             }
@@ -162,14 +162,14 @@ public class PreProcessor
                 var qualityProfile = await server.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
                 if (qualityProfile is null)
                 {
-                    logger.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
+                    runtime.Logger.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
                     continue;
                 }
 
                 var rules = await server.DownloadRules(qualityProfile);
                 if (!rules.Any(x => x.IsActive))
                 {
-                    logger.LogDebug(Resources.RAP_NoActiveRules, language);
+                    runtime.Logger.LogDebug(Resources.RAP_NoActiveRules, language);
                 }
 
                 // Generate Roslyn analyzers settings and rulesets
@@ -195,7 +195,7 @@ public class PreProcessor
         }
         catch (WebException ex)
         {
-            if (Utilities.HandleHostUrlWebException(ex, args.ServerInfo.ServerUrl, logger))
+            if (Utilities.HandleHostUrlWebException(ex, args.ServerInfo.ServerUrl, runtime.Logger))
             {
                 argumentsAndRuleSets.IsSuccess = false;
                 return argumentsAndRuleSets;

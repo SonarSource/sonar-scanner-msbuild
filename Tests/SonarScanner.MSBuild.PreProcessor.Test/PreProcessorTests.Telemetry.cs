@@ -131,7 +131,8 @@ public partial class PreProcessorTests
 
     private async Task<BuildSettings> SetUpTest(IEnumerable<string> args = null, params KeyValuePair<string, string>[] environmentVariables)
     {
-        using var context = new Context(TestContext, logger: new ConsoleLogger(false));
+        var logger = new ConsoleLogger(false);
+        using var context = new Context(TestContext, runtime: new Runtime(new(Substitute.For<IFileWrapper>(), logger), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), logger));
         using var env = new EnvironmentVariableScope();
         foreach (var envVariable in environmentVariables)
         {
