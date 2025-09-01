@@ -444,8 +444,16 @@ public class ScannerEngineInputTest
         sut.Add("my", "setting", "original");
         sut.Add("my", "setting", "updatedSetting");
 
-        var reader = new ScannerEngineInputReader(sut.ToString());
-        reader.AssertProperty("my.setting", "updatedSetting");
+        sut.ToString().Should().BeIgnoringLineEndings("""
+            {
+              "scannerProperties": [
+                {
+                  "key": "my.setting",
+                  "value": "updatedSetting"
+                }
+              ]
+            }
+            """);
     }
 
     [TestMethod]

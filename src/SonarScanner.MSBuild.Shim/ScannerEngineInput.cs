@@ -30,17 +30,13 @@ public class ScannerEngineInput
     private readonly AnalysisConfig config;
 
     private readonly HashSet<string> moduleKeys = [];
-    private readonly JObject root;
-    private readonly JArray scannerProperties = [];
-    private readonly Dictionary<string, JProperty> propertiesDict = [];
+    // ScannerEngine takes 2 mandatory string (non-null) properties
+    // https://xtranet-sonarsource.atlassian.net/wiki/spaces/CodeOrches/pages/3155001372/Scanner+Bootstrapping#Scanner-Engine-contract
+    private readonly Dictionary<string, string> scannerProperties = [];
 
     public ScannerEngineInput(AnalysisConfig config)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-        root = new JObject
-        {
-            new JProperty("scannerProperties", scannerProperties)
-        };
     }
 
     public ScannerEngineInput CloneWithoutSensitiveData()
@@ -49,15 +45,20 @@ public class ScannerEngineInput
         result.moduleKeys.UnionWith(moduleKeys);
         foreach (var property in scannerProperties)
         {
-            var key = property["key"].Value<string>();
-            var value = property["value"].Value<string>();
+            var key = property.Key;
+            var value = property.Value;
             result.Add(key, ProcessRunnerArguments.ContainsSensitiveData(key) || ProcessRunnerArguments.ContainsSensitiveData(value) ? "***" : value);
         }
         return result;
     }
 
     public override string ToString() =>
-        JsonConvert.SerializeObject(root, Formatting.Indented);
+        JsonConvert.SerializeObject(
+            new JObject
+            {
+                new JProperty("scannerProperties", new JArray(scannerProperties.Select(x => new JObject(new JProperty("key", x.Key), new JProperty("value", x.Value)))))
+            },
+            Formatting.Indented);
 
     public void AddProject(ProjectData project)
     {
@@ -130,20 +131,14 @@ public class ScannerEngineInput
     {
         if (!string.IsNullOrEmpty(value))
         {
-            Add(key, new JProperty("value", value));
-        }
-    }
-
-    private void Add(string key, JProperty value)
-    {
-        if (propertiesDict.ContainsKey(key))
-        {
-            propertiesDict[key].Value = value.Value;
-        }
-        else
-        {
-            propertiesDict.Add(key, value);
-            scannerProperties.Add(new JObject(new JProperty("key", key), value));
+            if (scannerProperties.ContainsKey(key))
+            {
+                scannerProperties[key] = value;
+            }
+            else
+            {
+                scannerProperties.Add(key, value);
+            }
         }
     }
 
