@@ -581,7 +581,7 @@ public class ScannerEngineInputTest
             File.WriteAllLines(fileListFilePath, files.Select(x => x.FullName));
             projectInfo.AddAnalyzerResult(AnalysisResultFileType.FilesToAnalyze, fileListFilePath);
         }
-        return new[] { projectInfo }.ToProjectData(true, Substitute.For<ILogger>()).Single();
+        return new[] { projectInfo }.ToProjectData(new TestRuntime()).Single();
     }
 
     private static FileInfo CreateEmptyFile(string parentDir, string fileName) =>

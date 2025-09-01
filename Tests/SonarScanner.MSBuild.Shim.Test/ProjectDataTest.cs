@@ -72,7 +72,7 @@ public class ProjectDataTest
                 FullPath = fullPath,
             },
         };
-        var results = projectInfos.ToProjectData(true, Substitute.For<ILogger>()).Single().AnalyzerOutPaths.ToList();
+        var results = projectInfos.ToProjectData(new TestRuntime()).Single().AnalyzerOutPaths.ToList();
 
         results.Should().HaveCount(4);
         results[0].FullName.Should().Be(new FileInfo("2").FullName);
@@ -84,7 +84,7 @@ public class ProjectDataTest
     [TestMethod]
     public void ProjectsWithDuplicateGuid()
     {
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
         var guid = Guid.NewGuid();
         var projectInfos = new[]
         {
@@ -92,10 +92,10 @@ public class ProjectDataTest
             new ProjectInfo { ProjectGuid = guid, FullPath = "path2" },
             new ProjectInfo { ProjectGuid = guid, FullPath = "path2" }
         };
-        var result = projectInfos.ToProjectData(true, logger).Single();
+        var result = projectInfos.ToProjectData(runtime).Single();
 
         result.Status.Should().Be(ProjectInfoValidity.DuplicateGuid);
-        logger.Warnings.Should().BeEquivalentTo(
+        runtime.Logger.Warnings.Should().BeEquivalentTo(
             $@"Duplicate ProjectGuid: ""{guid}"". The project will not be analyzed. Project file: ""path1""",
             $@"Duplicate ProjectGuid: ""{guid}"". The project will not be analyzed. Project file: ""path2""");
     }
@@ -134,7 +134,7 @@ public class ProjectDataTest
         };
         projectInfos[0].AddAnalyzerResult(AnalysisResultFileType.FilesToAnalyze, contentFileList1);
         projectInfos[1].AddAnalyzerResult(AnalysisResultFileType.FilesToAnalyze, contentFileList1);
-        var sut = projectInfos.ToProjectData(true, Substitute.For<ILogger>()).Single();
+        var sut = projectInfos.ToProjectData(new TestRuntime()).Single();
 
         sut.Status.Should().Be(ProjectInfoValidity.Valid);
         sut.Project.AnalysisSettings.Should().BeEmpty();     // Expected to change when fixed later
@@ -178,7 +178,7 @@ public class ProjectDataTest
                 FullPath = fullPath,
             },
         };
-        var results = projectInfos.ToProjectData(true, Substitute.For<ILogger>()).Single().TelemetryPaths.ToList();
+        var results = projectInfos.ToProjectData(new TestRuntime()).Single().TelemetryPaths.ToList();
 
         results.Should().BeEquivalentTo([new FileInfo("2.json"), new("1.json"), new("3.json"), new("4.json")], x => x.Excluding(x => x.Length).Excluding(x => x.Directory));
     }
