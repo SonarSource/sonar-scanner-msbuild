@@ -20,8 +20,17 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
-public class LocalJreTruststoreResolver(IProcessRunner processRunner, IRuntime runtime)
+public class LocalJreTruststoreResolver
 {
+    private readonly IProcessRunner processRunner;
+    private readonly IRuntime runtime;
+
+    public LocalJreTruststoreResolver(IProcessRunner processRunner, IRuntime runtime)
+    {
+        this.processRunner = processRunner;
+        this.runtime = runtime;
+    }
+
     public string UnixTruststorePath(ProcessedArgs args)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
