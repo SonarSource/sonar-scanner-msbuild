@@ -283,7 +283,7 @@ public class BootstrapperClassTests
 
     private void MockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
     {
-        preProcessor = Substitute.For<PreProcessor.PreProcessor>(Substitute.For<PreProcessor.IPreprocessorObjectFactory>(), Substitute.For<ILogger>());
+        preProcessor = Substitute.For<PreProcessor.PreProcessor>(Substitute.For<PreProcessor.IPreprocessorObjectFactory>(), new TestRuntime());
         postProcessor = Substitute.For<PostProcessor.PostProcessor>(
             Substitute.For<SonarScannerWrapper>(Substitute.For<IRuntime>()),
             Substitute.For<SonarEngineWrapper>(Substitute.For<IRuntime>(), Substitute.For<IProcessRunner>()),
