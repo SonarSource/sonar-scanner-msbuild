@@ -99,7 +99,7 @@ public class ScannerEngineInputGenerator
         }
         var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
         FixSarifAndEncoding(projects, analysisProperties);
-        var allProjects = projects.ToProjectData(runtime.OperatingSystem.IsWindows(), runtime.Logger);
+        var allProjects = projects.ToProjectData(runtime);
         if (GenerateProperties(analysisProperties, allProjects, legacyWriter, engineInput))
         {
             var contents = legacyWriter.Flush();

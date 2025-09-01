@@ -49,7 +49,7 @@ public class SummaryReportBuilder
     public virtual void GenerateReports(IBuildSettings settings, bool ranToCompletion, string fullPropertiesFilePath)
     {
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
-        var allProjects = ProjectLoader.LoadFrom(config.SonarOutputDir).ToProjectData(runtime.OperatingSystem.IsWindows(), runtime.Logger);
+        var allProjects = ProjectLoader.LoadFrom(config.SonarOutputDir).ToProjectData(runtime);
         if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
             UpdateLegacyTeamBuildSummary(new SummaryReportData(config, allProjects, ranToCompletion, runtime.Logger));
