@@ -34,10 +34,8 @@ public class ScannerEngineInput
     // https://xtranet-sonarsource.atlassian.net/wiki/spaces/CodeOrches/pages/3155001372/Scanner+Bootstrapping#Scanner-Engine-contract
     private readonly Dictionary<string, string> scannerProperties = [];
 
-    public ScannerEngineInput(AnalysisConfig config)
-    {
+    public ScannerEngineInput(AnalysisConfig config) =>
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-    }
 
     public ScannerEngineInput CloneWithoutSensitiveData()
     {
@@ -45,9 +43,7 @@ public class ScannerEngineInput
         result.moduleKeys.UnionWith(moduleKeys);
         foreach (var property in scannerProperties)
         {
-            var key = property.Key;
-            var value = property.Value;
-            result.Add(key, ProcessRunnerArguments.ContainsSensitiveData(key) || ProcessRunnerArguments.ContainsSensitiveData(value) ? "***" : value);
+            result.Add(property.Key, ProcessRunnerArguments.ContainsSensitiveData(property.Key) || ProcessRunnerArguments.ContainsSensitiveData(property.Value) ? "***" : property.Value);
         }
         return result;
     }
@@ -56,7 +52,11 @@ public class ScannerEngineInput
         JsonConvert.SerializeObject(
             new JObject
             {
-                new JProperty("scannerProperties", new JArray(scannerProperties.Select(x => new JObject(new JProperty("key", x.Key), new JProperty("value", x.Value)))))
+                new JProperty("scannerProperties", new JArray(scannerProperties.Select(x => new JObject
+                    {
+                        { "key", x.Key },
+                        { "value", x.Value },
+                    })))
             },
             Formatting.Indented);
 
@@ -131,14 +131,7 @@ public class ScannerEngineInput
     {
         if (!string.IsNullOrEmpty(value))
         {
-            if (scannerProperties.ContainsKey(key))
-            {
-                scannerProperties[key] = value;
-            }
-            else
-            {
-                scannerProperties.Add(key, value);
-            }
+            scannerProperties[key] = value;
         }
     }
 
