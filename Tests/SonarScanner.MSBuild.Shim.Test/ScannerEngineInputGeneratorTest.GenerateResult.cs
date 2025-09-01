@@ -703,8 +703,6 @@ public partial class ScannerEngineInputGeneratorTest
         ];
         string[] rootTests =
         [
-            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.spec.tsx"),
-            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.test.tsx"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ts"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.test.tsx"),
         ];
@@ -723,6 +721,11 @@ public partial class ScannerEngineInputGeneratorTest
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.py"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.ipynb"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.php"),
+        ];
+        string[] project2Tests =
+        [
+            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.spec.tsx"),
+            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.test.tsx"),
         ];
         AnalysisProperties serverProperties =
         [
@@ -744,10 +747,10 @@ public partial class ScannerEngineInputGeneratorTest
 
         var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         properties.PropertyValue("sonar.sources").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootSources);
-        properties.PropertyValue("sonar.tests").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests);
+        properties.PropertyValue("sonar.tests").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests.Concat(project2Tests));
         var reader = CreateInputReader(result);
         reader["sonar.sources"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootSources);
-        reader["sonar.tests"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests);
+        reader["sonar.tests"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests.Concat(project2Tests));
 
         void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
             expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
