@@ -34,7 +34,6 @@ public class PostProcessor
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly TfsProcessorWrapper tfsProcessor;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
-    private readonly IFileWrapper fileWrapper;
 
     private ScannerEngineInputGenerator scannerEngineInputGenerator;
 
@@ -44,8 +43,7 @@ public class PostProcessor
                          TargetsUninstaller targetUninstaller,
                          TfsProcessorWrapper tfsProcessor,
                          SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
-                         BuildVNextCoverageReportProcessor coverageReportProcessor,
-                         IFileWrapper fileWrapper = null)
+                         BuildVNextCoverageReportProcessor coverageReportProcessor)
     {
         this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
         this.sonarEngine = sonarEngine ?? throw new ArgumentNullException(nameof(sonarEngine));
@@ -54,7 +52,6 @@ public class PostProcessor
         this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
         this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
         this.coverageReportProcessor = coverageReportProcessor ?? throw new ArgumentNullException(nameof(coverageReportProcessor));
-        this.fileWrapper = fileWrapper ?? FileWrapper.Instance;
     }
 
     public virtual bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings)
@@ -91,7 +88,7 @@ public class PostProcessor
             if (analysisResult.RanToCompletion)
             {
                 var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
-                fileWrapper.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
+                runtime.File.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
                     ? InvokeSonarScanner(provider, config, analysisResult.FullPropertiesFilePath)
                     : InvokeScannerEngine(config, analysisResult.ScannerEngineInput);
@@ -232,7 +229,7 @@ public class PostProcessor
     {
         if (paths is not null)
         {
-            fileWrapper.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
+            runtime.File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
         }
     }
 

@@ -77,8 +77,7 @@ public class PostProcessorTests
             targetsUninstaller,
             tfsProcessor,
             sonarProjectPropertiesValidator,
-            coverageReportProcessor,
-            runtime.File);
+            coverageReportProcessor);
     }
 
     [TestMethod]
