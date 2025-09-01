@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 public class ProcessedArgsTests
 {
     private readonly TestRuntime runtime = new();
-    
+
     private ProcessedArgs args;
 
     private static IEnumerable<object[]> DirectoryCreateExceptions
