@@ -32,7 +32,7 @@ public class ScannerEngineInput
     private readonly HashSet<string> moduleKeys = [];
     private readonly JObject root;
     private readonly JArray scannerProperties = [];
-    private readonly JProperty modules;
+    private readonly Dictionary<string, JProperty> propertiesDict = [];
 
     public ScannerEngineInput(AnalysisConfig config)
     {
@@ -41,8 +41,6 @@ public class ScannerEngineInput
         {
             new JProperty("scannerProperties", scannerProperties)
         };
-        modules = new JProperty("value", string.Empty);
-        Add("sonar.modules", modules);
     }
 
     public ScannerEngineInput CloneWithoutSensitiveData()
@@ -53,14 +51,7 @@ public class ScannerEngineInput
         {
             var key = property["key"].Value<string>();
             var value = property["value"].Value<string>();
-            if (key == "sonar.modules")
-            {
-                result.modules.Value = value;
-            }
-            else
-            {
-                result.Add(key, ProcessRunnerArguments.ContainsSensitiveData(key) || ProcessRunnerArguments.ContainsSensitiveData(value) ? "***" : value);
-            }
+            result.Add(key, ProcessRunnerArguments.ContainsSensitiveData(key) || ProcessRunnerArguments.ContainsSensitiveData(value) ? "***" : value);
         }
         return result;
     }
@@ -73,7 +64,7 @@ public class ScannerEngineInput
         _ = project ?? throw new ArgumentNullException(nameof(project));
         var guid = project.Guid;
         moduleKeys.Add(guid);
-        modules.Value = string.Join(",", moduleKeys);
+        Add("sonar.modules", string.Join(",", moduleKeys));
         Add(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
         Add(guid, SonarProperties.ProjectName, project.Project.ProjectName);
         Add(guid, SonarProperties.ProjectBaseDir, project.Project.ProjectFileDirectory().FullName);
@@ -143,8 +134,18 @@ public class ScannerEngineInput
         }
     }
 
-    private void Add(string key, JProperty value) =>
-        scannerProperties.Add(new JObject { new JProperty("key", key), value });
+    private void Add(string key, JProperty value)
+    {
+        if (propertiesDict.ContainsKey(key))
+        {
+            propertiesDict[key].Value = value.Value;
+        }
+        else
+        {
+            propertiesDict.Add(key, value);
+            scannerProperties.Add(new JObject(new JProperty("key", key), value));
+        }
+    }
 
     private static string ToMultiValueProperty(IEnumerable<string> paths)
     {
