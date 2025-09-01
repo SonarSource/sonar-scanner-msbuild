@@ -111,7 +111,7 @@ public class PostProcessor
 
     private AnalysisResult CreateAnalysisResult(AnalysisConfig config)
     {
-        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, runtime.Logger);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, runtime);
         var result = scannerEngineInputGenerator.GenerateResult();
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
