@@ -71,13 +71,13 @@ public class EngineResolverTests
             [
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
-                Value = "Disabled"
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Disabled
             },
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.download",
-                Value = "UserSupplied"
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.UserSupplied
             }
             ]);
     }
@@ -101,8 +101,8 @@ public class EngineResolverTests
             [
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
-                Value = "Unsupported"
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Unsupported
             }
             ]);
     }
@@ -125,8 +125,8 @@ public class EngineResolverTests
             [
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
-                Value = "Enabled"
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Enabled
             }
             ]);
     }
@@ -149,13 +149,13 @@ public class EngineResolverTests
             [
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
-                Value = "Enabled"
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Enabled
             },
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.download",
-                Value = "CacheHit"
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.CacheHit
             }
             ]);
     }
@@ -179,18 +179,18 @@ public class EngineResolverTests
             [
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
-                Value = "Enabled"
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Enabled
             },
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.download",
-                Value = "Failed"
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.Failed
             },
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.download",
-                Value = "Failed"
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.Failed
             },
             ]);
     }
@@ -225,13 +225,13 @@ public class EngineResolverTests
             [
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
-                Value = "Enabled"
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Enabled
             },
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.download",
-                Value = "Downloaded"
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.Downloaded
             }
             ]);
     }
@@ -259,18 +259,18 @@ public class EngineResolverTests
             [
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.newBootstrapping",
-                Value = "Enabled"
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Enabled
             },
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.download",
-                Value = "Failed"
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.Failed
             },
             new
             {
-                Key = "dotnetenterprise.s4net.scannerEngine.download",
-                Value = "Failed"
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.Failed
             },
             ]);
     }
