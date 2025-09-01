@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#pragma warning disable S3994 // we are specifically testing string urls
+
 using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 

@@ -44,10 +44,10 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
-        var userName = args.GetSetting(SonarProperties.SonarToken, null) ?? args.GetSetting(SonarProperties.SonarUserName, null);
-        var password = args.GetSetting(SonarProperties.SonarPassword, null);
-        var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
-        var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
+        var userName = args.SettingOrDefault(SonarProperties.SonarToken, null) ?? args.SettingOrDefault(SonarProperties.SonarUserName, null);
+        var password = args.SettingOrDefault(SonarProperties.SonarPassword, null);
+        var clientCertPath = args.SettingOrDefault(SonarProperties.ClientCertPath, null);
+        var clientCertPassword = args.SettingOrDefault(SonarProperties.ClientCertPassword, null);
 
         if (!ValidateServerUrl(args.ServerInfo.ServerUrl))
         {

@@ -978,7 +978,7 @@ public class ArgumentProcessorTests
     private static void AssertExpectedPropertyValue(string key, string value, ProcessedArgs actual)
     {
         // Test the GetSetting method
-        var actualValue = actual.GetSetting(key);
+        var actualValue = actual.Setting(key);
         actualValue.Should().NotBeNull("Expected dynamic settings does not exist. Key: {0}", key);
         actualValue.Should().Be(value);
 

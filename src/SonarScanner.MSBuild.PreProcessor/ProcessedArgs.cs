@@ -30,7 +30,7 @@ public class ProcessedArgs
 {
     /// <summary>
     /// Regular expression to validate a project key.
-    /// See http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
+    /// See http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject.
     /// </summary>
     /// <remarks>Should match the java regex here: https://github.com/SonarSource/sonarqube/blob/5.1.1/sonar-core/src/main/java/org/sonar/core/component/ComponentKeys.java#L36
     /// "Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit".
@@ -55,12 +55,12 @@ public class ProcessedArgs
     /// <summary>
     /// Returns the operating system used to run the scanner.
     /// Supported values are windows|linux|macos|alpine but more can be added later
-    /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
+    /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines.
     public virtual string OperatingSystem { get; }
 
     /// <summary>
     /// Returns the platform architecture.
-    /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
+    /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines.
     /// </summary>
     public virtual string Architecture { get; }
 
@@ -90,7 +90,7 @@ public class ProcessedArgs
     public virtual bool UseSonarScannerCli { get; }
 
     /// <summary>
-    /// The sonar.userHome base directory for caching. Default value: ~/.sonar
+    /// The sonar.userHome base directory for caching. Default value: ~/.sonar.
     /// </summary>
     public string UserHome { get; }
 
@@ -128,8 +128,7 @@ public class ProcessedArgs
             if (globalFileProperties is FilePropertyProvider fileProvider)
             {
                 Debug.Assert(fileProvider.PropertiesFile is not null, "File properties should not be null");
-                Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
-                    "Settings file name should not be null");
+                Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath), "Settings file name should not be null");
                 return fileProvider.PropertiesFile.FilePath;
             }
             return null;
@@ -181,7 +180,7 @@ public class ProcessedArgs
         IsValid &= ServerInfo is not null;
         TelemetryUtils.AddTelemetry(runtime.Logger, ServerInfo);
 
-        OperatingSystem = GetOperatingSystem(AggregateProperties);
+        OperatingSystem = OperatingSystemString(AggregateProperties);
         Architecture = AggregateProperties.TryGetProperty(SonarProperties.Architecture, out var architecture)
             ? architecture.Value
             : RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
@@ -257,7 +256,7 @@ public class ProcessedArgs
     /// Returns the value for the specified setting.
     /// Throws if the setting does not exist.
     /// </summary>
-    public string GetSetting(string key)
+    public string Setting(string key)
     {
         if (AggregateProperties.TryGetValue(key, out var value))
         {
@@ -272,7 +271,7 @@ public class ProcessedArgs
     /// Returns the value for the specified setting, or the supplied
     /// default if the setting does not exist.
     /// </summary>
-    public string GetSetting(string key, string defaultValue)
+    public string SettingOrDefault(string key, string defaultValue)
     {
         if (!AggregateProperties.TryGetValue(key, out var value))
         {
@@ -287,7 +286,7 @@ public class ProcessedArgs
     public IEnumerable<Property> AllProperties() =>
         AggregateProperties.GetAllProperties();
 
-    private string GetOperatingSystem(IAnalysisPropertyProvider properties) =>
+    private string OperatingSystemString(IAnalysisPropertyProvider properties) =>
         properties.TryGetProperty(SonarProperties.OperatingSystem, out var operatingSystem)
             ? operatingSystem.Value
             : runtime.OperatingSystem.OperatingSystem() switch
@@ -365,7 +364,6 @@ public class ProcessedArgs
 
     private bool CheckTrustStoreProperties(out string truststorePath, out string truststorePassword)
     {
-        truststorePath = null;
         truststorePassword = null;
         var hasPath = AggregateProperties.TryGetProperty(SonarProperties.TruststorePath, out var truststorePathProperty);
         var hasPassword = AggregateProperties.TryGetProperty(SonarProperties.TruststorePassword, out var truststorePasswordProperty);
@@ -432,17 +430,17 @@ public class ProcessedArgs
             using var stream = runtime.File.Open(truststorePath);
             return true;
         }
-        catch (Exception ex) when (ex is
-            ArgumentException or
-            ArgumentNullException or
-            PathTooLongException or
-            DirectoryNotFoundException or
-            IOException or
-            FileNotFoundException or
-            UnauthorizedAccessException or
-            ArgumentOutOfRangeException or
-            FileNotFoundException or
-            NotSupportedException)
+        catch (Exception ex) when (ex
+            is ArgumentException
+            or ArgumentNullException
+            or PathTooLongException
+            or DirectoryNotFoundException
+            or IOException
+            or FileNotFoundException
+            or UnauthorizedAccessException
+            or ArgumentOutOfRangeException
+            or FileNotFoundException
+            or NotSupportedException)
         {
             Action<string, string[]> log = logAsError ? runtime.Logger.LogError : runtime.Logger.LogDebug;
             log(Resources.ERR_TruststorePathCannotOpen, [truststorePath, $"{ex.GetType()}: {ex.Message}"]);

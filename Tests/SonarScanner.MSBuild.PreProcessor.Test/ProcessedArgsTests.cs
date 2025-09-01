@@ -23,8 +23,9 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 [TestClass]
 public class ProcessedArgsTests
 {
+    private readonly TestRuntime runtime = new();
+    
     private ProcessedArgs args;
-    private TestRuntime runtime;
 
     private static IEnumerable<object[]> DirectoryCreateExceptions
     {
@@ -43,8 +44,6 @@ public class ProcessedArgsTests
     [TestInitialize]
     public void TestInitialize()
     {
-        // 0. Setup
-        runtime = new();
         var cmdLineProps = new ListPropertiesProvider();
         cmdLineProps.AddProperty("cmd.key.1", "cmd value 1");
         cmdLineProps.AddProperty("shared.key.1", "shared cmd value");
@@ -62,62 +61,59 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_ParameterThrow_Key()
-    {
-        var action = () => CreateDefaultArgs(key: null);
-        action.Should().Throw<ArgumentNullException>().WithParameterName("key");
-    }
+    public void ProcessedArgs_ParameterThrow_Key() =>
+        FluentActions.Invoking(() => CreateDefaultArgs(key: null)).Should().Throw<ArgumentNullException>().WithParameterName("key");
 
     [TestMethod]
-    public void ProcArgs_ParameterThrow_CmdLineProperties()
-    {
-        var action = () => new ProcessedArgs(
-            "key",
-            "name",
-            "version",
-            "org",
-            true,
-            cmdLineProperties: null,
-            EmptyPropertyProvider.Instance,
-            EmptyPropertyProvider.Instance,
-            runtime);
-        action.Should().Throw<ArgumentNullException>().WithParameterName("cmdLineProperties");
-    }
+    public void ProcessedArgs_ParameterThrow_CmdLineProperties() =>
+        FluentActions.Invoking(
+            () => new ProcessedArgs(
+                    "key",
+                    "name",
+                    "version",
+                    "org",
+                    true,
+                    cmdLineProperties: null,
+                    EmptyPropertyProvider.Instance,
+                    EmptyPropertyProvider.Instance,
+                    runtime))
+            .Should().Throw<ArgumentNullException>()
+            .WithParameterName("cmdLineProperties");
 
     [TestMethod]
-    public void ProcArgs_ParameterThrow_GlobalFileProperties()
-    {
-        var action = () => new ProcessedArgs(
-            "key",
-            "name",
-            "version",
-            "org",
-            true,
-            EmptyPropertyProvider.Instance,
-            globalFileProperties: null,
-            EmptyPropertyProvider.Instance,
-            runtime);
-        action.Should().Throw<ArgumentNullException>().WithParameterName("globalFileProperties");
-    }
+    public void ProcessedArgs_ParameterThrow_GlobalFileProperties() =>
+        FluentActions.Invoking(
+            () => new ProcessedArgs(
+                    "key",
+                    "name",
+                    "version",
+                    "org",
+                    true,
+                    EmptyPropertyProvider.Instance,
+                    globalFileProperties: null,
+                    EmptyPropertyProvider.Instance,
+                    runtime))
+            .Should().Throw<ArgumentNullException>()
+            .WithParameterName("globalFileProperties");
 
     [TestMethod]
-    public void ProcArgs_ParameterThrow_ScannerEnvProperties()
-    {
-        var action = () => new ProcessedArgs(
-            "key",
-            "name",
-            "version",
-            "org",
-            true,
-            EmptyPropertyProvider.Instance,
-            EmptyPropertyProvider.Instance,
-            scannerEnvProperties: null,
-            runtime);
-        action.Should().Throw<ArgumentNullException>().WithParameterName("scannerEnvProperties");
-    }
+    public void ProcessedArgs_ParameterThrow_ScannerEnvProperties() =>
+        FluentActions.Invoking(
+            () => new ProcessedArgs(
+                    "key",
+                    "name",
+                    "version",
+                    "org",
+                    true,
+                    EmptyPropertyProvider.Instance,
+                    EmptyPropertyProvider.Instance,
+                    scannerEnvProperties: null,
+                    runtime))
+            .Should().Throw<ArgumentNullException>()
+            .WithParameterName("scannerEnvProperties");
 
     [TestMethod]
-    public void ProcArgs_Organization()
+    public void ProcessedArgs_Organization()
     {
         args.Organization.Should().BeNull();
         args = CreateDefaultArgs(organization: "organization");
@@ -125,29 +121,28 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_GetSetting()
+    public void ProcessedArgs_Setting()
     {
         // 1. Throws on missing value
-        Action act = () => args.GetSetting("missing.property");
-        act.Should().ThrowExactly<InvalidOperationException>();
+        args.Invoking(x => x.Setting("missing.property")).Should().ThrowExactly<InvalidOperationException>();
 
         // 2. Returns existing values
-        args.GetSetting("cmd.key.1").Should().Be("cmd value 1");
-        args.GetSetting("file.key.1").Should().Be("file value 1");
-        args.GetSetting("env.key.1").Should().Be("env value 1");
+        args.Setting("cmd.key.1").Should().Be("cmd value 1");
+        args.Setting("file.key.1").Should().Be("file value 1");
+        args.Setting("env.key.1").Should().Be("env value 1");
 
         // 3. Precedence - command line properties should win
-        args.GetSetting("shared.key.1").Should().Be("shared cmd value");
+        args.Setting("shared.key.1").Should().Be("shared cmd value");
 
         // 4. Precedence - file wins over env
-        args.GetSetting("shared.key.2").Should().Be("shared file value");
+        args.Setting("shared.key.2").Should().Be("shared file value");
 
         // 5. Preprocessor only settings
         args.InstallLoaderTargets.Should().BeTrue();
     }
 
     [TestMethod]
-    public void ProcArgs_TryGetSetting()
+    public void ProcessedArgs_TryGetSetting()
     {
         // 1. Missing key -> null
         args.TryGetSetting("missing.property", out var result).Should().BeFalse("Expecting false when the specified key does not exist");
@@ -158,50 +153,44 @@ public class ProcessedArgsTests
         result.Should().Be("cmd value 1");
 
         // 3. Precedence - command line properties should win
-        args.GetSetting("shared.key.1").Should().Be("shared cmd value");
+        args.Setting("shared.key.1").Should().Be("shared cmd value");
 
         // 4. Preprocessor only settings
         args.InstallLoaderTargets.Should().BeTrue();
     }
 
     [TestMethod]
-    public void ProcArgs_GetSettingOrDefault()
+    public void ProcessedArgs__SettingOrDefault()
     {
         // 1. Missing key -> default returned
-        var result = args.GetSetting("missing.property", "default value");
+        var result = args.SettingOrDefault("missing.property", "default value");
         result.Should().Be("default value");
 
         // 2. Returns existing values
-        result = args.GetSetting("file.key.1", "default value");
+        result = args.SettingOrDefault("file.key.1", "default value");
         result.Should().Be("file value 1");
 
         // 3. Precedence - command line properties should win
-        args.GetSetting("shared.key.1", "default ValueType").Should().Be("shared cmd value");
+        args.SettingOrDefault("shared.key.1", "default ValueType").Should().Be("shared cmd value");
 
         // 4. Preprocessor only settings
         args.InstallLoaderTargets.Should().BeTrue();
     }
 
     [TestMethod]
-    public void ProcArgs_CmdLinePropertiesOverrideFileSettings()
+    public void ProcessedArgs_CmdLinePropertiesOverrideFileSettings()
     {
-        // Checks command line properties override those from files
-
-        // Arrange
-        // The set of command line properties to supply
         var cmdLineProperties = new ListPropertiesProvider();
         cmdLineProperties.AddProperty("shared.key1", "cmd line value1 - should override server value");
         cmdLineProperties.AddProperty("cmd.line.only", "cmd line value4 - only on command line");
         cmdLineProperties.AddProperty("xxx", "cmd line value XXX - lower case");
         cmdLineProperties.AddProperty(SonarProperties.HostUrl, "http://host");
 
-        // The set of file properties to supply
         var fileProperties = new ListPropertiesProvider();
         fileProperties.AddProperty("shared.key1", "file value1 - should be overridden");
         fileProperties.AddProperty("file.only", "file value3 - only in file");
         fileProperties.AddProperty("XXX", "file line value XXX - upper case");
 
-        // Act
         var processedArgs = CreateDefaultArgs(cmdLineProperties, fileProperties);
 
         AssertExpectedValue("shared.key1", "cmd line value1 - should override server value", processedArgs);
@@ -214,7 +203,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlSet()
+    public void ProcessedArgs_HostUrl_SonarCloudUrl_HostUrlSet()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "http://host")]));
 
@@ -227,7 +216,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarCloudUrl_SonarCloudUrlSet()
+    public void ProcessedArgs_HostUrl_SonarCloudUrl_SonarCloudUrlSet()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy")]));
 
@@ -240,7 +229,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlAreIdentical()
+    public void ProcessedArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlAreIdentical()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([
             new Property(SonarProperties.HostUrl, "https://sonarcloud.proxy"), new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy")
@@ -255,7 +244,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlDiffer()
+    public void ProcessedArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlDiffer()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([
             new Property(SonarProperties.HostUrl, "https://someHost.com"), new Property(SonarProperties.SonarcloudUrl, "https://someOtherHost.org")
@@ -263,15 +252,15 @@ public class ProcessedArgsTests
 
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
-            "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+        runtime.Logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
+            + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
         sut.IsValid.Should().BeFalse();
     }
 
     [TestMethod]
     [DataRow("")]
     [DataRow("   ")]
-    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlEmpty(string empty)
+    public void ProcessedArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlEmpty(string empty)
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, empty), new Property(SonarProperties.SonarcloudUrl, empty),]));
 
@@ -282,7 +271,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlMissing()
+    public void ProcessedArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlMissing()
     {
         var sut = CreateDefaultArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
 
@@ -305,7 +294,9 @@ public class ProcessedArgsTests
     [DataRow("https://SONARQUBE.US", "https://api.sonarqube.us", "us")]
     [DataRow("https://sonarqube.us/", "https://api.sonarqube.us", "us")]
     [DataRow("https://sonarqube.us///", "https://api.sonarqube.us", "us")]
-    public void ProcArgs_HostUrl_SonarCloudUrl_HostUrlIsAnySonarCloud(string hostUrl, string expectedApiBaseUrl, string expectedRegion)
+#pragma warning disable S3994 // we are specifically testing string urls
+    public void ProcessedArgs_HostUrl_SonarCloudUrl_HostUrlIsAnySonarCloud(string hostUrl, string expectedApiBaseUrl, string expectedRegion)
+#pragma warning restore S3994
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, hostUrl)]));
 
@@ -325,7 +316,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_HostUrl_SonarCloudUrl_PropertyAggregation()
+    public void ProcessedArgs_HostUrl_SonarCloudUrl_PropertyAggregation()
     {
         var sut = CreateDefaultArgs(
             new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "https://localhost")]),
@@ -333,8 +324,8 @@ public class ProcessedArgsTests
 
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
-            "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+        runtime.Logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
+            + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
         sut.IsValid.Should().BeFalse();
     }
 
@@ -355,13 +346,18 @@ public class ProcessedArgsTests
     [DataRow(false, false, true, false, 1)]
     [DataRow(false, false, false, true, 1)]
     [DataRow(false, false, false, false, 0)]
-    public void ProcArgs_ErrorAndIsValid(bool invalidKey, bool invalidOrganization, bool invalidHost, bool invalidUserHome, int errors)
+    public void ProcessedArgs_ErrorAndIsValid(bool invalidKey, bool invalidOrganization, bool invalidHost, bool invalidUserHome, int errors)
     {
         runtime.Directory.When(x => x.CreateDirectory("NotADirectory")).Do(x => _ = invalidUserHome ? throw new IOException("Invalid Directory") : 1);
-        var sut = new ProcessedArgs(invalidKey ? "#" : "key", "name", "version", organization: null, false,
+        var sut = new ProcessedArgs(
+            invalidKey ? "#" : "key",
+            "name",
+            "version",
+            organization: null,
+            installLoaderTargets: false,
             cmdLineProperties: invalidHost
-                ? new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "hostUrl"), new Property(SonarProperties.SonarcloudUrl, "SonarcloudUrl")])
-                : EmptyPropertyProvider.Instance,
+            ? new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "hostUrl"), new Property(SonarProperties.SonarcloudUrl, "SonarcloudUrl")])
+            : EmptyPropertyProvider.Instance,
             globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
             scannerEnvProperties: new ListPropertiesProvider([new Property(SonarProperties.UserHome, "NotADirectory")]),
             runtime);
@@ -370,7 +366,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_OperatingSystem_ParameterProvided()
+    public void ProcessedArgs_OperatingSystem_ParameterProvided()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.OperatingSystem, "windows")]));
         sut.OperatingSystem.Should().Be("windows");
@@ -382,7 +378,7 @@ public class ProcessedArgsTests
     [DataRow(PlatformOS.Alpine, "alpine")]
     [DataRow(PlatformOS.Linux, "linux")]
     [DataRow(PlatformOS.Unknown, null)]
-    public void ProcArgs_OperatingSystem_AutoDetection(PlatformOS platformOS, string expectedOperatingSystem)
+    public void ProcessedArgs_OperatingSystem_AutoDetection(PlatformOS platformOS, string expectedOperatingSystem)
     {
         runtime.OperatingSystem.OperatingSystem().Returns(_ => platformOS);
         var sut = CreateDefaultArgs();
@@ -391,7 +387,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_UserHome_ParameterProvided()
+    public void ProcessedArgs_UserHome_ParameterProvided()
     {
         runtime.Directory.Exists(@"C:\Users\user\.sonar").Returns(true);
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
@@ -402,7 +398,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_UserHome_ParameterProvided_DoesNotExists_CanBeCreated()
+    public void ProcessedArgs_UserHome_ParameterProvided_DoesNotExists_CanBeCreated()
     {
         runtime.Directory.Exists(@"C:\Users\user\.sonar").Returns(false);
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
@@ -414,20 +410,20 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_UserHome_ParameterProvided_DoesNotExists_CanNotBeCreated()
+    public void ProcessedArgs_UserHome_ParameterProvided_DoesNotExists_CanNotBeCreated()
     {
         runtime.Directory.Exists(@"C:\Users\user\.sonar").Returns(false);
         runtime.Directory.When(x => x.CreateDirectory(@"C:\Users\user\.sonar")).Do(_ => throw new IOException("Directory can not be created."));
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
         sut.UserHome.Should().BeNull();
         sut.IsValid.Should().BeFalse();
-        runtime.Logger.AssertErrorLogged(@"The attempt to create the directory specified by 'sonar.userHome' at 'C:\Users\user\.sonar' failed with error 'Directory can not be created.'. " +
-            @"Provide a valid path for 'sonar.userHome' to a directory that can be created.");
+        runtime.Logger.AssertErrorLogged(@"The attempt to create the directory specified by 'sonar.userHome' at 'C:\Users\user\.sonar' failed with error 'Directory can not be created.'. "
+            + @"Provide a valid path for 'sonar.userHome' to a directory that can be created.");
         runtime.Logger.AssertNoWarningsLogged();
     }
 
     [TestMethod]
-    public void ProcArgs_UserHome_Default()
+    public void ProcessedArgs_UserHome_Default()
     {
         runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
         runtime.Directory.Exists(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")).Returns(true);
@@ -439,7 +435,7 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcArgs_UserHome_Default_CreatedOnDemand()
+    public void ProcessedArgs_UserHome_Default_CreatedOnDemand()
     {
         runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
         runtime.Directory.Exists(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")).Returns(false);
@@ -453,7 +449,7 @@ public class ProcessedArgsTests
 
     [TestMethod]
     [DynamicData(nameof(DirectoryCreateExceptions))]
-    public void ProcArgs_UserHome_Default_CreationFails(Type exceptionType)
+    public void ProcessedArgs_UserHome_Default_CreationFails(Type exceptionType)
     {
         var exception = (Exception)Activator.CreateInstance(exceptionType);
         runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(Path.Combine(TestUtils.DriveRoot(), "Users", "user"));
@@ -463,17 +459,18 @@ public class ProcessedArgsTests
         sut.UserHome.Should().BeNull();
         sut.IsValid.Should().BeTrue();
         runtime.Directory.Received().CreateDirectory(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
-        runtime.Logger.AssertWarningLogged(@$"Failed to create the default user home directory '{Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")}' with exception '{exception.Message}'.");
+        runtime.Logger.AssertWarningLogged("Failed to create the default user home directory "
+            + $"'{Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")}' with exception '{exception.Message}'.");
         runtime.Logger.AssertNoErrorsLogged();
     }
 
     [TestMethod]
-    [DynamicData(nameof(ProcArgs_SourcesOrTests_Warning_DataSource), DynamicDataSourceType.Method)]
-    public void ProcArgs_SourcesOrTests_Warning(params Property[] properties)
+    [DynamicData(nameof(ProcessedArgs_SourcesOrTests_Warning_DataSource), DynamicDataSourceType.Method)]
+    public void ProcessedArgs_SourcesOrTests_Warning(params Property[] properties)
     {
-        const string expectedMessage = "The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. " +
-                                       "They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, " +
-                                       "sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.";
+        var expectedMessage = "The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. "
+            + "They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, "
+            + "sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.";
 
         var sut = CreateDefaultArgs(new ListPropertiesProvider(properties));
 
@@ -483,7 +480,7 @@ public class ProcessedArgsTests
         runtime.Logger.UIWarnings.Should().ContainSingle(expectedMessage);
     }
 
-    private static IEnumerable<object[]> ProcArgs_SourcesOrTests_Warning_DataSource() =>
+    private static IEnumerable<object[]> ProcessedArgs_SourcesOrTests_Warning_DataSource() =>
     [
         [new Property(SonarProperties.Sources, "src")],
         [new Property(SonarProperties.Tests, "tests")],
@@ -495,7 +492,8 @@ public class ProcessedArgsTests
                                             IAnalysisPropertyProvider scannerEnvProperties = null,
                                             string key = "key",
                                             string organization = "organization") =>
-        new(key,
+        new(
+            key,
             "name",
             "version",
             organization,
