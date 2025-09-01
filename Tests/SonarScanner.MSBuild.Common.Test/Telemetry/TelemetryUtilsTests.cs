@@ -89,8 +89,8 @@ public class TelemetryUtilsTests
         var serverInfo = new ServerHostInfo(serverUrl, serverUrl);
         TelemetryUtils.AddTelemetry(logger, serverInfo);
         logger.AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
-        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server");
-        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.serverUrl", telemetryValue);
+        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, "SQ_Server");
+        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
     }
 
     [TestMethod]
@@ -104,9 +104,9 @@ public class TelemetryUtilsTests
         var serverInfo = new CloudHostInfo(serverUrl, serverUrl, region);
         TelemetryUtils.AddTelemetry(logger, serverInfo);
         logger.AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
-        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Cloud");
-        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.serverUrl", telemetryUrlValue);
-        logger.Received(1).AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.region", telemetryRegionValue);
+        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, "SQ_Cloud");
+        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue);
+        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
     }
 
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
