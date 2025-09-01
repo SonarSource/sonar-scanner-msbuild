@@ -94,11 +94,8 @@ public sealed class ProcessRunner : IProcessRunner
             process.Id);
         if (runnerArgs.StandardInput is { } input)
         {
-            using var standardInput = process.StandardInput;
-            logger.LogDebug("Standardinput openend with encoding: {0}", standardInput.Encoding.EncodingName);
-            var utf8 = Encoding.UTF8.GetBytes(input);
-            standardInput.BaseStream.Write(utf8, 0, utf8.Length);
-            //standardInput.Write(input);
+            using var utf8Writer = new StreamWriter(process.StandardInput.BaseStream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)); // StreamWriter closes StandardInput on dispose
+            utf8Writer.Write(input);
         }
         var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
         // false means we asked the process to stop but it didn't.
