@@ -36,6 +36,17 @@ public class ProgramTests
     }
 
     [TestMethod]
+    public void Execute_ExceptionThrown_LogsError()
+    {
+        var loggerRuntime = new MockedLoggerRuntime();
+        loggerRuntime.Logger.When(x => x.LogError("No argument found. Exiting...")).Do(x => { throw new Exception("Mock Exception"); });
+        var result = Program.Execute([], loggerRuntime);
+
+        result.Should().Be(1);
+        loggerRuntime.Logger.Received().LogError("An exception occurred while executing the process: Mock Exception");
+    }
+
+    [TestMethod]
     public void Execute_Method_Is_Uknown_Should_Log_Error()
     {
         var result = Program.Execute(["MockMethod"], runtime);
@@ -96,5 +107,13 @@ public class ProgramTests
         var result = Program.Execute(["SummaryReportBuilder", Path.Combine(tempDir, "temp.xml"), Path.Combine(tempDir, "sonar-project.properties"), "true"], runtime);
 
         result.Should().Be(0);
+    }
+
+    private sealed class MockedLoggerRuntime : IRuntime
+    {
+        public ILogger Logger { get; } = Substitute.For<ILogger>();
+        public OperatingSystemProvider OperatingSystem => throw new NotImplementedException();
+        public IDirectoryWrapper Directory => throw new NotImplementedException();
+        public IFileWrapper File => throw new NotImplementedException();
     }
 }

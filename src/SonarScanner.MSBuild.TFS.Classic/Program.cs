@@ -71,8 +71,9 @@ public static class Program
         }
         catch (Exception ex)
         {
-            runtime.Logger.LogError("An exception occured while executing the process : " + ex.Message);
+            runtime.Logger.LogError("An exception occurred while executing the process: " + ex.Message);
             runtime.Logger.LogError(ex.StackTrace);
+            return 1;
         }
 
         return 0;
