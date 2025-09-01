@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using EncodingProvider = SonarScanner.MSBuild.Common.EncodingProvider;
 
 namespace SonarScanner.MSBuild.Shim;
@@ -43,21 +44,23 @@ public class ScannerEngineInputGenerator
     private readonly AdditionalFilesService additionalFilesService;
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
+    private readonly IAnalysisPropertyProvider cmdLineArgs;
 
-    public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IRuntime runtime)
-        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), new AdditionalFilesService(runtime))
-    {
-    }
+    public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IRuntime runtime, IAnalysisPropertyProvider cmdLineArgs)
+        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), new AdditionalFilesService(runtime), cmdLineArgs)
+    { }
 
     internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
                                          IRuntime runtime,
                                          RoslynV1SarifFixer fixer,
-                                         AdditionalFilesService additionalFilesService)
+                                         AdditionalFilesService additionalFilesService,
+                                         IAnalysisPropertyProvider cmdLineArgs)
     {
         this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
         this.additionalFilesService = additionalFilesService ?? throw new ArgumentNullException(nameof(additionalFilesService));
+        this.cmdLineArgs = cmdLineArgs ?? throw new ArgumentNullException(nameof(cmdLineArgs));
         if (runtime.OperatingSystem.IsWindows())
         {
             pathComparer = StringComparer.OrdinalIgnoreCase;
@@ -171,6 +174,7 @@ public class ScannerEngineInputGenerator
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
         engineInput.AddGlobalSettings(analysisProperties);
+        AddCmdLineArgs(engineInput);
         return true;
     }
 
@@ -414,5 +418,24 @@ public class ScannerEngineInputGenerator
                 return null;
             }
         }
+    }
+
+    private void AddCmdLineArgs(ScannerEngineInput engineInput)
+    {
+        var properties = cmdLineArgs.GetAllProperties().ToList();
+        properties.AddRange(SensitiveFileProperties());
+
+        foreach (var prop in properties)
+        {
+            engineInput.Add(prop.Id, prop.Value);
+        }
+
+        IEnumerable<Property> SensitiveFileProperties() =>
+            analysisConfig.AnalysisSettings(false, runtime.Logger)
+                .GetAllProperties()
+                .Where(x => x.ContainsSensitiveData() && !CmdLineArgExists(x));
+
+        bool CmdLineArgExists(Property fileProperty) =>
+            properties.Any(x => x.IsKey(fileProperty.Id));
     }
 }

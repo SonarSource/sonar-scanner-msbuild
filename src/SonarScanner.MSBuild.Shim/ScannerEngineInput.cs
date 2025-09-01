@@ -116,6 +116,14 @@ public class ScannerEngineInput
     public void Add(string keyPrefix, string keySuffix, string value) =>
         Add($"{keyPrefix}.{keySuffix}", value);
 
+    public void Add(string key, string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            scannerProperties[key] = value;
+        }
+    }
+
     internal void Add(string keyPrefix, string keySuffix, IEnumerable<string> values)
     {
         if (values.Any())
@@ -126,14 +134,6 @@ public class ScannerEngineInput
 
     private void Add(string key, IEnumerable<string> values) =>
         Add(key, ToMultiValueProperty(values));
-
-    private void Add(string key, string value)
-    {
-        if (!string.IsNullOrEmpty(value))
-        {
-            scannerProperties[key] = value;
-        }
-    }
 
     private static string ToMultiValueProperty(IEnumerable<string> paths)
     {
