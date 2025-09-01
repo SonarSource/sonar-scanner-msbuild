@@ -41,13 +41,11 @@ public partial class ScannerEngineInputGeneratorTest
         var cnfg = new AnalysisConfig();
         var rntm = runtime;
         var rvsf = new RoslynV1SarifFixer(runtime.Logger);
-        var rinf = new RuntimeInformationWrapper();
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("fixer");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtimeInformation");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, rinf, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("additionalFilesService");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("fixer");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("additionalFilesService");
     }
 
     [TestMethod]
@@ -204,11 +202,14 @@ public partial class ScannerEngineInputGeneratorTest
 
     private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig,
                                                   RoslynV1SarifFixer sarifFixer = null,
-                                                  RuntimeInformationWrapper runtimeInformation = null)
+                                                  PlatformOS os = PlatformOS.Unknown)
     {
         sarifFixer ??= new RoslynV1SarifFixer(runtime.Logger);
-        runtimeInformation ??= new RuntimeInformationWrapper();
-        return new(analysisConfig, runtime, sarifFixer, runtimeInformation, new AdditionalFilesService(DirectoryWrapper.Instance, runtime.Logger));
+        if (os != PlatformOS.Unknown)
+        {
+            runtime.ConfigureOS(os);
+        }
+        return new(analysisConfig, runtime, sarifFixer, new AdditionalFilesService(DirectoryWrapper.Instance, runtime.Logger));
     }
 
     private static ProjectData CreateProjectData(string fullPath) =>

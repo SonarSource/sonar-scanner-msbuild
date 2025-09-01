@@ -85,19 +85,21 @@ public partial class ScannerEngineInputGeneratorTest
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
-    public void GenerateResult_Duplicate_SameGuid_DifferentCase(bool isWindows)
+    [DataRow(PlatformOS.Windows)]
+    [DataRow(PlatformOS.Linux)]
+    [DataRow(PlatformOS.MacOSX)]
+    [DataRow(PlatformOS.Alpine)]
+    public void GenerateResult_Duplicate_SameGuid_DifferentCase(PlatformOS os)
     {
         var guid = Guid.NewGuid();
         var testRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Projects");
         var projectFileOrig = CreateProject("Project1", "DifferentCasing.proj");
         var projectFileDiff = CreateProject("Project2", "dIFFERENTcASING.proj");    // Same file for windows, different for Unix
         var config = CreateValidConfig(testRootDir);
-        var result = CreateSut(config, runtimeInformation: new MockRuntimeInformation(isWindows)).GenerateResult();
+        var result = CreateSut(config, os: os).GenerateResult();
 
         AssertExpectedProjectCount(1, result);
-        if (isWindows)
+        if (os == PlatformOS.Windows)
         {
             AssertExpectedStatus("Project1", ProjectInfoValidity.Valid, result);
             runtime.Logger.Warnings.Should().BeEmpty("Windows is case insensitive and all project files are considered the same");
