@@ -45,7 +45,7 @@ public class ScannerEngineInputGenerator
     private readonly StringComparison pathComparison;
 
     public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IRuntime runtime)
-        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), new AdditionalFilesService(DirectoryWrapper.Instance, runtime.Logger))
+        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), new AdditionalFilesService(runtime))
     {
     }
 
