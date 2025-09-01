@@ -95,6 +95,7 @@ public sealed class ProcessRunner : IProcessRunner
         if (runnerArgs.StandardInput is { } input)
         {
             using var standardInput = process.StandardInput;
+            logger.LogDebug("Standardinput openend with encoding: {0}", standardInput.Encoding.EncodingName);
             standardInput.Write(input);
         }
         var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
