@@ -72,12 +72,12 @@ public class EngineResolverTests
             new
             {
                 Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrappingStatus.Disabled
+                Value = TelemetryValues.NewBootstrapping.Disabled
             },
             new
             {
                 Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownloadStatus.UserSupplied
+                Value = TelemetryValues.ScannerEngineDownload.UserSupplied
             }
             ]);
     }
@@ -102,7 +102,7 @@ public class EngineResolverTests
             new
             {
                 Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrappingStatus.Unsupported
+                Value = TelemetryValues.NewBootstrapping.Unsupported
             }
             ]);
     }
@@ -126,7 +126,7 @@ public class EngineResolverTests
             new
             {
                 Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrappingStatus.Enabled
+                Value = TelemetryValues.NewBootstrapping.Enabled
             }
             ]);
     }
@@ -150,12 +150,12 @@ public class EngineResolverTests
             new
             {
                 Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrappingStatus.Enabled
+                Value = TelemetryValues.NewBootstrapping.Enabled
             },
             new
             {
                 Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownloadStatus.CacheHit
+                Value = TelemetryValues.ScannerEngineDownload.CacheHit
             }
             ]);
     }
@@ -180,17 +180,17 @@ public class EngineResolverTests
             new
             {
                 Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrappingStatus.Enabled
+                Value = TelemetryValues.NewBootstrapping.Enabled
             },
             new
             {
                 Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownloadStatus.Failed
+                Value = TelemetryValues.ScannerEngineDownload.Failed
             },
             new
             {
                 Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownloadStatus.Failed
+                Value = TelemetryValues.ScannerEngineDownload.Failed
             },
             ]);
     }
@@ -226,12 +226,12 @@ public class EngineResolverTests
             new
             {
                 Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrappingStatus.Enabled
+                Value = TelemetryValues.NewBootstrapping.Enabled
             },
             new
             {
                 Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownloadStatus.Downloaded
+                Value = TelemetryValues.ScannerEngineDownload.Downloaded
             }
             ]);
     }
@@ -260,17 +260,17 @@ public class EngineResolverTests
             new
             {
                 Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrappingStatus.Enabled
+                Value = TelemetryValues.NewBootstrapping.Enabled
             },
             new
             {
                 Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownloadStatus.Failed
+                Value = TelemetryValues.ScannerEngineDownload.Failed
             },
             new
             {
                 Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownloadStatus.Failed
+                Value = TelemetryValues.ScannerEngineDownload.Failed
             },
             ]);
     }
