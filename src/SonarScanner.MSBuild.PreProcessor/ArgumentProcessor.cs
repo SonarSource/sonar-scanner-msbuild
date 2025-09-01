@@ -93,10 +93,7 @@ public static class ArgumentProcessor
                 cmdLineProperties,
                 globalFileProperties,
                 scannerEnvProperties,
-                runtime.File,
-                runtime.Directory,
-                runtime.OperatingSystem,
-                runtime.Logger);
+                runtime);
 
             if (!processed.IsValid)
             {
