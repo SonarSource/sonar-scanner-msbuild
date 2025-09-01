@@ -32,6 +32,8 @@ public class TestLogger : ILogger
     public List<string> UIWarnings { get; }
     public LoggerVerbosity Verbosity { get; set; }
     public bool IncludeTimestamp { get; set; }
+    public Dictionary<string, object> TelemetryMessages { get; } = [];
+    public string TelemetryOutputPath { get; private set; }
 
     public TestLogger()
     {
@@ -247,15 +249,11 @@ public class TestLogger : ILogger
         // no-op
     }
 
-    public void AddTelemetryMessage(string key, object value)
-    {
-        // no-op
-    }
+    public void AddTelemetryMessage(string key, object value) =>
+        TelemetryMessages[key] = value;
 
-    public void WriteTelemetry(string outputFolder)
-    {
-        // no-op
-    }
+    public void WriteTelemetry(string outputFolder) =>
+        TelemetryOutputPath = outputFolder;
 
     private static void WriteLine(string message, params object[] args) =>
         Console.WriteLine(FormatMessage(message, args));

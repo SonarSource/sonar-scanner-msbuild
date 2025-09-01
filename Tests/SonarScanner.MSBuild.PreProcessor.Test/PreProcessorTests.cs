@@ -385,13 +385,13 @@ public partial class PreProcessorTests
         private readonly WorkingDirectoryScope workingDirectory;
         private readonly TestContext testContext;
 
-        public Context(TestContext testContext, MockObjectFactory factory = null, IRuntime runtime = null)
+        public Context(TestContext testContext, MockObjectFactory factory = null)
         {
             this.testContext = testContext;
             WorkingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             workingDirectory = new WorkingDirectoryScope(WorkingDir);
             Factory = factory ?? new MockObjectFactory();
-            PreProcessor = new PreProcessor(Factory, runtime ?? Factory.Runtime);
+            PreProcessor = new PreProcessor(Factory, Factory.Runtime);
         }
 
         public void AssertDirectoriesCreated()
