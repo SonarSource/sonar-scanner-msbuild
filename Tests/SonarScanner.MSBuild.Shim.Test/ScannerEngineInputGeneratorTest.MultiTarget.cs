@@ -54,13 +54,13 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new ScannerEngineInputGenerator(config, logger);
+        var generator = new ScannerEngineInputGenerator(config, runtime);
         var result = generator.GenerateResult();
 
         AssertExpectedProjectCount(1, result);
 
         // One valid project info file -> file created
-        AssertScannerInputCreated(result, logger);
+        AssertScannerInputCreated(result);
         var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         AssertFileIsReferenced(files[0], propertiesFileContent);
         AssertFileIsReferenced(files[1], propertiesFileContent);
@@ -98,12 +98,12 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new ScannerEngineInputGenerator(config, logger);
+        var generator = new ScannerEngineInputGenerator(config, runtime);
         var result = generator.GenerateResult();
 
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
-        AssertScannerInputCreated(result, logger);
+        AssertScannerInputCreated(result);
         var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         AssertFileIsReferenced(files[0], propertiesFileContent);
         AssertFileIsReferenced(files[1], propertiesFileContent);
@@ -141,12 +141,12 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new ScannerEngineInputGenerator(config, logger);
+        var generator = new ScannerEngineInputGenerator(config, runtime);
         var result = generator.GenerateResult();
 
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
-        AssertScannerInputCreated(result, logger);
+        AssertScannerInputCreated(result);
         var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         AssertFileIsReferenced(files[0], propertiesFileContent);
         AssertFileIsNotReferenced(files[1], propertiesFileContent);
@@ -184,12 +184,12 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new ScannerEngineInputGenerator(config, logger);
+        var generator = new ScannerEngineInputGenerator(config, runtime);
         var result = generator.GenerateResult();
 
         AssertExpectedProjectCount(1, result);
         // No valid project info files -> properties not created
-        AssertFailedToCreateScannerInput(result, logger);
+        AssertFailedToCreateScannerInput(result);
     }
 
     private static void CreateProjectInfoAndFilesToAnalyze(Guid guid,
