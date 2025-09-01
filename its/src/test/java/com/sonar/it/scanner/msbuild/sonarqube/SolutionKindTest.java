@@ -101,7 +101,6 @@ class SolutionKindTest {
   @MSBuildMinVersion(16)
   void flatProjectStructure() {
     var context = AnalysisContext.forServer("CSharpAllFlat");
-    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-867
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
     var expectedComponent = new ArrayList<>(List.of(context.projectKey + ":Common.cs"));

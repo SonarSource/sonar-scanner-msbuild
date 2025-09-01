@@ -74,8 +74,7 @@ class CloudProvisioningTest {
     try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       context.begin
         .setProperty(activateProvisioning)
-        .setProperty("sonar.userHome", userHome.toString())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-858
+        .setProperty("sonar.userHome", userHome.toString());
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var oldJavaHome = Optional.ofNullable(System.getenv("JAVA_HOME")).orElse(Paths.get("somewhere", "else").toString());
       context.end.setEnvironmentVariable("JAVA_HOME", oldJavaHome);
