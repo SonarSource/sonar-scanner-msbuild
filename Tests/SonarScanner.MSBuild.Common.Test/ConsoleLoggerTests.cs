@@ -23,7 +23,7 @@ using System.Text.Json.Nodes;
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
-public class ILoggerTests
+public class ConsoleLoggerTests
 {
     private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
 
