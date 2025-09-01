@@ -212,6 +212,6 @@ public partial class ScannerEngineInputGeneratorTest
         return new(analysisConfig, runtime, sarifFixer, new AdditionalFilesService(DirectoryWrapper.Instance, runtime.Logger));
     }
 
-    private static ProjectData CreateProjectData(string fullPath) =>
-        new[] { new ProjectInfo { FullPath = fullPath } }.ToProjectData(true, Substitute.For<ILogger>()).Single();
+    private ProjectData CreateProjectData(string fullPath) =>
+        new[] { new ProjectInfo { FullPath = fullPath } }.ToProjectData(runtime).Single();
 }

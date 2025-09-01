@@ -54,7 +54,7 @@ public partial class ScannerEngineInputGeneratorTest
         // create a project in the test run directory and a second one in the temp folder.
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
-            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(true, runtime.Logger),
+            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(runtime),
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
@@ -82,7 +82,7 @@ public partial class ScannerEngineInputGeneratorTest
         var sut = new ScannerEngineInputGenerator(config, runtime);
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
-            [new ProjectData(new[] { project }.GroupBy(x => x.ProjectGuid).Single(), true, runtime.Logger) { Status = ProjectInfoValidity.Valid }],
+            [new ProjectData(new[] { project }.GroupBy(x => x.ProjectGuid).Single(), runtime) { Status = ProjectInfoValidity.Valid }],
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
@@ -117,7 +117,7 @@ public partial class ScannerEngineInputGeneratorTest
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "Second");
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
-            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(true, runtime.Logger),
+            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(runtime),
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
@@ -266,7 +266,7 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
-            new[] { project }.ToProjectData(true, runtime.Logger),
+            new[] { project }.ToProjectData(runtime),
             legacyWriter,
             engineInput)
             .Should().BeTrue();
@@ -295,7 +295,7 @@ public partial class ScannerEngineInputGeneratorTest
                 AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)],
                 AnalysisSettings = []
             };
-            Project = new[] { info }.ToProjectData(true, runtime.Logger).Single();
+            Project = new[] { info }.ToProjectData(runtime).Single();
             Project.Status.Should().Be(ProjectInfoValidity.Valid);
         }
 

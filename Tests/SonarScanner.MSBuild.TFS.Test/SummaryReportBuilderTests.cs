@@ -27,13 +27,9 @@ namespace SonarScanner.MSBuild.TFS.Test;
 [TestClass]
 public class SummaryReportBuilderTests
 {
-    private ILogger testLogger;
+    private TestRuntime runtime = new();
 
     public TestContext TestContext { get; set; }
-
-    [TestInitialize]
-    public void Initialize() =>
-        testLogger = new TestLogger();
 
     [TestMethod]
     public void Ctor_NullParameter_Throws()
@@ -48,16 +44,16 @@ public class SummaryReportBuilderTests
 
     [TestMethod]
     public void SummaryReportData_ConfigIsNull_Throws() =>
-        FluentActions.Invoking(() => new SummaryReportBuilder.SummaryReportData(null, [], true, testLogger)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        FluentActions.Invoking(() => new SummaryReportBuilder.SummaryReportData(null, [], true, runtime.Logger)).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
 
     [TestMethod]
     public void SummaryReport_NoProjects()
     {
         var hostUrl = "http://mySonarQube:9000";
         var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
-        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, [], false, testLogger);
+        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, [], false, runtime.Logger);
 
-        VerifySummaryReportData(summaryReportData, false, hostUrl, config, new TestLogger());
+        VerifySummaryReportData(summaryReportData, false, hostUrl, config, runtime.Logger);
         VerifySummaryProjectCounts(
             summaryReportData,
             expectedExcludedProjects: 0,
@@ -74,9 +70,9 @@ public class SummaryReportBuilderTests
         var projects = CreateProjects(ProjectInfoValidity.Valid, ProjectType.Product, 4).ToArray();
         var config = new AnalysisConfig() { SonarProjectKey = "Foo", SonarQubeHostUrl = hostUrl };
         config.LocalSettings = new AnalysisProperties { new Property(SonarProperties.ProjectBranch, "master") };
-        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, projects.ToArray(), false, testLogger);
+        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, projects.ToArray(), false, runtime.Logger);
 
-        VerifySummaryReportData(summaryReportData, false, hostUrl, config, testLogger);
+        VerifySummaryReportData(summaryReportData, false, hostUrl, config, runtime.Logger);
         VerifySummaryProjectCounts(
             summaryReportData,
             expectedExcludedProjects: 0,
@@ -101,9 +97,9 @@ public class SummaryReportBuilderTests
             .Concat(CreateProjects(ProjectInfoValidity.DuplicateGuid, ProjectType.Test, 3))
             .ToArray();
         var config = new AnalysisConfig() { SonarProjectKey = string.Empty, SonarQubeHostUrl = hostUrl };
-        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, projects, true, testLogger);
+        var summaryReportData = new SummaryReportBuilder.SummaryReportData(config, projects, true, runtime.Logger);
 
-        VerifySummaryReportData(summaryReportData, true, hostUrl, config, testLogger);
+        VerifySummaryReportData(summaryReportData, true, hostUrl, config, runtime.Logger);
         VerifySummaryProjectCounts(
             summaryReportData,
             expectedExcludedProjects: 5, // ExcludeFlagSet
@@ -160,11 +156,11 @@ public class SummaryReportBuilderTests
         summaryReportData.ExcludedProjects.Should().Be(expectedExcludedProjects);
     }
 
-    private static IEnumerable<ProjectData> CreateProjects(ProjectInfoValidity validity, ProjectType type, uint count)
+    private IEnumerable<ProjectData> CreateProjects(ProjectInfoValidity validity, ProjectType type, uint count)
     {
         for (var i = 0; i < count; i++)
         {
-            yield return new ProjectData(new[] { new ProjectInfo { ProjectType = type } }.GroupBy(x => x.ProjectGuid).Single(), true, Substitute.For<ILogger>()) { Status = validity };
+            yield return new ProjectData(new[] { new ProjectInfo { ProjectType = type } }.GroupBy(x => x.ProjectGuid).Single(), runtime) { Status = validity };
         }
     }
 
