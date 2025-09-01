@@ -449,8 +449,8 @@ public class ArgumentProcessorTests
         AssertExpectedPropertyValue("key1", "value1", result);
         AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
-        result.AllProperties().Should().NotBeNull("GetAllProperties should not return null");
-        result.AllProperties().Should().HaveCount(3, "Unexpected number of properties");
+        result.AllProperties().Should().NotBeNull();
+        result.AllProperties().Should().HaveCount(3);
     }
 
     [TestMethod]
@@ -953,7 +953,7 @@ public class ArgumentProcessorTests
     {
         var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, runtime);
 
-        result.Should().BeNull("Not expecting the arguments to be processed successfully");
+        result.Should().BeNull();
         runtime.Logger.AssertErrorsLogged();
     }
 
@@ -963,7 +963,7 @@ public class ArgumentProcessorTests
     private static ProcessedArgs CheckProcessingSucceeds(TestRuntime runtime, params string[] commandLineArgs)
     {
         var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, runtime);
-        result.Should().NotBeNull("Expecting the arguments to be processed successfully");
+        result.Should().NotBeNull();
         runtime.Logger.AssertErrorsLogged(0);
         return result;
     }
@@ -980,12 +980,12 @@ public class ArgumentProcessorTests
         // Test the GetSetting method
         var actualValue = actual.GetSetting(key);
         actualValue.Should().NotBeNull("Expected dynamic settings does not exist. Key: {0}", key);
-        actualValue.Should().Be(value, "Dynamic setting does not have the expected value");
+        actualValue.Should().Be(value);
 
         // Check the public list of properties
         var found = Property.TryGetProperty(key, actual.AllProperties(), out var match);
         found.Should().BeTrue("Failed to find the expected property. Key: {0}", key);
         match.Should().NotBeNull("Returned property should not be null. Key: {0}", key);
-        match.Value.Should().Be(value, "Property does not have the expected value");
+        match.Value.Should().Be(value);
     }
 }
