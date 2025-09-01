@@ -96,7 +96,9 @@ public sealed class ProcessRunner : IProcessRunner
         {
             using var standardInput = process.StandardInput;
             logger.LogDebug("Standardinput openend with encoding: {0}", standardInput.Encoding.EncodingName);
-            standardInput.Write(input);
+            var utf8 = Encoding.UTF8.GetBytes(input);
+            standardInput.BaseStream.Write(utf8, 0, utf8.Length);
+            //standardInput.Write(input);
         }
         var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
         // false means we asked the process to stop but it didn't.
