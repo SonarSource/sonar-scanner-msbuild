@@ -515,7 +515,7 @@ public class TruststorePropertiesProcessorTests
         bool isUnix = false)
     {
         var operatingSystemProvider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
-        operatingSystemProvider.IsUnix().Returns(isUnix);
+        operatingSystemProvider.OperatingSystem().Returns(isUnix ? PlatformOS.Linux : PlatformOS.Windows);
         return new TruststorePropertiesProcessor(
             args,
             null,
