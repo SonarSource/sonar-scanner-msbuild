@@ -88,7 +88,7 @@ public class PreProcessor
             runtime.Logger.LogDebug(ex.StackTrace);
             return false;
         }
-        logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.version", server.ServerVersion.ToString());
+        runtime.Logger.AddTelemetryMessage("dotnetenterprise.s4net.serverInfo.version", server.ServerVersion.ToString());
 
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
