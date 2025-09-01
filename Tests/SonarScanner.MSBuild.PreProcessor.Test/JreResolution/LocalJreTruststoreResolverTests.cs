@@ -44,6 +44,28 @@ public class LocalJreTruststoreResolverTests
             .WithParameterName("args");
 
     [TestMethod]
+    public void UnixTruststorePath_SystemPathNull_ShouldBeNull()
+    {
+        var runtime = new TestRuntime();
+        var processRunner = Substitute.For<IProcessRunner>();
+        processRunner.Execute(Arg.Any<ProcessRunnerArguments>())
+            .Returns(new ProcessResult(true, string.Empty, string.Empty));
+        var processedArgs = CreateProcessedArgs(runtime);
+        var sut = new LocalJreTruststoreResolver(processRunner, runtime);
+        using var envScope = new EnvironmentVariableScope();
+        envScope.SetVariable("JAVA_HOME", null);
+        envScope.SetVariable("PATH", null);
+
+        var result = sut.UnixTruststorePath(processedArgs);
+
+        result.Should().BeNull();
+        runtime.Logger.DebugMessages.Should().HaveCount(3);
+        AssertDebugLogged(runtime.Logger, "JAVA_HOME environment variable not set. Try to infer Java home from Java executable.");
+        AssertDebugLogged(runtime.Logger, "Could not infer bourne shell executable from PATH.");
+        AssertDebugLogged(runtime.Logger, "Could not infer Java Home from the java executable.");
+    }
+
+    [TestMethod]
     public void UnixTruststorePath_BourneShellNotFound_ShouldBeNull()
     {
         var runtime = new TestRuntime();
