@@ -1,4 +1,6 @@
-﻿namespace UTF8Filenames
+﻿using System;
+
+namespace UTF8Filenames
 {
     internal static class UTF8Filename_äöüß_ソナー
     {
