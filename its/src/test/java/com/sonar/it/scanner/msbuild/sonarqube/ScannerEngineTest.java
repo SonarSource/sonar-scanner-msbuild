@@ -61,10 +61,8 @@ class ScannerEngineTest {
       .extracting(ProjectAnalyses.Analysis::getBuildString)
       .containsExactly("'_äöüß_😊_ソナー");
     String logs = result.end().getLogs();
-    var matcher = Pattern.compile("DEBUG: 'UTF8Filenames/(?<filename>UTF8Filename_.*\\.cs)' indexed with language 'cs'")
-      .matcher(logs);
-    while (matcher.find())
-    {
+    var matcher = Pattern.compile("DEBUG: 'UTF8Filenames/(?<filename>UTF8Filename_.*\\.cs)' indexed with language 'cs'").matcher(logs);
+    while (matcher.find()) {
       assertThat(matcher.group("filename")).isEqualTo("UTF8Filename_����_???_?.cs");
     }
   }
