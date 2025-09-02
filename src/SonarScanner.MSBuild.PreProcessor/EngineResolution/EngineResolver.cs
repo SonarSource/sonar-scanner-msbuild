@@ -91,12 +91,8 @@ public class EngineResolver : IResolver
             case CacheMiss:
                 runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
                 return await DownloadEngine(cachedDownloader, metadata);
-            case CacheError error:
-                runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(EngineResolver), error.Message);
-                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
-                return null;
             default:
-                throw new NotSupportedException("File Resolution is expected to be CacheHit, CacheMiss, or CacheError.");
+                throw new NotSupportedException("File Resolution is expected to be CacheHit or CacheMiss.");
         }
     }
 
