@@ -31,54 +31,124 @@ public class SonarEngineWrapperTest
         }
         """;
 
-    private readonly TestRuntime runtime = new();
+    [TestMethod]
+    public void Ctor_Runtime_ThrowsArgumentNullException() =>
+        FluentActions.Invoking(() => new SonarEngineWrapper(null, Substitute.For<IProcessRunner>())).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
 
     [TestMethod]
-    public void Ctor_Runtime_ThrowsArgumentNullException()
-    {
-        Action act = () => new SonarEngineWrapper(null, Substitute.For<IProcessRunner>());
-        act.Should().Throw<ArgumentNullException>().WithParameterName("runtime");
-    }
+    public void Ctor_ProcessRunner_ThrowsArgumentNullException() =>
+        FluentActions.Invoking(() => new SonarEngineWrapper(new TestRuntime(), null)).Should().Throw<ArgumentNullException>().WithParameterName("processRunner");
 
     [TestMethod]
-    public void Ctor_ProcessRunner_ThrowsArgumentNullException()
-    {
-        Action act = () => new SonarEngineWrapper(runtime, null);
-        act.Should().Throw<ArgumentNullException>().WithParameterName("processRunner");
-    }
-
-    [TestMethod]
-    public void Execute_Config_ThrowsArgumentNullException()
-    {
-        var wrapper = new SonarEngineWrapper(runtime, Substitute.For<IProcessRunner>());
-
-        Action act = () => wrapper.Execute(null, "{}");
-        act.Should().Throw<ArgumentNullException>().WithParameterName("config");
-    }
-
-    [TestMethod]
-    public void Execute_Success()
-    {
-        var runner = new MockProcessRunner(true);
-        var engine = new SonarEngineWrapper(runtime, runner);
-        var result = engine.Execute(new AnalysisConfig() { JavaExePath = "java.exe", EngineJarPath = "engine.jar" }, SampleInput);
-        result.Should().BeTrue();
-        runner.SuppliedArguments.Should().BeEquivalentTo(new
-        {
-            ExeName = "java.exe",
-            CmdLineArgs = (string[])["-jar", "engine.jar"],
-            StandardInput = SampleInput,
-        });
-        runtime.Logger.AssertInfoLogged("The scanner engine has finished successfully");
-    }
+    public void Execute_Config_ThrowsArgumentNullException() =>
+        new SonarEngineWrapper(new TestRuntime(), Substitute.For<IProcessRunner>()).Invoking(x => x.Execute(null, "{}")).Should().Throw<ArgumentNullException>().WithParameterName("config");
 
     [TestMethod]
     public void Execute_Failure()
     {
-        var runner = new MockProcessRunner(false);
-        var engine = new SonarEngineWrapper(runtime, runner);
-        var result = engine.Execute(new AnalysisConfig() { JavaExePath = "java.exe", EngineJarPath = "engine.jar" }, SampleInput);
-        result.Should().BeFalse();
-        runtime.Logger.AssertErrorLogged("The scanner engine did not complete successfully");
+        var context = new Context(processSucceeds: false);
+
+        context.Execute().Should().BeFalse();
+
+        context.Runtime.Logger.AssertErrorLogged("The scanner engine did not complete successfully");
+    }
+
+    [TestMethod]
+    public void Execute_Success_ConfiguredPathExists()
+    {
+        var context = new Context();
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = (string[])["-jar", "engine.jar"],
+            StandardInput = SampleInput,
+        });
+        context.Runtime.Logger.AssertInfoLogs(
+            "The scanner engine has finished successfully",
+            $"Using Java found in Analysis Config: {context.ResolvedJavaExe}");
+    }
+
+    [DataRow(true)]
+    [DataRow(false)]
+    [TestMethod]
+    public void FindJavaExe_ConfiguredPath_DoesNotExist(bool isUnix)
+    {
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.JavaHomeVariableName, null);
+        var context = new Context(isUnix);
+        context.Runtime.File.Exists(context.ResolvedJavaExe).Returns(false);
+
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.ExeName.Should().Be(context.JavaFileName);
+        context.Runtime.Logger.AssertInfoLogs(
+            $"Could not find Java in Analysis Config: {context.ResolvedJavaExe}",
+            "'JAVA_HOME' environment variable not set",
+            $"Could not find Java, falling back to using PATH: {context.JavaFileName}");
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void FindJavaExe_JavaHomeSet_Exists(bool isUnix)
+    {
+        var context = new Context(isUnix);
+        using var environmentVariableScope = new EnvironmentVariableScope();
+        environmentVariableScope.SetVariable(EnvironmentVariables.JavaHomeVariableName, context.JavaHome);
+        context.Runtime.File.Exists(context.ResolvedJavaExe).Returns(false);
+        context.Runtime.File.Exists(context.JavaHomeExePath).Returns(true);
+
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.ExeName.Should().Be(context.JavaHomeExePath);
+        context.Runtime.Logger.AssertInfoLogs(
+            $"Could not find Java in Analysis Config: {context.ResolvedJavaExe}",
+            $"Found 'JAVA_HOME': {context.JavaHome}",
+            $"Using Java found in JAVA_HOME: {context.JavaHomeExePath}");
+    }
+
+    [TestMethod]
+    public void FindJavaExe_JavaHomeSet_DoesNotExist()
+    {
+        var context = new Context();
+        using var environmentVariableScope = new EnvironmentVariableScope();
+        environmentVariableScope.SetVariable(EnvironmentVariables.JavaHomeVariableName, context.JavaHome);
+        context.Runtime.File.Exists(context.ResolvedJavaExe).Returns(false);
+        context.Runtime.File.Exists(context.JavaHomeExePath).Returns(false);
+
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.ExeName.Should().Be(context.JavaFileName);
+        context.Runtime.Logger.AssertInfoLogs(
+            $"Could not find Java in Analysis Config: {context.ResolvedJavaExe}",
+            $"Found 'JAVA_HOME': {context.JavaHome}",
+            $"Could not find Java in JAVA_HOME: {context.JavaHomeExePath}",
+            $"Could not find Java, falling back to using PATH: {context.JavaFileName}");
+    }
+
+    private sealed class Context
+    {
+        public readonly SonarEngineWrapper Engine;
+        public readonly MockProcessRunner Runner;
+        public readonly TestRuntime Runtime = new();
+        public readonly string ResolvedJavaExe = "resolved-java.exe";
+        public readonly string JavaHome = Path.Combine("Java", "Home");
+
+        public string JavaFileName => Runtime.OperatingSystem.IsUnix() ? "java" : "java.exe";
+        public string JavaHomeExePath => Path.Combine(JavaHome, "bin", JavaFileName);
+
+        public Context(bool isUnix = false, bool processSucceeds = true)
+        {
+            Runner = new MockProcessRunner(processSucceeds);
+            Runtime.OperatingSystem.OperatingSystem().Returns(isUnix ? PlatformOS.Linux : PlatformOS.Windows);
+            Engine = new SonarEngineWrapper(Runtime, Runner);
+            Runtime.File.Exists(ResolvedJavaExe).Returns(true);
+        }
+
+        public bool Execute() =>
+            Engine.Execute(
+                new AnalysisConfig { JavaExePath = ResolvedJavaExe, EngineJarPath = "engine.jar" },
+                SampleInput);
     }
 }

@@ -286,7 +286,7 @@ public class BootstrapperClassTests
         preProcessor = Substitute.For<PreProcessor.PreProcessor>(Substitute.For<PreProcessor.IPreprocessorObjectFactory>(), new TestRuntime());
         postProcessor = Substitute.For<PostProcessor.PostProcessor>(
             Substitute.For<SonarScannerWrapper>(Substitute.For<IRuntime>()),
-            Substitute.For<SonarEngineWrapper>(Substitute.For<IRuntime>(), Substitute.For<IProcessRunner>()),
+            Substitute.For<SonarEngineWrapper>(new TestRuntime(), Substitute.For<IProcessRunner>()),
             Substitute.For<IRuntime>(),
             Substitute.For<TargetsUninstaller>(Substitute.For<ILogger>()),
             Substitute.For<TfsProcessorWrapper>(Substitute.For<IRuntime>()),
