@@ -24,6 +24,7 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Paths;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.ProjectAnalyses;
@@ -64,7 +65,13 @@ class ScannerEngineTest {
     var logs = result.end().getLogs();
     var matcher = Pattern.compile("DEBUG: 'UTF8Filenames/(?<filename>UTF8Filename_.*\\.cs)' indexed with language 'cs'").matcher(logs);
     while (matcher.find()) {
-      assertThat(matcher.group("filename")).isEqualTo("UTF8Filename_����_???_?.cs");
+      var fileNameInLog = matcher.group("filename");
+      var expected = "UTF8Filename_����_???_?.cs";
+      assertThat(fileNameInLog).as(
+        "Expected in code points: " +
+          expected.chars().mapToObj(Integer::toString).collect(Collectors.joining(",")) +
+          "Actual in code points: " +
+          fileNameInLog.chars().mapToObj(Integer::toString).collect(Collectors.joining(","))).isEqualTo(expected);
     }
   }
 }
