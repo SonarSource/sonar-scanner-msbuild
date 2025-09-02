@@ -51,7 +51,7 @@ public class TruststorePropertiesProcessor : AnalysisConfigProcessorBase
         {
             if (runtime.OperatingSystem.IsUnix())
             {
-                var truststoreResolver = new LocalJreTruststoreResolver(runtime.File, runtime.Directory, processRunner, runtime.Logger);
+                var truststoreResolver = new LocalJreTruststoreResolver(processRunner, runtime);
                 truststorePath = truststoreResolver.UnixTruststorePath(LocalSettings);
             }
             else
