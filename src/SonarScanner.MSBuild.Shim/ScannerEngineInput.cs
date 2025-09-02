@@ -30,20 +30,12 @@ public class ScannerEngineInput
     private readonly AnalysisConfig config;
 
     private readonly HashSet<string> moduleKeys = [];
-    private readonly JObject root;
-    private readonly JArray scannerProperties = [];
-    private readonly JProperty modules;
+    // ScannerEngine takes 2 mandatory string (non-null) properties
+    // https://xtranet-sonarsource.atlassian.net/wiki/spaces/CodeOrches/pages/3155001372/Scanner+Bootstrapping#Scanner-Engine-contract
+    private readonly Dictionary<string, string> scannerProperties = [];
 
-    public ScannerEngineInput(AnalysisConfig config)
-    {
+    public ScannerEngineInput(AnalysisConfig config) =>
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-        root = new JObject
-        {
-            new JProperty("scannerProperties", scannerProperties)
-        };
-        modules = new JProperty("value", string.Empty);
-        Add("sonar.modules", modules);
-    }
 
     public ScannerEngineInput CloneWithoutSensitiveData()
     {
@@ -51,29 +43,29 @@ public class ScannerEngineInput
         result.moduleKeys.UnionWith(moduleKeys);
         foreach (var property in scannerProperties)
         {
-            var key = property["key"].Value<string>();
-            var value = property["value"].Value<string>();
-            if (key == "sonar.modules")
-            {
-                result.modules.Value = value;
-            }
-            else
-            {
-                result.Add(key, ProcessRunnerArguments.ContainsSensitiveData(key) || ProcessRunnerArguments.ContainsSensitiveData(value) ? "***" : value);
-            }
+            result.Add(property.Key, ProcessRunnerArguments.ContainsSensitiveData(property.Key) || ProcessRunnerArguments.ContainsSensitiveData(property.Value) ? "***" : property.Value);
         }
         return result;
     }
 
     public override string ToString() =>
-        JsonConvert.SerializeObject(root, Formatting.Indented);
+        JsonConvert.SerializeObject(
+            new JObject
+            {
+                new JProperty("scannerProperties", new JArray(scannerProperties.Select(x => new JObject
+                    {
+                        { "key", x.Key },
+                        { "value", x.Value },
+                    })))
+            },
+            Formatting.Indented);
 
     public void AddProject(ProjectData project)
     {
         _ = project ?? throw new ArgumentNullException(nameof(project));
         var guid = project.Guid;
         moduleKeys.Add(guid);
-        modules.Value = string.Join(",", moduleKeys);
+        Add("sonar.modules", string.Join(",", moduleKeys));
         Add(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
         Add(guid, SonarProperties.ProjectName, project.Project.ProjectName);
         Add(guid, SonarProperties.ProjectBaseDir, project.Project.ProjectFileDirectory().FullName);
@@ -139,12 +131,9 @@ public class ScannerEngineInput
     {
         if (!string.IsNullOrEmpty(value))
         {
-            Add(key, new JProperty("value", value));
+            scannerProperties[key] = value;
         }
     }
-
-    private void Add(string key, JProperty value) =>
-        scannerProperties.Add(new JObject { new JProperty("key", key), value });
 
     private static string ToMultiValueProperty(IEnumerable<string> paths)
     {
