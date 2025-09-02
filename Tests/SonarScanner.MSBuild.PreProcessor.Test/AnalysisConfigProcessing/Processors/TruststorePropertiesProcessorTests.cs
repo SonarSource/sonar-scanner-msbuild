@@ -481,8 +481,5 @@ public class TruststorePropertiesProcessorTests
             cmdLineProvider ?? EmptyPropertyProvider.Instance,
             Substitute.For<IAnalysisPropertyProvider>(),
             EmptyPropertyProvider.Instance,
-            fileWrapper ?? Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>(),
-            Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()),
-            Substitute.For<ILogger>());
+            new TestRuntime { File = fileWrapper ?? Substitute.For<IFileWrapper>() });
 }

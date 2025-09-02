@@ -352,10 +352,7 @@ public class JreResolverTests
             provider,
             EmptyPropertyProvider.Instance,
             EmptyPropertyProvider.Instance,
-            runtime.File,
-            runtime.Directory,
-            runtime.OperatingSystem,
-            Substitute.For<ILogger>()); // not using runtime.Logger to avoid message pollution
+            runtime with { Logger = new() }); // using a new logger to avoid message pollution
         args.OperatingSystem.Returns("os");
         args.Architecture.Returns("arch");
         return args;
