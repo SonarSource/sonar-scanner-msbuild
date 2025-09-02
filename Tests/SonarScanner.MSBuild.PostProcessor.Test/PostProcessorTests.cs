@@ -450,7 +450,7 @@ public class PostProcessorTests
         args ??= [];
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
         var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
-        var scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, runtime);
+        var scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, runtime, Substitute.For<IAnalysisPropertyProvider>());
 
         var analysisResult = new AnalysisResult(
             [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(runtime).Single()],

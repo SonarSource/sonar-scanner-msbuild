@@ -30,7 +30,7 @@ public partial class ScannerEngineInputGeneratorTest
         var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "file.cs");
         var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, AnalysisResultFileType.FilesToAnalyze.ToString(), fileToAnalyzePath);
         var config = new AnalysisConfig { SonarOutputDir = outPath };
-        var sut = new ScannerEngineInputGenerator(config, runtime);
+        var sut = new ScannerEngineInputGenerator(config, runtime, provider);
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
@@ -79,7 +79,7 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outPath,
             LocalSettings = [new Property(SonarProperties.ProjectBaseDir, "This path does not exist")]
         };
-        var sut = new ScannerEngineInputGenerator(config, runtime);
+        var sut = new ScannerEngineInputGenerator(config, runtime, provider);
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
             [new ProjectData(new[] { project }.GroupBy(x => x.ProjectGuid).Single(), runtime) { Status = ProjectInfoValidity.Valid }],
@@ -95,7 +95,7 @@ public partial class ScannerEngineInputGeneratorTest
         var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
         Directory.CreateDirectory(outPath);
         var config = new AnalysisConfig { SonarOutputDir = outPath };
-        var sut = new ScannerEngineInputGenerator(config, runtime);
+        var sut = new ScannerEngineInputGenerator(config, runtime, provider);
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
@@ -251,7 +251,7 @@ public partial class ScannerEngineInputGeneratorTest
 
     private void GenerateProperties_HostUrl_Execute(AnalysisConfig config, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
     {
-        var sut = new ScannerEngineInputGenerator(config, runtime);
+        var sut = new ScannerEngineInputGenerator(config, runtime, provider);
         var projectPath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Project.csproj");
         var sourceFilePath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Program.cs");
         var filesToAnalyzePath = TestUtils.CreateFile(config.SonarOutputDir, "FilesToAnalyze.txt", sourceFilePath);
@@ -278,12 +278,14 @@ public partial class ScannerEngineInputGeneratorTest
         public readonly ScannerEngineInput EngineInput;
         public readonly ProjectData Project;
         private readonly TestRuntime runtime;
+        private readonly IAnalysisPropertyProvider provider;
 
         public PropertiesContext(TestContext testContext, string language, TestRuntime runtime)
         {
             this.runtime = runtime;
             Config = new AnalysisConfig { SonarOutputDir = testContext.TestRunDirectory };
             EngineInput = new ScannerEngineInput(Config);
+            provider = new ListPropertiesProvider();
             var sourceFilePath = TestUtils.CreateEmptyFile(testContext.TestRunDirectory, "File.cs");
             var filesToAnalyzePath = TestUtils.CreateFile(testContext.TestRunDirectory, "FilesToAnalyze.txt", sourceFilePath);
             var info = new ProjectInfo
@@ -301,7 +303,7 @@ public partial class ScannerEngineInputGeneratorTest
 
         public void GenerateProperties()
         {
-            var sut = new ScannerEngineInputGenerator(Config, runtime);
+            var sut = new ScannerEngineInputGenerator(Config, runtime, provider);
             sut.GenerateProperties(Config.ToAnalysisProperties(runtime.Logger), [Project], new PropertiesWriter(Config), EngineInput).Should().BeTrue();
         }
 

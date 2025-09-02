@@ -54,7 +54,7 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new ScannerEngineInputGenerator(config, runtime);
+        var generator = new ScannerEngineInputGenerator(config, runtime, provider);
         var result = generator.GenerateResult();
 
         AssertExpectedProjectCount(1, result);
@@ -98,7 +98,7 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new ScannerEngineInputGenerator(config, runtime);
+        var generator = new ScannerEngineInputGenerator(config, runtime, provider);
         var result = generator.GenerateResult();
 
         AssertExpectedProjectCount(1, result);
@@ -141,7 +141,7 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new ScannerEngineInputGenerator(config, runtime);
+        var generator = new ScannerEngineInputGenerator(config, runtime, provider);
         var result = generator.GenerateResult();
 
         AssertExpectedProjectCount(1, result);
@@ -184,7 +184,7 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outDir,
             SonarProjectVersion = "1.0",
         };
-        var generator = new ScannerEngineInputGenerator(config, runtime);
+        var generator = new ScannerEngineInputGenerator(config, runtime, provider);
         var result = generator.GenerateResult();
 
         AssertExpectedProjectCount(1, result);

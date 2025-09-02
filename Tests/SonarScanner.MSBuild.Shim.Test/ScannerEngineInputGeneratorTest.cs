@@ -32,6 +32,7 @@ public partial class ScannerEngineInputGeneratorTest
         + "The path may be relative (to the directory from which the analysis was started) or absolute.";
 
     private readonly TestRuntime runtime = new() { Directory = DirectoryWrapper.Instance };
+    private readonly IAnalysisPropertyProvider provider = new ListPropertiesProvider();
 
     public TestContext TestContext { get; set; }
 
@@ -41,11 +42,13 @@ public partial class ScannerEngineInputGeneratorTest
         var cnfg = new AnalysisConfig();
         var rntm = runtime;
         var rvsf = new RoslynV1SarifFixer(runtime.Logger);
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("fixer");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("additionalFilesService");
+        var prvdr = new ListPropertiesProvider();
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, rntm, prvdr)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, prvdr)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null, prvdr)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null, prvdr)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("fixer");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, null, prvdr)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("additionalFilesService");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");
     }
 
     [TestMethod]
@@ -209,7 +212,7 @@ public partial class ScannerEngineInputGeneratorTest
         {
             runtime.ConfigureOS(os);
         }
-        return new(analysisConfig, runtime, sarifFixer, new(runtime));
+        return new(analysisConfig, runtime, sarifFixer, new(runtime), new ListPropertiesProvider());
     }
 
     private ProjectData CreateProjectData(string fullPath) =>
