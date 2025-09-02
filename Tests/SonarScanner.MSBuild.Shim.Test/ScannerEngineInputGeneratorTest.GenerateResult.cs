@@ -787,7 +787,75 @@ public partial class ScannerEngineInputGeneratorTest
         CreateInputReader(result)["sonar.tests"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(testFiles);
     }
 
+    [TestMethod]
+    public void GenerateResult_CommandLineArgs_AddedToEngineInput()
+    {
+        var commandLineArgs = new ListPropertiesProvider
+        {
+            { SonarProperties.SonarPassword, "secret pwd" },
+            { SonarProperties.SonarUserName, "secret username" },
+            { SonarProperties.SonarToken, "secret token" },
+            { SonarProperties.ClientCertPassword, "secret client certpwd" },
+            { "sonar.some.other.arg", "someValue" }
+        };
+        var result = CreateInputReader(new ScannerEngineInputGenerator(CreateValidConfig(), runtime, commandLineArgs).GenerateResult());
 
+        result.AssertProperty(SonarProperties.SonarPassword, "secret pwd");
+        result.AssertProperty(SonarProperties.SonarUserName, "secret username");
+        result.AssertProperty(SonarProperties.SonarToken, "secret token");
+        result.AssertProperty(SonarProperties.ClientCertPassword, "secret client certpwd");
+        result.AssertProperty("sonar.some.other.arg", "someValue");
+    }
+
+    [TestMethod]
+    public void GenerateResult_AnalysisConfigSensitiveArgs_AddedToEngineInput()
+    {
+        var config = CreateValidConfig();
+        config.LocalSettings =
+        [
+            new(SonarProperties.SonarPassword, "secret pwd"),
+            new(SonarProperties.SonarUserName, "secret username"),
+            new(SonarProperties.SonarToken, "secret token"),
+            new(SonarProperties.ClientCertPassword, "secret client certpwd"),
+            new("sonar.some.other.arg", "someValue")
+        ];
+        var result = CreateInputReader(new ScannerEngineInputGenerator(config, runtime, provider).GenerateResult());
+
+        result.AssertProperty(SonarProperties.SonarPassword, "secret pwd");
+        result.AssertProperty(SonarProperties.SonarUserName, "secret username");
+        result.AssertProperty(SonarProperties.SonarToken, "secret token");
+        result.AssertProperty(SonarProperties.ClientCertPassword, "secret client certpwd");
+        result.AssertProperty("sonar.some.other.arg", "someValue");
+    }
+
+    [TestMethod]
+    public void GenerateResult_CommandLineArgs_OverrideFileProperties()
+    {
+        var config = CreateValidConfig();
+        config.LocalSettings =
+        [
+            new(SonarProperties.SonarPassword, "file pwd"),
+            new(SonarProperties.SonarUserName, "file username"),
+            new(SonarProperties.SonarToken, "file token"),
+            new(SonarProperties.ClientCertPassword, "file client certpwd"),
+            new("sonar.some.other.arg", "fileValue")
+        ];
+        var commandLineArgs = new ListPropertiesProvider
+        {
+            { SonarProperties.SonarPassword, "cli pwd" },
+            { SonarProperties.SonarUserName, "cli username" },
+            { SonarProperties.SonarToken, "cli token" },
+            { SonarProperties.ClientCertPassword, "cli client certpwd" },
+            { "sonar.some.other.arg", "cliValue" }
+        };
+        var result = CreateInputReader(new ScannerEngineInputGenerator(config, runtime, commandLineArgs).GenerateResult());
+
+        result.AssertProperty(SonarProperties.SonarPassword, "cli pwd");
+        result.AssertProperty(SonarProperties.SonarUserName, "cli username");
+        result.AssertProperty(SonarProperties.SonarToken, "cli token");
+        result.AssertProperty(SonarProperties.ClientCertPassword, "cli client certpwd");
+        result.AssertProperty("sonar.some.other.arg", "cliValue");
+    }
 
     /// <summary>
     /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.

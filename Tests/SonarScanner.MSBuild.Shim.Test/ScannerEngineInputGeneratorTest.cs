@@ -173,6 +173,13 @@ public partial class ScannerEngineInputGeneratorTest
     private static void AssertFileIsNotReferenced(string fullFilePath, string content) =>
         content.Should().NotContain(PropertiesWriter.Escape(fullFilePath), "file should not be referenced");
 
+    private AnalysisConfig CreateValidConfig()
+    {
+        var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        TestUtils.CreateProjectWithFiles(TestContext, "project1", analysisRootDir);
+        return CreateValidConfig(analysisRootDir);
+    }
+
     private static AnalysisConfig CreateValidConfig(string outputDir, AnalysisProperties serverProperties = null, string workingDir = null)
     {
         var dummyProjectKey = Guid.NewGuid().ToString();
