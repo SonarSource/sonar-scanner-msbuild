@@ -86,11 +86,8 @@ public class JreResolver : IResolver
                 case CacheMiss:
                     runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(JreResolver), "JRE");
                     return await DownloadJre(jreDownloader, metadata);
-                case CacheError failure:
-                    runtime.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), failure.Message);
-                    return null;
                 default:
-                    throw new NotSupportedException("File Resolution is expected to be CacheHit, CacheMiss, or CacheError.");
+                    throw new NotSupportedException("File Resolution is expected to be CacheHit or CacheMiss.");
             }
         }
         else
