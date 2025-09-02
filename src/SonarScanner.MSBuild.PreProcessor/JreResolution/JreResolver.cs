@@ -78,16 +78,15 @@ public class JreResolver : IResolver
         if (unpackerFactory.Create(descriptor.Filename) is { } unpacker)
         {
             var jreDownloader = new JreDownloader(runtime, unpacker, checksum, sonarUserHome, descriptor);
-            switch (jreDownloader.IsJreCached())
+            if (jreDownloader.IsJreCached() is { } filePath)
             {
-                case CacheHit hit:
-                    runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), hit.FilePath);
-                    return hit.FilePath;
-                case CacheMiss:
-                    runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(JreResolver), "JRE");
-                    return await DownloadJre(jreDownloader, metadata);
-                default:
-                    throw new NotSupportedException("File Resolution is expected to be CacheHit or CacheMiss.");
+                runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), filePath);
+                return filePath;
+            }
+            else
+            {
+                runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(JreResolver), "JRE");
+                return await DownloadJre(jreDownloader, metadata);
             }
         }
         else
