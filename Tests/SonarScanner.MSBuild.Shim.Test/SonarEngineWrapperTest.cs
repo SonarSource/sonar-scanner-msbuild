@@ -75,6 +75,7 @@ public class SonarEngineWrapperTest
     [TestMethod]
     public void FindJavaExe_ConfiguredPath_DoesNotExist(bool isUnix)
     {
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.JavaHomeVariableName, null);
         var context = new Context(isUnix);
         context.Runtime.File.Exists(context.ResolvedJavaExe).Returns(false);
 
