@@ -42,8 +42,8 @@ class ScannerEngineTest {
     var context = AnalysisContext.forServer(Paths.get("ScannerEngine", "UTF8Filenames_äöü").toString());
     context.begin
       // .setProperty("sonar.scanner.useSonarScannerCLI", "false")
-      .setProperty("sonar.buildString", "'_äöüß_😊_ソナー")
-      .setDebugLogs();
+      .setProperty("sonar.buildString", "'_äöüß_😊_ソナー") // Round trip a string property with problematic characters from the begin step to the final analysis result on the server
+      .setDebugLogs(); // So we can assert filenames with problematic characters in the log output.
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());
@@ -59,8 +59,9 @@ class ScannerEngineTest {
     var analyses = TestUtils.newWsClient(ORCHESTRATOR).projectAnalyses().search(new SearchRequest().setProject(context.projectKey)).getAnalysesList();
     assertThat(analyses)
       .extracting(ProjectAnalyses.Analysis::getBuildString)
+      .as("The round-tripped sonar.buildString property must match the input.")
       .containsExactly("'_äöüß_😊_ソナー");
-    String logs = result.end().getLogs();
+    var logs = result.end().getLogs();
     var matcher = Pattern.compile("DEBUG: 'UTF8Filenames/(?<filename>UTF8Filename_.*\\.cs)' indexed with language 'cs'").matcher(logs);
     while (matcher.find()) {
       assertThat(matcher.group("filename")).isEqualTo("UTF8Filename_����_???_?.cs");
