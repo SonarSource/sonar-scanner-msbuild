@@ -1,0 +1,65 @@
+/*
+ * SonarScanner for .NET
+ * Copyright (C) 2016-2025 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+package com.sonar.it.scanner.msbuild.sonarqube;
+
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import java.nio.file.Paths;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.sonarqube.ws.ProjectAnalyses;
+import org.sonarqube.ws.client.projectanalyses.SearchRequest;
+
+import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@ExtendWith({ServerTests.class, ContextExtension.class})
+class ScannerEngineTest {
+
+  @Test
+  void scannerInput_UTF8() {
+    var context = AnalysisContext.forServer(Paths.get("ScannerEngine", "UTF8Filenames_äöü").toString());
+    context.begin
+      // .setProperty("sonar.scanner.useSonarScannerCLI", "false")
+      .setProperty("sonar.buildString", "'_äöüß_😊_ソナー")
+      .setDebugLogs();
+    var result = context.runAnalysis();
+
+    assertTrue(result.isSuccess());
+    var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
+    assertThat(issues)
+      .extracting(x -> tuple(x.getComponent(), x.getRule(), x.getMessage()))
+      .containsExactlyInAnyOrder(
+        tuple(
+          context.projectKey + ":UTF8Filenames/UTF8Filename_äöüß_ソナー_😊.cs",
+          "csharpsquid:S101",
+          "Rename class 'UTF8Filename_äöüß_ソナー' to match pascal case naming rules, consider using 'Utf8Filenameäöüßソナー'.")
+      );
+    var analyses = TestUtils.newWsClient(ORCHESTRATOR).projectAnalyses().search(new SearchRequest().setProject(context.projectKey)).getAnalysesList();
+    assertThat(analyses)
+      .extracting(ProjectAnalyses.Analysis::getBuildString)
+      .containsExactly("'_äöüß_😊_ソナー");
+    String logs = result.end().getLogs();
+    assertThat(logs).contains("DEBUG: 'UTF8Filenames/UTF8Filename_����_???_?.cs' indexed with language 'cs'");
+  }
+}
