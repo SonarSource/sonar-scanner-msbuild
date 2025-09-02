@@ -165,10 +165,6 @@ public class PostProcessorTests
             {
               "scannerProperties": [
                 {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
                   "key": "sonar.unsafe.value",
                   "value": "***"
                 }
@@ -195,10 +191,6 @@ public class PostProcessorTests
             {
               "scannerProperties": [
                 {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
                   "key": "sonar.unsafe.value",
                   "value": "Sensitive data"
                 }
@@ -223,12 +215,7 @@ public class PostProcessorTests
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         engine.Received(1).Execute(config, """
             {
-              "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                }
-              ]
+              "scannerProperties": []
             }
             """
                 .ToEnvironmentLineEndings());
