@@ -61,7 +61,7 @@ public class PostProcessor
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
         runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
         targetUninstaller.UninstallTargets(config.SonarBinDir);
-        if (!ArgumentProcessor.TryProcessArgs(args, runtime.Logger, out var provider))
+        if (!ArgumentProcessor.TryProcessArgs(args, runtime.Logger, out var cmdLineArgs))
         {
             runtime.Logger.ResumeOutput();
             return false;   // logging already done
@@ -69,12 +69,12 @@ public class PostProcessor
         runtime.Logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.AnalysisSettings(true, runtime.Logger), runtime.Logger);
         runtime.Logger.ResumeOutput();
         LogStartupSettings(config, settings);
-        if (!CheckCredentialsInCommandLineArgs(config, provider) || !CheckEnvironmentConsistency(config, settings))
+        if (!CheckCredentialsInCommandLineArgs(config, cmdLineArgs) || !CheckEnvironmentConsistency(config, settings))
         {
             return false;   // logging already done
         }
 
-        var analysisResult = CreateAnalysisResult(config, provider);
+        var analysisResult = CreateAnalysisResult(config, cmdLineArgs);
         if (analysisResult.FullPropertiesFilePath is null)
         {
             return false;
@@ -90,7 +90,7 @@ public class PostProcessor
                 var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
                 runtime.File.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
-                    ? InvokeSonarScanner(provider, config, analysisResult.FullPropertiesFilePath)
+                    ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)
                     : InvokeScannerEngine(config, analysisResult.ScannerEngineInput);
             }
 #if NETFRAMEWORK
@@ -108,7 +108,7 @@ public class PostProcessor
 
     private AnalysisResult CreateAnalysisResult(AnalysisConfig config, IAnalysisPropertyProvider provider)
     {
-        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, runtime, provider);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, provider, runtime);
         var result = scannerEngineInputGenerator.GenerateResult();
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {

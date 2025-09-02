@@ -37,16 +37,16 @@ public class ScannerEngineInputTest
 
     [TestMethod]
     public void AddGlobalSettings_ThrowsOnNullArgument() =>
-        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddGlobalSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
+        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddAllUserSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
 
     [TestMethod]
     public void AddGlobalSettings_VerboseIsSkipped()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.AddGlobalSettings([
+        sut.AddAllUserSettings(new ListPropertiesProvider([
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
-        ]);
+        ]));
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
@@ -63,10 +63,10 @@ public class ScannerEngineInputTest
     public void AddGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.AddGlobalSettings([
+        sut.AddAllUserSettings(new ListPropertiesProvider([
             new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
-        ]);
+        ]));
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
@@ -428,7 +428,7 @@ public class ScannerEngineInputTest
             new("sonar.branch", "aBranch")
         };
         var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
-        sut.AddGlobalSettings(globalSettings);
+        sut.AddAllUserSettings(new ListPropertiesProvider(globalSettings));
 
         var reader = new ScannerEngineInputReader(sut.ToString());
         reader.AssertProperty("my.setting1", "setting1");

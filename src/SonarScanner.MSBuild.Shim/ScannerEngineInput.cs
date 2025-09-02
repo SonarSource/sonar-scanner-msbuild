@@ -84,11 +84,11 @@ public class ScannerEngineInput
     public void AddVsXmlCoverageReportPaths(string[] paths) =>
         Add(SonarProperties.VsCoverageXmlReportsPaths, paths);
 
-    public void AddGlobalSettings(AnalysisProperties properties)
+    public void AddAllUserSettings(IAnalysisPropertyProvider properties)
     {
         _ = properties ?? throw new ArgumentNullException(nameof(properties));
         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/543 We should no longer pass the sonar.verbose=true parameter to the scanner CLI
-        foreach (var setting in properties.Where(x => x.Id != SonarProperties.Verbose))
+        foreach (var setting in properties.GetAllProperties().Where(x => x.Id != SonarProperties.Verbose))
         {
             Add(setting.Id, setting.Value);
         }
@@ -116,14 +116,6 @@ public class ScannerEngineInput
     public void Add(string keyPrefix, string keySuffix, string value) =>
         Add($"{keyPrefix}.{keySuffix}", value);
 
-    public void Add(string key, string value)
-    {
-        if (!string.IsNullOrEmpty(value))
-        {
-            scannerProperties[key] = value;
-        }
-    }
-
     internal void Add(string keyPrefix, string keySuffix, IEnumerable<string> values)
     {
         if (values.Any())
@@ -134,6 +126,14 @@ public class ScannerEngineInput
 
     private void Add(string key, IEnumerable<string> values) =>
         Add(key, ToMultiValueProperty(values));
+
+    private void Add(string key, string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            scannerProperties[key] = value;
+        }
+    }
 
     private static string ToMultiValueProperty(IEnumerable<string> paths)
     {
