@@ -48,8 +48,7 @@ public class LocalJreTruststoreResolverTests
     {
         var runtime = new TestRuntime();
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>())
-            .Returns(new ProcessResult(true, string.Empty, string.Empty));
+        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(new ProcessResult(true, string.Empty, string.Empty));
         var processedArgs = CreateProcessedArgs(runtime);
         var sut = new LocalJreTruststoreResolver(processRunner, runtime);
         using var envScope = new EnvironmentVariableScope();
@@ -70,8 +69,7 @@ public class LocalJreTruststoreResolverTests
     {
         var runtime = new TestRuntime();
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>())
-            .Returns(new ProcessResult(true, string.Empty, string.Empty));
+        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(new ProcessResult(true, string.Empty, string.Empty));
         var processedArgs = CreateProcessedArgs(runtime);
         var sut = new LocalJreTruststoreResolver(processRunner, runtime);
         using var envScope = new EnvironmentVariableScope();
@@ -92,8 +90,7 @@ public class LocalJreTruststoreResolverTests
         var runtime = new TestRuntime();
         runtime.File.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Any<ProcessRunnerArguments>())
-            .Returns(new ProcessResult(false, string.Empty, string.Empty));
+        processRunner.Execute(Arg.Any<ProcessRunnerArguments>()).Returns(new ProcessResult(false, string.Empty, string.Empty));
         var processedArgs = CreateProcessedArgs(runtime);
         var sut = new LocalJreTruststoreResolver(processRunner, runtime);
         using var envScope = new EnvironmentVariableScope();
@@ -114,8 +111,7 @@ public class LocalJreTruststoreResolverTests
         var runtime = new TestRuntime();
         runtime.File.Exists(Arg.Is<string>(x => ToUnixPath(x) == "/bin/sh")).Returns(true);
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java")))
-            .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java"))).Returns(new ProcessResult(true, "/usr/bin/java", string.Empty));
         var processedArgs = CreateProcessedArgs(runtime);
         var sut = new LocalJreTruststoreResolver(processRunner, runtime);
         using var envScope = new EnvironmentVariableScope();
@@ -287,8 +283,7 @@ public class LocalJreTruststoreResolverTests
         runtime.File.Exists(Arg.Any<string>()).Returns(true);
         runtime.Directory.Exists(Arg.Any<string>()).Returns(true);
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java")))
-            .Returns(new ProcessResult(true, "/usr/lib/jvm/java-11/bin/java", string.Empty));
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java"))).Returns(new ProcessResult(true, "/usr/lib/jvm/java-11/bin/java", string.Empty));
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.JavaExePath, "/usr/bin/java");
         var processedArgs = CreateProcessedArgs(runtime, cmdLineArgs);
