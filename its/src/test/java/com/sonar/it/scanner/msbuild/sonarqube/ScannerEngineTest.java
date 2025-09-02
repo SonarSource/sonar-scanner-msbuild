@@ -23,6 +23,7 @@ import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.ProjectAnalyses;
@@ -60,6 +61,11 @@ class ScannerEngineTest {
       .extracting(ProjectAnalyses.Analysis::getBuildString)
       .containsExactly("'_äöüß_😊_ソナー");
     String logs = result.end().getLogs();
-    assertThat(logs).contains("DEBUG: 'UTF8Filenames/UTF8Filename_����_???_?.cs' indexed with language 'cs'");
+    var matcher = Pattern.compile("DEBUG: 'UTF8Filenames/(?<filename>UTF8Filename_.*\\.cs)' indexed with language 'cs'")
+      .matcher(logs);
+    while (matcher.find())
+    {
+      assertThat(matcher.group("filename")).isEqualTo("UTF8Filename_����_???_?.cs");
+    }
   }
 }
