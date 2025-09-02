@@ -95,10 +95,7 @@ public static class AnalysisConfigGenerator
         new TruststorePropertiesProcessor(
             localSettings,
             serverProperties,
-            FileWrapper.Instance,
-            DirectoryWrapper.Instance,
             processRunner,
-            runtime.Logger,
-            runtime.OperatingSystem)
+            runtime)
     ];
 }
