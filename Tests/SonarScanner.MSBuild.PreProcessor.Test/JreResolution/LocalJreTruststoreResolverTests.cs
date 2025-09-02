@@ -317,8 +317,5 @@ public class LocalJreTruststoreResolverTests
             cmdLineProvider ?? EmptyPropertyProvider.Instance,
             Substitute.For<IAnalysisPropertyProvider>(),
             EmptyPropertyProvider.Instance,
-            runtime.File,
-            runtime.Directory,
-            runtime.OperatingSystem,
-            Substitute.For<ILogger>()); // new logger to avoid log pollution
+            runtime with { Logger = new() }); // new logger to avoid log pollution
 }

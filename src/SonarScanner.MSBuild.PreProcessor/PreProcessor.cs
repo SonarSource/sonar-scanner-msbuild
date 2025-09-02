@@ -176,7 +176,7 @@ public class PreProcessor
 
                 // Generate Roslyn analyzers settings and rulesets
                 // It is null if the processing of server settings and active rules resulted in an empty ruleset
-                var localCacheTempPath = args.GetSetting(SonarProperties.PluginCacheDirectory, string.Empty);
+                var localCacheTempPath = args.SettingOrDefault(SonarProperties.PluginCacheDirectory, string.Empty);
 
                 // Use the aggregate of local and server properties when generating the analyzer configuration
                 // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
