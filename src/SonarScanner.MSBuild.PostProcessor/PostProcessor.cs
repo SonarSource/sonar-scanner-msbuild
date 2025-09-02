@@ -74,7 +74,7 @@ public class PostProcessor
             return false;   // logging already done
         }
 
-        var analysisResult = CreateAnalysisResult(config);
+        var analysisResult = CreateAnalysisResult(config, provider);
         if (analysisResult.FullPropertiesFilePath is null)
         {
             return false;
@@ -106,9 +106,9 @@ public class PostProcessor
     internal void SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
         this.scannerEngineInputGenerator = scannerEngineInputGenerator;
 
-    private AnalysisResult CreateAnalysisResult(AnalysisConfig config)
+    private AnalysisResult CreateAnalysisResult(AnalysisConfig config, IAnalysisPropertyProvider provider)
     {
-        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, runtime);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, runtime, provider);
         var result = scannerEngineInputGenerator.GenerateResult();
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
