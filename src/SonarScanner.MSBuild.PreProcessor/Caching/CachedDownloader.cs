@@ -120,20 +120,20 @@ public class CachedDownloader
             }
         }
         logger.LogDebug(Resources.MSG_StartingFileDownload);
-        if (await DownloadAndValidateFile(download) is { } exception)
+        if (await DownloadAndValidateFile(download) is { } error)
         {
-            logger.LogDebug(Resources.ERR_DownloadFailed, exception.Message);
+            logger.LogDebug(error.Message);
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
                 logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, downloadTarget);
                 return ValidateFile();
             }
-            return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
+            return error;
         }
         return null;
     }
 
-    private async Task<Exception> DownloadAndValidateFile(Func<Task<Stream>> download)
+    private async Task<DownloadError> DownloadAndValidateFile(Func<Task<Stream>> download)
     {
         // We download to a temporary file in the correct folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
@@ -155,10 +155,10 @@ public class CachedDownloader
                 throw new CryptographicException(Resources.ERR_ChecksumMismatch);
             }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
             TryDeleteFile(tempFile);
-            return ex;
+            return new(string.Format(Resources.ERR_DownloadFailed, e.Message));
         }
     }
 
