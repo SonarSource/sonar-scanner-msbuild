@@ -62,7 +62,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])[string.Empty, "-jar", "engine.jar"],
+            CmdLineArgs = (string[])["-jar", "engine.jar"],
             StandardInput = SampleInput,
         });
         context.Runtime.Logger.AssertInfoLogs(
@@ -159,7 +159,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])[" -DJavaParam=Config", "-jar", "engine.jar"],
+            CmdLineArgs = (string[])["-DJavaParam=Config", "-jar", "engine.jar"],
             StandardInput = SampleInput,
         });
     }
@@ -182,7 +182,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])["-DJavaParam=Env -DJavaParam=Config", "-jar", "engine.jar"],
+            CmdLineArgs = (string[])["-DJavaParam=Env", "-DJavaParam=Config", "-jar", "engine.jar"],
             StandardInput = SampleInput,
         });
     }

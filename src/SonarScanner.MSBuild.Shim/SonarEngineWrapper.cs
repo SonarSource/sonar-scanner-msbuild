@@ -39,9 +39,11 @@ public class SonarEngineWrapper
 
         var engine = config.EngineJarPath;
         var javaExe = FindJavaExe(config.JavaExePath);
+        var javaParams = JavaParams(config);
+
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
-            CmdLineArgs = [JavaParams(config), "-jar", engine],
+            CmdLineArgs = javaParams.Any() ? [..javaParams, "-jar", engine] : ["-jar", engine],
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
             StandardInput = standardInput,
         };
@@ -57,7 +59,7 @@ public class SonarEngineWrapper
         return result.Succeeded;
     }
 
-    private static string JavaParams(AnalysisConfig config)
+    private static IEnumerable<string> JavaParams(AnalysisConfig config)
     {
         var sb = new StringBuilder();
         if (Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName)?.Trim() is { Length: > 0 } scannerOpts)
@@ -76,7 +78,7 @@ public class SonarEngineWrapper
                 sb.Append($" {property.AsSonarScannerArg()}");
             }
         }
-        return sb.ToString();
+        return sb.ToString().Split([' '], StringSplitOptions.RemoveEmptyEntries);
     }
 
     private string FindJavaExe(string configJavaExe) =>
