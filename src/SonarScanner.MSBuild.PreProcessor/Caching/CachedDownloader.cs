@@ -138,11 +138,7 @@ public class CachedDownloader
         try
         {
             using var fileStream = fileWrapper.Create(tempFile);
-            using var downloadStream = await download();
-            if (downloadStream is null)
-            {
-                throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
-            }
+            using var downloadStream = await download() ?? throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
             await downloadStream.CopyToAsync(fileStream);
             fileStream.Close();
             if (ValidateChecksum(tempFile, fileDescriptor.Sha256))
