@@ -65,7 +65,7 @@ public class SonarEngineWrapper
             sb.Append(scannerOpts);
         }
 
-        if (config.ScannerOptsSettings?.Any() is true)
+        if (config.ScannerOptsSettings.Any())
         {
             // If there are any duplicates properties, the last one will be used.
             // As of today, properties coming from ScannerOptsSettings are set
