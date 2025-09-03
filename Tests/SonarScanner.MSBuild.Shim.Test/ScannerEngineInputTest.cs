@@ -40,7 +40,7 @@ public class ScannerEngineInputTest
         new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddUserSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
 
     [TestMethod]
-    public void AddGlobalSettings_VerboseIsSkipped()
+    public void AddGlobalSettings_VerboseIsNotSkipped()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
         sut.AddUserSettings(new ListPropertiesProvider([
