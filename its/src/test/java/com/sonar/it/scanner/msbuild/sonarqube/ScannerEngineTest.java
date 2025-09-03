@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Paths;
 import java.util.regex.Pattern;
@@ -42,6 +43,7 @@ class ScannerEngineTest {
 
   @ParameterizedTest
   @ValueSource(booleans = { true, false })
+  @ServerMinVersion("2025.1")
   void scannerInput_UTF8(boolean useSonarScannerCLI) {
     var context = AnalysisContext.forServer(Paths.get("ScannerEngine", "UTF8Filenames_äöü").toString());
     context.begin
