@@ -138,36 +138,26 @@ public class CachedDownloader
         try
         {
             using var fileStream = fileWrapper.Create(tempFile);
-            try
+            using var downloadStream = await download();
+            if (downloadStream is null)
             {
-                using var downloadStream = await download();
-                if (downloadStream is null)
-                {
-                    throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
-                }
-                await downloadStream.CopyToAsync(fileStream);
-                fileStream.Close();
-                if (ValidateChecksum(tempFile, fileDescriptor.Sha256))
-                {
-                    fileWrapper.Move(tempFile, downloadTarget);
-                    return null;
-                }
-                else
-                {
-                    throw new CryptographicException(Resources.ERR_ChecksumMismatch);
-                }
+                throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
             }
-            catch
+            await downloadStream.CopyToAsync(fileStream);
+            fileStream.Close();
+            if (ValidateChecksum(tempFile, fileDescriptor.Sha256))
             {
-                // Cleanup the temp file
-                EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
-                                          // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
-                TryDeleteFile(tempFile);
-                throw;
+                fileWrapper.Move(tempFile, downloadTarget);
+                return null;
+            }
+            else
+            {
+                throw new CryptographicException(Resources.ERR_ChecksumMismatch);
             }
         }
         catch (Exception ex)
         {
+            TryDeleteFile(tempFile);
             return ex;
         }
     }
@@ -183,18 +173,6 @@ public class CachedDownloader
         {
             TryDeleteFile(downloadTarget);
             return new(Resources.ERR_ChecksumMismatch);
-        }
-    }
-
-    private static void EnsureClosed(Stream fileStream)
-    {
-        try
-        {
-            fileStream.Close();
-        }
-        catch
-        {
-            // If closing the file fails, just move on.
         }
     }
 }
