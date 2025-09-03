@@ -111,9 +111,13 @@ public class CachedDownloader
 
     private async Task<DownloadError> EnsureFileIsDownloaded(Func<Task<Stream>> download)
     {
-        if (fileWrapper.Exists(downloadTarget) && ValidateFile() is null)
+        if (fileWrapper.Exists(downloadTarget))
         {
-            return null;
+            logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
+            if (ValidateFile() is null)
+            {
+                return null;
+            }
         }
         logger.LogDebug(Resources.MSG_StartingFileDownload);
         if (await DownloadAndValidateFile(download) is { } exception)
@@ -160,7 +164,6 @@ public class CachedDownloader
 
     private DownloadError ValidateFile()
     {
-        logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
         if (ValidateChecksum(downloadTarget, fileDescriptor.Sha256))
         {
             return null;
