@@ -84,7 +84,7 @@ public class ScannerEngineInput
     public void AddVsXmlCoverageReportPaths(string[] paths) =>
         Add(SonarProperties.VsCoverageXmlReportsPaths, paths);
 
-    public void AddAllUserSettings(IAnalysisPropertyProvider properties)
+    public void AddUserSettings(IAnalysisPropertyProvider properties)
     {
         _ = properties ?? throw new ArgumentNullException(nameof(properties));
         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/543 We should no longer pass the sonar.verbose=true parameter to the scanner CLI

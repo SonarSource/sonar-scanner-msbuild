@@ -44,8 +44,8 @@ public partial class ScannerEngineInputGeneratorTest
         var rvsf = new RoslynV1SarifFixer(runtime.Logger);
         var cmds = new ListPropertiesProvider();
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, cmds, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, cmds, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, cmds, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("fixer");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");

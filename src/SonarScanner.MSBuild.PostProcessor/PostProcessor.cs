@@ -106,9 +106,9 @@ public class PostProcessor
     internal void SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
         this.scannerEngineInputGenerator = scannerEngineInputGenerator;
 
-    private AnalysisResult CreateAnalysisResult(AnalysisConfig config, IAnalysisPropertyProvider provider)
+    private AnalysisResult CreateAnalysisResult(AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
     {
-        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, provider, runtime);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
         var result = scannerEngineInputGenerator.GenerateResult();
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
@@ -173,9 +173,9 @@ public class PostProcessor
     /// Credentials must be passed to both begin and end step (or not passed at all). If the credentials are passed to only
     /// one of the steps the analysis will fail so let's fail-fast with an explicit message.
     /// </summary>
-    private bool CheckCredentialsInCommandLineArgs(AnalysisConfig config, IAnalysisPropertyProvider provider)
+    private bool CheckCredentialsInCommandLineArgs(AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
     {
-        var hasCredentialsInEndStep = provider.HasProperty(SonarProperties.SonarToken) || provider.HasProperty(SonarProperties.SonarUserName);
+        var hasCredentialsInEndStep = cmdLineArgs.HasProperty(SonarProperties.SonarToken) || cmdLineArgs.HasProperty(SonarProperties.SonarUserName);
         if (config.HasBeginStepCommandLineCredentials ^ hasCredentialsInEndStep)
         {
             runtime.Logger.LogError(Resources.ERROR_CredentialsNotSpecified);
@@ -183,7 +183,7 @@ public class PostProcessor
         }
 
         var sonarScannerOpts = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
-        var hasTruststorePasswordInEndStep = provider.HasProperty(SonarProperties.TruststorePassword)
+        var hasTruststorePasswordInEndStep = cmdLineArgs.HasProperty(SonarProperties.TruststorePassword)
             || (!string.IsNullOrWhiteSpace(sonarScannerOpts) && sonarScannerOpts.Contains("-Djavax.net.ssl.trustStorePassword="));
         // Truststore password must be passed to the end step when it was passed to the begin step
         // However, it is not mandatory to pass it to the begin step to pass it to the end step
