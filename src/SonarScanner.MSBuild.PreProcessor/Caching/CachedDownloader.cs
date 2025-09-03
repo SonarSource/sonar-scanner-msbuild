@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Security.Cryptography;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
@@ -114,7 +113,7 @@ public class CachedDownloader
         if (fileWrapper.Exists(downloadTarget))
         {
             logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
-            if (ValidateFile() is null)
+            if (ValidateFile(downloadTarget) is null)
             {
                 return null;
             }
@@ -126,7 +125,7 @@ public class CachedDownloader
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
                 logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, downloadTarget);
-                return ValidateFile();
+                return ValidateFile(downloadTarget);
             }
             return error;
         }
@@ -145,14 +144,14 @@ public class CachedDownloader
             using var downloadStream = await download() ?? throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
             await downloadStream.CopyToAsync(fileStream);
             fileStream.Close();
-            if (ValidateChecksum(tempFile, fileDescriptor.Sha256))
+            if (ValidateFile(tempFile) is { } error)
             {
-                fileWrapper.Move(tempFile, downloadTarget);
-                return null;
+                return new(string.Format(Resources.ERR_DownloadFailed, error.Message));
             }
             else
             {
-                throw new CryptographicException(Resources.ERR_ChecksumMismatch);
+                fileWrapper.Move(tempFile, downloadTarget);
+                return null;
             }
         }
         catch (Exception e)
@@ -162,15 +161,15 @@ public class CachedDownloader
         }
     }
 
-    private DownloadError ValidateFile()
+    private DownloadError ValidateFile(string file)
     {
-        if (ValidateChecksum(downloadTarget, fileDescriptor.Sha256))
+        if (ValidateChecksum(file, fileDescriptor.Sha256))
         {
             return null;
         }
         else
         {
-            TryDeleteFile(downloadTarget);
+            TryDeleteFile(file);
             return new(Resources.ERR_ChecksumMismatch);
         }
     }

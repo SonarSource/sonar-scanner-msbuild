@@ -173,7 +173,7 @@ public class JreDownloaderTests
     }
 
     [TestMethod]
-    public async Task Download_DownloadFileNew_Success()
+    public async Task Download_DownloadFileNew_ChecksumInvalid()
     {
         runtime.Directory.Exists(SonarCache).Returns(true);
         runtime.Directory.Exists(ShaPath).Returns(true);
