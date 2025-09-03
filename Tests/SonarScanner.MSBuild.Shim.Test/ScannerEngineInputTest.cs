@@ -51,6 +51,10 @@ public class ScannerEngineInputTest
             {
               "scannerProperties": [
                 {
+                  "key": "sonar.verbose",
+                  "value": "true"
+                },
+                {
                   "key": "sonar.host.url",
                   "value": "http://example.org"
                 }
