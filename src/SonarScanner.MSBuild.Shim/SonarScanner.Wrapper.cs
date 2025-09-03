@@ -240,10 +240,7 @@ public class SonarScannerWrapper
     }
 
     private IEnumerable<string> SensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments) =>
-        config.AnalysisSettings(false, logger)
-            .GetAllProperties()
-            .Where(x => x.ContainsSensitiveData() && !UserSettingExists(x, userCmdLineArguments))
-            .Select(x => x.AsSonarScannerArg());
+        [];
 
     private static bool UserSettingExists(Property fileProperty, IEnumerable<string> userArgs) =>
         userArgs.Any(x => x.IndexOf(CmdLineArgPrefix + fileProperty.Id, StringComparison.Ordinal) == 0);
