@@ -26,6 +26,7 @@ namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 public class EngineResolver : IResolver
 {
     private const string ScannerEngine = "Scanner Engine";
+
     private readonly ISonarWebServer server;
     private readonly IRuntime runtime;
     private readonly IChecksum checksum;
@@ -48,14 +49,17 @@ public class EngineResolver : IResolver
         if (args.EngineJarPath is { } localEngine)
         {
             runtime.Logger.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
+            runtime.Logger.AddTelemetryMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Disabled);
+            runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.UserSupplied);
             return localEngine;
         }
-        if (!server.SupportsJreProvisioning) // JRE and sonar engine provisioning were introduced by the same version of SQ  S
+        if (!server.SupportsJreProvisioning) // JRE and sonar engine provisioning were introduced by the same version of SQ Server
         {
             runtime.Logger.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
+            runtime.Logger.AddTelemetryMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Unsupported);
             return null;
         }
-
+        runtime.Logger.AddTelemetryMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled);
         if (await server.DownloadEngineMetadataAsync() is { } metadata)
         {
             if (await ResolveEnginePath(metadata) is { } enginePath)
@@ -82,12 +86,14 @@ public class EngineResolver : IResolver
         {
             case CacheHit hit:
                 runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), hit.FilePath);
+                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
                 return hit.FilePath;
             case CacheMiss:
                 runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
                 return await DownloadEngine(cachedDownloader, metadata);
             case CacheError error:
                 runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(EngineResolver), error.Message);
+                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
                 return null;
             default:
                 throw new NotSupportedException("File Resolution is expected to be CacheHit, CacheMiss, or CacheError.");
@@ -100,11 +106,13 @@ public class EngineResolver : IResolver
         if (result is DownloadSuccess success)
         {
             runtime.Logger.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);
+            runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);
             return success.FilePath;
         }
         else if (result is DownloadError error)
         {
             runtime.Logger.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(EngineResolver), error.Message);
+            runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
             return null;
         }
         throw new NotSupportedException("Download result is expected to be DownloadSuccess or DownloadError.");

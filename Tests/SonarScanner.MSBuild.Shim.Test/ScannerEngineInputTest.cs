@@ -37,23 +37,19 @@ public class ScannerEngineInputTest
 
     [TestMethod]
     public void AddGlobalSettings_ThrowsOnNullArgument() =>
-        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddGlobalSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
+        new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddUserSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
 
     [TestMethod]
     public void AddGlobalSettings_VerboseIsSkipped()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.AddGlobalSettings([
+        sut.AddUserSettings(new ListPropertiesProvider([
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
-        ]);
+        ]));
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
                 {
                   "key": "sonar.host.url",
                   "value": "http://example.org"
@@ -67,17 +63,13 @@ public class ScannerEngineInputTest
     public void AddGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.AddGlobalSettings([
+        sut.AddUserSettings(new ListPropertiesProvider([
             new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
-        ]);
+        ]));
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
                 {
                   "key": "sonar.scanner.sonarcloudUrl",
                   "value": "http://SonarcloudUrl.org"
@@ -98,12 +90,7 @@ public class ScannerEngineInputTest
         sut.AddSharedFiles(new([], []));
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
-              "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                }
-              ]
+              "scannerProperties": []
             }
             """);
     }
@@ -116,10 +103,6 @@ public class ScannerEngineInputTest
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
                 {
                   "key": "sonar.sources",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))}}
@@ -138,10 +121,6 @@ public class ScannerEngineInputTest
             {
               "scannerProperties": [
                 {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
                   "key": "sonar.tests",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))}}
                 }
@@ -158,10 +137,6 @@ public class ScannerEngineInputTest
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
                 {
                   "key": "sonar.sources",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))}}
@@ -184,10 +159,6 @@ public class ScannerEngineInputTest
             {
               "scannerProperties": [
                 {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
                   "key": "sonar.cs.vstest.reportsPaths",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
                 }
@@ -204,10 +175,6 @@ public class ScannerEngineInputTest
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
                 {
                   "key": "sonar.cs.vscoveragexml.reportsPaths",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
@@ -373,10 +340,6 @@ public class ScannerEngineInputTest
             {
               "scannerProperties": [
                 {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
                   "key": "sonar.projectKey",
                   "value": "my_project_key"
                 },
@@ -415,10 +378,6 @@ public class ScannerEngineInputTest
             $$"""
             {
               "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
                 {
                   "key": "sonar.working.directory",
                   "value": {{JsonConvert.ToString(Path.Combine(@"C:\OutputDir\CannotBeEmpty", ".sonar"))}}
@@ -469,13 +428,32 @@ public class ScannerEngineInputTest
             new("sonar.branch", "aBranch")
         };
         var sut = new ScannerEngineInput(new AnalysisConfig { SonarOutputDir = @"C:\my_folder" });
-        sut.AddGlobalSettings(globalSettings);
+        sut.AddUserSettings(new ListPropertiesProvider(globalSettings));
 
         var reader = new ScannerEngineInputReader(sut.ToString());
         reader.AssertProperty("my.setting1", "setting1");
         reader.AssertProperty("my.setting2", "setting 2 with spaces");
         reader.AssertProperty("my.setting.3", @"c:\dir1\dir2\foo.txt");
         reader.AssertProperty("sonar.branch", "aBranch");
+    }
+
+    [TestMethod]
+    public void AddSettings_DoesNotDuplicate()
+    {
+        var sut = new ScannerEngineInput(new AnalysisConfig());
+        sut.Add("my", "setting", "original");
+        sut.Add("my", "setting", "updatedSetting");
+
+        sut.ToString().Should().BeIgnoringLineEndings("""
+            {
+              "scannerProperties": [
+                {
+                  "key": "my.setting",
+                  "value": "updatedSetting"
+                }
+              ]
+            }
+            """);
     }
 
     [TestMethod]
@@ -497,10 +475,6 @@ public class ScannerEngineInputTest
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
                 {
                   "key": "sonar.multivalueproperty",
                   "value": "Normal value without double quotes @#$%^&*(),\"With \r Carriage Return\",\"With \n Line Feed\",Normal value,\"With , Comma\",\"With \"\" Double Quote\",Normal value"
@@ -581,7 +555,7 @@ public class ScannerEngineInputTest
             File.WriteAllLines(fileListFilePath, files.Select(x => x.FullName));
             projectInfo.AddAnalyzerResult(AnalysisResultFileType.FilesToAnalyze, fileListFilePath);
         }
-        return new[] { projectInfo }.ToProjectData(true, Substitute.For<ILogger>()).Single();
+        return new[] { projectInfo }.ToProjectData(new TestRuntime()).Single();
     }
 
     private static FileInfo CreateEmptyFile(string parentDir, string fileName) =>

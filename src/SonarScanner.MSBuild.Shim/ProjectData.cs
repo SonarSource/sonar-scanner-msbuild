@@ -56,18 +56,19 @@ public class ProjectData
     /// </summary>
     public ICollection<FileInfo> TelemetryPaths { get; } = new HashSet<FileInfo>(new FileInfoEqualityComparer());
 
-    public ProjectData(IGrouping<Guid, ProjectInfo> projectsGroupedByGuid, bool isWindows, ILogger logger)
+    public ProjectData(IGrouping<Guid, ProjectInfo> projectsGroupedByGuid, IRuntime runtime)
     {
         // To ensure consistently sending of metrics from the same configuration we sort the project outputs and use only the first one for metrics.
         var orderedProjects = projectsGroupedByGuid.OrderBy(x => $"{x.Configuration}_{x.Platform}_{x.TargetFramework}").ToList();
         Project = orderedProjects[0];
         // Find projects with different paths within the same group
+        var isWindows = runtime.OperatingSystem.IsWindows();
         var projectPathsInGroup = projectsGroupedByGuid.Select(x => isWindows ? x.FullPath?.ToLowerInvariant() : x.FullPath).Distinct().ToList();
         if (projectPathsInGroup.Count > 1)
         {
             foreach (var projectPath in projectPathsInGroup)
             {
-                logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectsGroupedByGuid.Key, projectPath);
+                runtime.Logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectsGroupedByGuid.Key, projectPath);
             }
             Status = ProjectInfoValidity.DuplicateGuid;
         }
@@ -77,10 +78,10 @@ public class ProjectData
         }
         else if (File.Exists(Project.FullPath))
         {
-            foreach (var project in orderedProjects.Where(x => x.IsValid(logger)))
+            foreach (var project in orderedProjects.Where(x => x.IsValid(runtime.Logger)))
             {
                 // If we find just one valid configuration, everything is valid
-                ReferencedFiles.UnionWith(project.AllAnalysisFiles(logger));
+                ReferencedFiles.UnionWith(project.AllAnalysisFiles(runtime.Logger));
                 AddRoslynOutputFilePaths(project);
                 AddAnalyzerOutputFilePaths(project);
                 AddTelemetryFilePaths(project);

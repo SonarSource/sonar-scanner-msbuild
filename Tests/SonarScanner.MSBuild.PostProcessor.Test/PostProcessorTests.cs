@@ -77,8 +77,7 @@ public class PostProcessorTests
             targetsUninstaller,
             tfsProcessor,
             sonarProjectPropertiesValidator,
-            coverageReportProcessor,
-            runtime.File);
+            coverageReportProcessor);
     }
 
     [TestMethod]
@@ -165,10 +164,6 @@ public class PostProcessorTests
             {
               "scannerProperties": [
                 {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
                   "key": "sonar.unsafe.value",
                   "value": "***"
                 }
@@ -195,10 +190,6 @@ public class PostProcessorTests
             {
               "scannerProperties": [
                 {
-                  "key": "sonar.modules",
-                  "value": ""
-                },
-                {
                   "key": "sonar.unsafe.value",
                   "value": "Sensitive data"
                 }
@@ -223,12 +214,7 @@ public class PostProcessorTests
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         engine.Received(1).Execute(config, """
             {
-              "scannerProperties": [
-                {
-                  "key": "sonar.modules",
-                  "value": ""
-                }
-              ]
+              "scannerProperties": []
             }
             """
                 .ToEnvironmentLineEndings());
@@ -464,10 +450,10 @@ public class PostProcessorTests
         args ??= [];
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
         var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
-        var scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, runtime);
+        var scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, Substitute.For<IAnalysisPropertyProvider>(), runtime);
 
         var analysisResult = new AnalysisResult(
-            [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(true, runtime.Logger).Single()],
+            [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(runtime).Single()],
             withProject ? scannerEngineInput : null,
             withProject ? Path.Combine(testDir, "sonar-project.properties") : null)
         { RanToCompletion = true };

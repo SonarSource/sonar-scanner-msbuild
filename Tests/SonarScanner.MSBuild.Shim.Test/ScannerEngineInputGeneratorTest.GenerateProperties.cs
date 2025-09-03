@@ -30,7 +30,7 @@ public partial class ScannerEngineInputGeneratorTest
         var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "file.cs");
         var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, AnalysisResultFileType.FilesToAnalyze.ToString(), fileToAnalyzePath);
         var config = new AnalysisConfig { SonarOutputDir = outPath };
-        var sut = new ScannerEngineInputGenerator(config, runtime);
+        var sut = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
@@ -54,7 +54,7 @@ public partial class ScannerEngineInputGeneratorTest
         // create a project in the test run directory and a second one in the temp folder.
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
-            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(true, runtime.Logger),
+            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(runtime),
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
@@ -79,10 +79,10 @@ public partial class ScannerEngineInputGeneratorTest
             SonarOutputDir = outPath,
             LocalSettings = [new Property(SonarProperties.ProjectBaseDir, "This path does not exist")]
         };
-        var sut = new ScannerEngineInputGenerator(config, runtime);
+        var sut = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
-            [new ProjectData(new[] { project }.GroupBy(x => x.ProjectGuid).Single(), true, runtime.Logger) { Status = ProjectInfoValidity.Valid }],
+            [new ProjectData(new[] { project }.GroupBy(x => x.ProjectGuid).Single(), runtime) { Status = ProjectInfoValidity.Valid }],
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
@@ -95,7 +95,7 @@ public partial class ScannerEngineInputGeneratorTest
         var outPath = Path.Combine(TestContext.TestRunDirectory!, ".sonarqube", "out");
         Directory.CreateDirectory(outPath);
         var config = new AnalysisConfig { SonarOutputDir = outPath };
-        var sut = new ScannerEngineInputGenerator(config, runtime);
+        var sut = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
@@ -117,7 +117,7 @@ public partial class ScannerEngineInputGeneratorTest
         TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "Second");
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
-            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(true, runtime.Logger),
+            new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(runtime),
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
@@ -251,7 +251,7 @@ public partial class ScannerEngineInputGeneratorTest
 
     private void GenerateProperties_HostUrl_Execute(AnalysisConfig config, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
     {
-        var sut = new ScannerEngineInputGenerator(config, runtime);
+        var sut = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
         var projectPath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Project.csproj");
         var sourceFilePath = TestUtils.CreateEmptyFile(config.SonarOutputDir, "Program.cs");
         var filesToAnalyzePath = TestUtils.CreateFile(config.SonarOutputDir, "FilesToAnalyze.txt", sourceFilePath);
@@ -266,7 +266,7 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
-            new[] { project }.ToProjectData(true, runtime.Logger),
+            new[] { project }.ToProjectData(runtime),
             legacyWriter,
             engineInput)
             .Should().BeTrue();
@@ -295,13 +295,13 @@ public partial class ScannerEngineInputGeneratorTest
                 AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)],
                 AnalysisSettings = []
             };
-            Project = new[] { info }.ToProjectData(true, runtime.Logger).Single();
+            Project = new[] { info }.ToProjectData(runtime).Single();
             Project.Status.Should().Be(ProjectInfoValidity.Valid);
         }
 
         public void GenerateProperties()
         {
-            var sut = new ScannerEngineInputGenerator(Config, runtime);
+            var sut = new ScannerEngineInputGenerator(Config, new ListPropertiesProvider(), runtime);
             sut.GenerateProperties(Config.ToAnalysisProperties(runtime.Logger), [Project], new PropertiesWriter(Config), EngineInput).Should().BeTrue();
         }
 

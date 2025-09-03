@@ -42,8 +42,8 @@ class ScannerTest {
 
   @Test
   void basicAnalysis() {
-    // TODO: SCAN4NET-325 Remove classifying as .NET
     var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "false");
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());

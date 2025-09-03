@@ -107,7 +107,10 @@ class TelemetryTest {
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_usesonarscannercli.source\":\"CLI\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scm_disabled.source\":\"CLI\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.product\":\"SQ_Server\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.serverUrl\":\"custom_url\"}")
+        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.serverUrl\":\"custom_url\"}"),
+        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.serverInfo.version\":"),
+        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.scannerEngine.newBootstrapping\":"),
+        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.scannerEngine.download\":")
       );
 
     assertThat(readContents(sonarQubeOutDirectory.resolve("Processed.Telemetry.Targets.S4NET.json")))

@@ -25,7 +25,7 @@ namespace TestUtilities;
 /// <summary>
 /// Mock for IRuntime that contains configurable mocks for its properties.
 /// </summary>
-public class TestRuntime : IRuntime
+public record TestRuntime : IRuntime
 {
     /// <summary>
     /// A Substitute for OperatingSystemProvider.
