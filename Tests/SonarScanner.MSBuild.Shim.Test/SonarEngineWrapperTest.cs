@@ -187,6 +187,31 @@ public class SonarEngineWrapperTest
         });
     }
 
+    [TestMethod]
+    // Java Params that come afterwards overwrite earlier ones
+    public void Execute_ScannerOpts_MultipleParameters()
+    {
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Env -DJavaOtherParam=Value -DSomeOtherParam=AnotherValue");
+        var context = new Context();
+        var config = new AnalysisConfig
+        {
+            JavaExePath = context.ResolvedJavaExe,
+            EngineJarPath = "engine.jar",
+        };
+        config.ScannerOptsSettings.Add(new Property("JavaParam", "Config"));
+        config.ScannerOptsSettings.Add(new Property("SomeParam", "SomeValue"));
+        config.ScannerOptsSettings.Add(new Property("OtherParam", "OtherValue"));
+
+        context.Execute(config).Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = (string[])["-DJavaParam=Env -DJavaOtherParam=Value -DSomeOtherParam=AnotherValue", "-DJavaParam=Config", "-DSomeParam=SomeValue", "-DOtherParam=OtherValue", "-jar", "engine.jar"],
+            StandardInput = SampleInput,
+        });
+    }
+
     private sealed class Context
     {
         public readonly SonarEngineWrapper Engine;

@@ -61,10 +61,9 @@ public class SonarEngineWrapper
 
     private static IEnumerable<string> JavaParams(AnalysisConfig config)
     {
-        var sb = new StringBuilder();
         if (Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName)?.Trim() is { Length: > 0 } scannerOpts)
         {
-            sb.Append(scannerOpts);
+            yield return scannerOpts;
         }
 
         if (config.ScannerOptsSettings.Any())
@@ -75,10 +74,9 @@ public class SonarEngineWrapper
             // set via the environment variable.
             foreach (var property in config.ScannerOptsSettings)
             {
-                sb.Append($" {property.AsSonarScannerArg()}");
+                yield return property.AsSonarScannerArg();
             }
         }
-        return sb.ToString().Split([' '], StringSplitOptions.RemoveEmptyEntries);
     }
 
     private string FindJavaExe(string configJavaExe) =>
