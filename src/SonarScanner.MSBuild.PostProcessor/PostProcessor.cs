@@ -244,11 +244,6 @@ public class PostProcessor
         return result;
     }
 
-    private bool InvokeScannerEngine(AnalysisConfig config, ScannerEngineInput input)
-    {
-        runtime.Logger.IncludeTimestamp = false;
-        var result = sonarEngine.Execute(config, input.ToString());
-        runtime.Logger.IncludeTimestamp = true;
-        return result;
-    }
+    private bool InvokeScannerEngine(AnalysisConfig config, ScannerEngineInput input) =>
+        sonarEngine.Execute(config, input.ToString());
 }
