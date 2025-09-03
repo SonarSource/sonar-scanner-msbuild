@@ -70,6 +70,6 @@ class ScannerEngineTest {
     assertThat(matchResults)
       .extracting(x -> x.group(1))
       .hasSize(1)
-      .allSatisfy(x -> assertThat(x).matches("UTF8Filename_.{4}_\\?\\?\\?_\\?\\??.cs"));
+      .allSatisfy(x -> assertThat(x).matches("UTF8Filename_.{4}_[?|ソ][?|ナ][?|ー]_[?|😊]\\??.cs"));
   }
 }
