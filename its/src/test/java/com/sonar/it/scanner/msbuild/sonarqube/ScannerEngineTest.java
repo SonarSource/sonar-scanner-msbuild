@@ -21,11 +21,14 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
+import com.sonar.it.scanner.msbuild.utils.OperatingSystem;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Paths;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,7 +38,9 @@ import org.sonarqube.ws.client.projectanalyses.SearchRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.not;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assumptions.assumeThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -45,6 +50,7 @@ class ScannerEngineTest {
   @ValueSource(booleans = { true, false })
   @ServerMinVersion("2025.1")
   void scannerInput_UTF8(boolean useSonarScannerCLI) {
+    assumeThat(OSPlatform.current()).isNotEqualTo(OperatingSystem.MacOS);
     var context = AnalysisContext.forServer(Paths.get("ScannerEngine", "UTF8Filenames_äöü").toString());
     context.begin
       .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))

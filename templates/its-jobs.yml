@@ -92,7 +92,7 @@ jobs:
             -B -e
             --settings $(mavenSettings.secureFilePath)
             -Denable-repo=qa
-            -Dtest=ScannerEngineTest#scannerInput_UTF8
+            -Dtest=$(TEST_INCLUDE)
             -Dsonar.csharpplugin.version=$(DOTNET_VERSION)
             -Dsonar.vbnetplugin.version=$(DOTNET_VERSION)
             -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION)
