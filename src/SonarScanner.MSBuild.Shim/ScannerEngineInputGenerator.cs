@@ -43,20 +43,22 @@ public class ScannerEngineInputGenerator
     private readonly AdditionalFilesService additionalFilesService;
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
+    private readonly IAnalysisPropertyProvider cmdLineArgs;
 
-    public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IRuntime runtime)
-        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), new AdditionalFilesService(runtime))
-    {
-    }
+    public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IAnalysisPropertyProvider cmdLineArgs, IRuntime runtime)
+        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), cmdLineArgs, new AdditionalFilesService(runtime))
+    { }
 
     internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
                                          IRuntime runtime,
                                          RoslynV1SarifFixer fixer,
+                                         IAnalysisPropertyProvider cmdLineArgs,
                                          AdditionalFilesService additionalFilesService)
     {
         this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
+        this.cmdLineArgs = cmdLineArgs ?? throw new ArgumentNullException(nameof(cmdLineArgs));
         this.additionalFilesService = additionalFilesService ?? throw new ArgumentNullException(nameof(additionalFilesService));
         if (runtime.OperatingSystem.IsWindows())
         {
@@ -170,7 +172,9 @@ public class ScannerEngineInputGenerator
             AddProperty(engineInput, project, TelemetryPathsKeyCS, TelemetryPathsKeyVB, project.TelemetryPaths);
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
-        engineInput.AddGlobalSettings(analysisProperties);
+
+        var sensitiveArgsFromSettingsFile = analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
+        engineInput.AddUserSettings(new AggregatePropertiesProvider(cmdLineArgs, new ListPropertiesProvider(sensitiveArgsFromSettingsFile), new ListPropertiesProvider(analysisProperties)));
         return true;
     }
 

@@ -61,7 +61,7 @@ public class PostProcessor
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
         runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
         targetUninstaller.UninstallTargets(config.SonarBinDir);
-        if (!ArgumentProcessor.TryProcessArgs(args, runtime.Logger, out var provider))
+        if (!ArgumentProcessor.TryProcessArgs(args, runtime.Logger, out var cmdLineArgs))
         {
             runtime.Logger.ResumeOutput();
             return false;   // logging already done
@@ -69,12 +69,12 @@ public class PostProcessor
         runtime.Logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.AnalysisSettings(true, runtime.Logger), runtime.Logger);
         runtime.Logger.ResumeOutput();
         LogStartupSettings(config, settings);
-        if (!CheckCredentialsInCommandLineArgs(config, provider) || !CheckEnvironmentConsistency(config, settings))
+        if (!CheckCredentialsInCommandLineArgs(config, cmdLineArgs) || !CheckEnvironmentConsistency(config, settings))
         {
             return false;   // logging already done
         }
 
-        var analysisResult = CreateAnalysisResult(config);
+        var analysisResult = CreateAnalysisResult(config, cmdLineArgs);
         if (analysisResult.FullPropertiesFilePath is null)
         {
             return false;
@@ -90,7 +90,7 @@ public class PostProcessor
                 var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
                 runtime.File.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
-                    ? InvokeSonarScanner(provider, config, analysisResult.FullPropertiesFilePath)
+                    ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)
                     : InvokeScannerEngine(config, analysisResult.ScannerEngineInput);
             }
 #if NETFRAMEWORK
@@ -106,9 +106,9 @@ public class PostProcessor
     internal void SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
         this.scannerEngineInputGenerator = scannerEngineInputGenerator;
 
-    private AnalysisResult CreateAnalysisResult(AnalysisConfig config)
+    private AnalysisResult CreateAnalysisResult(AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
     {
-        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, runtime);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
         var result = scannerEngineInputGenerator.GenerateResult();
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
@@ -173,9 +173,9 @@ public class PostProcessor
     /// Credentials must be passed to both begin and end step (or not passed at all). If the credentials are passed to only
     /// one of the steps the analysis will fail so let's fail-fast with an explicit message.
     /// </summary>
-    private bool CheckCredentialsInCommandLineArgs(AnalysisConfig config, IAnalysisPropertyProvider provider)
+    private bool CheckCredentialsInCommandLineArgs(AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
     {
-        var hasCredentialsInEndStep = provider.HasProperty(SonarProperties.SonarToken) || provider.HasProperty(SonarProperties.SonarUserName);
+        var hasCredentialsInEndStep = cmdLineArgs.HasProperty(SonarProperties.SonarToken) || cmdLineArgs.HasProperty(SonarProperties.SonarUserName);
         if (config.HasBeginStepCommandLineCredentials ^ hasCredentialsInEndStep)
         {
             runtime.Logger.LogError(Resources.ERROR_CredentialsNotSpecified);
@@ -183,7 +183,7 @@ public class PostProcessor
         }
 
         var sonarScannerOpts = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
-        var hasTruststorePasswordInEndStep = provider.HasProperty(SonarProperties.TruststorePassword)
+        var hasTruststorePasswordInEndStep = cmdLineArgs.HasProperty(SonarProperties.TruststorePassword)
             || (!string.IsNullOrWhiteSpace(sonarScannerOpts) && sonarScannerOpts.Contains("-Djavax.net.ssl.trustStorePassword="));
         // Truststore password must be passed to the end step when it was passed to the begin step
         // However, it is not mandatory to pass it to the begin step to pass it to the end step
