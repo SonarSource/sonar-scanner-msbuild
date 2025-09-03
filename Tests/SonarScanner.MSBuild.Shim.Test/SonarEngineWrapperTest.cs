@@ -62,7 +62,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])["-jar", "engine.jar"],
+            CmdLineArgs = (string[])[string.Empty, "-jar", "engine.jar"],
             StandardInput = SampleInput,
         });
         context.Runtime.Logger.AssertInfoLogs(
