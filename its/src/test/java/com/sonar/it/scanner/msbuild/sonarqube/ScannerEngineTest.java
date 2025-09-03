@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.sonarqube.ws.ProjectAnalyses;
 import org.sonarqube.ws.client.projectanalyses.SearchRequest;
 
@@ -38,11 +40,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class ScannerEngineTest {
 
-  @Test
-  void scannerInput_UTF8() {
+  @ParameterizedTest
+  @ValueSource(booleans = { true, false })
+  void scannerInput_UTF8(boolean useSonarScannerCLI) {
     var context = AnalysisContext.forServer(Paths.get("ScannerEngine", "UTF8Filenames_äöü").toString());
     context.begin
-      // .setProperty("sonar.scanner.useSonarScannerCLI", "false")
+      .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
       .setProperty("sonar.buildString", "'_äöüß_😊_ソナー") // Round trip a string property with problematic characters from the begin step to the final analysis result on the server
       .setDebugLogs(); // So we can assert filenames with problematic characters in the log output.
     var result = context.runAnalysis();
@@ -63,15 +66,10 @@ class ScannerEngineTest {
       .as("The round-tripped sonar.buildString property must match the input.")
       .containsExactly("'_äöüß_😊_ソナー");
     var logs = result.end().getLogs();
-    var matcher = Pattern.compile("DEBUG: 'UTF8Filenames/(?<filename>UTF8Filename_.*\\.cs)' indexed with language 'cs'").matcher(logs);
-    while (matcher.find()) {
-      var fileNameInLog = matcher.group("filename");
-      var expected = "UTF8Filename_����_???_?.cs";
-      assertThat(fileNameInLog).as(
-        "Expected in code points: " +
-          expected.chars().mapToObj(Integer::toString).collect(Collectors.joining(",")) +
-          "Actual in code points: " +
-          fileNameInLog.chars().mapToObj(Integer::toString).collect(Collectors.joining(","))).isEqualTo(expected);
-    }
+    var matchResults = Pattern.compile("DEBUG: 'UTF8Filenames/(UTF8Filename_.*\\.cs)' indexed with language 'cs'").matcher(logs).results();
+    assertThat(matchResults)
+      .extracting(x -> x.group(1))
+      .hasSize(1)
+      .allSatisfy(x -> assertThat(x).matches("UTF8Filename_.{4}_\\?\\?\\?_\\?.cs"));
   }
 }
