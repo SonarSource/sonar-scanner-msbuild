@@ -127,6 +127,66 @@ public class SonarEngineWrapperTest
             $"Could not find Java, falling back to using PATH: {context.JavaFileName}");
     }
 
+    [TestMethod]
+    public void Execute_ScannerOptsFromEnv_UsedForJavaInvocation()
+    {
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Env");
+        var context = new Context();
+
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = (string[])["-DJavaParam=Env", "-jar", "engine.jar"],
+            StandardInput = SampleInput,
+        });
+    }
+
+    [TestMethod]
+    public void Execute_ScannerOptsFromConfig_UsedForJavaInvocation()
+    {
+        var context = new Context();
+        var config = new AnalysisConfig
+        {
+            JavaExePath = context.ResolvedJavaExe,
+            EngineJarPath = "engine.jar",
+        };
+        config.ScannerOptsSettings.Add(new Property("JavaParam", "Config"));
+
+        context.Execute(config).Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = (string[])[" -DJavaParam=Config", "-jar", "engine.jar"],
+            StandardInput = SampleInput,
+        });
+    }
+
+    [TestMethod]
+    // Java Params that come afterwards overwrite earlier ones
+    public void Execute_ScannerOptsFromConfig_ComeAfterScannerOptsFromEnv()
+    {
+        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Env");
+        var context = new Context();
+        var config = new AnalysisConfig
+        {
+            JavaExePath = context.ResolvedJavaExe,
+            EngineJarPath = "engine.jar",
+        };
+        config.ScannerOptsSettings.Add(new Property("JavaParam", "Config"));
+
+        context.Execute(config).Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = (string[])["-DJavaParam=Env -DJavaParam=Config", "-jar", "engine.jar"],
+            StandardInput = SampleInput,
+        });
+    }
+
     private sealed class Context
     {
         public readonly SonarEngineWrapper Engine;
@@ -146,9 +206,9 @@ public class SonarEngineWrapperTest
             Runtime.File.Exists(ResolvedJavaExe).Returns(true);
         }
 
-        public bool Execute() =>
+        public bool Execute(AnalysisConfig analysisConfig = null) =>
             Engine.Execute(
-                new AnalysisConfig { JavaExePath = ResolvedJavaExe, EngineJarPath = "engine.jar" },
+                analysisConfig ?? new AnalysisConfig { JavaExePath = ResolvedJavaExe, EngineJarPath = "engine.jar" },
                 SampleInput);
     }
 }
