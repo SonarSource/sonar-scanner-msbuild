@@ -57,10 +57,6 @@ public class CachedDownloader
 
     public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download)
     {
-        if (!EnsureCacheRoot())
-        {
-            return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, CacheRoot));
-        }
         if (!EnsureDirectoryExists(FileRootPath))
         {
             return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));

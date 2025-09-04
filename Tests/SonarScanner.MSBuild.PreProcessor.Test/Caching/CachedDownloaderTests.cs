@@ -277,15 +277,6 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_EnsureCacheRootFails()
-    {
-        runtime.Directory.When(x => x.CreateDirectory(SonarUserHomeCache)).Do(_ => throw new IOException());
-        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
-        result.Should().BeOfType<DownloadError>().Which.Message
-            .Should().Be($"The directory '{SonarUserHomeCache}' could not be created.");
-    }
-
-    [TestMethod]
     public async Task DownloadFileAsync_EnsureDownloadDirectoryFails()
     {
         runtime.Directory.When(x => x.CreateDirectory(DownloadPath)).Do(_ => throw new IOException());

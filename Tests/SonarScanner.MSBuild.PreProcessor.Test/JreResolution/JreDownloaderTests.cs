@@ -132,18 +132,6 @@ public class JreDownloaderTests
 
     [TestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
-    public async Task Download_CacheDirectoryCanNotBeCreated(Type exception)
-    {
-        runtime.Directory.Exists(SonarCache).Returns(false);
-        runtime.Directory.When(x => x.CreateDirectory(SonarCache)).Throw((Exception)Activator.CreateInstance(exception));
-
-        var result = await ExecuteDownloadAndUnpack();
-
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be($"The directory '{SonarCache}' could not be created.");
-    }
-
-    [TestMethod]
-    [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_ShaDirectoryCanNotBeCreated(Type exception)
     {
         runtime.Directory.Exists(SonarCache).Returns(true);
