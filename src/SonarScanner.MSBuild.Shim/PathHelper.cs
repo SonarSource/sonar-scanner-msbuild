@@ -40,7 +40,7 @@ public static class PathHelper
     public static bool IsInDirectory(this FileInfo file, DirectoryInfo directory)
     {
         var normalizedDirectoryPath = directory.WithTrailingDirectorySeparator();
-        return file.FullName.StartsWith(file.FullName, FileInfoEqualityComparer.ComparisonType);
+        return file.FullName.StartsWith(normalizedDirectoryPath, FileInfoEqualityComparer.ComparisonType);
     }
 
     /// <summary>
