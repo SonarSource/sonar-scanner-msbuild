@@ -63,7 +63,7 @@ public class JreDownloader
                 return new CacheMiss();
             }
         }
-        return new CacheError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, Path.Combine(cachedDownloader.CacheRoot)));
+        return new CacheError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, Path.Combine(cachedDownloader.CacheRoot)));
     }
 
     public async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)

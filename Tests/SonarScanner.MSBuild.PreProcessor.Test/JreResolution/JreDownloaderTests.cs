@@ -81,7 +81,7 @@ public class JreDownloaderTests
 
         var sut = CreateSutWithSubstitutes(new JreDescriptor("jre", "sha", "java"));
         var result = sut.IsJreCached();
-        result.Should().Be(new CacheError($"The file cache directory in '{SonarCache}' could not be created."));
+        result.Should().Be(new CacheError($"The directory '{SonarCache}' could not be created."));
         runtime.Directory.Received(1).Exists(SonarCache);
         runtime.Directory.Received(1).CreateDirectory(SonarCache);
     }
@@ -132,18 +132,6 @@ public class JreDownloaderTests
 
     [TestMethod]
     [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
-    public async Task Download_CacheDirectoryCanNotBeCreated(Type exception)
-    {
-        runtime.Directory.Exists(SonarCache).Returns(false);
-        runtime.Directory.When(x => x.CreateDirectory(SonarCache)).Throw((Exception)Activator.CreateInstance(exception));
-
-        var result = await ExecuteDownloadAndUnpack();
-
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be($"The file cache directory in '{ShaPath}' could not be created.");
-    }
-
-    [TestMethod]
-    [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
     public async Task Download_ShaDirectoryCanNotBeCreated(Type exception)
     {
         runtime.Directory.Exists(SonarCache).Returns(true);
@@ -151,7 +139,7 @@ public class JreDownloaderTests
 
         var result = await ExecuteDownloadAndUnpack();
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be($"The file cache directory in '{ShaPath}' could not be created.");
+        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be($"The directory '{ShaPath}' could not be created.");
     }
 
     [TestMethod]

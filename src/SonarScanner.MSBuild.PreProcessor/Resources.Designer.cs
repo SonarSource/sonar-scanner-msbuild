@@ -115,15 +115,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The file cache directory in &apos;{0}&apos; could not be created..
-        /// </summary>
-        internal static string ERR_CacheDirectoryCouldNotBeCreated {
-            get {
-                return ResourceManager.GetString("ERR_CacheDirectoryCouldNotBeCreated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The calculation of the checksum of the file &apos;{0}&apos; failed with message &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_ChecksumCalculationFailed {
@@ -573,6 +564,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_DeletingFileFailure {
             get {
                 return ResourceManager.GetString("MSG_DeletingFileFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The directory &apos;{0}&apos; could not be created..
+        /// </summary>
+        internal static string MSG_DirectoryCouldNotBeCreated {
+            get {
+                return ResourceManager.GetString("MSG_DirectoryCouldNotBeCreated", resourceCulture);
             }
         }
         

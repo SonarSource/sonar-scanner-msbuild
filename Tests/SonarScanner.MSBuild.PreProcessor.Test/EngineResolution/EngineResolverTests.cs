@@ -161,41 +161,6 @@ public class EngineResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheError()
-    {
-        runtime.Directory.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
-
-        var result = await resolver.ResolvePath(args);
-
-        result.Should().BeNull();
-        await server.Received(1).DownloadEngineMetadataAsync();
-        await server.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
-        AssertDebugMessages(
-            true,
-            "EngineResolver: Resolving Scanner Engine path.",
-            $"EngineResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.");
-
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
-            [
-            new
-            {
-                Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrapping.Enabled
-            },
-            new
-            {
-                Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownload.Failed
-            },
-            new
-            {
-                Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownload.Failed
-            },
-            ]);
-    }
-
-    [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheMiss_DownloadSuccess()
     {
         var tempFile = Path.Combine(ShaPath, "tempFile.jar");

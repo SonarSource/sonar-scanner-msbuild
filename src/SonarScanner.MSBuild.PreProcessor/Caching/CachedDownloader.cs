@@ -50,29 +50,20 @@ public class CachedDownloader
         downloadTarget = Path.Combine(FileRootPath, fileDescriptor.Filename);
     }
 
-    public virtual CacheResult IsFileCached()
-    {
-        if (EnsureCacheRoot())
-        {
-            return fileWrapper.Exists(CacheLocation) // We do not check the SHA256 of the found file.
-                ? new CacheHit(CacheLocation)
-                : new CacheMiss();
-        }
-        return new CacheError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, CacheRoot));
-    }
+    public virtual CacheResult IsFileCached() =>
+        fileWrapper.Exists(CacheLocation)   // We do not check the SHA256 of the found file.
+            ? new CacheHit(CacheLocation)
+            : new CacheMiss();
 
     public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download)
     {
-        if (EnsureDownloadDirectory())
+        if (EnsureDirectoryExists(FileRootPath))
         {
             return await EnsureFileIsDownloaded(download) is { } downloadError
                 ? downloadError
                 : new DownloadSuccess(downloadTarget);
         }
-        else
-        {
-            return new DownloadError(string.Format(Resources.ERR_CacheDirectoryCouldNotBeCreated, FileRootPath));
-        }
+        return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));
     }
 
     public virtual bool EnsureCacheRoot() =>
@@ -93,9 +84,6 @@ public class CachedDownloader
             return false;
         }
     }
-
-    private bool EnsureDownloadDirectory() =>
-        EnsureCacheRoot() && EnsureDirectoryExists(FileRootPath);
 
     private bool EnsureDirectoryExists(string directory)
     {

@@ -145,7 +145,7 @@ public class JreResolverTests
         AssertDebugMessages(
             true,
             "JreResolver: Resolving JRE path.",
-            $"JreResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.");
+            $"JreResolver: Cache failure. The directory '{CacheDir}' could not be created.");
     }
 
     [TestMethod]

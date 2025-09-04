@@ -121,17 +121,6 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
-    public void IsFileCached_CreateDirectoryThrows_ReturnsCacheFailure()
-    {
-        runtime.Directory.Exists(SonarUserHomeCache).Returns(false);
-        runtime.Directory.When(x => x.CreateDirectory(SonarUserHomeCache)).Do(_ => throw new IOException("Disk full"));
-
-        var result = cachedDownloader.IsFileCached();
-
-        result.Should().BeOfType<CacheError>().Which.Message.Should().Be($"The file cache directory in '{SonarUserHomeCache}' could not be created.");
-    }
-
-    [TestMethod]
     public void ValidateChecksum_ValidChecksum_ReturnsTrue()
     {
         ExecuteValidateChecksumTest(ExpectedSha, ExpectedSha, true);
@@ -178,7 +167,7 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_NullStream_ReturnsCacheFailure()
+    public async Task DownloadFileAsync_NullStream_ReturnsDownloadError()
     {
         var result = await ExecuteDownloadFileAsync(null);
 
@@ -193,7 +182,7 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_WrongChecksum_ReturnsCacheFailure()
+    public async Task DownloadFileAsync_WrongChecksum_ReturnsDownloadError()
     {
         checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
 
@@ -266,7 +255,7 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
-    public async Task DownloadFileAsyncDownloadFails_FileDownloadedByOtherScannerInvalid_Fails()
+    public async Task DownloadFileAsync_DownloadFails_FileDownloadedByOtherScannerInvalid_Fails()
     {
         runtime.File.Exists(DownloadFilePath).Returns(false, true);
         checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
@@ -288,12 +277,12 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_EnsureDownloadDirectory_Fails()
+    public async Task DownloadFileAsync_EnsureDownloadDirectoryFails()
     {
-        runtime.Directory.When(x => x.CreateDirectory(SonarUserHomeCache)).Do(_ => throw new IOException());
+        runtime.Directory.When(x => x.CreateDirectory(DownloadPath)).Do(_ => throw new IOException());
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
         result.Should().BeOfType<DownloadError>().Which.Message
-            .Should().Be($"The file cache directory in '{DownloadPath}' could not be created.");
+            .Should().Be($"The directory '{DownloadPath}' could not be created.");
     }
 
     private async Task<DownloadResult> ExecuteDownloadFileAsync(MemoryStream downloadContent) =>
