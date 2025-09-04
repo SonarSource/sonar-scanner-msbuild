@@ -73,17 +73,17 @@ public class TestLogger : ILogger
     public void AssertInfoLogged(int expectedCount) =>
         InfoMessages.Should().HaveCount(expectedCount, "Unexpected number of INFO messages logged");
 
-    public void AssertDebugLogged(string expected) =>
-        DebugMessages.Should().Contain(expected.ToUnixLineEndings());
+    public void AssertDebugLogged(params string[] expected) =>
+        expected.Should().AllSatisfy(x => DebugMessages.Should().Contain(x.ToUnixLineEndings()));
 
     public void AssertInfoLogged(params string[] expected) =>
         expected.Should().AllSatisfy(x => InfoMessages.Should().Contain(x.ToUnixLineEndings()));
 
-    public void AssertWarningLogged(string expected) =>
-        Warnings.Should().ContainIgnoringLineEndings(expected.ToUnixLineEndings());
+    public void AssertWarningLogged(params string[] expected) =>
+        expected.Should().AllSatisfy(x => Warnings.Should().ContainIgnoringLineEndings(x.ToUnixLineEndings()));
 
-    public void AssertErrorLogged(string expected) =>
-        Errors.Should().Contain(expected.ToUnixLineEndings());
+    public void AssertErrorLogged(params string[] expected) =>
+        expected.Should().AllSatisfy(x => Errors.Should().Contain(x.ToUnixLineEndings()));
 
     public void AssertUIWarningLogged(string expected)
     {
