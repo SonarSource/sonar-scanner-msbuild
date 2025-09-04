@@ -50,7 +50,9 @@ class ScannerEngineTest {
   @ValueSource(booleans = { true, false })
   @ServerMinVersion("2025.1")
   void scannerInput_UTF8(boolean useSonarScannerCLI) {
-    assumeThat(OSPlatform.current()).isNotEqualTo(OperatingSystem.MacOS);
+    assumeThat(OSPlatform.current())
+      .as("Issues raised in UTF8Filename_äöüß_ソナー_😊.cs are not ending up in the server on MacOS because C# is not detected. See https://sonarsource.atlassian.net/browse/SCAN4NET-892")
+      .isNotEqualTo(OperatingSystem.MacOS);
     var context = AnalysisContext.forServer(Paths.get("ScannerEngine", "UTF8Filenames_äöü").toString());
     context.begin
       .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
@@ -78,6 +80,11 @@ class ScannerEngineTest {
     assertThat(matchResults)
       .extracting(x -> x.group(1))
       .hasSize(1)
+      .as("Any of these can be found in the Windows/Linux/MacOS and Scanner-CLI/Scanner-Engine combination" +
+        "UTF8Filename_����_???_?.cs" +
+        "UTF8Filename_����_???_??.cs" +
+        "UTF8Filename_????_???_??.cs" +
+        "UTF8Filename_äöüß_ソナー_😊.cs")
       .allSatisfy(x -> assertThat(x).matches("UTF8Filename_.{4}_[?|ソ][?|ナ][?|ー]_[?|😊]\\??.cs"));
   }
 }
