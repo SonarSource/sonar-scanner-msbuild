@@ -27,7 +27,7 @@ public abstract class BaseCommand<T extends BaseCommand<T>> {
 
   protected final Path projectDir;
   protected final Map<String, String> environment = new HashMap(System.getenv());
-  protected Timeout timeout = Timeout.ONE_MINUTE;
+  protected Timeout timeout = Timeout.TWO_MINUTES;
 
   protected abstract T self();
 
