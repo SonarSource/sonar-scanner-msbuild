@@ -39,9 +39,11 @@ public class SonarEngineWrapper
 
         var engine = config.EngineJarPath;
         var javaExe = FindJavaExe(config.JavaExePath);
+        var javaParams = JavaParams(config);
+
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
-            CmdLineArgs = ["-jar", engine],
+            CmdLineArgs = javaParams.Any() ? [..javaParams, "-jar", engine] : ["-jar", engine],
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
             StandardInput = standardInput,
         };
@@ -55,6 +57,26 @@ public class SonarEngineWrapper
             runtime.Logger.LogError(Resources.ERR_ScannerEngineExecutionFailed);
         }
         return result.Succeeded;
+    }
+
+    private static IEnumerable<string> JavaParams(AnalysisConfig config)
+    {
+        if (Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName)?.Trim() is { Length: > 0 } scannerOpts)
+        {
+            yield return scannerOpts;
+        }
+
+        if (config.ScannerOptsSettings.Any())
+        {
+            // If there are any duplicates properties, the last one will be used.
+            // As of today, properties coming from ScannerOptsSettings are set
+            // via the command line, so they should take precedence over the ones
+            // set via the environment variable.
+            foreach (var property in config.ScannerOptsSettings)
+            {
+                yield return property.AsSonarScannerArg();
+            }
+        }
     }
 
     private string FindJavaExe(string configJavaExe) =>
