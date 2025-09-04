@@ -79,11 +79,8 @@ public class EngineResolver : IResolver
         }
     }
 
-    private async Task<string> ResolveEnginePath(EngineMetadata metadata)
-    {
-        var cachedDownloader = new CachedDownloader(runtime, checksum, metadata.ToDescriptor(), sonarUserHome);
-        return await DownloadEngine(cachedDownloader, metadata);
-    }
+    private async Task<string> ResolveEnginePath(EngineMetadata metadata) =>
+        await DownloadEngine(new CachedDownloader(runtime, checksum, metadata.ToDescriptor(), sonarUserHome), metadata);
 
     private async Task<string> DownloadEngine(CachedDownloader cachedDownloader, EngineMetadata metadata)
     {

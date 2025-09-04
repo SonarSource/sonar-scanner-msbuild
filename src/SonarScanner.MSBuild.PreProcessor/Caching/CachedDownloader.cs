@@ -45,14 +45,10 @@ public class CachedDownloader
         CacheLocation = Path.Combine(FileRootPath, fileDescriptor.Filename);
     }
 
-    public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download)
-    {
-        if (EnsureDirectoryExists(FileRootPath))
-        {
-            return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));
-        }
-        return await EnsureFileIsDownloaded(download);
-    }
+    public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download) =>
+        EnsureDirectoryExists(FileRootPath)
+            ? await EnsureFileIsDownloaded(download)
+            : new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));
 
     internal bool ValidateChecksum(string downloadTarget, string sha256)
     {
