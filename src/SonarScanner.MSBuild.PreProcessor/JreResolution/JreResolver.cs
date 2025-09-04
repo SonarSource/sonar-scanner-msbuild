@@ -48,7 +48,7 @@ public class JreResolver : IResolver
 
     public async Task<string> ResolvePath(ProcessedArgs args)
     {
-        runtime.Logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", string.Empty);
+        runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", string.Empty);
         if (!IsValid(args))
         {
             return null;
@@ -60,7 +60,7 @@ public class JreResolver : IResolver
         }
         else
         {
-            runtime.Logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
+            runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
             return await DownloadJre(args);
         }
     }
@@ -70,7 +70,7 @@ public class JreResolver : IResolver
         var metadata = await server.DownloadJreMetadataAsync(args.OperatingSystem, args.Architecture);
         if (metadata is null)
         {
-            runtime.Logger.LogDebug(Resources.MSG_Resolver_MetadataFailure, nameof(JreResolver));
+            runtime.LogDebug(Resources.MSG_Resolver_MetadataFailure, nameof(JreResolver));
             return null;
         }
 
@@ -81,13 +81,13 @@ public class JreResolver : IResolver
             switch (jreDownloader.IsJreCached())
             {
                 case CacheHit hit:
-                    runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), hit.FilePath);
+                    runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), hit.FilePath);
                     return hit.FilePath;
                 case CacheMiss:
-                    runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(JreResolver), "JRE");
+                    runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(JreResolver), "JRE");
                     return await DownloadJre(jreDownloader, metadata);
                 case CacheError failure:
-                    runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), failure.Message);
+                    runtime.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), failure.Message);
                     return null;
                 default:
                     throw new NotSupportedException("File Resolution is expected to be CacheHit, CacheMiss, or CacheError.");
@@ -95,7 +95,7 @@ public class JreResolver : IResolver
         }
         else
         {
-            runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), string.Format(Resources.ERR_JreArchiveFormatNotSupported, descriptor.Filename));
+            runtime.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), string.Format(Resources.ERR_JreArchiveFormatNotSupported, descriptor.Filename));
             return null;
         }
     }
@@ -105,12 +105,12 @@ public class JreResolver : IResolver
         var result = await jreDownloader.DownloadJreAsync(() => server.DownloadJreAsync(metadata));
         if (result is DownloadSuccess success)
         {
-            runtime.Logger.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
+            runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
             return success.FilePath;
         }
         else if (result is DownloadError error)
         {
-            runtime.Logger.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
+            runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
             return null;
         }
         throw new NotSupportedException("Download result is expected to be DownloadSuccess or DownloadError.");
@@ -120,27 +120,27 @@ public class JreResolver : IResolver
     {
         if (!string.IsNullOrWhiteSpace(args.JavaExePath))
         {
-            runtime.Logger.LogDebug(Resources.MSG_JreResolver_JavaExePathSet);
+            runtime.LogDebug(Resources.MSG_JreResolver_JavaExePathSet);
             return false;
         }
         if (args.SkipJreProvisioning)
         {
-            runtime.Logger.LogDebug(Resources.MSG_JreResolver_SkipJreProvisioningSet);
+            runtime.LogDebug(Resources.MSG_JreResolver_SkipJreProvisioningSet);
             return false;
         }
         if (!server.SupportsJreProvisioning)
         {
-            runtime.Logger.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
+            runtime.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
             return false;
         }
         if (string.IsNullOrWhiteSpace(args.OperatingSystem))
         {
-            runtime.Logger.LogDebug(Resources.MSG_JreResolver_OperatingSystemMissing);
+            runtime.LogDebug(Resources.MSG_JreResolver_OperatingSystemMissing);
             return false;
         }
         if (string.IsNullOrWhiteSpace(args.Architecture))
         {
-            runtime.Logger.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
+            runtime.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
             return false;
         }
         return true;

@@ -68,7 +68,7 @@ public class JreDownloader
 
     public async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)
     {
-        runtime.Logger.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
+        runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
         var result = await cachedDownloader.DownloadFileAsync(jreDownload);
         return result is DownloadSuccess success ? UnpackJre(success.FilePath) : result;
     }
@@ -79,15 +79,15 @@ public class JreDownloader
         var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath, runtime.Directory.GetRandomFileName());
         try
         {
-            runtime.Logger.LogDebug(Resources.MSG_StartingJreExtraction, jreArchive, tempExtractionPath);
+            runtime.LogDebug(Resources.MSG_StartingJreExtraction, jreArchive, tempExtractionPath);
             using var archiveStream = runtime.File.Open(jreArchive);
             unpacker.Unpack(archiveStream, tempExtractionPath);
             var expectedJavaExeInTempPath = Path.Combine(tempExtractionPath, jreDescriptor.JavaPath);
             if (runtime.File.Exists(expectedJavaExeInTempPath))
             {
-                runtime.Logger.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, jreExtractionPath);
+                runtime.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, jreExtractionPath);
                 runtime.Directory.Move(tempExtractionPath, jreExtractionPath);
-                runtime.Logger.LogDebug(Resources.MSG_JreExtractedSucessfully, jreExtractionPath);
+                runtime.LogDebug(Resources.MSG_JreExtractedSucessfully, jreExtractionPath);
                 return new DownloadSuccess(extractedJavaExe);
             }
             else
@@ -97,7 +97,7 @@ public class JreDownloader
         }
         catch (Exception ex)
         {
-            runtime.Logger.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
+            runtime.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
             CleanupFolder(tempExtractionPath);
             return new DownloadError(Resources.ERR_JreExtractionFailed);
         }
@@ -111,7 +111,7 @@ public class JreDownloader
         }
         catch (Exception ex)
         {
-            runtime.Logger.LogDebug(Resources.ERR_JreExtractionCleanupFailed, tempExtractionPath, ex.Message);
+            runtime.LogDebug(Resources.ERR_JreExtractionCleanupFailed, tempExtractionPath, ex.Message);
         }
     }
 }
