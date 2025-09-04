@@ -57,13 +57,13 @@ public class CachedDownloader
 
     public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download)
     {
-        if (!EnsureDirectoryExists(FileRootPath))
+        if (EnsureDirectoryExists(FileRootPath))
         {
-            return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));
+            return await EnsureFileIsDownloaded(download) is { } downloadError
+                ? downloadError
+                : new DownloadSuccess(downloadTarget);
         }
-        return await EnsureFileIsDownloaded(download) is { } downloadError
-            ? downloadError
-            : new DownloadSuccess(downloadTarget);
+        return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));
     }
 
     public virtual bool EnsureCacheRoot() =>
