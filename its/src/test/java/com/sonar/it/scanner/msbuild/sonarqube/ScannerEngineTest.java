@@ -50,6 +50,9 @@ class ScannerEngineTest {
   @ValueSource(booleans = { true, false })
   @ServerMinVersion("2025.1")
   void scannerInput_UTF8(boolean useSonarScannerCLI) {
+    assumeThat(OSPlatform.current())
+      .as("Issues raised in UTF8Filename_äöüß_ソナー_😊.cs are not ending up in the server on MacOS because C# is not detected. See https://sonarsource.atlassian.net/browse/SCAN4NET-892")
+      .isNotEqualTo(OperatingSystem.MacOS);
     var context = AnalysisContext.forServer(Paths.get("ScannerEngine", "UTF8Filenames_äöü").toString());
     context.begin
       .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
