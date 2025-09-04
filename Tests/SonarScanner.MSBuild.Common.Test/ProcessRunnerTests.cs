@@ -234,7 +234,7 @@ public class ProcessRunnerTests
     [TestMethod]
     [TestCategory(TestCategories.NoMacOS)]
     [TestCategory(TestCategories.NoLinux)]
-    public void ProcRunner_StandardInput_UTF8()
+    public void ProcRunner_StandardInput_BatchfileWithCodePageSetTo_UTF8()
     {
         var context = new ProcessRunnerContext(TestContext, $"""
             chcp 65001
@@ -242,10 +242,12 @@ public class ProcessRunnerTests
             {EchoCommand($"You entered: {EnvVar("var1")}")}
             """)
         {
-            ProcessArgs = { StandardInput = "Hello World 😊" }
+            ProcessArgs = { StandardInput = "Hello World 😊" } // 😊 = F09F 988A in UTF-8
         };
 
         context.ExecuteAndAssert();
+        // F09F 988A is ≡ƒÿè in Codepage DOS Latin-US CP437
+        // https://planetcalc.com/9043/?encoding=cp437_DOSLatinUS
         context.ResultStandardOutputShouldBe("""
             Active code page: 65001
             You entered: Hello World ≡ƒÿè
