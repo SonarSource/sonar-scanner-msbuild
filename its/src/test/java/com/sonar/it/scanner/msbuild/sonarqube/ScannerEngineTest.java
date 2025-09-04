@@ -54,8 +54,6 @@ class ScannerEngineTest {
     context.begin
       .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
       .setProperty("sonar.buildString", "'_äöüß_😊_ソナー") // Round trip a string property with problematic characters from the begin step to the final analysis result on the server
-      .setProperty("sonar.json.activate", "false")
-      .setProperty("sonar.json.file.suffixes", ".gibberish")
       .setDebugLogs(); // So we can assert filenames with problematic characters in the log output.
     var result = context.runAnalysis();
 
