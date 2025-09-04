@@ -107,12 +107,12 @@ public class JreDownloaderTests
     }
 
     [TestMethod]
-    public async Task Download_CacheDirectoryIsCreated()
+    public async Task Download_DownloadDirectoryIsCreated()
     {
         runtime.Directory.Exists(SonarCache).Returns(false);
         var sut = CreateSutWithSubstitutes();
         await sut.DownloadJreAsync(() => Task.FromResult<Stream>(null));
-        runtime.Directory.Received(1).CreateDirectory(SonarCache);
+        runtime.Directory.Received(1).CreateDirectory(ShaPath);
     }
 
     [TestMethod]
