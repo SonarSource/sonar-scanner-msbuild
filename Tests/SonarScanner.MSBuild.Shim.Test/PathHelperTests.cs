@@ -92,6 +92,9 @@ public class PathHelperTests
     [DataRow(@"~Foo\File.cs", "~Foo")]
     [DataRow(@"C:\Src\Bar\..\File.cs", @"C:\Src")]
     [DataRow(@"C:\Src\File.cs", @"C:\Src\Bar\..")]
+    [DataRow(@"C:\äöü\File.cs", @"C:\äöü")]
+    [DataRow("C:\\Foo_\u00e4öü\\File.cs", "C:\\Foo_a\u0308öü")] // https://www.compart.com/en/unicode/U+00E4 = ä; https://www.compart.com/en/unicode/U+0308 = ̈ (combining diaeresis)
+    [DataRow("C:\\Foo_\u00e4öü\\File.cs", "C:\\Foo_\u0041\u0308öü")] // https://www.compart.com/en/unicode/U+0041 = A
     public void IsInDirectory_Windows_True(string file, string directory) =>
         new FileInfo(file).IsInDirectory(new DirectoryInfo(directory)).Should().BeTrue();
 
