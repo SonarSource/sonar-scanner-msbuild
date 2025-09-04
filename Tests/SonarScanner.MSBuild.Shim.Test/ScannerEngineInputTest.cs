@@ -40,7 +40,7 @@ public class ScannerEngineInputTest
         new ScannerEngineInput(new AnalysisConfig()).Invoking(x => x.AddUserSettings(null)).Should().Throw<ArgumentNullException>().WithParameterName("properties");
 
     [TestMethod]
-    public void AddGlobalSettings_VerboseIsSkipped()
+    public void AddGlobalSettings_VerboseIsNotSkipped()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
         sut.AddUserSettings(new ListPropertiesProvider([
@@ -50,6 +50,10 @@ public class ScannerEngineInputTest
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.verbose",
+                  "value": "true"
+                },
                 {
                   "key": "sonar.host.url",
                   "value": "http://example.org"

@@ -94,8 +94,11 @@ public sealed class ProcessRunner : IProcessRunner
             process.Id);
         if (runnerArgs.StandardInput is { } input)
         {
-            using var standardInput = process.StandardInput;
-            standardInput.Write(input);
+            // We need to write to the underlying stream directly, so we can control the encoding used for writing.
+            // Without this, the encodings like https://en.wikipedia.org/wiki/Code_page_437 might be used, which can lead to issues if the input contains non-ASCII characters.
+            // This is under test by IT ScannerEngineTest.scannerInput_UTF8
+            using var utf8Writer = new StreamWriter(process.StandardInput.BaseStream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)); // StreamWriter closes StandardInput on dispose
+            utf8Writer.Write(input);
         }
         var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
         // false means we asked the process to stop but it didn't.
