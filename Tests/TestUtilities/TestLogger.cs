@@ -76,8 +76,8 @@ public class TestLogger : ILogger
     public void AssertDebugLogged(string expected) =>
         DebugMessages.Should().Contain(expected.ToUnixLineEndings());
 
-    public void AssertInfoLogged(string expected) =>
-        InfoMessages.Should().Contain(expected.ToUnixLineEndings());
+    public void AssertInfoLogged(params string[] expected) =>
+        expected.Should().AllSatisfy(x => InfoMessages.Should().Contain(x.ToUnixLineEndings()));
 
     public void AssertWarningLogged(string expected) =>
         Warnings.Should().ContainIgnoringLineEndings(expected.ToUnixLineEndings());
@@ -199,14 +199,6 @@ public class TestLogger : ILogger
         expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
         var matches = Errors.Where(x => expected.All(e => x.Contains(e)));
         matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
-    }
-
-    public void AssertInfoLogs(params string[] messages)
-    {
-        foreach (var message in messages)
-        {
-            AssertInfoLogged(message);
-        }
     }
 
     public void AssertVerbosity(LoggerVerbosity expected) =>
