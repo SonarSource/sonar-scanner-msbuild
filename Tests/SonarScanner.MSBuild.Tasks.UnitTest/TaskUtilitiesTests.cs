@@ -164,7 +164,7 @@ public class TaskUtilitiesTests
     {
         // We'll assume retry has been attempted if there is a message containing
         // both of the timeout values
-        logger.AssertSingleDebugMessageExists(TaskUtilities.MaxConfigRetryPeriodInMilliseconds.ToString(), TaskUtilities.DelayBetweenRetriesInMilliseconds.ToString());
+        logger.AssertSingleDebugExists(TaskUtilities.MaxConfigRetryPeriodInMilliseconds.ToString(), TaskUtilities.DelayBetweenRetriesInMilliseconds.ToString());
     }
 
     #endregion Private methods

@@ -109,7 +109,7 @@ public class ProcessRunnerTests
 
         context.ExecuteAndAssert();
 
-        context.Logger.AssertMessageNotLogged("Hello world");
+        context.Logger.AssertInfoNotLogged("Hello world");
         context.Logger.AssertErrorNotLogged("Testing 1,2,3...");
         context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
 
@@ -276,7 +276,7 @@ public class ProcessRunnerTests
         // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms)
         // timer.ElapsedMilliseconds >= 100.Should().BeTrue("Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds)
         context.AssertExpected();
-        context.Logger.AssertMessageNotLogged("Hello world");
+        context.Logger.AssertInfoNotLogged("Hello world");
         context.Logger.AssertWarningsLogged(1); // expecting a warning about the timeout
         context.Logger.Warnings.Single().Contains("has been terminated").Should().BeTrue();
     }
@@ -343,7 +343,7 @@ public class ProcessRunnerTests
         // Check the runner reported it was overwriting existing variables
         // Note: the existing non-process values won't be visible to the child process
         // unless they were set *before* the test host launched, which won't be the case.
-        context.Logger.AssertSingleDebugMessageExists("proc_runner_test_process", "existing process value", "process override");
+        context.Logger.AssertSingleDebugExists("proc_runner_test_process", "existing process value", "process override");
     }
 
     [TestMethod]
@@ -537,14 +537,14 @@ public class ProcessRunnerTests
         // Check public arguments are logged but private ones are not
         foreach (var arg in publicArgs)
         {
-            context.Logger.AssertSingleDebugMessageExists(arg);
+            context.Logger.AssertSingleDebugExists(arg);
         }
-        context.Logger.AssertSingleDebugMessageExists("Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>");
-        context.Logger.AssertSingleDebugMessageExists("Setting environment variable 'NOT_SENSITIVE'. Value: Something");
-        context.Logger.AssertSingleDebugMessageExists("Setting environment variable 'MIXED_DATA'. Value: -DBefore=true -D<sensitive data removed>");
-        context.Logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
-        context.Logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'EXISTING_SENSITIVE_DATA'. Old value: -D<sensitive data removed>, new value: -D<sensitive data removed>");
-        context.Logger.AssertSingleDebugMessageExists("Args: public1 public2 /dmy.key=value /d:sonar.projectKey=my.key <sensitive data removed>");
+        context.Logger.AssertSingleDebugExists("Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>");
+        context.Logger.AssertSingleDebugExists("Setting environment variable 'NOT_SENSITIVE'. Value: Something");
+        context.Logger.AssertSingleDebugExists("Setting environment variable 'MIXED_DATA'. Value: -DBefore=true -D<sensitive data removed>");
+        context.Logger.AssertSingleDebugExists("Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
+        context.Logger.AssertSingleDebugExists("Overwriting the value of environment variable 'EXISTING_SENSITIVE_DATA'. Old value: -D<sensitive data removed>, new value: -D<sensitive data removed>");
+        context.Logger.AssertSingleDebugExists("Args: public1 public2 /dmy.key=value /d:sonar.projectKey=my.key <sensitive data removed>");
         context.AssertTextDoesNotAppearInLog("secret");
         // Check that the public and private arguments are passed to the child process
         context.AssertExpectedLogContents(allArgs);

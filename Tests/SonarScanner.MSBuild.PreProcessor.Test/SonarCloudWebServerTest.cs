@@ -51,7 +51,7 @@ public class SonarCloudWebServerTest
     {
         var logger = new TestLogger();
         _ = new SonarCloudWebServer(Substitute.For<IDownloader>(), Substitute.For<IDownloader>(), Version, logger, Organization, HttpTimeout);
-        logger.AssertInfoMessageExists("Using SonarCloud.");
+        logger.AssertInfoExists("Using SonarCloud.");
     }
 
     [TestMethod]
@@ -134,7 +134,7 @@ public class SonarCloudWebServerTest
         var isValid = await context.Server.IsServerLicenseValid();
 
         isValid.Should().BeTrue();
-        context.Logger.AssertDebugMessageExists("SonarCloud detected, skipping license check.");
+        context.Logger.AssertDebugExists("SonarCloud detected, skipping license check.");
     }
 
     [TestMethod]
@@ -153,7 +153,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(projectKey, branch, Organization, token));
 
         res.Should().BeEmpty();
-        context.Logger.AssertSingleInfoMessageExists(infoMessage);
+        context.Logger.AssertSingleInfoExists(infoMessage);
     }
 
     [TestMethod]
@@ -172,7 +172,7 @@ public class SonarCloudWebServerTest
         await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, null, Organization, Token));
 
-        context.Logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
+        context.Logger.AssertInfoExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -192,7 +192,7 @@ public class SonarCloudWebServerTest
         await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
-        context.Logger.AssertSingleInfoMessageExists("Downloading cache. Project key: project-key, branch: project-branch.");
+        context.Logger.AssertSingleInfoExists("Downloading cache. Project key: project-key, branch: project-branch.");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -209,7 +209,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleDebugMessageExists($"Incremental PR Analysis: Requesting 'prepare_read' from {cacheFullUrl}");
+        context.Logger.AssertSingleDebugExists($"Incremental PR Analysis: Requesting 'prepare_read' from {cacheFullUrl}");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -239,7 +239,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' did not respond successfully.");
+        context.Logger.AssertSingleDebugExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' did not respond successfully.");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -252,7 +252,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response was empty.");
+        context.Logger.AssertSingleDebugExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response was empty.");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -265,7 +265,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleDebugMessageExists(
+        context.Logger.AssertSingleDebugExists(
             "Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = False, Url = https://www.sonarsource.com }");
         handler.Requests.Should().NotBeEmpty();
     }
@@ -279,7 +279,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleDebugMessageExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = True, Url =  }");
+        context.Logger.AssertSingleDebugExists("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = True, Url =  }");
         handler.Requests.Should().NotBeEmpty();
     }
 
