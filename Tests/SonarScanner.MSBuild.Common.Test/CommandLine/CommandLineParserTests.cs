@@ -77,7 +77,7 @@ public class CommandLineParserTests
 
         AssertExpectedValue("id1", "XXX", instances);
         AssertExpectedInstancesCount(1, instances);
-        logger.AssertMessagesLogged(0); // expecting unrecognized arguments to be ignored silently
+        logger.AssertInfoLogged(0); // expecting unrecognized arguments to be ignored silently
     }
 
     [TestMethod]

@@ -77,7 +77,7 @@ public class SonarScannerWrapperTests
         var result = new SonarScannerWrapperTestRunner().ExecuteJavaRunnerIgnoringAsserts();
 
         result.VerifyProcessRunOutcome("C:\\working\\dir", true);
-        result.Logger.AssertMessageNotLogged(Resources.MSG_SonarScannerHomeIsSet);
+        result.Logger.AssertInfoNotLogged(Resources.MSG_SonarScannerHomeIsSet);
     }
 
     [TestMethod]
@@ -88,7 +88,7 @@ public class SonarScannerWrapperTests
         var result = new SonarScannerWrapperTestRunner().ExecuteJavaRunnerIgnoringAsserts();
 
         result.VerifyProcessRunOutcome("C:\\working\\dir", true);
-        result.Logger.AssertInfoMessageExists(Resources.MSG_SonarScannerHomeIsSet);
+        result.Logger.AssertInfoExists(Resources.MSG_SonarScannerHomeIsSet);
     }
 
     [TestMethod]
@@ -638,7 +638,7 @@ public class SonarScannerWrapperTests
             {
                 // Errors can still be logged when the process completes successfully, so
                 // we don't check the error log in this case
-                testRunner.Logger.AssertInfoMessageExists(Resources.MSG_SonarScannerCompleted);
+                testRunner.Logger.AssertInfoExists(Resources.MSG_SonarScannerCompleted);
             }
             else
             {

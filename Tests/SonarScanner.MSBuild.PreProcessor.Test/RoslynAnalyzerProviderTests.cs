@@ -338,7 +338,7 @@ public class RoslynAnalyzerProviderTests
 
         public void AssertInfoMessages(params string[] expected)
         {
-            logger.AssertMessagesLogged(expected.Length);
+            logger.AssertInfoLogged(expected.Length);
             foreach (var info in expected)
             {
                 logger.AssertInfoLogged(info);

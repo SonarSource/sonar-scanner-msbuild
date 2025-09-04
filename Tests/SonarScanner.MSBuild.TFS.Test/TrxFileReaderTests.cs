@@ -60,7 +60,7 @@ public class TrxFileReaderTests
         CreateDirectory(RootDirectory, "dummy.trx", "this is not a trx file");
         var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
-        runtime.Logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
+        runtime.Logger.AssertSingleInfoExists("No code coverage attachments were found from the trx files.");
         runtime.Logger.Warnings.Should().ContainSingle().Which.Should()
             .Match($"Located trx file is not a valid xml file. File: *{Path.Combine("TestResults", "dummy.trx")}. File load error: Data at the root level is invalid. Line 1, position 1.");
         runtime.Logger.AssertErrorsLogged(0); // should be a warning, not an error
@@ -77,7 +77,7 @@ public class TrxFileReaderTests
 
         AssertFindCodeCoverageFiles();
         runtime.Logger.DebugMessages.Should().BeEmpty();
-        runtime.Logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
+        runtime.Logger.AssertSingleInfoExists("No code coverage attachments were found from the trx files.");
     }
 
     [TestMethod]
@@ -89,7 +89,7 @@ public class TrxFileReaderTests
             .Returns([testResults]);
 
         AssertFindCodeCoverageFiles();
-        runtime.Logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
+        runtime.Logger.AssertSingleInfoExists("No code coverage attachments were found from the trx files.");
     }
 
     [TestMethod]
@@ -97,7 +97,7 @@ public class TrxFileReaderTests
     {
         CreateDirectory(RootDirectory, "no_attachments.trx", TrxContent());
         AssertFindCodeCoverageFiles();
-        runtime.Logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
+        runtime.Logger.AssertSingleInfoExists("No code coverage attachments were found from the trx files.");
     }
 
     [TestMethod]
@@ -149,7 +149,7 @@ public class TrxFileReaderTests
 
         var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(fullCoveragePath);
-        runtime.Logger.AssertDebugMessageExists(relativeCoveragePath);
+        runtime.Logger.AssertDebugExists(relativeCoveragePath);
     }
 
     [TestMethod]
@@ -164,7 +164,7 @@ public class TrxFileReaderTests
 
         var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(fullCoveragePath);
-        runtime.Logger.AssertDebugMessageExists(relativeCoveragePath);
+        runtime.Logger.AssertDebugExists(relativeCoveragePath);
     }
 
     [TestMethod]
@@ -177,7 +177,7 @@ public class TrxFileReaderTests
 
         var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(coverageFileName);
-        runtime.Logger.AssertDebugMessageExists($"Absolute path to coverage file: {Path.Combine(@"x:\dir1", "TestResults", "xxx.coverage")}");
+        runtime.Logger.AssertDebugExists($"Absolute path to coverage file: {Path.Combine(@"x:\dir1", "TestResults", "xxx.coverage")}");
     }
 
     [TestMethod]

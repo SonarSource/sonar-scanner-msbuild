@@ -546,7 +546,7 @@ public class BuildVNextCoverageReportProcessorTests
         }
         else
         {
-            runtime.Logger.AssertMessageNotLogged(Resources.TRX_DIAG_NoCoverageFilesFound);
+            runtime.Logger.AssertInfoNotLogged(Resources.TRX_DIAG_NoCoverageFilesFound);
             runtime.Logger.AssertDebugLogged("Not using the fallback mechanism to detect binary coverage files.");
         }
     }

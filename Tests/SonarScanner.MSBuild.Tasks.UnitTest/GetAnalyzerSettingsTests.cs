@@ -320,7 +320,7 @@ public class GetAnalyzerSettingsTests
     [DataRow("vbnet")]
     public void ShouldMerge_OldServerVersion_ReturnsFalse(string language) =>
         CheckShouldMerge("7.3.1", language, ignoreExternalIssues: "true", expected: false)
-            .AssertInfoMessageExists("External issues are not supported on this version of SonarQube. Version 7.4+ is required.");
+            .AssertInfoExists("External issues are not supported on this version of SonarQube. Version 7.4+ is required.");
 
     [TestMethod]
     [DataRow("cs")]

@@ -38,7 +38,7 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         _ = context.Server;
-        context.Logger.AssertInfoMessageExists("Using SonarQube v9.9.");
+        context.Logger.AssertInfoExists("Using SonarQube v9.9.");
     }
 
     [TestMethod]
@@ -401,7 +401,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(projectKey, branch));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleInfoMessageExists(debugMessage);
+        context.Logger.AssertSingleInfoExists(debugMessage);
     }
 
     [TestMethod]
@@ -418,7 +418,7 @@ public class SonarQubeWebServerTest
         context.MockStreamWebDownload(new MemoryStream());
         await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, null));
 
-        context.Logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
+        context.Logger.AssertInfoExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
     }
 
     [TestMethod]
@@ -435,7 +435,7 @@ public class SonarQubeWebServerTest
         context.MockStreamWebDownload(new MemoryStream());
         await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
-        context.Logger.AssertSingleInfoMessageExists("Downloading cache. Project key: project-key, branch: project-branch.");
+        context.Logger.AssertSingleInfoExists("Downloading cache. Project key: project-key, branch: project-branch.");
     }
 
     [TestMethod]

@@ -577,7 +577,7 @@ public partial class ScannerEngineInputGeneratorTest
         var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Logger.AssertDebugMessageExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey);
+        runtime.Logger.AssertDebugExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey);
         runtime.Logger.AssertWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
     }
 
@@ -674,7 +674,7 @@ public partial class ScannerEngineInputGeneratorTest
         }
         else
         {
-            runtime.Logger.AssertMessageNotLogged(ProjectBaseDirInfoMessage);
+            runtime.Logger.AssertInfoNotLogged(ProjectBaseDirInfoMessage);
         }
     }
 
