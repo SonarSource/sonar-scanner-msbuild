@@ -48,7 +48,7 @@ public class PreProcessor
         if (processedArgs is null)
         {
             runtime.Logger.ResumeOutput();
-            runtime.Logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
+            runtime.LogError(Resources.ERROR_InvalidCommandLineArgs);
             return false;
         }
         else
@@ -66,7 +66,7 @@ public class PreProcessor
         var buildSettings = BuildSettings.GetSettingsFromEnvironment();
 
         // Create the directories
-        runtime.Logger.LogDebug(Resources.MSG_CreatingFolders);
+        runtime.LogDebug(Resources.MSG_CreatingFolders);
         if (!Utilities.TryEnsureEmptyDirectories(runtime.Logger, buildSettings.SonarConfigDirectory, buildSettings.SonarOutputDirectory))
         {
             return false;
@@ -84,8 +84,8 @@ public class PreProcessor
         }
         catch (Exception ex)
         {
-            runtime.Logger.LogError(ex.Message);
-            runtime.Logger.LogDebug(ex.StackTrace);
+            runtime.LogError(ex.Message);
+            runtime.LogDebug(ex.StackTrace);
             return false;
         }
         runtime.Logger.AddTelemetryMessage(TelemetryKeys.ServerInfoVersion, server.ServerVersion.ToString());
@@ -136,7 +136,7 @@ public class PreProcessor
         }
         else
         {
-            runtime.Logger.LogDebug(Resources.MSG_NotCopyingTargets);
+            runtime.LogDebug(Resources.MSG_NotCopyingTargets);
         }
     }
 
@@ -146,7 +146,7 @@ public class PreProcessor
 
         try
         {
-            runtime.Logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
+            runtime.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
 
             args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
             argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
@@ -154,7 +154,7 @@ public class PreProcessor
             var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
             if (knownLanguages.Count == 0)
             {
-                runtime.Logger.LogError(Resources.ERR_DotNetAnalyzersNotFound);
+                runtime.LogError(Resources.ERR_DotNetAnalyzersNotFound);
                 argumentsAndRuleSets.IsSuccess = false;
                 return argumentsAndRuleSets;
             }
@@ -164,14 +164,14 @@ public class PreProcessor
                 var qualityProfile = await server.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
                 if (qualityProfile is null)
                 {
-                    runtime.Logger.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
+                    runtime.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
                     continue;
                 }
 
                 var rules = await server.DownloadRules(qualityProfile);
                 if (!rules.Any(x => x.IsActive))
                 {
-                    runtime.Logger.LogDebug(Resources.RAP_NoActiveRules, language);
+                    runtime.LogDebug(Resources.RAP_NoActiveRules, language);
                 }
 
                 // Generate Roslyn analyzers settings and rulesets

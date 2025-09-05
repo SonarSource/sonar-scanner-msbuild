@@ -58,7 +58,7 @@ public class SummaryReportBuilder
 
     private void UpdateLegacyTeamBuildSummary(SummaryReportData summary)
     {
-        runtime.Logger.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
+        runtime.LogInfo(Resources.Report_UpdatingTeamBuildSummary);
         using var summaryLogger = legacyTeamBuildFactory.BuildLegacyBuildSummaryLogger(config.GetTfsUri(), config.GetBuildUri());
         summaryLogger.WriteMessage(Resources.WARN_XamlBuildDeprecated);
         // Add a link to SonarQube dashboard if analysis succeeded

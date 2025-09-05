@@ -190,7 +190,7 @@ public class ProcessedArgs
             if (!runtime.File.Exists(javaExePath.Value))
             {
                 IsValid = false;
-                runtime.Logger.LogError(Resources.ERROR_InvalidJavaExePath);
+                runtime.LogError(Resources.ERROR_InvalidJavaExePath);
             }
             JavaExePath = javaExePath.Value;
         }
@@ -199,7 +199,7 @@ public class ProcessedArgs
             if (!bool.TryParse(skipJreProvisioningString.Value, out var result))
             {
                 IsValid = false;
-                runtime.Logger.LogError(Resources.ERROR_InvalidSkipJreProvisioning);
+                runtime.LogError(Resources.ERROR_InvalidSkipJreProvisioning);
             }
             SkipJreProvisioning = result;
         }
@@ -208,7 +208,7 @@ public class ProcessedArgs
             if (!runtime.File.Exists(engineJarPath.Value))
             {
                 IsValid = false;
-                runtime.Logger.LogError(Resources.ERROR_InvalidEngineJarPath);
+                runtime.LogError(Resources.ERROR_InvalidEngineJarPath);
             }
             EngineJarPath = engineJarPath.Value;
         }
@@ -217,7 +217,7 @@ public class ProcessedArgs
             if (!bool.TryParse(scanAllAnalysisString.Value, out var result))
             {
                 IsValid = false;
-                runtime.Logger.LogError(Resources.ERROR_InvalidScanAllAnalysis);
+                runtime.LogError(Resources.ERROR_InvalidScanAllAnalysis);
             }
             ScanAllAnalysis = result;
         }
@@ -230,7 +230,7 @@ public class ProcessedArgs
             if (!bool.TryParse(useSonarScannerCli.Value, out var result))
             {
                 IsValid = false;
-                runtime.Logger.LogError(Resources.ERROR_InvalidUseSonarScannerCli);
+                runtime.LogError(Resources.ERROR_InvalidUseSonarScannerCli);
             }
             UseSonarScannerCli = result;
         }
@@ -299,7 +299,7 @@ public class ProcessedArgs
     {
         if (Organization is null && globalFileProperties.TryGetValue(SonarProperties.Organization, out _))
         {
-            runtime.Logger.LogError(Resources.ERROR_Organization_Provided_In_SonarQubeAnalysis_file);
+            runtime.LogError(Resources.ERROR_Organization_Provided_In_SonarQubeAnalysis_file);
             return false;
         }
         return true;
@@ -309,7 +309,7 @@ public class ProcessedArgs
     {
         if (!ProjectKeyRegEx.SafeIsMatch(key, timeoutFallback: true))
         {
-            runtime.Logger.LogError(Resources.ERROR_InvalidProjectKeyArg);
+            runtime.LogError(Resources.ERROR_InvalidProjectKeyArg);
             return false;
         }
         return true;
@@ -330,12 +330,12 @@ public class ProcessedArgs
                 {
                     runtime.Directory.CreateDirectory(userHomeProp.Value);
                     UserHome = userHomeProp.Value;
-                    runtime.Logger.LogDebug(Resources.MSG_UserHomeDirectoryCreated, UserHome);
+                    runtime.LogDebug(Resources.MSG_UserHomeDirectoryCreated, UserHome);
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    runtime.Logger.LogError(Resources.ERR_UserHomeInvalid, userHomeProp.Value, ex.Message);
+                    runtime.LogError(Resources.ERR_UserHomeInvalid, userHomeProp.Value, ex.Message);
                     UserHome = null;
                     return false;
                 }
@@ -350,7 +350,7 @@ public class ProcessedArgs
             }
             catch (Exception ex)
             {
-                runtime.Logger.LogWarning(Resources.WARN_DefaultUserHomeCreationFailed, defaultPath, ex.Message);
+                runtime.LogWarning(Resources.WARN_DefaultUserHomeCreationFailed, defaultPath, ex.Message);
                 UserHome = null;
                 return true;
             }
@@ -376,23 +376,23 @@ public class ProcessedArgs
         }
         else
         {
-            runtime.Logger.LogDebug(Resources.MSG_NoTruststoreProvideTryDefault);
+            runtime.LogDebug(Resources.MSG_NoTruststoreProvideTryDefault);
             // If the default truststore does not exist, providing the password does not make sense
             if (!DefaultTrustStoreProperties() && hasPassword)
             {
-                runtime.Logger.LogError(Resources.ERR_TruststorePasswordWithoutTruststorePath);
+                runtime.LogError(Resources.ERR_TruststorePasswordWithoutTruststorePath);
                 return false;
             }
             // If the default truststore cannot be opened, it should be as if the user did not specify a truststore and password
             // So certificate validation can be done against the system trust store.
             if (TruststorePath is null || !CheckTrustStorePath(false))
             {
-                runtime.Logger.LogDebug(Resources.MSG_NoTruststoreProceedWithoutTruststore);
+                runtime.LogDebug(Resources.MSG_NoTruststoreProceedWithoutTruststore);
                 TruststorePath = null;
                 TruststorePassword   = null;
                 return true;
             }
-            runtime.Logger.LogDebug(Resources.MSG_FallbackTruststoreDefaultPath, TruststorePath);
+            runtime.LogDebug(Resources.MSG_FallbackTruststoreDefaultPath, TruststorePath);
         }
         return true;
     }
@@ -419,7 +419,7 @@ public class ProcessedArgs
     {
         if (!runtime.File.Exists(TruststorePath))
         {
-            runtime.Logger.LogError(Resources.ERR_TruststorePathDoesNotExist, TruststorePath);
+            runtime.LogError(Resources.ERR_TruststorePathDoesNotExist, TruststorePath);
             return false;
         }
         try

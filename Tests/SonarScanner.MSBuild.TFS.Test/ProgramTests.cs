@@ -115,5 +115,17 @@ public class ProgramTests
         public OperatingSystemProvider OperatingSystem => throw new NotImplementedException();
         public IDirectoryWrapper Directory => throw new NotImplementedException();
         public IFileWrapper File => throw new NotImplementedException();
+
+        public void LogDebug(string message, params object[] args) =>
+            Logger.LogDebug(message, args);
+
+        public void LogInfo(string message, params object[] args) =>
+            Logger.LogInfo(message, args);
+
+        public void LogWarning(string message, params object[] args) =>
+            Logger.LogWarning(message, args);
+
+        public void LogError(string message, params object[] args) =>
+            Logger.LogError(message, args);
     }
 }

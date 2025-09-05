@@ -112,7 +112,7 @@ public class PostProcessorTests
     [TestMethod]
     public void PostProc_ExecutionSucceedsWithErrorLogs()
     {
-        scanner.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => runtime.Logger.LogError("Errors"));
+        scanner.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => runtime.LogError("Errors"));
 
         Execute().Should().BeTrue("Expecting post-processor to have succeeded");
         scanner.Received().Execute(

@@ -45,7 +45,7 @@ public static class Program
              */
             if (args.Length < 1)
             {
-                runtime.Logger.LogError("No argument found. Exiting...");
+                runtime.LogError("No argument found. Exiting...");
                 return 1;
             }
 
@@ -71,8 +71,8 @@ public static class Program
         }
         catch (Exception ex)
         {
-            runtime.Logger.LogError("An exception occurred while executing the process: " + ex.Message);
-            runtime.Logger.LogError(ex.StackTrace);
+            runtime.LogError("An exception occurred while executing the process: " + ex.Message);
+            runtime.LogError(ex.StackTrace);
             return 1;
         }
 

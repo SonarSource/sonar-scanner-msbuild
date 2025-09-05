@@ -112,7 +112,7 @@ public class PostProcessor
         var result = scannerEngineInputGenerator.GenerateResult();
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
-            runtime.Logger.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
+            runtime.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
             result.RanToCompletion = false;
         }
         else
@@ -132,9 +132,9 @@ public class PostProcessor
             BuildEnvironment.NotTeamBuild => Resources.SETTINGS_NotInTeamBuild,
             _ => throw new InvalidOperationException($"Unexpected BuildEnvironment: {settings.BuildEnvironment}")
         };
-        runtime.Logger.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
-        runtime.Logger.LogDebug(environmentMessage);
-        runtime.Logger.LogDebug(
+        runtime.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
+        runtime.LogDebug(environmentMessage);
+        runtime.LogDebug(
             Resources.SETTING_DumpSettings,
             settings.AnalysisBaseDirectory,
             settings.BuildDirectory,
@@ -164,7 +164,7 @@ public class PostProcessor
         }
         else
         {
-            runtime.Logger.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUri, configUri, settings.AnalysisConfigFilePath);
+            runtime.LogError(Resources.ERROR_BuildUrisDontMatch, environmentUri, configUri, settings.AnalysisConfigFilePath);
             return false;
         }
     }
@@ -178,7 +178,7 @@ public class PostProcessor
         var hasCredentialsInEndStep = cmdLineArgs.HasProperty(SonarProperties.SonarToken) || cmdLineArgs.HasProperty(SonarProperties.SonarUserName);
         if (config.HasBeginStepCommandLineCredentials ^ hasCredentialsInEndStep)
         {
-            runtime.Logger.LogError(Resources.ERROR_CredentialsNotSpecified);
+            runtime.LogError(Resources.ERROR_CredentialsNotSpecified);
             return false;
         }
 
@@ -189,7 +189,7 @@ public class PostProcessor
         // However, it is not mandatory to pass it to the begin step to pass it to the end step
         if (config.HasBeginStepCommandLineTruststorePassword && !hasTruststorePasswordInEndStep)
         {
-            runtime.Logger.LogError(Resources.ERROR_TruststorePasswordNotSpecified);
+            runtime.LogError(Resources.ERROR_TruststorePasswordNotSpecified);
             return false;
         }
 
@@ -209,7 +209,7 @@ public class PostProcessor
     {
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
-            runtime.Logger.LogInfo(Resources.MSG_ConvertingCoverageReports);
+            runtime.LogInfo(Resources.MSG_ConvertingCoverageReports);
             var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
             WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
             WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
@@ -219,7 +219,7 @@ public class PostProcessor
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
             runtime.Logger.AddTelemetryMessage(TelemetryKeys.EndstepLegacyTFS, TelemetryValues.EndstepLegacyTFS.Called);
-            runtime.Logger.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
+            runtime.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
             runtime.Logger.IncludeTimestamp = false;
             tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, analysisResult.FullPropertiesFilePath]);
             runtime.Logger.IncludeTimestamp = true;

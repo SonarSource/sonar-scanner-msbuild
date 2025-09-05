@@ -69,8 +69,8 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         {
             if (string.IsNullOrWhiteSpace(args.Organization))
             {
-                runtime.Logger.LogError(Resources.ERR_MissingOrganization);
-                runtime.Logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+                runtime.LogError(Resources.ERR_MissingOrganization);
+                runtime.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                 return null;
             }
             return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization, args.HttpTimeout);
@@ -109,7 +109,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     {
         if (!Uri.IsWellFormedUriString(serverUrl, UriKind.Absolute))
         {
-            runtime.Logger.LogError(Resources.ERR_InvalidSonarHostUrl, serverUrl);
+            runtime.LogError(Resources.ERR_InvalidSonarHostUrl, serverUrl);
             return false;
         }
 
@@ -119,7 +119,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         var serverUri = WebUtils.CreateUri(serverUrl);
         if (serverUri.Scheme != Uri.UriSchemeHttp && serverUri.Scheme != Uri.UriSchemeHttps)
         {
-            runtime.Logger.LogError(Resources.ERR_MissingUriScheme, serverUrl);
+            runtime.LogError(Resources.ERR_MissingUriScheme, serverUrl);
             return false;
         }
         return true;
@@ -137,7 +137,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             var errorMessage = serverInfo.IsSonarCloud
                 ? Resources.ERR_DetectedErroneouslySonarCloud
                 : Resources.ERR_DetectedErroneouslySonarQube;
-            runtime.Logger.LogError(errorMessage);
+            runtime.LogError(errorMessage);
             return false;
         }
         return true;
@@ -145,7 +145,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 
     private async Task<Version> QueryServerVersion(IDownloader downloader, IDownloader fallback)
     {
-        runtime.Logger.LogDebug(Resources.MSG_FetchingVersion);
+        runtime.LogDebug(Resources.MSG_FetchingVersion);
 
         try
         {
@@ -159,7 +159,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             }
             catch
             {
-                runtime.Logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
+                runtime.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
                 return null;
             }
         }
@@ -179,9 +179,9 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         var response = await downloader.DownloadResource("api/settings/values?component=unknown");
         if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
         {
-            runtime.Logger.LogWarning(Resources.WARN_AuthenticationFailed);
+            runtime.LogWarning(Resources.WARN_AuthenticationFailed);
             // This might fail in the scenario where the user does not specify sonar.host.url.
-            runtime.Logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+            runtime.LogWarning(Resources.WARN_DefaultHostUrlChanged);
             return false;
         }
         else

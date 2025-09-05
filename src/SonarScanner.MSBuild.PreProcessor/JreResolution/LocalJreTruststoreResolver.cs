@@ -38,32 +38,32 @@ public class LocalJreTruststoreResolver
         var javaHome = Environment.GetEnvironmentVariable(EnvironmentVariables.JavaHomeVariableName);
         if (javaHome is null)
         {
-            runtime.Logger.LogDebug(Resources.MSG_JavaHomeNotSet);
+            runtime.LogDebug(Resources.MSG_JavaHomeNotSet);
             if (ResolveJavaExecutable(args)?.Trim() is { Length: > 0} javaExecutable)
             {
                 javaHome = Path.GetDirectoryName(Path.GetDirectoryName(javaExecutable));
             }
             else
             {
-                runtime.Logger.LogDebug(Resources.MSG_CouldNotInferJavaHome);
+                runtime.LogDebug(Resources.MSG_CouldNotInferJavaHome);
                 return null;
             }
         }
 
         if (!runtime.Directory.Exists(javaHome))
         {
-            runtime.Logger.LogDebug(Resources.MSG_JavaHomeDoesNotExist, javaHome);
+            runtime.LogDebug(Resources.MSG_JavaHomeDoesNotExist, javaHome);
             return null;
         }
 
         var truststorePath = Path.Combine(javaHome, "lib", "security", "cacerts");
         if (!runtime.File.Exists(truststorePath))
         {
-            runtime.Logger.LogDebug(Resources.MSG_JavaHomeCacertsNotFound, truststorePath);
+            runtime.LogDebug(Resources.MSG_JavaHomeCacertsNotFound, truststorePath);
             return null;
         }
 
-        runtime.Logger.LogDebug(Resources.MSG_JavaHomeCacertsFound, truststorePath);
+        runtime.LogDebug(Resources.MSG_JavaHomeCacertsFound, truststorePath);
 
         return truststorePath;
     }
@@ -75,7 +75,7 @@ public class LocalJreTruststoreResolver
 
         if (shellPath is null)
         {
-            runtime.Logger.LogDebug(Resources.MSG_BourneShellNotFound);
+            runtime.LogDebug(Resources.MSG_BourneShellNotFound);
             return null;
         }
 
@@ -89,27 +89,27 @@ public class LocalJreTruststoreResolver
             }
             else
             {
-                runtime.Logger.LogDebug(Resources.MSG_UnableToLocateJavaExecutable, commandResult.ErrorOutput);
+                runtime.LogDebug(Resources.MSG_UnableToLocateJavaExecutable, commandResult.ErrorOutput);
                 return null;
             }
         }
         else
         {
-            runtime.Logger.LogDebug(Resources.MSG_JavaExecutableSpecified);
+            runtime.LogDebug(Resources.MSG_JavaExecutableSpecified);
         }
 
-        runtime.Logger.LogDebug(Resources.MSG_JavaExecutableLocated, javaExePath);
+        runtime.LogDebug(Resources.MSG_JavaExecutableLocated, javaExePath);
 
         var readlinkArgs = new ProcessRunnerArguments(shellPath, false) { CmdLineArgs = ["-c", $"readlink -f {javaExePath}"], LogOutput = false };
         var readlinkResult = processRunner.Execute(readlinkArgs);
         if (readlinkResult.Succeeded)
         {
             javaExePath = readlinkResult.StandardOutput;
-            runtime.Logger.LogDebug(Resources.MSG_JavaExecutableSymlinkResolved, javaExePath);
+            runtime.LogDebug(Resources.MSG_JavaExecutableSymlinkResolved, javaExePath);
         }
         else
         {
-            runtime.Logger.LogDebug(Resources.MSG_UnableToResolveSymlink, javaExePath, readlinkResult.ErrorOutput);
+            runtime.LogDebug(Resources.MSG_UnableToResolveSymlink, javaExePath, readlinkResult.ErrorOutput);
             return null;
         }
 

@@ -38,7 +38,7 @@ public class BuildVNextCoverageReportProcessor
     // ToDo: SCAN4NET-787 Coverage fallback should be in AzDo Extension
     public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings)
     {
-        runtime.Logger.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
+        runtime.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
         string[] vsTestReportsPaths = null;
         string[] vsCoverageXmlReportsPaths = null;
         var trxFilePaths = new TrxFileReader(runtime).FindTrxFiles(settings.BuildDirectory);
@@ -52,7 +52,7 @@ public class BuildVNextCoverageReportProcessor
         }
         else
         {
-            runtime.Logger.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
+            runtime.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
         }
 
         var vsCoverageFilePaths = FindVsCoverageFiles(trxFilePaths, disableFallback: vsTestReportsPaths is not null);
@@ -68,7 +68,7 @@ public class BuildVNextCoverageReportProcessor
 
     internal IEnumerable<string> FindFallbackCoverageFiles()
     {
-        runtime.Logger.LogInfo("Falling back on locating coverage files in the agent temp directory.");
+        runtime.LogInfo("Falling back on locating coverage files in the agent temp directory.");
 
         var agentTempDirectory = CheckAgentTempDirectory();
         if (agentTempDirectory is null)
@@ -76,12 +76,12 @@ public class BuildVNextCoverageReportProcessor
             return [];
         }
 
-        runtime.Logger.LogInfo($"Searching for coverage files in {agentTempDirectory}");
+        runtime.LogInfo($"Searching for coverage files in {agentTempDirectory}");
         var files = runtime.Directory.GetFiles(agentTempDirectory, "*.coverage", SearchOption.AllDirectories);
 
         if (files is null || files.Length == 0)
         {
-            runtime.Logger.LogInfo("No coverage files found in the agent temp directory.");
+            runtime.LogInfo("No coverage files found in the agent temp directory.");
             return [];
         }
 
@@ -110,13 +110,13 @@ public class BuildVNextCoverageReportProcessor
         var agentTempDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.AgentTempDirectory);
         if (string.IsNullOrEmpty(agentTempDirectory))
         {
-            runtime.Logger.LogDebug($"Env var {EnvironmentVariables.AgentTempDirectory} is not set.");
+            runtime.LogDebug($"Env var {EnvironmentVariables.AgentTempDirectory} is not set.");
             return null;
         }
 
         if (!runtime.Directory.Exists(agentTempDirectory))
         {
-            runtime.Logger.LogDebug($"Calculated location for {EnvironmentVariables.AgentTempDirectory} does not exist: {agentTempDirectory}");
+            runtime.LogDebug($"Calculated location for {EnvironmentVariables.AgentTempDirectory} does not exist: {agentTempDirectory}");
             return null;
         }
 
@@ -125,10 +125,10 @@ public class BuildVNextCoverageReportProcessor
 
     private void LogDebugFileList(string headerMessage, string[] files)
     {
-        runtime.Logger.LogDebug($"{headerMessage} count={files.Length}");
+        runtime.LogDebug($"{headerMessage} count={files.Length}");
         foreach (var file in files)
         {
-            runtime.Logger.LogDebug($"\t{file}");
+            runtime.LogDebug($"\t{file}");
         }
     }
 
@@ -137,14 +137,14 @@ public class BuildVNextCoverageReportProcessor
         var binaryFilePaths = new TrxFileReader(runtime).FindCodeCoverageFiles(trxFilePaths);
         if (binaryFilePaths.Any() || disableFallback)
         {
-            runtime.Logger.LogDebug(Resources.TRX_DIAG_NotUsingFallback);
+            runtime.LogDebug(Resources.TRX_DIAG_NotUsingFallback);
             return binaryFilePaths;
         }
         else
         {
             // Fallback to workaround SONARAZDO-179: if the standard searches for .trx/.coverage failed
             // then try the fallback method to find coverage files
-            runtime.Logger.LogInfo(Resources.TRX_DIAG_NoCoverageFilesFound);
+            runtime.LogInfo(Resources.TRX_DIAG_NoCoverageFilesFound);
             return FindFallbackCoverageFiles();
         }
     }
@@ -157,7 +157,7 @@ public class BuildVNextCoverageReportProcessor
             var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
             if (runtime.File.Exists(xmlFilePath))
             {
-                runtime.Logger.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
+                runtime.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
             }
             else
             {
