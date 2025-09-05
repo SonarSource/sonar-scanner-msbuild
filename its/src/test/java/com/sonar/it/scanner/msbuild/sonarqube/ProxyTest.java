@@ -86,6 +86,8 @@ class ProxyTest {
     var context = AnalysisContext.forServer("ProjectUnderTest")
       .setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Dhttp.nonProxyHosts= -Dhttp.proxyHost=localhost -Dhttp.proxyPort=" + httpProxyPort)
       .setQualityProfile(QualityProfile.CS_S1134);
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true");  // TODO: remove this in SCAN4NET-860
+
     var logs = context.runFailedAnalysis().end().getLogs();
 
     assertThat(logs).contains("407");   // Proxy Authentication Required
