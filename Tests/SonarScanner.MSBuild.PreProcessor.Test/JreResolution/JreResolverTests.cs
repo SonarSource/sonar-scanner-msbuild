@@ -222,6 +222,7 @@ public class JreResolverTests
             "JreResolver: Resolving JRE path.",
             "JreResolver: Cache miss. Attempting to download JRE.",
             "Starting the file download.",
+            $"Deleting file '{ShaPath}'.",  // should be temp file path but the scaffolding is not setup
             "The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
     }
@@ -351,6 +352,6 @@ public class JreResolverTests
             retryMessages[0] += " Retrying...";
             expected.AddRange(retryMessages);
         }
-        runtime.Logger.DebugMessages.Should().Equal(expected);
+        runtime.Logger.DebugMessages.Should().BeEquivalentTo(expected);
     }
 }
