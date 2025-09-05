@@ -430,7 +430,7 @@ public partial class ScannerEngineInputGeneratorTest
         sqProperties.AssertSettingExists(project1Guid.ToString().ToUpper() + ".sonar.sources", AddQuotes(fileInProject1));
         var reader = CreateInputReader(result);
         reader.AssertProperty("sonar.projectBaseDir", testDir);
-        reader.AssertPropertyDoesNotExist("sonar.sources");
+        reader.AssertProperty("sonar.sources", string.Empty);
         reader.AssertProperty(project1Guid.ToString().ToUpper() + ".sonar.sources", fileInProject1);
     }
 
