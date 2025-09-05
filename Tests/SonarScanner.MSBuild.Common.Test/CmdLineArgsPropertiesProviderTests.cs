@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -106,8 +100,9 @@ public class CmdLineArgsPropertiesProviderTests
                 "unique=value5");
 
         // Assert
-        logger.AssertSingleErrorExists("dup1=value2", "value1");
-        logger.AssertSingleErrorExists("dup2=value4", "value3");
+        logger.AssertErrorLogged(
+            "A value has already been supplied for this property. Key: dup1=value2, existing value: value1",
+            "A value has already been supplied for this property. Key: dup2=value4, existing value: value3");
         logger.AssertErrorsLogged(2);
     }
 
