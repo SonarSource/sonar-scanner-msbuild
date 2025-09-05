@@ -418,7 +418,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>{0}: Cache hit '{1}'.</value>
   </data>
   <data name="MSG_Resolver_CacheMiss" xml:space="preserve">
-    <value>{0}: Cache miss. Attempting to download {1}.</value>
+    <value>Cache miss. Attempting to download {0}.</value>
   </data>
   <data name="MSG_JreResolver_JavaExePathSet" xml:space="preserve">
     <value>JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning.</value>

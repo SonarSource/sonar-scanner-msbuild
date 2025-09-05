@@ -79,37 +79,27 @@ public class EngineResolver : IResolver
         }
     }
 
-    private async Task<string> ResolveEnginePath(EngineMetadata metadata)
-    {
-        var cachedDownloader = new CachedDownloader(runtime, checksum, metadata.ToDescriptor(), sonarUserHome);
-        if (cachedDownloader.IsFileCached() is { } filePath)
-        {
-            runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), filePath);
-            runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
-            return filePath;
-        }
-        else
-        {
-            runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
-            return await DownloadEngine(cachedDownloader, metadata);
-        }
-    }
+    private async Task<string> ResolveEnginePath(EngineMetadata metadata) =>
+        await DownloadEngine(new CachedDownloader(runtime, checksum, metadata.ToDescriptor(), sonarUserHome), metadata);
 
     private async Task<string> DownloadEngine(CachedDownloader cachedDownloader, EngineMetadata metadata)
     {
-        var result = await cachedDownloader.DownloadFileAsync(() => server.DownloadEngineAsync(metadata));
-        if (result is DownloadSuccess success)
+        switch (await cachedDownloader.DownloadFileAsync(() => server.DownloadEngineAsync(metadata)))
         {
-            runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);
-            runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);
-            return success.FilePath;
+            case Downloaded success:
+                runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);
+                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);
+                return success.FilePath;
+            case CacheHit cacheHit:
+                runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), cacheHit.FilePath);
+                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
+                return cacheHit.FilePath;
+            case DownloadError error:
+                runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(EngineResolver), error.Message);
+                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
+                return null;
+            default:
+                throw new NotSupportedException("Download result is expected to be DownloadSuccess, CacheHit or DownloadError.");
         }
-        else if (result is DownloadError error)
-        {
-            runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(EngineResolver), error.Message);
-            runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
-            return null;
-        }
-        throw new NotSupportedException("Download result is expected to be DownloadSuccess or DownloadError.");
     }
 }

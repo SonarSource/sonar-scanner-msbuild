@@ -57,7 +57,7 @@ public class JreDownloader
     {
         runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
         var result = await cachedDownloader.DownloadFileAsync(jreDownload);
-        return result is DownloadSuccess success ? UnpackJre(success.FilePath) : result;
+        return result is Success success ? UnpackJre(success.FilePath) : result;
     }
 
     private DownloadResult UnpackJre(string jreArchive)
@@ -75,7 +75,7 @@ public class JreDownloader
                 runtime.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, jreExtractionPath);
                 runtime.Directory.Move(tempExtractionPath, jreExtractionPath);
                 runtime.LogDebug(Resources.MSG_JreExtractedSucessfully, jreExtractionPath);
-                return new DownloadSuccess(extractedJavaExe);
+                return new Downloaded(extractedJavaExe);
             }
             else
             {
