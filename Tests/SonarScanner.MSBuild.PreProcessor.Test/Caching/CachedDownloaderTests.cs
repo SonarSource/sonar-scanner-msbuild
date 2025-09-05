@@ -84,7 +84,7 @@ public sealed class CachedDownloaderTests : IDisposable
     {
         ExecuteValidateChecksumTest(ExpectedSha, ExpectedSha, true);
 
-        runtime.Logger.AssertDebugLogged($"""
+        runtime.Should().HaveDebugsLogged($"""
             The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.
             """);
     }
@@ -95,7 +95,7 @@ public sealed class CachedDownloaderTests : IDisposable
         var returnedSha = "invalidsha";
         ExecuteValidateChecksumTest(returnedSha, ExpectedSha, false);
 
-        runtime.Logger.AssertDebugLogged($"""
+        runtime.Should().HaveDebugsLogged($"""
             The checksum of the downloaded file is '{returnedSha}' and the expected checksum is '{ExpectedSha}'.
             """);
     }
@@ -105,7 +105,7 @@ public sealed class CachedDownloaderTests : IDisposable
     {
         ExecuteValidateChecksumTest(null, "sha256", false, FileDescriptor.Filename);
 
-        runtime.Logger.AssertDebugLogged($"""
+        runtime.Should().HaveDebugsLogged($"""
             The calculation of the checksum of the file '{FileDescriptor.Filename}' failed with message 'Operation is not valid due to the current state of the object.'.
             """);
     }

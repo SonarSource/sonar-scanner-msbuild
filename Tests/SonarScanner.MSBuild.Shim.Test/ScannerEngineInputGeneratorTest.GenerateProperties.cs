@@ -58,7 +58,7 @@ public partial class ScannerEngineInputGeneratorTest
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
-        runtime.Logger.AssertErrorLogged("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
+        runtime.Should().HaveErrorsLogged("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
     }
 
     [TestMethod]
@@ -86,7 +86,7 @@ public partial class ScannerEngineInputGeneratorTest
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
-        runtime.Logger.AssertErrorLogged("The project base directory doesn't exist.");
+        runtime.Should().HaveErrorsLogged("The project base directory doesn't exist.");
     }
 
     [TestMethod]
@@ -121,8 +121,8 @@ public partial class ScannerEngineInputGeneratorTest
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
-        runtime.Logger.AssertInfoLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
-        runtime.Logger.AssertErrorLogged("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+        runtime.Should().HaveInfosLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
+        runtime.Should().HaveErrorsLogged("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
     }
 
     [TestMethod]
@@ -139,7 +139,7 @@ public partial class ScannerEngineInputGeneratorTest
 
         legacyWriter.Flush().Should().Contain($"sonar.host.url={sonarQubeHost}");
         new ScannerEngineInputReader(engineInput.ToString()).AssertProperty("sonar.host.url", sonarQubeHost);
-        runtime.Logger.AssertDebugLogged("Setting analysis property: sonar.host.url=" + sonarQubeHost);
+        runtime.Should().HaveDebugsLogged("Setting analysis property: sonar.host.url=" + sonarQubeHost);
     }
 
     [TestMethod]
@@ -242,7 +242,7 @@ public partial class ScannerEngineInputGeneratorTest
         ];
         context.GenerateProperties();
 
-        runtime.Logger.AssertNoErrorsLogged();
+        runtime.Should().HaveNoErrorsLogged();
         var reader = context.CreateEngineInputReader();
         reader.AssertProperty("5762C17D-1DDF-4C77-86AC-E2B4940926A9.my.setting1", "setting1");
         reader.AssertProperty("5762C17D-1DDF-4C77-86AC-E2B4940926A9.my.setting2", "setting 2 with spaces");

@@ -64,8 +64,8 @@ public class VerbosityCalculatorTests
 
         actualVerbosity.Should().Be(expectedVerbosity, errorMessage);
 
-        logger.AssertErrorsLogged(0);
-        logger.AssertWarningsLogged(expectedNumberOfWarnings);
+        logger.Should().HaveErrors(0);
+        logger.Should().HaveWarnings(expectedNumberOfWarnings);
     }
 
     private static ListPropertiesProvider CreatePropertiesProvider(string verbosity, string logLevel)

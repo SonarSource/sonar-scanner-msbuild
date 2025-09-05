@@ -102,9 +102,9 @@ public class WebClientDownloaderTest
 
         var text = await reader.ReadToEndAsync();
         text.Should().Be(TestContent);
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertDebugLogged("Response received from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertNoErrorsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveDebugs("Response received from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveNoErrors();
     }
 
     [TestMethod]
@@ -129,9 +129,9 @@ public class WebClientDownloaderTest
         using var stream = await sut.DownloadStream(RelativeUrl);
 
         stream.Should().BeNull();
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertInfoLogged("Downloading from https://www.sonarsource.com/api/relative failed. Http status code is NotFound.");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveInfos("Downloading from https://www.sonarsource.com/api/relative failed. Http status code is NotFound.");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -151,8 +151,8 @@ public class WebClientDownloaderTest
         var responseMessage = await sut.DownloadResource(RelativeUrl);
 
         responseMessage.Should().Be(expected);
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -161,9 +161,9 @@ public class WebClientDownloaderTest
         var text = await sut.Download(RelativeUrl);
 
         text.Should().Be(TestContent);
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertNoWarningsLogged();
-        testLogger.AssertNoErrorsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveNoWarnings();
+        testLogger.Should().HaveNoErrors();
     }
 
     [TestMethod]
@@ -174,9 +174,9 @@ public class WebClientDownloaderTest
         var text = await sut.Download(RelativeUrl);
 
         text.Should().BeNull();
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertInfoLogged("Downloading from https://www.sonarsource.com/api/relative failed. Http status code is Forbidden.");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveInfos("Downloading from https://www.sonarsource.com/api/relative failed. Http status code is Forbidden.");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -186,8 +186,8 @@ public class WebClientDownloaderTest
 
         await sut.Invoking(async x => await x.Download(RelativeUrl, true)).Should().ThrowAsync<HttpRequestException>();
 
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveWarnings("To analyze private projects make sure the scanner user has 'Browse' permission.");
     }
 
     [TestMethod]
@@ -198,8 +198,8 @@ public class WebClientDownloaderTest
         var text = await sut.Download(RelativeUrl, true);
 
         text.Should().BeNull();
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -225,7 +225,7 @@ public class WebClientDownloaderTest
         _ = await sut.Download("api/relative", true);
 
         handlerMock.Requests.Should().ContainSingle(x => x.RequestUri == new Uri(expectedAbsoluteUrl));
-        testLogger.AssertDebugLogged(string.Format(Resources.MSG_Downloading, expectedAbsoluteUrl));
+        testLogger.Should().HaveDebugs(string.Format(Resources.MSG_Downloading, expectedAbsoluteUrl));
     }
 
     [TestMethod]
@@ -250,7 +250,7 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.Download("api/relative", true);
 
         await act.Should().ThrowAsync<Exception>();
-        testLogger.AssertSingleErrorExists("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
+        testLogger.Should().HaveSingleError("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
     }
 
     [TestMethod]
@@ -263,7 +263,7 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.Download("api/relative", true);
 
         await act.Should().ThrowAsync<HttpRequestException>();
-        testLogger.AssertSingleErrorExists("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
+        testLogger.Should().HaveSingleError("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
     }
 
     [TestMethod]
@@ -300,8 +300,8 @@ public class WebClientDownloaderTest
 
         result.Item1.Should().BeTrue();
         result.Item2.Should().Be(TestContent);
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -313,8 +313,8 @@ public class WebClientDownloaderTest
 
         result.Item1.Should().BeFalse();
         result.Item2.Should().BeNull();
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -325,8 +325,8 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -337,8 +337,8 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl, true);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveWarnings("To analyze private projects make sure the scanner user has 'Browse' permission.");
     }
 
     [TestMethod]
@@ -352,8 +352,8 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -364,8 +364,8 @@ public class WebClientDownloaderTest
         var result = await sut.TryDownloadFileIfExists(RelativeUrl, file.FileName);
 
         result.Should().BeTrue();
-        testLogger.AssertDebugLogged($"Downloading file to {file.FileName}...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs($"Downloading file to {file.FileName}...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -377,9 +377,9 @@ public class WebClientDownloaderTest
         var result = await sut.TryDownloadFileIfExists(RelativeUrl, file.FileName);
 
         result.Should().BeFalse();
-        testLogger.AssertDebugLogged($"Downloading file to {file.FileName}...");
-        testLogger.AssertDebugLogged("Downloading from https://www.sonarsource.com/api/relative...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs($"Downloading file to {file.FileName}...");
+        testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -391,8 +391,8 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
-        testLogger.AssertDebugLogged($"Downloading file to {fileName}...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs($"Downloading file to {fileName}...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -404,8 +404,8 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName, true);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
-        testLogger.AssertDebugLogged($"Downloading file to {fileName}...");
-        testLogger.AssertWarningLogged("To analyze private projects make sure the scanner user has 'Browse' permission.");
+        testLogger.Should().HaveDebugs($"Downloading file to {fileName}...");
+        testLogger.Should().HaveWarnings("To analyze private projects make sure the scanner user has 'Browse' permission.");
     }
 
     [TestMethod]
@@ -420,8 +420,8 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
-        testLogger.AssertDebugLogged($"Downloading file to {fileName}...");
-        testLogger.AssertNoWarningsLogged();
+        testLogger.Should().HaveDebugs($"Downloading file to {fileName}...");
+        testLogger.Should().HaveNoWarnings();
     }
 
     private WebClientDownloader CreateSut(HttpStatusCode statusCode = HttpStatusCode.OK, string baseUrl = null)

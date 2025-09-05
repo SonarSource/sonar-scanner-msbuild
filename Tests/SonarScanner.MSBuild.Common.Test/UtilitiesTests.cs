@@ -138,7 +138,10 @@ public class UtilitiesTests
         Directory.GetFiles(dirWithFile2).Should().ContainSingle();
         logger.Warnings.Should().BeEmpty();
         logger.Errors.Should().ContainSingle();
-        logger.AssertSingleErrorExists(dirWithFile); // expecting the directory name to be in the message
+        logger.Should().HaveSingleError($"""
+            Failed to create an empty directory '{dirWithFile}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
+              Detailed error message: The process cannot access the file 'file1.txt' because it is being used by another process.
+            """);
     }
 
     [DataRow(0, 1, "timeoutInMilliseconds")]

@@ -175,7 +175,7 @@ public class TargetsInstallerTests
         }
 
         exceptionThrown.Should().BeTrue();
-        runtime.Logger.AssertSingleWarningExists("This exception should be caught and suppressed by the product code");
+        runtime.Should().HaveSingleWarningLogged("This exception should be caught and suppressed by the product code");
     }
 
     [TestMethod]
