@@ -56,30 +56,6 @@ public sealed class CachedDownloaderTests : IDisposable
         fileContentStream.Dispose();
 
     [TestMethod]
-    public void IsFileCached_CacheHit_ReturnsFile()
-    {
-        var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
-        runtime.File.Exists(file).Returns(true);
-
-        var result = cachedDownloader.IsFileCached();
-
-        result.Should().Be(file);
-        runtime.File.Received(1).Exists(file);
-    }
-
-    [TestMethod]
-    public void IsFileCached_FileDoesNotExist_ReturnsNull()
-    {
-        var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
-        runtime.File.Exists(file).Returns(false);
-
-        var result = cachedDownloader.IsFileCached();
-
-        result.Should().BeNull();
-        runtime.File.Received(1).Exists(file);
-    }
-
-    [TestMethod]
     public void ValidateChecksum_ValidChecksum_ReturnsTrue()
     {
         ExecuteValidateChecksumTest(ExpectedSha, ExpectedSha, true);
@@ -145,16 +121,29 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
+    public async Task DownloadFileAsync_CacheHit_ReturnsFile()
+    {
+        var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
+        runtime.File.Exists(file).Returns(true);
+
+        var result = await cachedDownloader.DownloadFileAsync(() => Task.FromResult<Stream>(null));
+
+        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
+        runtime.File.Received(1).Exists(file);
+    }
+
+    [TestMethod]
     public async Task DownloadFileAsync_Succeeds()
     {
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(DownloadFilePath);
         AssertStreamDisposed();
         runtime.File.Received(1).Create(TempFilePath);
         runtime.File.Received(1).Move(TempFilePath, DownloadFilePath);
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
@@ -169,6 +158,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.");
@@ -187,6 +177,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertStreamDisposed();
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
             $"Deleting file '{Path.Combine(DownloadPath, TempFileName)}'.",
@@ -200,7 +191,7 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(DownloadFilePath);
         runtime.File.DidNotReceiveWithAnyArgs().Create(null);
         runtime.File.DidNotReceiveWithAnyArgs().Move(null, null);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
@@ -216,7 +207,7 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(DownloadFilePath);
         runtime.File.Received(1).Delete(DownloadFilePath);
         runtime.File.Received(1).Move(TempFilePath, DownloadFilePath);
         runtime.File.Received(1).Create(TempFilePath);
@@ -224,6 +215,7 @@ public sealed class CachedDownloaderTests : IDisposable
             $"The file was already downloaded from the server and stored at '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
             $"Deleting file '{DownloadFilePath}'.",
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
@@ -235,10 +227,11 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var result = await ExecuteDownloadFileAsync(null);
 
-        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(DownloadFilePath);
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
@@ -259,6 +252,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",

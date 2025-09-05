@@ -85,7 +85,7 @@ public class JreResolver : IResolver
             }
             else
             {
-                runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(JreResolver), "JRE");
+                runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, "JRE");
                 return await DownloadJre(jreDownloader, metadata);
             }
         }
@@ -99,7 +99,7 @@ public class JreResolver : IResolver
     private async Task<string> DownloadJre(JreDownloader jreDownloader, JreMetadata metadata)
     {
         var result = await jreDownloader.DownloadJreAsync(() => server.DownloadJreAsync(metadata));
-        if (result is DownloadSuccess success)
+        if (result is Success success)
         {
             runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
             return success.FilePath;

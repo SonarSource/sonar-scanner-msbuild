@@ -135,6 +135,7 @@ public class EngineResolverTests
     public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheHit()
     {
         runtime.File.Exists(CachedEnginePath).Returns(true);
+        checksum.ComputeHash(null).ReturnsForAnyArgs(ChecksumValue);
 
         var result = await resolver.ResolvePath(args);
 
@@ -143,6 +144,8 @@ public class EngineResolverTests
         await server.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
+            $"The file was already downloaded from the server and stored at '{CachedEnginePath}'.",
+            $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Cache hit '{CachedEnginePath}'.");
 
         runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
@@ -181,7 +184,7 @@ public class EngineResolverTests
         await server.Received(1).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
-            "EngineResolver: Cache miss. Attempting to download Scanner Engine.",
+            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
             "Starting the file download.",
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
@@ -214,7 +217,7 @@ public class EngineResolverTests
         AssertDebugMessages(
             true,
             "EngineResolver: Resolving Scanner Engine path.",
-            "EngineResolver: Cache miss. Attempting to download Scanner Engine.",
+            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
             "Starting the file download.",
             $"Deleting file '{ShaPath}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
@@ -252,6 +255,6 @@ public class EngineResolverTests
             retryMessages[0] += " Retrying...";
             expected.AddRange(retryMessages);
         }
-        runtime.Logger.DebugMessages.Should().Equal(expected);
+        runtime.Logger.DebugMessages.Should().BeEquivalentTo(expected);
     }
 }

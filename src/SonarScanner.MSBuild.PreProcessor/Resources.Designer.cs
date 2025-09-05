@@ -1110,7 +1110,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}: Cache miss. Attempting to download {1}..
+        ///   Looks up a localized string similar to Cache miss. Attempting to download {0}..
         /// </summary>
         internal static string MSG_Resolver_CacheMiss {
             get {
