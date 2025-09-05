@@ -48,23 +48,10 @@ public class JreDownloader
         extractedJavaExe = Path.Combine(jreExtractionPath, jreDescriptor.JavaPath);
     }
 
-    public virtual CacheResult IsJreCached()
-    {
-        if (cachedDownloader.EnsureCacheRoot())
-        {
-            if (runtime.Directory.Exists(jreExtractionPath))
-            {
-                return runtime.File.Exists(extractedJavaExe)
-                    ? new CacheHit(extractedJavaExe)
-                    : new CacheError(string.Format(Resources.ERR_JavaExeNotFoundAtExpectedLocation, extractedJavaExe));
-            }
-            else
-            {
-                return new CacheMiss();
-            }
-        }
-        return new CacheError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, Path.Combine(cachedDownloader.CacheRoot)));
-    }
+    public virtual CacheResult IsJreCached() =>
+        runtime.File.Exists(extractedJavaExe)
+            ? new CacheHit(extractedJavaExe)
+            : new CacheMiss();
 
     public async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)
     {

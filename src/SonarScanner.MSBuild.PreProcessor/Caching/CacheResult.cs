@@ -37,11 +37,3 @@ public sealed record CacheHit(string FilePath) : CacheResult
 /// File not found in the cache.
 /// </summary>
 public sealed record CacheMiss : CacheResult;
-
-/// <summary>
-/// The cache location is invalid, the file found in the cache is invalid.
-/// </summary>
-public sealed record CacheError(string Message) : CacheResult
-{
-    public string Message { get; } = Message;
-}

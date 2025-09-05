@@ -135,35 +135,6 @@ public class JreResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveJrePath_CacheFailure()
-    {
-        runtime.Directory.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
-
-        var res = await sut.ResolvePath(Args());
-
-        res.Should().BeNull();
-        AssertDebugMessages(
-            true,
-            "JreResolver: Resolving JRE path.",
-            $"JreResolver: Cache failure. The directory '{CacheDir}' could not be created.");
-    }
-
-    [TestMethod]
-    public async Task ResolveJrePath_ArchiveOnDiskExtractedFileNotFound_CacheFailure()
-    {
-        runtime.Directory.Exists(ExtractedPath).Returns(true);
-        runtime.File.Exists(JavaExePath).Returns(false);
-
-        var res = await sut.ResolvePath(Args());
-
-        res.Should().BeNull();
-        AssertDebugMessages(
-            true,
-            "JreResolver: Resolving JRE path.",
-            $"JreResolver: Cache failure. The java executable in the Java runtime environment cache could not be found at the expected location '{ExtractedJavaPath}'.");
-    }
-
-    [TestMethod]
     public async Task ResolveJrePath_CacheHit()
     {
         runtime.Directory.Exists(null).ReturnsForAnyArgs(true);

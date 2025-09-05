@@ -56,47 +56,6 @@ public sealed class CachedDownloaderTests : IDisposable
         fileContentStream.Dispose();
 
     [TestMethod]
-    public void EnsureCacheRoot_DirectoryDoesNotExist_CreatesDirectory()
-    {
-        runtime.Directory.Exists(SonarUserHomeCache).Returns(false);
-
-        var cacheRoot = cachedDownloader.EnsureCacheRoot();
-
-        cacheRoot.Should().BeTrue();
-        runtime.Directory.Received(1).Exists(SonarUserHomeCache);
-        runtime.Directory.Received(1).CreateDirectory(SonarUserHomeCache);
-    }
-
-    [TestMethod]
-    public void EnsureCacheRoot_DirectoryExists_DoesNotCreateDirectory()
-    {
-        runtime.Directory.Exists(SonarUserHomeCache).Returns(true);
-
-        var cacheRoot = cachedDownloader.EnsureCacheRoot();
-
-        cacheRoot.Should().BeTrue();
-        runtime.Directory.Received(1).Exists(SonarUserHomeCache);
-        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
-    }
-
-    [TestMethod]
-    public void EnsureCacheRoot_CreateDirectoryThrows_ReturnsNull()
-    {
-        runtime.Directory.Exists(SonarUserHomeCache).Returns(false);
-        runtime.Directory.When(x => x.CreateDirectory(SonarUserHomeCache)).Throw<IOException>();
-
-        var cacheRoot = cachedDownloader.EnsureCacheRoot();
-
-        cacheRoot.Should().BeFalse();
-        runtime.Directory.Received(1).Exists(SonarUserHomeCache);
-        runtime.Directory.Received(1).CreateDirectory(SonarUserHomeCache);
-    }
-
-    [TestMethod]
-    public void CacheRoot_ExpectedPath_IsReturned() =>
-        cachedDownloader.CacheRoot.Should().Be(SonarUserHomeCache);
-
-    [TestMethod]
     public void IsFileCached_CacheHit_ReturnsFile()
     {
         var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
@@ -149,6 +108,40 @@ public sealed class CachedDownloaderTests : IDisposable
         runtime.Logger.AssertDebugLogged($"""
             The calculation of the checksum of the file '{FileDescriptor.Filename}' failed with message 'Operation is not valid due to the current state of the object.'.
             """);
+    }
+
+    [TestMethod]
+    public async Task DownloadFileAsync_DirectoryDoesNotExist_CreatesDirectory()
+    {
+        runtime.Directory.Exists(DownloadPath).Returns(false);
+
+        await cachedDownloader.DownloadFileAsync(null);
+
+        runtime.Directory.Received(1).Exists(DownloadPath);
+        runtime.Directory.Received(1).CreateDirectory(DownloadPath);
+    }
+
+    [TestMethod]
+    public async Task DownloadFileAsync_DirectoryExists_DoesNotCreateDirectory()
+    {
+        runtime.Directory.Exists(DownloadPath).Returns(true);
+
+        await cachedDownloader.DownloadFileAsync(null);
+
+        runtime.Directory.Received(1).Exists(DownloadPath);
+        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public async Task DownloadFileAsync_CreateDirectoryThrows_ReturnsNull()
+    {
+        runtime.Directory.Exists(DownloadPath).Returns(false);
+        runtime.Directory.When(x => x.CreateDirectory(DownloadPath)).Throw<IOException>();
+
+        (await cachedDownloader.DownloadFileAsync(null)).Should().Be(new DownloadError($"The directory '{DownloadPath}' could not be created."));
+
+        runtime.Directory.Received(1).Exists(DownloadPath);
+        runtime.Directory.Received(1).CreateDirectory(DownloadPath);
     }
 
     [TestMethod]

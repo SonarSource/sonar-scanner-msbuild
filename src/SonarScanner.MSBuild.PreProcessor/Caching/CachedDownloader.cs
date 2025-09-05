@@ -32,7 +32,6 @@ public class CachedDownloader
     private readonly FileDescriptor fileDescriptor;
     private readonly string downloadTarget;
 
-    public string CacheRoot { get; }
     public string FileRootPath { get; }
     public string CacheLocation { get; }
 
@@ -44,8 +43,7 @@ public class CachedDownloader
         this.checksum = checksum;
         this.fileDescriptor = fileDescriptor;
 
-        CacheRoot = Path.Combine(sonarUserHome, "cache");
-        FileRootPath = Path.Combine(CacheRoot, fileDescriptor.Sha256);
+        FileRootPath = Path.Combine(sonarUserHome, "cache", fileDescriptor.Sha256);
         CacheLocation = Path.Combine(FileRootPath, fileDescriptor.Filename);
         downloadTarget = Path.Combine(FileRootPath, fileDescriptor.Filename);
     }
@@ -65,9 +63,6 @@ public class CachedDownloader
         }
         return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));
     }
-
-    public virtual bool EnsureCacheRoot() =>
-        EnsureDirectoryExists(CacheRoot);
 
     internal bool ValidateChecksum(string downloadTarget, string sha256)
     {

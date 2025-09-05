@@ -64,29 +64,6 @@ public class JreDownloaderTests
     }
 
     [TestMethod]
-    public void CacheDirectoryIsCreated()
-    {
-        runtime.Directory.Exists(SonarCache).Returns(false);
-        var sut = CreateSutWithSubstitutes();
-        var result = sut.IsJreCached();
-        result.Should().Be(new CacheMiss());
-        runtime.Directory.Received(1).CreateDirectory(SonarCache);
-    }
-
-    [TestMethod]
-    [DynamicData(nameof(DirectoryAndFileCreateAndMoveExceptions))]
-    public void CacheHomeCreationFails(Type exceptionType)
-    {
-        runtime.Directory.When(x => x.CreateDirectory(SonarCache)).Throw((Exception)Activator.CreateInstance(exceptionType));
-
-        var sut = CreateSutWithSubstitutes(new JreDescriptor("jre", "sha", "java"));
-        var result = sut.IsJreCached();
-        result.Should().Be(new CacheError($"The directory '{SonarCache}' could not be created."));
-        runtime.Directory.Received(1).Exists(SonarCache);
-        runtime.Directory.Received(1).CreateDirectory(SonarCache);
-    }
-
-    [TestMethod]
     public void ExtractedDirectoryDoesNotExists()
     {
         var expectedExtractedPath = Path.Combine(SonarCache, "sha256", "filename.tar.gz_extracted");
@@ -110,8 +87,7 @@ public class JreDownloaderTests
 
         var sut = CreateSutWithSubstitutes();
         var result = sut.IsJreCached();
-        result.Should().Be(new CacheError(
-            $"The java executable in the Java runtime environment cache could not be found at the expected location '{expectedExtractedJavaExe}'."));
+        result.Should().Be(new CacheMiss());
         runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
@@ -128,6 +104,15 @@ public class JreDownloaderTests
         var result = sut.IsJreCached();
         result.Should().Be(new CacheHit(expectedExtractedJavaExe));
         runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public async Task Download_DownloadDirectoryIsCreated()
+    {
+        runtime.Directory.Exists(SonarCache).Returns(false);
+        var sut = CreateSutWithSubstitutes();
+        await sut.DownloadJreAsync(() => Task.FromResult<Stream>(null));
+        runtime.Directory.Received(1).CreateDirectory(ShaPath);
     }
 
     [TestMethod]
