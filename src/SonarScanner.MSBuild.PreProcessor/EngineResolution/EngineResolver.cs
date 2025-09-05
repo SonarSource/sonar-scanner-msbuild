@@ -45,17 +45,17 @@ public class EngineResolver : IResolver
 
     public async Task<string> ResolvePath(ProcessedArgs args)
     {
-        runtime.Logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, string.Empty);
+        runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, string.Empty);
         if (args.EngineJarPath is { } localEngine)
         {
-            runtime.Logger.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
+            runtime.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
             runtime.Logger.AddTelemetryMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Disabled);
             runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.UserSupplied);
             return localEngine;
         }
         if (!server.SupportsJreProvisioning) // JRE and sonar engine provisioning were introduced by the same version of SQ Server
         {
-            runtime.Logger.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
+            runtime.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
             runtime.Logger.AddTelemetryMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Unsupported);
             return null;
         }
@@ -68,13 +68,13 @@ public class EngineResolver : IResolver
             }
             else
             {
-                runtime.Logger.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, " Retrying...");
+                runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, " Retrying...");
                 return await ResolveEnginePath(metadata);
             }
         }
         else
         {
-            runtime.Logger.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
+            runtime.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
             return null;
         }
     }
@@ -85,11 +85,11 @@ public class EngineResolver : IResolver
         switch (cachedDownloader.IsFileCached())
         {
             case CacheHit hit:
-                runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), hit.FilePath);
+                runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), hit.FilePath);
                 runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
                 return hit.FilePath;
             case CacheMiss:
-                runtime.Logger.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
+                runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
                 return await DownloadEngine(cachedDownloader, metadata);
             default:
                 throw new NotSupportedException("File Resolution is expected to be CacheHit or CacheMiss.");
@@ -101,13 +101,13 @@ public class EngineResolver : IResolver
         var result = await cachedDownloader.DownloadFileAsync(() => server.DownloadEngineAsync(metadata));
         if (result is DownloadSuccess success)
         {
-            runtime.Logger.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);
+            runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);
             runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);
             return success.FilePath;
         }
         else if (result is DownloadError error)
         {
-            runtime.Logger.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(EngineResolver), error.Message);
+            runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(EngineResolver), error.Message);
             runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
             return null;
         }

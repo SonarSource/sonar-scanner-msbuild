@@ -38,16 +38,16 @@ public static class Program
     {
         Utilities.LogAssemblyVersion(runtime.Logger, Resources.AssemblyDescription);
 #if NETFRAMEWORK
-        runtime.Logger.LogInfo("Using the .NET Framework version of the Scanner for .NET");
+        runtime.LogInfo("Using the .NET Framework version of the Scanner for .NET");
 #else
-        runtime.Logger.LogInfo("Using the .NET Core version of the Scanner for .NET");
+        runtime.LogInfo("Using the .NET Core version of the Scanner for .NET");
 #endif
 
         runtime.Logger.SuspendOutput();
 
         if (ArgumentProcessor.IsHelp(args))
         {
-            runtime.Logger.LogInfo("""
+            runtime.LogInfo("""
                 Usage on SonarQube:
 
                   {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.token=token] [/d:sonar.{{property_name}}=value]

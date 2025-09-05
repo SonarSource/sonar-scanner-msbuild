@@ -143,15 +143,15 @@ public class AdditionalFilesService
     {
         try
         {
-            runtime.Logger.LogDebug("Reading {0} from: '{1}'.", entryType, path.FullName);
+            runtime.LogDebug("Reading {0} from: '{1}'.", entryType, path.FullName);
             var result = query().ToArray();
-            runtime.Logger.LogDebug("Found {0} {1} in: '{2}'.", result.Length, entryType, path.FullName);
+            runtime.LogDebug("Found {0} {1} in: '{2}'.", result.Length, entryType, path.FullName);
             return result;
         }
         catch (Exception exception)
         {
-            runtime.Logger.LogWarning(Resources.WARN_DirectoryGetContentFailure, entryType, path.FullName);
-            runtime.Logger.LogDebug("HResult: {0}, Exception: {1}", exception.HResult, exception);
+            runtime.LogWarning(Resources.WARN_DirectoryGetContentFailure, entryType, path.FullName);
+            runtime.LogDebug("HResult: {0}, Exception: {1}", exception.HResult, exception);
             return [];
         }
     }

@@ -50,11 +50,11 @@ public class SonarEngineWrapper
         var result = processRunner.Execute(args);
         if (result.Succeeded)
         {
-            runtime.Logger.LogInfo(Resources.MSG_ScannerEngineCompleted);
+            runtime.LogInfo(Resources.MSG_ScannerEngineCompleted);
         }
         else
         {
-            runtime.Logger.LogError(Resources.ERR_ScannerEngineExecutionFailed);
+            runtime.LogError(Resources.ERR_ScannerEngineExecutionFailed);
         }
         return result.Succeeded;
     }
@@ -88,12 +88,12 @@ public class SonarEngineWrapper
     {
         if (runtime.File.Exists(configJavaExe))
         {
-            runtime.Logger.LogInfo(Resources.MSG_JavaExe_Found, "Analysis Config", configJavaExe);
+            runtime.LogInfo(Resources.MSG_JavaExe_Found, "Analysis Config", configJavaExe);
             return configJavaExe;
         }
         else
         {
-            runtime.Logger.LogInfo(Resources.MSG_JavaExe_NotFound, "Analysis Config", configJavaExe);
+            runtime.LogInfo(Resources.MSG_JavaExe_NotFound, "Analysis Config", configJavaExe);
             return null;
         }
     }
@@ -102,29 +102,29 @@ public class SonarEngineWrapper
     {
         if (Environment.GetEnvironmentVariable(EnvironmentVariables.JavaHomeVariableName) is { Length: > 0 } javaHome)
         {
-            runtime.Logger.LogInfo(Resources.MSG_JavaHomeSet, javaHome);
+            runtime.LogInfo(Resources.MSG_JavaHomeSet, javaHome);
             var javaHomeExe = Path.Combine(javaHome, "bin", javaFileName);
             if (runtime.File.Exists(javaHomeExe))
             {
-                runtime.Logger.LogInfo(Resources.MSG_JavaExe_Found, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
+                runtime.LogInfo(Resources.MSG_JavaExe_Found, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
                 return javaHomeExe;
             }
             else
             {
-                runtime.Logger.LogInfo(Resources.MSG_JavaExe_NotFound, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
+                runtime.LogInfo(Resources.MSG_JavaExe_NotFound, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
                 return null;
             }
         }
         else
         {
-            runtime.Logger.LogInfo(Resources.MSG_JavaHomeNotSet);
+            runtime.LogInfo(Resources.MSG_JavaHomeNotSet);
             return null;
         }
     }
 
     private string JavaFromPath()
     {
-        runtime.Logger.LogInfo(Resources.MSG_JavaExe_UsePath, javaFileName);
+        runtime.LogInfo(Resources.MSG_JavaExe_UsePath, javaFileName);
         return javaFileName; // Rely on Proccess inbuilt PATH support
     }
 }

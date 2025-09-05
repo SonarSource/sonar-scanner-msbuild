@@ -68,7 +68,7 @@ public class ProjectData
         {
             foreach (var projectPath in projectPathsInGroup)
             {
-                runtime.Logger.LogWarning(Resources.WARN_DuplicateProjectGuid, projectsGroupedByGuid.Key, projectPath);
+                runtime.LogWarning(Resources.WARN_DuplicateProjectGuid, projectsGroupedByGuid.Key, projectPath);
             }
             Status = ProjectInfoValidity.DuplicateGuid;
         }
