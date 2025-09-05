@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Security.Cryptography;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Caching;
@@ -111,25 +110,29 @@ public class CachedDownloader
 
     private async Task<DownloadError> EnsureFileIsDownloaded(Func<Task<Stream>> download)
     {
-        if (fileWrapper.Exists(downloadTarget) && ValidateFile() is null)
+        if (fileWrapper.Exists(downloadTarget))
         {
-            return null;
+            logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
+            if (ValidateFile(downloadTarget) is null)
+            {
+                return null;
+            }
         }
         logger.LogDebug(Resources.MSG_StartingFileDownload);
-        if (await DownloadAndValidateFile(download) is { } exception)
+        if (await DownloadAndValidateFile(download) is { } error)
         {
-            logger.LogDebug(Resources.ERR_DownloadFailed, exception.Message);
+            logger.LogDebug(error.Message);
             if (fileWrapper.Exists(downloadTarget)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
                 logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, downloadTarget);
-                return ValidateFile();
+                return ValidateFile(downloadTarget);
             }
-            return new(string.Format(Resources.ERR_DownloadFailed, exception.Message));
+            return error;
         }
         return null;
     }
 
-    private async Task<Exception> DownloadAndValidateFile(Func<Task<Stream>> download)
+    private async Task<DownloadError> DownloadAndValidateFile(Func<Task<Stream>> download)
     {
         // We download to a temporary file in the correct folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
@@ -138,63 +141,36 @@ public class CachedDownloader
         try
         {
             using var fileStream = fileWrapper.Create(tempFile);
-            try
+            using var downloadStream = await download() ?? throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
+            await downloadStream.CopyToAsync(fileStream);
+            fileStream.Close();
+            if (ValidateFile(tempFile) is { } error)
             {
-                using var downloadStream = await download();
-                if (downloadStream is null)
-                {
-                    throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
-                }
-                await downloadStream.CopyToAsync(fileStream);
-                fileStream.Close();
-                if (ValidateChecksum(tempFile, fileDescriptor.Sha256))
-                {
-                    fileWrapper.Move(tempFile, downloadTarget);
-                    return null;
-                }
-                else
-                {
-                    throw new CryptographicException(Resources.ERR_ChecksumMismatch);
-                }
+                return new(string.Format(Resources.ERR_DownloadFailed, error.Message));
             }
-            catch
+            else
             {
-                // Cleanup the temp file
-                EnsureClosed(fileStream); // If we do not close  the stream, deleting the file fails with:
-                                          // The process cannot access the file '<<path-to-file>>' because it is being used by another process.
-                TryDeleteFile(tempFile);
-                throw;
+                fileWrapper.Move(tempFile, downloadTarget);
+                return null;
             }
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            return ex;
+            TryDeleteFile(tempFile);
+            return new(string.Format(Resources.ERR_DownloadFailed, e.Message));
         }
     }
 
-    private DownloadError ValidateFile()
+    private DownloadError ValidateFile(string file)
     {
-        logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, downloadTarget);
-        if (ValidateChecksum(downloadTarget, fileDescriptor.Sha256))
+        if (ValidateChecksum(file, fileDescriptor.Sha256))
         {
             return null;
         }
         else
         {
-            TryDeleteFile(downloadTarget);
+            TryDeleteFile(file);
             return new(Resources.ERR_ChecksumMismatch);
-        }
-    }
-
-    private static void EnsureClosed(Stream fileStream)
-    {
-        try
-        {
-            fileStream.Close();
-        }
-        catch
-        {
-            // If closing the file fails, just move on.
         }
     }
 }

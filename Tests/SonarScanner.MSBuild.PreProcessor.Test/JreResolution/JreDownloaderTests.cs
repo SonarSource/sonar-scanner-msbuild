@@ -173,7 +173,7 @@ public class JreDownloaderTests
     }
 
     [TestMethod]
-    public async Task Download_DownloadFileNew_Success()
+    public async Task Download_DownloadFileNew_ChecksumInvalid()
     {
         runtime.Directory.Exists(SonarCache).Returns(true);
         runtime.Directory.Exists(ShaPath).Returns(true);
@@ -295,8 +295,8 @@ public class JreDownloaderTests
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be(
             $"The download of the file from the server failed with the exception '{exception.Message}'.");
         runtime.File.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
+        runtime.File.Received(1).Delete(Path.Combine(ShaPath, "xFirst.rnd"));
         runtime.File.DidNotReceive().Move(Path.Combine(ShaPath, "xFirst.rnd"), Path.Combine(ShaPath, "filename.tar.gz"));
-        runtime.File.DidNotReceive().Delete(Path.Combine(ShaPath, "xFirst.rnd"));
     }
 
     [TestMethod]
