@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.serverSupportsProvisioning;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -118,13 +119,19 @@ class SslTest {
       var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET_FRAMEWORK);
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true");  // TODO: remove this in SCAN4NET-859
+        .setDebugLogs();
 
       var logs = context.runAnalysis().end().getLogs();
 
-      assertThat(logs)
-        .contains("SONAR_SCANNER_OPTS")
-        .contains("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
+      if (serverSupportsProvisioning()) {
+        assertThat(logs)
+          .contains("Args: -Djavax.net.ssl.trustStoreType=Windows-ROOT");
+      }
+      else {
+        assertThat(logs)
+          .contains("SONAR_SCANNER_OPTS")
+          .contains("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
+      }
     }
   }
 
@@ -134,10 +141,14 @@ class SslTest {
       var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
-
-      assertThat(logs).contains("SONAR_SCANNER_OPTS=-Xmx2048m");
+      if (serverSupportsProvisioning()) {
+        assertThat(logs).contains("Args: -Xmx2048m");
+      }
+      else {
+        assertThat(logs).contains("SONAR_SCANNER_OPTS=-Xmx2048m");
+      }
     }
   }
 
@@ -166,7 +177,7 @@ class SslTest {
         .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server);
+      validateAnalysis(context, server, false);
     }
   }
 
@@ -221,7 +232,7 @@ class SslTest {
         .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server);
+      validateAnalysis(context, server, false);
     }
   }
 
@@ -278,13 +289,18 @@ class SslTest {
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
         .setDebugLogs()
-        .setProperty("sonar.userHome", sonarHome)
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setProperty("sonar.userHome", sonarHome);
 
-      var result = validateAnalysis(context, server);
+      var result = validateAnalysis(context, server, true);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
-        assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
+        if (serverSupportsProvisioning()){
+            assertThat(result.end().getLogs()).containsPattern("WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'");
+        }
+        else {
+          assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
+
+        }
       }
 
     }
@@ -318,7 +334,7 @@ class SslTest {
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server);
+      validateAnalysis(context, server, false);
     }
   }
 
@@ -331,11 +347,10 @@ class SslTest {
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
         .setProperty("sonar.userHome", sonarHome)
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true") // TODO: remove this in SCAN4NET-859
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server);
+      validateAnalysis(context, server, true);
     }
   }
 
@@ -350,7 +365,7 @@ class SslTest {
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
 
-      var result = validateAnalysis(context, server);
+      var result = validateAnalysis(context, server, false);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*keystore.p12' with the default password at index 0. Reason: .*");
         assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*keystore.p12\"?' with the default password at index 0. Reason: .*");
@@ -401,7 +416,7 @@ class SslTest {
     return server;
   }
 
-  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server) {
+  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server, Boolean scannerEngine) {
     var result = context.runAnalysis();
     var logs = result.end().getLogs();
 
@@ -412,11 +427,19 @@ class SslTest {
       trustStorePassword = "\"" + trustStorePassword + "\"";
     }
 
-    assertThat(logs)
-      .contains("SONAR_SCANNER_OPTS")
-      .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
-      .contains("-D<sensitive data removed>")
-      .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
+    if (scannerEngine && serverSupportsProvisioning()) {
+      assertThat(logs)
+        .contains("Args: ")
+        .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
+        .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
+    }
+    else {
+      assertThat(logs)
+        .contains("SONAR_SCANNER_OPTS")
+        .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
+        .contains("-D<sensitive data removed>")
+        .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
+    }
 
     // When using the 'sonar' default password, check if it is not logged will always fail
     // because we have a lot of 'sonar' occurrences in the logs (e.g.: .sonarqube)
