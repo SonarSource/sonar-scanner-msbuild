@@ -343,7 +343,7 @@ public class ProcessRunnerTests
         // Check the runner reported it was overwriting existing variables
         // Note: the existing non-process values won't be visible to the child process
         // unless they were set *before* the test host launched, which won't be the case.
-        context.Logger.AssertSingleDebugExists("proc_runner_test_process", "existing process value", "process override");
+        context.Logger.AssertSingleDebugExists("Overwriting the value of environment variable 'proc_runner_test_process'. Old value: existing process value, new value: process override");
     }
 
     [TestMethod]
