@@ -82,17 +82,16 @@ public class EngineResolver : IResolver
     private async Task<string> ResolveEnginePath(EngineMetadata metadata)
     {
         var cachedDownloader = new CachedDownloader(runtime, checksum, metadata.ToDescriptor(), sonarUserHome);
-        switch (cachedDownloader.IsFileCached())
+        if (cachedDownloader.IsFileCached() is { } filePath)
         {
-            case CacheHit hit:
-                runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), hit.FilePath);
-                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
-                return hit.FilePath;
-            case CacheMiss:
-                runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
-                return await DownloadEngine(cachedDownloader, metadata);
-            default:
-                throw new NotSupportedException("File Resolution is expected to be CacheHit or CacheMiss.");
+            runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), filePath);
+            runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
+            return filePath;
+        }
+        else
+        {
+            runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, nameof(EngineResolver), ScannerEngine);
+            return await DownloadEngine(cachedDownloader, metadata);
         }
     }
 

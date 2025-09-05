@@ -72,7 +72,7 @@ public class JreDownloaderTests
 
         var sut = CreateSutWithSubstitutes(new JreDescriptor("filename.tar.gz", "sha", "jdk/bin/java"));
         var result = sut.IsJreCached();
-        result.Should().Be(new CacheMiss());
+        result.Should().BeNull();
         runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
@@ -87,7 +87,7 @@ public class JreDownloaderTests
 
         var sut = CreateSutWithSubstitutes();
         var result = sut.IsJreCached();
-        result.Should().Be(new CacheMiss());
+        result.Should().BeNull();
         runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
@@ -102,7 +102,7 @@ public class JreDownloaderTests
 
         var sut = CreateSutWithSubstitutes();
         var result = sut.IsJreCached();
-        result.Should().Be(new CacheHit(expectedExtractedJavaExe));
+        result.Should().Be(expectedExtractedJavaExe);
         runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
     }
 
