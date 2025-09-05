@@ -41,7 +41,7 @@ public class TargetsUninstallerTests
         var context = new UninstallContext(TestContext, true);
         context.UninstallTargets();
         File.Exists(context.TargetsFilePath).Should().BeFalse();
-        context.Logger.AssertDebugLogged("Uninstalling target: " + context.TargetsFilePath);
+        context.Logger.Should().HaveDebugs("Uninstalling target: " + context.TargetsFilePath);
     }
 
     [TestMethod]
@@ -49,7 +49,7 @@ public class TargetsUninstallerTests
     {
         var context = new UninstallContext(TestContext, false);
         context.UninstallTargets();
-        context.Logger.AssertDebugLogged(context.BinDir + $"{Path.DirectorySeparatorChar}targets{Path.DirectorySeparatorChar}SonarQube.Integration.targets does not exist");
+        context.Logger.Should().HaveDebugs(context.BinDir + $"{Path.DirectorySeparatorChar}targets{Path.DirectorySeparatorChar}SonarQube.Integration.targets does not exist");
     }
 
     // Windows enforces file locks at the OS level resulting in IOException.
@@ -65,7 +65,7 @@ public class TargetsUninstallerTests
             context.UninstallTargets();
         }
         File.Exists(context.TargetsFilePath).Should().BeTrue(); // Failed to delete
-        context.Logger.AssertDebugLogged("Could not delete " + context.TargetsFilePath);
+        context.Logger.Should().HaveDebugs("Could not delete " + context.TargetsFilePath);
     }
 
     [TestMethod]
@@ -84,7 +84,7 @@ public class TargetsUninstallerTests
             File.SetAttributes(context.TargetsFilePath, FileAttributes.Normal);
         }
         File.Exists(context.TargetsFilePath).Should().BeTrue(); // Failed to delete
-        context.Logger.AssertDebugLogged("Could not delete " + context.TargetsFilePath);
+        context.Logger.Should().HaveDebugs("Could not delete " + context.TargetsFilePath);
     }
 
     private class UninstallContext
