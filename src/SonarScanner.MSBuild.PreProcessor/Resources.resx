@@ -418,7 +418,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>{0}: Cache hit '{1}'.</value>
   </data>
   <data name="MSG_Resolver_CacheMiss" xml:space="preserve">
-    <value>{0}: Cache miss. Attempting to download {1}.</value>
+    <value>Cache miss. Attempting to download {0}.</value>
   </data>
   <data name="MSG_JreResolver_JavaExePathSet" xml:space="preserve">
     <value>JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning.</value>
@@ -477,8 +477,8 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_JreExtractionCleanupFailed" xml:space="preserve">
     <value>The cleanup of the temporary folder for the Java runtime environment extraction at '{0}' failed with message '{1}'.</value>
   </data>
-  <data name="ERR_CacheDirectoryCouldNotBeCreated" xml:space="preserve">
-    <value>The file cache directory in '{0}' could not be created.</value>
+  <data name="MSG_DirectoryCouldNotBeCreated" xml:space="preserve">
+    <value>The directory '{0}' could not be created.</value>
   </data>
   <data name="ERR_JavaExeNotFoundAtExpectedLocation" xml:space="preserve">
     <value>The java executable in the Java runtime environment cache could not be found at the expected location '{0}'.</value>

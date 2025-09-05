@@ -62,8 +62,8 @@ public static class ProjectInfoExtensions
         }
     }
 
-    public static ProjectData[] ToProjectData(this IEnumerable<ProjectInfo> projects, bool isWindows, ILogger logger) =>
-        projects.GroupBy(x => x.ProjectGuid).Select(x => new ProjectData(x, isWindows, logger)).ToArray();
+    public static ProjectData[] ToProjectData(this IEnumerable<ProjectInfo> projects, IRuntime runtime) =>
+        projects.GroupBy(x => x.ProjectGuid).Select(x => new ProjectData(x, runtime)).ToArray();
 
     private static bool HasInvalidGuid(ProjectInfo project)
     {

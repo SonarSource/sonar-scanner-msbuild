@@ -46,7 +46,7 @@ public class SonarEngineOutput
                     EngineLevel.ERROR => LogLevel.Error,
                     _ => LogLevel.Info
                 };
-                var message = engineOutput.Message;
+                var message = $"{engineOutput.Level}: {engineOutput.Message}";
                 if (!string.IsNullOrWhiteSpace(engineOutput.Stacktrace))
                 {
                     message += Environment.NewLine + engineOutput.Stacktrace;

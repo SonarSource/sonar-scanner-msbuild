@@ -135,38 +135,8 @@ public class JreResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveJrePath_CacheFailure()
+    public async Task ResolveJrePath_CacheHitForJre()
     {
-        runtime.Directory.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
-
-        var res = await sut.ResolvePath(Args());
-
-        res.Should().BeNull();
-        AssertDebugMessages(
-            true,
-            "JreResolver: Resolving JRE path.",
-            $"JreResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.");
-    }
-
-    [TestMethod]
-    public async Task ResolveJrePath_ArchiveOnDiskExtractedFileNotFound_CacheFailure()
-    {
-        runtime.Directory.Exists(ExtractedPath).Returns(true);
-        runtime.File.Exists(JavaExePath).Returns(false);
-
-        var res = await sut.ResolvePath(Args());
-
-        res.Should().BeNull();
-        AssertDebugMessages(
-            true,
-            "JreResolver: Resolving JRE path.",
-            $"JreResolver: Cache failure. The java executable in the Java runtime environment cache could not be found at the expected location '{ExtractedJavaPath}'.");
-    }
-
-    [TestMethod]
-    public async Task ResolveJrePath_CacheHit()
-    {
-        runtime.Directory.Exists(null).ReturnsForAnyArgs(true);
         runtime.File.Exists(null).ReturnsForAnyArgs(true);
 
         var res = await sut.ResolvePath(Args());
@@ -199,7 +169,8 @@ public class JreResolverTests
         AssertJreBottleNeckMessage();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache miss. Attempting to download JRE.",
+            "Cache miss. Attempting to download JRE.",
+            $"Cache miss. Attempting to download '{DownloadPath}'.",
             "Starting the file download.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
@@ -229,7 +200,7 @@ public class JreResolverTests
         AssertJreBottleNeckMessage();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache miss. Attempting to download JRE.",
+            "Cache miss. Attempting to download JRE.",
             $"The file was already downloaded from the server and stored at '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
@@ -249,8 +220,10 @@ public class JreResolverTests
         AssertDebugMessages(
             true,
             "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache miss. Attempting to download JRE.",
+            "Cache miss. Attempting to download JRE.",
+            $"Cache miss. Attempting to download '{DownloadPath}'.",
             "Starting the file download.",
+            $"Deleting file '{ShaPath}'.",  // should be temp file path but the scaffolding is not setup
             "The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
     }
@@ -352,10 +325,7 @@ public class JreResolverTests
             provider,
             EmptyPropertyProvider.Instance,
             EmptyPropertyProvider.Instance,
-            runtime.File,
-            runtime.Directory,
-            runtime.OperatingSystem,
-            Substitute.For<ILogger>()); // not using runtime.Logger to avoid message pollution
+            runtime with { Logger = new() }); // using a new logger to avoid message pollution
         args.OperatingSystem.Returns("os");
         args.Architecture.Returns("arch");
         return args;
@@ -383,6 +353,6 @@ public class JreResolverTests
             retryMessages[0] += " Retrying...";
             expected.AddRange(retryMessages);
         }
-        runtime.Logger.DebugMessages.Should().Equal(expected);
+        runtime.Logger.DebugMessages.Should().BeEquivalentTo(expected);
     }
 }

@@ -26,34 +26,35 @@ namespace SonarScanner.MSBuild.Common;
 /// <remarks>
 /// Does not cover warnings and errors.
 /// The levels are in step with the SonarQube verbosity levels (http://docs.sonarqube.org/display/SONAR/Server+Log+Management):
-/// Info, Debug (for advanced logs), Trace (for advanced logs and logs that might have a perf impact)
+/// Info, Debug (for advanced logs), Trace (for advanced logs and logs that might have a perf impact).
 /// </remarks>
 public enum LoggerVerbosity
 {
     /// <summary>
-    /// Important messages that always get logged
+    /// Important messages that always get logged.
     /// </summary>
     Info = 0,
 
     /// <summary>
-    /// Advanced information messages that help in debugging scenarios
+    /// Advanced information messages that help in debugging scenarios.
     /// </summary>
     Debug = 1
 }
 
-/// <summary>
-/// Simple logging interface
-/// </summary>
 public interface ILogger
 {
     /// <summary>
-    /// Log a message with the Debug verbosity
+    /// Gets or sets the level of detail to show in the log.
     /// </summary>
-    void LogDebug(string message, params object[] args);
+    LoggerVerbosity Verbosity { get; set; }
 
     /// <summary>
-    /// Log a message with the Info verbosity
+    /// Gets or sets whether log entries are prefixed with timestamps.
     /// </summary>
+    bool IncludeTimestamp { get; set; }
+
+    void LogDebug(string message, params object[] args);
+
     void LogInfo(string message, params object[] args);
 
     void LogWarning(string message, params object[] args);
@@ -67,7 +68,7 @@ public interface ILogger
 
     /// <summary>
     /// Creates the .json file in the specified output folder containing all warning messages.
-    /// See: https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-shared-library/src/main/java/org/sonarsource/dotnet/shared/plugins/AnalysisWarningsSensor.java#L54
+    /// See: https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-shared-library/src/main/java/org/sonarsource/dotnet/shared/plugins/AnalysisWarningsSensor.java#L54.
     /// </summary>
     void WriteUIWarnings(string outputFolder);
 
@@ -80,16 +81,6 @@ public interface ILogger
     /// Writes the collection of telemetry messages to the specified output folder.
     /// </summary>
     void WriteTelemetry(string outputFolder);
-
-    /// <summary>
-    /// Gets or sets the level of detail to show in the log
-    /// </summary>
-    LoggerVerbosity Verbosity { get; set; }
-
-    /// <summary>
-    /// Gets or sets whether log entries are prefixed with timestamps
-    /// </summary>
-    bool IncludeTimestamp { get; set; }
 
     /// <summary>
     /// Suspends writing output to the console. Any messages will be recorded but

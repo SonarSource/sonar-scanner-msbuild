@@ -47,6 +47,7 @@ class ProvisioningTest {
   void cacheMiss_DownloadsCache() {
     try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
+      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-858
       context.build.useDotNet();
       // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
       // so we can test that we updated it correctly

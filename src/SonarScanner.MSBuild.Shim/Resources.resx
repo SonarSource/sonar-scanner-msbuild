@@ -231,12 +231,6 @@ Possible causes:
     <value>The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...
 {0}</value>
   </data>
-  <data name="DEBUG_DumpSonarProjectProperties" xml:space="preserve">
-    <value>Dumping content of sonar-project.properties
-------------------------------------------------------------------------
-{0}
-------------------------------------------------------------------------</value>
-  </data>
   <data name="ERR_TFSProcessorExecutionFailed" xml:space="preserve">
     <value>The TFS Processor did not complete successfully</value>
   </data>
@@ -275,5 +269,26 @@ Possible causes:
   </data>
   <data name="ERR_ScannerEngineExecutionFailed" xml:space="preserve">
     <value>The scanner engine did not complete successfully</value>
+  </data>
+  <data name="MSG_JavaExe_Found" xml:space="preserve">
+    <value>Using Java found in {0}: {1}</value>
+  </data>
+  <data name="MSG_JavaExe_NotFound" xml:space="preserve">
+    <value>Could not find Java in {0}: {1}</value>
+  </data>
+  <data name="DEBUG_DumpSonarProjectProperties" xml:space="preserve">
+    <value>Dumping content of sonar-project.properties
+------------------------------------------------------------------------
+{0}
+------------------------------------------------------------------------</value>
+  </data>
+  <data name="MSG_JavaHomeSet" xml:space="preserve">
+    <value>Found 'JAVA_HOME': {0}</value>
+  </data>
+  <data name="MSG_JavaHomeNotSet" xml:space="preserve">
+    <value>'JAVA_HOME' environment variable not set</value>
+  </data>
+  <data name="MSG_JavaExe_UsePath" xml:space="preserve">
+    <value>Could not find Java, falling back to using PATH: {0}</value>
   </data>
 </root>

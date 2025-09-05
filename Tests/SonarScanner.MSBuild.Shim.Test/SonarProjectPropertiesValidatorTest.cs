@@ -78,7 +78,7 @@ public class SonarProjectPropertiesValidatorTest
         var projectFolder = Path.Combine(folder, projectName);
         Directory.CreateDirectory(projectFolder);
         var project = new ProjectInfo { FullPath = Path.Combine(projectFolder, projectName + ".csproj") };
-        var result = new[] { project }.ToProjectData(true, Substitute.For<ILogger>()).Single();
+        var result = new[] { project }.ToProjectData(new TestRuntime()).Single();
         result.Status = status;
         return result;
     }

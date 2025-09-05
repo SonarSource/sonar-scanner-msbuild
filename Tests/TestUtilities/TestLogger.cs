@@ -32,6 +32,8 @@ public class TestLogger : ILogger
     public List<string> UIWarnings { get; }
     public LoggerVerbosity Verbosity { get; set; }
     public bool IncludeTimestamp { get; set; }
+    public List<KeyValuePair<string, object>> TelemetryMessages { get; } = [];
+    public string TelemetryOutputPath { get; private set; }
 
     public TestLogger()
     {
@@ -199,6 +201,14 @@ public class TestLogger : ILogger
         matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
     }
 
+    public void AssertInfoLogs(params string[] messages)
+    {
+        foreach (var message in messages)
+        {
+            AssertInfoLogged(message);
+        }
+    }
+
     public void AssertVerbosity(LoggerVerbosity expected) =>
         Verbosity.Should().Be(expected, "Logger verbosity mismatch");
 
@@ -247,15 +257,11 @@ public class TestLogger : ILogger
         // no-op
     }
 
-    public void AddTelemetryMessage(string key, object value)
-    {
-        // no-op
-    }
+    public void AddTelemetryMessage(string key, object value) =>
+        TelemetryMessages.Add(new(key, value));
 
-    public void WriteTelemetry(string outputFolder)
-    {
-        // no-op
-    }
+    public void WriteTelemetry(string outputFolder) =>
+        TelemetryOutputPath = outputFolder;
 
     private static void WriteLine(string message, params object[] args) =>
         Console.WriteLine(FormatMessage(message, args));

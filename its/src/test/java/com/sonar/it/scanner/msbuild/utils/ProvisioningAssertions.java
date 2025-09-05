@@ -49,16 +49,16 @@ public final class ProvisioningAssertions {
       jreUrlPattern = "analysis/jres/[^\s]+";
       engineUrlPattern = "analysis/engine";
     }
-
     assertThat(beginLogs).contains(
       "JreResolver: Resolving JRE path.",
       "Downloading from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
       "Response received from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
-      "JreResolver: Cache miss. Attempting to download JRE.",
+      "Cache miss. Attempting to download JRE.",
       "EngineResolver: Resolving Scanner Engine path.",
       "Downloading from " + sqApiUrl + "/analysis/engine...",
       "Response received from " + sqApiUrl + "/analysis/engine...",
-      "EngineResolver: Cache miss. Attempting to download Scanner Engine.");
+      "Cache miss. Attempting to download '");  // + file path to scanner engine
+
     TestUtils.matchesSingleLine(beginLogs, "Downloading Java JRE from " + jreUrlPattern);
     TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
     TestUtils.matchesSingleLine(beginLogs, "The checksum of the downloaded file is '.+' and the expected checksum is '.+'");

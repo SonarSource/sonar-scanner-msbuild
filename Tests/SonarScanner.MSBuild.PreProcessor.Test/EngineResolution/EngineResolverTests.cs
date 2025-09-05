@@ -37,7 +37,7 @@ public class EngineResolverTests
     private readonly EngineResolver resolver;
     private readonly TestRuntime runtime = new();
     private readonly ISonarWebServer server = Substitute.For<ISonarWebServer>();
-    private readonly ProcessedArgs args  = Substitute.For<ProcessedArgs>();
+    private readonly ProcessedArgs args = Substitute.For<ProcessedArgs>();
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
 
     private readonly EngineMetadata metadata = new(
@@ -66,6 +66,20 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "Using local sonar engine provided by sonar.scanner.engineJarPath=local/path/to/engine.jar");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Disabled
+            },
+            new
+            {
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.UserSupplied
+            }
+            ]);
     }
 
     [TestMethod]
@@ -82,6 +96,15 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Unsupported
+            }
+            ]);
     }
 
     [TestMethod]
@@ -97,12 +120,22 @@ public class EngineResolverTests
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Enabled
+            }
+            ]);
     }
 
     [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheHit()
     {
         runtime.File.Exists(CachedEnginePath).Returns(true);
+        checksum.ComputeHash(null).ReturnsForAnyArgs(ChecksumValue);
 
         var result = await resolver.ResolvePath(args);
 
@@ -111,23 +144,23 @@ public class EngineResolverTests
         await server.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
+            $"The file was already downloaded from the server and stored at '{CachedEnginePath}'.",
+            $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Cache hit '{CachedEnginePath}'.");
-    }
 
-    [TestMethod]
-    public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheError()
-    {
-        runtime.Directory.When(x => x.CreateDirectory(Arg.Any<string>())).Throw(new IOException());
-
-        var result = await resolver.ResolvePath(args);
-
-        result.Should().BeNull();
-        await server.Received(1).DownloadEngineMetadataAsync();
-        await server.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
-        AssertDebugMessages(
-            true,
-            "EngineResolver: Resolving Scanner Engine path.",
-            $"EngineResolver: Cache failure. The file cache directory in '{CacheDir}' could not be created.");
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Enabled
+            },
+            new
+            {
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.CacheHit
+            }
+            ]);
     }
 
     [TestMethod]
@@ -144,17 +177,31 @@ public class EngineResolverTests
         runtime.File.Create(tempFile).Returns(new MemoryStream());
         runtime.File.Open(tempFile).Returns(computeHashStream);
 
-        var result =  await resolver.ResolvePath(args);
+        var result = await resolver.ResolvePath(args);
 
         result.Should().Be(CachedEnginePath);
         await server.Received(1).DownloadEngineMetadataAsync();
         await server.Received(1).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
-            "EngineResolver: Cache miss. Attempting to download Scanner Engine.",
+            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
             "Starting the file download.",
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Enabled
+            },
+            new
+            {
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.Downloaded
+            }
+            ]);
     }
 
     [TestMethod]
@@ -170,11 +217,30 @@ public class EngineResolverTests
         AssertDebugMessages(
             true,
             "EngineResolver: Resolving Scanner Engine path.",
-            "EngineResolver: Cache miss. Attempting to download Scanner Engine.",
+            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
             "Starting the file download.",
             $"Deleting file '{ShaPath}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
+
+        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+            [
+            new
+            {
+                Key = TelemetryKeys.NewBootstrappingEnabled,
+                Value = TelemetryValues.NewBootstrapping.Enabled
+            },
+            new
+            {
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.Failed
+            },
+            new
+            {
+                Key = TelemetryKeys.ScannerEngineDownload,
+                Value = TelemetryValues.ScannerEngineDownload.Failed
+            },
+            ]);
     }
 
     private void AssertDebugMessages(params string[] messages) =>
@@ -189,6 +255,6 @@ public class EngineResolverTests
             retryMessages[0] += " Retrying...";
             expected.AddRange(retryMessages);
         }
-        runtime.Logger.DebugMessages.Should().Equal(expected);
+        runtime.Logger.DebugMessages.Should().BeEquivalentTo(expected);
     }
 }

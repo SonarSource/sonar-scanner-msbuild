@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Shim.Interfaces;
 using EncodingProvider = SonarScanner.MSBuild.Common.EncodingProvider;
 
 namespace SonarScanner.MSBuild.Shim;
@@ -39,30 +38,29 @@ public class ScannerEngineInputGenerator
     private const string ProjectPropertiesFileName = "sonar-project.properties";
 
     private readonly AnalysisConfig analysisConfig;
-    private readonly ILogger logger;
-    private readonly IRoslynV1SarifFixer fixer;
-    private readonly RuntimeInformationWrapper runtimeInformation;
-    private readonly IAdditionalFilesService additionalFilesService;
+    private readonly IRuntime runtime;
+    private readonly RoslynV1SarifFixer fixer;
+    private readonly AdditionalFilesService additionalFilesService;
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
+    private readonly IAnalysisPropertyProvider cmdLineArgs;
 
-    public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, ILogger logger)
-        : this(analysisConfig, logger, new RoslynV1SarifFixer(logger), new RuntimeInformationWrapper(), new AdditionalFilesService(DirectoryWrapper.Instance, logger))
-    {
-    }
+    public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IAnalysisPropertyProvider cmdLineArgs, IRuntime runtime)
+        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), cmdLineArgs, new AdditionalFilesService(runtime))
+    { }
 
     internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
-                                         ILogger logger,
-                                         IRoslynV1SarifFixer fixer,
-                                         RuntimeInformationWrapper runtimeInformation,
-                                         IAdditionalFilesService additionalFilesService)
+                                         IRuntime runtime,
+                                         RoslynV1SarifFixer fixer,
+                                         IAnalysisPropertyProvider cmdLineArgs,
+                                         AdditionalFilesService additionalFilesService)
     {
         this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
-        this.runtimeInformation = runtimeInformation ?? throw new ArgumentNullException(nameof(runtimeInformation));
+        this.cmdLineArgs = cmdLineArgs ?? throw new ArgumentNullException(nameof(cmdLineArgs));
         this.additionalFilesService = additionalFilesService ?? throw new ArgumentNullException(nameof(additionalFilesService));
-        if (runtimeInformation.IsWindows)
+        if (runtime.OperatingSystem.IsWindows())
         {
             pathComparer = StringComparer.OrdinalIgnoreCase;
             pathComparison = StringComparison.OrdinalIgnoreCase;
@@ -93,27 +91,27 @@ public class ScannerEngineInputGenerator
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var legacyWriter = new PropertiesWriter(analysisConfig);
         var engineInput = new ScannerEngineInput(analysisConfig);
-        logger.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
+        runtime.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
         var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray();
         if (projects.Length == 0)
         {
-            logger.LogError(Resources.ERR_NoProjectInfoFilesFound);
-            logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+            runtime.LogError(Resources.ERR_NoProjectInfoFilesFound);
+            runtime.LogInfo(Resources.MSG_PropertiesGenerationFailed);
             return new([]);
         }
-        var analysisProperties = analysisConfig.ToAnalysisProperties(logger);
+        var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
         FixSarifAndEncoding(projects, analysisProperties);
-        var allProjects = projects.ToProjectData(runtimeInformation.IsWindows, logger);
+        var allProjects = projects.ToProjectData(runtime);
         if (GenerateProperties(analysisProperties, allProjects, legacyWriter, engineInput))
         {
             var contents = legacyWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
-            logger.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
+            runtime.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
             return new(allProjects, engineInput, projectPropertiesPath);
         }
         else
         {
-            logger.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+            runtime.LogInfo(Resources.MSG_PropertiesGenerationFailed);
             return new(allProjects);
         }
     }
@@ -123,7 +121,7 @@ public class ScannerEngineInputGenerator
         var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
         {
-            logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
+            runtime.LogError(Resources.ERR_NoValidProjectInfoFiles);
             return false;
         }
 
@@ -131,12 +129,12 @@ public class ScannerEngineInputGenerator
         var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
         if (projectBaseDir is null)
         {
-            logger.LogError(Resources.ERR_ProjectBaseDirCannotBeAutomaticallyDetected);
+            runtime.LogError(Resources.ERR_ProjectBaseDirCannotBeAutomaticallyDetected);
             return false;
         }
         if (!projectBaseDir.Exists)
         {
-            logger.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
+            runtime.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
             return false;
         }
 
@@ -147,7 +145,7 @@ public class ScannerEngineInputGenerator
             && analysisFiles.Tests.Count == 0
             && validProjects.All(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
         {
-            logger.LogError(Resources.ERR_NoValidProjectInfoFiles);
+            runtime.LogError(Resources.ERR_NoValidProjectInfoFiles);
             return false;
         }
 
@@ -174,7 +172,9 @@ public class ScannerEngineInputGenerator
             AddProperty(engineInput, project, TelemetryPathsKeyCS, TelemetryPathsKeyVB, project.TelemetryPaths);
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
-        engineInput.AddGlobalSettings(analysisProperties);
+
+        var sensitiveArgsFromSettingsFile = analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
+        engineInput.AddUserSettings(new AggregatePropertiesProvider(cmdLineArgs, new ListPropertiesProvider(sensitiveArgsFromSettingsFile), new ListPropertiesProvider(analysisProperties)));
         return true;
     }
 
@@ -188,30 +188,30 @@ public class ScannerEngineInputGenerator
     /// </summary>
     internal DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths)
     {
-        var projectBaseDir = analysisConfig.GetSettingOrDefault(SonarProperties.ProjectBaseDir, includeServerSettings: true, defaultValue: null, logger);
+        var projectBaseDir = analysisConfig.GetSettingOrDefault(SonarProperties.ProjectBaseDir, includeServerSettings: true, defaultValue: null, runtime.Logger);
         if (!string.IsNullOrWhiteSpace(projectBaseDir))
         {
             var baseDirectory = new DirectoryInfo(projectBaseDir);
-            logger.LogDebug(Resources.MSG_UsingUserSuppliedProjectBaseDir, baseDirectory.FullName);
+            runtime.LogDebug(Resources.MSG_UsingUserSuppliedProjectBaseDir, baseDirectory.FullName);
             return baseDirectory;
         }
         else if (!string.IsNullOrWhiteSpace(analysisConfig.SourcesDirectory))
         {
             var baseDirectory = new DirectoryInfo(analysisConfig.SourcesDirectory);
-            logger.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, baseDirectory.FullName);
+            runtime.LogDebug(Resources.MSG_UsingAzDoSourceDirectoryAsProjectBaseDir, baseDirectory.FullName);
             return baseDirectory;
         }
-        logger.LogInfo(Resources.MSG_ProjectBaseDirChange);
+        runtime.LogInfo(Resources.MSG_ProjectBaseDirChange);
         if (analysisConfig.SonarScannerWorkingDirectory is { } workingDirectoryPath
             && new DirectoryInfo(workingDirectoryPath) is { } workingDirectory
             && projectPaths.All(x => x.FullName.StartsWith(workingDirectory.FullName, pathComparison)))
         {
-            logger.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
+            runtime.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
             return workingDirectory;
         }
         else if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
         {
-            logger.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
+            runtime.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
             if (IsFileSystemRoot(commonPrefix))
             {
                 // During build, depending on user configuration and dependencies, temporary projects can be created at locations that are not
@@ -225,7 +225,7 @@ public class ScannerEngineInputGenerator
             {
                 foreach (var projectOutsideCommonPrefix in projectPaths.Where(x => !x.FullName.StartsWith(commonPrefix.FullName, pathComparison)))
                 {
-                    logger.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
+                    runtime.LogWarning(Resources.WARN_DirectoryIsOutsideBaseDir, projectOutsideCommonPrefix.FullName, commonPrefix.FullName);
                 }
                 return commonPrefix;
             }
@@ -290,16 +290,16 @@ public class ScannerEngineInputGenerator
             var file = group.Key;
             if (!file.Exists)
             {
-                logger.LogWarning(Resources.WARN_FileDoesNotExist, file);
-                logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
+                runtime.LogWarning(Resources.WARN_FileDoesNotExist, file);
+                runtime.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
             }
             else if (!PathHelper.IsInDirectory(file, baseDirectory)) // File is outside of the SonarQube root module
             {
                 if (!file.FullName.Contains(Path.Combine(".nuget", "packages")))
                 {
-                    logger.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file, baseDirectory.FullName);
+                    runtime.LogWarning(Resources.WARN_FileIsOutsideProjectDirectory, file, baseDirectory.FullName);
                 }
-                logger.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
+                runtime.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
             }
             else if (group.Value.Length >= 1)
             {
@@ -345,7 +345,7 @@ public class ScannerEngineInputGenerator
     private void FixSarifAndEncoding(IList<ProjectInfo> projects, AnalysisProperties analysisProperties)
     {
         var globalSourceEncoding = GetSourceEncoding(analysisProperties);
-        Action logIfGlobalEncodingIsIgnored = () => logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
+        Action logIfGlobalEncodingIsIgnored = () => runtime.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
         foreach (var project in projects)
         {
             TryFixSarifReport(project);

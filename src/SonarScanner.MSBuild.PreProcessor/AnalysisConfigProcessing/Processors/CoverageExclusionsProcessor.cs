@@ -43,7 +43,7 @@ public class CoverageExclusionsProcessor(ProcessedArgs localSettings, IDictionar
 
     private void Update(AnalysisConfig config, string coveragePaths)
     {
-        var localExclusions = LocalSettings.GetSetting(SonarExclusions, string.Empty);
+        var localExclusions = LocalSettings.SettingOrDefault(SonarExclusions, string.Empty);
         var serverExclusions = ServerProperties.TryGetValue(SonarExclusions, out var property) ? property : string.Empty;
         if (string.IsNullOrEmpty(localExclusions) && string.IsNullOrEmpty(serverExclusions))
         {

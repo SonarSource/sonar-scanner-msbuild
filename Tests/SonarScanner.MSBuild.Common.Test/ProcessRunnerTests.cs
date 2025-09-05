@@ -218,6 +218,7 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_StandardInput()
     {
+        // The console reads input via code page https://en.wikipedia.org/wiki/Code_page_437 and we send UTF-8 but for ASCII characters, both encodings are identical
         var context = new ProcessRunnerContext(TestContext, $"""
             {ReadCommand("var1")}
             {EchoCommand($"You entered: {EnvVar("var1")}")}
@@ -228,6 +229,30 @@ public class ProcessRunnerTests
 
         context.ExecuteAndAssert();
         context.ResultStandardOutputShouldBe("You entered: Hello World" + Environment.NewLine);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoMacOS)]
+    [TestCategory(TestCategories.NoLinux)]
+    public void ProcRunner_StandardInput_BatchfileWithCodePageSetTo_UTF8()
+    {
+        var context = new ProcessRunnerContext(TestContext, $"""
+            chcp 65001
+            {ReadCommand("var1")}
+            {EchoCommand($"You entered: {EnvVar("var1")}")}
+            """)
+        {
+            ProcessArgs = { StandardInput = "Hello World 😊" } // 😊 = F09F 988A in UTF-8
+        };
+
+        context.ExecuteAndAssert();
+        // F09F 988A is ≡ƒÿè in Codepage DOS Latin-US CP437
+        // https://planetcalc.com/9043/?encoding=cp437_DOSLatinUS
+        context.ResultStandardOutputShouldBe("""
+            Active code page: 65001
+            You entered: Hello World ≡ƒÿè
+
+            """.ToEnvironmentLineEndings());
     }
 
     [TestMethod]

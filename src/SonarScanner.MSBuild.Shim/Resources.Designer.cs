@@ -159,6 +159,51 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using Java found in {0}: {1}.
+        /// </summary>
+        internal static string MSG_JavaExe_Found {
+            get {
+                return ResourceManager.GetString("MSG_JavaExe_Found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find Java in {0}: {1}.
+        /// </summary>
+        internal static string MSG_JavaExe_NotFound {
+            get {
+                return ResourceManager.GetString("MSG_JavaExe_NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find Java, falling back to using PATH: {0}.
+        /// </summary>
+        internal static string MSG_JavaExe_UsePath {
+            get {
+                return ResourceManager.GetString("MSG_JavaExe_UsePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;JAVA_HOME&apos; environment variable not set.
+        /// </summary>
+        internal static string MSG_JavaHomeNotSet {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeNotSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found &apos;JAVA_HOME&apos;: {0}.
+        /// </summary>
+        internal static string MSG_JavaHomeSet {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analysis property is already correctly set: {0}={1}.
         /// </summary>
         internal static string MSG_MandatorySettingIsCorrectlySpecified {

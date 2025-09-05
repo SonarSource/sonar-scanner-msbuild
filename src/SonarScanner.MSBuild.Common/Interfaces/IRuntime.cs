@@ -26,4 +26,10 @@ public interface IRuntime
     IDirectoryWrapper Directory { get; }
     IFileWrapper File { get; }
     ILogger Logger { get; }
+
+    // The most commonly used ILogger methods are replicated here. This is a compromise between a clean architecture and convenience:
+    void LogDebug(string message, params object[] args);
+    void LogInfo(string message, params object[] args);
+    void LogWarning(string message, params object[] args);
+    void LogError(string message, params object[] args);
 }

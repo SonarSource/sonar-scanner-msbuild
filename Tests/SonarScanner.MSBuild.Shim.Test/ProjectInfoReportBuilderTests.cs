@@ -48,21 +48,21 @@ public class ProjectInfoReportBuilderTests
     [TestMethod]
     public void PIRB_WriteSummaryReport_ValidArgs_FileCreated()
     {
+        var runtime = new TestRuntime();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var analysisConfig = new AnalysisConfig() { SonarOutputDir = testDir };
         var analysisResult = new AnalysisResult([
-            CreateProjectData("project1", ProjectType.Product, ProjectInfoValidity.ExcludeFlagSet),
-            CreateProjectData("project2", ProjectType.Product, ProjectInfoValidity.InvalidGuid),
-            CreateProjectData("project3", ProjectType.Product, ProjectInfoValidity.InvalidGuid),
-            CreateProjectData("project4", ProjectType.Product, ProjectInfoValidity.NoFilesToAnalyze),
-            CreateProjectData("project5", ProjectType.Test, ProjectInfoValidity.NoFilesToAnalyze),
-            CreateProjectData("project6", ProjectType.Test, ProjectInfoValidity.NoFilesToAnalyze),
-            CreateProjectData("project7", ProjectType.Test, ProjectInfoValidity.Valid),
-            CreateProjectData("project8", ProjectType.Test, ProjectInfoValidity.Valid),
-            CreateProjectData("project9", ProjectType.Test, ProjectInfoValidity.Valid),
-            CreateProjectData("projectA", ProjectType.Test, ProjectInfoValidity.Valid)]);
-        var loggerMock = Substitute.For<ILogger>();
-        ProjectInfoReportBuilder.WriteSummaryReport(analysisConfig, analysisResult, loggerMock);
+            CreateProjectData(runtime, "project1", ProjectType.Product, ProjectInfoValidity.ExcludeFlagSet),
+            CreateProjectData(runtime, "project2", ProjectType.Product, ProjectInfoValidity.InvalidGuid),
+            CreateProjectData(runtime, "project3", ProjectType.Product, ProjectInfoValidity.InvalidGuid),
+            CreateProjectData(runtime, "project4", ProjectType.Product, ProjectInfoValidity.NoFilesToAnalyze),
+            CreateProjectData(runtime, "project5", ProjectType.Test, ProjectInfoValidity.NoFilesToAnalyze),
+            CreateProjectData(runtime, "project6", ProjectType.Test, ProjectInfoValidity.NoFilesToAnalyze),
+            CreateProjectData(runtime, "project7", ProjectType.Test, ProjectInfoValidity.Valid),
+            CreateProjectData(runtime, "project8", ProjectType.Test, ProjectInfoValidity.Valid),
+            CreateProjectData(runtime, "project9", ProjectType.Test, ProjectInfoValidity.Valid),
+            CreateProjectData(runtime, "projectA", ProjectType.Test, ProjectInfoValidity.Valid)]);
+        ProjectInfoReportBuilder.WriteSummaryReport(analysisConfig, analysisResult, runtime.Logger);
 
         var expectedFileName = Path.Combine(testDir, ProjectInfoReportBuilder.ReportFileName);
         File.Exists(expectedFileName).Should().BeTrue();
@@ -81,7 +81,7 @@ public class ProjectInfoReportBuilderTests
         contents.Should().Contain("projectA");
     }
 
-    private static ProjectData CreateProjectData(string projectPath, ProjectType type, ProjectInfoValidity validity)
+    private static ProjectData CreateProjectData(TestRuntime runtime, string projectPath, ProjectType type, ProjectInfoValidity validity)
     {
         var projectInfo = new ProjectInfo()
         {
@@ -89,7 +89,7 @@ public class ProjectInfoReportBuilderTests
             ProjectType = type
         };
 
-        var result = new[] { projectInfo }.ToProjectData(true, Substitute.For<ILogger>()).Single();
+        var result = new[] { projectInfo }.ToProjectData(runtime).Single();
         result.Status = validity;
         return result;
     }

@@ -24,11 +24,13 @@ public class SonarEngineWrapper
 {
     private readonly IRuntime runtime;
     private readonly IProcessRunner processRunner;
+    private readonly string javaFileName;
 
     public SonarEngineWrapper(IRuntime runtime, IProcessRunner processRunner)
     {
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.processRunner = processRunner ?? throw new ArgumentNullException(nameof(processRunner));
+        javaFileName = runtime.OperatingSystem.IsUnix() ? "java" : "java.exe";
     }
 
     public virtual bool Execute(AnalysisConfig config, string standardInput)
@@ -36,22 +38,93 @@ public class SonarEngineWrapper
         _ = config ?? throw new ArgumentNullException(nameof(config));
 
         var engine = config.EngineJarPath;
-        var javaExe = config.JavaExePath;
+        var javaExe = FindJavaExe(config.JavaExePath);
+        var javaParams = JavaParams(config);
+
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
-            CmdLineArgs = ["-jar", engine],
+            CmdLineArgs = javaParams.Any() ? [..javaParams, "-jar", engine] : ["-jar", engine],
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
             StandardInput = standardInput,
         };
         var result = processRunner.Execute(args);
         if (result.Succeeded)
         {
-            runtime.Logger.LogInfo(Resources.MSG_ScannerEngineCompleted);
+            runtime.LogInfo(Resources.MSG_ScannerEngineCompleted);
         }
         else
         {
-            runtime.Logger.LogError(Resources.ERR_ScannerEngineExecutionFailed);
+            runtime.LogError(Resources.ERR_ScannerEngineExecutionFailed);
         }
         return result.Succeeded;
+    }
+
+    private static IEnumerable<string> JavaParams(AnalysisConfig config)
+    {
+        if (Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName)?.Trim() is { Length: > 0 } scannerOpts)
+        {
+            yield return scannerOpts;
+        }
+
+        if (config.ScannerOptsSettings.Any())
+        {
+            // If there are any duplicates properties, the last one will be used.
+            // As of today, properties coming from ScannerOptsSettings are set
+            // via the command line, so they should take precedence over the ones
+            // set via the environment variable.
+            foreach (var property in config.ScannerOptsSettings)
+            {
+                yield return property.AsSonarScannerArg();
+            }
+        }
+    }
+
+    private string FindJavaExe(string configJavaExe) =>
+        JavaFromConfig(configJavaExe)
+        ?? JavaFromJavaHome()
+        ?? JavaFromPath();
+
+    private string JavaFromConfig(string configJavaExe)
+    {
+        if (runtime.File.Exists(configJavaExe))
+        {
+            runtime.LogInfo(Resources.MSG_JavaExe_Found, "Analysis Config", configJavaExe);
+            return configJavaExe;
+        }
+        else
+        {
+            runtime.LogInfo(Resources.MSG_JavaExe_NotFound, "Analysis Config", configJavaExe);
+            return null;
+        }
+    }
+
+    private string JavaFromJavaHome()
+    {
+        if (Environment.GetEnvironmentVariable(EnvironmentVariables.JavaHomeVariableName) is { Length: > 0 } javaHome)
+        {
+            runtime.LogInfo(Resources.MSG_JavaHomeSet, javaHome);
+            var javaHomeExe = Path.Combine(javaHome, "bin", javaFileName);
+            if (runtime.File.Exists(javaHomeExe))
+            {
+                runtime.LogInfo(Resources.MSG_JavaExe_Found, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
+                return javaHomeExe;
+            }
+            else
+            {
+                runtime.LogInfo(Resources.MSG_JavaExe_NotFound, EnvironmentVariables.JavaHomeVariableName, javaHomeExe);
+                return null;
+            }
+        }
+        else
+        {
+            runtime.LogInfo(Resources.MSG_JavaHomeNotSet);
+            return null;
+        }
+    }
+
+    private string JavaFromPath()
+    {
+        runtime.LogInfo(Resources.MSG_JavaExe_UsePath, javaFileName);
+        return javaFileName; // Rely on Proccess inbuilt PATH support
     }
 }

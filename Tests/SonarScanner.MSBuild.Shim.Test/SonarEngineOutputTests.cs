@@ -24,12 +24,12 @@ namespace SonarScanner.MSBuild.Shim.Test;
 public class SonarEngineOutputTests
 {
     [TestMethod]
-    [DataRow("""{"message":"A trace","level":"TRACE"}""", LogLevel.Info, "A trace")]
-    [DataRow("""{"message":"A debug","level":"DEBUG"}""", LogLevel.Info, "A debug")]
-    [DataRow("""{"message":"An info","level":"INFO"}""", LogLevel.Info, "An info")]
-    [DataRow("""{"message":"A warning","level":"WARN"}""", LogLevel.Warning, "A warning")]
-    [DataRow("""{"message":"An error","level":"ERROR"}""", LogLevel.Error, "An error")]
-    [DataRow("""{"MESSAGE":"An error","Level":"ERROR"}""", LogLevel.Error, "An error")]
+    [DataRow("""{"message":"A trace","level":"TRACE"}""", LogLevel.Info, "TRACE: A trace")]
+    [DataRow("""{"message":"A debug","level":"DEBUG"}""", LogLevel.Info, "DEBUG: A debug")]
+    [DataRow("""{"message":"An info","level":"INFO"}""", LogLevel.Info, "INFO: An info")]
+    [DataRow("""{"message":"A warning","level":"WARN"}""", LogLevel.Warning, "WARN: A warning")]
+    [DataRow("""{"message":"An error","level":"ERROR"}""", LogLevel.Error, "ERROR: An error")]
+    [DataRow("""{"MESSAGE":"An error","Level":"ERROR"}""", LogLevel.Error, "ERROR: An error")]
     public void OutputToLogMessage_ParsesJsonAndMapsLevel(string json, LogLevel expectedLevel, string expectedMessage)
     {
         var result = SonarEngineOutput.OutputToLogMessage(true, json);
@@ -47,7 +47,7 @@ public class SonarEngineOutputTests
         var logMessage = result.Should().NotBeNull().And.BeAssignableTo<LogMessage>().Which;
         logMessage.Level.Should().Be(LogLevel.Error);
         logMessage.Message.Should().Be("""
-            Error with stack
+            ERROR: Error with stack
             stacktrace details
             """.ToEnvironmentLineEndings());
     }

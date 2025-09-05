@@ -18,14 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PostProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor;
-
 namespace SonarScanner.MSBuild;
 
 public interface IProcessorFactory
 {
-    IPostProcessor CreatePostProcessor();
-
-    IPreProcessor CreatePreProcessor();
+    PostProcessor.PostProcessor CreatePostProcessor();
+    PreProcessor.PreProcessor CreatePreProcessor();
 }

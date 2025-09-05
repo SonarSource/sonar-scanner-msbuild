@@ -28,7 +28,7 @@ public class FileInfoEqualityComparer : IEqualityComparer<FileInfo>
 {
     // It is safe to assume we can use IgnoreCase pattern everywhere as .Net Core build on non-Windows OSes will fail
     // when the path doesn't match the file-system path.
-    public static readonly StringComparison ComparisonType = StringComparison.OrdinalIgnoreCase;
+    public static readonly StringComparison ComparisonType = StringComparison.InvariantCultureIgnoreCase;
 
     public static FileInfoEqualityComparer Instance { get; } = new FileInfoEqualityComparer();
 

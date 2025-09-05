@@ -22,16 +22,23 @@ namespace SonarScanner.MSBuild.PreProcessor.Caching;
 
 public abstract record DownloadResult;
 
-/// <summary>
-/// File has been downloaded from the server. In case of the JRE, this is the path to the java executable.
-/// </summary>
-public sealed record DownloadSuccess(string FilePath) : DownloadResult
+public abstract record Success(string FilePath) : DownloadResult
 {
     /// <summary>
     /// Path to the downloaded file, which is either the JRE executable or a file downloaded from the server.
     /// </summary>
     public string FilePath { get; } = FilePath;
 }
+
+/// <summary>
+/// File has been downloaded from the server. In case of the JRE, this is the path to the java executable.
+/// </summary>
+public sealed record Downloaded(string FilePath) : Success(FilePath);
+
+/// <summary>
+/// File has been found in the cache. In case of the JRE, this is the path to the java executable.
+/// </summary>
+public sealed record CacheHit(string FilePath) : Success(FilePath);
 
 /// <summary>
 /// The download is invalid, the downloaded file is invalid, or the download has failed.

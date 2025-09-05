@@ -58,7 +58,7 @@ public class TargetsInstaller : ITargetsInstaller
 
     private void InternalCopyTargetsFile()
     {
-        runtime.Logger.LogInfo(Resources.MSG_UpdatingMSBuildTargets);
+        runtime.LogInfo(Resources.MSG_UpdatingMSBuildTargets);
 
         CopyIfDifferent(
             TargetSourcePath(FileConstants.ImportBeforeTargetsName),
@@ -82,12 +82,12 @@ public class TargetsInstaller : ITargetsInstaller
                 {
                     if (string.Equals(sourceContent, runtime.File.ReadAllText(destinationPath), StringComparison.Ordinal))
                     {
-                        runtime.Logger.LogDebug(Resources.MSG_InstallTargets_UpToDate, fileName, destinationDir);
+                        runtime.LogDebug(Resources.MSG_InstallTargets_UpToDate, fileName, destinationDir);
                     }
                     else
                     {
                         runtime.File.Copy(sourcePath, destinationPath, overwrite: true);
-                        runtime.Logger.LogDebug(Resources.MSG_InstallTargets_Overwrite, fileName, destinationDir);
+                        runtime.LogDebug(Resources.MSG_InstallTargets_Overwrite, fileName, destinationDir);
                     }
                 }
                 else
@@ -96,13 +96,13 @@ public class TargetsInstaller : ITargetsInstaller
 
                     // always overwrite to avoid intermittent exceptions: https://github.com/SonarSource/sonar-scanner-msbuild/issues/647
                     runtime.File.Copy(sourcePath, destinationPath, overwrite: true);
-                    runtime.Logger.LogDebug(Resources.MSG_InstallTargets_Copy, fileName, destinationDir);
+                    runtime.LogDebug(Resources.MSG_InstallTargets_Copy, fileName, destinationDir);
                 }
             }
             catch (Exception e)
             {
-                runtime.Logger.LogWarning(Resources.MSG_InstallTargets_Error, destinationPath, e.Message);
-                runtime.Logger.LogDebug(e.StackTrace);
+                runtime.LogWarning(Resources.MSG_InstallTargets_Error, destinationPath, e.Message);
+                runtime.LogDebug(e.StackTrace);
             }
         }
     }
@@ -122,7 +122,7 @@ public class TargetsInstaller : ITargetsInstaller
             runtime.File.Exists(Path.Combine(globalTargetPath, FileConstants.ImportBeforeTargetsName));
 
         void LogWarning(string globalTargetPath) =>
-            runtime.Logger.LogWarning(Resources.WARN_ExistingGlobalTargets, FileConstants.ImportBeforeTargetsName, globalTargetPath);
+            runtime.LogWarning(Resources.WARN_ExistingGlobalTargets, FileConstants.ImportBeforeTargetsName, globalTargetPath);
     }
 
     private static string TargetSourcePath(string targetFileName) =>

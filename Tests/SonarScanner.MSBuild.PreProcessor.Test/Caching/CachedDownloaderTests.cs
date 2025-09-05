@@ -56,82 +56,6 @@ public sealed class CachedDownloaderTests : IDisposable
         fileContentStream.Dispose();
 
     [TestMethod]
-    public void EnsureCacheRoot_DirectoryDoesNotExist_CreatesDirectory()
-    {
-        runtime.Directory.Exists(SonarUserHomeCache).Returns(false);
-
-        var cacheRoot = cachedDownloader.EnsureCacheRoot();
-
-        cacheRoot.Should().BeTrue();
-        runtime.Directory.Received(1).Exists(SonarUserHomeCache);
-        runtime.Directory.Received(1).CreateDirectory(SonarUserHomeCache);
-    }
-
-    [TestMethod]
-    public void EnsureCacheRoot_DirectoryExists_DoesNotCreateDirectory()
-    {
-        runtime.Directory.Exists(SonarUserHomeCache).Returns(true);
-
-        var cacheRoot = cachedDownloader.EnsureCacheRoot();
-
-        cacheRoot.Should().BeTrue();
-        runtime.Directory.Received(1).Exists(SonarUserHomeCache);
-        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
-    }
-
-    [TestMethod]
-    public void EnsureCacheRoot_CreateDirectoryThrows_ReturnsNull()
-    {
-        runtime.Directory.Exists(SonarUserHomeCache).Returns(false);
-        runtime.Directory.When(x => x.CreateDirectory(SonarUserHomeCache)).Throw<IOException>();
-
-        var cacheRoot = cachedDownloader.EnsureCacheRoot();
-
-        cacheRoot.Should().BeFalse();
-        runtime.Directory.Received(1).Exists(SonarUserHomeCache);
-        runtime.Directory.Received(1).CreateDirectory(SonarUserHomeCache);
-    }
-
-    [TestMethod]
-    public void CacheRoot_ExpectedPath_IsReturned() =>
-        cachedDownloader.CacheRoot.Should().Be(SonarUserHomeCache);
-
-    [TestMethod]
-    public void IsFileCached_CacheHit_ReturnsFile()
-    {
-        var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
-        runtime.File.Exists(file).Returns(true);
-
-        var result = cachedDownloader.IsFileCached();
-
-        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
-        runtime.File.Received(1).Exists(file);
-    }
-
-    [TestMethod]
-    public void IsFileCached_FileDoesNotExist_ReturnsCacheMiss()
-    {
-        var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
-        runtime.File.Exists(file).Returns(false);
-
-        var result = cachedDownloader.IsFileCached();
-
-        result.Should().BeOfType<CacheMiss>();
-        runtime.File.Received(1).Exists(file);
-    }
-
-    [TestMethod]
-    public void IsFileCached_CreateDirectoryThrows_ReturnsCacheFailure()
-    {
-        runtime.Directory.Exists(SonarUserHomeCache).Returns(false);
-        runtime.Directory.When(x => x.CreateDirectory(SonarUserHomeCache)).Do(_ => throw new IOException("Disk full"));
-
-        var result = cachedDownloader.IsFileCached();
-
-        result.Should().BeOfType<CacheError>().Which.Message.Should().Be($"The file cache directory in '{SonarUserHomeCache}' could not be created.");
-    }
-
-    [TestMethod]
     public void ValidateChecksum_ValidChecksum_ReturnsTrue()
     {
         ExecuteValidateChecksumTest(ExpectedSha, ExpectedSha, true);
@@ -163,22 +87,69 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
+    public async Task DownloadFileAsync_DirectoryDoesNotExist_CreatesDirectory()
+    {
+        runtime.Directory.Exists(DownloadPath).Returns(false);
+
+        await cachedDownloader.DownloadFileAsync(null);
+
+        runtime.Directory.Received(1).Exists(DownloadPath);
+        runtime.Directory.Received(1).CreateDirectory(DownloadPath);
+    }
+
+    [TestMethod]
+    public async Task DownloadFileAsync_DirectoryExists_DoesNotCreateDirectory()
+    {
+        runtime.Directory.Exists(DownloadPath).Returns(true);
+
+        await cachedDownloader.DownloadFileAsync(null);
+
+        runtime.Directory.Received(1).Exists(DownloadPath);
+        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public async Task DownloadFileAsync_CreateDirectoryThrows_ReturnsNull()
+    {
+        runtime.Directory.Exists(DownloadPath).Returns(false);
+        runtime.Directory.When(x => x.CreateDirectory(DownloadPath)).Throw<IOException>();
+
+        (await cachedDownloader.DownloadFileAsync(null)).Should().Be(new DownloadError($"The directory '{DownloadPath}' could not be created."));
+
+        runtime.Directory.Received(1).Exists(DownloadPath);
+        runtime.Directory.Received(1).CreateDirectory(DownloadPath);
+    }
+
+    [TestMethod]
+    public async Task DownloadFileAsync_CacheHit_ReturnsFile()
+    {
+        var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
+        runtime.File.Exists(file).Returns(true);
+
+        var result = await cachedDownloader.DownloadFileAsync(() => Task.FromResult<Stream>(null));
+
+        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
+        runtime.File.Received(1).Exists(file);
+    }
+
+    [TestMethod]
     public async Task DownloadFileAsync_Succeeds()
     {
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(DownloadFilePath);
         AssertStreamDisposed();
         runtime.File.Received(1).Create(TempFilePath);
         runtime.File.Received(1).Move(TempFilePath, DownloadFilePath);
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_NullStream_ReturnsCacheFailure()
+    public async Task DownloadFileAsync_NullStream_ReturnsDownloadError()
     {
         var result = await ExecuteDownloadFileAsync(null);
 
@@ -187,13 +158,14 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.");
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_WrongChecksum_ReturnsCacheFailure()
+    public async Task DownloadFileAsync_WrongChecksum_ReturnsDownloadError()
     {
         checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
 
@@ -205,6 +177,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertStreamDisposed();
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
             $"Deleting file '{Path.Combine(DownloadPath, TempFileName)}'.",
@@ -218,7 +191,7 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(DownloadFilePath);
         runtime.File.DidNotReceiveWithAnyArgs().Create(null);
         runtime.File.DidNotReceiveWithAnyArgs().Move(null, null);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
@@ -227,21 +200,24 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_InvalidFileCached_ReturnsCacheFailure()
+    public async Task DownloadFileAsync_InvalidFileCached_DeletesAndRedownloads()
     {
         runtime.File.Exists(DownloadFilePath).Returns(true);
-        checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
+        checksum.ComputeHash(null).ReturnsForAnyArgs(x => "someOtherHash", x => ExpectedSha);
 
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<DownloadError>().Which.Message
-            .Should().Be("The checksum of the downloaded file does not match the expected checksum.");
-        runtime.File.DidNotReceiveWithAnyArgs().Create(null);
-        runtime.File.DidNotReceiveWithAnyArgs().Move(null, null);
+        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(DownloadFilePath);
+        runtime.File.Received(1).Delete(DownloadFilePath);
+        runtime.File.Received(1).Move(TempFilePath, DownloadFilePath);
+        runtime.File.Received(1).Create(TempFilePath);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"The file was already downloaded from the server and stored at '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
-            $"Deleting file '{DownloadFilePath}'.");
+            $"Deleting file '{DownloadFilePath}'.",
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
+            "Starting the file download.",
+            $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
 
     [TestMethod]
@@ -251,20 +227,20 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var result = await ExecuteDownloadFileAsync(null);
 
-        result.Should().BeOfType<DownloadSuccess>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(DownloadFilePath);
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
             "The file was found after the download failed. Another scanner downloaded the file in parallel.",
-            $"The file was already downloaded from the server and stored at '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
 
     [TestMethod]
-    public async Task DownloadFileAsyncDownloadFails_FileDownloadedByOtherScannerInvalid_Fails()
+    public async Task DownloadFileAsync_DownloadFails_FileDownloadedByOtherScannerInvalid_Fails()
     {
         runtime.File.Exists(DownloadFilePath).Returns(false, true);
         checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
@@ -276,22 +252,22 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             "Starting the file download.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
             "The file was found after the download failed. Another scanner downloaded the file in parallel.",
-            $"The file was already downloaded from the server and stored at '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
             $"Deleting file '{DownloadFilePath}'.");
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_EnsureDownloadDirectory_Fails()
+    public async Task DownloadFileAsync_EnsureDownloadDirectoryFails()
     {
-        runtime.Directory.When(x => x.CreateDirectory(SonarUserHomeCache)).Do(_ => throw new IOException());
+        runtime.Directory.When(x => x.CreateDirectory(DownloadPath)).Do(_ => throw new IOException());
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
         result.Should().BeOfType<DownloadError>().Which.Message
-            .Should().Be($"The file cache directory in '{DownloadPath}' could not be created.");
+            .Should().Be($"The directory '{DownloadPath}' could not be created.");
     }
 
     private async Task<DownloadResult> ExecuteDownloadFileAsync(MemoryStream downloadContent) =>

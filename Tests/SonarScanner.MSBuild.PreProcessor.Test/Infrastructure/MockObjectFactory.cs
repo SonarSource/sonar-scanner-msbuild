@@ -30,7 +30,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
 {
     private readonly List<string> calledMethods = [];
 
-    public TestLogger Logger { get; } = new();
+    public TestRuntime Runtime { get; } = new();
     public MockSonarWebServer Server { get; set; }
     public ITargetsInstaller TargetsInstaller { get; } = Substitute.For<ITargetsInstaller>();
     public IResolver JreResolver { get; } = Substitute.For<IResolver>();
@@ -38,8 +38,8 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public string PluginCachePath { get; private set; }
     public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
 
-    public MockObjectFactory(TestLogger logger) : this() =>
-        Logger = logger;
+    public MockObjectFactory(TestRuntime runtime) : this() =>
+        Runtime = runtime;
 
     public MockObjectFactory(bool withDefaultRules = true, string organization = null, Dictionary<string, string> serverProperties = null)
     {
