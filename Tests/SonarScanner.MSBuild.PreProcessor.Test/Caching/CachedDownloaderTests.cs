@@ -63,19 +63,19 @@ public sealed class CachedDownloaderTests : IDisposable
 
         var result = cachedDownloader.IsFileCached();
 
-        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(file);
+        result.Should().Be(file);
         runtime.File.Received(1).Exists(file);
     }
 
     [TestMethod]
-    public void IsFileCached_FileDoesNotExist_ReturnsCacheMiss()
+    public void IsFileCached_FileDoesNotExist_ReturnsNull()
     {
         var file = Path.Combine(SonarUserHomeCache, FileDescriptor.Sha256, FileDescriptor.Filename);
         runtime.File.Exists(file).Returns(false);
 
         var result = cachedDownloader.IsFileCached();
 
-        result.Should().BeOfType<CacheMiss>();
+        result.Should().BeNull();
         runtime.File.Received(1).Exists(file);
     }
 

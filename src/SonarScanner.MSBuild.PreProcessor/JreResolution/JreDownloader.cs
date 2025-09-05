@@ -48,10 +48,10 @@ public class JreDownloader
         extractedJavaExe = Path.Combine(jreExtractionPath, jreDescriptor.JavaPath);
     }
 
-    public virtual CacheResult IsJreCached() =>
+    public virtual string IsJreCached() =>
         runtime.File.Exists(extractedJavaExe)
-            ? new CacheHit(extractedJavaExe)
-            : new CacheMiss();
+            ? extractedJavaExe
+            : null;
 
     public async Task<DownloadResult> DownloadJreAsync(Func<Task<Stream>> jreDownload)
     {

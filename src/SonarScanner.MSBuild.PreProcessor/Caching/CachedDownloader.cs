@@ -48,10 +48,10 @@ public class CachedDownloader
         downloadTarget = Path.Combine(FileRootPath, fileDescriptor.Filename);
     }
 
-    public virtual CacheResult IsFileCached() =>
+    public virtual string IsFileCached() =>
         fileWrapper.Exists(CacheLocation)   // We do not check the SHA256 of the found file.
-            ? new CacheHit(CacheLocation)
-            : new CacheMiss();
+            ? CacheLocation
+            : null;
 
     public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download)
     {
