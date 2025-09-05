@@ -104,7 +104,6 @@ class TelemetryTest {
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_projectbasedir.source\":\"CLI\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_projectbasedir.value\":\"rooted\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.source\":\"CLI\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_usesonarscannercli.source\":\"CLI\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scm_disabled.source\":\"CLI\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.product\":\"SQ_Server\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.serverUrl\":\"custom_url\"}"),

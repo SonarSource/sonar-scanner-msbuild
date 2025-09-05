@@ -81,6 +81,7 @@ class ScannerTest {
   @MSBuildMinVersion(16)
   void targetUninstall() {
     var context = AnalysisContext.forServer("CSharpAllFlat");
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-868
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
 
