@@ -94,7 +94,16 @@ public class ScannerEngineInputTest
         sut.AddSharedFiles(new([], []));
         sut.ToString().Should().BeIgnoringLineEndings("""
             {
-              "scannerProperties": []
+              "scannerProperties": [
+                {
+                  "key": "sonar.sources",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.tests",
+                  "value": ""
+                }
+              ]
             }
             """);
     }
@@ -110,6 +119,10 @@ public class ScannerEngineInputTest
                 {
                   "key": "sonar.sources",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))}}
+                },
+                {
+                  "key": "sonar.tests",
+                  "value": ""
                 }
               ]
             }
@@ -124,6 +137,10 @@ public class ScannerEngineInputTest
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.sources",
+                  "value": ""
+                },
                 {
                   "key": "sonar.tests",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "test.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "test2.hs"))}}
@@ -266,6 +283,10 @@ public class ScannerEngineInputTest
                   "value": "utf-8"
                 },
                 {
+                  "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.tests",
+                  "value": ""
+                },
+                {
                   "key": "DB2E5521-3172-47B9-BA50-864F12E6DFFF.sonar.sources",
                   "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs") + "," + Path.Combine(productBaseDir, "你好.cs") + "," + missingFileOutsideProjectDir.FullName)}}
                 },
@@ -290,6 +311,10 @@ public class ScannerEngineInputTest
                   "value": "utf-8"
                 },
                 {
+                  "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.tests",
+                  "value": ""
+                },
+                {
                   "key": "B51622CF-82F4-48C9-9F38-FB981FAFAF3A.sonar.sources",
                   "value": {{JsonConvert.ToString(Path.Combine(productBaseDir, "File.cs"))}}
                 },
@@ -312,6 +337,10 @@ public class ScannerEngineInputTest
                 {
                   "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sourceEncoding",
                   "value": "utf-8"
+                },
+                {
+                  "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.sources",
+                  "value": ""
                 },
                 {
                   "key": "DA0FCD82-9C5C-4666-9370-C7388281D49B.sonar.tests",
@@ -383,12 +412,28 @@ public class ScannerEngineInputTest
             {
               "scannerProperties": [
                 {
+                  "key": "sonar.projectKey",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.projectName",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.projectVersion",
+                  "value": ""
+                },
+                {
                   "key": "sonar.working.directory",
                   "value": {{JsonConvert.ToString(Path.Combine(@"C:\OutputDir\CannotBeEmpty", ".sonar"))}}
                 },
                 {
                   "key": "sonar.projectBaseDir",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir"))}}
+                },
+                {
+                  "key": "sonar.pullrequest.cache.basepath",
+                  "value": ""
                 }
               ]
             }

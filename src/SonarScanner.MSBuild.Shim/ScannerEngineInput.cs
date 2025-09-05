@@ -122,18 +122,17 @@ public class ScannerEngineInput
         {
             Add(keyPrefix, keySuffix, ToMultiValueProperty(values));
         }
+        else
+        {
+            Add(keyPrefix, keySuffix, string.Empty);
+        }
     }
 
     private void Add(string key, IEnumerable<string> values) =>
         Add(key, ToMultiValueProperty(values));
 
-    private void Add(string key, string value)
-    {
-        if (!string.IsNullOrEmpty(value))
-        {
-            scannerProperties[key] = value;
-        }
-    }
+    private void Add(string key, string value) =>
+        scannerProperties[key] = value ?? string.Empty;
 
     private static string ToMultiValueProperty(IEnumerable<string> paths)
     {
