@@ -25,9 +25,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Caching;
 public class CachedDownloader
 {
     private readonly IChecksum checksum;
-    private readonly IDirectoryWrapper directoryWrapper;
-    private readonly IFileWrapper fileWrapper;
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
     private readonly FileDescriptor fileDescriptor;
 
     public string FileRootPath { get; }
@@ -35,9 +33,7 @@ public class CachedDownloader
 
     public CachedDownloader(IRuntime runtime, IChecksum checksum, FileDescriptor fileDescriptor, string sonarUserHome)
     {
-        logger = runtime.Logger;
-        directoryWrapper = runtime.Directory;
-        fileWrapper = runtime.File;
+        this.runtime = runtime;
         this.checksum = checksum;
         this.fileDescriptor = fileDescriptor;
 
@@ -55,7 +51,7 @@ public class CachedDownloader
         {
             return cacheHit;
         }
-        logger.LogDebug(Resources.MSG_Resolver_CacheMiss, $"'{CacheLocation}'");
+        runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, $"'{CacheLocation}'");
         return await DownloadFile(download);
     }
 
@@ -63,9 +59,9 @@ public class CachedDownloader
     {
         try
         {
-            if (!directoryWrapper.Exists(FileRootPath))
+            if (!runtime.Directory.Exists(FileRootPath))
             {
-                directoryWrapper.CreateDirectory(FileRootPath);
+                runtime.Directory.CreateDirectory(FileRootPath);
             }
             return null;
         }
@@ -77,9 +73,9 @@ public class CachedDownloader
 
     private CacheHit CheckCache()
     {
-        if (fileWrapper.Exists(CacheLocation))
+        if (runtime.File.Exists(CacheLocation))
         {
-            logger.LogDebug(Resources.MSG_FileAlreadyDownloaded, CacheLocation);
+            runtime.LogDebug(Resources.MSG_FileAlreadyDownloaded, CacheLocation);
             if (ValidateFile(CacheLocation) is null)
             {
                 return new CacheHit(CacheLocation);
@@ -92,10 +88,10 @@ public class CachedDownloader
     {
         if (await DownloadAndValidate(download) is { } downloadError)
         {
-            logger.LogDebug(downloadError.Message);
-            if (fileWrapper.Exists(CacheLocation)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
+            runtime.LogDebug(downloadError.Message);
+            if (runtime.File.Exists(CacheLocation)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
-                logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, CacheLocation);
+                runtime.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, CacheLocation);
                 return ValidateFile(CacheLocation) is { } validationError
                     ? validationError
                     : new Downloaded(CacheLocation);
@@ -109,11 +105,11 @@ public class CachedDownloader
     {
         // We download to a temporary file in the correct folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
-        var tempFileName = directoryWrapper.GetRandomFileName();
+        var tempFileName = runtime.Directory.GetRandomFileName();
         var tempFile = Path.Combine(FileRootPath, tempFileName);
         try
         {
-            using var fileStream = fileWrapper.Create(tempFile);
+            using var fileStream = runtime.File.Create(tempFile);
             using var downloadStream = await download() ?? throw new InvalidOperationException(Resources.ERR_DownloadStreamNull);
             await downloadStream.CopyToAsync(fileStream);
             fileStream.Close();
@@ -123,7 +119,7 @@ public class CachedDownloader
             }
             else
             {
-                fileWrapper.Move(tempFile, CacheLocation);
+                runtime.File.Move(tempFile, CacheLocation);
                 return null;
             }
         }
@@ -151,14 +147,14 @@ public class CachedDownloader
     {
         try
         {
-            using var fs = fileWrapper.Open(downloadTarget);
+            using var fs = runtime.File.Open(downloadTarget);
             var fileChecksum = checksum.ComputeHash(fs);
-            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
+            runtime.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
             return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
         }
         catch (Exception ex)
         {
-            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
+            runtime.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
             return false;
         }
     }
@@ -167,12 +163,12 @@ public class CachedDownloader
     {
         try
         {
-            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
-            fileWrapper.Delete(tempFile);
+            runtime.LogDebug(Resources.MSG_DeletingFile, tempFile);
+            runtime.File.Delete(tempFile);
         }
         catch (Exception ex)
         {
-            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
+            runtime.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
         }
     }
 }
