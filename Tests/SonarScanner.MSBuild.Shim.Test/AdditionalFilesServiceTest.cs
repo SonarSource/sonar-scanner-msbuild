@@ -52,7 +52,7 @@ public class AdditionalFilesServiceTest
     {
         var files = sut.AdditionalFiles(new() { ScanAllAnalysis = true, ServerSettings = null }, ProjectBaseDir);
 
-        files.Sources.Should().NotBeEmpty(because: "this is just for testing");
+        files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
         runtime.Directory.ReceivedWithAnyArgs(1).EnumerateDirectories(null, null, default);
         runtime.Directory.ReceivedWithAnyArgs(1).EnumerateFiles(null, null, default);

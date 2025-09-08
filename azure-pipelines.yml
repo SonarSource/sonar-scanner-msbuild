@@ -326,7 +326,7 @@ stages:
             condition: succeededOrFailed()
             inputs:
               testRunner: VSTest
-              testResultsFiles: $(Build.SourcesDirectory)/TestResults/*.trx
+              testResultsFiles: $(Build.SourcesDirectory)/TestResults/*.trx # Not **/*.trx because there are invalid trx files from test resources in subdirectories
               testRunTitle: UTs Windows
 
           - task: PublishBuildArtifacts@1
