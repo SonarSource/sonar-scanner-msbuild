@@ -54,7 +54,7 @@ public class TarGzUnpackTests
         runtime.Directory.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub") + Path.DirectorySeparatorChar);
         runtime.Directory.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub2") + Path.DirectorySeparatorChar);
         Encoding.UTF8.GetString(unzipped.ToArray()).ToUnixLineEndings().Should().Be("hey beautiful");
-        runtime.Logger.AssertSingleDebugExists($"""There was an error when trying to set permissions for '{filePath}'. Sample exception message""");
+        runtime.Should().HaveSingleDebugLogged($"There was an error when trying to set permissions for '{filePath}'. Sample exception message");
     }
 
     [TestCategory(TestCategories.NoMacOS)]

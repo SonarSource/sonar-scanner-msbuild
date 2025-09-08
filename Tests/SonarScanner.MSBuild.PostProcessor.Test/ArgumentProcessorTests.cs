@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.PostProcessor.Test;
 
 [TestClass]
@@ -56,15 +50,16 @@ public class ArgumentProcessorTests
 
         // 1. Unrecognized args
         logger = CheckProcessingFails("begin"); // bootstrapper verbs aren't meaningful to the post-processor
-        logger.AssertSingleErrorExists("begin");
+        logger.Should().HaveSingleError("Unrecognized command line argument: begin");
 
         logger = CheckProcessingFails("end");
-        logger.AssertSingleErrorExists("end");
+        logger.Should().HaveSingleError("Unrecognized command line argument: end");
 
         logger = CheckProcessingFails("AAA", "BBB", "CCC");
-        logger.AssertSingleErrorExists("AAA");
-        logger.AssertSingleErrorExists("BBB");
-        logger.AssertSingleErrorExists("CCC");
+        logger.Should().HaveErrors(
+            "Unrecognized command line argument: AAA",
+            "Unrecognized command line argument: BBB",
+            "Unrecognized command line argument: CCC");
     }
 
     [TestMethod]
@@ -97,7 +92,7 @@ public class ArgumentProcessorTests
 
         foreach (var propertyWithError in propertiesWithErrors)
         {
-            logger.AssertSingleErrorExists(propertyWithError);
+            logger.Errors.Should().ContainSingle(x => x.Contains(propertyWithError));
         }
     }
 
@@ -111,7 +106,7 @@ public class ArgumentProcessorTests
 
         success.Should().BeTrue("Expecting processing to have succeeded");
         provider.Should().NotBeNull("Returned provider should not be null");
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveErrors(0);
 
         return provider;
     }
@@ -124,7 +119,7 @@ public class ArgumentProcessorTests
 
         success.Should().BeFalse("Not expecting processing to have succeeded");
         provider.Should().BeNull("Provider should be null if processing fails");
-        logger.AssertErrorsLogged(); // expecting errors if processing failed
+        logger.Should().HaveErrors(); // expecting errors if processing failed
 
         return logger;
     }

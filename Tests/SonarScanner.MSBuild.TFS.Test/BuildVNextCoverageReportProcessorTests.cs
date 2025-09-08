@@ -115,7 +115,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         sut.ProcessCoverageReports(analysisConfig, buildSettings);
         AssertUsesFallback();
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
     }
 
@@ -126,7 +126,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(1);
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
     }
@@ -138,7 +138,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(1);
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
     }
@@ -150,7 +150,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(1);
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
@@ -162,7 +162,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(1);
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
     }
 
@@ -177,7 +177,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(0);
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
     }
 
@@ -190,7 +190,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertConvertNotCalled();
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
     }
 
@@ -203,7 +203,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertConvertNotCalled();
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
 
@@ -219,7 +219,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(1);
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
 
@@ -541,13 +541,13 @@ public class BuildVNextCoverageReportProcessorTests
     {
         if (isTrue)
         {
-            runtime.Logger.AssertInfoLogged("Did not find any binary coverage files in the expected location.");
-            runtime.Logger.AssertDebugNotLogged(Resources.TRX_DIAG_NotUsingFallback);
+            runtime.Should().HaveInfosLogged("Did not find any binary coverage files in the expected location.");
+            runtime.Should().NotHaveDebugsLogged(Resources.TRX_DIAG_NotUsingFallback);
         }
         else
         {
-            runtime.Logger.AssertInfoNotLogged(Resources.TRX_DIAG_NoCoverageFilesFound);
-            runtime.Logger.AssertDebugLogged("Not using the fallback mechanism to detect binary coverage files.");
+            runtime.Should().NotHaveInfoLogged(Resources.TRX_DIAG_NoCoverageFilesFound);
+            runtime.Should().HaveDebugsLogged("Not using the fallback mechanism to detect binary coverage files.");
         }
     }
 

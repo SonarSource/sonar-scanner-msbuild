@@ -80,8 +80,8 @@ public class AnalysisConfigGeneratorTests
         var actualConfig = AnalysisConfigGenerator.GenerateFile(args, localSettings, additionalSettings, serverSettings, analyzersSettings, "9.9", null, null, runtime);
 
         AssertConfigFileExists(actualConfig);
-        runtime.Logger.AssertErrorsLogged(0);
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveErrorsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
 
         actualConfig.SonarProjectKey.Should().Be("valid.key");
         actualConfig.SonarProjectName.Should().Be("valid.name");
@@ -127,8 +127,8 @@ public class AnalysisConfigGeneratorTests
         var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, runtime);
 
         AssertConfigFileExists(actualConfig);
-        runtime.Logger.AssertErrorsLogged(0);
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveErrorsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
 
         var actualSettingsFilePath = actualConfig.GetSettingsFilePath();
         actualSettingsFilePath.Should().Be(settingsFilePath);
@@ -189,8 +189,8 @@ public class AnalysisConfigGeneratorTests
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverProperties, [], "9.9", null, null, runtime);
 
         AssertConfigFileExists(config);
-        runtime.Logger.AssertErrorsLogged(0);
-        runtime.Logger.AssertWarningsLogged(0);
+        runtime.Should().HaveErrorsLogged(0);
+        runtime.Should().HaveWarningsLogged(0);
 
         // "Public" arguments should be in the file
         config.SonarProjectKey.Should().Be("valid.key");

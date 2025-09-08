@@ -63,8 +63,8 @@ public class TfsLegacyCoverageReportProcessorTests
         urlProvider.AssertGetUrlsNotCalled();
         downloader.AssertDownloadNotCalled();
         converter.AssertConvertNotCalled();
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveWarnings(0);
+        logger.Should().HaveErrors(0);
     }
 
     [TestMethod]
@@ -92,8 +92,8 @@ public class TfsLegacyCoverageReportProcessorTests
         converter.AssertConvertNotCalled();
         result.Should().BeTrue("Expecting true: no coverage reports is a valid scenario");
 
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveWarnings(0);
+        logger.Should().HaveErrors(0);
     }
 
     [TestMethod]
@@ -127,8 +127,8 @@ public class TfsLegacyCoverageReportProcessorTests
         downloader.AssertExpectedUrlsRequested(ValidUrl1, ValidUrl2);
         result.Should().BeTrue();
 
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveWarnings(0);
+        logger.Should().HaveErrors(0);
     }
 
     [TestMethod]
@@ -158,8 +158,8 @@ public class TfsLegacyCoverageReportProcessorTests
 
         result.Should().BeFalse("Expecting false: report could not be downloaded");
 
-        logger.AssertErrorsLogged(1);
-        logger.AssertWarningsLogged(0);
+        logger.Should().HaveErrors(1);
+        logger.Should().HaveWarnings(0);
     }
 
     [TestMethod]
@@ -196,8 +196,8 @@ public class TfsLegacyCoverageReportProcessorTests
         downloader.AssertExpectedTargetFileNamesSupplied(reportPath);
         result.Should().BeTrue("Expecting true: happy path");
 
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveWarnings(0);
+        logger.Should().HaveErrors(0);
 
         var linesWritten = File.ReadAllLines(testDir + "\\sonar-project.properties");
         linesWritten.Should().BeEquivalentTo(string.Empty, $"{SonarProperties.VsCoverageXmlReportsPaths}={reportPath.Replace(@"\", @"\\")}xml");

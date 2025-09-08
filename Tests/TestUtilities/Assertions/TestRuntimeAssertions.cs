@@ -105,7 +105,7 @@ public class TestRuntimeAssertions : ReferenceTypeAssertions<TestRuntime, TestRu
     }
 
     [CustomAssertion]
-    public AndConstraint<TestRuntimeAssertions> NotHaveDebugLogged(string notExpectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestRuntimeAssertions> NotHaveDebugsLogged(string notExpectedMessage, string because = "", params string[] becauseArgs)
     {
         Subject.Logger.Should().NotHaveDebug(notExpectedMessage, because, becauseArgs);
         return new(this);

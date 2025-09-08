@@ -52,8 +52,8 @@ public class PreprocessorObjectFactoryTests
         var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
 
         result.Should().BeNull();
-        runtime.Logger.AssertNoWarningsLogged();
-        runtime.Logger.AssertSingleErrorExists("An error occured while querying the server version! Please check if the server is running and if the address is correct.");
+        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveSingleErrorLogged("An error occured while querying the server version! Please check if the server is running and if the address is correct.");
     }
 
     [TestMethod]
@@ -64,8 +64,8 @@ public class PreprocessorObjectFactoryTests
         var result = await sut.CreateSonarWebServer(CreateValidArguments("http:/myhost:222"), Substitute.For<IDownloader>());
 
         result.Should().BeNull();
-        runtime.Logger.AssertSingleErrorExists("The value provided for the host URL parameter (http:/myhost:222) is not valid. Please make sure that you have entered a valid URL and try again.");
-        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Should().HaveSingleErrorLogged("The value provided for the host URL parameter (http:/myhost:222) is not valid. Please make sure that you have entered a valid URL and try again.");
+        runtime.Should().HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -76,8 +76,8 @@ public class PreprocessorObjectFactoryTests
         var result = await sut.CreateSonarWebServer(CreateValidArguments("myhost:222"), Substitute.For<IDownloader>());
 
         result.Should().BeNull();
-        runtime.Logger.AssertSingleErrorExists("The URL (myhost:222) provided does not contain the scheme. Please include 'http://' or 'https://' at the beginning.");
-        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Should().HaveSingleErrorLogged("The URL (myhost:222) provided does not contain the scheme. Please include 'http://' or 'https://' at the beginning.");
+        runtime.Should().HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -115,7 +115,7 @@ public class PreprocessorObjectFactoryTests
 
         service.Should().BeNull();
         runtime.Logger
-            .AssertErrorLogged($"Detected {detected} but server was found to be {real}. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.");
+            .Should().HaveErrors($"Detected {detected} but server was found to be {real}. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.");
     }
 
     [TestMethod]
@@ -167,8 +167,8 @@ public class PreprocessorObjectFactoryTests
         var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: null), downloader);
 
         server.Should().BeNull();
-        runtime.Logger.AssertSingleErrorExists(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!");
-        runtime.Logger.AssertSingleWarningExists("""
+        runtime.Should().HaveSingleErrorLogged(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!");
+        runtime.Should().HaveSingleWarningLogged("""
             In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
             If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
             """);

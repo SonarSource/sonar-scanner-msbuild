@@ -81,7 +81,7 @@ public class SonarWebServerTest
         Func<Task> act = async () => await CreateServer(new Version("6.4"), "ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
         await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
-        logger.AssertErrorLogged("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+        logger.Should().HaveErrors("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
     }
 
     [TestMethod]
@@ -731,7 +731,7 @@ public class SonarWebServerTest
             .Throw(new Exception());
 
         (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
-        logger.AssertWarningLogged("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever.");
+        logger.Should().HaveWarnings("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever.");
     }
 
     [TestMethod]
@@ -746,7 +746,7 @@ public class SonarWebServerTest
             .Returns(jresResponse);
 
         (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
-        logger.AssertWarningLogged("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever.");
+        logger.Should().HaveWarnings("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever.");
     }
 
     [TestMethod]
@@ -773,7 +773,7 @@ public class SonarWebServerTest
         jreMetadata.Sha256.Should().Be("42==");
         jreMetadata.JavaPath.Should().Be("best/language/java.exe");
         jreMetadata.DownloadUrl.Should().BeNull();
-        logger.AssertNoWarningsLogged();
+        logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -792,7 +792,7 @@ public class SonarWebServerTest
 
         jreMetadata.Should().NotBeNull();
         jreMetadata.Id.Should().Be("first");
-        logger.AssertNoWarningsLogged();
+        logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -803,7 +803,7 @@ public class SonarWebServerTest
             .Throw(new Exception());
 
         (await sut.DownloadEngineMetadataAsync()).Should().BeNull();
-        logger.AssertWarningLogged("Sonar Engine Metadata could not be retrieved from analysis/engine.");
+        logger.Should().HaveWarnings("Sonar Engine Metadata could not be retrieved from analysis/engine.");
     }
 
     [TestMethod]
@@ -823,7 +823,7 @@ public class SonarWebServerTest
             .Returns(jresResponse);
 
         (await sut.DownloadEngineMetadataAsync()).Should().BeNull();
-        logger.AssertWarningLogged("Sonar Engine Metadata could not be retrieved from analysis/engine.");
+        logger.Should().HaveWarnings("Sonar Engine Metadata could not be retrieved from analysis/engine.");
     }
 
     [TestMethod]
@@ -847,7 +847,7 @@ public class SonarWebServerTest
             Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
             DownloadUrl = new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar")
         });
-        logger.AssertNoWarningsLogged();
+        logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -870,7 +870,7 @@ public class SonarWebServerTest
             Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
             DownloadUrl = (Uri)null,
         });
-        logger.AssertNoWarningsLogged();
+        logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]

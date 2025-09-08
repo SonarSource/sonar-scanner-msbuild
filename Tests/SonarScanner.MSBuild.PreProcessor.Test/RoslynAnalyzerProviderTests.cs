@@ -332,16 +332,16 @@ public class RoslynAnalyzerProviderTests
 
         public void AssertNoWarningsOrErrors()
         {
-            logger.AssertWarningsLogged(0);
-            logger.AssertErrorsLogged(0);
+            logger.Should().HaveWarnings(0);
+            logger.Should().HaveErrors(0);
         }
 
         public void AssertInfoMessages(params string[] expected)
         {
-            logger.AssertInfoLogged(expected.Length);
+            logger.Should().HaveInfos(expected.Length);
             foreach (var info in expected)
             {
-                logger.AssertInfoLogged(info);
+                logger.Should().HaveInfos(info);
             }
         }
 

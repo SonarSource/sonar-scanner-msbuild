@@ -145,12 +145,12 @@ public class TFSProcessorWrapperTest
         {
             // Errors can still be logged when the process completes successfully, so
             // we don't check the error log in this case
-            testLogger.AssertInfoExists(Resources.MSG_TFSProcessorCompleted);
+            testLogger.Should().HaveInfos(Resources.MSG_TFSProcessorCompleted);
         }
         else
         {
-            testLogger.AssertErrorsLogged();
-            testLogger.AssertErrorLogged(Resources.ERR_TFSProcessorExecutionFailed);
+            testLogger.Should().HaveErrors();
+            testLogger.Should().HaveErrors(Resources.ERR_TFSProcessorExecutionFailed);
         }
     }
 

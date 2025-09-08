@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Tasks.UnitTest;
 
 [TestClass]
@@ -49,8 +42,8 @@ public class TaskUtilitiesTests
         result.Should().NotBeNull("Expecting the config to have been loaded");
 
         AssertRetryAttempted(logger);
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveWarnings(0);
+        logger.Should().HaveErrors(0);
     }
 
     [TestMethod] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
@@ -70,8 +63,8 @@ public class TaskUtilitiesTests
         result.Should().BeNull("Not expecting the config to be retrieved");
 
         AssertRetryAttempted(logger);
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(1);
+        logger.Should().HaveWarnings(0);
+        logger.Should().HaveErrors(1);
     }
 
     [TestMethod]
@@ -164,7 +157,7 @@ public class TaskUtilitiesTests
     {
         // We'll assume retry has been attempted if there is a message containing
         // both of the timeout values
-        logger.AssertSingleDebugExists(TaskUtilities.MaxConfigRetryPeriodInMilliseconds.ToString(), TaskUtilities.DelayBetweenRetriesInMilliseconds.ToString());
+        logger.Should().HaveSingleDebug("Commencing retry-able operation. Max wait (milliseconds): 2500, pause between tries (milliseconds): 499");
     }
 
     #endregion Private methods

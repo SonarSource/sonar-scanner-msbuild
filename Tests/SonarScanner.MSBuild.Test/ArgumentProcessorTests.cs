@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Test;
 
 [TestClass]
@@ -142,8 +135,9 @@ public class ArgumentProcessorTests
             "/d: key1=space before",
             "/d:key2 = space after)");
 
-        logger.AssertSingleErrorExists(" key1");
-        logger.AssertSingleErrorExists("key2 ");
+        logger.Should().HaveErrors(
+            "The format of the analysis property  key1=space before is invalid",
+            "The format of the analysis property key2 = space after) is invalid");
     }
 
     [TestMethod]
@@ -157,7 +151,7 @@ public class ArgumentProcessorTests
         var settings = CheckProcessingSucceeds(logger, arguments, "begin");
 
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        logger.Should().HaveWarnings(0);
         AssertExpectedChildArguments(settings, arguments);
     }
 
@@ -172,7 +166,7 @@ public class ArgumentProcessorTests
         var settings = CheckProcessingSucceeds(logger, arguments, "begin");
 
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        logger.Should().HaveWarnings(0);
         AssertExpectedChildArguments(settings, arguments);
     }
 
@@ -185,27 +179,27 @@ public class ArgumentProcessorTests
         logger = new();
         var settings = CheckProcessingSucceeds(logger, ValidUrl, "begin");
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        logger.Should().HaveWarnings(0);
         AssertExpectedChildArguments(settings, ValidUrl);
 
         // 2. With additional parameters -> valid
         logger = new();
         settings = CheckProcessingSucceeds(logger, ValidUrl, "begin", "ignored", "k=2");
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        logger.Should().HaveWarnings(0);
         AssertExpectedChildArguments(settings, ValidUrl, "ignored", "k=2");
 
         // 3. Multiple occurrences -> error
         logger = CheckProcessingFails(ValidUrl, "begin", "begin");
-        logger.AssertSingleErrorExists(ArgumentProcessor.BeginVerb);
+        logger.Should().HaveSingleError("A value has already been supplied for this argument: begin. Existing: ''");
 
         // 4. Missing -> invalid (missing verb)
         logger = CheckProcessingFails(ValidUrl);
-        logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
+        logger.Should().HaveErrors(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
 
         // 5. Incorrect case -> treated as unrecognized argument -> invalid (missing verb)
         logger = CheckProcessingFails(ValidUrl, "BEGIN");
-        logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
+        logger.Should().HaveErrors(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
     }
 
     [TestMethod]
@@ -220,7 +214,7 @@ public class ArgumentProcessorTests
         logger = new TestLogger();
         var settings = CheckProcessingSucceeds(logger, ValidUrl, "begin", "beginX");
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        logger.Should().HaveWarnings(0);
         AssertExpectedChildArguments(settings, ValidUrl, "beginX");
     }
 
@@ -238,7 +232,7 @@ public class ArgumentProcessorTests
         logger = new TestLogger();
         settings = CheckProcessingSucceeds(logger, "end", "ignored", "/d:key=value");
         AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        logger.Should().HaveWarnings(0);
         AssertExpectedChildArguments(settings, "ignored", "/d:key=value");
 
         // 3. Multiple occurrences -> invalid (duplicated argument)
@@ -247,11 +241,11 @@ public class ArgumentProcessorTests
 
         // 4. Missing, no other arguments -> invalid (missing verb)
         logger = CheckProcessingFails([]);
-        logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
+        logger.Should().HaveErrors(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
 
         // 5. Partial match -> unrecognized -> invalid (missing verb)
         logger = CheckProcessingFails("endx");
-        logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
+        logger.Should().HaveErrors(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
     }
 
     [TestMethod]
@@ -266,7 +260,7 @@ public class ArgumentProcessorTests
 
         // Assert
         AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        logger.Should().HaveWarnings(0);
         AssertExpectedChildArguments(settings, "endX", "endXXX");
     }
 
@@ -275,8 +269,8 @@ public class ArgumentProcessorTests
     {
         // 1. Both present
         var logger = CheckProcessingFails(ValidUrl, "begin", "end");
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("begin", "end");
+        logger.Should().HaveErrors(1);
+        logger.Should().HaveSingleError("Invalid command line parameters. Please specify either 'begin' or 'end', not both.");
     }
 
     [TestMethod]
@@ -287,8 +281,8 @@ public class ArgumentProcessorTests
         var settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/d:sonar.verbose=yes");
         settings.LoggingVerbosity.Should().Be(VerbosityCalculator.DefaultLoggingVerbosity, "Only expecting true or false");
 
-        logger.AssertErrorsLogged(0);
-        logger.AssertSingleWarningExists("yes");
+        logger.Should().HaveErrors(0);
+        logger.Should().HaveSingleWarning("Expecting the sonar.verbose property to be set to either 'true' or 'false' (case-sensitive) but it was set to 'yes'.");
     }
 
     [TestMethod]
@@ -324,7 +318,7 @@ public class ArgumentProcessorTests
 
         success.Should().BeTrue("Expecting processing to succeed");
         settings.Should().NotBeNull("Settings should not be null if processing succeeds");
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveErrors(0);
 
         return settings;
     }
@@ -336,7 +330,7 @@ public class ArgumentProcessorTests
 
         success.Should().BeFalse("Expecting processing to fail");
         settings.Should().BeNull("Settings should be null if processing fails");
-        logger.AssertErrorsLogged();
+        logger.Should().HaveErrors();
 
         return logger;
     }

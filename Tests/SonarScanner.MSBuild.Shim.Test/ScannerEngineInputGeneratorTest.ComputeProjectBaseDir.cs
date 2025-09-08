@@ -34,8 +34,8 @@ public partial class ScannerEngineInputGeneratorTest
         };
 
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name"));
-        runtime.Logger.AssertNoWarningsLogged();
-        runtime.Logger.AssertSingleInfoExists(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
     }
 
     // On Unix, there always is a best common root "/" and there are never projects outside of the root.
@@ -54,9 +54,9 @@ public partial class ScannerEngineInputGeneratorTest
         };
 
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
-        runtime.Logger.AssertWarningLogged(@"Directory 'D:\OutsideRoot' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
-        runtime.Logger.AssertWarningLogged(@"Directory 'E:\AlsoOutside' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
-        runtime.Logger.AssertSingleInfoExists(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveWarningsLogged(@"Directory 'D:\OutsideRoot' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
+        runtime.Should().HaveWarningsLogged(@"Directory 'E:\AlsoOutside' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
+        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
     }
 
     // On Linux there always is a best common root "/".
@@ -74,9 +74,9 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).Should().BeNull();
 
-        runtime.Logger.AssertNoErrorsLogged();
-        runtime.Logger.AssertNoWarningsLogged();
-        runtime.Logger.AssertSingleInfoExists(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveNoErrorsLogged();
+        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -91,9 +91,9 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Projects"));
 
-        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Should().HaveNoWarningsLogged();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo($"Using working directory as project base directory: '{Path.Combine(TestUtils.DriveRoot(), "Projects")}'.");
-        runtime.Logger.AssertSingleInfoExists(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -108,7 +108,7 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Solution"));
 
-        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Should().HaveNoWarningsLogged();
         runtime.Logger.DebugMessages.Should().ContainSingle().Which.Should().BeIgnoringLineEndings(
             $"""
             Using longest common projects path as a base directory: '{Path.Combine(TestUtils.DriveRoot(), "Solution")}'. Identified project paths:
@@ -116,7 +116,7 @@ public partial class ScannerEngineInputGeneratorTest
             {Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Src")}
             {Path.Combine(TestUtils.DriveRoot(), "Solution", "JS")}
             """);
-        runtime.Logger.AssertSingleInfoExists(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
     }
 
     // On Unix, there always is a best common root "/".
@@ -135,9 +135,9 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).Should().BeNull();
 
-        runtime.Logger.AssertNoWarningsLogged();
-        runtime.Logger.AssertNoErrorsLogged();
-        runtime.Logger.AssertSingleInfoExists(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveNoErrorsLogged();
+        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
     }
 
     // Case sensitive tests don't apply to Unix.
@@ -156,8 +156,8 @@ public partial class ScannerEngineInputGeneratorTest
         };
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
 
-        runtime.Logger.AssertNoWarningsLogged();
-        runtime.Logger.AssertSingleInfoExists(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
     }
 
     // On Unix, there always is a best common root "/".
@@ -183,7 +183,7 @@ public partial class ScannerEngineInputGeneratorTest
             D:\SomewhereElse
             """
                 .ToUnixLineEndings());
-        runtime.Logger.AssertSingleInfoExists(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod] // the priority is local > scannerEnv > server.

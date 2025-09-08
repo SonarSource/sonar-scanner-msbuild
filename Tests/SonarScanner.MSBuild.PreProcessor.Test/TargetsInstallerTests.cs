@@ -160,7 +160,8 @@ public class TargetsInstallerTests
         runtime.File
             .ReadAllText(Arg.Is<string>(x => Regex.IsMatch(x, sourcePathRegex, RegexOptions.IgnoreCase)))
             .Returns("sourceContent");
-        runtime.File.Exists("c:\\project\\bin\\targets\\SonarQube.Integration.targets").Returns(false);
+        var integrationTargetsPath = "c:\\project\\bin\\targets\\SonarQube.Integration.targets";
+        runtime.File.Exists(integrationTargetsPath).Returns(false);
         runtime.File
             .When(x => x.Copy(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool>()))
             .Do(x =>
@@ -175,7 +176,8 @@ public class TargetsInstallerTests
         }
 
         exceptionThrown.Should().BeTrue();
-        runtime.Logger.AssertSingleWarningExists("This exception should be caught and suppressed by the product code");
+        runtime.Should()
+            .HaveSingleWarningLogged($"Error occurred when installing the loader targets to '{integrationTargetsPath}'. 'This exception should be caught and suppressed by the product code'");
     }
 
     [TestMethod]

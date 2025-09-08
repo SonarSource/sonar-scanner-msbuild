@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -67,8 +60,8 @@ public class CommandLineParserTests
 
         logger = CheckProcessingFails(parser, args);
 
-        logger.AssertSingleErrorExists("/unrecognized");
-        logger.AssertErrorsLogged(1);
+        logger.Should().HaveSingleError("Unrecognized command line argument: /unrecognized");
+        logger.Should().HaveErrors(1);
 
         // 2. Allow unrecognized
         parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, true);
@@ -77,7 +70,7 @@ public class CommandLineParserTests
 
         AssertExpectedValue("id1", "XXX", instances);
         AssertExpectedInstancesCount(1, instances);
-        logger.AssertInfoLogged(0); // expecting unrecognized arguments to be ignored silently
+        logger.Should().HaveInfos(0); // expecting unrecognized arguments to be ignored silently
     }
 
     [TestMethod]
@@ -110,9 +103,10 @@ public class CommandLineParserTests
 
         logger = CheckProcessingFails(parser, args);
 
-        logger.AssertSingleErrorExists("zzzv2", "v1");
-        logger.AssertSingleErrorExists("zzzv3", "v1");
-        logger.AssertErrorsLogged(2);
+        logger.Should().HaveErrors(
+            "A value has already been supplied for this argument: zzzv2. Existing: 'v1'",
+            "A value has already been supplied for this argument: zzzv3. Existing: 'v1'");
+        logger.Should().HaveErrors(2);
 
         // 2. Allow multiples
         d1 = new ArgumentDescriptor("id", new string[] { "zzz" }, true, "desc1", true /* allow multiple */);
@@ -139,8 +133,8 @@ public class CommandLineParserTests
 
         logger = CheckProcessingFails(parser, args);
 
-        logger.AssertSingleErrorExists("desc1");
-        logger.AssertErrorsLogged(1);
+        logger.Should().HaveSingleError("A required argument is missing: desc1");
+        logger.Should().HaveErrors(1);
 
         // 2. Argument is not required
         d1 = new ArgumentDescriptor("id", new string[] { "AAA" }, false /* not required */, "desc1", false /* no multiples */);
@@ -199,8 +193,8 @@ public class CommandLineParserTests
 
         // 2. Disallowed multiples
         logger = CheckProcessingFails(parser, new string[] { "noMult", "noMult" });
-        logger.AssertSingleErrorExists("noMult");
-        logger.AssertErrorsLogged(1);
+        logger.Should().HaveSingleError("A value has already been supplied for this argument: noMult. Existing: ''");
+        logger.Should().HaveErrors(1);
     }
 
     [TestMethod]
@@ -218,15 +212,15 @@ public class CommandLineParserTests
         parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, false);
         logger = CheckProcessingFails(parser, emptyArgs);
 
-        logger.AssertSingleErrorExists("desc1");
-        logger.AssertErrorsLogged(1);
+        logger.Should().HaveSingleError("A required argument is missing: desc1");
+        logger.Should().HaveErrors(1);
 
         // 1b. Argument is required but is only partial match -> missing -> error2
         logger = CheckProcessingFails(parser, matchingPrefixArgs);
 
-        logger.AssertSingleErrorExists("desc1"); // missing arg
-        logger.AssertSingleErrorExists("AAAa"); // unrecognized since not exact match
-        logger.AssertErrorsLogged(2);
+        logger.Should().HaveSingleError("A required argument is missing: desc1");
+        logger.Should().HaveSingleError("Unrecognized command line argument: AAAa");
+        logger.Should().HaveErrors(2);
 
         // 2a. Argument is not required, missing -> ok
         d1 = new ArgumentDescriptor("id", new string[] { "AAA" }, false /* not required */, "desc1", false /* no multiples */, true);
@@ -284,7 +278,7 @@ public class CommandLineParserTests
         var success = parser.ParseArguments(args, logger, out var instances);
         success.Should().BeTrue("Expecting parsing to succeed");
         instances.Should().NotBeNull("Instances should not be null if parsing succeeds");
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveErrors(0);
         return instances;
     }
 
@@ -296,7 +290,7 @@ public class CommandLineParserTests
         success.Should().BeFalse("Expecting parsing to fail");
         instances.Should().NotBeNull("Instances should not be null even if parsing fails");
 
-        logger.AssertErrorsLogged();
+        logger.Should().HaveErrors();
 
         return logger;
     }

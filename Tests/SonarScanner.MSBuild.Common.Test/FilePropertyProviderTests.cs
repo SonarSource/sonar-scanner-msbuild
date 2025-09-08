@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -125,9 +123,9 @@ public class FilePropertyProviderTests
         CheckProcessingFails(args, defaultPropertiesDir, logger);
 
         // Assert
-        logger.AssertErrorsLogged(1);
+        logger.Should().HaveErrors(1);
         // The error should contain the full path of the file
-        logger.AssertSingleErrorExists(Path.Combine(Directory.GetCurrentDirectory(), "missingFile.txt"));
+        logger.Should().HaveSingleError($"Unable to find the analysis settings file '{Path.Combine(Directory.GetCurrentDirectory(), "missingFile.txt")}'. Please fix the path to this settings file.");
     }
 
     [TestMethod]
@@ -144,8 +142,8 @@ public class FilePropertyProviderTests
         CheckProcessingFails(args, defaultPropertiesDir, logger);
 
         // Assert
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists(invalidFile);
+        logger.Should().HaveErrors(1);
+        logger.Should().HaveSingleError($"Unable to read the analysis settings file '{invalidFile}'. Please fix the content of this file.");
     }
 
     [TestMethod]
@@ -165,8 +163,8 @@ public class FilePropertyProviderTests
         CheckProcessingFails(args, defaultPropertiesDir, logger);
 
         // Assert
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists(invalidFile);
+        logger.Should().HaveErrors(1);
+        logger.Should().HaveSingleError($"Unable to read the analysis settings file '{invalidFile}'. Please fix the content of this file.");
     }
 
     [TestMethod]
@@ -211,7 +209,7 @@ public class FilePropertyProviderTests
 
         isValid.Should().BeTrue("Expecting the provider to be initialized successfully");
         provider.Should().NotBeNull("Not expecting a null provider if the function returned true");
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveErrors(0);
 
         return provider;
     }
@@ -222,7 +220,7 @@ public class FilePropertyProviderTests
 
         isValid.Should().BeFalse("Not expecting the provider to be initialized successfully");
         provider.Should().BeNull("Not expecting a provider instance if the function returned true");
-        logger.AssertErrorsLogged();
+        logger.Should().HaveErrors();
     }
 
     private static void AssertExpectedPropertiesFile(string expectedFilePath, IAnalysisPropertyProvider actualProvider)
