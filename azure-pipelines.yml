@@ -323,6 +323,7 @@ stages:
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
           - task: PublishTestResults@2
+            condition: succeededOrFailed()
             inputs:
               testRunner: VSTest
               testResultsFiles: $(Build.SourcesDirectory)/TestResults/**/*.trx
