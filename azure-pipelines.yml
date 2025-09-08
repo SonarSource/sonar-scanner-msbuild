@@ -325,7 +325,7 @@ stages:
           - task: PublishTestResults@2
             inputs:
               testRunner: VSTest
-              testResultsFiles: $sourcesDirectory/TestResults/**/*.trx
+              testResultsFiles: $(Build.SourcesDirectory)/TestResults/**/*.trx
 
           - task: PublishBuildArtifacts@1
             inputs:
