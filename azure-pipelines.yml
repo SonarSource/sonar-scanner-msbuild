@@ -322,6 +322,12 @@ stages:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
+          - task: PublishBuildArtifacts@1
+            condition: succeededOrFailed()
+            inputs:
+              pathToPublish: $(Build.SourcesDirectory)\TestResults\
+              artifactName: TestResults
+
           - task: PublishTestResults@2
             condition: succeededOrFailed()
             inputs:
