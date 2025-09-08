@@ -184,23 +184,6 @@ public class ScannerEngineInputGenerator
         return true;
     }
 
-    private ListPropertiesProvider MapDeprecatedArgs(IAnalysisPropertyProvider userSettings)
-    {
-        var mappedArgs = new ListPropertiesProvider();
-        foreach (var prop in userSettings.GetAllProperties())
-        {
-            if (SonarPropertiesDefault.JavaScannerMapping.TryGetValue(prop.Id, out var mappedKey))
-            {
-                mappedArgs.AddProperty(mappedKey, prop.Value);
-            }
-            else
-            {
-                mappedArgs.AddProperty(prop.Id, prop.Value);
-            }
-        }
-        return mappedArgs;
-    }
-
     /// <summary>
     /// Appends the sonar.projectBaseDir value. This is calculated as follows:
     /// 1. the user supplied value, or if none
@@ -441,5 +424,22 @@ public class ScannerEngineInputGenerator
                 return null;
             }
         }
+    }
+
+    private static ListPropertiesProvider MapDeprecatedArgs(IAnalysisPropertyProvider userSettings)
+    {
+        var mappedArgs = new ListPropertiesProvider();
+        foreach (var prop in userSettings.GetAllProperties())
+        {
+            if (SonarPropertiesDefault.JavaScannerMapping.TryGetValue(prop.Id, out var mappedKey))
+            {
+                mappedArgs.AddProperty(mappedKey, prop.Value);
+            }
+            else
+            {
+                mappedArgs.AddProperty(prop.Id, prop.Value);
+            }
+        }
+        return mappedArgs;
     }
 }
