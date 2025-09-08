@@ -193,7 +193,8 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       var logs = context.runAnalysis().end().getLogs();
 
       assertThat(logs)
