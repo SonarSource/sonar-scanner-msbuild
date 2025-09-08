@@ -856,6 +856,31 @@ public partial class ScannerEngineInputGeneratorTest
         reader.AssertProperty("sonar.some.other.arg", "cliValue");
     }
 
+    [TestMethod]
+    public void GenerateResult_ScannerOptsSettings_AddedToEngineInput()
+    {
+        var config = CreateValidConfig();
+        config.ScannerOptsSettings.Add(new("javax.net.ssl.trustStore", "\"SomeJavaQuotedPath\""));
+        config.ScannerOptsSettings.Add(new("javax.net.ssl.trustStorePassword", "trustStorePassword"));
+        config.ScannerOptsSettings.Add(new("javax.net.ssl.keyStore", "\"Some Quoted/ Path With Spaces /keystore\""));
+        config.ScannerOptsSettings.Add(new("javax.net.ssl.keyStorePassword", "keystorePassword"));
+        config.ScannerOptsSettings.Add(new("http.proxyHost", "proxyHost"));
+        config.ScannerOptsSettings.Add(new("http.proxyPort", "proxyPort"));
+        config.ScannerOptsSettings.Add(new("http.proxyUser", "proxyUser"));
+        config.ScannerOptsSettings.Add(new("http.proxyPassword", "proxyPassword"));
+
+        var reader = CreateInputReader(new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult());
+
+        reader.AssertProperty("sonar.scanner.truststorePath", "SomeJavaQuotedPath");
+        reader.AssertProperty("sonar.scanner.truststorePassword", "trustStorePassword");
+        reader.AssertProperty("sonar.scanner.keystorePath", "Some Quoted/ Path With Spaces /keystore");
+        reader.AssertProperty("sonar.scanner.keystorePassword", "keystorePassword");
+        reader.AssertProperty("sonar.scanner.proxyHost", "proxyHost");
+        reader.AssertProperty("sonar.scanner.proxyPort", "proxyPort");
+        reader.AssertProperty("sonar.scanner.proxyUser", "proxyUser");
+        reader.AssertProperty("sonar.scanner.proxyPassword", "proxyPassword");
+    }
+
     /// <summary>
     /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
     /// Checks that a property file is created.
