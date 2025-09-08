@@ -74,7 +74,6 @@ class BaseDirTest {
   @EnabledOnOs(OS.WINDOWS)
   void whenMajorityOfProjectsIsOnSameDrive_AnalysisSucceeds() {
     var context = createContextWithoutProjectBasedDir("TwoDrivesThreeProjects");
-    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-861
     try {
       TestUtils.createVirtualDrive("Y:", context.projectDir, "DriveY");
       var logs = context.runAnalysis().end().getLogs();
