@@ -1182,15 +1182,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Starting the file download..
-        /// </summary>
-        internal static string MSG_StartingFileDownload {
-            get {
-                return ResourceManager.GetString("MSG_StartingFileDownload", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Starting extracting the Java runtime environment from archive &apos;{0}&apos; to folder &apos;{1}&apos;..
         /// </summary>
         internal static string MSG_StartingJreExtraction {

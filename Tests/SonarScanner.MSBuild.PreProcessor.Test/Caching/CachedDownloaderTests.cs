@@ -144,7 +144,6 @@ public sealed class CachedDownloaderTests : IDisposable
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{DownloadFilePath}'.",
-            "Starting the file download.",
             $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
 
@@ -159,7 +158,6 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{DownloadFilePath}'.",
-            "Starting the file download.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.");
     }
@@ -178,7 +176,6 @@ public sealed class CachedDownloaderTests : IDisposable
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{DownloadFilePath}'.",
-            "Starting the file download.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
             $"Deleting file '{Path.Combine(DownloadPath, TempFileName)}'.",
             "The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
@@ -216,7 +213,6 @@ public sealed class CachedDownloaderTests : IDisposable
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
             $"Deleting file '{DownloadFilePath}'.",
             $"Cache miss. Attempting to download '{DownloadFilePath}'.",
-            "Starting the file download.",
             $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
 
@@ -232,7 +228,6 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{DownloadFilePath}'.",
-            "Starting the file download.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
             "The file was found after the download failed. Another scanner downloaded the file in parallel.",
@@ -253,7 +248,6 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{DownloadFilePath}'.",
-            "Starting the file download.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
             "The file was found after the download failed. Another scanner downloaded the file in parallel.",
