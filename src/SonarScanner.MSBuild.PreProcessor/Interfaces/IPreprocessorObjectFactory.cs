@@ -38,7 +38,7 @@ public interface IPreprocessorObjectFactory
     /// <summary>
     /// Creates the component to install the MSBuild targets.
     /// </summary>
-    ITargetsInstaller CreateTargetInstaller();
+    TargetsInstaller CreateTargetInstaller();
 
     /// <summary>
     /// Creates the component that provisions the Roslyn analyzers.
