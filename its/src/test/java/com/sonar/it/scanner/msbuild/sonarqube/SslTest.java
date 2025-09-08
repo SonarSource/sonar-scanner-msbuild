@@ -416,7 +416,7 @@ class SslTest {
     return server;
   }
 
-  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server, Boolean scannerEngine) {
+  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server, Boolean scannerEngine) { // TODO: remove this boolean param in SCAN4NET-859
     var result = context.runAnalysis();
     var logs = result.end().getLogs();
 
