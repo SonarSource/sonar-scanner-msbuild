@@ -29,6 +29,19 @@ public class ScannerEngineInput
     private const string SonarTests = "sonar.tests";
     private readonly AnalysisConfig config;
 
+    // Map deprecated ScannerCliV5 properties to their scanner-engine equivalents
+    private readonly Dictionary<string, string> javaScannerMapping = new()
+    {
+        { SonarProperties.JavaxNetSslTrustStore, SonarProperties.TruststorePath },
+        { SonarProperties.JavaxNetSslTrustStorePassword, SonarProperties.TruststorePassword },
+        { "javax.net.ssl.keyStore", "sonar.scanner.keystorePath" },
+        { "javax.net.ssl.keyStorePassword", "sonar.scanner.keystorePassword" },
+        { "http.proxyHost", "sonar.scanner.proxyHost" },
+        { "http.proxyPort", "sonar.scanner.proxyPort" },
+        { "http.proxyUser", "sonar.scanner.proxyUser" },
+        { "http.proxyPassword", "sonar.scanner.proxyPassword" },
+    };
+
     private readonly HashSet<string> moduleKeys = [];
     // ScannerEngine takes 2 mandatory string (non-null) properties
     // https://xtranet-sonarsource.atlassian.net/wiki/spaces/CodeOrches/pages/3155001372/Scanner+Bootstrapping#Scanner-Engine-contract
@@ -90,7 +103,14 @@ public class ScannerEngineInput
         // https://github.com/SonarSource/sonar-scanner-msbuild/issues/543 We should no longer pass the sonar.verbose=true parameter to the scanner CLI
         foreach (var setting in properties.GetAllProperties())
         {
-            Add(setting.Id, setting.Value);
+            if (javaScannerMapping.TryGetValue(setting.Id, out var key))
+            {
+                Add(key, setting.Value);
+            }
+            else
+            {
+                Add(setting.Id, setting.Value);
+            }
         }
     }
 
