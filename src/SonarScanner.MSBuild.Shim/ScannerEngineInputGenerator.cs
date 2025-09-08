@@ -174,7 +174,19 @@ public class ScannerEngineInputGenerator
         legacyWriter.WriteGlobalSettings(analysisProperties);
 
         var sensitiveArgsFromSettingsFile = analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
-        engineInput.AddUserSettings(new AggregatePropertiesProvider(cmdLineArgs, new ListPropertiesProvider(sensitiveArgsFromSettingsFile), new ListPropertiesProvider(analysisProperties)));
+        var scannerOptsSettings = new ListPropertiesProvider();
+        foreach (var setting in analysisConfig.ScannerOptsSettings)
+        {
+            // for the scanner-cli we map this to SONAR_SCANNER_OPTS, so always encapsulate with `"` in the pre-processor
+            // this needs to be reversed when calling the scanner-engine directly.
+            scannerOptsSettings.Add(setting.Id, setting.Value.Trim('"'));
+        }
+
+        engineInput.AddUserSettings(new AggregatePropertiesProvider(
+            cmdLineArgs,
+            scannerOptsSettings,
+            new ListPropertiesProvider(sensitiveArgsFromSettingsFile),
+            new ListPropertiesProvider(analysisProperties)));
         return true;
     }
 
