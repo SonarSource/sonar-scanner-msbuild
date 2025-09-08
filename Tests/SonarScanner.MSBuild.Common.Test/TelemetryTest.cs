@@ -31,12 +31,12 @@ public class TelemetryTest
     public void Telemetry_WriteTelemetryMessages()
     {
         var telemetry = new Telemetry(fileWrapper, new TestLogger());
-        telemetry.AddTelemetryMessage("key1", "value1");
-        telemetry.AddTelemetryMessage("key2", "value2");
-        telemetry.AddTelemetryMessage("key3", "value3");
+        telemetry.Add("key1", "value1");
+        telemetry.Add("key2", "value2");
+        telemetry.Add("key3", "value3");
 
         const string outputDir = "outputDir";
-        telemetry.WriteTelemetry(outputDir);
+        telemetry.Write(outputDir);
 
         // Contents are created with string builder to have the correct line endings for each OS
         var contents = new StringBuilder()
@@ -51,12 +51,12 @@ public class TelemetryTest
     public void Telemetry_WriteTelemetryMessages_DifferentValueTypes()
     {
         var telemetry = new Telemetry(fileWrapper, new TestLogger());
-        telemetry.AddTelemetryMessage("key1", "value1");
-        telemetry.AddTelemetryMessage("key2", 2);
-        telemetry.AddTelemetryMessage("key3", true);
+        telemetry.Add("key1", "value1");
+        telemetry.Add("key2", 2);
+        telemetry.Add("key3", true);
 
         const string outputDir = "outputDir";
-        telemetry.WriteTelemetry(outputDir);
+        telemetry.Write(outputDir);
 
         // Contents are created with string builder to have the correct line endings for each OS
         var contents = new StringBuilder()
@@ -74,7 +74,7 @@ public class TelemetryTest
         var telemetryJson = Path.Combine("outputDir", FileConstants.TelemetryFileName);
         fileWrapper.When(x => x.AppendAllText(telemetryJson, Arg.Any<string>())).Do(_ => throw new DirectoryNotFoundException($"Could not find a part of the path '{telemetryJson}'."));
         var telemetry = new Telemetry(fileWrapper, logger);
-        telemetry.WriteTelemetry("outputDir");
+        telemetry.Write("outputDir");
 
         fileWrapper.Received(1).AppendAllText(telemetryJson, Arg.Any<string>());
         logger.Should().HaveWarnings("Could not write Telemetry.S4NET.json in outputDir");
@@ -84,9 +84,9 @@ public class TelemetryTest
     public void Telemetry_WriteTelemetryMessages_NotSupportedValueThrows()
     {
         var telemetry = new Telemetry(fileWrapper, new TestLogger());
-        telemetry.AddTelemetryMessage("key1", new Dictionary<string, string> { { "key2", "value" } });
+        telemetry.Add("key1", new Dictionary<string, string> { { "key2", "value" } });
         const string outputDir = "outputDir";
-        telemetry.Invoking(x => x.WriteTelemetry(outputDir))
+        telemetry.Invoking(x => x.Write(outputDir))
             .Should()
             .ThrowExactly<NotSupportedException>()
             .WithMessage("Unsupported telemetry message value type: System.Collections.Generic.Dictionary`2[System.String,System.String]");

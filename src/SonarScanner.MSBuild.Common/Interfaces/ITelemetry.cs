@@ -25,10 +25,10 @@ public interface ITelemetry
     /// <summary>
     /// Adds a telemetry message to a collection.
     /// </summary>
-    void AddTelemetryMessage(string key, object value);
+    void Add(string key, object value);
 
     /// <summary>
     /// Writes the collection of telemetry messages to the specified output folder.
     /// </summary>
-    void WriteTelemetry(string outputFolder);
+    void Write(string outputFolder);
 }

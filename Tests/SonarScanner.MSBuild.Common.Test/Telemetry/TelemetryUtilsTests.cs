@@ -88,8 +88,8 @@ public class TelemetryUtilsTests
         var telemetry = Substitute.For<ITelemetry>();
         var serverInfo = new ServerHostInfo(serverUrl, serverUrl);
         TelemetryUtils.AddTelemetry(telemetry, serverInfo);
-        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, "SQ_Server");
-        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
+        telemetry.Received(1).Add(TelemetryKeys.ServerInfoProduct, "SQ_Server");
+        telemetry.Received(1).Add(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
     }
 
     [TestMethod]
@@ -102,9 +102,9 @@ public class TelemetryUtilsTests
         var telemetry = Substitute.For<ITelemetry>();
         var serverInfo = new CloudHostInfo(serverUrl, serverUrl, region);
         TelemetryUtils.AddTelemetry(telemetry, serverInfo);
-        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, "SQ_Cloud");
-        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue);
-        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
+        telemetry.Received(1).Add(TelemetryKeys.ServerInfoProduct, "SQ_Cloud");
+        telemetry.Received(1).Add(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue);
+        telemetry.Received(1).Add(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
     }
 
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
@@ -114,12 +114,12 @@ public class TelemetryUtilsTests
         list.AddProperty(propertyId, value);
         var provider = new AggregatePropertiesProvider(list);
         TelemetryUtils.AddTelemetry(telemetry, provider);
-        telemetry.Received(exepectedTelemetry.Length).AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
+        telemetry.Received(exepectedTelemetry.Length).Add(Arg.Any<string>(), Arg.Any<string>());
         foreach (var expected in exepectedTelemetry)
         {
             var parts = expected.Split('=');
             var (expectedPropertyId, expectedValue) = (parts[0], parts[1]);
-            telemetry.Received(1).AddTelemetryMessage(expectedPropertyId, expectedValue);
+            telemetry.Received(1).Add(expectedPropertyId, expectedValue);
         }
     }
 }

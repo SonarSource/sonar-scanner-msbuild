@@ -44,9 +44,9 @@ public record TestRuntime : IRuntime
 
     public TestLogger Logger { get; init; } = new();
 
-    ILogger IRuntime.Logger => Logger;
-
     public TestTelemetry Telemetry { get; init; } = new();
+
+    ILogger IRuntime.Logger => Logger;
 
     ITelemetry IRuntime.Telemetry => Telemetry;
 

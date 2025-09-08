@@ -43,10 +43,10 @@ public class Telemetry : ITelemetry
     /// Saves a telemetry message for later processing.
     /// The <paramref name="value"/> parameter must be a primitive JSON type, like a number, a String, or a Boolean.
     /// </summary>
-    public void AddTelemetryMessage(string key, object value) =>
+    public void Add(string key, object value) =>
         telemetryMessages.Add(new(key, value));
 
-    public void WriteTelemetry(string outputFolder)
+    public void Write(string outputFolder)
     {
         var telemetryMessagesJson = new StringBuilder();
         foreach (var message in telemetryMessages)

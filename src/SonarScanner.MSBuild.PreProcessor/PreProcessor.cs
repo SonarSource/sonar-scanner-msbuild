@@ -87,7 +87,7 @@ public class PreProcessor
             runtime.LogDebug(ex.StackTrace);
             return false;
         }
-        runtime.Telemetry.AddTelemetryMessage(TelemetryKeys.ServerInfoVersion, server.ServerVersion.ToString());
+        runtime.Telemetry.Add(TelemetryKeys.ServerInfoVersion, server.ServerVersion.ToString());
 
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
@@ -121,7 +121,7 @@ public class PreProcessor
             runtime);
 
         runtime.Logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
-        runtime.Telemetry.WriteTelemetry(buildSettings.SonarOutputDirectory);
+        runtime.Telemetry.Write(buildSettings.SonarOutputDirectory);
         return true;
     }
 

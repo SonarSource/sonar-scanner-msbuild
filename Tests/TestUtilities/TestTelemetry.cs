@@ -25,9 +25,9 @@ public class TestTelemetry : ITelemetry
     public List<KeyValuePair<string, object>> Messages { get; } = [];
     public string OutputPath { get; private set; }
 
-    public void AddTelemetryMessage(string key, object value) =>
+    public void Add(string key, object value) =>
         Messages.Add(new(key, value));
 
-    public void WriteTelemetry(string outputFolder) =>
+    public void Write(string outputFolder) =>
         OutputPath = outputFolder;
 }

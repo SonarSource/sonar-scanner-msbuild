@@ -26,7 +26,7 @@ public static class TelemetryUtils
     {
         foreach (var kvp in aggregatedProperties.GetAllPropertiesWithProvider().SelectMany(SelectManyTelemetryProperties))
         {
-            telemetry.AddTelemetryMessage(kvp.Key, kvp.Value);
+            telemetry.Add(kvp.Key, kvp.Value);
         }
     }
 
@@ -40,7 +40,7 @@ public static class TelemetryUtils
         string serverUrl;
         if (serverInfo is CloudHostInfo cloudServerInfo)
         {
-            telemetry.AddTelemetryMessage(TelemetryKeys.ServerInfoRegion, string.IsNullOrWhiteSpace(cloudServerInfo.Region) ? TelemetryValues.ServerInfoRegion.Default : cloudServerInfo.Region);
+            telemetry.Add(TelemetryKeys.ServerInfoRegion, string.IsNullOrWhiteSpace(cloudServerInfo.Region) ? TelemetryValues.ServerInfoRegion.Default : cloudServerInfo.Region);
             serverUrl = CloudHostInfo.IsKnownUrl(cloudServerInfo.ServerUrl) ? cloudServerInfo.ServerUrl : TelemetryValues.ServerInfoServerUrl.CustomUrl;
         }
         else
@@ -48,8 +48,8 @@ public static class TelemetryUtils
             serverUrl = serverInfo.ServerUrl == "http://localhost:9000" ? TelemetryValues.ServerInfoServerUrl.Localhost : TelemetryValues.ServerInfoServerUrl.CustomUrl;
         }
 
-        telemetry.AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, serverInfo.IsSonarCloud ? TelemetryValues.Product.Cloud : TelemetryValues.Product.Server);
-        telemetry.AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, serverUrl);
+        telemetry.Add(TelemetryKeys.ServerInfoProduct, serverInfo.IsSonarCloud ? TelemetryValues.Product.Cloud : TelemetryValues.Product.Server);
+        telemetry.Add(TelemetryKeys.ServerInfoServerUrl, serverUrl);
     }
 
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
