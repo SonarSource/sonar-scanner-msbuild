@@ -165,6 +165,28 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
+    public void Execute_WorkingDirectoryIsSonarScannerWorkingDirectory()
+    {
+        var context = new Context();
+        var config = new AnalysisConfig
+        {
+            JavaExePath = context.ResolvedJavaExe,
+            EngineJarPath = "engine.jar",
+            SonarScannerWorkingDirectory = @"C:\MyWorkingDir"
+        };
+
+        context.Execute(config).Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = (string[])["-jar", "engine.jar"],
+            StandardInput = SampleInput,
+            WorkingDirectory = @"C:\MyWorkingDir",
+        });
+    }
+
+    [TestMethod]
     // Java Params that come afterwards overwrite earlier ones
     public void Execute_ScannerOptsFromConfig_ComeAfterScannerOptsFromEnv()
     {
