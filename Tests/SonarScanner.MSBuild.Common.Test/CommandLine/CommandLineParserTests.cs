@@ -60,7 +60,7 @@ public class CommandLineParserTests
 
         logger = CheckProcessingFails(parser, args);
 
-        logger.Should().HaveSingleError("Unrecognized command line argument: /unrecognized");
+        logger.Should().HaveErrorOnce("Unrecognized command line argument: /unrecognized");
         logger.Should().HaveErrors(1);
 
         // 2. Allow unrecognized
@@ -70,7 +70,7 @@ public class CommandLineParserTests
 
         AssertExpectedValue("id1", "XXX", instances);
         AssertExpectedInstancesCount(1, instances);
-        logger.Should().HaveInfos(0); // expecting unrecognized arguments to be ignored silently
+        logger.Should().HaveNoInfos(); // expecting unrecognized arguments to be ignored silently
     }
 
     [TestMethod]
@@ -133,7 +133,7 @@ public class CommandLineParserTests
 
         logger = CheckProcessingFails(parser, args);
 
-        logger.Should().HaveSingleError("A required argument is missing: desc1");
+        logger.Should().HaveErrorOnce("A required argument is missing: desc1");
         logger.Should().HaveErrors(1);
 
         // 2. Argument is not required
@@ -193,7 +193,7 @@ public class CommandLineParserTests
 
         // 2. Disallowed multiples
         logger = CheckProcessingFails(parser, new string[] { "noMult", "noMult" });
-        logger.Should().HaveSingleError("A value has already been supplied for this argument: noMult. Existing: ''");
+        logger.Should().HaveErrorOnce("A value has already been supplied for this argument: noMult. Existing: ''");
         logger.Should().HaveErrors(1);
     }
 
@@ -212,14 +212,14 @@ public class CommandLineParserTests
         parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, false);
         logger = CheckProcessingFails(parser, emptyArgs);
 
-        logger.Should().HaveSingleError("A required argument is missing: desc1");
+        logger.Should().HaveErrorOnce("A required argument is missing: desc1");
         logger.Should().HaveErrors(1);
 
         // 1b. Argument is required but is only partial match -> missing -> error2
         logger = CheckProcessingFails(parser, matchingPrefixArgs);
 
-        logger.Should().HaveSingleError("A required argument is missing: desc1");
-        logger.Should().HaveSingleError("Unrecognized command line argument: AAAa");
+        logger.Should().HaveErrorOnce("A required argument is missing: desc1");
+        logger.Should().HaveErrorOnce("Unrecognized command line argument: AAAa");
         logger.Should().HaveErrors(2);
 
         // 2a. Argument is not required, missing -> ok
@@ -278,7 +278,7 @@ public class CommandLineParserTests
         var success = parser.ParseArguments(args, logger, out var instances);
         success.Should().BeTrue("Expecting parsing to succeed");
         instances.Should().NotBeNull("Instances should not be null if parsing succeeds");
-        logger.Should().HaveErrors(0);
+        logger.Should().HaveNoErrors();
         return instances;
     }
 

@@ -49,7 +49,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_NoArguments_ProcessingFails()
     {
         var runtime = CheckProcessingFails();
-        runtime.Should().HaveSingleErrorLogged("A required argument is missing: /key:[SonarQube/SonarCloud project key]");
+        runtime.Should().HaveErrorLoggedOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]");
         runtime.Should().HaveErrorsLogged(1);
     }
 
@@ -57,7 +57,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_KeyHasNoValue_ProcessingFails()
     {
         var runtime = CheckProcessingFails("/key:");
-        runtime.Should().HaveSingleErrorLogged("A required argument is missing: /key:[SonarQube/SonarCloud project key]");
+        runtime.Should().HaveErrorLoggedOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]");
         runtime.Should().HaveErrorsLogged(1);
     }
 
@@ -297,7 +297,7 @@ public class ArgumentProcessorTests
     {
         var runtime = CheckProcessingFails("/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl");
         runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveSingleErrorLogged("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.");
+        runtime.Should().HaveErrorLoggedOnce("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.");
     }
 
     [DataRow("unrecog2", "unrecog1", "/p:key=value", "")]   // /p: is no longer supported - should be /d:
@@ -312,7 +312,7 @@ public class ArgumentProcessorTests
         runtime.Should().NotHaveErrorLogged("/version:");
         foreach (var arg in args.Where(x => x is not "")) // we still log an error for "", but we cannot match on it
         {
-            runtime.Should().HaveSingleErrorLogged("Unrecognized command line argument: " + arg);
+            runtime.Should().HaveErrorLoggedOnce("Unrecognized command line argument: " + arg);
         }
         runtime.Should().HaveErrorsLogged(args.Length);
     }
@@ -341,7 +341,7 @@ public class ArgumentProcessorTests
     {
         var runtime = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", $"/install:{installValue}");
         runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveSingleErrorLogged($"""Invalid value for /install: {installValue}. Valid values are "true" or "false".""");
+        runtime.Should().HaveErrorLoggedOnce($"""Invalid value for /install: {installValue}. Valid values are "true" or "false".""");
     }
 
     [TestMethod]
@@ -350,7 +350,7 @@ public class ArgumentProcessorTests
         var runtime = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:true", "/install:false");
         // we expect the error to include the first value and the duplicate argument
         runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveSingleErrorLogged("A value has already been supplied for this argument: /install:false. Existing: 'true'");
+        runtime.Should().HaveErrorLoggedOnce("A value has already been supplied for this argument: /install:false. Existing: 'true'");
     }
 
     [TestMethod]
@@ -392,7 +392,7 @@ public class ArgumentProcessorTests
         var runtime = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
         runtime.Should().HaveErrorsLogged(1);
         runtime.Should()
-            .HaveSingleErrorLogged("sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag.");
+            .HaveErrorLoggedOnce("sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag.");
     }
 
     [DataRow("/key:my.key", "/name:my name", "/version:1.0")]
@@ -421,7 +421,7 @@ public class ArgumentProcessorTests
     {
         var runtime = CheckProcessingFails(args);
         runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveSingleErrorLogged(expectedError);  // we expect the error to include the first value and the duplicate argument
+        runtime.Should().HaveErrorLoggedOnce(expectedError);  // we expect the error to include the first value and the duplicate argument
     }
 
     [TestMethod]
@@ -546,7 +546,7 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PreArgProc_Disallowed_DynamicSettings_ProcessingFails(string[] args, string error) =>
         CheckProcessingFails([.. args, "/key:my.key", "/name:my name", "/version:1.2"]).Logger
-            .Should().HaveSingleError(error);
+            .Should().HaveErrorOnce(error);
 
     [DataRow("/organization:my_org", "my_org")]
     [DataRow("/o:my_org", "my_org")]
@@ -981,7 +981,7 @@ public class ArgumentProcessorTests
     {
         var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, runtime);
         result.Should().NotBeNull();
-        runtime.Should().HaveErrorsLogged(0);
+        runtime.Should().HaveNoErrorsLogged();
         return result;
     }
 

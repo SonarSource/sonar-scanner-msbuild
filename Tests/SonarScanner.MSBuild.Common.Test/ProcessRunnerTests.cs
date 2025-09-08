@@ -343,7 +343,7 @@ public class ProcessRunnerTests
         // Check the runner reported it was overwriting existing variables
         // Note: the existing non-process values won't be visible to the child process
         // unless they were set *before* the test host launched, which won't be the case.
-        context.Logger.Should().HaveSingleDebug("Overwriting the value of environment variable 'proc_runner_test_process'. Old value: existing process value, new value: process override");
+        context.Logger.Should().HaveDebugOnce("Overwriting the value of environment variable 'proc_runner_test_process'. Old value: existing process value, new value: process override");
     }
 
     [TestMethod]
@@ -356,7 +356,7 @@ public class ProcessRunnerTests
         };
 
         context.ExecuteAndAssert();
-        context.Logger.Should().HaveSingleError("Execution failed. The specified executable does not exist: missingExe.foo");
+        context.Logger.Should().HaveErrorOnce("Execution failed. The specified executable does not exist: missingExe.foo");
     }
 
     [TestMethod]
@@ -539,10 +539,10 @@ public class ProcessRunnerTests
         {
             context.Logger.DebugMessages.Should().ContainSingle(x => x.Contains(arg));
         }
-        context.Logger.Should().HaveSingleDebug("Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>");
-        context.Logger.Should().HaveSingleDebug("Setting environment variable 'NOT_SENSITIVE'. Value: Something");
-        context.Logger.Should().HaveSingleDebug("Setting environment variable 'MIXED_DATA'. Value: -DBefore=true -D<sensitive data removed>");
-        context.Logger.Should().HaveSingleDebug("Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
+        context.Logger.Should().HaveDebugOnce("Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>");
+        context.Logger.Should().HaveDebugOnce("Setting environment variable 'NOT_SENSITIVE'. Value: Something");
+        context.Logger.Should().HaveDebugOnce("Setting environment variable 'MIXED_DATA'. Value: -DBefore=true -D<sensitive data removed>");
+        context.Logger.Should().HaveDebugOnce("Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
         context.Logger.DebugMessages.Should().ContainSingle(x => x.Contains("Overwriting the value of environment variable 'EXISTING_SENSITIVE_DATA'. Old value: -D<sensitive data removed>, new value: -D<sensitive data removed>"));
         context.Logger.DebugMessages.Should().ContainSingle(x => x.Contains("Args: public1 public2 /dmy.key=value /d:sonar.projectKey=my.key <sensitive data removed>"));
         context.AssertTextDoesNotAppearInLog("secret");

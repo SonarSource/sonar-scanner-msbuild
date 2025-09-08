@@ -42,8 +42,8 @@ public class TaskUtilitiesTests
         result.Should().NotBeNull("Expecting the config to have been loaded");
 
         AssertRetryAttempted(logger);
-        logger.Should().HaveWarnings(0);
-        logger.Should().HaveErrors(0);
+        logger.Should().HaveNoWarnings();
+        logger.Should().HaveNoErrors();
     }
 
     [TestMethod] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
@@ -63,7 +63,7 @@ public class TaskUtilitiesTests
         result.Should().BeNull("Not expecting the config to be retrieved");
 
         AssertRetryAttempted(logger);
-        logger.Should().HaveWarnings(0);
+        logger.Should().HaveNoWarnings();
         logger.Should().HaveErrors(1);
     }
 
@@ -157,7 +157,7 @@ public class TaskUtilitiesTests
     {
         // We'll assume retry has been attempted if there is a message containing
         // both of the timeout values
-        logger.Should().HaveSingleDebug("Commencing retry-able operation. Max wait (milliseconds): 2500, pause between tries (milliseconds): 499");
+        logger.Should().HaveDebugOnce("Commencing retry-able operation. Max wait (milliseconds): 2500, pause between tries (milliseconds): 499");
     }
 
     #endregion Private methods

@@ -65,7 +65,7 @@ public class BootstrapperClassTests
                 "/d:sonar.host.url=http://host:9",
                 "/d:another.key=will be ignored");
 
-            logger.Should().HaveWarnings(0);
+            logger.Should().HaveNoWarnings();
             logger.AssertVerbosity(LoggerVerbosity.Debug);
             AssertPreProcessorArgs(
                 "/install:true",
@@ -190,7 +190,7 @@ public class BootstrapperClassTests
         {
             var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
-            logger.Should().HaveWarnings(0);
+            logger.Should().HaveNoWarnings();
             logger.AssertVerbosity(VerbosityCalculator.DefaultLoggingVerbosity);
             AssertPreProcessorArgs("/d:sonar.host.url=http://anotherHost");
         }
@@ -224,7 +224,7 @@ public class BootstrapperClassTests
 
             var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
 
-            logger.Should().HaveWarnings(0);
+            logger.Should().HaveNoWarnings();
             logger.Should().HaveErrors(1);
             AssertPostProcessorArgs();
         }
@@ -250,7 +250,7 @@ public class BootstrapperClassTests
             Directory.CreateDirectory(tempDir);
             var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params");
 
-            logger.Should().HaveWarnings(0);
+            logger.Should().HaveNoWarnings();
             // The bootstrapper passes through any parameters it doesn't recognize so the post-processor
             // can decide whether to handle them or not
             AssertPostProcessorArgs("other params", "yet.more.params");
@@ -268,7 +268,7 @@ public class BootstrapperClassTests
 
             var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params");
 
-            logger.Should().HaveWarnings(0);
+            logger.Should().HaveNoWarnings();
             logger.Should().HaveErrors(2);
             AssertPostProcessorNotCalled();
         }
@@ -331,7 +331,7 @@ public class BootstrapperClassTests
         var exitCode = bootstrapper.Execute().Result;
 
         exitCode.Should().Be(0, "Bootstrapper did not return the expected exit code");
-        logger.Should().HaveErrors(0);
+        logger.Should().HaveNoErrors();
 
         return logger;
     }

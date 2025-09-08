@@ -331,11 +331,11 @@ public partial class ScannerEngineInputGeneratorTest
         if (isRaisingAWarning)
         {
             runtime.Should().HaveWarningsLogged(1);
-            runtime.Should().HaveSingleWarningLogged($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
+            runtime.Should().HaveWarningLoggedOnce($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
         }
         else
         {
-            runtime.Should().HaveWarningsLogged(0);
+            runtime.Should().HaveNoWarningsLogged();
         }
     }
 
@@ -478,8 +478,8 @@ public partial class ScannerEngineInputGeneratorTest
         AssertFileIsReferenced(existingManagedFile, actual);
         AssertFileIsNotReferenced(missingContentFile, actual);
         AssertFileIsNotReferenced(missingManagedFile, actual);
-        runtime.Should().HaveSingleWarningLogged($"File '{missingManagedFile}' does not exist.");
-        runtime.Should().HaveSingleWarningLogged($"File '{missingContentFile}' does not exist.");
+        runtime.Should().HaveWarningLoggedOnce($"File '{missingManagedFile}' does not exist.");
+        runtime.Should().HaveWarningLoggedOnce($"File '{missingContentFile}' does not exist.");
     }
 
     [TestMethod]
@@ -553,7 +553,7 @@ public partial class ScannerEngineInputGeneratorTest
         var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Should().HaveWarningsLogged(0);
+        runtime.Should().HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -566,7 +566,7 @@ public partial class ScannerEngineInputGeneratorTest
         var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Should().HaveSingleWarningLogged("Overriding analysis property. Effective value: sonar.visualstudio.enable=false");
+        runtime.Should().HaveWarningLoggedOnce("Overriding analysis property. Effective value: sonar.visualstudio.enable=false");
     }
 
     [TestMethod]
@@ -579,7 +579,7 @@ public partial class ScannerEngineInputGeneratorTest
         sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         runtime.Should().HaveDebugsLogged("Analysis property is already correctly set: sonar.visualstudio.enable=false");
-        runtime.Should().HaveWarningsLogged(0); // not expecting a warning if the user has supplied the value we want
+        runtime.Should().HaveNoWarningsLogged(); // not expecting a warning if the user has supplied the value we want
     }
 
     [TestMethod]

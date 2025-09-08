@@ -35,24 +35,17 @@ public class TestRuntimeAssertions : ReferenceTypeAssertions<TestRuntime, TestRu
     public TestRuntimeAssertions(TestRuntime subject) : base(subject) { }
 
     [CustomAssertion]
-    public AndConstraint<TestRuntimeAssertions> HaveErrorsLogged(int expectedCount, string because = "", params string[] becauseArgs)
+    public AndWhichConstraint<TestRuntimeAssertions, List<string>> HaveErrorsLogged(int expectedCount, string because = "", params string[] becauseArgs)
     {
         Subject.Logger.Should().HaveErrors(expectedCount, because, becauseArgs);
-        return new(this);
+        return new(this, Subject.Logger.Errors);
     }
 
     [CustomAssertion]
-    public AndConstraint<TestRuntimeAssertions> HaveWarningsLogged(int expectedCount, string because = "", params string[] becauseArgs)
+    public AndWhichConstraint<TestRuntimeAssertions, List<string>> HaveWarningsLogged(int expectedCount, string because = "", params string[] becauseArgs)
     {
         Subject.Logger.Should().HaveWarnings(expectedCount, because, becauseArgs);
-        return new(this);
-    }
-
-    [CustomAssertion]
-    public AndConstraint<TestRuntimeAssertions> HaveInfosLogged(int expectedCount, string because = "", params string[] becauseArgs)
-    {
-        Subject.Logger.Should().HaveInfos(expectedCount, because, becauseArgs);
-        return new(this);
+        return new(this, Subject.Logger.Warnings);
     }
 
     [CustomAssertion]
@@ -105,7 +98,7 @@ public class TestRuntimeAssertions : ReferenceTypeAssertions<TestRuntime, TestRu
     }
 
     [CustomAssertion]
-    public AndConstraint<TestRuntimeAssertions> NotHaveDebugsLogged(string notExpectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestRuntimeAssertions> NotHaveDebugLogged(string notExpectedMessage, string because = "", params string[] becauseArgs)
     {
         Subject.Logger.Should().NotHaveDebug(notExpectedMessage, because, becauseArgs);
         return new(this);
@@ -119,30 +112,30 @@ public class TestRuntimeAssertions : ReferenceTypeAssertions<TestRuntime, TestRu
     }
 
     [CustomAssertion]
-    public AndConstraint<TestRuntimeAssertions> HaveSingleErrorLogged(string expectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestRuntimeAssertions> HaveErrorLoggedOnce(string expectedMessage, string because = "", params string[] becauseArgs)
     {
-        Subject.Logger.Should().HaveSingleError(expectedMessage, because, becauseArgs);
+        Subject.Logger.Should().HaveErrorOnce(expectedMessage, because, becauseArgs);
         return new(this);
     }
 
     [CustomAssertion]
-    public AndConstraint<TestRuntimeAssertions> HaveSingleWarningLogged(string expectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestRuntimeAssertions> HaveWarningLoggedOnce(string expectedMessage, string because = "", params string[] becauseArgs)
     {
-        Subject.Logger.Should().HaveSingleWarning(expectedMessage, because, becauseArgs);
+        Subject.Logger.Should().HaveWarningOnce(expectedMessage, because, becauseArgs);
         return new(this);
     }
 
     [CustomAssertion]
-    public AndConstraint<TestRuntimeAssertions> HaveSingleDebugLogged(string expectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestRuntimeAssertions> HaveDebugLoggedOnce(string expectedMessage, string because = "", params string[] becauseArgs)
     {
-        Subject.Logger.Should().HaveSingleDebug(expectedMessage, because, becauseArgs);
+        Subject.Logger.Should().HaveDebugOnce(expectedMessage, because, becauseArgs);
         return new(this);
     }
 
     [CustomAssertion]
-    public AndConstraint<TestRuntimeAssertions> HaveSingleInfoLogged(string expectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestRuntimeAssertions> HaveInfoLoggedOnce(string expectedMessage, string because = "", params string[] becauseArgs)
     {
-        Subject.Logger.Should().HaveSingleInfo(expectedMessage, because, becauseArgs);
+        Subject.Logger.Should().HaveInfoOnce(expectedMessage, because, becauseArgs);
         return new(this);
     }
 }

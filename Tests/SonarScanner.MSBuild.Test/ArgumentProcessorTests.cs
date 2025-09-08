@@ -151,7 +151,7 @@ public class ArgumentProcessorTests
         var settings = CheckProcessingSucceeds(logger, arguments, "begin");
 
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.Should().HaveWarnings(0);
+        logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, arguments);
     }
 
@@ -166,7 +166,7 @@ public class ArgumentProcessorTests
         var settings = CheckProcessingSucceeds(logger, arguments, "begin");
 
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.Should().HaveWarnings(0);
+        logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, arguments);
     }
 
@@ -179,19 +179,19 @@ public class ArgumentProcessorTests
         logger = new();
         var settings = CheckProcessingSucceeds(logger, ValidUrl, "begin");
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.Should().HaveWarnings(0);
+        logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, ValidUrl);
 
         // 2. With additional parameters -> valid
         logger = new();
         settings = CheckProcessingSucceeds(logger, ValidUrl, "begin", "ignored", "k=2");
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.Should().HaveWarnings(0);
+        logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, ValidUrl, "ignored", "k=2");
 
         // 3. Multiple occurrences -> error
         logger = CheckProcessingFails(ValidUrl, "begin", "begin");
-        logger.Should().HaveSingleError("A value has already been supplied for this argument: begin. Existing: ''");
+        logger.Should().HaveErrorOnce("A value has already been supplied for this argument: begin. Existing: ''");
 
         // 4. Missing -> invalid (missing verb)
         logger = CheckProcessingFails(ValidUrl);
@@ -214,7 +214,7 @@ public class ArgumentProcessorTests
         logger = new TestLogger();
         var settings = CheckProcessingSucceeds(logger, ValidUrl, "begin", "beginX");
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.Should().HaveWarnings(0);
+        logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, ValidUrl, "beginX");
     }
 
@@ -232,7 +232,7 @@ public class ArgumentProcessorTests
         logger = new TestLogger();
         settings = CheckProcessingSucceeds(logger, "end", "ignored", "/d:key=value");
         AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
-        logger.Should().HaveWarnings(0);
+        logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, "ignored", "/d:key=value");
 
         // 3. Multiple occurrences -> invalid (duplicated argument)
@@ -260,7 +260,7 @@ public class ArgumentProcessorTests
 
         // Assert
         AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
-        logger.Should().HaveWarnings(0);
+        logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, "endX", "endXXX");
     }
 
@@ -270,7 +270,7 @@ public class ArgumentProcessorTests
         // 1. Both present
         var logger = CheckProcessingFails(ValidUrl, "begin", "end");
         logger.Should().HaveErrors(1);
-        logger.Should().HaveSingleError("Invalid command line parameters. Please specify either 'begin' or 'end', not both.");
+        logger.Should().HaveErrorOnce("Invalid command line parameters. Please specify either 'begin' or 'end', not both.");
     }
 
     [TestMethod]
@@ -281,8 +281,8 @@ public class ArgumentProcessorTests
         var settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/d:sonar.verbose=yes");
         settings.LoggingVerbosity.Should().Be(VerbosityCalculator.DefaultLoggingVerbosity, "Only expecting true or false");
 
-        logger.Should().HaveErrors(0);
-        logger.Should().HaveSingleWarning("Expecting the sonar.verbose property to be set to either 'true' or 'false' (case-sensitive) but it was set to 'yes'.");
+        logger.Should().HaveNoErrors();
+        logger.Should().HaveWarningOnce("Expecting the sonar.verbose property to be set to either 'true' or 'false' (case-sensitive) but it was set to 'yes'.");
     }
 
     [TestMethod]
@@ -318,7 +318,7 @@ public class ArgumentProcessorTests
 
         success.Should().BeTrue("Expecting processing to succeed");
         settings.Should().NotBeNull("Settings should not be null if processing succeeds");
-        logger.Should().HaveErrors(0);
+        logger.Should().HaveNoErrors();
 
         return settings;
     }

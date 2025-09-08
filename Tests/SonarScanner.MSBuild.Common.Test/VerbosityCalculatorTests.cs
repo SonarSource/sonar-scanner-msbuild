@@ -64,7 +64,7 @@ public class VerbosityCalculatorTests
 
         actualVerbosity.Should().Be(expectedVerbosity, errorMessage);
 
-        logger.Should().HaveErrors(0);
+        logger.Should().HaveNoErrors();
         logger.Should().HaveWarnings(expectedNumberOfWarnings);
     }
 

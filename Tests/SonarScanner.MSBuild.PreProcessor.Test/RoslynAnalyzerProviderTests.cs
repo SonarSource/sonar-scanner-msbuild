@@ -332,8 +332,8 @@ public class RoslynAnalyzerProviderTests
 
         public void AssertNoWarningsOrErrors()
         {
-            logger.Should().HaveWarnings(0);
-            logger.Should().HaveErrors(0);
+            logger.Should().HaveNoWarnings();
+            logger.Should().HaveNoErrors();
         }
 
         public void AssertInfoMessages(params string[] expected)

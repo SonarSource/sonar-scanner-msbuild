@@ -36,33 +36,33 @@ public class TestLoggerAssertions : ReferenceTypeAssertions<TestLogger, TestLogg
     public TestLoggerAssertions(TestLogger subject) : base(subject) { }
 
     [CustomAssertion]
-    public AndConstraint<TestLoggerAssertions> HaveErrors(int expectedCount, string because = "", params string[] becauseArgs)
+    public AndWhichConstraint<TestLoggerAssertions, List<string>> HaveErrors(int expectedCount, string because = "", params string[] becauseArgs)
     {
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(Subject.Errors.Count == expectedCount)
             .FailWith($"Expected {expectedCount} errors to be logged, but found {Subject.Errors.Count}.");
-        return new(this);
+        return new(this, Subject.Errors);
     }
 
     [CustomAssertion]
-    public AndConstraint<TestLoggerAssertions> HaveWarnings(int expectedCount, string because = "", params string[] becauseArgs)
+    public AndWhichConstraint<TestLoggerAssertions, List<string>> HaveWarnings(int expectedCount, string because = "", params string[] becauseArgs)
     {
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(Subject.Warnings.Count == expectedCount)
             .FailWith($"Expected {expectedCount} warnings to be logged, but found {Subject.Errors.Count}.");
-        return new(this);
+        return new(this, Subject.Warnings);
     }
 
     [CustomAssertion]
-    public AndConstraint<TestLoggerAssertions> HaveInfos(int expectedCount, string because = "", params string[] becauseArgs)
+    public AndWhichConstraint<TestLoggerAssertions, List<string>> HaveInfos(int expectedCount, string because = "", params string[] becauseArgs)
     {
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(Subject.InfoMessages.Count == expectedCount)
             .FailWith($"Expected {expectedCount} INFO messages to be logged, but found {Subject.Errors.Count}.");
-        return new(this);
+        return new(this, Subject.InfoMessages);
     }
 
     [CustomAssertion]
@@ -178,6 +178,16 @@ public class TestLoggerAssertions : ReferenceTypeAssertions<TestLogger, TestLogg
     }
 
     [CustomAssertion]
+    public AndConstraint<TestLoggerAssertions> HaveNoInfos(string because = "", params string[] becauseArgs)
+    {
+        Execute.Assertion
+            .BecauseOf(because, becauseArgs)
+            .ForCondition(Subject.InfoMessages.Count == 0)
+            .FailWith($"Expected no INFO messages to be logged, but found:\n{ListOfQuotedStrings(Subject.InfoMessages)}");
+        return new(this);
+    }
+
+    [CustomAssertion]
     public AndConstraint<TestLoggerAssertions> NotHaveError(string notExpectedMessage, string because = "", params string[] becauseArgs)
     {
         Execute.Assertion
@@ -208,7 +218,7 @@ public class TestLoggerAssertions : ReferenceTypeAssertions<TestLogger, TestLogg
     }
 
     [CustomAssertion]
-    public AndConstraint<TestLoggerAssertions> HaveSingleError(string expectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestLoggerAssertions> HaveErrorOnce(string expectedMessage, string because = "", params string[] becauseArgs)
     {
         var matches = Subject.Errors.Count(x => expectedMessage.ToUnixLineEndings().Equals(x, StringComparison.CurrentCulture));
         Execute.Assertion
@@ -221,7 +231,7 @@ public class TestLoggerAssertions : ReferenceTypeAssertions<TestLogger, TestLogg
     }
 
     [CustomAssertion]
-    public AndConstraint<TestLoggerAssertions> HaveSingleWarning(string expectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestLoggerAssertions> HaveWarningOnce(string expectedMessage, string because = "", params string[] becauseArgs)
     {
         var matches = Subject.Warnings.Count(x => expectedMessage.ToUnixLineEndings().Equals(x, StringComparison.CurrentCulture));
         Execute.Assertion
@@ -234,7 +244,7 @@ public class TestLoggerAssertions : ReferenceTypeAssertions<TestLogger, TestLogg
     }
 
     [CustomAssertion]
-    public AndConstraint<TestLoggerAssertions> HaveSingleDebug(string expectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestLoggerAssertions> HaveDebugOnce(string expectedMessage, string because = "", params string[] becauseArgs)
     {
         var matches = Subject.DebugMessages.Count(x => expectedMessage.ToUnixLineEndings().Equals(x, StringComparison.CurrentCulture));
         Execute.Assertion
@@ -247,7 +257,7 @@ public class TestLoggerAssertions : ReferenceTypeAssertions<TestLogger, TestLogg
     }
 
     [CustomAssertion]
-    public AndConstraint<TestLoggerAssertions> HaveSingleInfo(string expectedMessage, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestLoggerAssertions> HaveInfoOnce(string expectedMessage, string because = "", params string[] becauseArgs)
     {
         var matches = Subject.InfoMessages.Count(x => expectedMessage.ToUnixLineEndings().Equals(x, StringComparison.CurrentCulture));
         Execute.Assertion

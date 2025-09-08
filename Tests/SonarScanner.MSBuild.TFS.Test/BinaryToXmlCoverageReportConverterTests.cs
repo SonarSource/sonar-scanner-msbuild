@@ -76,7 +76,7 @@ public class BinaryToXmlCoverageReportConverterTests
     {
         var context = new ConverterTestContext(TestContext);
         new BinaryToXmlCoverageReportConverter(context.Logger).ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
-        context.Logger.Should().HaveSingleError($"""
+        context.Logger.Should().HaveErrorOnce($"""
             Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
             Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
             """);

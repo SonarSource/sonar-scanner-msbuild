@@ -69,42 +69,32 @@ public class CmdLineArgsPropertiesProviderTests
     }
 
     [TestMethod]
-    public void CmdLineArgProperties_DynamicProperties_Invalid()
-    {
-        // Arrange
-        // Act
-        var logger = CheckProcessingFails(
-                "invalid1 =aaa",
-                "notkeyvalue",
-                " spacebeforekey=bb",
-                "missingvalue=",
-                "validkey=validvalue");
-
-        // Assert
-        logger.Should().HaveErrors(
+    public void CmdLineArgProperties_DynamicProperties_Invalid() =>
+        CheckProcessingFails(
+            "invalid1 =aaa",
+            "notkeyvalue",
+            " spacebeforekey=bb",
+            "missingvalue=",
+            "validkey=validvalue")
+            .Should().HaveErrors(
             "The format of the analysis property invalid1 =aaa is invalid",
             "The format of the analysis property notkeyvalue is invalid",
             "The format of the analysis property  spacebeforekey=bb is invalid",
-            "The format of the analysis property missingvalue= is invalid");
-        logger.Should().HaveErrors(4);
-    }
+            "The format of the analysis property missingvalue= is invalid")
+            .And.HaveErrors(4);
 
     [TestMethod]
-    public void CmdLineArgProperties_DynamicProperties_Duplicates()
-    {
-        // Arrange
-        // Act
-        var logger = CheckProcessingFails(
-                "dup1=value1", "dup1=value2",
-                "dup2=value3", "dup2=value4",
-                "unique=value5");
-
-        // Assert
-        logger.Should().HaveErrors(
+    public void CmdLineArgProperties_DynamicProperties_Duplicates() =>
+        CheckProcessingFails(
+            "dup1=value1",
+            "dup1=value2",
+            "dup2=value3",
+            "dup2=value4",
+            "unique=value5")
+            .Should().HaveErrors(
             "A value has already been supplied for this property. Key: dup1=value2, existing value: value1",
-            "A value has already been supplied for this property. Key: dup2=value4, existing value: value3");
-        logger.Should().HaveErrors(2);
-    }
+            "A value has already been supplied for this property. Key: dup2=value4, existing value: value3")
+            .And.HaveErrors(2);
 
     [TestMethod]
     public void CmdLineArgProperties_Disallowed_DynamicProperties()
@@ -114,17 +104,17 @@ public class CmdLineArgsPropertiesProviderTests
 
         // 1. Named arguments cannot be overridden
         logger = CheckProcessingFails("sonar.projectKey=value1");
-        logger.Should().HaveSingleError("Please use the parameter prefix '/k:' to define the key of the project instead of injecting this key with the help of the 'sonar.projectKey' property.");
+        logger.Should().HaveErrorOnce("Please use the parameter prefix '/k:' to define the key of the project instead of injecting this key with the help of the 'sonar.projectKey' property.");
 
         logger = CheckProcessingFails("sonar.projectName=value1");
-        logger.Should().HaveSingleError("Please use the parameter prefix '/n:' to define the name of the project instead of injecting this name with the help of the 'sonar.projectName' property.");
+        logger.Should().HaveErrorOnce("Please use the parameter prefix '/n:' to define the name of the project instead of injecting this name with the help of the 'sonar.projectName' property.");
 
         logger = CheckProcessingFails("sonar.projectVersion=value1");
-        logger.Should().HaveSingleError("Please use the parameter prefix '/v:' to define the version of the project instead of injecting this version with the help of the 'sonar.projectVersion' property.");
+        logger.Should().HaveErrorOnce("Please use the parameter prefix '/v:' to define the version of the project instead of injecting this version with the help of the 'sonar.projectVersion' property.");
 
         // 2. Other values that can't be set
         logger = CheckProcessingFails("sonar.working.directory=value1");
-        logger.Should().HaveSingleError("The property 'sonar.working.directory' is automatically set by the SonarScanner for .NET and cannot be overridden on the command line.");
+        logger.Should().HaveErrorOnce("The property 'sonar.working.directory' is automatically set by the SonarScanner for .NET and cannot be overridden on the command line.");
     }
 
     [TestMethod]
@@ -189,7 +179,7 @@ public class CmdLineArgsPropertiesProviderTests
 
         success.Should().BeTrue("Expected processing to succeed");
         provider.Should().NotBeNull("Not expecting a null provider when processing succeeds");
-        logger.Should().HaveErrors(0);
+        logger.Should().HaveNoErrors();
 
         return provider;
     }

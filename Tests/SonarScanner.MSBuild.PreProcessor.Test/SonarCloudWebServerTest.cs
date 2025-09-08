@@ -153,7 +153,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(projectKey, branch, Organization, token));
 
         res.Should().BeEmpty();
-        context.Logger.Should().HaveSingleInfo(infoMessage);
+        context.Logger.Should().HaveInfoOnce(infoMessage);
     }
 
     [TestMethod]
@@ -192,7 +192,7 @@ public class SonarCloudWebServerTest
         await context.Server
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
-        context.Logger.Should().HaveSingleInfo("Downloading cache. Project key: project-key, branch: project-branch.");
+        context.Logger.Should().HaveInfoOnce("Downloading cache. Project key: project-key, branch: project-branch.");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -209,7 +209,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveSingleDebug($"Incremental PR Analysis: Requesting 'prepare_read' from {cacheFullUrl}");
+        context.Logger.Should().HaveDebugOnce($"Incremental PR Analysis: Requesting 'prepare_read' from {cacheFullUrl}");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -239,7 +239,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveSingleDebug("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' did not respond successfully.");
+        context.Logger.Should().HaveDebugOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' did not respond successfully.");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -252,7 +252,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveSingleDebug("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response was empty.");
+        context.Logger.Should().HaveDebugOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response was empty.");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -265,7 +265,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveSingleDebug(
+        context.Logger.Should().HaveDebugOnce(
             "Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = False, Url = https://www.sonarsource.com }.");
         handler.Requests.Should().NotBeEmpty();
     }
@@ -279,7 +279,7 @@ public class SonarCloudWebServerTest
             .DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveSingleDebug("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = True, Url =  }.");
+        context.Logger.Should().HaveDebugOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = True, Url =  }.");
         handler.Requests.Should().NotBeEmpty();
     }
 
@@ -299,7 +299,7 @@ public class SonarCloudWebServerTest
 #else
             "Found invalid data while decoding.";
 #endif
-        context.Logger.Should().HaveSingleWarning($"Incremental PR analysis: an error occurred while retrieving the cache entries! {warningDetails}");
+        context.Logger.Should().HaveWarningOnce($"Incremental PR analysis: an error occurred while retrieving the cache entries! {warningDetails}");
         context.Logger.Should().HaveNoErrors();
         handler.Requests.Should().NotBeEmpty();
     }

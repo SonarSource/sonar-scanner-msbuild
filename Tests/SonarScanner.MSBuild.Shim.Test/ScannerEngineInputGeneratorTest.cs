@@ -152,7 +152,7 @@ public partial class ScannerEngineInputGeneratorTest
         AssertValidProjectsExist(result);
         TestContext.AddResultFile(result.FullPropertiesFilePath);
         Console.WriteLine(result.ScannerEngineInput.ToString());
-        runtime.Should().HaveErrorsLogged(0);
+        runtime.Should().HaveNoErrorsLogged();
     }
 
     private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, AnalysisResult actual) =>

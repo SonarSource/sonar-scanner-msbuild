@@ -153,7 +153,7 @@ public class CacheProcessorTests
         using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Substitute.For<IBuildSettings>(), logger);
         await sut.Execute();
 
-        logger.Should().HaveSingleInfo("Cannot determine project base path. Incremental PR analysis is disabled.");
+        logger.Should().HaveInfoOnce("Cannot determine project base path. Incremental PR analysis is disabled.");
         sut.UnchangedFilesPath.Should().BeNull();
     }
 

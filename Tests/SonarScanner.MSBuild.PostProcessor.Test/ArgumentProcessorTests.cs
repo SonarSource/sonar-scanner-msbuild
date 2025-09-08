@@ -50,10 +50,10 @@ public class ArgumentProcessorTests
 
         // 1. Unrecognized args
         logger = CheckProcessingFails("begin"); // bootstrapper verbs aren't meaningful to the post-processor
-        logger.Should().HaveSingleError("Unrecognized command line argument: begin");
+        logger.Should().HaveErrorOnce("Unrecognized command line argument: begin");
 
         logger = CheckProcessingFails("end");
-        logger.Should().HaveSingleError("Unrecognized command line argument: end");
+        logger.Should().HaveErrorOnce("Unrecognized command line argument: end");
 
         logger = CheckProcessingFails("AAA", "BBB", "CCC");
         logger.Should().HaveErrors(
@@ -106,7 +106,7 @@ public class ArgumentProcessorTests
 
         success.Should().BeTrue("Expecting processing to have succeeded");
         provider.Should().NotBeNull("Returned provider should not be null");
-        logger.Should().HaveErrors(0);
+        logger.Should().HaveNoErrors();
 
         return provider;
     }

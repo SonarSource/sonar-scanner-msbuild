@@ -91,7 +91,7 @@ public class SonarQubeWebServerTest
         var isValid = await context.Server.IsServerLicenseValid();
 
         isValid.Should().BeFalse();
-        context.Logger.Should().HaveSingleError("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
+        context.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
         context.Logger.Should().HaveNoWarnings();
     }
 
@@ -116,7 +116,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.IsServerLicenseValid();
 
         result.Should().BeFalse();
-        context.Logger.Should().HaveSingleError("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.");
+        context.Logger.Should().HaveErrorOnce("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.");
         context.Logger.Should().HaveNoWarnings();
     }
 
@@ -130,7 +130,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.IsServerLicenseValid();
 
         result.Should().BeFalse();
-        context.Logger.Should().HaveSingleError("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
+        context.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
         context.Logger.Should().HaveNoWarnings();
     }
 
@@ -401,7 +401,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(projectKey, branch));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveSingleInfo(debugMessage);
+        context.Logger.Should().HaveInfoOnce(debugMessage);
     }
 
     [TestMethod]
@@ -435,7 +435,7 @@ public class SonarQubeWebServerTest
         context.MockStreamWebDownload(new MemoryStream());
         await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
-        context.Logger.Should().HaveSingleInfo("Downloading cache. Project key: project-key, branch: project-branch.");
+        context.Logger.Should().HaveInfoOnce("Downloading cache. Project key: project-key, branch: project-branch.");
     }
 
     [TestMethod]
@@ -494,7 +494,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveSingleWarning("Incremental PR analysis: an error occurred while retrieving the cache entries! Exception of type 'System.Net.Http.HttpRequestException' was thrown.");
+        context.Logger.Should().HaveWarningOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! Exception of type 'System.Net.Http.HttpRequestException' was thrown.");
     }
 
     [TestMethod]
@@ -507,7 +507,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveSingleWarning("Incremental PR analysis: an error occurred while retrieving the cache entries! Operation is not valid due to the current state of the object.");
+        context.Logger.Should().HaveWarningOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! Operation is not valid due to the current state of the object.");
     }
 
     [TestMethod]
@@ -518,7 +518,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveSingleWarning("Incremental PR analysis: an error occurred while retrieving the cache entries! While parsing a protocol message, the input ended unexpectedly in the middle of a field.  This could mean either that the input has been truncated or that an embedded message misreported its own length.");
+        context.Logger.Should().HaveWarningOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! While parsing a protocol message, the input ended unexpectedly in the middle of a field.  This could mean either that the input has been truncated or that an embedded message misreported its own length.");
     }
 
     [TestMethod]

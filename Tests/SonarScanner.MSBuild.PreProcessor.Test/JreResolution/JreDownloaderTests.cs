@@ -775,7 +775,7 @@ public class JreDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            runtimeIO.Logger.Should().HaveSingleInfo("""
+            runtimeIO.Logger.Should().HaveInfoOnce("""
                 The JRE provisioning is a time consuming operation.
                 JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip.
                 If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
@@ -834,7 +834,7 @@ public class JreDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            runtimeIO.Logger.Should().HaveSingleInfo("""
+            runtimeIO.Logger.Should().HaveInfoOnce("""
                 The JRE provisioning is a time consuming operation.
                 JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz.
                 If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".

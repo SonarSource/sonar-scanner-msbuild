@@ -35,7 +35,7 @@ public partial class ScannerEngineInputGeneratorTest
 
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Projects", "Name"));
         runtime.Should().HaveNoWarningsLogged();
-        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveInfoLoggedOnce(ProjectBaseDirInfoMessage);
     }
 
     // On Unix, there always is a best common root "/" and there are never projects outside of the root.
@@ -56,7 +56,7 @@ public partial class ScannerEngineInputGeneratorTest
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
         runtime.Should().HaveWarningsLogged(@"Directory 'D:\OutsideRoot' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
         runtime.Should().HaveWarningsLogged(@"Directory 'E:\AlsoOutside' is not located under the base directory 'C:\Projects\Name' and will not be analyzed.");
-        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveInfoLoggedOnce(ProjectBaseDirInfoMessage);
     }
 
     // On Linux there always is a best common root "/".
@@ -76,7 +76,7 @@ public partial class ScannerEngineInputGeneratorTest
 
         runtime.Should().HaveNoErrorsLogged();
         runtime.Should().HaveNoWarningsLogged();
-        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveInfoLoggedOnce(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -93,7 +93,7 @@ public partial class ScannerEngineInputGeneratorTest
 
         runtime.Should().HaveNoWarningsLogged();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo($"Using working directory as project base directory: '{Path.Combine(TestUtils.DriveRoot(), "Projects")}'.");
-        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveInfoLoggedOnce(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod]
@@ -116,7 +116,7 @@ public partial class ScannerEngineInputGeneratorTest
             {Path.Combine(TestUtils.DriveRoot(), "Solution", "Net", "Name", "Src")}
             {Path.Combine(TestUtils.DriveRoot(), "Solution", "JS")}
             """);
-        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveInfoLoggedOnce(ProjectBaseDirInfoMessage);
     }
 
     // On Unix, there always is a best common root "/".
@@ -137,7 +137,7 @@ public partial class ScannerEngineInputGeneratorTest
 
         runtime.Should().HaveNoWarningsLogged();
         runtime.Should().HaveNoErrorsLogged();
-        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveInfoLoggedOnce(ProjectBaseDirInfoMessage);
     }
 
     // Case sensitive tests don't apply to Unix.
@@ -157,7 +157,7 @@ public partial class ScannerEngineInputGeneratorTest
         sut.ComputeProjectBaseDir(projectPaths).FullName.Should().Be(@"C:\Projects\Name");
 
         runtime.Should().HaveNoWarningsLogged();
-        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveInfoLoggedOnce(ProjectBaseDirInfoMessage);
     }
 
     // On Unix, there always is a best common root "/".
@@ -183,7 +183,7 @@ public partial class ScannerEngineInputGeneratorTest
             D:\SomewhereElse
             """
                 .ToUnixLineEndings());
-        runtime.Should().HaveSingleInfoLogged(ProjectBaseDirInfoMessage);
+        runtime.Should().HaveInfoLoggedOnce(ProjectBaseDirInfoMessage);
     }
 
     [TestMethod] // the priority is local > scannerEnv > server.

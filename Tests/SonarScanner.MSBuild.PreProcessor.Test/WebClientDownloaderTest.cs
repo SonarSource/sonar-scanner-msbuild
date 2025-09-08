@@ -250,7 +250,7 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.Download("api/relative", true);
 
         await act.Should().ThrowAsync<Exception>();
-        testLogger.Should().HaveSingleError("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
+        testLogger.Should().HaveErrorOnce("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
     }
 
     [TestMethod]
@@ -263,7 +263,7 @@ public class WebClientDownloaderTest
         Func<Task> act = async () => await sut.Download("api/relative", true);
 
         await act.Should().ThrowAsync<HttpRequestException>();
-        testLogger.Should().HaveSingleError("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
+        testLogger.Should().HaveErrorOnce("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
     }
 
     [TestMethod]

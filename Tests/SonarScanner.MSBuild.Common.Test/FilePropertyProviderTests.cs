@@ -125,7 +125,7 @@ public class FilePropertyProviderTests
         // Assert
         logger.Should().HaveErrors(1);
         // The error should contain the full path of the file
-        logger.Should().HaveSingleError($"Unable to find the analysis settings file '{Path.Combine(Directory.GetCurrentDirectory(), "missingFile.txt")}'. Please fix the path to this settings file.");
+        logger.Should().HaveErrorOnce($"Unable to find the analysis settings file '{Path.Combine(Directory.GetCurrentDirectory(), "missingFile.txt")}'. Please fix the path to this settings file.");
     }
 
     [TestMethod]
@@ -143,7 +143,7 @@ public class FilePropertyProviderTests
 
         // Assert
         logger.Should().HaveErrors(1);
-        logger.Should().HaveSingleError($"Unable to read the analysis settings file '{invalidFile}'. Please fix the content of this file.");
+        logger.Should().HaveErrorOnce($"Unable to read the analysis settings file '{invalidFile}'. Please fix the content of this file.");
     }
 
     [TestMethod]
@@ -164,7 +164,7 @@ public class FilePropertyProviderTests
 
         // Assert
         logger.Should().HaveErrors(1);
-        logger.Should().HaveSingleError($"Unable to read the analysis settings file '{invalidFile}'. Please fix the content of this file.");
+        logger.Should().HaveErrorOnce($"Unable to read the analysis settings file '{invalidFile}'. Please fix the content of this file.");
     }
 
     [TestMethod]
@@ -209,7 +209,7 @@ public class FilePropertyProviderTests
 
         isValid.Should().BeTrue("Expecting the provider to be initialized successfully");
         provider.Should().NotBeNull("Not expecting a null provider if the function returned true");
-        logger.Should().HaveErrors(0);
+        logger.Should().HaveNoErrors();
 
         return provider;
     }

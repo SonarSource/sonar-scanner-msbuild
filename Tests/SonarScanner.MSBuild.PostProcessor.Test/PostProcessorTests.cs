@@ -120,7 +120,7 @@ public class PostProcessorTests
             Arg.Is<IAnalysisPropertyProvider>(x => !x.GetAllProperties().Any()),
             Arg.Any<string>());
         runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveWarningsLogged(0);
+        runtime.Should().HaveNoWarningsLogged();
         VerifyTargetsUninstaller();
     }
 
@@ -130,7 +130,7 @@ public class PostProcessorTests
         Execute("/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveWarningsLogged(0);
+        runtime.Should().HaveNoWarningsLogged();
         VerifyTargetsUninstaller();
     }
 
@@ -171,7 +171,7 @@ public class PostProcessorTests
             }
             """
                 .ToEnvironmentLineEndings());
-        runtime.Should().HaveErrorsLogged(0);
+        runtime.Should().HaveNoErrorsLogged();
         VerifyTargetsUninstaller();
     }
 
@@ -197,7 +197,7 @@ public class PostProcessorTests
             }
             """
                 .ToEnvironmentLineEndings());
-        runtime.Should().HaveErrorsLogged(0);
+        runtime.Should().HaveNoErrorsLogged();
         VerifyTargetsUninstaller();
     }
 
@@ -218,7 +218,7 @@ public class PostProcessorTests
             }
             """
                 .ToEnvironmentLineEndings());
-        runtime.Should().HaveErrorsLogged(0);
+        runtime.Should().HaveNoErrorsLogged();
         VerifyTargetsUninstaller();
     }
 
