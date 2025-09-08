@@ -173,21 +173,32 @@ public class ScannerEngineInputGenerator
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
 
-        var sensitiveArgsFromSettingsFile = analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
-        var scannerOptsSettings = new ListPropertiesProvider();
-        foreach (var setting in analysisConfig.ScannerOptsSettings)
-        {
-            // for the scanner-cli we map this to SONAR_SCANNER_OPTS, so always encapsulate with `"` in the pre-processor
-            // this needs to be reversed when calling the scanner-engine directly.
-            scannerOptsSettings.Add(setting.Id, setting.Value.Trim('"'));
-        }
-
-        engineInput.AddUserSettings(new AggregatePropertiesProvider(
+        // TODO: We cannot write mapped values to the AnalysisConfig file as it changes behaviour of the scanner-cli, this should be fixed in SCAN4NET-721
+        var mappedArgs = MapDeprecatedArgs(new AggregatePropertiesProvider(
             cmdLineArgs,
-            scannerOptsSettings,
-            new ListPropertiesProvider(sensitiveArgsFromSettingsFile),
+            new ListPropertiesProvider(analysisConfig.ScannerOptsSettings.Select(x => new Property(x.Id, x.Value.Trim('"')))),
+            new ListPropertiesProvider(analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData())),
             new ListPropertiesProvider(analysisProperties)));
+
+        engineInput.AddUserSettings(mappedArgs);
         return true;
+    }
+
+    private ListPropertiesProvider MapDeprecatedArgs(IAnalysisPropertyProvider userSettings)
+    {
+        var mappedArgs = new ListPropertiesProvider();
+        foreach (var prop in userSettings.GetAllProperties())
+        {
+            if (SonarPropertiesDefault.JavaScannerMapping.TryGetValue(prop.Id, out var mappedKey))
+            {
+                mappedArgs.AddProperty(mappedKey, prop.Value);
+            }
+            else
+            {
+                mappedArgs.AddProperty(prop.Id, prop.Value);
+            }
+        }
+        return mappedArgs;
     }
 
     /// <summary>

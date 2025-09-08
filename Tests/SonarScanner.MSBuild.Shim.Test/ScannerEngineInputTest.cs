@@ -574,43 +574,6 @@ public class ScannerEngineInputTest
         reader.AssertProperty("sonar.unsafe.value", "***");
     }
 
-    [TestMethod]
-    public void DeprecatedJavaProperties_Converted()
-    {
-        var deprecatedJava = new AnalysisProperties
-        {
-            new("javax.net.ssl.trustStore", "trustStore"),
-            new("javax.net.ssl.trustStorePassword", "trustStorePassword"),
-            new("javax.net.ssl.keyStore", "keystore"),
-            new("javax.net.ssl.keyStorePassword", "keystorePassword"),
-            new("http.proxyHost", "proxyHost"),
-            new("http.proxyPort", "proxyPort"),
-            new("http.proxyUser", "proxyUser"),
-            new("http.proxyPassword", "proxyPassword"),
-        };
-        var sut = new ScannerEngineInput(new AnalysisConfig());
-        sut.AddUserSettings(new ListPropertiesProvider(deprecatedJava));
-        var reader = new ScannerEngineInputReader(sut.ToString());
-
-        reader.AssertPropertyDoesNotExist("javax.net.ssl.trustStore");
-        reader.AssertPropertyDoesNotExist("javax.net.ssl.trustStorePassword");
-        reader.AssertPropertyDoesNotExist("javax.net.ssl.keyStore");
-        reader.AssertPropertyDoesNotExist("javax.net.ssl.keyStorePassword");
-        reader.AssertPropertyDoesNotExist("http.proxyHost");
-        reader.AssertPropertyDoesNotExist("http.proxyPort");
-        reader.AssertPropertyDoesNotExist("http.proxyUser");
-        reader.AssertPropertyDoesNotExist("http.proxyPassword");
-
-        reader.AssertProperty("sonar.scanner.truststorePath", "trustStore");
-        reader.AssertProperty("sonar.scanner.truststorePassword", "trustStorePassword");
-        reader.AssertProperty("sonar.scanner.keystorePath", "keystore");
-        reader.AssertProperty("sonar.scanner.keystorePassword", "keystorePassword");
-        reader.AssertProperty("sonar.scanner.proxyHost", "proxyHost");
-        reader.AssertProperty("sonar.scanner.proxyPort", "proxyPort");
-        reader.AssertProperty("sonar.scanner.proxyUser", "proxyUser");
-        reader.AssertProperty("sonar.scanner.proxyPassword", "proxyPassword");
-    }
-
     private static ProjectData CreateProjectData(string name,
                                                  string projectId,
                                                  FileInfo fullFilePath,
