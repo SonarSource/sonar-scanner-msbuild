@@ -44,6 +44,7 @@ public class SonarEngineWrapper
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
             CmdLineArgs = javaParams.Any() ? [..javaParams, "-jar", engine] : ["-jar", engine],
+            WorkingDirectory = config.SonarScannerWorkingDirectory,
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
             StandardInput = standardInput,
         };
