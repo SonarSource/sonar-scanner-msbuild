@@ -30,7 +30,8 @@ stages:
           - task: DotNetCoreCLI@2
             displayName: 'Run dotnet test'
             inputs:
-              command: 'test'
+              command: 'custom'
+              custom: 'test'
               arguments: '--framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ parameters.name }}" --logger trx --results-directory "$(Build.SourcesDirectory)/TestResults"'
               testRunTitle: UTs ${{ parameters.name }}
             env:
