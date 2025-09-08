@@ -56,37 +56,6 @@ public sealed class CachedDownloaderTests : IDisposable
         fileContentStream.Dispose();
 
     [TestMethod]
-    public void ValidateChecksum_ValidChecksum_ReturnsTrue()
-    {
-        ExecuteValidateChecksumTest(ExpectedSha, ExpectedSha, true);
-
-        runtime.Logger.AssertDebugLogged($"""
-            The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.
-            """);
-    }
-
-    [TestMethod]
-    public void ValidateChecksum_InvalidChecksum_ReturnsFalse()
-    {
-        var returnedSha = "invalidsha";
-        ExecuteValidateChecksumTest(returnedSha, ExpectedSha, false);
-
-        runtime.Logger.AssertDebugLogged($"""
-            The checksum of the downloaded file is '{returnedSha}' and the expected checksum is '{ExpectedSha}'.
-            """);
-    }
-
-    [TestMethod]
-    public void ValidateChecksum_ChecksumCalculationFails_ReturnsFalse()
-    {
-        ExecuteValidateChecksumTest(null, "sha256", false, FileDescriptor.Filename);
-
-        runtime.Logger.AssertDebugLogged($"""
-            The calculation of the checksum of the file '{FileDescriptor.Filename}' failed with message 'Operation is not valid due to the current state of the object.'.
-            """);
-    }
-
-    [TestMethod]
     public async Task DownloadFileAsync_DirectoryDoesNotExist_CreatesDirectory()
     {
         runtime.Directory.Exists(DownloadPath).Returns(false);
@@ -182,6 +151,25 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
+    public async Task DownloadFileAsync_ChecksumCalculationFails_ReturnsDownloadError()
+    {
+        checksum.ComputeHash(null).ThrowsForAnyArgs<InvalidOperationException>();
+
+        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
+
+        result.Should().BeOfType<DownloadError>().Which.Message
+            .Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
+        AssertTempFileCreatedAndDeleted();
+        AssertStreamDisposed();
+        fileContentArray.Should().BeEquivalentTo(downloadContentArray);
+        runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
+            $"The calculation of the checksum of the file '{TempFilePath}' failed with message 'Operation is not valid due to the current state of the object.'.",
+            $"Deleting file '{Path.Combine(DownloadPath, TempFileName)}'.",
+            "The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
+    }
+
+    [TestMethod]
     public async Task DownloadFileAsync_ValidFileCached_Succeeds()
     {
         runtime.File.Exists(DownloadFilePath).Returns(true);
@@ -266,23 +254,6 @@ public sealed class CachedDownloaderTests : IDisposable
 
     private async Task<DownloadResult> ExecuteDownloadFileAsync(MemoryStream downloadContent) =>
         await cachedDownloader.DownloadFileAsync(() => Task.FromResult<Stream>(downloadContent));
-
-    private void ExecuteValidateChecksumTest(string returnedSha, string expectedSha, bool expectSucces, string downloadTarget = "some.file")
-    {
-        using var stream = new MemoryStream();
-        runtime.File.Open(downloadTarget).Returns(stream);
-        if (returnedSha is null)
-        {
-            checksum.ComputeHash(stream).Throws<InvalidOperationException>();
-        }
-        else
-        {
-            checksum.ComputeHash(stream).Returns(returnedSha);
-        }
-        cachedDownloader.ValidateChecksum(downloadTarget, expectedSha).Should().Be(expectSucces);
-        runtime.File.Received(1).Open(downloadTarget);
-        checksum.Received(1).ComputeHash(stream);
-    }
 
     private void AssertTempFileCreatedAndDeleted()
     {

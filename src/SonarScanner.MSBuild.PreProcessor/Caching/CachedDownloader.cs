@@ -59,22 +59,6 @@ public class CachedDownloader
         return await DownloadWithRetry(download);
     }
 
-    internal bool ValidateChecksum(string downloadTarget, string sha256)
-    {
-        try
-        {
-            using var fs = fileWrapper.Open(downloadTarget);
-            var fileChecksum = checksum.ComputeHash(fs);
-            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
-            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
-            return false;
-        }
-    }
-
     private DownloadError EnsureDirectoryExists()
     {
         try
@@ -160,6 +144,22 @@ public class CachedDownloader
         {
             TryDeleteFile(file);
             return new(Resources.ERR_ChecksumMismatch);
+        }
+    }
+
+    private bool ValidateChecksum(string downloadTarget, string sha256)
+    {
+        try
+        {
+            using var fs = fileWrapper.Open(downloadTarget);
+            var fileChecksum = checksum.ComputeHash(fs);
+            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
+            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
+            return false;
         }
     }
 
