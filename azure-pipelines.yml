@@ -322,6 +322,11 @@ stages:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
+          - task: PublishTestResults@2
+            inputs:
+              testRunner: VSTest
+              testResultsFiles: $sourcesDirectory/TestResults/**/*.trx
+
           - task: PublishBuildArtifacts@1
             inputs:
               pathToPublish: $(Build.SourcesDirectory)\coverage\
