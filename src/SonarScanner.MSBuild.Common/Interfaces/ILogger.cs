@@ -73,16 +73,6 @@ public interface ILogger
     void WriteUIWarnings(string outputFolder);
 
     /// <summary>
-    /// Adds a telemetry message to a collection.
-    /// </summary>
-    void AddTelemetryMessage(string key, object value);
-
-    /// <summary>
-    /// Writes the collection of telemetry messages to the specified output folder.
-    /// </summary>
-    void WriteTelemetry(string outputFolder);
-
-    /// <summary>
     /// Suspends writing output to the console. Any messages will be recorded but
     /// not output unless and until <see cref="ResumeOutput"/> is called.
     /// </summary>

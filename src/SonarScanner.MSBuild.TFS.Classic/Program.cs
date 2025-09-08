@@ -29,7 +29,7 @@ public static class Program
     public static int Main(string[] args)
     {
         var logger = new ConsoleLogger(includeTimestamp: false);
-        var runtime = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger);
+        var runtime = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger, new Telemetry(FileWrapper.Instance, logger));
         return Execute(args, runtime);
     }
 

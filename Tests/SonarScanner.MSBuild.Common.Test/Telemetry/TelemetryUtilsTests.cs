@@ -85,12 +85,11 @@ public class TelemetryUtilsTests
     [DataRow("private.com", "custom_url")]
     public void LoggedTelemetryFromHostInfoSqServer(string serverUrl, string telemetryValue)
     {
-        var logger = Substitute.For<ILogger>();
+        var telemetry = Substitute.For<ITelemetry>();
         var serverInfo = new ServerHostInfo(serverUrl, serverUrl);
-        TelemetryUtils.AddTelemetry(logger, serverInfo);
-        logger.AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
-        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, "SQ_Server");
-        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
+        TelemetryUtils.AddTelemetry(telemetry, serverInfo);
+        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, "SQ_Server");
+        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
     }
 
     [TestMethod]
@@ -100,28 +99,27 @@ public class TelemetryUtilsTests
     [DataRow("private/server", "region", "custom_url", "region")]
     public void LoggedTelemetryFromHostInfoSqCloud(string serverUrl, string region, string telemetryUrlValue, string telemetryRegionValue)
     {
-        var logger = Substitute.For<ILogger>();
+        var telemetry = Substitute.For<ITelemetry>();
         var serverInfo = new CloudHostInfo(serverUrl, serverUrl, region);
-        TelemetryUtils.AddTelemetry(logger, serverInfo);
-        logger.AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
-        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, "SQ_Cloud");
-        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue);
-        logger.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
+        TelemetryUtils.AddTelemetry(telemetry, serverInfo);
+        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, "SQ_Cloud");
+        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue);
+        telemetry.Received(1).AddTelemetryMessage(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
     }
 
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
     {
-        var logger = Substitute.For<ILogger>();
+        var telemetry = Substitute.For<ITelemetry>();
         var list = new ListPropertiesProvider(PropertyProviderKind.CLI);
         list.AddProperty(propertyId, value);
         var provider = new AggregatePropertiesProvider(list);
-        TelemetryUtils.AddTelemetry(logger, provider);
-        logger.Received(exepectedTelemetry.Length).AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
+        TelemetryUtils.AddTelemetry(telemetry, provider);
+        telemetry.Received(exepectedTelemetry.Length).AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
         foreach (var expected in exepectedTelemetry)
         {
             var parts = expected.Split('=');
             var (expectedPropertyId, expectedValue) = (parts[0], parts[1]);
-            logger.Received(1).AddTelemetryMessage(expectedPropertyId, expectedValue);
+            telemetry.Received(1).AddTelemetryMessage(expectedPropertyId, expectedValue);
         }
     }
 }

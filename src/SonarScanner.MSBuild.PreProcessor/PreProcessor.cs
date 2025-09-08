@@ -19,7 +19,6 @@
  */
 
 using System.Net;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 namespace SonarScanner.MSBuild.PreProcessor;
@@ -88,7 +87,7 @@ public class PreProcessor
             runtime.LogDebug(ex.StackTrace);
             return false;
         }
-        runtime.Logger.AddTelemetryMessage(TelemetryKeys.ServerInfoVersion, server.ServerVersion.ToString());
+        runtime.Telemetry.AddTelemetryMessage(TelemetryKeys.ServerInfoVersion, server.ServerVersion.ToString());
 
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
@@ -122,7 +121,7 @@ public class PreProcessor
             runtime);
 
         runtime.Logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
-        runtime.Logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
+        runtime.Telemetry.WriteTelemetry(buildSettings.SonarOutputDirectory);
         return true;
     }
 

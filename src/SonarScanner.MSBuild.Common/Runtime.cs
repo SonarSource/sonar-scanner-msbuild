@@ -26,13 +26,15 @@ public class Runtime : IRuntime
     public IDirectoryWrapper Directory { get; }
     public IFileWrapper File { get; }
     public ILogger Logger { get; }
+    public ITelemetry Telemetry { get; }
 
-    public Runtime(OperatingSystemProvider operatingSystem, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, ILogger logger)
+    public Runtime(OperatingSystemProvider operatingSystem, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, ILogger logger, ITelemetry telemetry)
     {
         OperatingSystem = operatingSystem ?? throw new ArgumentNullException(nameof(operatingSystem));
         Directory = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
         File = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        Telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
     }
 
     public void LogDebug(string message, params object[] args) =>

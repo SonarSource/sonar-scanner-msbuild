@@ -46,6 +46,10 @@ public record TestRuntime : IRuntime
 
     ILogger IRuntime.Logger => Logger;
 
+    public TestTelemetry Telemetry { get; init; } = new();
+
+    ITelemetry IRuntime.Telemetry => Telemetry;
+
     public TestRuntime() =>
         OperatingSystem = Substitute.For<OperatingSystemProvider>(File, Logger);
 
