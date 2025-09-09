@@ -24,18 +24,23 @@ import com.sonar.orchestrator.build.BuildResult;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class ProvisioningAssertions {
-  public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, String oldJavaHome, Boolean isCloud) {
-    oldJavaHome = oldJavaHome.replace("\\", "\\\\");
-    var cacheFolderPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+";
+  public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, String oldJavaHome, Boolean isCloud, Boolean useSonarScannerCLI) {
     assertCacheMissBeginStep(result.begin(), sqApiUrl, userHome, isCloud);
 
     var endLogs = result.end().getLogs();
-    TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + cacheFolderPattern + "_extracted.+");
-    TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: " + oldJavaHome + ", new value: " + cacheFolderPattern + "_extracted.+");
+
+    var cacheFolderPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+";
+    if (useSonarScannerCLI) {
+      var escapedOldJavaHome = oldJavaHome.replace("\\", "\\\\");
+      TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + cacheFolderPattern + "_extracted.+");
+      TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: " + escapedOldJavaHome + ", new value: " + cacheFolderPattern +
+        "_extracted.+");
+    } else {
+      TestUtils.matchesSingleLine(endLogs, "Using Java found in Analysis Config: " + cacheFolderPattern + "_extracted.+java(\\.exe|)");
+    }
   }
 
-  public static void assertCacheMissBeginStep(BuildResult begin, String sqApiUrl, String userHome, Boolean isCloud)
-  {
+  public static void assertCacheMissBeginStep(BuildResult begin, String sqApiUrl, String userHome, Boolean isCloud) {
     var os = OSPlatform.current().name().toLowerCase();
     var arch = OSPlatform.currentArchitecture().toLowerCase();
     var cacheFolderPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+";
@@ -66,7 +71,8 @@ public final class ProvisioningAssertions {
     TestUtils.matchesSingleLine(beginLogs, "Moving extracted Java runtime environment from '" + cacheFolderPattern + "' to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "The Java runtime environment was successfully added to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + cacheFolderPattern + "_extracted.+java(?:\\.exe)?'");
-    TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern + "((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar'");
+    TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern + "((scanner-developer)|" +
+      "(sonarcloud-scanner-engine)).+\\.jar'");
   }
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {
