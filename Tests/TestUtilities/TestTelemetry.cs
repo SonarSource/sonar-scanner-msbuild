@@ -22,11 +22,13 @@ namespace TestUtilities;
 
 public class TestTelemetry : ITelemetry
 {
-    public List<KeyValuePair<string, object>> Messages { get; } = [];
+    private readonly List<KeyValuePair<string, object>> messages = [];
+
+    public IReadOnlyList<KeyValuePair<string, object>> Messages => messages;
     public string OutputPath { get; private set; }
 
     public void Add(string key, object value) =>
-        Messages.Add(new(key, value));
+        messages.Add(new(key, value));
 
     public void Write(string outputFolder) =>
         OutputPath = outputFolder;

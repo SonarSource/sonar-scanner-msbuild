@@ -64,7 +64,7 @@ public interface ILogger
     /// <summary>
     /// Log a warning and display it in the UI (starting from SQ 9.9 LTS).
     /// </summary>
-    // TODO extract UIWarning logic to separate class, similar to Telemetry
+    // TODO extract UIWarning logic to separate class, similar to Telemetry SCAN4NET-906
     void LogUIWarning(string message, params object[] args);
 
     /// <summary>

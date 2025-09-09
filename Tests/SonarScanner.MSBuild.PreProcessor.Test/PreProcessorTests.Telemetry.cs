@@ -126,7 +126,7 @@ public partial class PreProcessorTests
         return fullPath;
     }
 
-    private async Task<List<KeyValuePair<string, object>>> CreateTelemetry(IEnumerable<string> args = null, params KeyValuePair<string, string>[] environmentVariables)
+    private async Task<IReadOnlyList<KeyValuePair<string, object>>> CreateTelemetry(IEnumerable<string> args = null, params KeyValuePair<string, string>[] environmentVariables)
     {
         using var context = new Context(TestContext);
         using var env = new EnvironmentVariableScope();
