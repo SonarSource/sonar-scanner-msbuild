@@ -71,8 +71,8 @@ public final class ProvisioningAssertions {
     TestUtils.matchesSingleLine(beginLogs, "Moving extracted Java runtime environment from '" + cacheFolderPattern + "' to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "The Java runtime environment was successfully added to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + cacheFolderPattern + "_extracted.+java(?:\\.exe)?'");
-    TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern + "((scanner-developer)|" +
-      "(sonarcloud-scanner-engine)).+\\.jar'");
+    TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern +
+      "((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar'");
   }
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {
