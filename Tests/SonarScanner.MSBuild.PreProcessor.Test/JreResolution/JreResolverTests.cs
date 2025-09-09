@@ -74,6 +74,8 @@ public class JreResolverTests
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Disabled)
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.UserSupplied);
     }
 
     [TestMethod]
@@ -88,6 +90,8 @@ public class JreResolverTests
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: sonar.scanner.skipJreProvisioning is set, skipping JRE provisioning.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Disabled)
+            .And.NotHaveKey(TelemetryKeys.JreDownload);
     }
 
     [TestMethod]
@@ -102,6 +106,8 @@ public class JreResolverTests
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.UnsupportedNoArch)
+            .And.NotHaveKey(TelemetryKeys.JreDownload);
     }
 
     [TestMethod]
@@ -116,6 +122,8 @@ public class JreResolverTests
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: sonar.scanner.os is not set or detected, skipping JRE provisioning.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.UnsupportedNoOS)
+            .And.NotHaveKey(TelemetryKeys.JreDownload);
     }
 
     [TestMethod]
@@ -132,6 +140,8 @@ public class JreResolverTests
             true,
             "JreResolver: Resolving JRE path.",
             "JreResolver: Metadata could not be retrieved.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed, 2);
     }
 
     [TestMethod]
@@ -145,6 +155,8 @@ public class JreResolverTests
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             $"JreResolver: Cache hit '{ExtractedJavaPath}'.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.CacheHit);
     }
 
     [TestMethod]
@@ -176,6 +188,8 @@ public class JreResolverTests
             $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
             $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
             $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Downloaded);
     }
 
     [TestMethod]
@@ -206,6 +220,8 @@ public class JreResolverTests
             $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
             $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
             $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Downloaded);
     }
 
     [TestMethod]
@@ -224,6 +240,8 @@ public class JreResolverTests
             $"Deleting file '{ShaPath}'.",  // should be temp file path but the scaffolding is not setup
             "The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed, 2);
     }
 
     [TestMethod]
@@ -238,6 +256,8 @@ public class JreResolverTests
             true,
             "JreResolver: Resolving JRE path.",
             "JreResolver: Cache failure. The archive format of the JRE archive `filename.tar.gz` is not supported.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed, 2);
     }
 
     [TestMethod]
@@ -249,6 +269,8 @@ public class JreResolverTests
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.UnsupportedByServer)
+            .And.NotHaveKey(TelemetryKeys.JreDownload);
     }
 
     [TestMethod]

@@ -22,7 +22,16 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class TelemetryValues
 {
-    public static class ScannerEngineDownload
+    public static class JreBootstrapping
+    {
+        public static readonly string UnsupportedByServer = nameof(UnsupportedByServer);
+        public static readonly string UnsupportedNoOS = nameof(UnsupportedNoOS);
+        public static readonly string UnsupportedNoArch = nameof(UnsupportedNoArch);
+        public static readonly string Enabled = nameof(Enabled);
+        public static readonly string Disabled = nameof(Disabled);
+    }
+
+    public static class JreDownload
     {
         public static readonly string Downloaded = nameof(Downloaded);
         public static readonly string CacheHit = nameof(CacheHit);
@@ -35,6 +44,14 @@ public static class TelemetryValues
         public static readonly string Unsupported = nameof(Unsupported);
         public static readonly string Enabled = nameof(Enabled);
         public static readonly string Disabled = nameof(Disabled);
+    }
+
+    public static class ScannerEngineDownload
+    {
+        public static readonly string Downloaded = nameof(Downloaded);
+        public static readonly string CacheHit = nameof(CacheHit);
+        public static readonly string UserSupplied = nameof(UserSupplied);
+        public static readonly string Failed = nameof(Failed);
     }
 
     public static class EndstepLegacyTFS

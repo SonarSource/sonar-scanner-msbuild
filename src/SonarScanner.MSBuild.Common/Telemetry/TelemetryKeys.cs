@@ -22,6 +22,9 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class TelemetryKeys
 {
+    // Jre Bootstrapping
+    public const string JreBootstrapping        = "dotnetenterprise.s4net.Jre.bootstrapping";
+    public const string JreDownload             = "dotnetenterprise.s4net.Jre.download";
     // New Scanner Engine
     public const string NewBootstrappingEnabled = "dotnetenterprise.s4net.scannerEngine.newBootstrapping";
     public const string ScannerEngineDownload   = "dotnetenterprise.s4net.scannerEngine.download";

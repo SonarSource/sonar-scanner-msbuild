@@ -60,7 +60,7 @@ public class EngineResolver : IResolver
             return null;
         }
         runtime.Telemetry[TelemetryKeys.NewBootstrappingEnabled] = TelemetryValues.NewBootstrapping.Enabled;
-        if (await server.DownloadEngineMetadataAsync() is { } metadata)
+        if (await server.DownloadEngineMetadataAsync() is { } metadata) // TODO move into ResolveEnginePath to benefit from retry
         {
             if (await ResolveEnginePath(metadata) is { } enginePath)
             {
@@ -75,6 +75,7 @@ public class EngineResolver : IResolver
         else
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
+            // TODO add telemetry message
             return null;
         }
     }
@@ -97,7 +98,7 @@ public class EngineResolver : IResolver
                 runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.Failed;
                 return null;
             default:
-                throw new NotSupportedException("Download result is expected to be DownloadSuccess, CacheHit or DownloadError.");
+                throw new NotSupportedException("Download result is expected to be Downloaded, CacheHit or DownloadError.");
         }
     }
 }
