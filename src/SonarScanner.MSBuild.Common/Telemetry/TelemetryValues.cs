@@ -39,7 +39,7 @@ public static class TelemetryValues
         public static readonly string Failed = nameof(Failed);
     }
 
-    public static class NewBootstrapping
+    public static class ScannerEngineBootstrapping
     {
         public static readonly string Unsupported = nameof(Unsupported);
         public static readonly string Enabled = nameof(Enabled);

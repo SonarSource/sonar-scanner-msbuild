@@ -141,7 +141,7 @@ public class JreResolverTests
             "JreResolver: Resolving JRE path.",
             "JreResolver: Metadata could not be retrieved.");
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
-            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed, 2);
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed);
     }
 
     [TestMethod]
@@ -241,7 +241,7 @@ public class JreResolverTests
             "The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
-            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed, 2);
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed);
     }
 
     [TestMethod]
@@ -257,7 +257,7 @@ public class JreResolverTests
             "JreResolver: Resolving JRE path.",
             "JreResolver: Cache failure. The archive format of the JRE archive `filename.tar.gz` is not supported.");
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
-            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed, 2);
+            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed);
     }
 
     [TestMethod]

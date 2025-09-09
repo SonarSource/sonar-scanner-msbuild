@@ -71,7 +71,7 @@ public class JreResolver : IResolver
         if (metadata is null)
         {
             runtime.LogDebug(Resources.MSG_Resolver_MetadataFailure, nameof(JreResolver));
-            runtime.Telemetry.Add(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed);
+            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
             return null;
         }
 
@@ -82,7 +82,7 @@ public class JreResolver : IResolver
             if (jreDownloader.IsJreCached() is { } filePath)
             {
                 runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), filePath);
-                runtime.Telemetry.Add(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.CacheHit);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
                 return filePath;
             }
             else
@@ -94,7 +94,7 @@ public class JreResolver : IResolver
         else
         {
             runtime.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), string.Format(Resources.ERR_JreArchiveFormatNotSupported, descriptor.Filename));
-            runtime.Telemetry.Add(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed);
+            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
             return null;
         }
     }
@@ -105,11 +105,11 @@ public class JreResolver : IResolver
         {
             case FileRetrieved success:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
-                runtime.Telemetry.Add(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Downloaded);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Downloaded;
                 return success.FilePath;
             case DownloadError error:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
-                runtime.Telemetry.Add(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
                 return null;
             default:
                 throw new NotSupportedException("Download result is expected to be FileRetrieved or DownloadError.");
@@ -121,35 +121,35 @@ public class JreResolver : IResolver
         if (!string.IsNullOrWhiteSpace(args.JavaExePath))
         {
             runtime.LogDebug(Resources.MSG_JreResolver_JavaExePathSet);
-            runtime.Telemetry.Add(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Disabled);
-            runtime.Telemetry.Add(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.UserSupplied);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Disabled;
+            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.UserSupplied;
             return false;
         }
         if (args.SkipJreProvisioning)
         {
             runtime.LogDebug(Resources.MSG_JreResolver_SkipJreProvisioningSet);
-            runtime.Telemetry.Add(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Disabled);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Disabled;
             return false;
         }
         if (!server.SupportsJreProvisioning)
         {
             runtime.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
-            runtime.Telemetry.Add(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.UnsupportedByServer);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedByServer;
             return false;
         }
         if (string.IsNullOrWhiteSpace(args.OperatingSystem))
         {
             runtime.LogDebug(Resources.MSG_JreResolver_OperatingSystemMissing);
-            runtime.Telemetry.Add(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.UnsupportedNoOS);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedNoOS;
             return false;
         }
         if (string.IsNullOrWhiteSpace(args.Architecture))
         {
             runtime.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
-            runtime.Telemetry.Add(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.UnsupportedNoArch);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedNoArch;
             return false;
         }
-        runtime.Telemetry.Add(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled);
+        runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Enabled;
         return true;
     }
 }

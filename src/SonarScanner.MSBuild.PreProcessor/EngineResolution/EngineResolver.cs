@@ -49,17 +49,17 @@ public class EngineResolver : IResolver
         if (args.EngineJarPath is { } localEngine)
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
-            runtime.Telemetry[TelemetryKeys.NewBootstrappingEnabled] = TelemetryValues.NewBootstrapping.Disabled;
+            runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Disabled;
             runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.UserSupplied;
             return localEngine;
         }
         if (!server.SupportsJreProvisioning) // JRE and sonar engine provisioning were introduced by the same version of SQ Server
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
-            runtime.Telemetry[TelemetryKeys.NewBootstrappingEnabled] = TelemetryValues.NewBootstrapping.Unsupported;
+            runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Unsupported;
             return null;
         }
-        runtime.Telemetry[TelemetryKeys.NewBootstrappingEnabled] = TelemetryValues.NewBootstrapping.Enabled;
+        runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Enabled;
         if (await server.DownloadEngineMetadataAsync() is { } metadata) // TODO move into ResolveEnginePath to benefit from retry
         {
             if (await ResolveEnginePath(metadata) is { } enginePath)
