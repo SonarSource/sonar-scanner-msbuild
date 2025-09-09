@@ -432,13 +432,25 @@ public class ScannerEngineInputGenerator
         {
             if (SonarPropertiesDefault.JavaScannerMapping.TryGetValue(prop.Id, out var mappedKey))
             {
-                mappedArgs.AddProperty(mappedKey, prop.Value);
+                UpdateMappedArg(mappedKey, prop.Value);
             }
             else
             {
-                mappedArgs.AddProperty(prop.Id, prop.Value);
+                UpdateMappedArg(prop.Id, prop.Value);
             }
         }
         return mappedArgs;
+
+        void UpdateMappedArg(string key, string value)
+        {
+            if (mappedArgs.TryGetProperty(key, out var property))
+            {
+                property.Value = value;
+            }
+            else
+            {
+                mappedArgs.AddProperty(key, value);
+            }
+        }
     }
 }
