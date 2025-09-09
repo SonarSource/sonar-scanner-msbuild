@@ -116,17 +116,8 @@ public class ScannerEngineInput
     public void Add(string keyPrefix, string keySuffix, string value) =>
         Add($"{keyPrefix}.{keySuffix}", value);
 
-    internal void Add(string keyPrefix, string keySuffix, IEnumerable<string> values)
-    {
-        if (values.Any())
-        {
-            Add(keyPrefix, keySuffix, ToMultiValueProperty(values));
-        }
-        else
-        {
-            Add(keyPrefix, keySuffix, string.Empty);
-        }
-    }
+    internal void Add(string keyPrefix, string keySuffix, IEnumerable<string> values) =>
+        Add(keyPrefix, keySuffix, ToMultiValueProperty(values));
 
     private void Add(string key, IEnumerable<string> values) =>
         Add(key, ToMultiValueProperty(values));

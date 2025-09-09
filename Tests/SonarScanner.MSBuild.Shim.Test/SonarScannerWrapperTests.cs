@@ -587,7 +587,6 @@ public class SonarScannerWrapperTests
     private static string QuoteEnvironmentValue(string value) =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @$"""{value}""" : value;
 
-
     private sealed class SonarScannerWrapperTestRunner
     {
         private const string ExeFileName = "c:\\foo.exe";
