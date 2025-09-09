@@ -45,57 +45,37 @@ public class CachedDownloader
         CacheLocation = Path.Combine(FileRootPath, fileDescriptor.Filename);
     }
 
-    public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download) =>
-        EnsureDirectoryExists(FileRootPath)
-            ? await EnsureFileIsDownloaded(download)
-            : new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));
-
-    internal bool ValidateChecksum(string downloadTarget, string sha256)
+    public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download)
     {
-        try
+        if (EnsureDirectoryExists() is { } createDirectoryError)
         {
-            using var fs = fileWrapper.Open(downloadTarget);
-            var fileChecksum = checksum.ComputeHash(fs);
-            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
-            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
+            return createDirectoryError;
         }
-        catch (Exception ex)
+        if (CheckCache() is { } cacheHit)
         {
-            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
-            return false;
+            return cacheHit;
         }
+        logger.LogDebug(Resources.MSG_Resolver_CacheMiss, $"'{CacheLocation}'");
+        return await DownloadFile(download);
     }
 
-    private bool EnsureDirectoryExists(string directory)
+    private DownloadError EnsureDirectoryExists()
     {
         try
         {
-            if (!directoryWrapper.Exists(directory))
+            if (!directoryWrapper.Exists(FileRootPath))
             {
-                directoryWrapper.CreateDirectory(directory);
+                directoryWrapper.CreateDirectory(FileRootPath);
             }
-            return true;
+            return null;
         }
         catch
         {
-            return false;
+            return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));
         }
     }
 
-    private void TryDeleteFile(string tempFile)
-    {
-        try
-        {
-            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
-            fileWrapper.Delete(tempFile);
-        }
-        catch (Exception ex)
-        {
-            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
-        }
-    }
-
-    private async Task<DownloadResult> EnsureFileIsDownloaded(Func<Task<Stream>> download)
+    private CacheHit CheckCache()
     {
         if (fileWrapper.Exists(CacheLocation))
         {
@@ -105,24 +85,27 @@ public class CachedDownloader
                 return new CacheHit(CacheLocation);
             }
         }
-        logger.LogDebug(Resources.MSG_Resolver_CacheMiss, $"'{CacheLocation}'");
-        logger.LogDebug(Resources.MSG_StartingFileDownload);
-        if (await DownloadAndValidateFile(download) is { } error)
+        return null;
+    }
+
+    private async Task<DownloadResult> DownloadFile(Func<Task<Stream>> download)
+    {
+        if (await DownloadAndValidate(download) is { } downloadError)
         {
-            logger.LogDebug(error.Message);
+            logger.LogDebug(downloadError.Message);
             if (fileWrapper.Exists(CacheLocation)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
             {
                 logger.LogDebug(Resources.MSG_FileFoundAfterFailedDownload, CacheLocation);
-                return ValidateFile(CacheLocation) is { } downloadError
-                    ? downloadError
+                return ValidateFile(CacheLocation) is { } validationError
+                    ? validationError
                     : new Downloaded(CacheLocation);
             }
-            return error;
+            return downloadError;
         }
         return new Downloaded(CacheLocation);
     }
 
-    private async Task<DownloadError> DownloadAndValidateFile(Func<Task<Stream>> download)
+    private async Task<DownloadError> DownloadAndValidate(Func<Task<Stream>> download)
     {
         // We download to a temporary file in the correct folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
@@ -161,6 +144,35 @@ public class CachedDownloader
         {
             TryDeleteFile(file);
             return new(Resources.ERR_ChecksumMismatch);
+        }
+    }
+
+    private bool ValidateChecksum(string downloadTarget, string sha256)
+    {
+        try
+        {
+            using var fs = fileWrapper.Open(downloadTarget);
+            var fileChecksum = checksum.ComputeHash(fs);
+            logger.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
+            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
+            return false;
+        }
+    }
+
+    private void TryDeleteFile(string tempFile)
+    {
+        try
+        {
+            logger.LogDebug(Resources.MSG_DeletingFile, tempFile);
+            fileWrapper.Delete(tempFile);
+        }
+        catch (Exception ex)
+        {
+            logger.LogDebug(Resources.MSG_DeletingFileFailure, tempFile, ex.Message);
         }
     }
 }
