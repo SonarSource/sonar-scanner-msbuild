@@ -111,7 +111,7 @@ public static class SonarPropertiesDefault
     public static readonly string TruststorePath = Path.Combine("ssl", "truststore.p12");
 
     // Map deprecated ScannerCliV5 properties to their scanner-engine equivalents
-    public static readonly IDictionary<string, string> JavaScannerMapping = new Dictionary<string, string>()
+    public static readonly ReadOnlyDictionary<string, string> JavaScannerMapping = new(new Dictionary<string, string>
     {
         { SonarProperties.JavaxNetSslTrustStore, SonarProperties.TruststorePath },
         { SonarProperties.JavaxNetSslTrustStorePassword, SonarProperties.TruststorePassword },
@@ -121,5 +121,5 @@ public static class SonarPropertiesDefault
         { "http.proxyPort", "sonar.scanner.proxyPort" },
         { "http.proxyUser", "sonar.scanner.proxyUser" },
         { "http.proxyPassword", "sonar.scanner.proxyPassword" },
-    };
+    });
 }

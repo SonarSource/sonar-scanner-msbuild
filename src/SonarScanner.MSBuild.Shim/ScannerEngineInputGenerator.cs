@@ -430,14 +430,8 @@ public class ScannerEngineInputGenerator
         var mappedArgs = new ListPropertiesProvider();
         foreach (var prop in userSettings.GetAllProperties())
         {
-            if (SonarPropertiesDefault.JavaScannerMapping.TryGetValue(prop.Id, out var mappedKey))
-            {
-                UpdateMappedArg(mappedKey, prop.Value);
-            }
-            else
-            {
-                UpdateMappedArg(prop.Id, prop.Value);
-            }
+            var key = SonarPropertiesDefault.JavaScannerMapping.TryGetValue(prop.Id, out var mappedKey) ? mappedKey : prop.Id;
+            UpdateMappedArg(key, prop.Value);
         }
         return mappedArgs;
 
