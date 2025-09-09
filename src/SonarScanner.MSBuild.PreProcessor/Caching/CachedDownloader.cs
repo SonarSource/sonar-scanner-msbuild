@@ -56,7 +56,7 @@ public class CachedDownloader
             return cacheHit;
         }
         logger.LogDebug(Resources.MSG_Resolver_CacheMiss, $"'{CacheLocation}'");
-        return await DownloadWithRetry(download);
+        return await DownloadFile(download);
     }
 
     private DownloadError EnsureDirectoryExists()
@@ -88,9 +88,9 @@ public class CachedDownloader
         return null;
     }
 
-    private async Task<DownloadResult> DownloadWithRetry(Func<Task<Stream>> download)
+    private async Task<DownloadResult> DownloadFile(Func<Task<Stream>> download)
     {
-        if (await DownloadAndValidateFile(download) is { } downloadError)
+        if (await DownloadAndValidate(download) is { } downloadError)
         {
             logger.LogDebug(downloadError.Message);
             if (fileWrapper.Exists(CacheLocation)) // Even though the download failed, there is a small chance the file was downloaded by another scanner in the meantime.
@@ -105,7 +105,7 @@ public class CachedDownloader
         return new Downloaded(CacheLocation);
     }
 
-    private async Task<DownloadError> DownloadAndValidateFile(Func<Task<Stream>> download)
+    private async Task<DownloadError> DownloadAndValidate(Func<Task<Stream>> download)
     {
         // We download to a temporary file in the correct folder.
         // This avoids conflicts, if multiple scanner try to download to the same file.
