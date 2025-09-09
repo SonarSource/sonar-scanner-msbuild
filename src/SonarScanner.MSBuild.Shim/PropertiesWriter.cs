@@ -230,7 +230,9 @@ public class PropertiesWriter
         {
             // We should no longer pass the sonar.verbose=true parameter to the scanner CLI.
             // See: https://github.com/SonarSource/sonar-scanner-msbuild/issues/543
-            if (setting.Id != SonarProperties.Verbose)
+            // We write SonarProperties.TruststorePath to the analysis config for the scanner-engine
+            // But passing it to the scanner-cli breaks it
+            if (setting.Id != SonarProperties.Verbose && setting.Id != SonarProperties.TruststorePath)
             {
                 AppendKeyValue(setting.Id, setting.Value);
             }
