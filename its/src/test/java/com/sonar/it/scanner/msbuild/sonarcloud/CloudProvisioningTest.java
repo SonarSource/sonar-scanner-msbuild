@@ -30,6 +30,8 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -68,21 +70,22 @@ class CloudProvisioningTest {
         "JreResolver: Cache failure.");
   }
 
-  @Test
-  void cacheMiss_DownloadsCache() {
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void cacheMiss_DownloadsCache(Boolean useSonarScannerCLI) {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       context.begin
         .setProperty(activateProvisioning)
         .setProperty("sonar.userHome", userHome.toString())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-858
+        .setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by both the scanner-cli and the scanner-engine
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var oldJavaHome = Optional.ofNullable(System.getenv("JAVA_HOME")).orElse(Paths.get("somewhere", "else").toString());
       context.end.setEnvironmentVariable("JAVA_HOME", oldJavaHome);
 
       var result = context.runAnalysis();
 
-      ProvisioningAssertions.cacheMissAssertions(result, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), oldJavaHome, true);
+      ProvisioningAssertions.cacheMissAssertions(result, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), oldJavaHome, true, useSonarScannerCLI);
     }
   }
 
