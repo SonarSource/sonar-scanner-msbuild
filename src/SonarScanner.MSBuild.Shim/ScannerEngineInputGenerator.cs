@@ -173,14 +173,13 @@ public class ScannerEngineInputGenerator
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
 
-        // TODO: We cannot write mapped values to the AnalysisConfig file as it changes behaviour of the scanner-cli, this should be fixed in SCAN4NET-721
+        var sensitiveArgsFromFile = new ListPropertiesProvider(analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData()));
+        // Sensitive args need to be mapped here as they are not present in the analysis config.
         var mappedArgs = MapDeprecatedArgs(new AggregatePropertiesProvider(
             cmdLineArgs,
-            new ListPropertiesProvider(analysisConfig.ScannerOptsSettings.Select(x => new Property(x.Id, x.Value.Trim('"')))),
-            new ListPropertiesProvider(analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData())),
-            new ListPropertiesProvider(analysisProperties)));
+            sensitiveArgsFromFile));
 
-        engineInput.AddUserSettings(mappedArgs);
+        engineInput.AddUserSettings(new AggregatePropertiesProvider(mappedArgs, new ListPropertiesProvider(analysisProperties)));
         return true;
     }
 
