@@ -434,8 +434,9 @@ public class JreDownloaderTests
 
         // The download failed, but we still progress with the provisioning because somehow magically the file is there anyway.
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The checksum of the downloaded file does not match the expected checksum.");
-        runtime.Logger.AssertDebugLogged(@"The download of the file from the server failed with the exception 'I/O error occurred.'.");
-        runtime.Logger.AssertDebugLogged(@"The file was found after the download failed. Another scanner downloaded the file in parallel.");
+        runtime.Should().HaveDebugsLogged(
+            "The download of the file from the server failed with the exception 'I/O error occurred.'.",
+            "The file was found after the download failed. Another scanner downloaded the file in parallel.");
     }
 
     [TestMethod]
@@ -527,7 +528,7 @@ public class JreDownloaderTests
 
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
-        runtime.Logger.AssertDebugLogged($"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message "
+        runtime.Should().HaveDebugsLogged($"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message "
             + "'Operation is not valid due to the current state of the object.'.");
         runtime.File.Received(2).Exists(file); // One before the download and one after the failed download.
         runtime.File.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -551,7 +552,7 @@ public class JreDownloaderTests
 
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
-        runtime.Logger.AssertDebugLogged(@$"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message 'I/O error occurred.'.");
+        runtime.Should().HaveDebugsLogged(@$"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message 'I/O error occurred.'.");
         runtime.File.Received(2).Exists(file); // One before the download and one after the failed download.
         runtime.File.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
         runtime.File.Received(1).Open(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -775,7 +776,7 @@ public class JreDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            runtimeIO.Logger.AssertSingleInfoMessageExists("""
+            runtimeIO.Logger.Should().HaveInfoOnce("""
                 The JRE provisioning is a time consuming operation.
                 JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip.
                 If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
@@ -834,7 +835,7 @@ public class JreDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            runtimeIO.Logger.AssertSingleInfoMessageExists("""
+            runtimeIO.Logger.Should().HaveInfoOnce("""
                 The JRE provisioning is a time consuming operation.
                 JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz.
                 If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".

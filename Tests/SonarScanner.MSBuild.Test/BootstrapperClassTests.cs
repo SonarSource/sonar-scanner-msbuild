@@ -65,7 +65,7 @@ public class BootstrapperClassTests
                 "/d:sonar.host.url=http://host:9",
                 "/d:another.key=will be ignored");
 
-            logger.AssertWarningsLogged(0);
+            logger.Should().HaveNoWarnings();
             logger.AssertVerbosity(LoggerVerbosity.Debug);
             AssertPreProcessorArgs(
                 "/install:true",
@@ -166,12 +166,12 @@ public class BootstrapperClassTests
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeTrue();
-            logger.DebugMessages.Should().HaveCount(4);
             logger.DebugMessages[0].Should().Match(@"Cannot delete directory: '*\.sonarqube\bin' because The process cannot access the file 'Newtonsoft.Json.dll' because it is being used by another process..");
             logger.DebugMessages[1].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\Newtonsoft.Json.dll' because The process cannot access the file '*Newtonsoft.Json.dll' because it is being used by another process..");
             logger.DebugMessages[2].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Common.dll' because The process cannot access the file '*SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
             logger.DebugMessages[3].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Tasks.dll' because The process cannot access the file '*SonarScanner.MSBuild.Tasks.dll' because it is being used by another process..");
-            logger.AssertErrorLogged("""
+            logger.Should().HaveDebugs(4)
+                .And.HaveErrors("""
                 Cannot copy a different version of the SonarScanner for .NET assemblies because they are used by a running MSBuild/.Net Core process. To resolve this problem try one of the following:
                 - Analyze this project using the same version of SonarScanner for .NET
                 - Build your project with the '/nr:false' switch
@@ -190,7 +190,7 @@ public class BootstrapperClassTests
         {
             var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
-            logger.AssertWarningsLogged(0);
+            logger.Should().HaveNoWarnings();
             logger.AssertVerbosity(VerbosityCalculator.DefaultLoggingVerbosity);
             AssertPreProcessorArgs("/d:sonar.host.url=http://anotherHost");
         }
@@ -222,10 +222,9 @@ public class BootstrapperClassTests
             MockProcessors(true, false);
             Directory.CreateDirectory(tempDir);
 
-            var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
-
-            logger.AssertWarningsLogged(0);
-            logger.AssertErrorsLogged(1);
+            CheckExecutionFails(AnalysisPhase.PostProcessing, false)
+                .Should().HaveNoWarnings()
+                .And.HaveErrors(1);
             AssertPostProcessorArgs();
         }
     }
@@ -237,8 +236,7 @@ public class BootstrapperClassTests
 
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
-            var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
-            logger.AssertErrorsLogged(2);
+            CheckExecutionFails(AnalysisPhase.PostProcessing, false).Should().HaveErrors(2);
         }
     }
 
@@ -248,9 +246,7 @@ public class BootstrapperClassTests
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             Directory.CreateDirectory(tempDir);
-            var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params");
-
-            logger.AssertWarningsLogged(0);
+            CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params").Should().HaveNoWarnings();
             // The bootstrapper passes through any parameters it doesn't recognize so the post-processor
             // can decide whether to handle them or not
             AssertPostProcessorArgs("other params", "yet.more.params");
@@ -266,10 +262,9 @@ public class BootstrapperClassTests
             var analysisConfigFile = Path.Combine(tempDir, "conf", "SonarQubeAnalysisConfig.xml");
             File.Delete(analysisConfigFile);
 
-            var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params");
-
-            logger.AssertWarningsLogged(0);
-            logger.AssertErrorsLogged(2);
+            CheckExecutionFails(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params")
+                .Should().HaveNoWarnings()
+                .And.HaveErrors(2);
             AssertPostProcessorNotCalled();
         }
     }
@@ -317,7 +312,7 @@ public class BootstrapperClassTests
 
         var exitCode = bootstrapper.Execute().Result;
         exitCode.Should().Be(ErrorCode, "Bootstrapper did not return the expected exit code");
-        logger.AssertErrorsLogged();
+        logger.Should().HaveErrors();
         return logger;
     }
 
@@ -331,7 +326,7 @@ public class BootstrapperClassTests
         var exitCode = bootstrapper.Execute().Result;
 
         exitCode.Should().Be(0, "Bootstrapper did not return the expected exit code");
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveNoErrors();
 
         return logger;
     }

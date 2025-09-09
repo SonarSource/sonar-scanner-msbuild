@@ -64,7 +64,7 @@ public class EmbeddedAnalyzerInstallerTests
 
         var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
 
-        logger.AssertInfoLogged("Processing plugin: plugin1 version 1.0");
+        logger.Should().HaveInfos("Processing plugin: plugin1 version 1.0");
         actualFiles.Should().NotBeNull("Returned list should not be null");
         AssertExpectedFilesReturned(expectedFilePaths, actualFiles);
         AssertExpectedFilesExist(expectedFilePaths);

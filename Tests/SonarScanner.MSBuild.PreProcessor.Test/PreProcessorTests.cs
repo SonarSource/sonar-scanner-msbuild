@@ -49,7 +49,7 @@ public partial class PreProcessorTests
         var sut = new PreProcessor(factory, factory.Runtime);
 
         (await sut.Execute(["invalid args"])).Should().Be(false);
-        factory.Runtime.Logger.AssertErrorLogged("""
+        factory.Runtime.Should().HaveErrorsLogged("""
             Expecting at least the following command line argument:
             - SonarQube/SonarCloud project key
             The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
@@ -91,7 +91,7 @@ public partial class PreProcessorTests
         context.Factory.Server.IsServerLicenseValidImplementation = () => throw new InvalidOperationException("Some error was thrown during license check.");
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Runtime.Logger.AssertErrorLogged("Some error was thrown during license check.");
+        context.Factory.Runtime.Should().HaveErrorsLogged("Some error was thrown during license check.");
     }
 
     [TestMethod]
@@ -99,7 +99,7 @@ public partial class PreProcessorTests
     {
         using var context = new Context(TestContext);
         (await context.Execute(CreateArgs().Append("/install:false"))).Should().BeTrue();
-        context.Factory.Runtime.Logger.AssertDebugLogged("Skipping installing the ImportsBefore targets file.");
+        context.Factory.Runtime.Should().HaveDebugsLogged("Skipping installing the ImportsBefore targets file.");
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ public partial class PreProcessorTests
         context.Factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Runtime.Logger.AssertErrorLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
+        context.Factory.Runtime.Should().HaveErrorsLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
     }
 
     [TestMethod]
@@ -126,7 +126,7 @@ public partial class PreProcessorTests
 
         (await context.Execute(args)).Should().BeTrue();
 
-        context.Factory.Runtime.Logger.AssertNoWarningsLogged();
+        context.Factory.Runtime.Should().HaveNoWarningsLogged();
         context.Factory.Runtime.Logger.AssertNoUIWarningsLogged();
     }
 
@@ -167,8 +167,8 @@ public partial class PreProcessorTests
         context.AssertDirectoriesCreated();
         context.AssertDownloadMethodsCalled(1, 1, 2, 2);
 
-        context.Factory.Runtime.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
-        context.Factory.Runtime.Logger.AssertDebugLogged("Processing analysis cache");
+        context.Factory.Runtime.Should().HaveInfosLogged("Cache data is empty. A full analysis will be performed.");
+        context.Factory.Runtime.Should().HaveDebugsLogged("Processing analysis cache");
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("9.10.1.2");
@@ -200,8 +200,8 @@ public partial class PreProcessorTests
 
         context.Factory.AssertMethodCalled(nameof(context.Factory.CreateRoslynAnalyzerProvider), 2); // C# and VBNet
         context.Factory.PluginCachePath.Should().Be(tmpCachePath);
-        context.Factory.Runtime.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
-        context.Factory.Runtime.Logger.AssertDebugLogged("Processing analysis cache");
+        context.Factory.Runtime.Should().HaveInfosLogged("Cache data is empty. A full analysis will be performed.");
+        context.Factory.Runtime.Should().HaveDebugsLogged("Processing analysis cache");
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("9.10.1.2");
@@ -248,7 +248,7 @@ public partial class PreProcessorTests
 
         (await context.Execute()).Should().BeFalse();
 
-        context.Factory.Runtime.Logger.AssertErrorLogged("Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!");
+        context.Factory.Runtime.Should().HaveErrorsLogged("Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!");
     }
 
     [TestMethod]
@@ -410,7 +410,7 @@ public partial class PreProcessorTests
         public AnalysisConfig AssertAnalysisConfig(int numAnalyzers)
         {
             var filePath = Factory.ReadSettings().AnalysisConfigFilePath;
-            Factory.Runtime.Logger.AssertNoErrorsLogged();
+            Factory.Runtime.Should().HaveNoErrorsLogged();
             Factory.Runtime.Logger.AssertVerbosity(LoggerVerbosity.Debug);
 
             AssertConfigFileExists(filePath);

@@ -162,7 +162,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
-        runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+        runtime.Should().HaveDebugsLogged(
             $"Cache miss. Attempting to download '{DownloadFilePath}'.",
             $"The calculation of the checksum of the file '{TempFilePath}' failed with message 'Operation is not valid due to the current state of the object.'.",
             $"Deleting file '{Path.Combine(DownloadPath, TempFileName)}'.",
