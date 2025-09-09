@@ -52,133 +52,16 @@ public class TestLogger : ILogger
         Verbosity = LoggerVerbosity.Debug;
     }
 
-    public void AssertErrorsLogged() =>
-        Errors.Count.Should().BePositive("Expecting at least one error to be logged");
-
-    public void AssertErrorsLogged(int expectedCount) =>
-        Errors.Should().HaveCount(expectedCount, "Unexpected number of errors logged");
-
-    public void AssertWarningsLogged(int expectedCount) =>
-        Warnings.Should().HaveCount(expectedCount, "Unexpected number of warnings logged");
-
-    public void AssertNoWarningsLogged() =>
-        Warnings.Should().BeEmpty("Expecting no warnings to be logged");
+    public void AssertVerbosity(LoggerVerbosity expected) =>
+        Verbosity.Should().Be(expected, "Logger verbosity mismatch");
 
     public void AssertNoUIWarningsLogged() =>
         UIWarnings.Should().BeEmpty("Expecting no UI warnings to be logged");
 
-    public void AssertMessagesLogged() =>
-        InfoMessages.Count.Should().BePositive("Expecting at least one message to be logged");
-
-    public void AssertMessagesLogged(int expectedCount) =>
-        InfoMessages.Should().HaveCount(expectedCount, "Unexpected number of messages logged");
-
-    public void AssertDebugLogged(string expected) =>
-        DebugMessages.Should().Contain(expected.ToUnixLineEndings());
-
-    public void AssertInfoLogged(string expected) =>
-        InfoMessages.Should().Contain(expected.ToUnixLineEndings());
-
-    public void AssertWarningLogged(string expected) =>
-        Warnings.Should().ContainIgnoringLineEndings(expected.ToUnixLineEndings());
-
-    public void AssertErrorLogged(string expected) =>
-        Errors.Should().Contain(expected.ToUnixLineEndings());
-
     public void AssertUIWarningLogged(string expected)
     {
         UIWarnings.Should().Contain(expected.ToUnixLineEndings());
-        AssertWarningLogged(expected);
-    }
-
-    public void AssertMessageNotLogged(string message)
-    {
-        message = message.ToUnixLineEndings();
-        var found = InfoMessages.Any(x => message.Equals(x, StringComparison.CurrentCulture));
-        found.Should().BeFalse("Not expecting the message to have been logged: '{0}'", message);
-    }
-
-    public void AssertDebugNotLogged(string message)
-    {
-        message = message.ToUnixLineEndings();
-        var found = DebugMessages.Any(x => message.Equals(x, StringComparison.CurrentCulture));
-        found.Should().BeFalse("Not expecting the message to have been logged: '{0}'", message);
-    }
-
-    public void AssertWarningNotLogged(string warning)
-    {
-        warning = warning.ToUnixLineEndings();
-        var found = Warnings.Any(x => warning.Equals(x, StringComparison.CurrentCulture));
-        found.Should().BeFalse("Not expecting the warning to have been logged: '{0}'", warning);
-    }
-
-    public void AssertErrorNotLogged(string warning)
-    {
-        warning = warning.ToUnixLineEndings();
-        var found = Errors.Any(x => warning.Equals(x, StringComparison.CurrentCulture));
-        found.Should().BeFalse("Not expecting the warning to have been logged: '{0}'", warning);
-    }
-
-    /// <summary>
-    /// Checks that a single error exists that contains all of the specified strings.
-    /// </summary>
-    public void AssertSingleErrorExists(params string[] expected)
-    {
-        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
-        var matches = Errors.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().ContainSingle("exactly one Error should contain the expected strings: {0}", string.Join(",", expected));
-    }
-
-    /// <summary>
-    /// Checks that a single warning exists that contains all of the specified strings.
-    /// </summary>
-    public void AssertSingleWarningExists(params string[] expected)
-    {
-        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
-        var matches = Warnings.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().ContainSingle("exactly one WARNING should contain the expected strings: {0}", string.Join(",", expected));
-    }
-
-    /// <summary>
-    /// Checks that a single INFO message exists that contains all of the specified strings.
-    /// </summary>
-    public string AssertSingleInfoMessageExists(params string[] expected)
-    {
-        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
-        var matches = InfoMessages.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().ContainSingle("exactly one INFO message should contain the expected strings: {0}", string.Join(",", expected));
-        return matches.First();
-    }
-
-    /// <summary>
-    /// Checks that a single DEBUG message exists that contains all of the specified strings.
-    /// </summary>
-    public string AssertSingleDebugMessageExists(params string[] expected)
-    {
-        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
-        var matches = DebugMessages.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().ContainSingle("exactly one DEBUG message should contain the expected strings: {0}", string.Join(",", expected));
-        return matches.First();
-    }
-
-    /// <summary>
-    /// Checks that at least one INFO message exists that contains all of the specified strings.
-    /// </summary>
-    public void AssertInfoMessageExists(params string[] expected)
-    {
-        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
-        var matches = InfoMessages.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().NotBeEmpty("No INFO message contains the expected strings: {0}", string.Join(",", expected));
-    }
-
-    /// <summary>
-    /// Checks that at least one DEBUG message exists that contains all of the specified strings.
-    /// </summary>
-    public void AssertDebugMessageExists(params string[] expected)
-    {
-        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
-        var matches = DebugMessages.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().NotBeEmpty("No DEBUG message contains the expected strings: {0}", string.Join(",", expected));
+        this.Should().HaveWarnings(expected);
     }
 
     /// <summary>
@@ -190,27 +73,6 @@ public class TestLogger : ILogger
         var matches = UIWarnings.Where(x => expected.All(e => x.Contains(e)));
         matches.Should().NotBeEmpty("No UI warning contains the expected strings: {0}", string.Join(",", expected));
     }
-
-    /// <summary>
-    /// Checks that an error that contains all of the specified strings does not exist.
-    /// </summary>
-    public void AssertNoErrorsLogged(params string[] expected)
-    {
-        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
-        var matches = Errors.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().BeEmpty("Not expecting any errors to contain the specified strings: {0}", string.Join(",", expected));
-    }
-
-    public void AssertInfoLogs(params string[] messages)
-    {
-        foreach (var message in messages)
-        {
-            AssertInfoLogged(message);
-        }
-    }
-
-    public void AssertVerbosity(LoggerVerbosity expected) =>
-        Verbosity.Should().Be(expected, "Logger verbosity mismatch");
 
     public void LogInfo(string message, params object[] args)
     {

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
 using static TestUtilities.TestUtils;
 using MSCA = Microsoft.CodeAnalysis;
 
@@ -320,7 +319,7 @@ public class GetAnalyzerSettingsTests
     [DataRow("vbnet")]
     public void ShouldMerge_OldServerVersion_ReturnsFalse(string language) =>
         CheckShouldMerge("7.3.1", language, ignoreExternalIssues: "true", expected: false)
-            .AssertInfoMessageExists("External issues are not supported on this version of SonarQube. Version 7.4+ is required.");
+            .Should().HaveInfos("External issues are not supported on this version of SonarQube. Version 7.4+ is required.");
 
     [TestMethod]
     [DataRow("cs")]
@@ -333,7 +332,7 @@ public class GetAnalyzerSettingsTests
     [DataRow("vbnet")]
     public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsTrue(string language) =>
         CheckShouldMerge("7.4", language, ignoreExternalIssues: "not a boolean value", expected: true)
-            .AssertNoWarningsLogged();
+            .Should().HaveNoWarnings();
 
     [TestMethod]
     public void MergeRulesets_NoOriginalRuleset_FirstGeneratedRulsetUsed()

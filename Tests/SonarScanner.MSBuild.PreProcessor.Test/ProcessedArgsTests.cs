@@ -238,7 +238,7 @@ public class ProcessedArgsTests
         sut.ServerInfo.Should().NotBeNull();
         sut.ServerInfo.IsSonarCloud.Should().BeTrue();
         sut.ServerInfo.ServerUrl.Should().Be("https://sonarcloud.proxy");
-        runtime.Logger.AssertWarningLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.");
+        runtime.Should().HaveWarningsLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.");
         runtime.Logger.Errors.Should().BeEmpty();
         sut.IsValid.Should().BeTrue();
     }
@@ -252,7 +252,7 @@ public class ProcessedArgsTests
 
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
+        runtime.Should().HaveErrorsLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
             + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
         sut.IsValid.Should().BeFalse();
     }
@@ -266,7 +266,7 @@ public class ProcessedArgsTests
 
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.");
+        runtime.Should().HaveErrorsLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.");
         sut.IsValid.Should().BeFalse();
     }
 
@@ -324,7 +324,7 @@ public class ProcessedArgsTests
 
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
+        runtime.Should().HaveErrorsLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
             + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
         sut.IsValid.Should().BeFalse();
     }
@@ -393,8 +393,8 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
         sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
         sut.IsValid.Should().BeTrue();
-        runtime.Logger.AssertNoErrorsLogged();
-        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Should().HaveNoErrorsLogged()
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -404,9 +404,9 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
         sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
         sut.IsValid.Should().BeTrue();
-        runtime.Logger.AssertDebugLogged(@"Created the sonar.userHome directory at 'C:\Users\user\.sonar'.");
-        runtime.Logger.AssertNoErrorsLogged();
-        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Should().HaveDebugsLogged(@"Created the sonar.userHome directory at 'C:\Users\user\.sonar'.")
+            .And.HaveNoErrorsLogged()
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -417,9 +417,9 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
         sut.UserHome.Should().BeNull();
         sut.IsValid.Should().BeFalse();
-        runtime.Logger.AssertErrorLogged(@"The attempt to create the directory specified by 'sonar.userHome' at 'C:\Users\user\.sonar' failed with error 'Directory can not be created.'. "
-            + @"Provide a valid path for 'sonar.userHome' to a directory that can be created.");
-        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Should().HaveErrorsLogged(@"The attempt to create the directory specified by 'sonar.userHome' at 'C:\Users\user\.sonar' failed with error 'Directory can not be created.'. "
+            + @"Provide a valid path for 'sonar.userHome' to a directory that can be created.")
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -430,8 +430,8 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs();
         sut.UserHome.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
         sut.IsValid.Should().BeTrue();
-        runtime.Logger.AssertNoErrorsLogged();
-        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Should().HaveNoErrorsLogged()
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -443,8 +443,8 @@ public class ProcessedArgsTests
         sut.UserHome.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
         sut.IsValid.Should().BeTrue();
         runtime.Directory.Received().CreateDirectory(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
-        runtime.Logger.AssertNoErrorsLogged();
-        runtime.Logger.AssertNoWarningsLogged();
+        runtime.Should().HaveNoErrorsLogged()
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -459,9 +459,9 @@ public class ProcessedArgsTests
         sut.UserHome.Should().BeNull();
         sut.IsValid.Should().BeTrue();
         runtime.Directory.Received().CreateDirectory(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
-        runtime.Logger.AssertWarningLogged("Failed to create the default user home directory "
-            + $"'{Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")}' with exception '{exception.Message}'.");
-        runtime.Logger.AssertNoErrorsLogged();
+        runtime.Should().HaveWarningsLogged("Failed to create the default user home directory "
+            + $"'{Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")}' with exception '{exception.Message}'.")
+            .And.HaveNoErrorsLogged();
     }
 
     [TestMethod]

@@ -29,18 +29,12 @@ public class ProcessRunnerTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void Constructor_NullLogger_ThrowsArgumentNullException()
-    {
-        Action action = () => _ = new ProcessRunner(null);
-        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("logger");
-    }
+    public void Constructor_NullLogger_ThrowsArgumentNullException() =>
+        FluentActions.Invoking(() => _ = new ProcessRunner(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("logger");
 
     [TestMethod]
-    public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException()
-    {
-        Action action = () => new ProcessRunner(new TestLogger()).Execute(null);
-        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("runnerArgs");
-    }
+    public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException() =>
+        FluentActions.Invoking(() => new ProcessRunner(new TestLogger()).Execute(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runnerArgs");
 
     [TestMethod]
     public void ProcRunner_ExecutionFailed() =>
@@ -75,8 +69,8 @@ public class ProcessRunnerTests
             expected = $"{context.ExePath}: 3: xxx: not found{Environment.NewLine}Testing 1,2,3...{Environment.NewLine}";
         }
 
-        context.Logger.AssertInfoLogged("Hello world");
-        context.Logger.AssertErrorLogged("Testing 1,2,3...");
+        context.Logger.Should().HaveInfos("Hello world")
+            .And.HaveErrors("Testing 1,2,3...");
         context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
         context.ResultErrorOutputShouldBe(expected);
     }
@@ -91,7 +85,7 @@ public class ProcessRunnerTests
 
         context.ExecuteAndAssert();
 
-        context.Logger.AssertWarningLogged("WARN: Hello world");
+        context.Logger.Should().HaveWarnings("WARN: Hello world");
         context.ResultStandardOutputShouldBe(string.Empty);
         context.ResultErrorOutputShouldBe("WARN: Hello world" + Environment.NewLine);
     }
@@ -109,8 +103,8 @@ public class ProcessRunnerTests
 
         context.ExecuteAndAssert();
 
-        context.Logger.AssertMessageNotLogged("Hello world");
-        context.Logger.AssertErrorNotLogged("Testing 1,2,3...");
+        context.Logger.Should().NotHaveInfo("Hello world")
+            .And.NotHaveError("Testing 1,2,3...");
         context.ResultStandardOutputShouldBe("Hello world" + Environment.NewLine);
 
         var expected = string.Empty;
@@ -151,22 +145,22 @@ public class ProcessRunnerTests
         {
             case LogLevel.None:
                 context.Logger.InfoMessages.Should().BeEmpty();
-                context.Logger.AssertNoWarningsLogged();
-                context.Logger.AssertNoErrorsLogged();
+                context.Logger.Should().HaveNoWarnings();
+                context.Logger.Should().HaveNoErrors();
                 break;
             case LogLevel.Info:
-                context.Logger.AssertInfoLogged("Hello World");
-                context.Logger.AssertNoWarningsLogged();
-                context.Logger.AssertNoErrorsLogged();
+                context.Logger.Should().HaveInfos("Hello World");
+                context.Logger.Should().HaveNoWarnings();
+                context.Logger.Should().HaveNoErrors();
                 break;
             case LogLevel.Warning:
-                context.Logger.AssertWarningLogged("Hello World");
-                context.Logger.AssertNoErrorsLogged();
+                context.Logger.Should().HaveWarnings("Hello World");
+                context.Logger.Should().HaveNoErrors();
                 context.Logger.InfoMessages.Should().BeEmpty();
                 break;
             case LogLevel.Error:
-                context.Logger.AssertErrorLogged("Hello World");
-                context.Logger.AssertNoWarningsLogged();
+                context.Logger.Should().HaveErrors("Hello World");
+                context.Logger.Should().HaveNoWarnings();
                 context.Logger.InfoMessages.Should().BeEmpty();
                 break;
         }
@@ -194,22 +188,22 @@ public class ProcessRunnerTests
         {
             case LogLevel.None:
                 context.Logger.InfoMessages.Should().BeEmpty();
-                context.Logger.AssertNoWarningsLogged();
-                context.Logger.AssertNoErrorsLogged();
+                context.Logger.Should().HaveNoWarnings();
+                context.Logger.Should().HaveNoErrors();
                 break;
             case LogLevel.Info:
-                context.Logger.AssertInfoLogged("Hello World");
-                context.Logger.AssertNoWarningsLogged();
-                context.Logger.AssertNoErrorsLogged();
+                context.Logger.Should().HaveInfos("Hello World");
+                context.Logger.Should().HaveNoWarnings();
+                context.Logger.Should().HaveNoErrors();
                 break;
             case LogLevel.Warning:
-                context.Logger.AssertWarningLogged("Hello World");
-                context.Logger.AssertNoErrorsLogged();
+                context.Logger.Should().HaveWarnings("Hello World");
+                context.Logger.Should().HaveNoErrors();
                 context.Logger.InfoMessages.Should().BeEmpty();
                 break;
             case LogLevel.Error:
-                context.Logger.AssertErrorLogged("Hello World");
-                context.Logger.AssertNoWarningsLogged();
+                context.Logger.Should().HaveErrors("Hello World");
+                context.Logger.Should().HaveNoWarnings();
                 context.Logger.InfoMessages.Should().BeEmpty();
                 break;
         }
@@ -249,10 +243,11 @@ public class ProcessRunnerTests
         // F09F 988A is ≡ƒÿè in Codepage DOS Latin-US CP437
         // https://planetcalc.com/9043/?encoding=cp437_DOSLatinUS
         context.ResultStandardOutputShouldBe("""
-            Active code page: 65001
-            You entered: Hello World ≡ƒÿè
+                Active code page: 65001
+                You entered: Hello World ≡ƒÿè
 
-            """.ToEnvironmentLineEndings());
+                """
+            .ToEnvironmentLineEndings());
     }
 
     [TestMethod]
@@ -276,8 +271,8 @@ public class ProcessRunnerTests
         // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms)
         // timer.ElapsedMilliseconds >= 100.Should().BeTrue("Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds)
         context.AssertExpected();
-        context.Logger.AssertMessageNotLogged("Hello world");
-        context.Logger.AssertWarningsLogged(1); // expecting a warning about the timeout
+        context.Logger.Should().NotHaveInfo("Hello world")
+            .And.HaveWarnings(1);   // expecting a warning about the timeout
         context.Logger.Warnings.Single().Contains("has been terminated").Should().BeTrue();
     }
 
@@ -298,9 +293,10 @@ public class ProcessRunnerTests
         };
 
         context.ExecuteAndAssert();
-        context.Logger.AssertInfoLogged("PROCESS_VAR value");
-        context.Logger.AssertInfoLogged("PROCESS_VAR2 value");
-        context.Logger.AssertInfoLogged("PROCESS_VAR3 value");
+        context.Logger.Should().HaveInfos(
+            "PROCESS_VAR value",
+            "PROCESS_VAR2 value",
+            "PROCESS_VAR3 value");
     }
 
     [TestMethod]
@@ -336,14 +332,15 @@ public class ProcessRunnerTests
         }
 
         // Check the child process used expected values
-        context.Logger.AssertInfoLogged("machine override");
-        context.Logger.AssertInfoLogged("process override");
-        context.Logger.AssertInfoLogged("user override");
+        context.Logger.Should().HaveInfos(
+            "machine override",
+            "process override",
+            "user override");
 
         // Check the runner reported it was overwriting existing variables
         // Note: the existing non-process values won't be visible to the child process
         // unless they were set *before* the test host launched, which won't be the case.
-        context.Logger.AssertSingleDebugMessageExists("proc_runner_test_process", "existing process value", "process override");
+        context.Logger.Should().HaveDebugOnce("Overwriting the value of environment variable 'proc_runner_test_process'. Old value: existing process value, new value: process override");
     }
 
     [TestMethod]
@@ -356,7 +353,7 @@ public class ProcessRunnerTests
         };
 
         context.ExecuteAndAssert();
-        context.Logger.AssertSingleErrorExists("missingExe.foo");
+        context.Logger.Should().HaveErrorOnce("Execution failed. The specified executable does not exist: missingExe.foo");
     }
 
     [TestMethod]
@@ -537,20 +534,22 @@ public class ProcessRunnerTests
         // Check public arguments are logged but private ones are not
         foreach (var arg in publicArgs)
         {
-            context.Logger.AssertSingleDebugMessageExists(arg);
+            context.Logger.DebugMessages.Should().ContainSingle(x => x.Contains(arg));
         }
-        context.Logger.AssertSingleDebugMessageExists("Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>");
-        context.Logger.AssertSingleDebugMessageExists("Setting environment variable 'NOT_SENSITIVE'. Value: Something");
-        context.Logger.AssertSingleDebugMessageExists("Setting environment variable 'MIXED_DATA'. Value: -DBefore=true -D<sensitive data removed>");
-        context.Logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
-        context.Logger.AssertSingleDebugMessageExists("Overwriting the value of environment variable 'EXISTING_SENSITIVE_DATA'. Old value: -D<sensitive data removed>, new value: -D<sensitive data removed>");
-        context.Logger.AssertSingleDebugMessageExists("Args: public1 public2 /dmy.key=value /d:sonar.projectKey=my.key <sensitive data removed>");
+        context.Logger.Should().HaveDebugs(
+            "Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>",
+            "Setting environment variable 'NOT_SENSITIVE'. Value: Something",
+            "Setting environment variable 'MIXED_DATA'. Value: -DBefore=true -D<sensitive data removed>",
+            "Overwriting the value of environment variable 'OVERWRITING_DATA'. Old value: Not sensitive, new value: -D<sensitive data removed>");
+        context.Logger.DebugMessages.Should()
+            .ContainSingle(x => x.Contains("Overwriting the value of environment variable 'EXISTING_SENSITIVE_DATA'. Old value: -D<sensitive data removed>, new value: -D<sensitive data removed>"))
+            .And.ContainSingle(x => x.Contains("Args: public1 public2 /dmy.key=value /d:sonar.projectKey=my.key <sensitive data removed>"));
         context.AssertTextDoesNotAppearInLog("secret");
         // Check that the public and private arguments are passed to the child process
         context.AssertExpectedLogContents(allArgs);
     }
 
-    private static void SafeSetEnvironmentVariable(string key, string value, EnvironmentVariableTarget target, ILogger logger)
+    private static void SafeSetEnvironmentVariable(string key, string value, EnvironmentVariableTarget target, TestLogger logger)
     {
         try
         {

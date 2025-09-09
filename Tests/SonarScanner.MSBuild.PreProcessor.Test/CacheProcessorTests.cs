@@ -153,7 +153,7 @@ public class CacheProcessorTests
         using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Substitute.For<IBuildSettings>(), logger);
         await sut.Execute();
 
-        logger.AssertSingleInfoMessageExists("Cannot determine project base path. Incremental PR analysis is disabled.");
+        logger.Should().HaveInfoOnce("Cannot determine project base path. Incremental PR analysis is disabled.");
         sut.UnchangedFilesPath.Should().BeNull();
     }
 
@@ -165,7 +165,7 @@ public class CacheProcessorTests
         using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
         await sut.Execute();
 
-        logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
+        logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
         sut.UnchangedFilesPath.Should().BeNull();
     }
 
@@ -175,7 +175,7 @@ public class CacheProcessorTests
         var context = new CacheContext(this, "/k:key-no-cache /d:sonar.pullrequest.base=TARGET_BRANCH");
         await context.Sut.Execute();
 
-        logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
+        logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
         context.Sut.UnchangedFilesPath.Should().BeNull();
     }
 
@@ -185,7 +185,7 @@ public class CacheProcessorTests
         var context = new CacheContext(this, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
         await context.Sut.Execute();
 
-        logger.AssertDebugLogged($"Using cache base path: {context.Root}");
+        logger.Should().HaveDebugs($"Using cache base path: {context.Root}");
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
     }
 
@@ -196,7 +196,7 @@ public class CacheProcessorTests
         sut.ProcessPullRequest(Array.Empty<SensorCacheEntry>());
 
         sut.UnchangedFilesPath.Should().BeNull();
-        logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 0 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 0 are unchanged.");
     }
 
     [TestMethod]
@@ -210,7 +210,7 @@ public class CacheProcessorTests
         context.ProcessPullRequest();
 
         context.Sut.UnchangedFilesPath.Should().BeNull();
-        logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 3 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 3 are unchanged.");
     }
 
     [TestMethod]
@@ -221,7 +221,7 @@ public class CacheProcessorTests
 
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths);
-        logger.AssertInfoLogged("Incremental PR analysis: 3 files out of 3 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 3 files out of 3 are unchanged.");
     }
 
     [TestMethod]
@@ -235,7 +235,7 @@ public class CacheProcessorTests
 
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths[1]);  // Only a single file was not modified
-        logger.AssertInfoLogged("Incremental PR analysis: 1 files out of 3 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 1 files out of 3 are unchanged.");
     }
 
     [TestMethod]
@@ -258,7 +258,7 @@ public class CacheProcessorTests
         sut.ProcessPullRequest(cache);
 
         sut.UnchangedFilesPath.Should().BeNull();
-        logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 7 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 7 are unchanged.");
     }
 
     private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>

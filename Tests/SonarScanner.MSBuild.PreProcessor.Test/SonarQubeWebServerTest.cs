@@ -38,7 +38,7 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         _ = context.Server;
-        context.Logger.AssertInfoMessageExists("Using SonarQube v9.9.");
+        context.Logger.Should().HaveInfos("Using SonarQube v9.9.");
     }
 
     [TestMethod]
@@ -49,7 +49,7 @@ public class SonarQubeWebServerTest
     {
         var context = new Context(sqVersion);
         context.Server.IsServerVersionSupported().Should().BeFalse();
-        context.Logger.AssertErrorLogged("SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (< 6.0.0), to be able to run the analysis.");
+        context.Logger.Should().HaveErrors("SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (< 6.0.0), to be able to run the analysis.");
     }
 
     [TestMethod]
@@ -64,7 +64,7 @@ public class SonarQubeWebServerTest
         var context = new Context(sqVersion);
         context.Server.IsServerVersionSupported().Should().BeTrue();
         context.Logger.AssertUIWarningLogged("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
-        context.Logger.AssertNoErrorsLogged();
+        context.Logger.Should().HaveNoErrors();
     }
 
     [TestMethod]
@@ -76,7 +76,7 @@ public class SonarQubeWebServerTest
         var context = new Context(sqVersion);
         context.Server.IsServerVersionSupported().Should().BeTrue();
         context.Logger.AssertNoUIWarningsLogged();
-        context.Logger.AssertNoErrorsLogged();
+        context.Logger.Should().HaveNoErrors();
     }
 
     [TestMethod]
@@ -91,8 +91,8 @@ public class SonarQubeWebServerTest
         var isValid = await context.Server.IsServerLicenseValid();
 
         isValid.Should().BeFalse();
-        context.Logger.AssertSingleErrorExists("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
-        context.Logger.AssertNoWarningsLogged();
+        context.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host")
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -104,8 +104,8 @@ public class SonarQubeWebServerTest
         var isValid = await context.Server.IsServerLicenseValid();
 
         isValid.Should().BeTrue();
-        context.Logger.AssertNoErrorsLogged();
-        context.Logger.AssertNoWarningsLogged();
+        context.Logger.Should().HaveNoErrors()
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -116,8 +116,8 @@ public class SonarQubeWebServerTest
         var result = await context.Server.IsServerLicenseValid();
 
         result.Should().BeFalse();
-        context.Logger.AssertSingleErrorExists("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.");
-        context.Logger.AssertNoWarningsLogged();
+        context.Logger.Should().HaveErrorOnce("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.")
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -130,8 +130,8 @@ public class SonarQubeWebServerTest
         var result = await context.Server.IsServerLicenseValid();
 
         result.Should().BeFalse();
-        context.Logger.AssertSingleErrorExists("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
-        context.Logger.AssertNoWarningsLogged();
+        context.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host")
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -143,8 +143,8 @@ public class SonarQubeWebServerTest
         var result = await context.Server.IsServerLicenseValid();
 
         result.Should().BeTrue();
-        context.Logger.AssertNoErrorsLogged();
-        context.Logger.AssertNoWarningsLogged();
+        context.Logger.Should().HaveNoErrors()
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -401,7 +401,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(projectKey, branch));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleInfoMessageExists(debugMessage);
+        context.Logger.Should().HaveInfoOnce(debugMessage);
     }
 
     [TestMethod]
@@ -418,7 +418,7 @@ public class SonarQubeWebServerTest
         context.MockStreamWebDownload(new MemoryStream());
         await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, null));
 
-        context.Logger.AssertInfoMessageExists($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
+        context.Logger.Should().HaveInfos($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
     }
 
     [TestMethod]
@@ -435,7 +435,7 @@ public class SonarQubeWebServerTest
         context.MockStreamWebDownload(new MemoryStream());
         await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
-        context.Logger.AssertSingleInfoMessageExists("Downloading cache. Project key: project-key, branch: project-branch.");
+        context.Logger.Should().HaveInfoOnce("Downloading cache. Project key: project-key, branch: project-branch.");
     }
 
     [TestMethod]
@@ -460,7 +460,7 @@ public class SonarQubeWebServerTest
 
         result.Should().ContainSingle();
         result.Single(x => x.Key == "key").Data.ToStringUtf8().Should().Be("value");
-        context.Logger.AssertInfoLogged("Downloading cache. Project key: project-key, branch: project-branch.");
+        context.Logger.Should().HaveInfos("Downloading cache. Project key: project-key, branch: project-branch.");
     }
 
     [TestMethod]
@@ -471,8 +471,8 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
-        context.Logger.AssertNoWarningsLogged();
-        context.Logger.AssertNoErrorsLogged(); // There are no errors or warnings logs but we will display an info message in the caller: "Cache data is empty. A full analysis will be performed."
+        context.Logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors(); // There are no errors or warnings logs but we will display an info message in the caller: "Cache data is empty. A full analysis will be performed."
     }
 
     [TestMethod]
@@ -494,7 +494,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Exception of type 'System.Net.Http.HttpRequestException' was thrown.");
+        context.Logger.Should().HaveWarningOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! Exception of type 'System.Net.Http.HttpRequestException' was thrown.");
     }
 
     [TestMethod]
@@ -507,7 +507,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! Operation is not valid due to the current state of the object.");
+        context.Logger.Should().HaveWarningOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! Operation is not valid due to the current state of the object.");
     }
 
     [TestMethod]
@@ -518,7 +518,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
-        context.Logger.AssertSingleWarningExists("Incremental PR analysis: an error occurred while retrieving the cache entries! While parsing a protocol message, the input ended unexpectedly in the middle of a field.  This could mean either that the input has been truncated or that an embedded message misreported its own length.");
+        context.Logger.Should().HaveWarningOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! While parsing a protocol message, the input ended unexpectedly in the middle of a field.  This could mean either that the input has been truncated or that an embedded message misreported its own length.");
     }
 
     [TestMethod]
@@ -594,7 +594,7 @@ public class SonarQubeWebServerTest
         var actual = await context.Server.DownloadJreAsync(new JreMetadata("someId", null, null, null, null));
 
         ((MemoryStream)actual).ToArray().Should().BeEquivalentTo([1, 2, 3]);
-        context.Logger.AssertDebugLogged("Downloading Java JRE from analysis/jres/someId.");
+        context.Logger.Should().HaveDebugs("Downloading Java JRE from analysis/jres/someId.");
     }
 
     [TestMethod]
@@ -625,7 +625,7 @@ public class SonarQubeWebServerTest
         var actual = await context.Server.DownloadEngineAsync(new EngineMetadata(null, null, null));
 
         ((MemoryStream)actual).ToArray().Should().BeEquivalentTo([1, 2, 3]);
-        context.Logger.AssertDebugLogged("Downloading Scanner Engine from analysis/engine");
+        context.Logger.Should().HaveDebugs("Downloading Scanner Engine from analysis/engine");
     }
 
     [TestMethod]
