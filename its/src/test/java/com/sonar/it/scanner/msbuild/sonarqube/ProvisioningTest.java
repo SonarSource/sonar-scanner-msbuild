@@ -33,6 +33,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,13 +43,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ProvisioningTest {
   private static final String DIRECTORY_NAME = "JreProvisioning";
 
-  @Test
-  // provisioning does not exist before 10.6
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  // provisioning does not exist before 10.6, and all newer versions support the scanner-engine download. We need to make sure the
+  // combination of JRE cache miss with scanner-cli invocation and scanner-engine download both work as expected
   @ServerMinVersion("10.6")
-  void cacheMiss_DownloadsCache() {
+  void cacheMiss_DownloadsCache(Boolean useSonarScannerCLI) {
     try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
-      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-858
+      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by both the scanner-cli and the scanner-engine
       context.build.useDotNet();
       // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
       // so we can test that we updated it correctly
@@ -56,7 +60,7 @@ class ProvisioningTest {
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var result = context.runAnalysis();
 
-      ProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), oldJavaHome, false);
+      ProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), oldJavaHome, false, useSonarScannerCLI);
     }
   }
 
