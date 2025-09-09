@@ -45,12 +45,13 @@ class ProvisioningTest {
 
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
-  // provisioning does not exist before 10.6
+  // provisioning does not exist before 10.6, and all newer versions support the scanner-engine download. We need to make sure the
+  // combination of JRE cache miss with scanner-cli invocation and scanner-engine download both work as expected
   @ServerMinVersion("10.6")
   void cacheMiss_DownloadsCache(Boolean useSonarScannerCLI) {
     try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
-      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString());
+      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by both the scanner-cli and the scanner-engine
       context.build.useDotNet();
       // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
       // so we can test that we updated it correctly

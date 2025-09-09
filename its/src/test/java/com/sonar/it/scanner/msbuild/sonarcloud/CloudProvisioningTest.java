@@ -78,7 +78,7 @@ class CloudProvisioningTest {
       context.begin
         .setProperty(activateProvisioning)
         .setProperty("sonar.userHome", userHome.toString())
-        .setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString());
+        .setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by both the scanner-cli and the scanner-engine
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var oldJavaHome = Optional.ofNullable(System.getenv("JAVA_HOME")).orElse(Paths.get("somewhere", "else").toString());
       context.end.setEnvironmentVariable("JAVA_HOME", oldJavaHome);
