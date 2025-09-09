@@ -46,20 +46,16 @@ public class ArgumentProcessorTests
     }
 
     [TestMethod]
-    public void PreArgProc_NoArguments_ProcessingFails()
-    {
-        var runtime = CheckProcessingFails();
-        runtime.Should().HaveErrorLoggedOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]");
-        runtime.Should().HaveErrorsLogged(1);
-    }
+    public void PreArgProc_NoArguments_ProcessingFails() =>
+        CheckProcessingFails()
+            .Should().HaveErrorLoggedOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]")
+            .And.HaveErrorsLogged(1);
 
     [TestMethod]
-    public void PreArgProc_KeyHasNoValue_ProcessingFails()
-    {
-        var runtime = CheckProcessingFails("/key:");
-        runtime.Should().HaveErrorLoggedOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]");
-        runtime.Should().HaveErrorsLogged(1);
-    }
+    public void PreArgProc_KeyHasNoValue_ProcessingFails() =>
+        CheckProcessingFails("/key:")
+            .Should().HaveErrorLoggedOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]")
+            .And.HaveErrorsLogged(1);
 
     [TestMethod]
     public void PreArgProc_HostAndSonarcloudUrlError() =>
@@ -80,12 +76,11 @@ public class ArgumentProcessorTests
     public void PreArgProc_ApiBaseUrl_Set()
     {
         var runtime = new TestRuntime();
-        var args = CheckProcessingSucceeds(runtime, "/k:key", "/d:sonar.scanner.apiBaseUrl=test");
-
-        args.ServerInfo.ApiBaseUrl.Should().Be("test");
-        runtime.Should().HaveDebugsLogged("Server Url: https://sonarcloud.io");
-        runtime.Should().HaveDebugsLogged("Api Url: test");
-        runtime.Should().HaveDebugsLogged("Is SonarCloud: True");
+        CheckProcessingSucceeds(runtime, "/k:key", "/d:sonar.scanner.apiBaseUrl=test").ServerInfo.ApiBaseUrl.Should().Be("test");
+        runtime.Should().HaveDebugsLogged(
+            "Server Url: https://sonarcloud.io",
+            "Api Url: test",
+            "Is SonarCloud: True");
     }
 
     [TestMethod]
@@ -96,12 +91,12 @@ public class ArgumentProcessorTests
     public void PreArgProc_ApiBaseUrl_NotSet_SonarCloudDefault(string sonarcloudUrl)
     {
         var runtime = new TestRuntime();
-        var args = CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}");
-
-        args.ServerInfo.ApiBaseUrl.Should().Be("https://api.sonarcloud.io", because: "it is not so easy to transform the api url for a user specified sonarcloudUrl (Subdomain change).");
-        runtime.Should().HaveDebugsLogged($"Server Url: {sonarcloudUrl}");
-        runtime.Should().HaveDebugsLogged("Api Url: https://api.sonarcloud.io");
-        runtime.Should().HaveDebugsLogged("Is SonarCloud: True");
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}").ServerInfo.ApiBaseUrl
+            .Should().Be("https://api.sonarcloud.io", because: "it is not so easy to transform the api url for a user specified sonarcloudUrl (Subdomain change).");
+        runtime.Should().HaveDebugsLogged(
+            $"Server Url: {sonarcloudUrl}",
+            "Api Url: https://api.sonarcloud.io",
+            "Is SonarCloud: True");
     }
 
     [TestMethod]
@@ -114,12 +109,11 @@ public class ArgumentProcessorTests
     public void PreArgProc_ApiBaseUrl_NotSet_SonarQubeDefault(string hostUri, string expectedApiUri)
     {
         var runtime = new TestRuntime();
-        var args = CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.host.url={hostUri}");
-
-        args.ServerInfo.ApiBaseUrl.Should().Be(expectedApiUri);
-        runtime.Should().HaveDebugsLogged($"Server Url: {hostUri}");
-        runtime.Should().HaveDebugsLogged($"Api Url: {expectedApiUri}");
-        runtime.Should().HaveDebugsLogged("Is SonarCloud: False");
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.host.url={hostUri}").ServerInfo.ApiBaseUrl.Should().Be(expectedApiUri);
+        runtime.Should().HaveDebugsLogged(
+            $"Server Url: {hostUri}",
+            $"Api Url: {expectedApiUri}",
+            "Is SonarCloud: False");
     }
 
     [TestMethod]
@@ -130,12 +124,12 @@ public class ArgumentProcessorTests
     public void PreArgProc_Region_US(string region)
     {
         var runtime = new TestRuntime();
-        var args = CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.region={region}");
-
-        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarqube.us", "https://api.sonarqube.us", "us"));
-        runtime.Should().HaveDebugsLogged("Server Url: https://sonarqube.us");
-        runtime.Should().HaveDebugsLogged("Api Url: https://api.sonarqube.us");
-        runtime.Should().HaveDebugsLogged("Is SonarCloud: True");
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.region={region}").ServerInfo
+            .Should().Be(new CloudHostInfo("https://sonarqube.us", "https://api.sonarqube.us", "us"));
+        runtime.Should().HaveDebugsLogged(
+            "Server Url: https://sonarqube.us",
+            "Api Url: https://api.sonarqube.us",
+            "Is SonarCloud: True");
     }
 
     [TestMethod]
@@ -144,12 +138,12 @@ public class ArgumentProcessorTests
     public void PreArgProc_Region_EU(string region)
     {
         var runtime = new TestRuntime();
-        var args = CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.region={region}");
-
-        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarcloud.io", "https://api.sonarcloud.io", string.Empty));
-        runtime.Should().HaveDebugsLogged("Server Url: https://sonarcloud.io");
-        runtime.Should().HaveDebugsLogged("Api Url: https://api.sonarcloud.io");
-        runtime.Should().HaveDebugsLogged("Is SonarCloud: True");
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.region={region}").ServerInfo.Should().BeOfType<CloudHostInfo>()
+            .Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarcloud.io", "https://api.sonarcloud.io", string.Empty));
+        runtime.Should().HaveDebugsLogged(
+            "Server Url: https://sonarcloud.io",
+            "Api Url: https://api.sonarcloud.io",
+            "Is SonarCloud: True");
     }
 
     [TestMethod]
@@ -223,9 +217,10 @@ public class ArgumentProcessorTests
 
         args.ServerInfo.Should().BeOfType(expectedHostInfoType);
         args.ServerInfo.Should().BeEquivalentTo(new { ServerUrl = expectedHostUri, ApiBaseUrl = expectedApiUri, IsSonarCloud = expectedHostInfoType == typeof(CloudHostInfo) });
-        runtime.Should().HaveDebugsLogged($"Server Url: {expectedHostUri}");
-        runtime.Should().HaveDebugsLogged($"Api Url: {expectedApiUri}");
-        runtime.Should().HaveDebugsLogged($"Is SonarCloud: {args.ServerInfo.IsSonarCloud}");
+        runtime.Should().HaveDebugsLogged(
+            $"Server Url: {expectedHostUri}",
+            $"Api Url: {expectedApiUri}",
+            $"Is SonarCloud: {args.ServerInfo.IsSonarCloud}");
         runtime.Logger.Warnings.Should().BeEquivalentTo(expectedWarnings);
     }
 
@@ -296,8 +291,8 @@ public class ArgumentProcessorTests
     public void PreArgProc_ProjectKey_Invalid(string projectKey)
     {
         var runtime = CheckProcessingFails("/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl");
-        runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveErrorLoggedOnce("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.");
+        runtime.Should().HaveErrorLoggedOnce("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.")
+            .And.HaveErrorsLogged(1);
     }
 
     [DataRow("unrecog2", "unrecog1", "/p:key=value", "")]   // /p: is no longer supported - should be /d:
@@ -307,9 +302,9 @@ public class ArgumentProcessorTests
     {
         var runtime = CheckProcessingFails([.. args, "/key:k1", "/name:n1", "/version:v1"]);
 
-        runtime.Should().NotHaveErrorLogged("/key:");
-        runtime.Should().NotHaveErrorLogged("/name:");
-        runtime.Should().NotHaveErrorLogged("/version:");
+        runtime.Should().NotHaveErrorLogged("/key:")
+            .And.NotHaveErrorLogged("/name:")
+            .And.NotHaveErrorLogged("/version:");
         foreach (var arg in args.Where(x => x is not "")) // we still log an error for "", but we cannot match on it
         {
             runtime.Should().HaveErrorLoggedOnce("Unrecognized command line argument: " + arg);
@@ -337,21 +332,16 @@ public class ArgumentProcessorTests
     [DataRow("")]
     [DataRow("\" \"")]
     [TestMethod]
-    public void ArgProc_InstallTargets_Invalid(string installValue)
-    {
-        var runtime = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", $"/install:{installValue}");
-        runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveErrorLoggedOnce($"""Invalid value for /install: {installValue}. Valid values are "true" or "false".""");
-    }
+    public void ArgProc_InstallTargets_Invalid(string installValue) =>
+        CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", $"/install:{installValue}")
+            .Should().HaveErrorLoggedOnce($"""Invalid value for /install: {installValue}. Valid values are "true" or "false".""")
+            .And.HaveErrorsLogged(1);
 
     [TestMethod]
-    public void ArgProc_InstallTargets_Duplicate()
-    {
-        var runtime = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:true", "/install:false");
-        // we expect the error to include the first value and the duplicate argument
-        runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveErrorLoggedOnce("A value has already been supplied for this argument: /install:false. Existing: 'true'");
-    }
+    public void ArgProc_InstallTargets_Duplicate() =>
+        CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:true", "/install:false")
+            .Should().HaveErrorLoggedOnce("A value has already been supplied for this argument: /install:false. Existing: 'true'")
+            .And.HaveErrorsLogged(1);
 
     [TestMethod]
     public void PreArgProc_PropertiesFileSpecifiedOnCommandLine_Exists()
@@ -390,9 +380,9 @@ public class ArgumentProcessorTests
         properties.Save(propertiesFilePath);
 
         var runtime = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
-        runtime.Should().HaveErrorsLogged(1);
         runtime.Should()
-            .HaveErrorLoggedOnce("sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag.");
+            .HaveErrorLoggedOnce("sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag.")
+            .And.HaveErrorsLogged(1);
     }
 
     [DataRow("/key:my.key", "/name:my name", "/version:1.0")]
@@ -404,35 +394,29 @@ public class ArgumentProcessorTests
 
     [TestMethod]
     // Full names, wrong case -> ignored
-    public void PreArgProc_Aliases_Invalid()
-    {
-        var runtime = CheckProcessingFails("/KEY:my.key", "/nAme:my name", "/versIOn:1.0", "/d:sonar.host.url=foo");
-        runtime.Should().HaveErrorsLogged(
+    public void PreArgProc_Aliases_Invalid() =>
+        CheckProcessingFails("/KEY:my.key", "/nAme:my name", "/versIOn:1.0", "/d:sonar.host.url=foo")
+            .Should().HaveErrorsLogged(
             "Unrecognized command line argument: /KEY:my.key",
             "Unrecognized command line argument: /nAme:my name",
             "Unrecognized command line argument: /versIOn:1.0");
-    }
 
     [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/k:key2" }, "A value has already been supplied for this argument: /k:key2. Existing: 'my.key'")]
     [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/name:dupName" }, "A value has already been supplied for this argument: /name:dupName. Existing: 'my name'")]
     [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/v:version2.0" }, "A value has already been supplied for this argument: /v:version2.0. Existing: '1.2'")]
     [TestMethod]
-    public void PreArgProc_SingleDuplicate_ProcessingFails(string[] args, string expectedError)
-    {
-        var runtime = CheckProcessingFails(args);
-        runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveErrorLoggedOnce(expectedError);  // we expect the error to include the first value and the duplicate argument
-    }
+    public void PreArgProc_SingleDuplicate_ProcessingFails(string[] args, string expectedError) =>
+        CheckProcessingFails(args)
+            .Should().HaveErrorLoggedOnce(expectedError)
+            .And.HaveErrorsLogged(1);
 
     [TestMethod]
-    public void PreArgProc_MultipleDuplicates_ProcessingFails()
-    {
-        var runtime = CheckProcessingFails("/key:my.key", "/k:k2", "/k:key3");
-        runtime.Should().HaveErrorsLogged(
+    public void PreArgProc_MultipleDuplicates_ProcessingFails() =>
+        CheckProcessingFails("/key:my.key", "/k:k2", "/k:key3")
+            .Should().HaveErrorsLogged(
             "A value has already been supplied for this argument: /k:k2. Existing: 'my.key'",
-            "A value has already been supplied for this argument: /k:key3. Existing: 'my.key'");
-        runtime.Should().HaveErrorsLogged(2);
-    }
+            "A value has already been supplied for this argument: /k:key3. Existing: 'my.key'")
+            .And.HaveErrorsLogged(2);
 
     [TestMethod]
     public void PreArgProc_DynamicSettings()
@@ -452,8 +436,8 @@ public class ArgumentProcessorTests
         AssertExpectedPropertyValue("key1", "value1", result);
         AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
-        result.AllProperties().Should().NotBeNull();
-        result.AllProperties().Should().HaveCount(3);
+        result.AllProperties().Should().NotBeNull()
+            .And.HaveCount(3);
     }
 
     [TestMethod]
@@ -473,8 +457,8 @@ public class ArgumentProcessorTests
             "The format of the analysis property invalid1 =aaa is invalid",
             "The format of the analysis property notkeyvalue is invalid",
             "The format of the analysis property  spacebeforekey=bb is invalid",
-            "The format of the analysis property missingvalue= is invalid");
-        runtime.Should().HaveErrorsLogged(4);
+            "The format of the analysis property missingvalue= is invalid")
+            .And.HaveErrorsLogged(4);
     }
 
     [TestMethod]
@@ -492,14 +476,13 @@ public class ArgumentProcessorTests
 
         runtime.Should().HaveErrorsLogged(
             "A value has already been supplied for this property. Key: dup1=value2, existing value: value1",
-            "A value has already been supplied for this property. Key: dup2=value4, existing value: value3");
-        runtime.Should().HaveErrorsLogged(2);
+            "A value has already been supplied for this property. Key: dup2=value4, existing value: value3")
+            .And.HaveErrorsLogged(2);
     }
 
     [TestMethod]
-    public void PreArgProc_Arguments_Duplicates_WithDifferentFlagsPrefixes()
-    {
-        var runtime = CheckProcessingFails(
+    public void PreArgProc_Arguments_Duplicates_WithDifferentFlagsPrefixes() =>
+        CheckProcessingFails(
             "/key:my.key",
             "/name:my name",
             "/version:1.2",
@@ -508,25 +491,20 @@ public class ArgumentProcessorTests
             "-d:dup1=value2",
             "/d:dup2=value3",
             "/d:dup2=value4",
-            "/d:unique=value5");
-
-        runtime.Should().HaveErrorsLogged(3);
-        runtime.Should().HaveErrorsLogged(
+            "/d:unique=value5")
+            .Should().HaveErrorsLogged(
             "A value has already been supplied for this property. Key: dup1=value2, existing value: value1",
             "A value has already been supplied for this property. Key: dup2=value4, existing value: value3",
-            "A value has already been supplied for this argument: -version:1.2. Existing: '1.2'");
-    }
+            "A value has already been supplied for this argument: -version:1.2. Existing: '1.2'")
+            .And.HaveErrorsLogged(3);
 
     [TestMethod]
-    public void PreArgProc_DynamicSettings_Duplicates_WithDifferentFlagsPrefixes()
-    {
-        var runtime = CheckProcessingFails("/key:my.key", "/name:my name", "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4", "/d:unique=value5");
-
-        runtime.Should().HaveErrorsLogged(
+    public void PreArgProc_DynamicSettings_Duplicates_WithDifferentFlagsPrefixes() =>
+        CheckProcessingFails("/key:my.key", "/name:my name", "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4", "/d:unique=value5")
+            .Should().HaveErrorsLogged(
             "A value has already been supplied for this property. Key: dup1=value2, existing value: value1",
-            "A value has already been supplied for this property. Key: dup2=value4, existing value: value3");
-        runtime.Should().HaveErrorsLogged(2);
-    }
+            "A value has already been supplied for this property. Key: dup2=value4, existing value: value3")
+            .And.HaveErrorsLogged(2);
 
     [DataRow(
         new[] { "/d:sonar.projectKey=value1" },

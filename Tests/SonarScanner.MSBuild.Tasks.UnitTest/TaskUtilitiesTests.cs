@@ -25,12 +25,9 @@ public class TaskUtilitiesTests
 {
     public TestContext TestContext { get; set; }
 
-    #region Tests
-
     [TestMethod] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
     public void TaskUtils_LoadConfig_RetryIfConfigLocked_ValueReturned()
     {
-        // Arrange
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var configFile = CreateAnalysisConfig(testFolder);
 
@@ -42,14 +39,13 @@ public class TaskUtilitiesTests
         result.Should().NotBeNull("Expecting the config to have been loaded");
 
         AssertRetryAttempted(logger);
-        logger.Should().HaveNoWarnings();
-        logger.Should().HaveNoErrors();
+        logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
     }
 
     [TestMethod] // Regression test for bug http://jira.codehaus.org/browse/SONARMSBRU-11
     public void TaskUtils_LoadConfig_TimeoutIfConfigLocked_NullReturned()
     {
-        // Arrange
         // We'll lock the file and sleep for long enough for the task to timeout
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var configFile = CreateAnalysisConfig(testFolder);
@@ -63,14 +59,13 @@ public class TaskUtilitiesTests
         result.Should().BeNull("Not expecting the config to be retrieved");
 
         AssertRetryAttempted(logger);
-        logger.Should().HaveNoWarnings();
-        logger.Should().HaveErrors(1);
+        logger.Should().HaveNoWarnings()
+            .And.HaveErrors(1);
     }
 
     [TestMethod]
     public void TaskUtils_TryGetMissingConfig_NoError()
     {
-        // Arrange
         ILogger logger = new TestLogger();
 
         // 1. Null -> no error
@@ -86,16 +81,12 @@ public class TaskUtilitiesTests
         actual.Should().BeNull();
     }
 
-    #endregion Tests
-
-    #region Public test helpers
-
     /// <summary>
-    /// Performs the specified operation against a locked analysis config file
+    /// Performs the specified operation against a locked analysis config file.
     /// </summary>
-    /// <param name="configFile">The config file to be read</param>
-    /// <param name="op">The test operation to perform against the locked file</param>
-    /// <param name="shouldTimeoutReadingConfig">When the operation should timeout or not</param>
+    /// <param name="configFile">The config file to be read.</param>
+    /// <param name="op">The test operation to perform against the locked file.</param>
+    /// <param name="shouldTimeoutReadingConfig">When the operation should timeout or not.</param>
     public static void PerformOpOnLockedFile(string configFile, System.Action op, bool shouldTimeoutReadingConfig)
     {
         File.Exists(configFile).Should().BeTrue("Test setup error: specified config file should exist: {0}", configFile);
@@ -117,11 +108,11 @@ public class TaskUtilitiesTests
 
         using (var lockingStream = File.OpenWrite(configFile))
         {
-            System.Threading.Tasks.Task.Factory.StartNew(() =>
-            {
-                System.Threading.Thread.Sleep(lockPeriodInMilliseconds);
-                lockingStream.Close();
-            });
+            Task.Factory.StartNew(() =>
+                {
+                    System.Threading.Thread.Sleep(lockPeriodInMilliseconds);
+                    lockingStream.Close();
+                });
 
             // Perform the operation against the locked file
             op();
@@ -129,36 +120,30 @@ public class TaskUtilitiesTests
 
         // Sanity check for our test code
         testDuration.Stop();
-        var expectedMinimumLockPeriod = System.Math.Min(TaskUtilities.MaxConfigRetryPeriodInMilliseconds, lockPeriodInMilliseconds);
-        testDuration.ElapsedMilliseconds.Should().BeGreaterOrEqualTo(expectedMinimumLockPeriod, "Test error: expecting the test to have taken at least {0} milliseconds to run. Actual: {1}",
-            expectedMinimumLockPeriod, testDuration.ElapsedMilliseconds);
+        var expectedMinimumLockPeriod = Math.Min(TaskUtilities.MaxConfigRetryPeriodInMilliseconds, lockPeriodInMilliseconds);
+        testDuration.ElapsedMilliseconds.Should().BeGreaterOrEqualTo(
+            expectedMinimumLockPeriod,
+            "Test error: expecting the test to have taken at least {0} milliseconds to run. Actual: {1}",
+            expectedMinimumLockPeriod,
+            testDuration.ElapsedMilliseconds);
     }
-
-    #endregion Public test helpers
-
-    #region Private methods
 
     /// <summary>
     /// Ensures an analysis config file exists in the specified directory,
     /// replacing one if it already exists.
     /// If the supplied "regExExpression" is not null then the appropriate setting
-    /// entry will be created in the file
+    /// entry will be created in the file.
     /// </summary>
     private static string CreateAnalysisConfig(string parentDir)
     {
         var fullPath = Path.Combine(parentDir, FileConstants.ConfigFileName);
-
         var config = new AnalysisConfig();
         config.Save(fullPath);
         return fullPath;
     }
 
-    private static void AssertRetryAttempted(TestLogger logger)
-    {
+    private static void AssertRetryAttempted(TestLogger logger) =>
         // We'll assume retry has been attempted if there is a message containing
         // both of the timeout values
         logger.Should().HaveDebugOnce("Commencing retry-able operation. Max wait (milliseconds): 2500, pause between tries (milliseconds): 499");
-    }
-
-    #endregion Private methods
 }

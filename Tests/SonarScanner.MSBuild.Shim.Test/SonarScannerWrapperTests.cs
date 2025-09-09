@@ -30,31 +30,20 @@ public class SonarScannerWrapperTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void Execute_WhenConfigIsNull_Throws()
-    {
-        var testSubject = new SonarScannerWrapper(new TestRuntime());
-        Action act = () => testSubject.Execute(null, EmptyPropertyProvider.Instance, string.Empty);
-
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
-    }
+    public void Execute_WhenConfigIsNull_Throws() =>
+        new SonarScannerWrapper(new TestRuntime()).Invoking(x => x.Execute(null, EmptyPropertyProvider.Instance, string.Empty))
+            .Should().ThrowExactly<ArgumentNullException>()
+            .WithParameterName("config");
 
     [TestMethod]
-    public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
-    {
-        var testSubject = new SonarScannerWrapper(new TestRuntime());
-        Action act = () => testSubject.Execute(new AnalysisConfig(), null, string.Empty);
-
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
-    }
+    public void Execute_WhenUserCmdLineArgumentsIsNull_Throws() =>
+        new SonarScannerWrapper(new TestRuntime()).Invoking(x => x.Execute(new AnalysisConfig(), null, string.Empty))
+            .Should().ThrowExactly<ArgumentNullException>()
+            .WithParameterName("userCmdLineArguments");
 
     [TestMethod]
-    public void Execute_WhenFullPropertiesFilePathIsNull_ReturnsFalse()
-    {
-        var testSubject = new SonarScannerWrapper(new TestRuntime());
-        var result = testSubject.Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, null);
-
-        result.Should().BeFalse();
-    }
+    public void Execute_WhenFullPropertiesFilePathIsNull_ReturnsFalse() =>
+        new SonarScannerWrapper(new TestRuntime()).Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, null).Should().BeFalse();
 
     [TestMethod]
     public void Execute_ReturnTrue()
@@ -64,9 +53,7 @@ public class SonarScannerWrapperTests
             .Configure()
             .ExecuteJavaRunner(Arg.Any<AnalysisConfig>(), Arg.Any<IAnalysisPropertyProvider>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
             .Returns(true);
-        var result = testSubject.Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, "some/path");
-
-        result.Should().BeTrue();
+        testSubject.Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, "some/path").Should().BeTrue();
     }
 
     [TestMethod]
@@ -642,7 +629,6 @@ public class SonarScannerWrapperTests
             }
             else
             {
-                testRunner.Logger.Should().HaveErrors();
                 testRunner.Logger.Should().HaveErrors(Resources.ERR_SonarScannerExecutionFailed);
             }
         }

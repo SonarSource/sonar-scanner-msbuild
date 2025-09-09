@@ -28,22 +28,12 @@ public class TFSProcessorWrapperTest
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void Execute_WhenConfigIsNull_Throws()
-    {
-        var testSubject = new TfsProcessorWrapper(new TestRuntime());
-        Action act = () => testSubject.Execute(null, []);
-
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
-    }
+    public void Execute_WhenConfigIsNull_Throws() =>
+        new TfsProcessorWrapper(new TestRuntime()).Invoking(x => x.Execute(null, [])).Should().ThrowExactly<ArgumentNullException>().WithParameterName("config");
 
     [TestMethod]
-    public void Execute_WhenUserCmdLineArgumentsIsNull_Throws()
-    {
-        var testSubject = new TfsProcessorWrapper(new TestRuntime());
-        Action act = () => testSubject.Execute(new AnalysisConfig(), null);
-
-        act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userCmdLineArguments");
-    }
+    public void Execute_WhenUserCmdLineArgumentsIsNull_Throws() =>
+        new TfsProcessorWrapper(new TestRuntime()).Invoking(x => x.Execute(new AnalysisConfig(), null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("userCmdLineArguments");
 
     [TestMethod]
     public void Execute_ReturnTrue()
@@ -53,9 +43,7 @@ public class TFSProcessorWrapperTest
             .Configure()
             .ExecuteProcessorRunner(Arg.Any<AnalysisConfig>(), Arg.Any<string>(), Arg.Any<IEnumerable<string>>(), Arg.Any<IProcessRunner>())
             .Returns(true);
-        var result = testSubject.Execute(new AnalysisConfig(), []);
-
-        result.Should().BeTrue();
+        testSubject.Execute(new AnalysisConfig(), []).Should().BeTrue();
     }
 
     [TestMethod]
@@ -149,7 +137,6 @@ public class TFSProcessorWrapperTest
         }
         else
         {
-            testLogger.Should().HaveErrors();
             testLogger.Should().HaveErrors(Resources.ERR_TFSProcessorExecutionFailed);
         }
     }

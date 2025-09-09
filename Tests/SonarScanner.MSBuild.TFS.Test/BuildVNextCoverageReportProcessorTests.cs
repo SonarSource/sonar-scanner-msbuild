@@ -65,18 +65,12 @@ public class BuildVNextCoverageReportProcessorTests
         environmentVariableScope.Dispose();
 
     [TestMethod]
-    public void Constructor_ConverterIsNull_ThrowsNullArgumentException()
-    {
-        var action = () => new BuildVNextCoverageReportProcessor(null, runtime);
-        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("converter");
-    }
+    public void Constructor_ConverterIsNull_ThrowsNullArgumentException() =>
+        FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(null, runtime)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("converter");
 
     [TestMethod]
-    public void Constructor_LoggerIsNull_ThrowsNullArgumentException()
-    {
-        var action = () => new BuildVNextCoverageReportProcessor(converter, null);
-        action.Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
-    }
+    public void Constructor_LoggerIsNull_ThrowsNullArgumentException() =>
+        FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(converter, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
     [TestMethod]
     [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
@@ -541,13 +535,13 @@ public class BuildVNextCoverageReportProcessorTests
     {
         if (isTrue)
         {
-            runtime.Should().HaveInfosLogged("Did not find any binary coverage files in the expected location.");
-            runtime.Should().NotHaveDebugLogged(Resources.TRX_DIAG_NotUsingFallback);
+            runtime.Should().HaveInfosLogged("Did not find any binary coverage files in the expected location.")
+                .And.NotHaveDebugLogged(Resources.TRX_DIAG_NotUsingFallback);
         }
         else
         {
-            runtime.Should().NotHaveInfoLogged(Resources.TRX_DIAG_NoCoverageFilesFound);
-            runtime.Should().HaveDebugsLogged("Not using the fallback mechanism to detect binary coverage files.");
+            runtime.Should().NotHaveInfoLogged(Resources.TRX_DIAG_NoCoverageFilesFound)
+                .And.HaveDebugsLogged("Not using the fallback mechanism to detect binary coverage files.");
         }
     }
 

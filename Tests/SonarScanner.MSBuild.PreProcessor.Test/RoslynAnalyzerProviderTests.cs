@@ -47,11 +47,8 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void RoslynConfig_NoActiveRules()
-    {
-        var context = new Context(TestContext, new ListPropertiesProvider(), [], []);
-        context.ActualSettings.Should().NotBeNull();
-    }
+    public void RoslynConfig_NoActiveRules() =>
+        new Context(TestContext, [], [], []).ActualSettings.Should().NotBeNull();
 
     [TestMethod]
     public void RoslynConfig_PropertyWithoutDot()
@@ -60,19 +57,18 @@ public class RoslynAnalyzerProviderTests
         {
             {"propertyWithoutDot", "someValue"}
         });
-        var context = new Context(TestContext, sonarProperties, [], []);
-        context.ActualSettings.Should().NotBeNull();
+        new Context(TestContext, sonarProperties, [], []).ActualSettings.Should().NotBeNull();
     }
 
     [TestMethod]
     public void RoslynConfig_NoAssemblies()
     {
-        var context = new Context(TestContext, new ListPropertiesProvider(), [[@"c:\assembly1.dll"]]);
+        var context = new Context(TestContext, [], [[@"c:\assembly1.dll"]]);
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
         context.AssertInfoMessages("No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for cs");
         context.AssertCorrectRulesets();
-        context.AssertExpectedAssemblies([]);
+        context.AssertExpectedAssemblies();
         context.AssertEmptyPluginsRequested();
     }
 
@@ -227,7 +223,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertNoWarningsOrErrors();
         context.AssertInfoMessages("No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for cs");
         context.AssertCorrectRulesets();
-        context.AssertExpectedAssemblies([]);
+        context.AssertExpectedAssemblies();
         context.AssertEmptyPluginsRequested();
     }
 
@@ -237,7 +233,7 @@ public class RoslynAnalyzerProviderTests
     private static string ExpectedSonarLintXml(string language) =>
         language switch
         {
-            RoslynAnalyzerProvider.CSharpLanguage => $"""
+            RoslynAnalyzerProvider.CSharpLanguage => """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <AnalysisInput>
                   <Settings>
@@ -330,11 +326,8 @@ public class RoslynAnalyzerProviderTests
             CheckRuleset(ActualSettings.DeactivatedRulesetPath, true);
         }
 
-        public void AssertNoWarningsOrErrors()
-        {
-            logger.Should().HaveNoWarnings();
-            logger.Should().HaveNoErrors();
-        }
+        public void AssertNoWarningsOrErrors() =>
+            logger.Should().HaveNoWarnings().And.HaveNoErrors();
 
         public void AssertInfoMessages(params string[] expected)
         {

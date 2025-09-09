@@ -299,8 +299,8 @@ public class SonarCloudWebServerTest
 #else
             "Found invalid data while decoding.";
 #endif
-        context.Logger.Should().HaveWarningOnce($"Incremental PR analysis: an error occurred while retrieving the cache entries! {warningDetails}");
-        context.Logger.Should().HaveNoErrors();
+        context.Logger.Should().HaveWarningOnce($"Incremental PR analysis: an error occurred while retrieving the cache entries! {warningDetails}")
+            .And.HaveNoErrors();
         handler.Requests.Should().NotBeEmpty();
     }
 

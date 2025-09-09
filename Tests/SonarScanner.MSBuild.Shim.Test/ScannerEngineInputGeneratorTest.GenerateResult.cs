@@ -298,8 +298,8 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedProjectCount(1, result);
         // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
         AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
-        runtime.Should().HaveWarningsLogged(2);
-        runtime.Should().HaveWarningsLogged(
+        runtime.Should().HaveWarningsLogged(2)
+            .And.HaveWarningsLogged(
             $"File '{Path.Combine(TestContext.TestRunDirectory, "txtFile.txt")}' is not located under the base directory '{projectDir}' and will not be analyzed.",
             $"File '{Path.Combine(TestContext.TestRunDirectory, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
     }
@@ -330,8 +330,8 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
         if (isRaisingAWarning)
         {
-            runtime.Should().HaveWarningsLogged(1);
-            runtime.Should().HaveWarningLoggedOnce($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
+            runtime.Should().HaveWarningsLogged(1)
+                .And.HaveWarningsLogged($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
         }
         else
         {
@@ -478,8 +478,9 @@ public partial class ScannerEngineInputGeneratorTest
         AssertFileIsReferenced(existingManagedFile, actual);
         AssertFileIsNotReferenced(missingContentFile, actual);
         AssertFileIsNotReferenced(missingManagedFile, actual);
-        runtime.Should().HaveWarningLoggedOnce($"File '{missingManagedFile}' does not exist.");
-        runtime.Should().HaveWarningLoggedOnce($"File '{missingContentFile}' does not exist.");
+        runtime.Should().HaveWarningsLogged(
+            $"File '{missingManagedFile}' does not exist.",
+            $"File '{missingContentFile}' does not exist.");
     }
 
     [TestMethod]
@@ -578,8 +579,8 @@ public partial class ScannerEngineInputGeneratorTest
         var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Should().HaveDebugsLogged("Analysis property is already correctly set: sonar.visualstudio.enable=false");
-        runtime.Should().HaveNoWarningsLogged(); // not expecting a warning if the user has supplied the value we want
+        runtime.Should().HaveDebugsLogged("Analysis property is already correctly set: sonar.visualstudio.enable=false")
+            .And.HaveNoWarningsLogged(); // not expecting a warning if the user has supplied the value we want
     }
 
     [TestMethod]

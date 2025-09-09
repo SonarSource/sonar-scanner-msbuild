@@ -292,7 +292,7 @@ public class TrxFileReaderTests
     {
         var trxFiles = trxReader.FindTrxFiles(RootDirectory);
         trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
-        runtime.Should().HaveNoErrorsLogged();
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveNoErrorsLogged()
+            .And.HaveNoWarningsLogged();
     }
 }

@@ -25,23 +25,17 @@ public class CommandLineParserTests
 {
     public TestContext TestContext { get; set; }
 
-    #region Tests
-
     [TestMethod]
-    public void Parser_InvalidArguments()
-    {
-        Action act = () => new CommandLineParser(null, true);
-        act.Should().ThrowExactly<ArgumentNullException>();
-    }
+    public void Parser_InvalidArguments() =>
+        FluentActions.Invoking(() => _ = new CommandLineParser(null, true)).Should().ThrowExactly<ArgumentNullException>();
 
     [TestMethod]
     public void Parser_DuplicateDescriptorIds()
     {
-        var d1 = new ArgumentDescriptor("id1", new string[] { "a" }, true, "desc1", false);
-        var d2 = new ArgumentDescriptor("id1", new string[] { "b" }, true, "desc2", false);
+        var d1 = new ArgumentDescriptor("id1", ["a"], true, "desc1", false);
+        var d2 = new ArgumentDescriptor("id1", ["b"], true, "desc2", false);
 
-        Action act = () => new CommandLineParser(new ArgumentDescriptor[] { d1, d2 }, true);
-        act.Should().ThrowExactly<ArgumentException>();
+        FluentActions.Invoking(() => _ = new CommandLineParser([d1, d2], true)).Should().ThrowExactly<ArgumentException>();
     }
 
     [TestMethod]
@@ -51,20 +45,20 @@ public class CommandLineParserTests
         IEnumerable<ArgumentInstance> instances;
         TestLogger logger;
 
-        var args = new string[] { "/a:XXX", "/unrecognized" };
+        var args = new[] { "/a:XXX", "/unrecognized" };
 
-        var d1 = new ArgumentDescriptor("id1", new string[] { "/a:" }, true, "desc1", false);
+        var d1 = new ArgumentDescriptor("id1", ["/a:"], true, "desc1", false);
 
         // 1. Don't allow unrecognized
-        parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, false);
+        parser = new CommandLineParser([d1], false);
 
         logger = CheckProcessingFails(parser, args);
 
-        logger.Should().HaveErrorOnce("Unrecognized command line argument: /unrecognized");
-        logger.Should().HaveErrors(1);
+        logger.Should().HaveErrorOnce("Unrecognized command line argument: /unrecognized")
+            .And.HaveErrors(1);
 
         // 2. Allow unrecognized
-        parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, true);
+        parser = new CommandLineParser([d1], true);
         logger = new TestLogger();
         instances = CheckProcessingSucceeds(parser, logger, args);
 
@@ -76,12 +70,11 @@ public class CommandLineParserTests
     [TestMethod]
     public void Parser_CaseSensitivity()
     {
-        var args = new string[] { "aaa:all lowercase", "AAA:all uppercase", "aAa: mixed case" };
+        var args = new[] { "aaa:all lowercase", "AAA:all uppercase", "aAa: mixed case" };
 
-        var d1 = new ArgumentDescriptor("id", new string[] { "AAA:" }, true/* allow multiples */ , "desc1", true /* allow multiple */);
-        var parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, true /* allow unrecognized */);
+        var d1 = new ArgumentDescriptor("id", ["AAA:"], true/* allow multiples */, "desc1", true /* allow multiple */);
+        var parser = new CommandLineParser([d1], true /* allow unrecognized */);
 
-        // Act
         var instances = CheckProcessingSucceeds(parser, new TestLogger(), args);
 
         AssertExpectedValue("id", "all uppercase", instances);
@@ -95,22 +88,22 @@ public class CommandLineParserTests
         IEnumerable<ArgumentInstance> instances;
         TestLogger logger;
 
-        var args = new string[] { "zzzv1", "zzzv2", "zzzv3" };
+        var args = new[] { "zzzv1", "zzzv2", "zzzv3" };
 
         // 1. Don't allow multiples
-        var d1 = new ArgumentDescriptor("id", new string[] { "zzz" }, true, "desc1", false /* no multiples */);
-        parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, false);
+        var d1 = new ArgumentDescriptor("id", ["zzz"], true, "desc1", false /* no multiples */);
+        parser = new CommandLineParser([d1], false);
 
         logger = CheckProcessingFails(parser, args);
 
         logger.Should().HaveErrors(
             "A value has already been supplied for this argument: zzzv2. Existing: 'v1'",
-            "A value has already been supplied for this argument: zzzv3. Existing: 'v1'");
-        logger.Should().HaveErrors(2);
+            "A value has already been supplied for this argument: zzzv3. Existing: 'v1'")
+            .And.HaveErrors(2);
 
         // 2. Allow multiples
-        d1 = new ArgumentDescriptor("id", new string[] { "zzz" }, true, "desc1", true /* allow multiple */);
-        parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, true);
+        d1 = new ArgumentDescriptor("id", ["zzz"], true, "desc1", true /* allow multiple */);
+        parser = new CommandLineParser([d1], true);
         logger = new TestLogger();
         instances = CheckProcessingSucceeds(parser, logger, args);
 
@@ -125,22 +118,20 @@ public class CommandLineParserTests
         IEnumerable<ArgumentInstance> instances;
         TestLogger logger;
 
-        var args = new string[] { };
-
         // 1. Argument is required
-        var d1 = new ArgumentDescriptor("id", new string[] { "AAA" }, true /* required */, "desc1", false /* no multiples */);
-        parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, false);
+        var d1 = new ArgumentDescriptor("id", ["AAA"], true /* required */, "desc1", false /* no multiples */);
+        parser = new CommandLineParser([d1], false);
 
-        logger = CheckProcessingFails(parser, args);
+        logger = CheckProcessingFails(parser);
 
-        logger.Should().HaveErrorOnce("A required argument is missing: desc1");
-        logger.Should().HaveErrors(1);
+        logger.Should().HaveErrorOnce("A required argument is missing: desc1")
+            .And.HaveErrors(1);
 
         // 2. Argument is not required
-        d1 = new ArgumentDescriptor("id", new string[] { "AAA" }, false /* not required */, "desc1", false /* no multiples */);
-        parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, true);
+        d1 = new ArgumentDescriptor("id", ["AAA"], false /* not required */, "desc1", false /* no multiples */);
+        parser = new CommandLineParser([d1], true);
         logger = new TestLogger();
-        instances = CheckProcessingSucceeds(parser, logger, args);
+        instances = CheckProcessingSucceeds(parser, logger);
 
         AssertExpectedInstancesCount(0, instances);
     }
@@ -152,13 +143,13 @@ public class CommandLineParserTests
         IEnumerable<ArgumentInstance> instances;
         TestLogger logger;
 
-        var verb1 = new ArgumentDescriptor("v1", new string[] { "begin" }, false /* not required */, "desc1", false /* no multiples */, true);
-        parser = new CommandLineParser(new ArgumentDescriptor[] { verb1 }, true /* allow unrecognized */);
+        var verb1 = new ArgumentDescriptor("v1", ["begin"], false /* not required */, "desc1", false /* no multiples */, true);
+        parser = new CommandLineParser([verb1], true /* allow unrecognized */);
 
         // 1. Exact match -> matched
         logger = new TestLogger();
         instances = CheckProcessingSucceeds(parser, logger, "begin");
-        AssertExpectedValue("v1", "", instances);
+        AssertExpectedValue("v1", string.Empty, instances);
         AssertExpectedInstancesCount(1, instances);
 
         // 2. Partial match -> not matched
@@ -171,7 +162,7 @@ public class CommandLineParserTests
         instances = CheckProcessingSucceeds(parser, logger, "beginX", "begin", "beginY");
         instances.First().Value.Should().Be(string.Empty, "Value for verb should be empty");
         AssertExpectedInstancesCount(1, instances);
-        AssertExpectedValue("v1", "", instances);
+        AssertExpectedValue("v1", string.Empty, instances);
     }
 
     [TestMethod]
@@ -181,10 +172,10 @@ public class CommandLineParserTests
         IEnumerable<ArgumentInstance> instances;
         TestLogger logger;
 
-        var verb1 = new ArgumentDescriptor("v1", new string[] { "noMult" }, false /* required */, "noMult desc", false /* no multiples */, true);
-        var verb2 = new ArgumentDescriptor("v2", new string[] { "multOk" }, false /* required */, "multOk desc", true /* allow multiples */, true);
+        var verb1 = new ArgumentDescriptor("v1", ["noMult"], false /* required */, "noMult desc", false /* no multiples */, true);
+        var verb2 = new ArgumentDescriptor("v2", ["multOk"], false /* required */, "multOk desc", true /* allow multiples */, true);
 
-        parser = new CommandLineParser(new ArgumentDescriptor[] { verb1, verb2 }, true /* allow unrecognized */ );
+        parser = new CommandLineParser([verb1, verb2], true /* allow unrecognized */);
 
         // 1. Allowed multiples
         logger = new TestLogger();
@@ -192,9 +183,9 @@ public class CommandLineParserTests
         AssertExpectedInstancesCount(2, instances);
 
         // 2. Disallowed multiples
-        logger = CheckProcessingFails(parser, new string[] { "noMult", "noMult" });
-        logger.Should().HaveErrorOnce("A value has already been supplied for this argument: noMult. Existing: ''");
-        logger.Should().HaveErrors(1);
+        logger = CheckProcessingFails(parser, "noMult", "noMult");
+        logger.Should().HaveErrorOnce("A value has already been supplied for this argument: noMult. Existing: ''")
+            .And.HaveErrors(1);
     }
 
     [TestMethod]
@@ -204,29 +195,29 @@ public class CommandLineParserTests
         IEnumerable<ArgumentInstance> instances;
         TestLogger logger;
 
-        var emptyArgs = new string[] { };
-        var matchingPrefixArgs = new string[] { "AAAa" };
+        var matchingPrefixArgs = new[] { "AAAa" };
 
         // 1a. Argument is required but is missing -> error
-        var d1 = new ArgumentDescriptor("id", new string[] { "AAA" }, true /* required */, "desc1", false /* no multiples */, true);
-        parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, false);
-        logger = CheckProcessingFails(parser, emptyArgs);
+        var d1 = new ArgumentDescriptor("id", ["AAA"], true /* required */, "desc1", false /* no multiples */, true);
+        parser = new CommandLineParser([d1], false);
+        logger = CheckProcessingFails(parser);
 
-        logger.Should().HaveErrorOnce("A required argument is missing: desc1");
-        logger.Should().HaveErrors(1);
+        logger.Should().HaveErrorOnce("A required argument is missing: desc1")
+            .And.HaveErrors(1);
 
         // 1b. Argument is required but is only partial match -> missing -> error2
         logger = CheckProcessingFails(parser, matchingPrefixArgs);
 
-        logger.Should().HaveErrorOnce("A required argument is missing: desc1");
-        logger.Should().HaveErrorOnce("Unrecognized command line argument: AAAa");
-        logger.Should().HaveErrors(2);
+        logger.Should().HaveErrors(
+            "A required argument is missing: desc1",
+            "Unrecognized command line argument: AAAa")
+            .And.HaveErrors(2);
 
         // 2a. Argument is not required, missing -> ok
-        d1 = new ArgumentDescriptor("id", new string[] { "AAA" }, false /* not required */, "desc1", false /* no multiples */, true);
-        parser = new CommandLineParser(new ArgumentDescriptor[] { d1 }, true);
+        d1 = new ArgumentDescriptor("id", ["AAA"], false /* not required */, "desc1", false /* no multiples */, true);
+        parser = new CommandLineParser([d1], true);
         logger = new TestLogger();
-        instances = CheckProcessingSucceeds(parser, logger, emptyArgs);
+        instances = CheckProcessingSucceeds(parser, logger);
 
         AssertExpectedInstancesCount(0, instances);
 
@@ -245,33 +236,30 @@ public class CommandLineParserTests
         IEnumerable<ArgumentInstance> instances;
         TestLogger logger;
 
-        var verb1 = new ArgumentDescriptor("v1", new string[] { "X" }, false /* not required */, "verb1 desc", false /* no multiples */, true);
-        var prefix1 = new ArgumentDescriptor("p1", new string[] { "XX" }, false /* not required */, "prefix1 desc", false /* no multiples */, false);
-        var verb2 = new ArgumentDescriptor("v2", new string[] { "XXX" }, false /* not required */, "verb2 desc", false /* no multiples */, true);
-        var prefix2 = new ArgumentDescriptor("p2", new string[] { "XXXX" }, false /* not required */, "prefix2 desc", false /* no multiples */, false);
+        var verb1 = new ArgumentDescriptor("v1", ["X"], false /* not required */, "verb1 desc", false /* no multiples */, true);
+        var prefix1 = new ArgumentDescriptor("p1", ["XX"], false /* not required */, "prefix1 desc", false /* no multiples */, false);
+        var verb2 = new ArgumentDescriptor("v2", ["XXX"], false /* not required */, "verb2 desc", false /* no multiples */, true);
+        var prefix2 = new ArgumentDescriptor("p2", ["XXXX"], false /* not required */, "prefix2 desc", false /* no multiples */, false);
 
         // NOTE: this test only works because the descriptors are supplied to parser ordered
         // by decreasing prefix length
-        parser = new CommandLineParser(new ArgumentDescriptor[] { prefix2, verb2, prefix1, verb1 }, true /* allow unrecognized */);
+        parser = new CommandLineParser([prefix2, verb2, prefix1, verb1], true /* allow unrecognized */);
 
         // 1. Exact match -> matched
         logger = new TestLogger();
-        instances = CheckProcessingSucceeds(parser, logger,
-            "X", // verb 1 - exact match
-            "XXAAA", // prefix 1 - has value A,
-            "XXX", // verb 2 - exact match,
-            "XXXXB" // prefix 2 - has value B,
-            );
+        instances = CheckProcessingSucceeds(
+            parser,
+            logger,
+            "X",        // verb 1 - exact match
+            "XXAAA",    // prefix 1 - has value A,
+            "XXX",      // verb 2 - exact match,
+            "XXXXB");   // prefix 2 - has value B
 
-        AssertExpectedValue("v1", "", instances);
+        AssertExpectedValue("v1", string.Empty, instances);
         AssertExpectedValue("p1", "AAA", instances);
-        AssertExpectedValue("v2", "", instances);
+        AssertExpectedValue("v2", string.Empty, instances);
         AssertExpectedValue("p2", "B", instances);
     }
-
-    #endregion Tests
-
-    #region Checks
 
     private static IEnumerable<ArgumentInstance> CheckProcessingSucceeds(CommandLineParser parser, TestLogger logger, params string[] args)
     {
@@ -295,10 +283,8 @@ public class CommandLineParserTests
         return logger;
     }
 
-    private static void AssertExpectedInstancesCount(int expected, IEnumerable<ArgumentInstance> actual)
-    {
+    private static void AssertExpectedInstancesCount(int expected, IEnumerable<ArgumentInstance> actual) =>
         actual.Should().HaveCount(expected, "Unexpected number of arguments recognized");
-    }
 
     private static void AssertExpectedValue(string id, string expectedValue, IEnumerable<ArgumentInstance> actual)
     {
@@ -308,16 +294,11 @@ public class CommandLineParserTests
 
         actualInstance.Value.Should().Be(expectedValue, "Unexpected instance value. Id: {0}", id);
 
-        var actualValues = actual.Where(a => ArgumentDescriptor.IdComparer.Equals(a.Descriptor.Id, id)).Select(a => a.Value).ToArray();
-        actualValues.Length.Should().Be(1, "Not expecting to find multiple values. Id: {0}", id);
+        actual.Where(x => ArgumentDescriptor.IdComparer.Equals(x.Descriptor.Id, id)).Select(x => x.Value)
+            .Should().ContainSingle("Not expecting to find multiple values. Id: {0}", id);
     }
 
-    private static void AssertExpectedValues(string id, IEnumerable<ArgumentInstance> actual, params string[] expectedValues)
-    {
-        var actualValues = actual.Where(a => ArgumentDescriptor.IdComparer.Equals(a.Descriptor.Id, id)).Select(a => a.Value).ToArray();
-
-        actualValues.Should().BeEquivalentTo(expectedValues);
-    }
-
-    #endregion Checks
+    private static void AssertExpectedValues(string id, IEnumerable<ArgumentInstance> actual, params string[] expectedValues) =>
+        actual.Where(x => ArgumentDescriptor.IdComparer.Equals(x.Descriptor.Id, id)).Select(x => x.Value)
+            .Should().BeEquivalentTo(expectedValues);
 }

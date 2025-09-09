@@ -49,6 +49,13 @@ public class TestRuntimeAssertions : ReferenceTypeAssertions<TestRuntime, TestRu
     }
 
     [CustomAssertion]
+    public AndWhichConstraint<TestRuntimeAssertions, List<string>> HaveDebugsLogged(int expectedCount, string because = "", params string[] becauseArgs)
+    {
+        Subject.Logger.Should().HaveDebugs(expectedCount, because, becauseArgs);
+        return new(this, Subject.Logger.DebugMessages);
+    }
+
+    [CustomAssertion]
     public AndConstraint<TestRuntimeAssertions> HaveErrorsLogged(params string[] expectedMessages)
     {
         Subject.Logger.Should().HaveErrors(expectedMessages);

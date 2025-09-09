@@ -121,8 +121,8 @@ public partial class ScannerEngineInputGeneratorTest
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
-        runtime.Should().HaveInfosLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}");
-        runtime.Should().HaveErrorsLogged("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+        runtime.Should().HaveInfosLogged($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}")
+            .And.HaveErrorsLogged("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
     }
 
     [TestMethod]

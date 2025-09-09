@@ -434,8 +434,9 @@ public class JreDownloaderTests
 
         // The download failed, but we still progress with the provisioning because somehow magically the file is there anyway.
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The checksum of the downloaded file does not match the expected checksum.");
-        runtime.Should().HaveDebugsLogged("The download of the file from the server failed with the exception 'I/O error occurred.'.");
-        runtime.Should().HaveDebugsLogged("The file was found after the download failed. Another scanner downloaded the file in parallel.");
+        runtime.Should().HaveDebugsLogged(
+            "The download of the file from the server failed with the exception 'I/O error occurred.'.",
+            "The file was found after the download failed. Another scanner downloaded the file in parallel.");
     }
 
     [TestMethod]

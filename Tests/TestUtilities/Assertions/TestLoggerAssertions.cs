@@ -51,8 +51,18 @@ public class TestLoggerAssertions : ReferenceTypeAssertions<TestLogger, TestLogg
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(Subject.Warnings.Count == expectedCount)
-            .FailWith($"Expected {expectedCount} warnings to be logged, but found {Subject.Errors.Count}.");
+            .FailWith($"Expected {expectedCount} warnings to be logged, but found {Subject.Warnings.Count}.");
         return new(this, Subject.Warnings);
+    }
+
+    [CustomAssertion]
+    public AndWhichConstraint<TestLoggerAssertions, List<string>> HaveDebugs(int expectedCount, string because = "", params string[] becauseArgs)
+    {
+        Execute.Assertion
+            .BecauseOf(because, becauseArgs)
+            .ForCondition(Subject.DebugMessages.Count == expectedCount)
+            .FailWith($"Expected {expectedCount} DEBUG messages to be logged, but found {Subject.DebugMessages.Count}.");
+        return new(this, Subject.DebugMessages);
     }
 
     [CustomAssertion]
@@ -61,7 +71,7 @@ public class TestLoggerAssertions : ReferenceTypeAssertions<TestLogger, TestLogg
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(Subject.InfoMessages.Count == expectedCount)
-            .FailWith($"Expected {expectedCount} INFO messages to be logged, but found {Subject.Errors.Count}.");
+            .FailWith($"Expected {expectedCount} INFO messages to be logged, but found {Subject.InfoMessages.Count}.");
         return new(this, Subject.InfoMessages);
     }
 

@@ -393,8 +393,8 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
         sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
         sut.IsValid.Should().BeTrue();
-        runtime.Should().HaveNoErrorsLogged();
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveNoErrorsLogged()
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -404,9 +404,9 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
         sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
         sut.IsValid.Should().BeTrue();
-        runtime.Should().HaveDebugsLogged(@"Created the sonar.userHome directory at 'C:\Users\user\.sonar'.");
-        runtime.Should().HaveNoErrorsLogged();
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveDebugsLogged(@"Created the sonar.userHome directory at 'C:\Users\user\.sonar'.")
+            .And.HaveNoErrorsLogged()
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -418,8 +418,8 @@ public class ProcessedArgsTests
         sut.UserHome.Should().BeNull();
         sut.IsValid.Should().BeFalse();
         runtime.Should().HaveErrorsLogged(@"The attempt to create the directory specified by 'sonar.userHome' at 'C:\Users\user\.sonar' failed with error 'Directory can not be created.'. "
-            + @"Provide a valid path for 'sonar.userHome' to a directory that can be created.");
-        runtime.Should().HaveNoWarningsLogged();
+            + @"Provide a valid path for 'sonar.userHome' to a directory that can be created.")
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -430,8 +430,8 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs();
         sut.UserHome.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
         sut.IsValid.Should().BeTrue();
-        runtime.Should().HaveNoErrorsLogged();
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveNoErrorsLogged()
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -443,8 +443,8 @@ public class ProcessedArgsTests
         sut.UserHome.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
         sut.IsValid.Should().BeTrue();
         runtime.Directory.Received().CreateDirectory(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
-        runtime.Should().HaveNoErrorsLogged();
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Should().HaveNoErrorsLogged()
+            .And.HaveNoWarningsLogged();
     }
 
     [TestMethod]
@@ -460,8 +460,8 @@ public class ProcessedArgsTests
         sut.IsValid.Should().BeTrue();
         runtime.Directory.Received().CreateDirectory(Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar"));
         runtime.Should().HaveWarningsLogged("Failed to create the default user home directory "
-            + $"'{Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")}' with exception '{exception.Message}'.");
-        runtime.Should().HaveNoErrorsLogged();
+            + $"'{Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar")}' with exception '{exception.Message}'.")
+            .And.HaveNoErrorsLogged();
     }
 
     [TestMethod]

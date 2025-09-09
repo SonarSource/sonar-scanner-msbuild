@@ -31,12 +31,8 @@ public class BinaryToXmlCoverageReportConverterTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void BinaryToXmlCoverageReportConverter_InvalidArgs_Throws()
-    {
-        Action op = () => _ = new BinaryToXmlCoverageReportConverter(null);
-
-        op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
-    }
+    public void BinaryToXmlCoverageReportConverter_InvalidArgs_Throws() =>
+        FluentActions.Invoking(() => _ = new BinaryToXmlCoverageReportConverter(null)).Should().Throw<ArgumentNullException>().WithParameterName("logger");
 
     [TestMethod]
     public void ConvertToXml_InvalidArgs_Throws()
@@ -44,18 +40,12 @@ public class BinaryToXmlCoverageReportConverterTests
         var testSubject = new BinaryToXmlCoverageReportConverter(Substitute.For<ILogger>());
 
         // 1. Null input path
-        Action op = () => testSubject.ConvertToXml(null, "dummypath");
-        op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
-
-        op = () => testSubject.ConvertToXml("\t\n", "dummypath");
-        op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("inputFilePath");
+        testSubject.Invoking(x => x.ConvertToXml(null, "dummypath")).Should().Throw<ArgumentNullException>().WithParameterName("inputFilePath");
+        testSubject.Invoking(x => x.ConvertToXml("\t\n", "dummypath")).Should().Throw<ArgumentNullException>().WithParameterName("inputFilePath");
 
         // 2. Null output path
-        op = () => testSubject.ConvertToXml("dummypath", null);
-        op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
-
-        op = () => testSubject.ConvertToXml("dummypath", "   ");
-        op.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("outputFilePath");
+        testSubject.Invoking(x => x.ConvertToXml("dummypath", null)).Should().Throw<ArgumentNullException>().WithParameterName("outputFilePath");
+        testSubject.Invoking(x => x.ConvertToXml("dummypath", "   ")).Should().Throw<ArgumentNullException>().WithParameterName("outputFilePath");
     }
 
     [TestMethod]
@@ -67,8 +57,8 @@ public class BinaryToXmlCoverageReportConverterTests
         context.Logger.Should().HaveErrors($"""
             Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
             Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
-            """);
-        context.Logger.Should().HaveNoWarnings();
+            """)
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]

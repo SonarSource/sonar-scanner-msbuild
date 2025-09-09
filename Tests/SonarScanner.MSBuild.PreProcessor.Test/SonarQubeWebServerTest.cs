@@ -91,8 +91,8 @@ public class SonarQubeWebServerTest
         var isValid = await context.Server.IsServerLicenseValid();
 
         isValid.Should().BeFalse();
-        context.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
-        context.Logger.Should().HaveNoWarnings();
+        context.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host")
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -104,8 +104,8 @@ public class SonarQubeWebServerTest
         var isValid = await context.Server.IsServerLicenseValid();
 
         isValid.Should().BeTrue();
-        context.Logger.Should().HaveNoErrors();
-        context.Logger.Should().HaveNoWarnings();
+        context.Logger.Should().HaveNoErrors()
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -116,8 +116,8 @@ public class SonarQubeWebServerTest
         var result = await context.Server.IsServerLicenseValid();
 
         result.Should().BeFalse();
-        context.Logger.Should().HaveErrorOnce("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.");
-        context.Logger.Should().HaveNoWarnings();
+        context.Logger.Should().HaveErrorOnce("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.")
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -130,8 +130,8 @@ public class SonarQubeWebServerTest
         var result = await context.Server.IsServerLicenseValid();
 
         result.Should().BeFalse();
-        context.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host");
-        context.Logger.Should().HaveNoWarnings();
+        context.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host")
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -143,8 +143,8 @@ public class SonarQubeWebServerTest
         var result = await context.Server.IsServerLicenseValid();
 
         result.Should().BeTrue();
-        context.Logger.Should().HaveNoErrors();
-        context.Logger.Should().HaveNoWarnings();
+        context.Logger.Should().HaveNoErrors()
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
@@ -471,8 +471,8 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
-        context.Logger.Should().HaveNoWarnings();
-        context.Logger.Should().HaveNoErrors(); // There are no errors or warnings logs but we will display an info message in the caller: "Cache data is empty. A full analysis will be performed."
+        context.Logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors(); // There are no errors or warnings logs but we will display an info message in the caller: "Cache data is empty. A full analysis will be performed."
     }
 
     [TestMethod]
