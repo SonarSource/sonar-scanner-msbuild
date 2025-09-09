@@ -171,7 +171,6 @@ public class JreResolverTests
             "JreResolver: Resolving JRE path.",
             "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
-            "Starting the file download.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
             $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
@@ -222,7 +221,6 @@ public class JreResolverTests
             "JreResolver: Resolving JRE path.",
             "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
-            "Starting the file download.",
             $"Deleting file '{ShaPath}'.",  // should be temp file path but the scaffolding is not setup
             "The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");

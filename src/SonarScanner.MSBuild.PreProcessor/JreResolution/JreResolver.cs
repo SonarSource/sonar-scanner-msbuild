@@ -99,7 +99,7 @@ public class JreResolver : IResolver
     private async Task<string> DownloadJre(JreDownloader jreDownloader, JreMetadata metadata)
     {
         var result = await jreDownloader.DownloadJreAsync(() => server.DownloadJreAsync(metadata));
-        if (result is Success success)
+        if (result is FileRetrieved success)
         {
             runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
             return success.FilePath;

@@ -57,7 +57,7 @@ public class JreDownloader
     {
         runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, jreDescriptor.Filename);
         var result = await cachedDownloader.DownloadFileAsync(jreDownload);
-        return result is Success success ? UnpackJre(success.FilePath) : result;
+        return result is FileRetrieved success ? UnpackJre(success.FilePath) : result;
     }
 
     private DownloadResult UnpackJre(string jreArchive)
