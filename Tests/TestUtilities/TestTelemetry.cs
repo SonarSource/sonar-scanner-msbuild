@@ -18,19 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common;
+namespace TestUtilities;
 
-public interface IRuntime
+public class TestTelemetry : ITelemetry
 {
-    OperatingSystemProvider OperatingSystem { get; }
-    IDirectoryWrapper Directory { get; }
-    IFileWrapper File { get; }
-    ILogger Logger { get; }
-    ITelemetry Telemetry { get; }
+    private readonly List<KeyValuePair<string, object>> messages = [];
 
-    // The most commonly used ILogger methods are replicated here. This is a compromise between a clean architecture and convenience:
-    void LogDebug(string message, params object[] args);
-    void LogInfo(string message, params object[] args);
-    void LogWarning(string message, params object[] args);
-    void LogError(string message, params object[] args);
+    public IReadOnlyList<KeyValuePair<string, object>> Messages => messages;
+    public string OutputPath { get; private set; }
+
+    public void Add(string key, object value) =>
+        messages.Add(new(key, value));
+
+    public void Write(string outputFolder) =>
+        OutputPath = outputFolder;
 }

@@ -20,7 +20,6 @@
 
 using System.Globalization;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -47,11 +46,6 @@ public class ConsoleLogger : ILogger
     /// List of UI warnings that should be logged.
     /// </summary>
     private readonly IList<string> uiWarnings = [];
-
-    /// <summary>
-    /// List of telemetry messages computed during the begin and end step.
-    /// </summary>
-    private readonly IList<KeyValuePair<string, object>> telemetryMessages = [];
 
     private readonly IOutputWriter outputWriter;
     private readonly IFileWrapper fileWrapper;
@@ -135,45 +129,6 @@ public class ConsoleLogger : ILogger
         {
             var warningsJson = JsonConvert.SerializeObject(uiWarnings.Select(x => new { text = x }).ToArray(), Formatting.Indented);
             fileWrapper.WriteAllText(Path.Combine(outputFolder, FileConstants.UIWarningsFileName), warningsJson);
-        }
-    }
-
-    /// <summary>
-    /// Saves a telemetry message for later processing.
-    /// The <paramref name="value"/> parameter must be a primitive JSON type, like a number, a String, or a Boolean.
-    /// </summary>
-    public void AddTelemetryMessage(string key, object value) =>
-        telemetryMessages.Add(new(key, value));
-
-    public void WriteTelemetry(string outputFolder)
-    {
-        var telemetryMessagesJson = new StringBuilder();
-        foreach (var message in telemetryMessages)
-        {
-            telemetryMessagesJson.AppendLine(ParseMessage(message));
-        }
-
-        var path = Path.Combine(outputFolder, FileConstants.TelemetryFileName);
-        var telemetry = telemetryMessagesJson.ToString();
-        try
-        {
-            fileWrapper.AppendAllText(path, telemetry);
-        }
-        catch (IOException ex)
-        {
-            LogWarning($"Could not write {FileConstants.TelemetryFileName} in {outputFolder}", ex.Message);
-        }
-
-        static string ParseMessage(KeyValuePair<string, object> message)
-        {
-            var entry = new JObject();
-            var value = JToken.FromObject(message.Value);
-            if (value is not JValue)
-            {
-                throw new NotSupportedException($"Unsupported telemetry message value type: {message.Value.GetType()}");
-            }
-            entry[message.Key] = value;
-            return entry.ToString(Formatting.None);
         }
     }
 

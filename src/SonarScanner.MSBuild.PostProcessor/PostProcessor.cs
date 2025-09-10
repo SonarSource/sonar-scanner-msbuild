@@ -218,7 +218,7 @@ public class PostProcessor
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
-            runtime.Logger.AddTelemetryMessage(TelemetryKeys.EndstepLegacyTFS, TelemetryValues.EndstepLegacyTFS.Called);
+            runtime.Telemetry.Add(TelemetryKeys.EndstepLegacyTFS, TelemetryValues.EndstepLegacyTFS.Called);
             runtime.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
             runtime.Logger.IncludeTimestamp = false;
             tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, analysisResult.FullPropertiesFilePath]);
