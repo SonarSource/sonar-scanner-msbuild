@@ -324,4 +324,16 @@ public class AnalysisConfigExtensionsTests
         config.GetConfigValue("sonar.scanner.proxyPort", "someDefaultValue").Should().Be("proxyPort");
         config.GetConfigValue("sonar.scanner.proxyUser", "someDefaultValue").Should().Be("proxyUser");
     }
+
+    [TestMethod]
+    public void ConfigExt_SetConfigValue_MappedProperty_LatestOverrides()
+    {
+        var config = new AnalysisConfig();
+
+        config.SetConfigValue("javax.net.ssl.trustStore", "Some/Path");
+        config.SetConfigValue("sonar.scanner.truststorePath", "Override/Truststore");
+
+        config.GetConfigValue("javax.net.ssl.trustStore", "someDefaultValue").Should().Be("Some/Path");
+        config.GetConfigValue("sonar.scanner.truststorePath", "someDefaultValue").Should().Be("Override/Truststore");
+    }
 }

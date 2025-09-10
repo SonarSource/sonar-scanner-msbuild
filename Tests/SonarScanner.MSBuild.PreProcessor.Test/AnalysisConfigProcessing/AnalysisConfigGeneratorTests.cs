@@ -636,13 +636,14 @@ public class AnalysisConfigGeneratorTests
     public void GenerateFile_MapsOldPropertiesToNew()
     {
         var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        var propertiesProvider = new ListPropertiesProvider();
-
-        propertiesProvider.AddProperty("javax.net.ssl.trustStore", "Some/Path");
-        propertiesProvider.AddProperty("javax.net.ssl.keyStore", "Some/Other/Path");
-        propertiesProvider.AddProperty("http.proxyHost", "proxyHost");
-        propertiesProvider.AddProperty("http.proxyPort", "proxyPort");
-        propertiesProvider.AddProperty("http.proxyUser", "proxyUser");
+        var propertiesProvider = new ListPropertiesProvider
+        {
+            { "javax.net.ssl.trustStore", "Some/Path" },
+            { "javax.net.ssl.keyStore", "Some/Other/Path" },
+            { "http.proxyHost", "proxyHost" },
+            { "http.proxyPort", "proxyPort" },
+            { "http.proxyUser", "proxyUser" }
+        };
 
         var config = AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(propertiesProvider), settings, [], EmptyProperties, [], "9.9", null, null, new TestRuntime());
 
