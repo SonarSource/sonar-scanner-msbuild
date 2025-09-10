@@ -434,7 +434,7 @@ public class JreDownloaderTests
 
         // The download failed, but we still progress with the provisioning because somehow magically the file is there anyway.
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The checksum of the downloaded file does not match the expected checksum.");
-        runtime.Should().HaveDebugsLogged(
+        runtime.Logger.Should().HaveDebugs(
             "The download of the file from the server failed with the exception 'I/O error occurred.'.",
             "The file was found after the download failed. Another scanner downloaded the file in parallel.");
     }
@@ -528,7 +528,7 @@ public class JreDownloaderTests
 
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
-        runtime.Should().HaveDebugsLogged($"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message "
+        runtime.Logger.Should().HaveDebugs($"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message "
             + "'Operation is not valid due to the current state of the object.'.");
         runtime.File.Received(2).Exists(file); // One before the download and one after the failed download.
         runtime.File.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
@@ -552,7 +552,7 @@ public class JreDownloaderTests
 
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
-        runtime.Should().HaveDebugsLogged(@$"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message 'I/O error occurred.'.");
+        runtime.Logger.Should().HaveDebugs(@$"The calculation of the checksum of the file '{Path.Combine(ShaPath, "xFirst.rnd")}' failed with message 'I/O error occurred.'.");
         runtime.File.Received(2).Exists(file); // One before the download and one after the failed download.
         runtime.File.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
         runtime.File.Received(1).Open(Path.Combine(ShaPath, "xFirst.rnd"));
