@@ -21,7 +21,6 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Security;
-using NSubstitute.ExceptionExtensions;
 
 namespace SonarScanner.MSBuild.Common.Test;
 
