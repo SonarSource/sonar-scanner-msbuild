@@ -103,8 +103,8 @@ public class PostProcessorTests
     {
         Execute(withProject: false).Should().BeFalse("Expecting post-processor to have failed");
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        runtime.Should().HaveNoErrorsLogged();
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Logger.Should().HaveNoErrors();
+        runtime.Logger.Should().HaveNoWarnings();
         runtime.Logger.AssertNoUIWarningsLogged();
         VerifyTargetsUninstaller();
     }
@@ -119,8 +119,8 @@ public class PostProcessorTests
             config,
             Arg.Is<IAnalysisPropertyProvider>(x => !x.GetAllProperties().Any()),
             Arg.Any<string>());
-        runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Logger.Should().HaveErrors(1);
+        runtime.Logger.Should().HaveNoWarnings();
         VerifyTargetsUninstaller();
     }
 
@@ -129,8 +129,8 @@ public class PostProcessorTests
     {
         Execute("/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        runtime.Should().HaveErrorsLogged(1);
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Logger.Should().HaveErrors(1);
+        runtime.Logger.Should().HaveNoWarnings();
         VerifyTargetsUninstaller();
     }
 
@@ -171,7 +171,7 @@ public class PostProcessorTests
             }
             """
                 .ToEnvironmentLineEndings());
-        runtime.Should().HaveNoErrorsLogged();
+        runtime.Logger.Should().HaveNoErrors();
         VerifyTargetsUninstaller();
     }
 
@@ -197,7 +197,7 @@ public class PostProcessorTests
             }
             """
                 .ToEnvironmentLineEndings());
-        runtime.Should().HaveNoErrorsLogged();
+        runtime.Logger.Should().HaveNoErrors();
         VerifyTargetsUninstaller();
     }
 
@@ -218,7 +218,7 @@ public class PostProcessorTests
             }
             """
                 .ToEnvironmentLineEndings());
-        runtime.Should().HaveNoErrorsLogged();
+        runtime.Logger.Should().HaveNoErrors();
         VerifyTargetsUninstaller();
     }
 
@@ -228,7 +228,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineCredentials = true;
 
         Execute().Should().BeFalse();
-        runtime.Should().HaveErrorsLogged(CredentialsErrorMessage);
+        runtime.Logger.Should().HaveErrors(CredentialsErrorMessage);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -239,7 +239,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineTruststorePassword = true;
 
         Execute().Should().BeFalse();
-        runtime.Should().HaveErrorsLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.Should().HaveErrors(TruststorePasswordErrorMessage);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -250,7 +250,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineTruststorePassword = true;
 
         Execute("/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
-        runtime.Should().NotHaveErrorLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.Should().NotHaveError(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -264,7 +264,7 @@ public class PostProcessorTests
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, $"-D{truststorePasswordProp}");
 
         Execute().Should().BeTrue();
-        runtime.Should().NotHaveErrorLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.Should().NotHaveError(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -275,7 +275,7 @@ public class PostProcessorTests
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=foo");
 
         Execute().Should().BeTrue();
-        runtime.Should().NotHaveErrorLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.Should().NotHaveError(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -286,7 +286,7 @@ public class PostProcessorTests
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
 
         Execute("/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
-        runtime.Should().NotHaveErrorLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.Should().NotHaveError(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -297,7 +297,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineTruststorePassword = true;
 
         Execute($"/d:{truststorePasswordProperty}").Should().BeFalse();
-        runtime.Should().HaveErrorsLogged($"The format of the analysis property {truststorePasswordProperty} is invalid");
+        runtime.Logger.Should().HaveErrors($"The format of the analysis property {truststorePasswordProperty} is invalid");
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -318,7 +318,7 @@ public class PostProcessorTests
     public void PostProc_WhenNoSettingInFileAndCommandLineArg_Fail()
     {
         Execute("/d:sonar.token=foo").Should().BeFalse();
-        runtime.Should().HaveErrorsLogged(CredentialsErrorMessage);
+        runtime.Logger.Should().HaveErrors(CredentialsErrorMessage);
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
@@ -327,8 +327,8 @@ public class PostProcessorTests
     public void PostProc_WhenNoSettingInFileAndNoCommandLineArg_DoesNotFail()
     {
         Execute().Should().BeTrue();
-        runtime.Should().NotHaveErrorLogged(CredentialsErrorMessage);
-        runtime.Should().NotHaveErrorLogged(TruststorePasswordErrorMessage);
+        runtime.Logger.Should().NotHaveError(CredentialsErrorMessage);
+        runtime.Logger.Should().NotHaveError(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]
@@ -337,7 +337,7 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineCredentials = true;
 
         Execute("/d:sonar.token=foo").Should().BeTrue();
-        runtime.Should().NotHaveErrorLogged(CredentialsErrorMessage);
+        runtime.Logger.Should().NotHaveError(CredentialsErrorMessage);
     }
 
     [TestMethod]
@@ -350,7 +350,7 @@ public class PostProcessorTests
             });
         Execute().Should().BeFalse();
         sonarProjectPropertiesValidator.ReceivedWithAnyArgs().AreExistingSonarPropertiesFilesPresent(null, null, out var _);
-        runtime.Should().HaveErrorsLogged("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: Some Path");
+        runtime.Logger.Should().HaveErrors("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: Some Path");
     }
 
     [TestMethod]
@@ -420,7 +420,7 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null);
-        runtime.Should().HaveErrorsLogged("""
+        runtime.Logger.Should().HaveErrors("""
             Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
             Build Uri from environment: http://test-build-uri
             Build Uri from config: http://other-uri

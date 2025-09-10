@@ -375,7 +375,7 @@ public class TruststorePropertiesProcessorTests
 
         config.LocalSettings.Should().BeEmpty();
         config.ScannerOptsSettings.Should().BeEmpty();
-        runtime.Should().HaveDebugsLogged($"Unable to find Java Keystore file. Lookup path: '{javaHomeCacerts}'.");
+        runtime.Logger.Should().HaveDebugs($"Unable to find Java Keystore file. Lookup path: '{javaHomeCacerts}'.");
     }
 
     [TestMethod]
@@ -401,9 +401,9 @@ public class TruststorePropertiesProcessorTests
         config.LocalSettings.Should().BeEmpty();
         config.ScannerOptsSettings.Should().ContainSingle();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", "/java/home/lib/security/cacerts", config);
-        runtime.Should().HaveDebugsLogged("JAVA_HOME environment variable not set. Try to infer Java home from Java executable.");
-        runtime.Should().HaveDebugsLogged("Java executable located at: '/usr/bin/java'.");
-        runtime.Should().HaveDebugsLogged("Java executable symbolic link resolved to: '/java/home/bin/java'.");
+        runtime.Logger.Should().HaveDebugs("JAVA_HOME environment variable not set. Try to infer Java home from Java executable.");
+        runtime.Logger.Should().HaveDebugs("Java executable located at: '/usr/bin/java'.");
+        runtime.Logger.Should().HaveDebugs("Java executable symbolic link resolved to: '/java/home/bin/java'.");
     }
 
     [TestMethod]

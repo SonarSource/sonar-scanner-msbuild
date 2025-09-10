@@ -346,7 +346,7 @@ public class AdditionalFilesServiceTest
             "file10.test.TS",
             "file11.spec.tsx",
             "file12.test.TSx");
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -372,7 +372,7 @@ public class AdditionalFilesServiceTest
             """);
         runtime.Logger.DebugMessages[2].Should().Be($"Reading files from: '{ProjectBaseDir}'.");
         runtime.Logger.DebugMessages[3].Should().Be($"Found 0 files in: '{ProjectBaseDir}'.");
-        runtime.Should().HaveWarningLoggedOnce($"Failed to get directories from: '{ProjectBaseDir}'.");
+        runtime.Logger.Should().HaveWarningOnce($"Failed to get directories from: '{ProjectBaseDir}'.");
     }
 
     [TestMethod]
@@ -411,7 +411,7 @@ public class AdditionalFilesServiceTest
             x => x.Should().Be(@$"Reading files from: '{ProjectBaseDir}'."),
             x => x.Should().Be(@$"Found 1 files in: '{ProjectBaseDir}'."));
 
-        runtime.Should().HaveWarningLoggedOnce(@$"Failed to get files from: '{Path.Combine(ProjectBaseDir.FullName, "first directory")}'.");
+        runtime.Logger.Should().HaveWarningOnce(@$"Failed to get files from: '{Path.Combine(ProjectBaseDir.FullName, "first directory")}'.");
     }
 
     [TestMethod]
