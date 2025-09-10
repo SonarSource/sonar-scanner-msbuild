@@ -88,8 +88,8 @@ public class TelemetryUtilsTests
         var telemetry = new TestTelemetry();
         var serverInfo = new ServerHostInfo(serverUrl, serverUrl);
         TelemetryUtils.AddTelemetry(telemetry, serverInfo);
-        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoProduct, "SQ_Server");
-        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
+        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoProduct, "SQ_Server")
+            .And.HaveMessage(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
     }
 
     [TestMethod]
@@ -102,9 +102,9 @@ public class TelemetryUtilsTests
         var telemetry = new TestTelemetry();
         var serverInfo = new CloudHostInfo(serverUrl, serverUrl, region);
         TelemetryUtils.AddTelemetry(telemetry, serverInfo);
-        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoProduct, "SQ_Cloud");
-        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue);
-        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
+        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoProduct, "SQ_Cloud")
+            .And.HaveMessage(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue)
+            .And.HaveMessage(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
     }
 
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
