@@ -47,6 +47,7 @@ public class SonarEngineWrapper
             WorkingDirectory = config.SonarScannerWorkingDirectory,
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
             StandardInput = standardInput,
+            ExeMustExists = false, // Allow "java.exe" to be found via %PATH%
         };
         var result = processRunner.Execute(args);
         if (result.Succeeded)
