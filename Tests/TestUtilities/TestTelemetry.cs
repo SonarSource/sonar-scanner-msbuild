@@ -22,13 +22,16 @@ namespace TestUtilities;
 
 public class TestTelemetry : ITelemetry
 {
-    private readonly List<KeyValuePair<string, object>> messages = [];
+    private readonly Dictionary<string, object> messages = [];
 
-    public IReadOnlyList<KeyValuePair<string, object>> Messages => messages;
+    public IReadOnlyDictionary<string, object> Messages => messages;
     public string OutputPath { get; private set; }
 
-    public void Add(string key, object value) =>
-        messages.Add(new(key, value));
+    public object this[string key]
+    {
+        get => messages[key];
+        set => messages[key] = value;
+    }
 
     public void Write(string outputFolder) =>
         OutputPath = outputFolder;
