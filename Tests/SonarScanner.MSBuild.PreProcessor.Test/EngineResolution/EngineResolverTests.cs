@@ -49,7 +49,7 @@ public class EngineResolverTests
     {
         server.SupportsJreProvisioning.Returns(true);
         args.EngineJarPath.ReturnsNull();
-        server.DownloadEngineMetadataAsync().Returns(Task.FromResult(metadata));
+        server.DownloadEngineMetadataAsync().Returns(metadata);
         resolver = new EngineResolver(server, "sonarUserHome", runtime, checksum);
     }
 
@@ -189,7 +189,35 @@ public class EngineResolverTests
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
-            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);    // Error value is overiden by retry.
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);    // Failed value is overridden by retry.
+    }
+
+    [TestMethod]
+    public async Task ResolveEngine_MetadataDownload_DoesNotRetry()
+    {
+        var tempFile = Path.Combine(ShaPath, "tempFile.jar");
+        using var content = new MemoryStream([1, 2, 3]);
+        using var computeHashStream = new MemoryStream();
+
+        // mocks failed and then successful metadata download from the server
+        server.DownloadEngineMetadataAsync().Returns(null, metadata);
+        server.DownloadEngineAsync(metadata).Returns(content);
+        runtime.Directory.GetRandomFileName().Returns("tempFile.jar");
+        checksum.ComputeHash(computeHashStream).Returns(ChecksumValue);
+        runtime.File.Create(tempFile).Returns(_ => new MemoryStream());
+        runtime.File.Open(tempFile).Returns(computeHashStream);
+
+        var result = await resolver.ResolvePath(args);
+
+        result.Should().BeNull();
+        await server.Received(1).DownloadEngineMetadataAsync();
+        await server.Received(0).DownloadEngineAsync(metadata);
+        AssertDebugMessages(
+            "EngineResolver: Resolving Scanner Engine path.",
+            "EngineResolver: Metadata could not be retrieved.");
+
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
+            .And.NotHaveKey(TelemetryKeys.ScannerEngineDownload);
     }
 
     [TestMethod]
