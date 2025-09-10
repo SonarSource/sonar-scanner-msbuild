@@ -176,8 +176,8 @@ public class TargetsInstallerTests
         }
 
         exceptionThrown.Should().BeTrue();
-        runtime.Should()
-            .HaveWarningLoggedOnce($"Error occurred when installing the loader targets to '{integrationTargetsPath}'. 'This exception should be caught and suppressed by the product code'");
+        runtime.Logger.Should()
+            .HaveWarningOnce($"Error occurred when installing the loader targets to '{integrationTargetsPath}'. 'This exception should be caught and suppressed by the product code'");
     }
 
     [TestMethod]
