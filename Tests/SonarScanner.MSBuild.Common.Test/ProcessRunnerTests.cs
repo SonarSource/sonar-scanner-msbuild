@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -365,7 +366,10 @@ public class ProcessRunnerTests
             ProcessArgs = new ProcessRunnerArguments("missingExe.foo", false) { ExeMustExists = false }
         };
 
-        FluentActions.Invoking(context.Execute).Should().Throw<Win32Exception>().WithMessage("The system cannot find the file specified");
+        FluentActions.Invoking(context.Execute).Should().Throw<Win32Exception>().Which.Message.Should().BeOneOf(
+            "The system cannot find the file specified",
+            $"An error occurred trying to start process 'missingExe.foo' with working directory '{Environment.CurrentDirectory}'. The system cannot find the file specified.",
+            $"An error occurred trying to start process 'missingExe.foo' with working directory '{Environment.CurrentDirectory}'. No such file or directory");
     }
 
     [TestMethod]
