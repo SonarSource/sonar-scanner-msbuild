@@ -87,7 +87,7 @@ public class PreProcessor
             runtime.LogDebug(ex.StackTrace);
             return false;
         }
-        runtime.Telemetry.Add(TelemetryKeys.ServerInfoVersion, server.ServerVersion.ToString());
+        runtime.Telemetry[TelemetryKeys.ServerInfoVersion] = server.ServerVersion.ToString();
 
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);

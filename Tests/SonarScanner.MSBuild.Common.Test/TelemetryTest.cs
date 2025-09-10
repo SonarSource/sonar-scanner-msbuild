@@ -31,9 +31,9 @@ public class TelemetryTest
     public void Telemetry_WriteTelemetryMessages()
     {
         var telemetry = new Telemetry(fileWrapper, new TestLogger());
-        telemetry.Add("key1", "value1");
-        telemetry.Add("key2", "value2");
-        telemetry.Add("key3", "value3");
+        telemetry["key1"] = "value1";
+        telemetry["key2"] = "value2";
+        telemetry["key3"] = "value3";
 
         const string outputDir = "outputDir";
         telemetry.Write(outputDir);
@@ -51,9 +51,9 @@ public class TelemetryTest
     public void Telemetry_WriteTelemetryMessages_DifferentValueTypes()
     {
         var telemetry = new Telemetry(fileWrapper, new TestLogger());
-        telemetry.Add("key1", "value1");
-        telemetry.Add("key2", 2);
-        telemetry.Add("key3", true);
+        telemetry["key1"] = "value1";
+        telemetry["key2"] = 2;
+        telemetry["key3"] = true;
 
         const string outputDir = "outputDir";
         telemetry.Write(outputDir);
@@ -84,7 +84,7 @@ public class TelemetryTest
     public void Telemetry_WriteTelemetryMessages_NotSupportedValueThrows()
     {
         var telemetry = new Telemetry(fileWrapper, new TestLogger());
-        telemetry.Add("key1", new Dictionary<string, string> { { "key2", "value" } });
+        telemetry["key1"] = new Dictionary<string, string> { { "key2", "value" } };
         const string outputDir = "outputDir";
         telemetry.Invoking(x => x.Write(outputDir))
             .Should()

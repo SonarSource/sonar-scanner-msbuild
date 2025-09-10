@@ -23,9 +23,9 @@ namespace SonarScanner.MSBuild.Common;
 public interface ITelemetry
 {
     /// <summary>
-    /// Adds a telemetry message to a collection.
+    /// Accesses telemetry message via key.
     /// </summary>
-    void Add(string key, object value);
+    object this[string key] { get; set; }
 
     /// <summary>
     /// Writes the collection of telemetry messages to the specified output folder.

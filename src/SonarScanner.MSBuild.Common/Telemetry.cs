@@ -28,10 +28,15 @@ public class Telemetry : ITelemetry
     /// <summary>
     /// List of telemetry messages computed during the begin and end step.
     /// </summary>
-    private readonly IList<KeyValuePair<string, object>> telemetryMessages = [];
-
+    private readonly Dictionary<string, object> messages = [];
     private readonly IFileWrapper fileWrapper;
     private readonly ILogger logger;
+
+    public object this[string key]
+    {
+        get => messages[key];
+        set => messages[key] = value;
+    }
 
     public Telemetry(IFileWrapper fileWrapper, ILogger logger)
     {
@@ -39,17 +44,10 @@ public class Telemetry : ITelemetry
         this.logger = logger;
     }
 
-    /// <summary>
-    /// Saves a telemetry message for later processing.
-    /// The <paramref name="value"/> parameter must be a primitive JSON type, like a number, a String, or a Boolean.
-    /// </summary>
-    public void Add(string key, object value) =>
-        telemetryMessages.Add(new(key, value));
-
     public void Write(string outputFolder)
     {
         var telemetryMessagesJson = new StringBuilder();
-        foreach (var message in telemetryMessages)
+        foreach (var message in messages)
         {
             telemetryMessagesJson.AppendLine(ParseMessage(message));
         }

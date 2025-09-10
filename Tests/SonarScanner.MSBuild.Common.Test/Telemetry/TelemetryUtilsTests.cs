@@ -85,11 +85,11 @@ public class TelemetryUtilsTests
     [DataRow("private.com", "custom_url")]
     public void LoggedTelemetryFromHostInfoSqServer(string serverUrl, string telemetryValue)
     {
-        var telemetry = Substitute.For<ITelemetry>();
+        var telemetry = new TestTelemetry();
         var serverInfo = new ServerHostInfo(serverUrl, serverUrl);
         TelemetryUtils.AddTelemetry(telemetry, serverInfo);
-        telemetry.Received(1).Add(TelemetryKeys.ServerInfoProduct, "SQ_Server");
-        telemetry.Received(1).Add(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
+        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoProduct, "SQ_Server")
+            .And.HaveMessage(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
     }
 
     [TestMethod]
@@ -99,27 +99,27 @@ public class TelemetryUtilsTests
     [DataRow("private/server", "region", "custom_url", "region")]
     public void LoggedTelemetryFromHostInfoSqCloud(string serverUrl, string region, string telemetryUrlValue, string telemetryRegionValue)
     {
-        var telemetry = Substitute.For<ITelemetry>();
+        var telemetry = new TestTelemetry();
         var serverInfo = new CloudHostInfo(serverUrl, serverUrl, region);
         TelemetryUtils.AddTelemetry(telemetry, serverInfo);
-        telemetry.Received(1).Add(TelemetryKeys.ServerInfoProduct, "SQ_Cloud");
-        telemetry.Received(1).Add(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue);
-        telemetry.Received(1).Add(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
+        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoProduct, "SQ_Cloud")
+            .And.HaveMessage(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue)
+            .And.HaveMessage(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
     }
 
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
     {
-        var telemetry = Substitute.For<ITelemetry>();
+        var telemetry = new TestTelemetry();
         var list = new ListPropertiesProvider(PropertyProviderKind.CLI);
         list.AddProperty(propertyId, value);
         var provider = new AggregatePropertiesProvider(list);
         TelemetryUtils.AddTelemetry(telemetry, provider);
-        telemetry.Received(exepectedTelemetry.Length).Add(Arg.Any<string>(), Arg.Any<string>());
+        telemetry.Messages.Should().HaveCount(exepectedTelemetry.Length);
         foreach (var expected in exepectedTelemetry)
         {
             var parts = expected.Split('=');
             var (expectedPropertyId, expectedValue) = (parts[0], parts[1]);
-            telemetry.Received(1).Add(expectedPropertyId, expectedValue);
+            telemetry.Should().HaveMessage(expectedPropertyId, expectedValue);
         }
     }
 }
