@@ -49,17 +49,17 @@ public class EngineResolver : IResolver
         if (args.EngineJarPath is { } localEngine)
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
-            runtime.Logger.AddTelemetryMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Disabled);
-            runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.UserSupplied);
+            runtime.Telemetry.Add(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Disabled);
+            runtime.Telemetry.Add(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.UserSupplied);
             return localEngine;
         }
         if (!server.SupportsJreProvisioning) // JRE and sonar engine provisioning were introduced by the same version of SQ Server
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
-            runtime.Logger.AddTelemetryMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Unsupported);
+            runtime.Telemetry.Add(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Unsupported);
             return null;
         }
-        runtime.Logger.AddTelemetryMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled);
+        runtime.Telemetry.Add(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled);
         if (await server.DownloadEngineMetadataAsync() is { } metadata)
         {
             if (await ResolveEnginePath(metadata) is { } enginePath)
@@ -86,15 +86,15 @@ public class EngineResolver : IResolver
         {
             case Downloaded success:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);
-                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);
+                runtime.Telemetry.Add(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);
                 return success.FilePath;
             case CacheHit cacheHit:
                 runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(EngineResolver), cacheHit.FilePath);
-                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
+                runtime.Telemetry.Add(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
                 return cacheHit.FilePath;
             case DownloadError error:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(EngineResolver), error.Message);
-                runtime.Logger.AddTelemetryMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
+                runtime.Telemetry.Add(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
                 return null;
             default:
                 throw new NotSupportedException("Download result is expected to be DownloadSuccess, CacheHit or DownloadError.");

@@ -67,7 +67,7 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "Using local sonar engine provided by sonar.scanner.engineJarPath=local/path/to/engine.jar");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+        runtime.Telemetry.Messages.Should().BeEquivalentTo(
             [
             new
             {
@@ -97,7 +97,7 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+        runtime.Telemetry.Messages.Should().BeEquivalentTo(
             [
             new
             {
@@ -121,7 +121,7 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+        runtime.Telemetry.Messages.Should().BeEquivalentTo(
             [
             new
             {
@@ -148,7 +148,7 @@ public class EngineResolverTests
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Cache hit '{CachedEnginePath}'.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+        runtime.Telemetry.Messages.Should().BeEquivalentTo(
             [
             new
             {
@@ -188,7 +188,7 @@ public class EngineResolverTests
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+        runtime.Telemetry.Messages.Should().BeEquivalentTo(
             [
             new
             {
@@ -221,7 +221,7 @@ public class EngineResolverTests
             "The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
+        runtime.Telemetry.Messages.Should().BeEquivalentTo(
             [
             new
             {
