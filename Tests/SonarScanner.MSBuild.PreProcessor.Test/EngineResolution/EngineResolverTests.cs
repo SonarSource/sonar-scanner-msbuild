@@ -105,7 +105,7 @@ public class EngineResolverTests
             "EngineResolver: Metadata could not be retrieved.");
 
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
-            .And.NotHaveKey(TelemetryKeys.ScannerEngineDownload);
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
     }
 
     [TestMethod]
@@ -217,7 +217,7 @@ public class EngineResolverTests
             "EngineResolver: Metadata could not be retrieved.");
 
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
-            .And.NotHaveKey(TelemetryKeys.ScannerEngineDownload);
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
     }
 
     [TestMethod]

@@ -60,7 +60,7 @@ public class EngineResolver : IResolver
             return null;
         }
         runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Enabled;
-        if (await server.DownloadEngineMetadataAsync() is { } metadata) // TODO move into ResolveEnginePath to benefit from retry
+        if (await server.DownloadEngineMetadataAsync() is { } metadata) // TODO move into ResolveEnginePath to benefit from retry SCAN4NET-911
         {
             if (await ResolveEnginePath(metadata) is { } enginePath)
             {
@@ -75,7 +75,7 @@ public class EngineResolver : IResolver
         else
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
-            // TODO add telemetry message
+            runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.Failed;
             return null;
         }
     }
