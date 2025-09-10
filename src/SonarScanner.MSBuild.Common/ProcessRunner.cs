@@ -48,12 +48,12 @@ public sealed class ProcessRunner : IProcessRunner
         }
         Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/empty");
 
-        if (!File.Exists(runnerArgs.ExeName))
-        {
-            logger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
-            ExitCode = ErrorCode;
-            return new ProcessResult(false);
-        }
+        //if (!File.Exists(runnerArgs.ExeName))
+        //{
+        //    logger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
+        //    ExitCode = ErrorCode;
+        //    return new ProcessResult(false);
+        //}
 
         var psi = new ProcessStartInfo
         {
