@@ -425,7 +425,7 @@ public class ScannerEngineInputGenerator
         }
     }
 
-    private static ListPropertiesProvider MapDeprecatedArgs(IAnalysisPropertyProvider userSettings)
+    private static IAnalysisPropertyProvider MapDeprecatedArgs(IAnalysisPropertyProvider userSettings)
     {
         var mappedArgs = new ListPropertiesProvider();
         foreach (var prop in userSettings.GetAllProperties())

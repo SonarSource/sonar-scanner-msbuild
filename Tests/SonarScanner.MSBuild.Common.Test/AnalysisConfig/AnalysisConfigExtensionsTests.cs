@@ -309,6 +309,7 @@ public class AnalysisConfigExtensionsTests
 
         config.SetConfigValue("javax.net.ssl.trustStore", "Some/Path");
         config.SetConfigValue("javax.net.ssl.keyStore", "Some/Other/Path");
+        config.SetConfigValue("sonar.scanner.truststorePath", "OverRiddenPath");
         config.SetConfigValue("http.proxyHost", "proxyHost");
         config.SetConfigValue("http.proxyPort", "proxyPort");
         config.SetConfigValue("http.proxyUser", "proxyUser");
@@ -318,7 +319,7 @@ public class AnalysisConfigExtensionsTests
         config.GetConfigValue("http.proxyHost", "someDefaultValue").Should().Be("proxyHost");
         config.GetConfigValue("http.proxyPort", "someDefaultValue").Should().Be("proxyPort");
         config.GetConfigValue("http.proxyUser", "someDefaultValue").Should().Be("proxyUser");
-        config.GetConfigValue("sonar.scanner.truststorePath", "someDefaultValue").Should().Be("Some/Path");
+        config.GetConfigValue("sonar.scanner.truststorePath", "someDefaultValue").Should().Be("OverRiddenPath");
         config.GetConfigValue("sonar.scanner.keystorePath", "someDefaultValue").Should().Be("Some/Other/Path");
         config.GetConfigValue("sonar.scanner.proxyHost", "someDefaultValue").Should().Be("proxyHost");
         config.GetConfigValue("sonar.scanner.proxyPort", "someDefaultValue").Should().Be("proxyPort");
@@ -329,7 +330,6 @@ public class AnalysisConfigExtensionsTests
     public void ConfigExt_SetConfigValue_MappedProperty_LatestOverrides()
     {
         var config = new AnalysisConfig();
-
         config.SetConfigValue("javax.net.ssl.trustStore", "Some/Path");
         config.SetConfigValue("sonar.scanner.truststorePath", "Override/Truststore");
 

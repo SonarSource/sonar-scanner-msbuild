@@ -639,6 +639,7 @@ public class AnalysisConfigGeneratorTests
         var propertiesProvider = new ListPropertiesProvider
         {
             { "javax.net.ssl.trustStore", "Some/Path" },
+            { "sonar.scanner.truststorePath", "Overriden/Path" },
             { "javax.net.ssl.keyStore", "Some/Other/Path" },
             { "http.proxyHost", "proxyHost" },
             { "http.proxyPort", "proxyPort" },
@@ -655,6 +656,7 @@ public class AnalysisConfigGeneratorTests
                 new("http.proxyPort", "proxyPort"),
                 new("http.proxyUser", "proxyUser"),
                 new("sonar.scanner.truststorePath", "Some/Path"),
+                new("sonar.scanner.truststorePath", "Overriden/Path"),
                 new("sonar.scanner.keystorePath", "Some/Other/Path"),
                 new("sonar.scanner.proxyHost", "proxyHost"),
                 new("sonar.scanner.proxyPort", "proxyPort"),

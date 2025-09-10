@@ -294,14 +294,11 @@ class SslTest {
       var result = validateAnalysis(context, server, true);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
-        if (serverSupportsProvisioning()){
-            assertThat(result.end().getLogs()).containsPattern("WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'");
-        }
-        else {
-          assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
-        }
-      }
 
+        assertThat(result.end().getLogs()).containsPattern(serverSupportsProvisioning()
+          ? "WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'"
+          : "Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
+      }
     }
   }
 
@@ -364,13 +361,10 @@ class SslTest {
 
       var result = validateAnalysis(context, server, true);
       if (defaultPassword.equals("sonar")) {
-        assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*keystore.p12' with the default password at index 0. Reason: .*");
-        if (serverSupportsProvisioning()){
-          assertThat(result.end().getLogs()).containsPattern("WARNING: WARN: Using deprecated default password for truststore '\"?.*keystore.p12\"?'");
-        }
-        else {
-          assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*keystore.p12\"?' with the default password at index 0. Reason: .*");
-        }
+          assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*keystore.p12' with the default password at index 0. Reason: .*");
+        assertThat(result.end().getLogs()).containsPattern(serverSupportsProvisioning()
+          ? "WARNING: WARN: Using deprecated default password for truststore '\"?.*keystore.p12\"?'"
+          : "Could not import the truststore '\"?.*keystore.p12\"?' with the default password at index 0. Reason: .*");
       }
     }
   }
