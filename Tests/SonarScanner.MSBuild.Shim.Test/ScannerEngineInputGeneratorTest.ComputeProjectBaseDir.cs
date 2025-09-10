@@ -227,10 +227,9 @@ public partial class ScannerEngineInputGeneratorTest
         var config = new AnalysisConfig
         {
             SonarOutputDir = TestSonarqubeOutputDir,
-            SourcesDirectory = teamBuildValue
+            SourcesDirectory = teamBuildValue,
+            LocalSettings = [new(SonarProperties.ProjectBaseDir, userValue)],
         };
-        config.LocalSettings ??= [];
-        config.LocalSettings.Add(new(SonarProperties.ProjectBaseDir, userValue));
         return new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList())?.FullName;
     }
 

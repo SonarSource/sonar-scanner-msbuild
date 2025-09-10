@@ -103,8 +103,8 @@ public class PostProcessorTests
     {
         Execute(withProject: false).Should().BeFalse("Expecting post-processor to have failed");
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        runtime.Logger.Should().HaveNoErrors();
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoErrors()
+            .And.HaveNoWarnings();
         runtime.Logger.AssertNoUIWarningsLogged();
         VerifyTargetsUninstaller();
     }
@@ -119,8 +119,8 @@ public class PostProcessorTests
             config,
             Arg.Is<IAnalysisPropertyProvider>(x => !x.GetAllProperties().Any()),
             Arg.Any<string>());
-        runtime.Logger.Should().HaveErrors(1);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveErrors(1)
+            .And.HaveNoWarnings();
         VerifyTargetsUninstaller();
     }
 
@@ -129,8 +129,8 @@ public class PostProcessorTests
     {
         Execute("/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        runtime.Logger.Should().HaveErrors(1);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveErrors(1)
+            .And.HaveNoWarnings();
         VerifyTargetsUninstaller();
     }
 
@@ -327,8 +327,8 @@ public class PostProcessorTests
     public void PostProc_WhenNoSettingInFileAndNoCommandLineArg_DoesNotFail()
     {
         Execute().Should().BeTrue();
-        runtime.Logger.Should().NotHaveError(CredentialsErrorMessage);
-        runtime.Logger.Should().NotHaveError(TruststorePasswordErrorMessage);
+        runtime.Logger.Should().NotHaveError(CredentialsErrorMessage)
+            .And.NotHaveError(TruststorePasswordErrorMessage);
     }
 
     [TestMethod]

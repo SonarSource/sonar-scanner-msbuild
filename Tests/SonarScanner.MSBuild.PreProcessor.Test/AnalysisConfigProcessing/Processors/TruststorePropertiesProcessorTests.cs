@@ -401,9 +401,10 @@ public class TruststorePropertiesProcessorTests
         config.LocalSettings.Should().BeEmpty();
         config.ScannerOptsSettings.Should().ContainSingle();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", "/java/home/lib/security/cacerts", config);
-        runtime.Logger.Should().HaveDebugs("JAVA_HOME environment variable not set. Try to infer Java home from Java executable.");
-        runtime.Logger.Should().HaveDebugs("Java executable located at: '/usr/bin/java'.");
-        runtime.Logger.Should().HaveDebugs("Java executable symbolic link resolved to: '/java/home/bin/java'.");
+        runtime.Logger.Should().HaveDebugs(
+            "JAVA_HOME environment variable not set. Try to infer Java home from Java executable.",
+            "Java executable located at: '/usr/bin/java'.",
+            "Java executable symbolic link resolved to: '/java/home/bin/java'.");
     }
 
     [TestMethod]
