@@ -25,7 +25,7 @@ namespace SonarScanner.MSBuild.PreProcessor;
 /// <summary>
 /// Handlers copying targets to well known locations and warning the user about existing targets file.
 /// </summary>
-public class TargetsInstaller
+public sealed class TargetsInstaller
 {
     /// <summary>
     /// Controls the default value for installing the loader targets.
@@ -44,7 +44,7 @@ public class TargetsInstaller
         this.msBuildPathsSettings = msBuildPathsSettings ?? new MsBuildPathSettings(runtime.OperatingSystem);
     }
 
-    public virtual void InstallLoaderTargets(string workDirectory)
+    public void InstallLoaderTargets(string workDirectory)
     {
         WarnOnGlobalTargetsFile();
         InternalCopyTargetsFile();
