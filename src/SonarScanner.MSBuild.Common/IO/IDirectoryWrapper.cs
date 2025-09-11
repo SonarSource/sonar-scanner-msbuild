@@ -17,6 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+#pragma warning disable T0000 // Do not use 'Get' prefix - This is a wrapper, we should not change the method names.
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -30,6 +31,9 @@ public interface IDirectoryWrapper
 
     /// <inheritdoc cref="Directory.Exists(string)"/>
     bool Exists(string path);
+
+    /// <inheritdoc cref="Directory.GetCurrentDirectory()"/>
+    string GetCurrentDirectory();
 
     /// <inheritdoc cref="Directory.GetDirectories(string, string, SearchOption)"/>
     string[] GetDirectories(string path, string searchPattern, SearchOption searchOption);

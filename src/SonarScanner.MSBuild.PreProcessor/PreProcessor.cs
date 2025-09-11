@@ -129,7 +129,7 @@ public class PreProcessor
     {
         if (args.InstallLoaderTargets)
         {
-            new TargetsInstaller(runtime).InstallLoaderTargets(Directory.GetCurrentDirectory());
+            new TargetsInstaller(runtime).InstallLoaderTargets(runtime.Directory.GetCurrentDirectory());
         }
         else
         {

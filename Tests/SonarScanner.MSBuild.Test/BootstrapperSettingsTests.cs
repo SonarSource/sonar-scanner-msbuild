@@ -30,17 +30,47 @@ public class BootstrapperSettingsTests
         FluentActions.Invoking(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, null)).Should().ThrowExactly<ArgumentNullException>();
 
     [TestMethod]
-    public void Properties_RelativePathsConvertToAbsolute()
+    public void TempDirectory_BuildDirectoryLegacySet_TempPathFromBuildDirectoryLegacy()
     {
-        using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryLegacy, $@"c:{Path.DirectorySeparatorChar}temp");
-        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestLogger());
-        sut.TempDirectory.Should().Be($@"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
+        using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryLegacy, $"c:{Path.DirectorySeparatorChar}temp");
+        new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime()).TempDirectory
+            .Should().Be($"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
+    }
+
+    [TestMethod]
+    public void TempDirectory_BuildDirectoryTfs2015Set_TempPathFromBuildDirectoryTfs2015()
+    {
+        using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, $"c:{Path.DirectorySeparatorChar}temp");
+        new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime()).TempDirectory
+            .Should().Be($"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
+    }
+
+    [TestMethod]
+    public void TempDirectory_BuildDirectoryLegacySet_BuildDirectoryTfs2015Set_BuildDirectoryLegacyTakesPrecedence()
+    {
+        using var envScope = new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "BuildDirectoryLegacy")
+            .SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "BuildDirectoryTfs2015");
+        new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime()).TempDirectory
+            .Should().Be($"BuildDirectoryLegacy{Path.DirectorySeparatorChar}.sonarqube");
+    }
+
+    [TestMethod]
+    public void TempDirectory_BuildDirectoryLegacyNotSet_BuildDirectoryTfs2015NotSet_TempPathFromCurrentDirectory()
+    {
+        using var envScope = new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.BuildDirectoryLegacy, null)
+            .SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, null);
+        var runtime = new TestRuntime();
+        runtime.Directory.GetCurrentDirectory().Returns("CurrentDirectory");
+        new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, runtime).TempDirectory
+            .Should().Be($"CurrentDirectory{Path.DirectorySeparatorChar}.sonarqube");
     }
 
     [TestMethod]
     public void Properties_ScannerBinaryDirPath()
     {
-        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestLogger());
+        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime());
         string extension;
 #if NETFRAMEWORK
         extension = "exe";
