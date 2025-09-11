@@ -61,9 +61,16 @@ public class SonarEngineWrapper
         {
             result = processRunner.Execute(args);
         }
+        // Exceptions listed in
+        // https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.process.start?view=net-9.0#system-diagnostics-process-start(system-diagnostics-processstartinfo)
         catch (Win32Exception ex)
         {
-            runtime.LogError(Resources.ERR_ScannerEngineExecutionFailedWithException, ex.GetType().FullName, ex.ErrorCode, ex.Message);
+            runtime.LogError(Resources.ERR_ScannerEngineExecutionFailedWithException, ex.GetType().FullName, $"Error Code = {ex.ErrorCode}. {ex.Message}");
+            return false;
+        }
+        catch (PlatformNotSupportedException ex)
+        {
+            runtime.LogError(Resources.ERR_ScannerEngineExecutionFailedWithException, ex.GetType().FullName, ex.Message);
             return false;
         }
         if (result.Succeeded)

@@ -292,6 +292,6 @@ Possible causes:
     <value>Could not find Java, falling back to using PATH: {0}</value>
   </data>
   <data name="ERR_ScannerEngineExecutionFailedWithException" xml:space="preserve">
-    <value>The scanner engine execution failed with {0}: Error Code = {1}. {2}.</value>
+    <value>The scanner engine execution failed with {0}: {1}.</value>
   </data>
 </root>

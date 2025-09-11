@@ -237,7 +237,7 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
-    public void Execute_JavaNotFoundInPathExceptionIsLogged()
+    public void Execute_JavaNotFoundInPathExceptionIsLogged_Win32Exception()
     {
         var context = new Context(processSucceeds: false, exception: new Win32Exception(2, "The system cannot find the file specified"));
         var config = new AnalysisConfig { JavaExePath = null };
@@ -253,14 +253,34 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
-    public void Execute_OnlyWin32ExceptionIsCaught()
-    public void Execute_JavaNotFoundInPathExceptionIsLogged_OtherUncaught(Type exceptionType)
+    public void Execute_JavaNotFoundInPathExceptionIsLogged_OtherCaughtExceptions()
     {
-        var context = new Context(processSucceeds: false, exception: new IOException("The system cannot find the file specified"));
+        var context = new Context(processSucceeds: false, exception: new PlatformNotSupportedException("Some message"));
         var config = new AnalysisConfig { JavaExePath = null };
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable("JAVA_HOME", null);
-        FluentActions.Invoking(() => context.Execute(config)).Should().Throw<IOException>().WithMessage("The system cannot find the file specified");
+        context.Execute(config).Should().BeFalse();
+        context.Runtime.Logger.Should().HaveInfos(
+            "Could not find Java in Analysis Config: ",
+            "'JAVA_HOME' environment variable not set",
+            "Could not find Java, falling back to using PATH: java.exe")
+            .And.HaveErrors(
+            "The scanner engine execution failed with System.PlatformNotSupportedException: Some message.");
+    }
+
+    [TestMethod]
+    [DataRow(typeof(InvalidOperationException))] // This exception is an indicator of a bug and should not be caught
+    [DataRow(typeof(FileNotFoundException))]     // This exception is only documented for other overloads of Process.Start
+    [DataRow(typeof(IOException))]
+    public void Execute_JavaNotFoundInPathExceptionIsThrown(Type exceptionType)
+    {
+        var context = new Context(processSucceeds: false, exception: (Exception)Activator.CreateInstance(exceptionType, "Some message"));
+        var config = new AnalysisConfig { JavaExePath = null };
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("JAVA_HOME", null);
+        var thrownException = FluentActions.Invoking(() => context.Execute(config)).Should().Throw<Exception>().Which;
+        thrownException.Should().BeOfType(exceptionType);
+        thrownException.Message.Should().Be("Some message");
         context.Runtime.Logger.Should().HaveInfos(
             "Could not find Java in Analysis Config: ",
             "'JAVA_HOME' environment variable not set",
