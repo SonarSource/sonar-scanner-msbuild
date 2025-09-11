@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -344,7 +346,7 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
-    public void ProcRunner_MissingExe()
+    public void ProcRunner_MissingExe_ExeMustExists_True()
     {
         var context = new ProcessRunnerContext(TestContext, string.Empty)
         {
@@ -354,6 +356,20 @@ public class ProcessRunnerTests
 
         context.ExecuteAndAssert();
         context.Logger.Should().HaveErrorOnce("Execution failed. The specified executable does not exist: missingExe.foo");
+    }
+
+    [TestMethod]
+    public void ProcRunner_MissingExe_ExeMustExists_False()
+    {
+        var context = new ProcessRunnerContext(TestContext, string.Empty)
+        {
+            ProcessArgs = new ProcessRunnerArguments("missingExe.foo", false) { ExeMustExists = false }
+        };
+
+        FluentActions.Invoking(context.Execute).Should().Throw<Win32Exception>().Which.Message.Should().BeOneOf(
+            "The system cannot find the file specified",
+            $"An error occurred trying to start process 'missingExe.foo' with working directory '{Environment.CurrentDirectory}'. The system cannot find the file specified.",
+            $"An error occurred trying to start process 'missingExe.foo' with working directory '{Environment.CurrentDirectory}'. No such file or directory");
     }
 
     [TestMethod]
