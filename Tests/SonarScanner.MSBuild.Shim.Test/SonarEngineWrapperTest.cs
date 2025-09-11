@@ -254,6 +254,7 @@ public class SonarEngineWrapperTest
 
     [TestMethod]
     public void Execute_OnlyWin32ExceptionIsCaught()
+    public void Execute_JavaNotFoundInPathExceptionIsLogged_OtherUncaught(Type exceptionType)
     {
         var context = new Context(processSucceeds: false, exception: new IOException("The system cannot find the file specified"));
         var config = new AnalysisConfig { JavaExePath = null };
