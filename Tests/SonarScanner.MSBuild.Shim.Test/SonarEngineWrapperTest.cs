@@ -301,7 +301,7 @@ public class SonarEngineWrapperTest
 
         public Context(bool isUnix = false, bool processSucceeds = true, Exception exception = null)
         {
-            Runner = new MockProcessRunner(processSucceeds, exception: exception);
+            Runner = new MockProcessRunner(processSucceeds) { Exception = exception };
             Runtime.OperatingSystem.OperatingSystem().Returns(isUnix ? PlatformOS.Linux : PlatformOS.Windows);
             Engine = new SonarEngineWrapper(Runtime, Runner);
             Runtime.File.Exists(ResolvedJavaExe).Returns(true);
