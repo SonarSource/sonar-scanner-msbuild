@@ -103,13 +103,13 @@ class ScannerEngineTest {
     var jreDetails = jreDetailsFromSonarQubeAnalysisConfig(context);
     context.begin
       .setProperty("sonar.scanner.skipJreProvisioning", "true")
-      .execute(ORCHESTRATOR); // Re-run the begin step with skipJreProvisioning, so JavaExePath is no longer present SonarQubeAnalysisConfig.xml
+      .execute(ORCHESTRATOR); // Re-run the begin step with skipJreProvisioning, so JavaExePath is no longer present in SonarQubeAnalysisConfig.xml
     context.build.execute();
     var result = context.end
       .setEnvironmentVariable("JAVA_HOME", null)
       // %PATH% must be kept, because we run "dotnet.exe". We add the path of the JRE in the beginning, so it is found first.
       .setEnvironmentVariable("PATH", jreDetails.javaExe.getParent() + File.pathSeparator + System.getenv("PATH"))
-      .setEnvironmentVariable("Path", null) // Windows: "Path" is the default name, and we need to make sure there  is only one PATH
+      .setEnvironmentVariable("Path", null) // Windows: "Path" is the default name, and we need to make sure there is only one PATH
       .execute(ORCHESTRATOR);
     assertThat(result.isSuccess()).isTrue();
     var logs = result.getLogs();
