@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
+
 namespace SonarScanner.MSBuild.Shim;
 
 public class SonarEngineWrapper
@@ -43,13 +45,27 @@ public class SonarEngineWrapper
 
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
-            CmdLineArgs = javaParams.Any() ? [..javaParams, "-jar", engine] : ["-jar", engine],
+            CmdLineArgs = javaParams.Any() ? [.. javaParams, "-jar", engine] : ["-jar", engine],
             WorkingDirectory = config.SonarScannerWorkingDirectory,
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
             StandardInput = standardInput,
             ExeMustExists = false, // Allow "java.exe" to be found via %PATH%
         };
-        var result = processRunner.Execute(args);
+        return Execute(args);
+    }
+
+    private bool Execute(ProcessRunnerArguments args)
+    {
+        ProcessResult result;
+        try
+        {
+            result = processRunner.Execute(args);
+        }
+        catch (Win32Exception ex)
+        {
+            runtime.LogError(Resources.ERR_ScannerEngineExecutionFailedWithException, ex.GetType().FullName, ex.Message);
+            return false;
+        }
         if (result.Succeeded)
         {
             runtime.LogInfo(Resources.MSG_ScannerEngineCompleted);
