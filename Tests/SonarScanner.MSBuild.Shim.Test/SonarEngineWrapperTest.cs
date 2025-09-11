@@ -237,7 +237,7 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
-    public void Execute_JavaNotFoundInPathExceptionIsLogged_Win32Exception()
+    public void Execute_JavaNotFoundInPath_Win32Exception_Logged()
     {
         var context = new Context(processSucceeds: false, exception: new Win32Exception(2, "The system cannot find the file specified"));
         var config = new AnalysisConfig { JavaExePath = null };
@@ -253,7 +253,7 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
-    public void Execute_JavaNotFoundInPathExceptionIsLogged_OtherCaughtExceptions()
+    public void Execute_JavaNotFoundInPath_PlatformNotSupportedException_Logged()
     {
         var context = new Context(processSucceeds: false, exception: new PlatformNotSupportedException("Some message"));
         var config = new AnalysisConfig { JavaExePath = null };
@@ -272,7 +272,7 @@ public class SonarEngineWrapperTest
     [DataRow(typeof(InvalidOperationException))] // This exception is an indicator of a bug and should not be caught
     [DataRow(typeof(FileNotFoundException))]     // This exception is only documented for other overloads of Process.Start
     [DataRow(typeof(IOException))]
-    public void Execute_JavaNotFoundInPathExceptionIsThrown(Type exceptionType)
+    public void Execute_JavaNotFoundInPath_UnexpectedException_Thrown(Type exceptionType)
     {
         var context = new Context(processSucceeds: false, exception: (Exception)Activator.CreateInstance(exceptionType, "Some message"));
         var config = new AnalysisConfig { JavaExePath = null };
