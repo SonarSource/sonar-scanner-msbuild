@@ -347,7 +347,7 @@ public partial class ScannerEngineInputGeneratorTest
         sqProperties.AssertSettingDoesNotExist("sonar.scanner.app");
         sqProperties.AssertSettingDoesNotExist("sonar.scanner.appVersion");
         var reader = CreateInputReader(result);
-        reader.AssertProperty("sonar.scanner.app", "SCAN4NET");
+        reader.AssertProperty("sonar.scanner.app", "ScannerMSBuild");
         reader.AssertProperty("sonar.scanner.appVersion", Utilities.ScannerVersion);
     }
 

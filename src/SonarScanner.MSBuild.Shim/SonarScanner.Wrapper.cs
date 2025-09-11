@@ -214,7 +214,7 @@ public class SonarScannerWrapper
 
         // Let the scanner cli know it has been ran from this MSBuild Scanner. (allows to tweak the behavior)
         // See https://jira.sonarsource.com/browse/SQSCANNER-65
-        args.Add("--from=ScannerMSBuild/" + Utilities.ScannerVersion);
+        args.Add($"--from={ScannerEngineInput.SonarScannerAppValue}/{Utilities.ScannerVersion}");
 
         // For debug mode, we need to pass the debug option to the scanner cli in order to see correctly stack traces.
         // Note that in addition to this change, the sonar.verbose=true was removed from the config file.

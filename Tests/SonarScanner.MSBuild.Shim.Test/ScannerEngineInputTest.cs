@@ -362,7 +362,7 @@ public class ScannerEngineInputTest
               "scannerProperties": [
                 {
                   "key": "sonar.scanner.app",
-                  "value": "SCAN4NET"
+                  "value": "ScannerMSBuild"
                 },
                 {
                   "key": "sonar.scanner.appVersion",

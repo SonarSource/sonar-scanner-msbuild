@@ -25,8 +25,12 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class ScannerEngineInput
 {
+    public const string SonarScannerAppValue = "ScannerMSBuild";    // TODO make this private in SCAN4NET-721
+
     private const string SonarSources = "sonar.sources";
     private const string SonarTests = "sonar.tests";
+    private const string SonarScannerApp = "sonar.scanner.app";
+    private const string SonarScannerAppVersion = "sonar.scanner.appVersion";
     private readonly AnalysisConfig config;
 
     private readonly HashSet<string> moduleKeys = [];
@@ -95,8 +99,8 @@ public class ScannerEngineInput
 
     public void AddAppIdentifier()
     {
-        Add("sonar.scanner.app", "SCAN4NET");
-        Add("sonar.scanner.appVersion", Utilities.ScannerVersion);
+        Add(SonarScannerApp, SonarScannerAppValue);
+        Add(SonarScannerAppVersion, Utilities.ScannerVersion);
     }
 
     public void AddConfig(DirectoryInfo projectBaseDir)
