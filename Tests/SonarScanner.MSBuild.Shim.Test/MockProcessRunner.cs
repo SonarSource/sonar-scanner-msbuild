@@ -20,7 +20,7 @@
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
-internal class MockProcessRunner(bool executeResult, string std = "", string error = "") : IProcessRunner
+internal class MockProcessRunner(bool executeResult, string std = "", string error = "", Exception exception = null) : IProcessRunner
 {
     public ProcessRunnerArguments SuppliedArguments { get; private set; }
 
@@ -28,7 +28,8 @@ internal class MockProcessRunner(bool executeResult, string std = "", string err
     {
         runnerArgs.Should().NotBeNull();
         SuppliedArguments = runnerArgs;
-
-        return new ProcessResult(executeResult, std, error);
+        return exception is null
+            ? new ProcessResult(executeResult, std, error)
+            : throw exception;
     }
 }

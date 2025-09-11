@@ -132,7 +132,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The scanner engine execution failed with {0}: {1}..
+        ///   Looks up a localized string similar to The scanner engine execution failed with {0}: Error Code = {1}. {2}..
         /// </summary>
         internal static string ERR_ScannerEngineExecutionFailedWithException {
             get {

@@ -63,7 +63,7 @@ public class SonarEngineWrapper
         }
         catch (Win32Exception ex)
         {
-            runtime.LogError(Resources.ERR_ScannerEngineExecutionFailedWithException, ex.GetType().FullName, ex.Message);
+            runtime.LogError(Resources.ERR_ScannerEngineExecutionFailedWithException, ex.GetType().FullName, ex.ErrorCode, ex.Message);
             return false;
         }
         if (result.Succeeded)
