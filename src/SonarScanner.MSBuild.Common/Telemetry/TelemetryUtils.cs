@@ -22,15 +22,15 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class TelemetryUtils
 {
-    public static void AddTelemetry(ILogger logger, AggregatePropertiesProvider aggregatedProperties)
+    public static void AddTelemetry(ITelemetry telemetry, AggregatePropertiesProvider aggregatedProperties)
     {
         foreach (var kvp in aggregatedProperties.GetAllPropertiesWithProvider().SelectMany(SelectManyTelemetryProperties))
         {
-            logger.AddTelemetryMessage(kvp.Key, kvp.Value);
+            telemetry[kvp.Key] = kvp.Value;
         }
     }
 
-    public static void AddTelemetry(ILogger logger, HostInfo serverInfo)
+    public static void AddTelemetry(ITelemetry telemetry, HostInfo serverInfo)
     {
         if (serverInfo is null)
         {
@@ -40,7 +40,7 @@ public static class TelemetryUtils
         string serverUrl;
         if (serverInfo is CloudHostInfo cloudServerInfo)
         {
-            logger.AddTelemetryMessage(TelemetryKeys.ServerInfoRegion, string.IsNullOrWhiteSpace(cloudServerInfo.Region) ? TelemetryValues.ServerInfoRegion.Default : cloudServerInfo.Region);
+            telemetry[TelemetryKeys.ServerInfoRegion] = string.IsNullOrWhiteSpace(cloudServerInfo.Region) ? TelemetryValues.ServerInfoRegion.Default : cloudServerInfo.Region;
             serverUrl = CloudHostInfo.IsKnownUrl(cloudServerInfo.ServerUrl) ? cloudServerInfo.ServerUrl : TelemetryValues.ServerInfoServerUrl.CustomUrl;
         }
         else
@@ -48,8 +48,8 @@ public static class TelemetryUtils
             serverUrl = serverInfo.ServerUrl == "http://localhost:9000" ? TelemetryValues.ServerInfoServerUrl.Localhost : TelemetryValues.ServerInfoServerUrl.CustomUrl;
         }
 
-        logger.AddTelemetryMessage(TelemetryKeys.ServerInfoProduct, serverInfo.IsSonarCloud ? TelemetryValues.Product.Cloud : TelemetryValues.Product.Server);
-        logger.AddTelemetryMessage(TelemetryKeys.ServerInfoServerUrl, serverUrl);
+        telemetry[TelemetryKeys.ServerInfoProduct] = serverInfo.IsSonarCloud ? TelemetryValues.Product.Cloud : TelemetryValues.Product.Server;
+        telemetry[TelemetryKeys.ServerInfoServerUrl] = serverUrl;
     }
 
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
@@ -69,20 +69,22 @@ public static class TelemetryUtils
         {
             return [];
         }
-        else if ((property.IsKey(SonarProperties.ClientCertPath)
-            || property.IsKey(SonarProperties.TruststorePath)
-            || property.IsKey(SonarProperties.JavaExePath)) && value is { } filePath)
+        else if (value is { } filePath
+            && (property.IsKey(SonarProperties.ClientCertPath)
+                || property.IsKey(SonarProperties.TruststorePath)
+                || property.IsKey(SonarProperties.JavaExePath)))
         {
             // Don't put the file path in the telemetry. The file extension is indicator enough
             return MessagePair(provider, property, FileExtension(filePath));
         }
-        else if ((property.IsKey(SonarProperties.PullRequestCacheBasePath)
-            || property.IsKey(SonarProperties.VsCoverageXmlReportsPaths)
-            || property.IsKey(SonarProperties.VsTestReportsPaths)
-            || property.IsKey(SonarProperties.PluginCacheDirectory)
-            || property.IsKey(SonarProperties.ProjectBaseDir)
-            || property.IsKey(SonarProperties.UserHome)
-            || property.IsKey(SonarProperties.WorkingDirectory)) && value is { } directoryPath)
+        else if (value is { } directoryPath
+            && (property.IsKey(SonarProperties.PullRequestCacheBasePath)
+                || property.IsKey(SonarProperties.VsCoverageXmlReportsPaths)
+                || property.IsKey(SonarProperties.VsTestReportsPaths)
+                || property.IsKey(SonarProperties.PluginCacheDirectory)
+                || property.IsKey(SonarProperties.ProjectBaseDir)
+                || property.IsKey(SonarProperties.UserHome)
+                || property.IsKey(SonarProperties.WorkingDirectory)))
         {
             // Don't write directories to telemetry. Just specify if the path was absolute or relative
             return MessagePair(provider, property, PathCharacteristics(directoryPath));

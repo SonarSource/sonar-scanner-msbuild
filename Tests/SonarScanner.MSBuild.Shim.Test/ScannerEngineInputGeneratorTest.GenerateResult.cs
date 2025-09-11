@@ -137,7 +137,7 @@ public partial class ScannerEngineInputGeneratorTest
 
         var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         settingsFileContent.Should().Contain("sonar.sourceEncoding=test-encoding-here", "Command line parameter 'sonar.sourceEncoding' is ignored.");
-        runtime.Should().HaveDebugsLogged(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
+        runtime.Logger.Should().HaveDebugs(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
     }
 
     [TestMethod]
@@ -155,7 +155,7 @@ public partial class ScannerEngineInputGeneratorTest
         var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
         settingsFileContent.Should().Contain("sonar.cs.vscoveragexml.reportsPaths=coverage-path");
         settingsFileContent.Should().Contain("sonar.cs.vstest.reportsPaths=trx-path");
-        runtime.Should().HaveDebugsLogged(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
+        runtime.Logger.Should().HaveDebugs(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
     }
 
     [TestMethod]
@@ -298,8 +298,8 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedProjectCount(1, result);
         // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
         AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
-        runtime.Should().HaveWarningsLogged(2)
-            .And.HaveWarningsLogged(
+        runtime.Logger.Should().HaveWarnings(2)
+            .And.HaveWarnings(
             $"File '{Path.Combine(TestContext.TestRunDirectory, "txtFile.txt")}' is not located under the base directory '{projectDir}' and will not be analyzed.",
             $"File '{Path.Combine(TestContext.TestRunDirectory, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
     }
@@ -330,12 +330,12 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
         if (isRaisingAWarning)
         {
-            runtime.Should().HaveWarningsLogged(1)
-                .And.HaveWarningsLogged($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
+            runtime.Logger.Should().HaveWarnings(1)
+                .And.HaveWarnings($"File '{Path.Combine(dirOutOfProjectRoot, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
         }
         else
         {
-            runtime.Should().HaveNoWarningsLogged();
+            runtime.Logger.Should().HaveNoWarnings();
         }
     }
 
@@ -478,7 +478,7 @@ public partial class ScannerEngineInputGeneratorTest
         AssertFileIsReferenced(existingManagedFile, actual);
         AssertFileIsNotReferenced(missingContentFile, actual);
         AssertFileIsNotReferenced(missingManagedFile, actual);
-        runtime.Should().HaveWarningsLogged(
+        runtime.Logger.Should().HaveWarnings(
             $"File '{missingManagedFile}' does not exist.",
             $"File '{missingContentFile}' does not exist.");
     }
@@ -554,7 +554,7 @@ public partial class ScannerEngineInputGeneratorTest
         var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Should().HaveNoWarningsLogged();
+        runtime.Logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -567,7 +567,7 @@ public partial class ScannerEngineInputGeneratorTest
         var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Should().HaveWarningLoggedOnce("Overriding analysis property. Effective value: sonar.visualstudio.enable=false");
+        runtime.Logger.Should().HaveWarningOnce("Overriding analysis property. Effective value: sonar.visualstudio.enable=false");
     }
 
     [TestMethod]
@@ -579,8 +579,8 @@ public partial class ScannerEngineInputGeneratorTest
         var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
         sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Should().HaveDebugsLogged("Analysis property is already correctly set: sonar.visualstudio.enable=false")
-            .And.HaveNoWarningsLogged(); // not expecting a warning if the user has supplied the value we want
+        runtime.Logger.Should().HaveDebugs("Analysis property is already correctly set: sonar.visualstudio.enable=false")
+            .And.HaveNoWarnings(); // not expecting a warning if the user has supplied the value we want
     }
 
     [TestMethod]
@@ -672,11 +672,11 @@ public partial class ScannerEngineInputGeneratorTest
 
         if (shouldLog)
         {
-            runtime.Should().HaveInfosLogged(ProjectBaseDirInfoMessage);
+            runtime.Logger.Should().HaveInfos(ProjectBaseDirInfoMessage);
         }
         else
         {
-            runtime.Should().NotHaveInfoLogged(ProjectBaseDirInfoMessage);
+            runtime.Logger.Should().NotHaveInfo(ProjectBaseDirInfoMessage);
         }
     }
 
@@ -854,6 +854,41 @@ public partial class ScannerEngineInputGeneratorTest
         reader.AssertProperty(SonarProperties.SonarToken, "cli token");
         reader.AssertProperty(SonarProperties.ClientCertPassword, "cli client certpwd");
         reader.AssertProperty("sonar.some.other.arg", "cliValue");
+    }
+
+    [TestMethod]
+    public void GenerateResult_DeprecatedArgs_ConvertedAddedToEngineInput()
+    {
+        cmdLineArgs.Add("javax.net.ssl.trustStore", "Some/Path");
+        cmdLineArgs.Add("javax.net.ssl.trustStorePassword", "trustStorePassword");
+        cmdLineArgs.Add("javax.net.ssl.keyStore", "Some/Other/Path");
+        cmdLineArgs.Add("javax.net.ssl.keyStorePassword", "keystorePassword");
+        cmdLineArgs.Add("http.proxyHost", "proxyHost");
+        cmdLineArgs.Add("http.proxyPort", "proxyPort");
+        cmdLineArgs.Add("http.proxyUser", "proxyUser");
+        cmdLineArgs.Add("http.proxyPassword", "proxyPassword");
+
+        var reader = CreateInputReader(new ScannerEngineInputGenerator(CreateValidConfig(), cmdLineArgs, runtime).GenerateResult());
+
+        reader.AssertProperty("sonar.scanner.truststorePath", "Some/Path");
+        reader.AssertProperty("sonar.scanner.truststorePassword", "trustStorePassword");
+        reader.AssertProperty("sonar.scanner.keystorePath", "Some/Other/Path");
+        reader.AssertProperty("sonar.scanner.keystorePassword", "keystorePassword");
+        reader.AssertProperty("sonar.scanner.proxyHost", "proxyHost");
+        reader.AssertProperty("sonar.scanner.proxyPort", "proxyPort");
+        reader.AssertProperty("sonar.scanner.proxyUser", "proxyUser");
+        reader.AssertProperty("sonar.scanner.proxyPassword", "proxyPassword");
+    }
+
+    [TestMethod]
+    public void GenerateResult_DeprecatedMappedArg_BothPassed_LatestAddedOverrides()
+    {
+        cmdLineArgs.Add("sonar.scanner.keystorePassword", "FirstKeystorePassword");
+        cmdLineArgs.Add("javax.net.ssl.keyStorePassword", "SecondKeystorePassword");
+
+        var reader = CreateInputReader(new ScannerEngineInputGenerator(CreateValidConfig(), cmdLineArgs, runtime).GenerateResult());
+
+        reader.AssertProperty("sonar.scanner.keystorePassword", "SecondKeystorePassword");
     }
 
     /// <summary>

@@ -60,8 +60,13 @@ public class TruststorePropertiesProcessor : AnalysisConfigProcessorBase
             }
         }
 
+        // The Truststore path is mapped to config.ScannerOptsSettings for the scanner-cli, but passed through the analysisconfig for the scanner-engine
         MapProperty(config, SonarProperties.JavaxNetSslTrustStore, truststorePath, ConvertToJavaPath, EnsureSurroundedByQuotes);
-        config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath or SonarProperties.TruststorePassword);
+        config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePassword);
+        if (truststorePath is not null && !config.LocalSettings.Any(x => x.Id == SonarProperties.TruststorePath))
+        {
+            AddSetting(config.LocalSettings, SonarProperties.TruststorePath, truststorePath);
+        }
 
         config.HasBeginStepCommandLineTruststorePassword = LocalSettings.TryGetSetting(SonarProperties.TruststorePassword, out var truststorePassword)
             && !SonarPropertiesDefault.TruststorePasswords.Contains(truststorePassword);

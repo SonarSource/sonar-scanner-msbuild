@@ -26,18 +26,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 public class TarGzUnpacker : IUnpacker
 {
-    private readonly ILogger logger;
-    private readonly IDirectoryWrapper directoryWrapper;
-    private readonly IFileWrapper fileWrapper;
-    private readonly OperatingSystemProvider operatingSystem;
+    private readonly IRuntime runtime;
 
-    public TarGzUnpacker(IRuntime runtime)
-    {
-        logger = runtime.Logger;
-        directoryWrapper = runtime.Directory;
-        fileWrapper = runtime.File;
-        operatingSystem = runtime.OperatingSystem;
-    }
+    public TarGzUnpacker(IRuntime runtime) =>
+        this.runtime = runtime;
 
     // ref https://github.com/icsharpcode/SharpZipLib/blob/ff2d7c30bdb2474d507f001bc555405e9f02a0bb/src/ICSharpCode.SharpZipLib/Tar/TarArchive.cs#L608
     public void Unpack(Stream archive, string destinationDirectory)
@@ -78,21 +70,21 @@ public class TarGzUnpacker : IUnpacker
 
         if (entry.IsDirectory)
         {
-            directoryWrapper.CreateDirectory(destinationFile);
+            runtime.Directory.CreateDirectory(destinationFile);
         }
         else
         {
-            directoryWrapper.CreateDirectory(destinationFileDirectory);
-            using var outputStream = fileWrapper.Create(destinationFile);
+            runtime.Directory.CreateDirectory(destinationFileDirectory);
+            using var outputStream = runtime.File.Create(destinationFile);
             tar.CopyEntryContents(outputStream);
             outputStream.Close();
             try
             {
-                operatingSystem.SetPermission(destinationFile, entry.TarHeader.Mode);
+                runtime.OperatingSystem.SetPermission(destinationFile, entry.TarHeader.Mode);
             }
             catch (Exception ex)
             {
-                logger.LogDebug(Resources.MSG_FilePermissionsCopyFailed, destinationFile, ex.Message);
+                runtime.LogDebug(Resources.MSG_FilePermissionsCopyFailed, destinationFile, ex.Message);
             }
         }
     }

@@ -31,16 +31,12 @@ public partial class PreProcessorTests
         };
         var telemetry = await CreateTelemetry(args);
 
-        telemetry.Should()
-            .BeEquivalentTo(new List<KeyValuePair<string, object>>
-            {
-                new("dotnetenterprise.s4net.params.cmd_line1.source", "CLI"),
-                new("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI"),
-                new("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI"),
-                new("dotnetenterprise.s4net.serverInfo.product", "SQ_Server"),
-                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url"),
-                new("dotnetenterprise.s4net.serverInfo.version", "5.6")
-            });
+        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.cmd_line1.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
     }
 
     [TestMethod]
@@ -53,16 +49,12 @@ public partial class PreProcessorTests
         };
         var telemetry = await CreateTelemetry(args);
 
-        telemetry.Should()
-            .BeEquivalentTo(new List<KeyValuePair<string, object>>
-            {
-                new("dotnetenterprise.s4net.params.cmd_line1.source", "CLI"),
-                new("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI"),
-                new("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_ANALYSIS_XML"),
-                new("dotnetenterprise.s4net.serverInfo.product", "SQ_Server"),
-                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url"),
-                new("dotnetenterprise.s4net.serverInfo.version", "5.6")
-            });
+        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.cmd_line1.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_ANALYSIS_XML")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
     }
 
     [TestMethod]
@@ -70,16 +62,12 @@ public partial class PreProcessorTests
     {
         var telemetry = await CreateTelemetry(environmentVariables: new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "false"}"""));
 
-        telemetry.Should()
-            .BeEquivalentTo(new List<KeyValuePair<string, object>>
-            {
-                new("dotnetenterprise.s4net.params.cmd_line1.source", "CLI"),
-                new("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI"),
-                new("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_SCANNER_PARAMS"),
-                new("dotnetenterprise.s4net.serverInfo.product", "SQ_Server"),
-                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url"),
-                new("dotnetenterprise.s4net.serverInfo.version", "5.6")
-            });
+        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.cmd_line1.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_SCANNER_PARAMS")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
     }
 
     [TestMethod]
@@ -91,16 +79,12 @@ public partial class PreProcessorTests
         };
         var telemetry = await CreateTelemetry(args, new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "true"}"""));
 
-        telemetry.Should()
-            .BeEquivalentTo(new List<KeyValuePair<string, object>>
-            {
-                new("dotnetenterprise.s4net.params.cmd_line1.source", "CLI"),
-                new("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI"),
-                new("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI"),
-                new("dotnetenterprise.s4net.serverInfo.product", "SQ_Server"),
-                new("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url"),
-                new("dotnetenterprise.s4net.serverInfo.version", "5.6")
-            });
+        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.cmd_line1.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
     }
 
     private static string CreateAnalysisXml(string parentDir, Dictionary<string, string> properties = null)
@@ -126,7 +110,7 @@ public partial class PreProcessorTests
         return fullPath;
     }
 
-    private async Task<List<KeyValuePair<string, object>>> CreateTelemetry(IEnumerable<string> args = null, params KeyValuePair<string, string>[] environmentVariables)
+    private async Task<TestTelemetry> CreateTelemetry(IEnumerable<string> args = null, params KeyValuePair<string, string>[] environmentVariables)
     {
         using var context = new Context(TestContext);
         using var env = new EnvironmentVariableScope();
@@ -137,7 +121,7 @@ public partial class PreProcessorTests
 
         (await context.Execute(args)).Should().BeTrue();
         var expectedTelemetryLocation = context.Factory.ReadSettings().SonarOutputDirectory;
-        context.Factory.Runtime.Logger.TelemetryOutputPath.Should().Be(expectedTelemetryLocation);
-        return context.Factory.Runtime.Logger.TelemetryMessages;
+        context.Factory.Runtime.Telemetry.OutputPath.Should().Be(expectedTelemetryLocation);
+        return context.Factory.Runtime.Telemetry;
     }
 }

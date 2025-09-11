@@ -22,14 +22,10 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class TfsProcessorWrapper
 {
-    private readonly ILogger logger;
-    private readonly OperatingSystemProvider operatingSystem;
+    private readonly IRuntime runtime;
 
-    public TfsProcessorWrapper(IRuntime runtime)
-    {
-        logger = runtime.Logger;
-        operatingSystem = runtime.OperatingSystem;
-    }
+    public TfsProcessorWrapper(IRuntime runtime) =>
+        this.runtime = runtime;
 
     public virtual bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
     {
@@ -46,12 +42,12 @@ public class TfsProcessorWrapper
     {
         Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
 
-        logger.LogInfo(Resources.MSG_TFSProcessorCalling);
+        runtime.LogInfo(Resources.MSG_TFSProcessorCalling);
 
         Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
         Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-        var converterArgs = new ProcessRunnerArguments(exeFileName, operatingSystem.OperatingSystem() != PlatformOS.Windows)
+        var converterArgs = new ProcessRunnerArguments(exeFileName, !runtime.OperatingSystem.IsWindows())
         {
             CmdLineArgs = userCmdLineArguments,
             WorkingDirectory = config.SonarScannerWorkingDirectory,
@@ -60,11 +56,11 @@ public class TfsProcessorWrapper
         var result = runner.Execute(converterArgs);
         if (result.Succeeded)
         {
-            logger.LogInfo(Resources.MSG_TFSProcessorCompleted);
+            runtime.LogInfo(Resources.MSG_TFSProcessorCompleted);
         }
         else
         {
-            logger.LogError(Resources.ERR_TFSProcessorExecutionFailed);
+            runtime.LogError(Resources.ERR_TFSProcessorExecutionFailed);
         }
         return result.Succeeded;
     }
@@ -72,7 +68,7 @@ public class TfsProcessorWrapper
     private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
     {
         var exeFileName = FindProcessorExe();
-        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, new ProcessRunner(logger));
+        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, new ProcessRunner(runtime.Logger));
     }
 
     private static string FindProcessorExe()

@@ -52,7 +52,7 @@ public class SonarEngineWrapperTest
 
         context.Execute().Should().BeFalse();
 
-        context.Runtime.Should().HaveErrorsLogged("The scanner engine did not complete successfully");
+        context.Runtime.Logger.Should().HaveErrors("The scanner engine did not complete successfully");
     }
 
     [TestMethod]
@@ -67,7 +67,7 @@ public class SonarEngineWrapperTest
             CmdLineArgs = (string[])["-jar", "engine.jar"],
             StandardInput = SampleInput,
         });
-        context.Runtime.Should().HaveInfosLogged(
+        context.Runtime.Logger.Should().HaveInfos(
             "The scanner engine has finished successfully",
             $"Using Java found in Analysis Config: {context.ResolvedJavaExe}");
     }
@@ -84,7 +84,7 @@ public class SonarEngineWrapperTest
         context.Execute().Should().BeTrue();
 
         context.Runner.SuppliedArguments.ExeName.Should().Be(context.JavaFileName);
-        context.Runtime.Should().HaveInfosLogged(
+        context.Runtime.Logger.Should().HaveInfos(
             $"Could not find Java in Analysis Config: {context.ResolvedJavaExe}",
             "'JAVA_HOME' environment variable not set",
             $"Could not find Java, falling back to using PATH: {context.JavaFileName}");
@@ -104,7 +104,7 @@ public class SonarEngineWrapperTest
         context.Execute().Should().BeTrue();
 
         context.Runner.SuppliedArguments.ExeName.Should().Be(context.JavaHomeExePath);
-        context.Runtime.Should().HaveInfosLogged(
+        context.Runtime.Logger.Should().HaveInfos(
             $"Could not find Java in Analysis Config: {context.ResolvedJavaExe}",
             $"Found 'JAVA_HOME': {context.JavaHome}",
             $"Using Java found in JAVA_HOME: {context.JavaHomeExePath}");
@@ -122,7 +122,7 @@ public class SonarEngineWrapperTest
         context.Execute().Should().BeTrue();
 
         context.Runner.SuppliedArguments.ExeName.Should().Be(context.JavaFileName);
-        context.Runtime.Should().HaveInfosLogged(
+        context.Runtime.Logger.Should().HaveInfos(
             $"Could not find Java in Analysis Config: {context.ResolvedJavaExe}",
             $"Found 'JAVA_HOME': {context.JavaHome}",
             $"Could not find Java in JAVA_HOME: {context.JavaHomeExePath}",

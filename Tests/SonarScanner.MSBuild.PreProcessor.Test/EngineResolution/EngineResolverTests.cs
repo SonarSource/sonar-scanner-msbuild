@@ -67,19 +67,8 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "Using local sonar engine provided by sonar.scanner.engineJarPath=local/path/to/engine.jar");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
-            [
-            new
-            {
-                Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrapping.Disabled
-            },
-            new
-            {
-                Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownload.UserSupplied
-            }
-            ]);
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Disabled)
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.UserSupplied);
     }
 
     [TestMethod]
@@ -97,14 +86,8 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
-            [
-            new
-            {
-                Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrapping.Unsupported
-            }
-            ]);
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Unsupported)
+            .And.NotHaveKey(TelemetryKeys.ScannerEngineDownload);
     }
 
     [TestMethod]
@@ -121,14 +104,8 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
-            [
-            new
-            {
-                Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrapping.Enabled
-            }
-            ]);
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
+            .And.NotHaveKey(TelemetryKeys.ScannerEngineDownload);
     }
 
     [TestMethod]
@@ -148,19 +125,8 @@ public class EngineResolverTests
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Cache hit '{CachedEnginePath}'.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
-            [
-            new
-            {
-                Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrapping.Enabled
-            },
-            new
-            {
-                Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownload.CacheHit
-            }
-            ]);
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
     }
 
     [TestMethod]
@@ -188,19 +154,42 @@ public class EngineResolverTests
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
-            [
-            new
-            {
-                Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrapping.Enabled
-            },
-            new
-            {
-                Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownload.Downloaded
-            }
-            ]);
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);
+    }
+
+    [TestMethod]
+    public async Task ResolveEngine_DownloadSucceedsInRetry()
+    {
+        var tempFile = Path.Combine(ShaPath, "tempFile.jar");
+        using var content = new MemoryStream([1, 2, 3]);
+        using var computeHashStream = new MemoryStream();
+
+        // mocks failed and then successful download from the server
+        server.DownloadEngineAsync(metadata).Returns(x => throw new Exception("Reason"), x => content);
+        runtime.Directory.GetRandomFileName().Returns("tempFile.jar");
+        checksum.ComputeHash(computeHashStream).Returns(ChecksumValue);
+        runtime.File.Create(tempFile).Returns(_ => new MemoryStream());
+        runtime.File.Open(tempFile).Returns(computeHashStream);
+
+        var result = await resolver.ResolvePath(args);
+
+        result.Should().Be(CachedEnginePath);
+        await server.Received(1).DownloadEngineMetadataAsync();
+        await server.Received(2).DownloadEngineAsync(metadata);
+        AssertDebugMessages(
+            "EngineResolver: Resolving Scanner Engine path.",
+            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
+            $"Deleting file '{tempFile}'.",
+            "The download of the file from the server failed with the exception 'Reason'.",
+            "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.",
+            "EngineResolver: Resolving Scanner Engine path. Retrying...",
+            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
+            $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
+            $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
+
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);    // Error value is overiden by retry.
     }
 
     [TestMethod]
@@ -214,35 +203,19 @@ public class EngineResolverTests
         await server.Received(1).DownloadEngineMetadataAsync();
         await server.Received(2).DownloadEngineAsync(metadata);
         AssertDebugMessages(
-            true,
+            retry: true,
             "EngineResolver: Resolving Scanner Engine path.",
             $"Cache miss. Attempting to download '{CachedEnginePath}'.",
             $"Deleting file '{ShaPath}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
 
-        runtime.Logger.TelemetryMessages.Should().BeEquivalentTo(
-            [
-            new
-            {
-                Key = TelemetryKeys.NewBootstrappingEnabled,
-                Value = TelemetryValues.NewBootstrapping.Enabled
-            },
-            new
-            {
-                Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownload.Failed
-            },
-            new
-            {
-                Key = TelemetryKeys.ScannerEngineDownload,
-                Value = TelemetryValues.ScannerEngineDownload.Failed
-            },
-            ]);
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
     }
 
     private void AssertDebugMessages(params string[] messages) =>
-    AssertDebugMessages(false, messages);
+        AssertDebugMessages(false, messages);
 
     private void AssertDebugMessages(bool retry, params string[] messages)
     {

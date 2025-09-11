@@ -45,6 +45,10 @@ public abstract class AnalysisConfigProcessorBase(ProcessedArgs localSettings, I
         if (!property.ContainsSensitiveData()) // Ensures that sensitive data is not written to the configuration file.
         {
             properties.Add(new(id, value));
+            if (SonarPropertiesDefault.JavaScannerMapping.TryGetValue(id, out var mappedId))
+            {
+                properties.Add(new(mappedId, value));
+            }
         }
     }
 }

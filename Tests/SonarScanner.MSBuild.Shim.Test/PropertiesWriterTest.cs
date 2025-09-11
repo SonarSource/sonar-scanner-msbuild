@@ -71,6 +71,23 @@ public class PropertiesWriterTest
     }
 
     [TestMethod]
+    public void WriteGlobalSettings_TrustStorePathIsSkipped()
+    {
+        var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
+        propertiesWriter.WriteGlobalSettings([
+            new(SonarProperties.TruststorePath, "some/path"),
+            new(SonarProperties.HostUrl, "http://example.org"),
+        ]);
+        propertiesWriter.Flush().Should().BeIgnoringLineEndings("""
+            sonar.host.url=http://example.org
+
+            sonar.modules=
+
+
+            """);
+    }
+
+    [TestMethod]
     public void WriteGlobalSettings_HostUrlIsKeptIfHostUrlAndSonarcloudUrlAreSet()
     {
         var propertiesWriter = new PropertiesWriter(new AnalysisConfig());

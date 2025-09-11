@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using Microsoft.Build.Utilities;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Tasks;
 
@@ -64,16 +62,6 @@ internal class MSBuildLoggerAdapter : ILogger
     }
 
     void ILogger.WriteUIWarnings(string outputFolder)
-    {
-        // no-op
-    }
-
-    void ILogger.AddTelemetryMessage(string key, object value)
-    {
-        // no-op
-    }
-
-    void ILogger.WriteTelemetry(string outputFolder)
     {
         // no-op
     }

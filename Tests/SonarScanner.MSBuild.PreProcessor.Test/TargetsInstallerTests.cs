@@ -176,8 +176,8 @@ public class TargetsInstallerTests
         }
 
         exceptionThrown.Should().BeTrue();
-        runtime.Should()
-            .HaveWarningLoggedOnce($"Error occurred when installing the loader targets to '{integrationTargetsPath}'. 'This exception should be caught and suppressed by the product code'");
+        runtime.Logger.Should()
+            .HaveWarningOnce($"Error occurred when installing the loader targets to '{integrationTargetsPath}'. 'This exception should be caught and suppressed by the product code'");
     }
 
     [TestMethod]
@@ -349,7 +349,7 @@ public class TargetsInstallerTests
     private void InstallTargetsFileAndAssert(string expectedContent, bool expectCopy)
     {
         var logger = new TestLogger();
-        var runtimeIO = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger);
+        var runtimeIO = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger, new Telemetry(FileWrapper.Instance, logger));
         var msBuildPathSettings = new MsBuildPathSettings(runtimeIO.OperatingSystem);
         var installer = new TargetsInstaller(runtimeIO, msBuildPathSettings);
 

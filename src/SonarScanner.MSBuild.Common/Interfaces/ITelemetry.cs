@@ -20,17 +20,15 @@
 
 namespace SonarScanner.MSBuild.Common;
 
-public interface IRuntime
+public interface ITelemetry
 {
-    OperatingSystemProvider OperatingSystem { get; }
-    IDirectoryWrapper Directory { get; }
-    IFileWrapper File { get; }
-    ILogger Logger { get; }
-    ITelemetry Telemetry { get; }
+    /// <summary>
+    /// Accesses telemetry message via key.
+    /// </summary>
+    object this[string key] { get; set; }
 
-    // The most commonly used ILogger methods are replicated here. This is a compromise between a clean architecture and convenience:
-    void LogDebug(string message, params object[] args);
-    void LogInfo(string message, params object[] args);
-    void LogWarning(string message, params object[] args);
-    void LogError(string message, params object[] args);
+    /// <summary>
+    /// Writes the collection of telemetry messages to the specified output folder.
+    /// </summary>
+    void Write(string outputFolder);
 }

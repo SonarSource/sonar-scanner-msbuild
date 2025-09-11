@@ -169,7 +169,7 @@ public class ProcessedArgs
 
         IsValid &= CheckOrganizationValidity();
         AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
-        TelemetryUtils.AddTelemetry(runtime.Logger, AggregateProperties);
+        TelemetryUtils.AddTelemetry(runtime.Telemetry, AggregateProperties);
 
         AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
         AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
@@ -178,7 +178,7 @@ public class ProcessedArgs
 
         ServerInfo = HostInfo.FromProperties(runtime.Logger, sonarHostUrl, sonarcloudUrl, apiBaseUrl, region);
         IsValid &= ServerInfo is not null;
-        TelemetryUtils.AddTelemetry(runtime.Logger, ServerInfo);
+        TelemetryUtils.AddTelemetry(runtime.Telemetry, ServerInfo);
 
         OperatingSystem = OperatingSystemString(AggregateProperties);
         Architecture = AggregateProperties.TryGetProperty(SonarProperties.Architecture, out var architecture)
