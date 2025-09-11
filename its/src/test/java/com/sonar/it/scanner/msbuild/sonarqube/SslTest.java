@@ -174,10 +174,10 @@ class SslTest {
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
         .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server, false);
+      validateAnalysis(context, server, true);
     }
   }
 
@@ -228,11 +228,11 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setDebugLogs()
+        .setProperty("sonar.host.url", server.getUrl());
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server, false);
+      validateAnalysis(context, server, true);
     }
   }
 
@@ -294,15 +294,11 @@ class SslTest {
       var result = validateAnalysis(context, server, true);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
-        if (serverSupportsProvisioning()){
-            assertThat(result.end().getLogs()).containsPattern("WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'");
-        }
-        else {
-          assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
 
-        }
+        assertThat(result.end().getLogs()).containsPattern(serverSupportsProvisioning()
+          ? "WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'"
+          : "Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
       }
-
     }
   }
 
@@ -330,11 +326,10 @@ class SslTest {
         .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true") // TODO: remove this in SCAN4NET-859
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server, false);
+      validateAnalysis(context, server, true);
     }
   }
 
@@ -362,13 +357,14 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setDebugLogs()
-        .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setProperty("sonar.host.url", server.getUrl());
 
-      var result = validateAnalysis(context, server, false);
+      var result = validateAnalysis(context, server, true);
       if (defaultPassword.equals("sonar")) {
-        assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*keystore.p12' with the default password at index 0. Reason: .*");
-        assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*keystore.p12\"?' with the default password at index 0. Reason: .*");
+          assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*keystore.p12' with the default password at index 0. Reason: .*");
+        assertThat(result.end().getLogs()).containsPattern(serverSupportsProvisioning()
+          ? "WARNING: WARN: Using deprecated default password for truststore '\"?.*keystore.p12\"?'"
+          : "Could not import the truststore '\"?.*keystore.p12\"?' with the default password at index 0. Reason: .*");
       }
     }
   }

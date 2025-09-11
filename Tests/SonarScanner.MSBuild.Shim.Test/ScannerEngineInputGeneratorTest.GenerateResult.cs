@@ -856,6 +856,41 @@ public partial class ScannerEngineInputGeneratorTest
         reader.AssertProperty("sonar.some.other.arg", "cliValue");
     }
 
+    [TestMethod]
+    public void GenerateResult_DeprecatedArgs_ConvertedAddedToEngineInput()
+    {
+        cmdLineArgs.Add("javax.net.ssl.trustStore", "Some/Path");
+        cmdLineArgs.Add("javax.net.ssl.trustStorePassword", "trustStorePassword");
+        cmdLineArgs.Add("javax.net.ssl.keyStore", "Some/Other/Path");
+        cmdLineArgs.Add("javax.net.ssl.keyStorePassword", "keystorePassword");
+        cmdLineArgs.Add("http.proxyHost", "proxyHost");
+        cmdLineArgs.Add("http.proxyPort", "proxyPort");
+        cmdLineArgs.Add("http.proxyUser", "proxyUser");
+        cmdLineArgs.Add("http.proxyPassword", "proxyPassword");
+
+        var reader = CreateInputReader(new ScannerEngineInputGenerator(CreateValidConfig(), cmdLineArgs, runtime).GenerateResult());
+
+        reader.AssertProperty("sonar.scanner.truststorePath", "Some/Path");
+        reader.AssertProperty("sonar.scanner.truststorePassword", "trustStorePassword");
+        reader.AssertProperty("sonar.scanner.keystorePath", "Some/Other/Path");
+        reader.AssertProperty("sonar.scanner.keystorePassword", "keystorePassword");
+        reader.AssertProperty("sonar.scanner.proxyHost", "proxyHost");
+        reader.AssertProperty("sonar.scanner.proxyPort", "proxyPort");
+        reader.AssertProperty("sonar.scanner.proxyUser", "proxyUser");
+        reader.AssertProperty("sonar.scanner.proxyPassword", "proxyPassword");
+    }
+
+    [TestMethod]
+    public void GenerateResult_DeprecatedMappedArg_BothPassed_LatestAddedOverrides()
+    {
+        cmdLineArgs.Add("sonar.scanner.keystorePassword", "FirstKeystorePassword");
+        cmdLineArgs.Add("javax.net.ssl.keyStorePassword", "SecondKeystorePassword");
+
+        var reader = CreateInputReader(new ScannerEngineInputGenerator(CreateValidConfig(), cmdLineArgs, runtime).GenerateResult());
+
+        reader.AssertProperty("sonar.scanner.keystorePassword", "SecondKeystorePassword");
+    }
+
     /// <summary>
     /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
     /// Checks that a property file is created.

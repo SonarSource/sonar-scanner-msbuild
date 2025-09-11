@@ -632,6 +632,39 @@ public class AnalysisConfigGeneratorTests
         AssertExpectedLocalSetting(id, value, config);
     }
 
+    [TestMethod]
+    public void GenerateFile_MapsOldPropertiesToNew()
+    {
+        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        var propertiesProvider = new ListPropertiesProvider
+        {
+            { "javax.net.ssl.trustStore", "Some/Path" },
+            { "sonar.scanner.truststorePath", "Overriden/Path" },
+            { "javax.net.ssl.keyStore", "Some/Other/Path" },
+            { "http.proxyHost", "proxyHost" },
+            { "http.proxyPort", "proxyPort" },
+            { "http.proxyUser", "proxyUser" }
+        };
+
+        var config = AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(propertiesProvider), settings, [], EmptyProperties, [], "9.9", null, null, new TestRuntime());
+
+        config.LocalSettings.Should().BeEquivalentTo(new AnalysisProperties
+            {
+                new("javax.net.ssl.trustStore", "Some/Path"),
+                new("javax.net.ssl.keyStore", "Some/Other/Path"),
+                new("http.proxyHost", "proxyHost"),
+                new("http.proxyPort", "proxyPort"),
+                new("http.proxyUser", "proxyUser"),
+                new("sonar.scanner.truststorePath", "Some/Path"),
+                new("sonar.scanner.truststorePath", "Overriden/Path"),
+                new("sonar.scanner.keystorePath", "Some/Other/Path"),
+                new("sonar.scanner.proxyHost", "proxyHost"),
+                new("sonar.scanner.proxyPort", "proxyPort"),
+                new("sonar.scanner.proxyUser", "proxyUser"),
+                new("sonar.organization", "organization")
+            });
+    }
+
     private void AssertConfigFileExists(AnalysisConfig config)
     {
         config.Should().NotBeNull("Supplied config should not be null");
