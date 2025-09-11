@@ -353,6 +353,27 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
+    public void AddAppIdentifier()
+    {
+        var sut = new ScannerEngineInput(new());
+        sut.AddAppIdentifier();
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "SCAN4NET"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                }
+              ]
+            }
+            """);
+    }
+
+    [TestMethod]
     public void AddConfig_WritesAllValues()
     {
         var projectBaseDir = Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir");

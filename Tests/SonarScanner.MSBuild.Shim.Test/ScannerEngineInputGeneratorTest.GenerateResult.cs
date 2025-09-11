@@ -340,6 +340,18 @@ public partial class ScannerEngineInputGeneratorTest
     }
 
     [TestMethod]
+    public void GenerateResult_AppIdentifier()
+    {
+        var result = new ScannerEngineInputGenerator(CreateValidConfig(), cmdLineArgs, runtime).GenerateResult();
+        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
+        sqProperties.AssertSettingDoesNotExist("sonar.scanner.app");
+        sqProperties.AssertSettingDoesNotExist("sonar.scanner.appVersion");
+        var reader = CreateInputReader(result);
+        reader.AssertProperty("sonar.scanner.app", "SCAN4NET");
+        reader.AssertProperty("sonar.scanner.appVersion", Utilities.ScannerVersion);
+    }
+
+    [TestMethod]
     public void GenerateResult_SharedFiles()
     {
         // Shared files should be attached to the root project

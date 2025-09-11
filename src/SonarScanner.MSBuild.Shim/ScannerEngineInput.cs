@@ -93,6 +93,12 @@ public class ScannerEngineInput
         }
     }
 
+    public void AddAppIdentifier()
+    {
+        Add("sonar.scanner.app", "SCAN4NET");
+        Add("sonar.scanner.appVersion", Utilities.ScannerVersion);
+    }
+
     public void AddConfig(DirectoryInfo projectBaseDir)
     {
         Add(SonarProperties.ProjectKey, config.SonarProjectKey);
