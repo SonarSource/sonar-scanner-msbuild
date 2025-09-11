@@ -33,14 +33,14 @@ public class BootstrapperSettingsTests
     public void Properties_RelativePathsConvertToAbsolute()
     {
         using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryLegacy, $@"c:{Path.DirectorySeparatorChar}temp");
-        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestLogger());
+        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime());
         sut.TempDirectory.Should().Be($@"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
     }
 
     [TestMethod]
     public void Properties_ScannerBinaryDirPath()
     {
-        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestLogger());
+        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime());
         string extension;
 #if NETFRAMEWORK
         extension = "exe";
