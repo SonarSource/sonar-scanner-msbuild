@@ -22,16 +22,17 @@ namespace SonarScanner.MSBuild;
 
 public class BootstrapperSettings : IBootstrapperSettings
 {
-    public const string RelativePathToTempDir = @".sonarqube";
-    public const string RelativePathToDownloadDir = @"bin";
+    public const string RelativePathToTempDir = ".sonarqube";
+    public const string RelativePathToDownloadDir = "bin";
 
     private readonly IRuntime runtime;
+    private readonly Lazy<string> tempDirectory;
 
     public AnalysisPhase Phase { get; }
     public IEnumerable<string> ChildCmdLineArgs { get; }
     public LoggerVerbosity LoggingVerbosity { get; }
     public string ScannerBinaryDirPath => Path.GetDirectoryName(typeof(BootstrapperSettings).Assembly.Location);
-    public string TempDirectory => field ??= CalculateTempDir();
+    public string TempDirectory => tempDirectory.Value;
 
     public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity, IRuntime runtime)
     {
@@ -39,6 +40,7 @@ public class BootstrapperSettings : IBootstrapperSettings
         ChildCmdLineArgs = childCmdLineArgs;
         LoggingVerbosity = verbosity;
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+        tempDirectory = new Lazy<string>(CalculateTempDir);
     }
 
     private string CalculateTempDir()
