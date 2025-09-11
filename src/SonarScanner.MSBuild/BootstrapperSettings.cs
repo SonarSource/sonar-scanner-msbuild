@@ -26,13 +26,12 @@ public class BootstrapperSettings : IBootstrapperSettings
     public const string RelativePathToDownloadDir = @"bin";
 
     private readonly IRuntime runtime;
-    private string tempDir;
 
     public AnalysisPhase Phase { get; }
     public IEnumerable<string> ChildCmdLineArgs { get; }
     public LoggerVerbosity LoggingVerbosity { get; }
     public string ScannerBinaryDirPath => Path.GetDirectoryName(typeof(BootstrapperSettings).Assembly.Location);
-    public string TempDirectory =>  tempDir ??= CalculateTempDir();
+    public string TempDirectory => field ??= CalculateTempDir();
 
     public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity, IRuntime runtime)
     {

@@ -31,15 +31,12 @@ public static class ArgumentProcessor
 {
     // FIX: this code is very similar to that in the pre-processor. Consider refactoring to avoid duplication
     // once the other argument and properties-writing tickets have been completed.
-
-    #region Arguments definitions
-
-    private const string BeginId = "begin.id";
-    private const string EndId = "end.id";
-    public const string HelpId = "help.id";
-
     public const string BeginVerb = "begin";
     public const string EndVerb = "end";
+
+    public const string HelpId = "help.id";
+    private const string BeginId = "begin.id";
+    private const string EndId = "end.id";
 
     // Initialize the set of valid descriptors.
     // To add a new argument, just add it to the list.
@@ -53,11 +50,9 @@ public static class ArgumentProcessor
 
     static ArgumentProcessor()
     {
-        Debug.Assert(Descriptors.TrueForAll(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
-        Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
+        Debug.Assert(Descriptors.TrueForAll(x => x.Prefixes is not null && x.Prefixes.Any()), "All descriptors must provide at least one prefix");
+        Debug.Assert(Descriptors.Select(x => x.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
     }
-
-    #endregion Arguments definitions
 
     public static bool IsHelp(string[] commandLineArgs) =>
         commandLineArgs.Length == 0
