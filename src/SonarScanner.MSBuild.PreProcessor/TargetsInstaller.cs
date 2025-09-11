@@ -25,7 +25,7 @@ namespace SonarScanner.MSBuild.PreProcessor;
 /// <summary>
 /// Handlers copying targets to well known locations and warning the user about existing targets file.
 /// </summary>
-public class TargetsInstaller : ITargetsInstaller
+public sealed class TargetsInstaller
 {
     /// <summary>
     /// Controls the default value for installing the loader targets.
