@@ -436,6 +436,7 @@ public partial class PreProcessorTests
 
         public void AssertDownloadMethodsCalled(int properties, int allLanguages, int qualityProfile, int rules)
         {
+            Factory.Runtime.Logger.Should().HaveInfos("Updating build integration targets..."); // TargetsInstaller was called
             Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), properties);
             Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), allLanguages);
             Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), qualityProfile); // C# and VBNet
