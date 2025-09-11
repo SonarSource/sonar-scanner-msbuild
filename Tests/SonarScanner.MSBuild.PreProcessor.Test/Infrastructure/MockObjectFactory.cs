@@ -32,7 +32,6 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
 
     public TestRuntime Runtime { get; } = new();
     public MockSonarWebServer Server { get; set; }
-    public TargetsInstaller TargetsInstaller { get; }
     public IResolver JreResolver { get; } = Substitute.For<IResolver>();
     public IResolver EngineResolver { get; } = Substitute.For<IResolver>();
     public string PluginCachePath { get; private set; }
@@ -46,7 +45,6 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public MockObjectFactory(bool withDefaultRules = true, string organization = null, Dictionary<string, string> serverProperties = null)
     {
         Server = new(organization);
-        TargetsInstaller = Substitute.For<TargetsInstaller>(Runtime, null);
 
         var data = Server.Data;
         data.ServerProperties.Add("server.key", "server value 1");
@@ -70,9 +68,6 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
 
     public Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null) =>
         Task.FromResult((ISonarWebServer)Server);
-
-    public TargetsInstaller CreateTargetInstaller() =>
-        TargetsInstaller;
 
     public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
                                                                string localCacheTempPath,

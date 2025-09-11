@@ -36,11 +36,6 @@ public interface IPreprocessorObjectFactory
     Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null);
 
     /// <summary>
-    /// Creates the component to install the MSBuild targets.
-    /// </summary>
-    TargetsInstaller CreateTargetInstaller();
-
-    /// <summary>
     /// Creates the component that provisions the Roslyn analyzers.
     /// </summary>
     RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
