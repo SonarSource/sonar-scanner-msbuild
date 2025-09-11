@@ -30,7 +30,7 @@ public class BootstrapperSettingsTests
         FluentActions.Invoking(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, null)).Should().ThrowExactly<ArgumentNullException>();
 
     [TestMethod]
-    public void TempDirectory_BuildDirectoryLegacySet_AbsolutePathFromBuildDirectoryLegacy()
+    public void TempDirectory_BuildDirectoryLegacySet_TempPathFromBuildDirectoryLegacy()
     {
         using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryLegacy, $"c:{Path.DirectorySeparatorChar}temp");
         new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime()).TempDirectory
@@ -38,7 +38,7 @@ public class BootstrapperSettingsTests
     }
 
     [TestMethod]
-    public void TempDirectory_BuildDirectoryTfs2015Set_AbsolutePathFromBuildDirectoryTfs2015()
+    public void TempDirectory_BuildDirectoryTfs2015Set_TempPathFromBuildDirectoryTfs2015()
     {
         using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, $"c:{Path.DirectorySeparatorChar}temp");
         new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime()).TempDirectory
@@ -56,7 +56,7 @@ public class BootstrapperSettingsTests
     }
 
     [TestMethod]
-    public void TempDirectory_BuildDirectoryLegacyNotSet_BuildDirectoryTfs2015NotSet_AbsolutePathFromCurrentDirectory()
+    public void TempDirectory_BuildDirectoryLegacyNotSet_BuildDirectoryTfs2015NotSet_TempPathFromCurrentDirectory()
     {
         using var envScope = new EnvironmentVariableScope()
             .SetVariable(EnvironmentVariables.BuildDirectoryLegacy, null)
