@@ -22,33 +22,34 @@ namespace SonarScanner.MSBuild;
 
 public class BootstrapperSettings : IBootstrapperSettings
 {
-    public const string RelativePathToTempDir = @".sonarqube";
-    public const string RelativePathToDownloadDir = @"bin";
+    public const string RelativePathToTempDir = ".sonarqube";
+    public const string RelativePathToDownloadDir = "bin";
 
-    private readonly ILogger logger;
-    private string tempDir;
+    private readonly IRuntime runtime;
+    private readonly Lazy<string> tempDirectory;
 
     public AnalysisPhase Phase { get; }
     public IEnumerable<string> ChildCmdLineArgs { get; }
     public LoggerVerbosity LoggingVerbosity { get; }
     public string ScannerBinaryDirPath => Path.GetDirectoryName(typeof(BootstrapperSettings).Assembly.Location);
-    public string TempDirectory =>  tempDir ??= CalculateTempDir();
+    public string TempDirectory => tempDirectory.Value;
 
-    public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity, ILogger logger)
+    public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity, IRuntime runtime)
     {
         Phase = phase;
         ChildCmdLineArgs = childCmdLineArgs;
         LoggingVerbosity = verbosity;
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+        tempDirectory = new Lazy<string>(CalculateTempDir);
     }
 
     private string CalculateTempDir()
     {
-        logger.LogDebug(Resources.MSG_UsingEnvVarToGetDirectory);
+        runtime.LogDebug(Resources.MSG_UsingEnvVarToGetDirectory);
         var rootDir = FirstEnvironmentVariable(EnvironmentVariables.BuildDirectoryLegacy, EnvironmentVariables.BuildDirectoryTfs2015);
         if (string.IsNullOrWhiteSpace(rootDir))
         {
-            rootDir = Directory.GetCurrentDirectory();
+            rootDir = runtime.Directory.GetCurrentDirectory();
         }
         return Path.Combine(rootDir, RelativePathToTempDir);
     }
@@ -60,7 +61,7 @@ public class BootstrapperSettings : IBootstrapperSettings
             var value = Environment.GetEnvironmentVariable(name);
             if (!string.IsNullOrWhiteSpace(value))
             {
-                logger.LogDebug(Resources.MSG_UsingBuildEnvironmentVariable, name, value);
+                runtime.LogDebug(Resources.MSG_UsingBuildEnvironmentVariable, name, value);
                 return value;
             }
         }

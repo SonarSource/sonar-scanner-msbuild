@@ -79,7 +79,7 @@ public static class Program
 
         try
         {
-            if (!ArgumentProcessor.TryProcessArgs(args, runtime.Logger, out var settings))
+            if (!ArgumentProcessor.TryProcessArgs(args, runtime, out var settings))
             {
                 runtime.Logger.ResumeOutput();
                 // The argument processor will have logged errors

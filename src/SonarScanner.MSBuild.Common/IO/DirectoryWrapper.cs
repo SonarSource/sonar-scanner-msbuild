@@ -35,6 +35,9 @@ public class DirectoryWrapper : IDirectoryWrapper
     public bool Exists(string path) =>
         Directory.Exists(path);
 
+    public string GetCurrentDirectory() =>
+        Directory.GetCurrentDirectory();
+
     public string[] GetDirectories(string path, string searchPattern, SearchOption searchOption) =>
         Directory.GetDirectories(path, searchPattern, searchOption);
 
