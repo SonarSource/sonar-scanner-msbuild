@@ -139,13 +139,6 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
-    public void CreateTargetInstaller_Success()
-    {
-        var sut = new PreprocessorObjectFactory(runtime);
-        sut.CreateTargetInstaller().Should().NotBeNull();
-    }
-
-    [TestMethod]
     public void CreateJreResolver_Success()
     {
         var sut = new PreprocessorObjectFactory(runtime);

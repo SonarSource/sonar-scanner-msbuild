@@ -87,7 +87,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
             return [];
         }
 
-        // We don't need to create the paths here - the ITargetsInstaller will do it.
+        // We don't need to create the paths here - the TargetsInstaller will do it.
         // Also, see bug #681: Environment.SpecialFolderOption.Create fails on some versions of NET Core on Linux
         var userProfilePath = operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
 

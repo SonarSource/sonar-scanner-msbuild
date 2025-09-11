@@ -391,6 +391,9 @@ public partial class PreProcessorTests
             workingDirectory = new WorkingDirectoryScope(WorkingDir);
             Factory = factory ?? new MockObjectFactory();
             PreProcessor = new PreProcessor(Factory, Factory.Runtime);
+            Factory.Runtime.OperatingSystem.FolderPath(default, default).ReturnsForAnyArgs("some folder");
+            Factory.Runtime.File.Exists(Path.Combine(Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location), "Targets", FileConstants.ImportBeforeTargetsName)).Returns(true);
+            Factory.Runtime.File.Exists(Path.Combine(Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location), "Targets", FileConstants.IntegrationTargetsName)).Returns(true);
         }
 
         public void AssertDirectoriesCreated()
@@ -433,7 +436,7 @@ public partial class PreProcessorTests
 
         public void AssertDownloadMethodsCalled(int properties, int allLanguages, int qualityProfile, int rules)
         {
-            Factory.TargetsInstaller.Received(1).InstallLoaderTargets(WorkingDir);
+            Factory.Runtime.Logger.Should().HaveInfos("Updating build integration targets..."); // TargetsInstaller was called
             Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), properties);
             Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), allLanguages);
             Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), qualityProfile); // C# and VBNet

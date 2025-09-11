@@ -129,9 +129,7 @@ public class PreProcessor
     {
         if (args.InstallLoaderTargets)
         {
-            var installer = factory.CreateTargetInstaller();
-            Debug.Assert(installer is not null, "Factory should not return null");
-            installer.InstallLoaderTargets(Directory.GetCurrentDirectory());
+            new TargetsInstaller(runtime).InstallLoaderTargets(Directory.GetCurrentDirectory());
         }
         else
         {
