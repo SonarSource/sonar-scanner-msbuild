@@ -86,6 +86,18 @@ public class ProcessRunnerArguments
 
     public string StandardInput { get; set; }
 
+    /// <summary>
+    /// Specifies that <see cref="ProcessRunner"/> checks whether the <see cref="ExeName"/> file can be found via <see cref="File.Exists(string)"/>.
+    /// Turn this off, if the <see cref="ExeName"/> can also be resolved via <c>%PATH%</c> lookups.
+    /// See also <seealso href="https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-diagnostics-processstartinfo-useshellexecute#workingdirectory">
+    /// ProcessStartInfo remarks about %PATH% lookup.
+    /// </seealso>.
+    /// </summary>
+    /// <remarks>
+    /// Default: <see langword="true"/>.
+    /// </remarks>
+    public bool ExeMustExists { get; set; } = true;
+
     // ToDo: Remove this in https://sonarsource.atlassian.net/browse/SCAN4NET-721
     private bool IsBatchScript { get; set; }
 
