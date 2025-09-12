@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Security;
 
@@ -409,6 +408,44 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
+    public void ProcRunner_DoesNotEscapeEscapedArgs()
+    {
+        var context = new ProcessRunnerContext(TestContext)
+        {
+            ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
+            {
+                CmdLineArgs = new ProcessRunnerArguments.ArgumentList([
+                    new("arg1", true),
+                    new("\"arg2\"", true),
+                    new("\"arg with spaces\"", true)]),
+                WorkingDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
+            }
+        };
+
+        context.ExecuteAndAssert();
+        context.AssertExpectedLogContents("arg1", "arg2", "arg with spaces");
+    }
+
+    [TestMethod]
+    public void ProcRunner_EscapesUnescapedArgs()
+    {
+        var context = new ProcessRunnerContext(TestContext)
+        {
+            ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
+            {
+                CmdLineArgs = new ProcessRunnerArguments.ArgumentList([
+                    new("arg1", false),
+                    new("\"arg2\"", false),
+                    new("\"arg with spaces\"", false)]),
+                WorkingDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
+            }
+        };
+
+        context.ExecuteAndAssert();
+        context.AssertExpectedLogContents("arg1", "\"arg2\"", "\"arg with spaces\"");
+    }
+
+    [TestMethod]
     public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
     {
         var expected = new[]
@@ -437,7 +474,6 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
-    [WorkItem(1706)] // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1706
     public void ProcRunner_ArgumentQuotingScanner()
     {
         var expected = new[]
@@ -496,7 +532,6 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
-    [WorkItem(126)] // Exclude secrets from log data: http://jira.sonarsource.com/browse/SONARMSBRU-126
     public void ProcRunner_DoNotLogSensitiveData()
     {
         // Public args - should appear in the log
