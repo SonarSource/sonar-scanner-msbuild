@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Runtime;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
@@ -81,7 +82,7 @@ public class PostProcessor
         }
         else
         {
-            ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult);
+            ProcessCoverageReport(config, settings, analysisResult);
             var result = false;
             if (analysisResult.RanToCompletion)
             {
@@ -91,12 +92,7 @@ public class PostProcessor
                     ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)
                     : InvokeScannerEngine(config, analysisResult.ScannerEngineInput);
             }
-#if NETFRAMEWORK
-            if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
-            {
-                ProcessSummaryReportBuilder(config, result, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath);
-            }
-#endif
+            ProcessSummaryReportBuilder(config, settings, analysisResult, result);
             return result;
         }
     }
@@ -194,17 +190,21 @@ public class PostProcessor
         return true;
     }
 
-
-    private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, string sonarAnalysisConfigFilePath, string propertiesFilePath)
+    private void ProcessSummaryReportBuilder(AnalysisConfig config, IBuildSettings settings, AnalysisResult analysisResult, bool ranToCompletion)
     {
 #if NETFRAMEWORK
-        runtime.Logger.IncludeTimestamp = false;
-        tfsProcessor.Execute(config, ["SummaryReportBuilder", sonarAnalysisConfigFilePath, propertiesFilePath, ranToCompletion.ToString()]);
-        runtime.Logger.IncludeTimestamp = true;
+        if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
+        {
+            runtime.Logger.IncludeTimestamp = false;
+            tfsProcessor.Execute(
+                config,
+                ["SummaryReportBuilder", Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath, ranToCompletion.ToString()]);
+            runtime.Logger.IncludeTimestamp = true;
+        }
 #endif
     }
 
-    private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, string sonarAnalysisConfigFilePath, AnalysisResult analysisResult)
+    private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, AnalysisResult analysisResult)
     {
 #if NETFRAMEWORK
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
@@ -221,7 +221,7 @@ public class PostProcessor
             runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.Called;
             runtime.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
             runtime.Logger.IncludeTimestamp = false;
-            tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, analysisResult.FullPropertiesFilePath]);
+            tfsProcessor.Execute(config, ["ConvertCoverage", Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath]);
             runtime.Logger.IncludeTimestamp = true;
         }
 #endif
