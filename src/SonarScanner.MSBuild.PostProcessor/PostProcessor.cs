@@ -81,9 +81,7 @@ public class PostProcessor
         }
         else
         {
-#if NETFRAMEWORK
             ProcessCoverageReport(config, settings, Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult);
-#endif
             var result = false;
             if (analysisResult.RanToCompletion)
             {
@@ -196,17 +194,19 @@ public class PostProcessor
         return true;
     }
 
-#if NETFRAMEWORK
 
     private void ProcessSummaryReportBuilder(AnalysisConfig config, bool ranToCompletion, string sonarAnalysisConfigFilePath, string propertiesFilePath)
     {
+#if NETFRAMEWORK
         runtime.Logger.IncludeTimestamp = false;
         tfsProcessor.Execute(config, ["SummaryReportBuilder", sonarAnalysisConfigFilePath, propertiesFilePath, ranToCompletion.ToString()]);
         runtime.Logger.IncludeTimestamp = true;
+#endif
     }
 
     private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, string sonarAnalysisConfigFilePath, AnalysisResult analysisResult)
     {
+#if NETFRAMEWORK
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
         {
             runtime.LogInfo(Resources.MSG_ConvertingCoverageReports);
@@ -224,7 +224,10 @@ public class PostProcessor
             tfsProcessor.Execute(config, ["ConvertCoverage", sonarAnalysisConfigFilePath, analysisResult.FullPropertiesFilePath]);
             runtime.Logger.IncludeTimestamp = true;
         }
+#endif
     }
+
+#if NETFRAMEWORK
 
     private void WriteProperty(string propertiesFilePath, string property, string[] paths)
     {
