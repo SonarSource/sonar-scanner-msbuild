@@ -49,7 +49,7 @@ public class TfsProcessorWrapper
 
         var converterArgs = new ProcessRunnerArguments(exeFileName, !runtime.OperatingSystem.IsWindows())
         {
-            CmdLineArgs = userCmdLineArguments,
+            CmdLineArgs = userCmdLineArguments.ToList(),
             WorkingDirectory = config.SonarScannerWorkingDirectory,
         };
 

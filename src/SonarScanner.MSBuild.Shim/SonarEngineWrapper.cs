@@ -41,7 +41,7 @@ public class SonarEngineWrapper
 
         var engine = config.EngineJarPath;
         var javaExe = FindJavaExe(config.JavaExePath);
-        var javaParams = JavaParams(config);
+        var javaParams = JavaParams(config).Select(x => new ProcessRunnerArguments.Argument(x, true));
 
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {

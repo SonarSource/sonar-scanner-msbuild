@@ -149,7 +149,7 @@ public class SonarScannerWrapperTests
 
         // Non-sensitive values from the file should not be passed on the command line
         result.CheckArgDoesNotExist("file.not.sensitive.key");
-        result.SuppliedArguments.CmdLineArgs.Should().BeEquivalentTo(
+        result.SuppliedArguments.CmdLineArgs.Select(x => x.Value).Should().BeEquivalentTo(
             "-Dxxx=yyy",
             "-Dsonar.password=cmdline.password",                          // sensitive value from cmd line: overrides file value
             "-Dsonar.clientcert.password=file.clientCertificatePassword", // sensitive value from file
@@ -650,7 +650,7 @@ public class SonarScannerWrapperTests
 
         public void CheckArgDoesNotExist(string argToCheck)
         {
-            var allArgs = testRunner.Runner.SuppliedArguments.CmdLineArgs;
+            var allArgs = testRunner.Runner.SuppliedArguments.CmdLineArgs.Select(x => x.Value);
             allArgs.Should().NotContainMatch(
                 $"*{argToCheck}*",
                 "Not expecting to find the argument. Arg: '{0}', all args: '{1}'",

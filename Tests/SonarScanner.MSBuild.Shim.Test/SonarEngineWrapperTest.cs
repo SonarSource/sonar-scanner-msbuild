@@ -64,7 +64,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])["-jar", "engine.jar"],
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-jar"), new("engine.jar")]),
             StandardInput = SampleInput,
         });
         context.Runtime.Logger.Should().HaveInfos(
@@ -140,7 +140,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])["-DJavaParam=Env", "-jar", "engine.jar"],
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-DJavaParam=Env", true), new("-jar"), new("engine.jar")]),
             StandardInput = SampleInput,
         });
     }
@@ -161,7 +161,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])["-DJavaParam=Config", "-jar", "engine.jar"],
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-DJavaParam=Config", true), new("-jar"), new("engine.jar")]),
             StandardInput = SampleInput,
         });
     }
@@ -182,7 +182,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])["-jar", "engine.jar"],
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-jar"), new("engine.jar")]),
             StandardInput = SampleInput,
             WorkingDirectory = @"C:\MyWorkingDir",
         });
@@ -206,7 +206,8 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])["-DJavaParam=Env", "-DJavaParam=Config", "-jar", "engine.jar"],
+
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-DJavaParam=Env", true), new("-DJavaParam=Config", true), new("-jar"), new("engine.jar")]),
             StandardInput = SampleInput,
         });
     }
@@ -231,7 +232,13 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = (string[])["-DJavaParam=Env -DJavaOtherParam=Value -DSomeOtherParam=AnotherValue", "-DJavaParam=Config", "-DSomeParam=SomeValue", "-DOtherParam=OtherValue", "-jar", "engine.jar"],
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([
+                new("-DJavaParam=Env -DJavaOtherParam=Value -DSomeOtherParam=AnotherValue", true),
+                new("-DJavaParam=Config", true),
+                new("-DSomeParam=SomeValue", true),
+                new("-DOtherParam=OtherValue", true),
+                new("-jar"),
+                new("engine.jar")]),
             StandardInput = SampleInput,
         });
     }

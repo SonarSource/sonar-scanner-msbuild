@@ -68,7 +68,7 @@ public class SonarScannerWrapper
 
         var scannerArgs = new ProcessRunnerArguments(exeFileName, runtime.OperatingSystem.IsWindows())
         {
-            CmdLineArgs = allCmdLineArgs,
+            CmdLineArgs = allCmdLineArgs.ToList(),
             WorkingDirectory = config.SonarScannerWorkingDirectory,
             EnvironmentVariables = envVarsDictionary
         };

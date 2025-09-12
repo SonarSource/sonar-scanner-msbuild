@@ -49,7 +49,7 @@ public class ProcessRunnerArguments
     /// <summary>
     /// Non-sensitive command line arguments (i.e. ones that can safely be logged). Optional.
     /// </summary>
-    public IEnumerable<string> CmdLineArgs { get; set; }
+    public ArgumentList CmdLineArgs { get; set; }
 
     public string WorkingDirectory { get; set; }
 
@@ -66,7 +66,17 @@ public class ProcessRunnerArguments
                 return null;
             }
 
-            var result = string.Join(" ", CmdLineArgs.Select(EscapeArgument));
+            var argList = new List<string>();
+            foreach (var arg in CmdLineArgs)
+            {
+                var argument = arg.Value;
+                if (!arg.Escaped)
+                {
+                    argument = EscapeArgument(arg.Value);
+                }
+                argList.Add(argument);
+            }
+            var result = string.Join(" ", argList);
 
             if (IsBatchScript)
             {
@@ -141,13 +151,13 @@ public class ProcessRunnerArguments
 
         foreach (var arg in CmdLineArgs)
         {
-            if (ContainsSensitiveData(arg))
+            if (ContainsSensitiveData(arg.Value))
             {
                 hasSensitiveData = true;
             }
             else
             {
-                sb.Append(arg);
+                sb.Append(arg.Value);
                 sb.Append(" ");
             }
         }
@@ -265,5 +275,24 @@ public class ProcessRunnerArguments
             sb.Append(c);
         }
         return sb.ToString();
+    }
+
+    public record Argument(string Value, bool Escaped = false)
+    {
+        public static implicit operator Argument(string value) =>
+            new(value);
+    }
+
+    public class ArgumentList : List<Argument>
+    {
+        public ArgumentList() { }
+
+        public ArgumentList(IEnumerable<Argument> collection) : base(collection) { }
+
+        public static implicit operator ArgumentList(List<string> args) =>
+            new(args.Select(x => new Argument(x)));
+
+        public static implicit operator ArgumentList(string[] args) =>
+            new(args.Select(x => new Argument(x)));
     }
 }
