@@ -60,28 +60,27 @@ public class EngineResolver : IResolver
             return null;
         }
         runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Enabled;
-        if (await server.DownloadEngineMetadataAsync() is { } metadata) // TODO move into ResolveEnginePath to benefit from retry SCAN4NET-911
+
+        if (await ResolveEnginePath() is { } enginePath)
         {
-            if (await ResolveEnginePath(metadata) is { } enginePath)
-            {
-                return enginePath;
-            }
-            else
-            {
-                runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, " Retrying...");
-                return await ResolveEnginePath(metadata);
-            }
+            return enginePath;
         }
         else
+        {
+            runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, " Retrying...");
+            return await ResolveEnginePath();
+        }
+    }
+
+    private async Task<string> ResolveEnginePath()
+    {
+        var metadata = await server.DownloadEngineMetadataAsync();
+        if (metadata is null)
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
             runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.Failed;
             return null;
         }
-    }
-
-    private async Task<string> ResolveEnginePath(EngineMetadata metadata)
-    {
         var downloader = new CachedDownloader(runtime, checksum, metadata.ToDescriptor(), sonarUserHome);
         switch (await downloader.DownloadFileAsync(() => server.DownloadEngineAsync(metadata)))
         {

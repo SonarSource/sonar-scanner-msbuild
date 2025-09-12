@@ -98,9 +98,10 @@ public class EngineResolverTests
         var result = await resolver.ResolvePath(args);
 
         result.Should().BeNull();
-        await server.Received(1).DownloadEngineMetadataAsync();
+        await server.Received(2).DownloadEngineMetadataAsync();
         await server.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
         AssertDebugMessages(
+            retry: true,
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.");
 
@@ -175,7 +176,7 @@ public class EngineResolverTests
         var result = await resolver.ResolvePath(args);
 
         result.Should().Be(CachedEnginePath);
-        await server.Received(1).DownloadEngineMetadataAsync();
+        await server.Received(2).DownloadEngineMetadataAsync();
         await server.Received(2).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
@@ -193,7 +194,7 @@ public class EngineResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveEngine_MetadataDownload_DoesNotRetry()
+    public async Task ResolveEngine_MetadataDownloadSucceedsInRetry()
     {
         var tempFile = Path.Combine(ShaPath, "tempFile.jar");
         using var content = new MemoryStream([1, 2, 3]);
@@ -209,15 +210,19 @@ public class EngineResolverTests
 
         var result = await resolver.ResolvePath(args);
 
-        result.Should().BeNull();
-        await server.Received(1).DownloadEngineMetadataAsync();
-        await server.Received(0).DownloadEngineAsync(metadata);
+        result.Should().Be(CachedEnginePath);
+        await server.Received(2).DownloadEngineMetadataAsync();
+        await server.Received(1).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
-            "EngineResolver: Metadata could not be retrieved.");
+            "EngineResolver: Metadata could not be retrieved.",
+            "EngineResolver: Resolving Scanner Engine path. Retrying...",
+            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
+            $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
+            $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
-            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);
     }
 
     [TestMethod]
@@ -228,7 +233,7 @@ public class EngineResolverTests
         var result = await resolver.ResolvePath(args);
 
         result.Should().BeNull();
-        await server.Received(1).DownloadEngineMetadataAsync();
+        await server.Received(2).DownloadEngineMetadataAsync();
         await server.Received(2).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             retry: true,
