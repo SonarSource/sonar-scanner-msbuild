@@ -126,7 +126,7 @@ class SslTest {
 
       if (serverSupportsProvisioning()) {
         assertThat(logs)
-          .contains("Successfully loaded KeyStore of the type [Windows-ROOT]");
+          .contains("Args: -Djavax.net.ssl.trustStoreType=Windows-ROOT");
       }
       else {
         assertThat(logs)
@@ -241,7 +241,7 @@ class SslTest {
       validateAnalysis(context, server);
     }
   }
-  
+
   @Test
   void unmatchedDomainNameInCertificate() {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of(""), "not-localhost", "keystore.p12")) {
