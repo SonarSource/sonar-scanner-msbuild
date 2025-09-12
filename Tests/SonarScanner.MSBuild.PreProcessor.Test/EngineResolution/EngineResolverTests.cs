@@ -49,7 +49,7 @@ public class EngineResolverTests
     {
         server.SupportsJreProvisioning.Returns(true);
         args.EngineJarPath.ReturnsNull();
-        server.DownloadEngineMetadataAsync().Returns(Task.FromResult(metadata));
+        server.DownloadEngineMetadataAsync().Returns(metadata);
         resolver = new EngineResolver(server, "sonarUserHome", runtime, checksum);
     }
 
@@ -67,7 +67,7 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "Using local sonar engine provided by sonar.scanner.engineJarPath=local/path/to/engine.jar");
 
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Disabled)
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Disabled)
             .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.UserSupplied);
     }
 
@@ -86,7 +86,7 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
 
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Unsupported)
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Unsupported)
             .And.NotHaveKey(TelemetryKeys.ScannerEngineDownload);
     }
 
@@ -104,8 +104,8 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.");
 
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
-            .And.NotHaveKey(TelemetryKeys.ScannerEngineDownload);
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
     }
 
     [TestMethod]
@@ -125,7 +125,7 @@ public class EngineResolverTests
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Cache hit '{CachedEnginePath}'.");
 
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
             .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.CacheHit);
     }
 
@@ -154,7 +154,7 @@ public class EngineResolverTests
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
             .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);
     }
 
@@ -188,8 +188,36 @@ public class EngineResolverTests
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
-            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);    // Error value is overiden by retry.
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Downloaded);    // Failed value is overridden by retry.
+    }
+
+    [TestMethod]
+    public async Task ResolveEngine_MetadataDownload_DoesNotRetry()
+    {
+        var tempFile = Path.Combine(ShaPath, "tempFile.jar");
+        using var content = new MemoryStream([1, 2, 3]);
+        using var computeHashStream = new MemoryStream();
+
+        // mocks failed and then successful metadata download from the server
+        server.DownloadEngineMetadataAsync().Returns(null, metadata);
+        server.DownloadEngineAsync(metadata).Returns(content);
+        runtime.Directory.GetRandomFileName().Returns("tempFile.jar");
+        checksum.ComputeHash(computeHashStream).Returns(ChecksumValue);
+        runtime.File.Create(tempFile).Returns(_ => new MemoryStream());
+        runtime.File.Open(tempFile).Returns(computeHashStream);
+
+        var result = await resolver.ResolvePath(args);
+
+        result.Should().BeNull();
+        await server.Received(1).DownloadEngineMetadataAsync();
+        await server.Received(0).DownloadEngineAsync(metadata);
+        AssertDebugMessages(
+            "EngineResolver: Resolving Scanner Engine path.",
+            "EngineResolver: Metadata could not be retrieved.");
+
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
+            .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
     }
 
     [TestMethod]
@@ -210,7 +238,7 @@ public class EngineResolverTests
             "The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
 
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.NewBootstrappingEnabled, TelemetryValues.NewBootstrapping.Enabled)
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Enabled)
             .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.Failed);
     }
 

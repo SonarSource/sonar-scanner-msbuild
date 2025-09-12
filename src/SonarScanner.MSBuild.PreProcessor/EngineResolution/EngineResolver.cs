@@ -49,18 +49,18 @@ public class EngineResolver : IResolver
         if (args.EngineJarPath is { } localEngine)
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_UsingLocalEngine, localEngine);
-            runtime.Telemetry[TelemetryKeys.NewBootstrappingEnabled] = TelemetryValues.NewBootstrapping.Disabled;
+            runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Disabled;
             runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.UserSupplied;
             return localEngine;
         }
         if (!server.SupportsJreProvisioning) // JRE and sonar engine provisioning were introduced by the same version of SQ Server
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
-            runtime.Telemetry[TelemetryKeys.NewBootstrappingEnabled] = TelemetryValues.NewBootstrapping.Unsupported;
+            runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Unsupported;
             return null;
         }
-        runtime.Telemetry[TelemetryKeys.NewBootstrappingEnabled] = TelemetryValues.NewBootstrapping.Enabled;
-        if (await server.DownloadEngineMetadataAsync() is { } metadata)
+        runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Enabled;
+        if (await server.DownloadEngineMetadataAsync() is { } metadata) // TODO move into ResolveEnginePath to benefit from retry SCAN4NET-911
         {
             if (await ResolveEnginePath(metadata) is { } enginePath)
             {
@@ -75,6 +75,7 @@ public class EngineResolver : IResolver
         else
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
+            runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.Failed;
             return null;
         }
     }
@@ -97,7 +98,7 @@ public class EngineResolver : IResolver
                 runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.Failed;
                 return null;
             default:
-                throw new NotSupportedException("Download result is expected to be DownloadSuccess, CacheHit or DownloadError.");
+                throw new NotSupportedException("Download result is expected to be Downloaded, CacheHit or DownloadError.");
         }
     }
 }

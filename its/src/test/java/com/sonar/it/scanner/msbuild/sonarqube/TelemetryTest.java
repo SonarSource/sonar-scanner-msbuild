@@ -108,7 +108,8 @@ class TelemetryTest {
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.product\":\"SQ_Server\"}"),
         x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.serverUrl\":\"custom_url\"}"),
         x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.serverInfo.version\":"),
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.scannerEngine.newBootstrapping\":"),
+        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.jre.bootstrapping\":\"Disabled\""),
+        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.scannerEngine.bootstrapping\":"),
         x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.scannerEngine.download\":")
       );
 
