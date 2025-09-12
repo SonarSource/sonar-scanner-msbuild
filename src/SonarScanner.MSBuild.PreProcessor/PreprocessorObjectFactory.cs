@@ -96,11 +96,11 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
                                                                string language) =>
         new(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
 
-    public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
-        new JreResolver(server, ChecksumSha256.Instance, sonarUserHome, runtime);
+    public JreResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
+        new(server, ChecksumSha256.Instance, sonarUserHome, runtime);
 
-    public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
-        new EngineResolver(server, sonarUserHome, runtime);
+    public EngineResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
+        new(server, sonarUserHome, runtime);
 
     private bool ValidateServerUrl(string serverUrl)
     {

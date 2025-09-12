@@ -20,9 +20,12 @@
 
 using System.Runtime.CompilerServices;
 using SonarScanner.MSBuild.Common.TFS;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -32,8 +35,8 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
 
     public TestRuntime Runtime { get; } = new();
     public MockSonarWebServer Server { get; set; }
-    public IResolver JreResolver { get; } = Substitute.For<IResolver>();
-    public IResolver EngineResolver { get; } = Substitute.For<IResolver>();
+    public JreResolver JreResolver { get; }
+    public EngineResolver EngineResolver { get; }
     public string PluginCachePath { get; private set; }
     public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
 
@@ -45,6 +48,8 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public MockObjectFactory(bool withDefaultRules = true, string organization = null, Dictionary<string, string> serverProperties = null)
     {
         Server = new(organization);
+        JreResolver = Substitute.For<JreResolver>(Server, Substitute.For<IChecksum>(), "sonarUserHome", Runtime, Substitute.For<UnpackerFactory>(Runtime));
+        EngineResolver = Substitute.For<EngineResolver>(Server, "sonarUserHome", Runtime, Substitute.For<IChecksum>());
 
         var data = Server.Data;
         data.ServerProperties.Add("server.key", "server value 1");
@@ -89,10 +94,10 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         return settings;
     }
 
-    public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
+    public JreResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
         JreResolver;
 
-    public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
+    public EngineResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
         EngineResolver;
 
     public void AssertMethodCalled(string methodName, int callCount) =>

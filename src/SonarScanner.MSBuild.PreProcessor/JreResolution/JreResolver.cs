@@ -25,7 +25,7 @@ using SonarScanner.MSBuild.PreProcessor.Unpacking;
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
-public class JreResolver : IResolver
+public class JreResolver
 {
     private readonly ISonarWebServer server;
     private readonly UnpackerFactory unpackerFactory;
@@ -46,7 +46,7 @@ public class JreResolver : IResolver
         this.unpackerFactory = unpackerFactory ?? new UnpackerFactory(runtime);
     }
 
-    public async Task<string> ResolvePath(ProcessedArgs args)
+    public virtual async Task<string> ResolvePath(ProcessedArgs args)
     {
         runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", string.Empty);
         if (!IsValid(args))
