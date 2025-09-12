@@ -71,6 +71,7 @@ public class JreResolver : IResolver
         if (metadata is null)
         {
             runtime.LogDebug(Resources.MSG_Resolver_MetadataFailure, nameof(JreResolver));
+            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
             return null;
         }
 
@@ -81,6 +82,7 @@ public class JreResolver : IResolver
             if (jreDownloader.IsJreCached() is { } filePath)
             {
                 runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), filePath);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
                 return filePath;
             }
             else
@@ -92,24 +94,26 @@ public class JreResolver : IResolver
         else
         {
             runtime.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), string.Format(Resources.ERR_JreArchiveFormatNotSupported, descriptor.Filename));
+            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
             return null;
         }
     }
 
     private async Task<string> DownloadJre(JreDownloader jreDownloader, JreMetadata metadata)
     {
-        var result = await jreDownloader.DownloadJreAsync(() => server.DownloadJreAsync(metadata));
-        if (result is FileRetrieved success)
+        switch (await jreDownloader.DownloadJreAsync(() => server.DownloadJreAsync(metadata)))
         {
-            runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
-            return success.FilePath;
+            case FileRetrieved success:
+                runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Downloaded;
+                return success.FilePath;
+            case DownloadError error:
+                runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
+                return null;
+            default:
+                throw new NotSupportedException("Download result is expected to be FileRetrieved or DownloadError.");
         }
-        else if (result is DownloadError error)
-        {
-            runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
-            return null;
-        }
-        throw new NotSupportedException("Download result is expected to be DownloadSuccess or DownloadError.");
     }
 
     private bool IsValid(ProcessedArgs args)
@@ -117,28 +121,35 @@ public class JreResolver : IResolver
         if (!string.IsNullOrWhiteSpace(args.JavaExePath))
         {
             runtime.LogDebug(Resources.MSG_JreResolver_JavaExePathSet);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Disabled;
+            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.UserSupplied;
             return false;
         }
         if (args.SkipJreProvisioning)
         {
             runtime.LogDebug(Resources.MSG_JreResolver_SkipJreProvisioningSet);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Disabled;
             return false;
         }
         if (!server.SupportsJreProvisioning)
         {
             runtime.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedByServer;
             return false;
         }
         if (string.IsNullOrWhiteSpace(args.OperatingSystem))
         {
             runtime.LogDebug(Resources.MSG_JreResolver_OperatingSystemMissing);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedNoOS;
             return false;
         }
         if (string.IsNullOrWhiteSpace(args.Architecture))
         {
             runtime.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedNoArch;
             return false;
         }
+        runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Enabled;
         return true;
     }
 }
