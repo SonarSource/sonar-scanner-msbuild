@@ -374,6 +374,7 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null);
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.endstep.legacyTFS", "NotCalled");
     }
 
     [TestMethod]
@@ -420,6 +421,7 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null);
+        runtime.Telemetry.Should().NotHaveKey(TelemetryKeys.EndstepLegacyTFS);
         runtime.Logger.Should().HaveErrors("""
             Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
             Build Uri from environment: http://test-build-uri
@@ -482,6 +484,7 @@ public class PostProcessorTests
         if (shouldBeCalled)
         {
             tfsProcessor.Received().Execute(Arg.Any<AnalysisConfig>(), Arg.Is<IEnumerable<string>>(x => x.Contains(command)));
+            runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.endstep.legacyTFS", "Called");
         }
         else
         {
@@ -489,6 +492,8 @@ public class PostProcessorTests
         }
 #else
         tfsProcessor.DidNotReceiveWithAnyArgs().Execute(null, null);
+        runtime.Telemetry.Messages.Should()
+            .Match(x => !x.Any(x => x.Key == TelemetryKeys.EndstepLegacyTFS) || x.Contains(new(TelemetryKeys.EndstepLegacyTFS, TelemetryValues.EndstepLegacyTFS.NotCalled)));
 #endif
     }
 

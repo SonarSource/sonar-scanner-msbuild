@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
@@ -82,6 +81,7 @@ public class PostProcessor
         }
         else
         {
+            runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.NotCalled; // Will be overridden if TFS processor is called later.
             ProcessCoverageReport(config, settings, analysisResult);
             var result = false;
             if (analysisResult.RanToCompletion)
@@ -195,6 +195,7 @@ public class PostProcessor
 #if NETFRAMEWORK
         if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
         {
+            runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.Called;
             runtime.Logger.IncludeTimestamp = false;
             tfsProcessor.Execute(
                 config,
