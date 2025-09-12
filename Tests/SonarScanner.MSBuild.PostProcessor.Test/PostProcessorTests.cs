@@ -160,9 +160,17 @@ public class PostProcessorTests
 
         runtime.File.Received().WriteAllText(
             Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json"),
-            """
+            $$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.unsafe.value",
                   "value": "***"
@@ -186,9 +194,17 @@ public class PostProcessorTests
         Execute(["/d:sonar.token=token"]).Should().BeTrue("Expecting post-processor to have succeeded");
 
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        engine.Received(1).Execute(config, """
+        engine.Received(1).Execute(config, $$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.unsafe.value",
                   "value": "Sensitive data"
@@ -212,9 +228,18 @@ public class PostProcessorTests
         Execute(["/d:sonar.token=token"]).Should().BeFalse("Expecting post-processor to fail");
 
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        engine.Received(1).Execute(config, """
+        engine.Received(1).Execute(config, $$"""
             {
-              "scannerProperties": []
+              "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                }
+              ]
             }
             """
                 .ToEnvironmentLineEndings());

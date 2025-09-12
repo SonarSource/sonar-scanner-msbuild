@@ -25,8 +25,12 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class ScannerEngineInput
 {
+    public const string SonarScannerAppValue = "ScannerMSBuild";    // TODO make this private in SCAN4NET-721
+
     private const string SonarSources = "sonar.sources";
     private const string SonarTests = "sonar.tests";
+    private const string SonarScannerApp = "sonar.scanner.app";
+    private const string SonarScannerAppVersion = "sonar.scanner.appVersion";
     private readonly AnalysisConfig config;
 
     private readonly HashSet<string> moduleKeys = [];
@@ -34,8 +38,12 @@ public class ScannerEngineInput
     // https://xtranet-sonarsource.atlassian.net/wiki/spaces/CodeOrches/pages/3155001372/Scanner+Bootstrapping#Scanner-Engine-contract
     private readonly Dictionary<string, string> scannerProperties = [];
 
-    public ScannerEngineInput(AnalysisConfig config) =>
+    public ScannerEngineInput(AnalysisConfig config)
+    {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
+        Add(SonarScannerApp, SonarScannerAppValue);
+        Add(SonarScannerAppVersion, Utilities.ScannerVersion);
+    }
 
     public ScannerEngineInput CloneWithoutSensitiveData()
     {
@@ -105,8 +113,8 @@ public class ScannerEngineInput
 
     public void AddSharedFiles(AnalysisFiles analysisFiles)
     {
-        Add("sonar", "sources", analysisFiles.Sources);
-        Add("sonar", "tests", analysisFiles.Tests);
+        Add(SonarSources, analysisFiles.Sources);
+        Add(SonarTests, analysisFiles.Tests);
     }
 
     public void Add(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
@@ -117,6 +125,9 @@ public class ScannerEngineInput
 
     internal void Add(string keyPrefix, string keySuffix, IEnumerable<string> values) =>
         Add(keyPrefix, keySuffix, ToMultiValueProperty(values));
+
+    private void Add(string key, IEnumerable<FileInfo> paths) =>
+        Add(key, paths.Select(x => x.FullName));
 
     private void Add(string key, IEnumerable<string> values) =>
         Add(key, ToMultiValueProperty(values));
