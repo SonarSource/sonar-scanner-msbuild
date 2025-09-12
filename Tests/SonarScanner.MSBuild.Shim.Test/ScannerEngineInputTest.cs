@@ -47,9 +47,17 @@ public class ScannerEngineInputTest
             new(SonarProperties.Verbose, "true"),
             new(SonarProperties.HostUrl, "http://example.org"),
         ]));
-        sut.ToString().Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.verbose",
                   "value": "true"
@@ -71,9 +79,17 @@ public class ScannerEngineInputTest
             new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
         ]));
-        sut.ToString().Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.scanner.sonarcloudUrl",
                   "value": "http://SonarcloudUrl.org"
@@ -92,9 +108,17 @@ public class ScannerEngineInputTest
     {
         var sut = new ScannerEngineInput(new());
         sut.AddSharedFiles(new([], []));
-        sut.ToString().Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.sources",
                   "value": ""
@@ -117,6 +141,14 @@ public class ScannerEngineInputTest
             {
               "scannerProperties": [
                 {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
+                {
                   "key": "sonar.sources",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs") + "," + Path.Combine(TestUtils.DriveRoot(), "dev", "lambdas.hs"))}}
                 },
@@ -137,6 +169,14 @@ public class ScannerEngineInputTest
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.sources",
                   "value": ""
@@ -159,6 +199,14 @@ public class ScannerEngineInputTest
             {
               "scannerProperties": [
                 {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
+                {
                   "key": "sonar.sources",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dev", "main.hs"))}}
                 },
@@ -180,6 +228,14 @@ public class ScannerEngineInputTest
             {
               "scannerProperties": [
                 {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
+                {
                   "key": "sonar.cs.vstest.reportsPaths",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
                 }
@@ -196,6 +252,14 @@ public class ScannerEngineInputTest
         sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.cs.vscoveragexml.reportsPaths",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
@@ -258,6 +322,14 @@ public class ScannerEngineInputTest
         var expected = $$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.modules",
                   "value": "DB2E5521-3172-47B9-BA50-864F12E6DFFF,B51622CF-82F4-48C9-9F38-FB981FAFAF3A,DA0FCD82-9C5C-4666-9370-C7388281D49B"
@@ -353,27 +425,6 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
-    public void AddAppIdentifier()
-    {
-        var sut = new ScannerEngineInput(new());
-        sut.AddAppIdentifier();
-        sut.ToString().Should().BeIgnoringLineEndings($$"""
-            {
-              "scannerProperties": [
-                {
-                  "key": "sonar.scanner.app",
-                  "value": "ScannerMSBuild"
-                },
-                {
-                  "key": "sonar.scanner.appVersion",
-                  "value": "{{Utilities.ScannerVersion}}"
-                }
-              ]
-            }
-            """);
-    }
-
-    [TestMethod]
     public void AddConfig_WritesAllValues()
     {
         var projectBaseDir = Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir");
@@ -393,6 +444,14 @@ public class ScannerEngineInputTest
             $$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.projectKey",
                   "value": "my_project_key"
@@ -432,6 +491,14 @@ public class ScannerEngineInputTest
             $$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.projectKey",
                   "value": ""
@@ -514,9 +581,17 @@ public class ScannerEngineInputTest
         sut.Add("my", "setting", "original");
         sut.Add("my", "setting", "updatedSetting");
 
-        sut.ToString().Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "my.setting",
                   "value": "updatedSetting"
@@ -542,9 +617,17 @@ public class ScannerEngineInputTest
                 "With \" Double Quote",
                 "Normal value"
             ]);
-        sut.ToString().Should().BeIgnoringLineEndings("""
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
             {
               "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
                 {
                   "key": "sonar.multivalueproperty",
                   "value": "Normal value without double quotes @#$%^&*(),\"With \r Carriage Return\",\"With \n Line Feed\",Normal value,\"With , Comma\",\"With \"\" Double Quote\",Normal value"

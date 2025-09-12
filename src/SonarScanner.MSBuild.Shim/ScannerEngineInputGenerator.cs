@@ -149,7 +149,6 @@ public class ScannerEngineInputGenerator
             return false;
         }
 
-        engineInput.AddAppIdentifier();
         legacyWriter.WriteSonarProjectInfo(projectBaseDir);
         engineInput.AddConfig(projectBaseDir);
         legacyWriter.WriteSharedFiles(analysisFiles);

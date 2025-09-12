@@ -38,8 +38,12 @@ public class ScannerEngineInput
     // https://xtranet-sonarsource.atlassian.net/wiki/spaces/CodeOrches/pages/3155001372/Scanner+Bootstrapping#Scanner-Engine-contract
     private readonly Dictionary<string, string> scannerProperties = [];
 
-    public ScannerEngineInput(AnalysisConfig config) =>
+    public ScannerEngineInput(AnalysisConfig config)
+    {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
+        Add(SonarScannerApp, SonarScannerAppValue);
+        Add(SonarScannerAppVersion, Utilities.ScannerVersion);
+    }
 
     public ScannerEngineInput CloneWithoutSensitiveData()
     {
@@ -95,12 +99,6 @@ public class ScannerEngineInput
         {
             Add(setting.Id, setting.Value);
         }
-    }
-
-    public void AddAppIdentifier()
-    {
-        Add(SonarScannerApp, SonarScannerAppValue);
-        Add(SonarScannerAppVersion, Utilities.ScannerVersion);
     }
 
     public void AddConfig(DirectoryInfo projectBaseDir)
