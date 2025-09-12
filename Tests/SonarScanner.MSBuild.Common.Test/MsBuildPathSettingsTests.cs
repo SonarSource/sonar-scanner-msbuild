@@ -42,26 +42,26 @@ public class MsBuildPathSettingsTests
     public void ImportBeforePaths_NonWindows_User_Account() =>
         MsBuildPathSettings(
             PlatformOS.Linux,
-            [(Environment.SpecialFolder.LocalApplicationData, Path.Combine(TestUtils.DriveRoot(), "app data")),
-            (Environment.SpecialFolder.UserProfile, Path.Combine(TestUtils.DriveRoot(), "user profile"))])
+            [(Environment.SpecialFolder.LocalApplicationData, Path.Combine("c:\\", "app data")),
+            (Environment.SpecialFolder.UserProfile, Path.Combine("c:\\", "user profile"))])
             .ImportBeforePaths()
             .Should().BeEquivalentTo(
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "user profile", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "user profile", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "user profile", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "user profile", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
 
     [TestMethod]
     public void ImportBeforePaths_NonWindows_User_Account_UserProfile_Missing()
     {
         var action = new Action(() => MsBuildPathSettings(
                                         PlatformOS.Linux,
-                                        [(Environment.SpecialFolder.LocalApplicationData, Path.Combine(TestUtils.DriveRoot(), "app data")),
+                                        [(Environment.SpecialFolder.LocalApplicationData, Path.Combine("c:\\", "app data")),
                                         (Environment.SpecialFolder.UserProfile, string.Empty)]).ImportBeforePaths());
         action.Should().ThrowExactly<IOException>().WithMessage("Cannot find user profile directory.");
     }
@@ -70,45 +70,45 @@ public class MsBuildPathSettingsTests
     public void ImportBeforePaths_Windows_User_Account() =>
         MsBuildPathSettings(
             PlatformOS.Windows,
-            [(Environment.SpecialFolder.LocalApplicationData, Path.Combine(TestUtils.DriveRoot(), "app data")),
-            (Environment.SpecialFolder.System, Path.Combine(TestUtils.DriveRoot(), "windows", "system32")),
-            (Environment.SpecialFolder.SystemX86, Path.Combine(TestUtils.DriveRoot(), "windows", "systemWOW64"))])
+            [(Environment.SpecialFolder.LocalApplicationData, Path.Combine("c:\\", "app data")),
+            (Environment.SpecialFolder.System, Path.Combine("c:\\", "windows", "system32")),
+            (Environment.SpecialFolder.SystemX86, Path.Combine("c:\\", "windows", "systemWOW64"))])
             .ImportBeforePaths()
             .Should().BeEquivalentTo(
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void ImportBeforePaths_Windows_System_Account() =>
         MsBuildPathSettings(PlatformOS.Windows).ImportBeforePaths().Should().BeEquivalentTo(
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
@@ -117,40 +117,40 @@ public class MsBuildPathSettingsTests
         MsBuildPathSettings(PlatformOS.Windows, directoryExistsFunc: x => !x.Contains("WOW64")) // paths with wow64 do not exist, others exist
             .ImportBeforePaths()
             .Should().BeEquivalentTo(
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "Sysnative", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
 
     [TestMethod]
     public void ImportBeforePaths_Windows_System_Account_Sysnative_Missing() =>
         MsBuildPathSettings(PlatformOS.Windows, directoryExistsFunc: x => !x.Contains("Sysnative")) // paths with Sysnative do not exist, others exist
             .ImportBeforePaths()
             .Should().BeEquivalentTo(
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "system32", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "10.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "11.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "12.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "14.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "15.0", "Microsoft.Common.targets", "ImportBefore"),
+            Path.Combine("c:\\", "windows", "sysWOW64", "app data", "Microsoft", "MSBuild", "Current", "Microsoft.Common.targets", "ImportBefore"));
 
     [TestMethod]
     [DataRow("/Users/runner/.local/share", DisplayName = "NET 7.0 and earlier")]
@@ -180,20 +180,20 @@ public class MsBuildPathSettingsTests
     [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void GlobalTargetsPaths_Windows_WhenProgramFilesNotEmpty_ReturnsExpectedPaths() =>
-        MsBuildPathSettings(PlatformOS.Windows, [(Environment.SpecialFolder.ProgramFiles, Path.Combine(TestUtils.DriveRoot(), "Program"))])
+        MsBuildPathSettings(PlatformOS.Windows, [(Environment.SpecialFolder.ProgramFiles, Path.Combine("c:\\", "Program"))])
             .GlobalTargetsPaths()
             .Should().BeEquivalentTo(
-            Path.Combine(TestUtils.DriveRoot(), "Program", "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore"),
-            Path.Combine(TestUtils.DriveRoot(), "Program", "MSBuild", "15.0", "Microsoft.Common.Targets", "ImportBefore"));
+            Path.Combine("c:\\", "Program", "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore"),
+            Path.Combine("c:\\", "Program", "MSBuild", "15.0", "Microsoft.Common.Targets", "ImportBefore"));
 
     private static MsBuildPathSettings MsBuildPathSettings(
         PlatformOS os,
         (Environment.SpecialFolder, string)[] paths = null,
         Func<string, bool> directoryExistsFunc = null)
     {
-        paths ??= [(Environment.SpecialFolder.LocalApplicationData, Path.Combine(TestUtils.DriveRoot(), "windows", "system32", "app data")),
-            (Environment.SpecialFolder.System, Path.Combine(TestUtils.DriveRoot(), "windows", "system32")),
-            (Environment.SpecialFolder.SystemX86, Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64"))];
+        paths ??= [(Environment.SpecialFolder.LocalApplicationData, Path.Combine("c:\\", "windows", "system32", "app data")),
+            (Environment.SpecialFolder.System, Path.Combine("c:\\", "windows", "system32")),
+            (Environment.SpecialFolder.SystemX86, Path.Combine("c:\\", "windows", "sysWOW64"))];
         directoryExistsFunc ??= DirectoryAlwaysExists;
 
         return new(CreateOsProvider(os, (folder, _) => paths.First(p => p.Item1 == folder).Item2, directoryExistsFunc));
