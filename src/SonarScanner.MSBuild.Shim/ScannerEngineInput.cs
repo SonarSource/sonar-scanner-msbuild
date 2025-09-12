@@ -113,8 +113,8 @@ public class ScannerEngineInput
 
     public void AddSharedFiles(AnalysisFiles analysisFiles)
     {
-        Add("sonar", "sources", analysisFiles.Sources);
-        Add("sonar", "tests", analysisFiles.Tests);
+        Add(SonarSources, analysisFiles.Sources);
+        Add(SonarTests, analysisFiles.Tests);
     }
 
     public void Add(string keyPrefix, string keySuffix, IEnumerable<FileInfo> paths) =>
@@ -125,6 +125,9 @@ public class ScannerEngineInput
 
     internal void Add(string keyPrefix, string keySuffix, IEnumerable<string> values) =>
         Add(keyPrefix, keySuffix, ToMultiValueProperty(values));
+
+    private void Add(string key, IEnumerable<FileInfo> paths) =>
+        Add(key, paths.Select(x => x.FullName));
 
     private void Add(string key, IEnumerable<string> values) =>
         Add(key, ToMultiValueProperty(values));
