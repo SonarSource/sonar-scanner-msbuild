@@ -35,13 +35,13 @@ public class SonarEngineWrapper
         javaFileName = runtime.OperatingSystem.IsUnix() ? "java" : "java.exe";
     }
 
-    public virtual bool Execute(AnalysisConfig config, string standardInput)
+    public virtual bool Execute(AnalysisConfig config, string standardInput, IAnalysisPropertyProvider userCmdLineArguments)
     {
         _ = config ?? throw new ArgumentNullException(nameof(config));
 
         var engine = config.EngineJarPath;
         var javaExe = FindJavaExe(config.JavaExePath);
-        var javaParams = JavaParams(config);
+        var javaParams = JavaParams(config, userCmdLineArguments);
 
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
@@ -84,9 +84,10 @@ public class SonarEngineWrapper
         return result.Succeeded;
     }
 
-    private static IEnumerable<ProcessRunnerArguments.Argument> JavaParams(AnalysisConfig config)
+    private IEnumerable<ProcessRunnerArguments.Argument> JavaParams(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments)
     {
-        if (Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName)?.Trim() is { Length: > 0 } scannerOpts)
+        var scannerOpts = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
+        if (scannerOpts?.Trim() is { Length: > 0 })
         {
             yield return new ProcessRunnerArguments.Argument(scannerOpts, true);
         }
@@ -101,6 +102,23 @@ public class SonarEngineWrapper
             {
                 yield return new ProcessRunnerArguments.Argument(property.AsSonarScannerArg(), true);
             }
+        }
+
+        if (!userCmdLineArguments.TryGetValue(SonarProperties.TruststorePassword, out var truststorePassword))
+        {
+            var truststorePath = config.ScannerOptsSettings.FirstOrDefault(x => x.Id == SonarProperties.JavaxNetSslTrustStore);
+            truststorePassword = TruststoreUtils.TruststoreDefaultPassword(truststorePath?.Value, runtime.Logger);
+        }
+
+        if (!SonarPropertiesDefault.TruststorePasswords.Contains(truststorePassword)
+            || scannerOpts is null
+            || !scannerOpts.Contains($"-D{SonarProperties.JavaxNetSslTrustStorePassword}="))
+        {
+            yield return new ProcessRunnerArguments.Argument(
+                runtime.OperatingSystem.IsUnix()
+                    ? $" -D{SonarProperties.JavaxNetSslTrustStorePassword}={truststorePassword}"
+                    : $" -D{SonarProperties.JavaxNetSslTrustStorePassword}=\"{truststorePassword}\"",
+                true);
         }
     }
 
