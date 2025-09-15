@@ -41,7 +41,7 @@ public class SonarEngineWrapper
 
         var engine = config.EngineJarPath;
         var javaExe = FindJavaExe(config.JavaExePath);
-        var javaParams = JavaParams(config).Select(x => new ProcessRunnerArguments.Argument(x, true));
+        var javaParams = JavaParams(config);
 
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
@@ -84,11 +84,11 @@ public class SonarEngineWrapper
         return result.Succeeded;
     }
 
-    private static IEnumerable<string> JavaParams(AnalysisConfig config)
+    private static IEnumerable<ProcessRunnerArguments.Argument> JavaParams(AnalysisConfig config)
     {
         if (Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName)?.Trim() is { Length: > 0 } scannerOpts)
         {
-            yield return scannerOpts;
+            yield return new ProcessRunnerArguments.Argument(scannerOpts, true);
         }
 
         if (config.ScannerOptsSettings.Any())
@@ -99,7 +99,7 @@ public class SonarEngineWrapper
             // set via the environment variable.
             foreach (var property in config.ScannerOptsSettings)
             {
-                yield return property.AsSonarScannerArg();
+                yield return new ProcessRunnerArguments.Argument(property.AsSonarScannerArg(), false);
             }
         }
     }
