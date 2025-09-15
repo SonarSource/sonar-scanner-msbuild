@@ -174,8 +174,7 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setProperty("sonar.host.url", server.getUrl());
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
@@ -234,8 +233,7 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setProperty("sonar.host.url", server.getUrl());
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
@@ -336,7 +334,6 @@ class SslTest {
         .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true") // TODO: remove this in SCAN4NET-859
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
@@ -368,8 +365,7 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setDebugLogs()
-        .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setProperty("sonar.host.url", server.getUrl());
 
       var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
@@ -434,7 +430,7 @@ class SslTest {
     }
 
     if (serverSupportsProvisioning()) {
-      assertScannerEngineSuccessfulKeystore(logs, server.getKeystorePath(), trustStorePassword);
+      assertScannerEngineSuccessfulKeystore(logs, trustStorePath, trustStorePassword);
     }
     else {
       assertThat(logs)
