@@ -31,6 +31,9 @@ import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -450,11 +453,14 @@ class SslTest {
   }
 
   private void assertScannerEngineSuccessfulKeystore(String logs, String trustStorePath, String trustStorePassword) {
+    String trustStorePathRegex = Stream.of(trustStorePath.split("[/\\\\]"))
+      .map(Pattern::quote)
+      .collect(Collectors.joining("[/\\\\]"));
     assertThat(logs)
       .contains("Args: ")
-      .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
+      .containsPattern("-Djavax.net.ssl.trustStore=" + trustStorePathRegex)
       .contains("Loading OS trusted SSL certificates")
-      .contains("Loaded truststore from '" + trustStorePath + "'")
+      .containsPattern("Loaded truststore from '" + trustStorePathRegex + "'")
       .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
   }
 
