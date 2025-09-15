@@ -177,10 +177,11 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server);
+      validateAnalysis(context, server, false);
     }
   }
 
@@ -201,7 +202,9 @@ class SslTest {
       var logs = context.runAnalysis().end().getLogs();
 
       if(serverSupportsProvisioning()) {
-        assertScannerEngineSuccessfulKeystore(logs, server.getKeystorePath(), server.getKeystorePassword());
+        assertThat(logs)
+          .containsPattern("Args: -Djavax.net.ssl.trustStore=\"?" + server.getKeystorePath().replace('\\', '/'))
+          .doesNotContain(server.getKeystorePassword());
       }
       else {
         assertThat(logs)
@@ -236,10 +239,11 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server);
+      validateAnalysis(context, server, false);
     }
   }
 
@@ -298,7 +302,7 @@ class SslTest {
         .setDebugLogs()
         .setProperty("sonar.userHome", sonarHome);
 
-      var result = validateAnalysis(context, server);
+      var result = validateAnalysis(context, server, true);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
         if (serverSupportsProvisioning()){
@@ -337,10 +341,11 @@ class SslTest {
         .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setDebugLogs();
+        .setDebugLogs()
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server);
+      validateAnalysis(context, server, false);
     }
   }
 
@@ -356,7 +361,7 @@ class SslTest {
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server);
+      validateAnalysis(context, server, true);
     }
   }
 
@@ -368,9 +373,10 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setDebugLogs()
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
 
-      var result = validateAnalysis(context, server);
+      var result = validateAnalysis(context, server, false);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*keystore.p12' with the default password at index 0. Reason: .*");
         assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*keystore.p12\"?' with the default password at index 0. Reason: .*");
@@ -421,20 +427,22 @@ class SslTest {
     return server;
   }
 
-  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server) {
+  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server, Boolean scannerEngine) {
     var result = context.runAnalysis();
     var logs = result.end().getLogs();
-
-    if (serverSupportsProvisioning()) {
-      assertScannerEngineSuccessfulKeystore(logs, server.getKeystorePath(), server.getKeystorePassword());
+    var trustStorePath = server.getKeystorePath().replace('\\', '/');
+    var trustStorePassword = server.getKeystorePassword();
+    if (OSPlatform.isWindows()) {
+      trustStorePath = "\"" + trustStorePath + "\"";
+      trustStorePassword = "\"" + trustStorePassword + "\"";
+    }
+    if (scannerEngine && serverSupportsProvisioning()) {
+      assertThat(logs)
+        .contains("Args: ")
+        .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
+        .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
     }
     else {
-      var trustStorePath = server.getKeystorePath().replace('\\', '/');
-      var trustStorePassword = server.getKeystorePassword();
-      if (OSPlatform.isWindows()) {
-        trustStorePath = "\"" + trustStorePath + "\"";
-        trustStorePassword = "\"" + trustStorePassword + "\"";
-      }
       assertThat(logs)
         .contains("SONAR_SCANNER_OPTS")
         .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
