@@ -40,10 +40,13 @@ public readonly record struct LogMessage(LogLevel Level, string Message);
 public delegate LogMessage? OutputToLogMessage(bool stdOut, string outputLine);
 
 /// <summary>
-/// Data class containing parameters required to execute a new process
+/// Data class containing parameters required to execute a new process.
 /// </summary>
 public class ProcessRunnerArguments
 {
+    // ToDo: Remove this in https://sonarsource.atlassian.net/browse/SCAN4NET-721
+    private readonly bool isBatchScript;
+
     public string ExeName { get; }
 
     /// <summary>
@@ -68,7 +71,7 @@ public class ProcessRunnerArguments
 
             var result = string.Join(" ", CmdLineArgs.Select(x => x.EscapeArgument()));
 
-            if (IsBatchScript)
+            if (isBatchScript)
             {
                 result = ShellEscape(result);
             }
@@ -98,9 +101,6 @@ public class ProcessRunnerArguments
     /// </remarks>
     public bool ExeMustExists { get; set; } = true;
 
-    // ToDo: Remove this in https://sonarsource.atlassian.net/browse/SCAN4NET-721
-    private bool IsBatchScript { get; set; }
-
     public ProcessRunnerArguments(string exeName, bool isBatchScript)
     {
         if (string.IsNullOrWhiteSpace(exeName))
@@ -109,7 +109,7 @@ public class ProcessRunnerArguments
         }
 
         ExeName = exeName;
-        IsBatchScript = isBatchScript;
+        this.isBatchScript = isBatchScript;
 
         TimeoutInMilliseconds = Timeout.Infinite;
         OutputToLogMessage = (stdOut, outputLine) =>
@@ -126,7 +126,7 @@ public class ProcessRunnerArguments
 
     /// <summary>
     /// Returns the string that should be used when logging command line arguments
-    /// (sensitive data will have been removed)
+    /// (sensitive data will have been removed).
     /// </summary>
     public string AsLogText()
     {
@@ -139,15 +139,15 @@ public class ProcessRunnerArguments
 
         var sb = new StringBuilder();
 
-        foreach (var arg in CmdLineArgs)
+        foreach (var arg in CmdLineArgs.Select(x => x.Value))
         {
-            if (ContainsSensitiveData(arg.Value))
+            if (ContainsSensitiveData(arg))
             {
                 hasSensitiveData = true;
             }
             else
             {
-                sb.Append(arg.Value);
+                sb.Append(arg);
                 sb.Append(" ");
             }
         }
@@ -162,7 +162,7 @@ public class ProcessRunnerArguments
 
     /// <summary>
     /// Determines whether the text contains sensitive data that
-    /// should not be logged/written to file
+    /// should not be logged/written to file.
     /// </summary>
     public static bool ContainsSensitiveData(string text)
     {
@@ -226,19 +226,16 @@ public class ProcessRunnerArguments
         /// See:
         /// https://blogs.msdn.microsoft.com/oldnewthing/20100917-00/?p=12833/
         /// https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
-        /// http://www.daviddeley.com/autohotkey/parameters/parameters.htm
+        /// http://www.daviddeley.com/autohotkey/parameters/parameters.htm.
         /// </summary>
         public string EscapeArgument()
         {
-            var sb = new StringBuilder();
-
-            sb.Append("\"");
             if (Escaped)
             {
-                sb.Append(Value);
-                sb.Append("\"");
-                return sb.ToString();
+                return Value;
             }
+            var sb = new StringBuilder();
+            sb.Append("\"");
 
             for (var i = 0; i < Value.Length; i++)
             {
