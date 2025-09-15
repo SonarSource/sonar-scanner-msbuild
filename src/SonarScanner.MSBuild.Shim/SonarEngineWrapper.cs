@@ -99,7 +99,7 @@ public class SonarEngineWrapper
             // set via the environment variable.
             foreach (var property in config.ScannerOptsSettings)
             {
-                yield return new ProcessRunnerArguments.Argument(property.AsSonarScannerArg(), false);
+                yield return property.AsSonarScannerArg();
             }
         }
     }

@@ -425,17 +425,16 @@ class SslTest {
     var result = context.runAnalysis();
     var logs = result.end().getLogs();
 
-    var trustStorePath = server.getKeystorePath().replace('\\', '/');
-    var trustStorePassword = server.getKeystorePassword();
-    if (OSPlatform.isWindows()) {
-      trustStorePath = "\"" + trustStorePath + "\"";
-      trustStorePassword = "\"" + trustStorePassword + "\"";
-    }
-
     if (serverSupportsProvisioning()) {
-      assertScannerEngineSuccessfulKeystore(logs, trustStorePath, trustStorePassword);
+      assertScannerEngineSuccessfulKeystore(logs, server.getKeystorePath(), server.getKeystorePassword());
     }
     else {
+      var trustStorePath = server.getKeystorePath().replace('\\', '/');
+      var trustStorePassword = server.getKeystorePassword();
+      if (OSPlatform.isWindows()) {
+        trustStorePath = "\"" + trustStorePath + "\"";
+        trustStorePassword = "\"" + trustStorePassword + "\"";
+      }
       assertThat(logs)
         .contains("SONAR_SCANNER_OPTS")
         .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
@@ -458,9 +457,9 @@ class SslTest {
       .collect(Collectors.joining("[/\\\\]"));
     assertThat(logs)
       .contains("Args: ")
-      .containsPattern("-Djavax.net.ssl.trustStore=" + trustStorePathRegex)
+      .containsPattern("-Djavax.net.ssl.trustStore=" + "\"?" + trustStorePathRegex)
       .contains("Loading OS trusted SSL certificates")
-      .containsPattern("Loaded truststore from '" + trustStorePathRegex + "'")
+      .containsPattern("Loaded truststore from '" + "\"?" + trustStorePathRegex)
       .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
   }
 
