@@ -66,17 +66,7 @@ public class ProcessRunnerArguments
                 return null;
             }
 
-            var argList = new List<string>();
-            foreach (var arg in CmdLineArgs)
-            {
-                var argument = arg.Value;
-                if (!arg.Escaped)
-                {
-                    argument = EscapeArgument(arg.Value);
-                }
-                argList.Add(argument);
-            }
-            var result = string.Join(" ", argList);
+            var result = string.Join(" ", CmdLineArgs.Select(x => x.EscapeArgument()));
 
             if (IsBatchScript)
             {
@@ -187,56 +177,6 @@ public class ProcessRunnerArguments
     }
 
     /// <summary>
-    /// The CreateProcess Win32 API call only takes 1 string for all arguments.
-    /// Ultimately, it is the responsibility of each program to decide how to split this string into multiple arguments.
-    ///
-    /// See:
-    /// https://blogs.msdn.microsoft.com/oldnewthing/20100917-00/?p=12833/
-    /// https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
-    /// http://www.daviddeley.com/autohotkey/parameters/parameters.htm
-    /// </summary>
-    private static string EscapeArgument(string arg)
-    {
-        Debug.Assert(arg is not null, "Not expecting an argument to be null");
-
-        var sb = new StringBuilder();
-
-        sb.Append("\"");
-        for (var i = 0; i < arg.Length; i++)
-        {
-            var numberOfBackslashes = 0;
-            for (; i < arg.Length && arg[i] == '\\'; i++)
-            {
-                numberOfBackslashes++;
-            }
-
-            if (i == arg.Length)
-            {
-                // Escape all backslashes, but let the terminating
-                // double quotation mark we add below be interpreted
-                // as a meta-character.
-                sb.Append('\\', numberOfBackslashes * 2);
-            }
-            else if (arg[i] == '"')
-            {
-                // Escape all backslashes and the following
-                // double quotation mark.
-                sb.Append('\\', numberOfBackslashes * 2 + 1);
-                sb.Append(arg[i]);
-            }
-            else
-            {
-                // Backslashes aren't special here.
-                sb.Append('\\', numberOfBackslashes);
-                sb.Append(arg[i]);
-            }
-        }
-        sb.Append("\"");
-
-        return sb.ToString();
-    }
-
-    /// <summary>
     /// Batch scripts are evil.
     /// The escape character in batch is '^'.
     ///
@@ -279,6 +219,61 @@ public class ProcessRunnerArguments
 
     public record Argument(string Value, bool Escaped = false)
     {
+        /// <summary>
+        /// The CreateProcess Win32 API call only takes 1 string for all arguments.
+        /// Ultimately, it is the responsibility of each program to decide how to split this string into multiple arguments.
+        ///
+        /// See:
+        /// https://blogs.msdn.microsoft.com/oldnewthing/20100917-00/?p=12833/
+        /// https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
+        /// http://www.daviddeley.com/autohotkey/parameters/parameters.htm
+        /// </summary>
+        public string EscapeArgument()
+        {
+            var sb = new StringBuilder();
+
+            sb.Append("\"");
+            if (Escaped)
+            {
+                sb.Append(Value);
+                sb.Append("\"");
+                return sb.ToString();
+            }
+
+            for (var i = 0; i < Value.Length; i++)
+            {
+                var numberOfBackslashes = 0;
+                for (; i < Value.Length && Value[i] == '\\'; i++)
+                {
+                    numberOfBackslashes++;
+                }
+
+                if (i == Value.Length)
+                {
+                    // Escape all backslashes, but let the terminating
+                    // double quotation mark we add below be interpreted
+                    // as a meta-character.
+                    sb.Append('\\', numberOfBackslashes * 2);
+                }
+                else if (Value[i] == '"')
+                {
+                    // Escape all backslashes and the following
+                    // double quotation mark.
+                    sb.Append('\\', numberOfBackslashes * 2 + 1);
+                    sb.Append(Value[i]);
+                }
+                else
+                {
+                    // Backslashes aren't special here.
+                    sb.Append('\\', numberOfBackslashes);
+                    sb.Append(Value[i]);
+                }
+            }
+            sb.Append("\"");
+
+            return sb.ToString();
+        }
+
         public static implicit operator Argument(string value) =>
             new(value);
     }
