@@ -173,13 +173,8 @@ public class ScannerEngineInputGenerator
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
 
-        var sensitiveArgsFromFile = new ListPropertiesProvider(analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData()));
-        // Sensitive args need to be mapped here as they are not present in the analysis config.
-        var mappedArgs = MapDeprecatedArgs(new AggregatePropertiesProvider(
-            cmdLineArgs,
-            sensitiveArgsFromFile));
-
-        engineInput.AddUserSettings(new AggregatePropertiesProvider(mappedArgs, new ListPropertiesProvider(analysisProperties)));
+        var sensitiveArgsFromSettingsFile = analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
+        engineInput.AddUserSettings(new AggregatePropertiesProvider(cmdLineArgs, new ListPropertiesProvider(sensitiveArgsFromSettingsFile), new ListPropertiesProvider(analysisProperties)));
         return true;
     }
 
@@ -421,29 +416,6 @@ public class ScannerEngineInputGenerator
             else
             {
                 return null;
-            }
-        }
-    }
-
-    private static IAnalysisPropertyProvider MapDeprecatedArgs(IAnalysisPropertyProvider userSettings)
-    {
-        var mappedArgs = new ListPropertiesProvider();
-        foreach (var prop in userSettings.GetAllProperties())
-        {
-            var key = SonarPropertiesDefault.JavaScannerMapping.TryGetValue(prop.Id, out var mappedKey) ? mappedKey : prop.Id;
-            UpdateMappedArg(key, prop.Value);
-        }
-        return mappedArgs;
-
-        void UpdateMappedArg(string key, string value)
-        {
-            if (mappedArgs.TryGetProperty(key, out var property))
-            {
-                property.Value = value;
-            }
-            else
-            {
-                mappedArgs.AddProperty(key, value);
             }
         }
     }

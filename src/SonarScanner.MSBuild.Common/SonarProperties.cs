@@ -109,17 +109,4 @@ public static class SonarPropertiesDefault
     public static readonly ReadOnlyCollection<string> TruststorePasswords = new(["changeit", "sonar"]);
 
     public static readonly string TruststorePath = Path.Combine("ssl", "truststore.p12");
-
-    // Map deprecated ScannerCliV5 properties to their scanner-engine equivalents
-    public static readonly ReadOnlyDictionary<string, string> JavaScannerMapping = new(new Dictionary<string, string>
-    {
-        { SonarProperties.JavaxNetSslTrustStore, SonarProperties.TruststorePath },
-        { SonarProperties.JavaxNetSslTrustStorePassword, SonarProperties.TruststorePassword },
-        { "javax.net.ssl.keyStore", "sonar.scanner.keystorePath" },
-        { "javax.net.ssl.keyStorePassword", "sonar.scanner.keystorePassword" },
-        { "http.proxyHost", "sonar.scanner.proxyHost" },
-        { "http.proxyPort", "sonar.scanner.proxyPort" },
-        { "http.proxyUser", "sonar.scanner.proxyUser" },
-        { "http.proxyPassword", "sonar.scanner.proxyPassword" },
-    });
 }

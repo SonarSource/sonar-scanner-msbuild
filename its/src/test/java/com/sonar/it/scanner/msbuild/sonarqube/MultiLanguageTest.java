@@ -269,6 +269,7 @@ class MultiLanguageTest {
     }
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.begin.CreateAndSetUserHomeFolder("junit-angular-");
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-866
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
