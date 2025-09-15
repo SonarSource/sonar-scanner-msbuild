@@ -227,12 +227,6 @@ class MultiLanguageTest {
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   void react() {
-
-    // TODO: re-enable (https://sonarsource.atlassian.net/browse/SCAN4NET-659)
-    if(ORCHESTRATOR.getServer().version().isGreaterThan(2025, 1)) {
-      return;
-    }
-
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.begin.CreateAndSetUserHomeFolder("junit-react-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
@@ -262,11 +256,6 @@ class MultiLanguageTest {
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   void angular() {
-
-    // TODO: re-enable (https://sonarsource.atlassian.net/browse/SCAN4NET-659)
-    if(ORCHESTRATOR.getServer().version().isGreaterThan(2025, 1)) {
-      return;
-    }
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.begin.CreateAndSetUserHomeFolder("junit-angular-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
@@ -295,6 +284,12 @@ class MultiLanguageTest {
     }
     if (version.isGreaterThanOrEquals(2025, 1)) {
       expectedIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
+    }
+    if (version.isGreaterThanOrEquals(2025, 4)) {
+      expectedIssues.addAll(List.of(
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml")));
     }
 
     assertThat(issues)
