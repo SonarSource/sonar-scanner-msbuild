@@ -526,7 +526,12 @@ public class ScannerEngineInputTest
     [TestMethod]
     public void AddConfig_EmptyValues()
     {
-        var config = new AnalysisConfig { SonarOutputDir = @"C:\OutputDir\CannotBeEmpty" };
+        var config = new AnalysisConfig
+        {
+            SonarOutputDir = @"C:\OutputDir\CannotBeEmpty", // Added: Non-empty string
+            SonarProjectKey = string.Empty,                 // Added: Empty string
+            SonarProjectName = null,                        // Not addeed: Null values (default)
+        };
         var sut = new ScannerEngineInput(config);
         sut.AddConfig(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
         sut.ToString().Should().BeIgnoringLineEndings(
@@ -540,6 +545,10 @@ public class ScannerEngineInputTest
                 {
                   "key": "sonar.scanner.appVersion",
                   "value": "{{Utilities.ScannerVersion}}"
+                },
+                {
+                  "key": "sonar.projectKey",
+                  "value": ""
                 },
                 {
                   "key": "sonar.working.directory",
