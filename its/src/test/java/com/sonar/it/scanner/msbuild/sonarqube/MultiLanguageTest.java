@@ -286,6 +286,8 @@ class MultiLanguageTest {
       expectedIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
     }
     if (version.isGreaterThanOrEquals(2025, 4)) {
+      // githubactions was released in sonar-iac 1.49 which targets 2025.5 but since we are currently using the latest analyzer versions we need to check for 2025.4.
+      // This will break when we add tests for 2025.4. (it's not an LTA but is supported like one). When that happens, change condition to 2025.5 and remove this comment.
       expectedIssues.addAll(List.of(
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
