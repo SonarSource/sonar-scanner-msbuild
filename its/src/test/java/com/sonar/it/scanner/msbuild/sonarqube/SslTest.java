@@ -109,6 +109,8 @@ class SslTest {
       context.begin.setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
 
+      // '-Djavax.net.ssl.trustStorePassword' & '-Djavax.net.ssl.trustStore' are part of the same argument.
+      // They do not appear in logs as the argument contains sensitive data.
       assertThat(logs)
         .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + keystorePassword + "\"")
         .doesNotContain(keystorePassword);
@@ -126,7 +128,6 @@ class SslTest {
         .setDebugLogs();
 
       var logs = context.runAnalysis().end().getLogs();
-
       if (serverSupportsProvisioning()) {
         assertThat(logs)
           .contains("Args: -Djavax.net.ssl.trustStoreType=Windows-ROOT");
@@ -458,18 +459,7 @@ class SslTest {
 
     return result;
   }
-
-  private void assertScannerEngineSuccessfulKeystore(String logs, String trustStorePath, String trustStorePassword) {
-    String trustStorePathRegex = Stream.of(trustStorePath.split("[/\\\\]"))
-      .map(Pattern::quote)
-      .collect(Collectors.joining("[/\\\\]"));
-    assertThat(logs)
-      .contains("Args: ")
-      .containsPattern("-Djavax.net.ssl.trustStore=" + "\"?" + trustStorePathRegex)
-      .contains("Loading OS trusted SSL certificates")
-      .containsPattern("Loaded truststore from '" + "\"?" + trustStorePathRegex)
-      .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
-  }
+  
 
   private String createKeyStore(String password, String host) {
     return createKeyStore(password, Path.of(""), host, "keystore.pfx");

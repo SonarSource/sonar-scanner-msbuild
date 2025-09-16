@@ -375,7 +375,7 @@ public class ProcessRunnerTests
     public void ProcRunner_ArgumentQuoting()
     {
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var expected = new[]
+        var expected = new ProcessRunnerArguments.Argument[]
         {
             "unquoted",
             "\"quoted\"",
@@ -414,10 +414,10 @@ public class ProcessRunnerTests
         {
             ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
             {
-                CmdLineArgs = new ProcessRunnerArguments.ArgumentList([
+                CmdLineArgs = [
                     new("arg1", true),
                     new("\"arg2\"", true),
-                    new("\"arg with spaces\"", true)]),
+                    new("\"arg with spaces\"", true)],
                 WorkingDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
             }
         };
@@ -433,10 +433,10 @@ public class ProcessRunnerTests
         {
             ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
             {
-                CmdLineArgs = new ProcessRunnerArguments.ArgumentList([
+                CmdLineArgs = [
                     new("arg1", false),
                     new("\"arg2\"", false),
-                    new("\"arg with spaces\"", false)]),
+                    new("\"arg with spaces\"", false)],
                 WorkingDirectory = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
             }
         };
@@ -448,7 +448,7 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
     {
-        var expected = new[]
+        var expected = new ProcessRunnerArguments.Argument[]
         {
             "unquoted",
             "\"quoted\"",
@@ -476,7 +476,7 @@ public class ProcessRunnerTests
     [TestMethod]
     public void ProcRunner_ArgumentQuotingScanner()
     {
-        var expected = new[]
+        var expected = new ProcessRunnerArguments.Argument[]
         {
             @"-Dsonar.scanAllFiles=true",
             @"-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties",
@@ -535,13 +535,13 @@ public class ProcessRunnerTests
     public void ProcRunner_DoNotLogSensitiveData()
     {
         // Public args - should appear in the log
-        var publicArgs = new[]
+        var publicArgs = new ProcessRunnerArguments.Argument[]
         {
             "public1",
             "public2",
             "/d:sonar.projectKey=my.key"
         };
-        var sensitiveArgs = new[]
+        var sensitiveArgs = new ProcessRunnerArguments.Argument[]
         {
             // Public args - should appear in the log
             "public1", "public2", "/dmy.key=value",
@@ -585,7 +585,7 @@ public class ProcessRunnerTests
         // Check public arguments are logged but private ones are not
         foreach (var arg in publicArgs)
         {
-            context.Logger.DebugMessages.Should().ContainSingle(x => x.Contains(arg));
+            context.Logger.DebugMessages.Should().ContainSingle(x => x.Contains(arg.Value));
         }
         context.Logger.Should().HaveDebugs(
             "Setting environment variable 'SENSITIVE_DATA'. Value: -D<sensitive data removed>",
@@ -703,6 +703,9 @@ public class ProcessRunnerTests
 
         public void ResultErrorOutputShouldBe(string expected) =>
             result.ErrorOutput.Should().Be(expected, "Unexpected error output");
+
+        public void AssertExpectedLogContents(params ProcessRunnerArguments.Argument[] expected) =>
+            AssertExpectedLogContents(expected.Select(x => x.Value).ToArray());
 
         public void AssertExpectedLogContents(params string[] expected)
         {

@@ -149,16 +149,19 @@ public class SonarScannerWrapperTests
 
         // Non-sensitive values from the file should not be passed on the command line
         result.CheckArgDoesNotExist("file.not.sensitive.key");
-        result.SuppliedArguments.CmdLineArgs.Select(x => x.Value).Should().BeEquivalentTo(
-            "-Dxxx=yyy",
-            "-Dsonar.password=cmdline.password",                          // sensitive value from cmd line: overrides file value
-            "-Dsonar.clientcert.password=file.clientCertificatePassword", // sensitive value from file
-            "-Dsonar.login=file.username",
-            "-Dsonar.token=file.token",
-            "-Dproject.settings=c:\\foo.props",
-            $"--from=ScannerMSBuild/{Utilities.ScannerVersion}",
-            "--debug",
-            "-Dsonar.scanAllFiles=true");
+        result.SuppliedArguments.CmdLineArgs.Should().BeEquivalentTo(
+            new ProcessRunnerArguments.Argument[]
+            {
+                "-Dxxx=yyy",
+                "-Dsonar.password=cmdline.password",                          // sensitive value from cmd line: overrides file value
+                "-Dsonar.clientcert.password=file.clientCertificatePassword", // sensitive value from file
+                "-Dsonar.login=file.username",
+                "-Dsonar.token=file.token",
+                "-Dproject.settings=c:\\foo.props",
+                $"--from=ScannerMSBuild/{Utilities.ScannerVersion}",
+                "--debug",
+                "-Dsonar.scanAllFiles=true"
+            });
 
         var clientCertPwdIndex = result.CheckArgExists("-Dsonar.clientcert.password=file.clientCertificatePassword"); // sensitive value from file
         var userPwdIndex = result.CheckArgExists("-Dsonar.password=cmdline.password"); // sensitive value from cmd line: overrides file value

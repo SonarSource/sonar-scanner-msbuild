@@ -52,7 +52,7 @@ public class ProcessRunnerArguments
     /// <summary>
     /// Non-sensitive command line arguments (i.e. ones that can safely be logged). Optional.
     /// </summary>
-    public ArgumentList CmdLineArgs { get; set; }
+    public IReadOnlyList<Argument> CmdLineArgs { get; set; }
 
     public string WorkingDirectory { get; set; }
 
@@ -217,7 +217,7 @@ public class ProcessRunnerArguments
         return sb.ToString();
     }
 
-    public record Argument(string Value, bool Escaped = false)
+    public readonly record struct Argument(string Value, bool Escaped = false)
     {
         /// <summary>
         /// The CreateProcess Win32 API call only takes 1 string for all arguments.
@@ -273,18 +273,5 @@ public class ProcessRunnerArguments
 
         public static implicit operator Argument(string value) =>
             new(value);
-    }
-
-    public class ArgumentList : List<Argument>
-    {
-        public ArgumentList() { }
-
-        public ArgumentList(IEnumerable<Argument> collection) : base(collection) { }
-
-        public static implicit operator ArgumentList(List<string> args) =>
-            new(args.Select(x => new Argument(x)));
-
-        public static implicit operator ArgumentList(string[] args) =>
-            new(args.Select(x => new Argument(x)));
     }
 }
