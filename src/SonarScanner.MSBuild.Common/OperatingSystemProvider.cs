@@ -47,9 +47,6 @@ public class OperatingSystemProvider
     public virtual string FolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option) =>
         Environment.GetFolderPath(folder, option);
 
-    public virtual bool DirectoryExists(string path) =>
-        Directory.Exists(path);
-
     public virtual PlatformOS OperatingSystem() =>
         operatingSystem.Value;
 

@@ -168,14 +168,14 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
                     Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
                 var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
 
-                if (runtime.OperatingSystem.DirectoryExists(localAppDataX86))
+                if (runtime.Directory.Exists(localAppDataX86))
                 {
                     yield return localAppDataX86;
                 }
 
                 var sysNativePath = Path.Combine(Path.GetDirectoryName(systemPath), "Sysnative"); // %windir%\Sysnative
                 var localAppDataX64 = localAppData.ReplaceCaseInsensitive(systemPath, sysNativePath);
-                if (runtime.OperatingSystem.DirectoryExists(localAppDataX64))
+                if (runtime.Directory.Exists(localAppDataX64))
                 {
                     yield return localAppDataX64;
                 }

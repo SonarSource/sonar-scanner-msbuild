@@ -212,7 +212,7 @@ public class MsBuildPathSettingsTests
     {
         var runtime = new TestRuntime();
         runtime.OperatingSystem.OperatingSystem().Returns(os);
-        runtime.OperatingSystem.DirectoryExists(Arg.Any<string>()).Returns(x => directoryExists is null || directoryExists(x.Arg<string>()));
+        runtime.Directory.Exists(Arg.Any<string>()).Returns(x => directoryExists is null || directoryExists(x.Arg<string>()));
         runtime.OperatingSystem.FolderPath(Arg.Any<Environment.SpecialFolder>(), Arg.Any<Environment.SpecialFolderOption>())
             .Returns(x => getFolderPath(x.Arg<Environment.SpecialFolder>(), x.Arg<Environment.SpecialFolderOption>()));
         return runtime;

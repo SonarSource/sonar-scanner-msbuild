@@ -34,13 +34,6 @@ public class OperatingSystemProviderTests
     }
 
     [TestMethod]
-    public void DirectoryExists_WithCurrentDirectory()
-    {
-        var sut = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
-        sut.DirectoryExists(Environment.CurrentDirectory).Should().BeTrue();
-    }
-
-    [TestMethod]
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
     public void OperatingSystem_Windows() =>
