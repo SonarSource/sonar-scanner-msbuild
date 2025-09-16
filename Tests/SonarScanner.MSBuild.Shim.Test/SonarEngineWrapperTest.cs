@@ -347,7 +347,8 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = new ProcessRunnerArguments.Argument[] {
+            CmdLineArgs = new ProcessRunnerArguments.Argument[]
+            {
                 new("-Djavax.net.ssl.trustStorePassword=\"EnvPassword\"", true),
                 new("-Djavax.net.ssl.trustStorePassword=\"CliPassword\"", true),
                 new("-jar"),

@@ -141,7 +141,6 @@ public class SonarScannerWrapper
             }
         }
 
-
         // Calculation of SONAR_SCANNER_OPTS has identical logic to the JavaParms method in SonarEngineWrapper
         // https://github.com/SonarSource/sonar-scanner-msbuild/blob/feature/scannerEngine/src/SonarScanner.MSBuild.Shim/SonarEngineWrapper.cs#L87
 
