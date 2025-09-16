@@ -132,12 +132,17 @@ public class ScannerEngineInput
     private void Add(string key, IEnumerable<string> values) =>
         Add(key, ToMultiValueProperty(values));
 
-    private void Add(string key, string value) =>
-        scannerProperties[key] = value ?? string.Empty;
+    private void Add(string key, string value)
+    {
+        if (value is { } nonNull)
+        {
+            scannerProperties[key] = nonNull;
+        }
+    }
 
     private static string ToMultiValueProperty(IEnumerable<string> paths)
     {
-        return string.Join(",", paths.Select(Encode));
+        return paths is null ? null : string.Join(",", paths.Select(Encode));
 
         // RFC4180 2.5: Each field may or may not be enclosed in double quotes
         // RFC4180 2.6: Fields containing line breaks (CRLF), double quotes, and commas should be enclosed in double-quotes.

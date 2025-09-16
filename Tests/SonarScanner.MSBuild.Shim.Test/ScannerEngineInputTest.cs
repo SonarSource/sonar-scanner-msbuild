@@ -245,6 +245,27 @@ public class ScannerEngineInputTest
     }
 
     [TestMethod]
+    public void AddVsTestReportPaths_Null()
+    {
+        var sut = new ScannerEngineInput(new AnalysisConfig());
+        sut.AddVsTestReportPaths(null);
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                }
+              ]
+            }
+            """);
+    }
+
+    [TestMethod]
     public void AddVsXmlCoverageReportPaths_WritesEncodedPaths()
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
@@ -263,6 +284,27 @@ public class ScannerEngineInputTest
                 {
                   "key": "sonar.cs.vscoveragexml.reportsPaths",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "dir1", "first") + "," + Path.Combine(TestUtils.DriveRoot(), "dir1", "second"))}}
+                }
+              ]
+            }
+            """);
+    }
+
+    [TestMethod]
+    public void AddVsXmlCoverageReportPaths_Null()
+    {
+        var sut = new ScannerEngineInput(new AnalysisConfig());
+        sut.AddVsXmlCoverageReportPaths(null);
+        sut.ToString().Should().BeIgnoringLineEndings($$"""
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
                 }
               ]
             }
@@ -500,28 +542,12 @@ public class ScannerEngineInputTest
                   "value": "{{Utilities.ScannerVersion}}"
                 },
                 {
-                  "key": "sonar.projectKey",
-                  "value": ""
-                },
-                {
-                  "key": "sonar.projectName",
-                  "value": ""
-                },
-                {
-                  "key": "sonar.projectVersion",
-                  "value": ""
-                },
-                {
                   "key": "sonar.working.directory",
                   "value": {{JsonConvert.ToString(Path.Combine(@"C:\OutputDir\CannotBeEmpty", ".sonar"))}}
                 },
                 {
                   "key": "sonar.projectBaseDir",
                   "value": {{JsonConvert.ToString(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir"))}}
-                },
-                {
-                  "key": "sonar.pullrequest.cache.basepath",
-                  "value": ""
                 }
               ]
             }
