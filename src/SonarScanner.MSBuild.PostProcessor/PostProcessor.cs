@@ -242,9 +242,9 @@ public class PostProcessor
 
     private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, string propertiesFilePath)
     {
-        runtime.Logger.IncludeTimestamp = false;
+        //runtime.Logger.IncludeTimestamp = false;
         var result = sonarScanner.Execute(config, cmdLineArgs, propertiesFilePath);
-        runtime.Logger.IncludeTimestamp = true;
+        //runtime.Logger.IncludeTimestamp = true;
         return result;
     }
 

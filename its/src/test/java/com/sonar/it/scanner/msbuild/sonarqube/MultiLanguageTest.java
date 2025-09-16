@@ -29,6 +29,7 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jgit.api.Git;
@@ -36,6 +37,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
@@ -223,15 +227,19 @@ class MultiLanguageTest {
     }
   }
 
-  @Test
+  @ParameterizedTest
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
-  void react() {
+  @ValueSource(booleans = {true, false})
+  void react(Boolean useSonarScannerCLI) {
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
-    context.begin.CreateAndSetUserHomeFolder("junit-react-");
-    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
-    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
-    context.runAnalysis();
+    context.begin.CreateAndSetUserHomeFolder("junit-react-")
+      .setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString())
+      .setDebugLogs();
+    context.build.setTimeout(Timeout.FIVE_MINUTES); // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.FIVE_MINUTES);   // End step was timing out, JS is slow
+    var logs = context.runAnalysis().logs();
+    logTimeDiff(logs, "react-" + (useSonarScannerCLI ? "cli" : "engine"));
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     var version = ORCHESTRATOR.getServer().version();
@@ -252,15 +260,19 @@ class MultiLanguageTest {
       .contains(expectedIssues.toArray(new Tuple[]{}));
   }
 
-  @Test
+  @ParameterizedTest
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
-  void angular() {
+  @ValueSource(booleans = {true, false})
+  void angular(Boolean useSonarScannerCLI) {
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
-    context.begin.CreateAndSetUserHomeFolder("junit-angular-");
+    context.begin.CreateAndSetUserHomeFolder("junit-angular-")
+      .setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString())
+      .setDebugLogs();;
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
-    context.runAnalysis();
+    var logs = context.runAnalysis().logs();
+    logTimeDiff(logs, "angular-" + (useSonarScannerCLI ? "cli" : "engine"));
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     var version = ORCHESTRATOR.getServer().version();
@@ -349,6 +361,21 @@ class MultiLanguageTest {
         tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/NotIncluded.sql"));
   }
 
+  private static void logTimeDiff(String logs, String tag) {
+    try {
+      var start = logs.lines().filter(x -> x.contains("Executing file")).findFirst();
+      var end = logs.lines().filter(x -> x.contains("Post-processing succeeded.")).findFirst();
+      String startTs = start.get().split(" ")[0];
+      String endTs = end.get().split(" ")[0];
+      var sdf = new java.text.SimpleDateFormat("HH:mm:ss.SSS");
+      long startTime = sdf.parse(startTs).getTime();
+      long endTime = sdf.parse(endTs).getTime();
+      long diff = endTime - startTime;
+      LoggerFactory.getLogger(MultiLanguageTest.class).info("[" + tag + "] Time diff: {} ms", diff);
+    } catch (Exception e) {
+      LoggerFactory.getLogger(MultiLanguageTest.class).debug("[" + tag + "] Time diff logging skipped (parse failure)");
+    }
+  }
 
   // This class is used to create a .git folder in the project directory.
   // This is required for the sonar-text-plugin to work correctly.
