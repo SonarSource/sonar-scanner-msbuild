@@ -46,7 +46,7 @@ public class SonarEngineWrapper
 
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
-            CmdLineArgs = javaParams.Any() ? [.. javaParams, "-jar", engine] : ["-jar", engine],
+            CmdLineArgs = javaParams.Any() ? [.. javaParams, new("-jar"), new(engine)] : [new("-jar"), new(engine)],
             WorkingDirectory = config.SonarScannerWorkingDirectory,
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
             StandardInput = standardInput,
@@ -82,7 +82,7 @@ public class SonarEngineWrapper
         }
 
         // We need to map the truststore password to the javax.net.ssl.trustStorePassword property and invoke java with it.
-        // If the password is set via CLI we use it.
+        // If the password is set via userCmdLineArguments we use it.
         // If it is not set, we  use the default value, unless it is already in the SONAR_SCANNER_OPTS.
         if (!userCmdLineArguments.TryGetValue(SonarProperties.TruststorePassword, out var truststorePassword))
         {

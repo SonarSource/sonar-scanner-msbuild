@@ -384,9 +384,9 @@ public class TruststorePropertiesProcessorTests
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
         var processRunner = Substitute.For<IProcessRunner>();
-        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("command -v java")))
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Select(x => x.Value).Contains("command -v java")))
             .Returns(new ProcessResult(true, "/usr/bin/java", string.Empty));
-        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Contains("readlink -f /usr/bin/java")))
+        processRunner.Execute(Arg.Is<ProcessRunnerArguments>(x => x.CmdLineArgs.Select(x => x.Value).Contains("readlink -f /usr/bin/java")))
             .Returns(new ProcessResult(true, "/java/home/bin/java", string.Empty));
         var runtime = new TestRuntime();
         runtime.File.Exists(Arg.Any<string>()).Returns(true);
