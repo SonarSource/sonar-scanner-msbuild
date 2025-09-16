@@ -85,14 +85,20 @@ public class SonarEngineWrapper
         return result.Succeeded;
     }
 
+    // This has identical logic to the building of the SONAR_SCANNER_OPTS in the AdditionalEnvVariables method in SonarScannerWrapper
+    // https://github.com/SonarSource/sonar-scanner-msbuild/blob/66618b506d3d951e7ca4ca00d9f86dba35b12e48/src/SonarScanner.MSBuild.Shim/SonarScanner.Wrapper.cs#L150
     private IEnumerable<ProcessRunnerArguments.Argument> JavaParams(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments)
     {
+        // If there is a value for SONAR_SCANNER_OPTS pass it through explicitly
         var scannerOpts = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
         if (scannerOpts?.Trim() is { Length: > 0 })
         {
             yield return new ProcessRunnerArguments.Argument(scannerOpts, true);
         }
 
+        // If trustStorePath is set in the begin step, it will be in the ScannerOptsSettings.
+        // If it is not set in the begin step, it could be a default path in unix, or '-Djavax.net.ssl.trustStoreType=Windows-ROOT' on Windows.
+        // This is calculated in the TrustStorePreProcessor: https://github.com/SonarSource/sonar-scanner-msbuild/blob/66618b506d3d951e7ca4ca00d9f86dba35b12e48/src/SonarScanner.MSBuild.PreProcessor/AnalysisConfigProcessing/Processors/TruststorePropertiesProcessor.cs#L46
         if (config.ScannerOptsSettings.Any())
         {
             // If there are any duplicates properties, the last one will be used.
@@ -105,6 +111,9 @@ public class SonarEngineWrapper
             }
         }
 
+        // We need to map the truststore password to the javax.net.ssl.trustStorePassword property and invoke java with it.
+        // If the password is set via CLI we use it.
+        // If it is not set, we  use the default value, unless it is already in the SONAR_SCANNER_OPTS.
         if (!userCmdLineArguments.TryGetValue(SonarProperties.TruststorePassword, out var truststorePassword))
         {
             var truststorePath = config.ScannerOptsSettings.FirstOrDefault(x => x.Id == SonarProperties.JavaxNetSslTrustStore);

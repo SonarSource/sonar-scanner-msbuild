@@ -215,7 +215,7 @@ public class PostProcessorTests
             }
             """
                 .ToEnvironmentLineEndings(),
-            Arg.Any<CmdLineArgPropertyProvider>());
+            Arg.Is<CmdLineArgPropertyProvider>(x => x.GetAllProperties().Count() == 1 && x.GetAllProperties().Any(x => x.Id == "sonar.token" && x.Value == "token")));
         runtime.Logger.Should().HaveNoErrors();
         VerifyTargetsUninstaller();
     }
@@ -248,7 +248,7 @@ public class PostProcessorTests
             }
             """
                 .ToEnvironmentLineEndings(),
-            Arg.Any<CmdLineArgPropertyProvider>());
+            Arg.Is<CmdLineArgPropertyProvider>(x => x.GetAllProperties().Count() == 1 && x.GetAllProperties().Any(x => x.Id == "sonar.token" && x.Value == "token")));
         runtime.Logger.Should().HaveNoErrors();
         VerifyTargetsUninstaller();
     }

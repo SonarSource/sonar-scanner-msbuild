@@ -141,6 +141,10 @@ public class SonarScannerWrapper
             }
         }
 
+
+        // Calculation of SONAR_SCANNER_OPTS has identical logic to the JavaParms method in SonarEngineWrapper
+        // https://github.com/SonarSource/sonar-scanner-msbuild/blob/feature/scannerEngine/src/SonarScanner.MSBuild.Shim/SonarEngineWrapper.cs#L87
+
         // If there is a value for SONAR_SCANNER_OPTS then pass it through explicitly just in case it is
         // set at process-level (which wouldn't otherwise be inherited by the child sonar-scanner process)
         var sonarScannerOptsValue = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
