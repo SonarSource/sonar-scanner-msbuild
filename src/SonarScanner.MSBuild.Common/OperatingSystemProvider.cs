@@ -56,6 +56,9 @@ public class OperatingSystemProvider
     public bool IsUnix() =>
         OperatingSystem() is PlatformOS.Linux or PlatformOS.Alpine or PlatformOS.MacOSX;
 
+    public bool IsMacOS() =>
+        OperatingSystem() is PlatformOS.MacOSX;
+
     public bool IsWindows() =>
         OperatingSystem() == PlatformOS.Windows;
 
