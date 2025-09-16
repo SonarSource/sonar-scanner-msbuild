@@ -234,7 +234,7 @@ public class ProcessRunnerArguments
             {
                 return Value;
             }
-            var sb = new StringBuilder();
+            var sb = new StringBuilder(capacity: Value.Length + 2);
             sb.Append("\"");
 
             for (var i = 0; i < Value.Length; i++)
