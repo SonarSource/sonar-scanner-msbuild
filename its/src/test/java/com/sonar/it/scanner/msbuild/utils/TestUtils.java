@@ -187,6 +187,10 @@ public class TestUtils {
       .getTask();
   }
 
+  public static String scannerEngineInputJson(AnalysisContext context) throws IOException {
+    return Files.readString(context.projectDir.resolve(".sonarqube").resolve("out").resolve("ScannerEngineInput.json"));
+  }
+
   private static String extractCeTaskId(BuildResult buildResult) {
     List<String> taskIds = extractCeTaskIds(buildResult);
     if (taskIds.size() != 1) {
