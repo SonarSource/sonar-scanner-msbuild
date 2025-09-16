@@ -106,6 +106,7 @@ class ProxyTest {
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "lines", ORCHESTRATOR)).isEqualTo(52);
     assertThat(seenByProxy).isNotEmpty();
+    assertThat(TestUtils.scannerEngineInputJson(context)).doesNotContain(PROXY_PASSWORD);
   }
 
   private static void startProxy(boolean needProxyAuth) throws Exception {
