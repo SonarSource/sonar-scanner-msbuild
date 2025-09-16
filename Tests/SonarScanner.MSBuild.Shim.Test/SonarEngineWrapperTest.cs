@@ -42,8 +42,12 @@ public class SonarEngineWrapperTest
         FluentActions.Invoking(() => new SonarEngineWrapper(new TestRuntime(), null)).Should().Throw<ArgumentNullException>().WithParameterName("processRunner");
 
     [TestMethod]
-    public void Execute_Config_ThrowsArgumentNullException() =>
-        new SonarEngineWrapper(new TestRuntime(), Substitute.For<IProcessRunner>()).Invoking(x => x.Execute(null, "{}")).Should().Throw<ArgumentNullException>().WithParameterName("config");
+    public void Execute_Config_ThrowsArgumentNullException_Config() =>
+        new SonarEngineWrapper(new TestRuntime(), Substitute.For<IProcessRunner>()).Invoking(x => x.Execute(null, "{}", null)).Should().Throw<ArgumentNullException>().WithParameterName("config");
+
+    [TestMethod]
+    public void Execute_Config_ThrowsArgumentNullException_UserCmdLineArgs() =>
+        new SonarEngineWrapper(new TestRuntime(), Substitute.For<IProcessRunner>()).Invoking(x => x.Execute(new AnalysisConfig(), "{}", null)).Should().Throw<ArgumentNullException>().WithParameterName("userCmdLineArguments");
 
     [TestMethod]
     public void Execute_Failure()
@@ -64,7 +68,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = new ProcessRunnerArguments.Argument[] { "-jar", "engine.jar" },
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), "-jar", "engine.jar" },
             StandardInput = SampleInput,
         });
         context.Runtime.Logger.Should().HaveInfos(
@@ -140,7 +144,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=Env", true), new("-jar"), new("engine.jar") },
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=Env", true), new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
     }
@@ -161,7 +165,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=Config", true), "-jar", "engine.jar" },
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=Config", true), new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), "-jar", "engine.jar" },
             StandardInput = SampleInput,
         });
     }
@@ -182,7 +186,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = new ProcessRunnerArguments.Argument[] { "-jar", "engine.jar" },
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), "-jar", "engine.jar" },
             StandardInput = SampleInput,
             WorkingDirectory = @"C:\MyWorkingDir",
         });
@@ -207,7 +211,7 @@ public class SonarEngineWrapperTest
         {
             ExeName = context.ResolvedJavaExe,
 
-            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=Env", true), new("-DJavaParam=Config", true), "-jar", "engine.jar" },
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=Env", true), new("-DJavaParam=Config", true), new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), "-jar", "engine.jar" },
             StandardInput = SampleInput,
         });
     }
@@ -238,6 +242,7 @@ public class SonarEngineWrapperTest
                 new("-DJavaParam=Config", true),
                 new("-DSomeParam=SomeValue", true),
                 new("-DOtherParam=OtherValue", true),
+                new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true),
                 new("-jar", false),
                 new("engine.jar", false)
             },
@@ -297,6 +302,71 @@ public class SonarEngineWrapperTest
             .And.HaveNoErrors();
     }
 
+    [TestMethod]
+    public void Execute_TrustStorePasswordUserSuppliedCli_UsedForJavaInvocation()
+    {
+        var context = new Context();
+        var userCmdLineArgs = new ListPropertiesProvider([new(SonarProperties.TruststorePassword, "UserSuppliedPassword")]);
+
+        context.Execute(null, userCmdLineArgs).Should().BeTrue();
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"", true), new("-jar"), new("engine.jar")]),
+            StandardInput = SampleInput,
+        });
+    }
+
+    [TestMethod]
+    public void Execute_TrustStorePassword_UserSuppliedEnv_UsedForJavaInvocation()
+    {
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"");
+        var context = new Context();
+
+        context.Execute().Should().BeTrue();
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"", true), new("-jar"), new("engine.jar")]),
+            StandardInput = SampleInput,
+        });
+    }
+
+    [TestMethod]
+    // Java Params that come afterwards overwrite earlier ones
+    public void Execute_TrustStorePassword_UserSupplied_CliPasswordOverWritesEnvPassword()
+    {
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=\"EnvPassword\"");
+
+        var userCmdLineArgs = new ListPropertiesProvider([new(SonarProperties.TruststorePassword, "CliPassword")]);
+        var context = new Context();
+
+        context.Execute(null, userCmdLineArgs).Should().BeTrue();
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-Djavax.net.ssl.trustStorePassword=\"EnvPassword\"", true), new("-Djavax.net.ssl.trustStorePassword=\"CliPassword\"", true), new("-jar"), new("engine.jar")]),
+            StandardInput = SampleInput,
+        });
+    }
+
+    [TestMethod]
+    public void Execute_TrustStorePassword_UnixNotWrappedInQuotes()
+    {
+        var userCmdLineArgs = new ListPropertiesProvider([new(SonarProperties.TruststorePassword, "Password")]);
+        var context = new Context(true);
+
+        context.Execute(null, userCmdLineArgs).Should().BeTrue();
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = context.ResolvedJavaExe,
+            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-Djavax.net.ssl.trustStorePassword=Password", true), new("-jar"), new("engine.jar")]),
+            StandardInput = SampleInput,
+        });
+    }
+
     private sealed class Context
     {
         public readonly SonarEngineWrapper Engine;
@@ -316,9 +386,10 @@ public class SonarEngineWrapperTest
             Runtime.File.Exists(ResolvedJavaExe).Returns(true);
         }
 
-        public bool Execute(AnalysisConfig analysisConfig = null) =>
+        public bool Execute(AnalysisConfig analysisConfig = null, IAnalysisPropertyProvider userCmdLineArgs = null) =>
             Engine.Execute(
                 analysisConfig ?? new AnalysisConfig { JavaExePath = ResolvedJavaExe, EngineJarPath = "engine.jar" },
-                SampleInput);
+                SampleInput,
+                userCmdLineArgs ?? new ListPropertiesProvider());
     }
 }

@@ -38,6 +38,7 @@ public class SonarEngineWrapper
     public virtual bool Execute(AnalysisConfig config, string standardInput, IAnalysisPropertyProvider userCmdLineArguments)
     {
         _ = config ?? throw new ArgumentNullException(nameof(config));
+        _ = userCmdLineArguments ?? throw new ArgumentNullException(nameof(userCmdLineArguments));
 
         var engine = config.EngineJarPath;
         var javaExe = FindJavaExe(config.JavaExePath);
@@ -116,8 +117,8 @@ public class SonarEngineWrapper
         {
             yield return new ProcessRunnerArguments.Argument(
                 runtime.OperatingSystem.IsUnix()
-                    ? $" -D{SonarProperties.JavaxNetSslTrustStorePassword}={truststorePassword}"
-                    : $" -D{SonarProperties.JavaxNetSslTrustStorePassword}=\"{truststorePassword}\"",
+                    ? $"-D{SonarProperties.JavaxNetSslTrustStorePassword}={truststorePassword}"
+                    : $"-D{SonarProperties.JavaxNetSslTrustStorePassword}=\"{truststorePassword}\"",
                 true);
         }
     }
