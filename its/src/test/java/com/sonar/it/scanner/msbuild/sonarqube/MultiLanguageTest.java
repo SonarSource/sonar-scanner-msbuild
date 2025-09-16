@@ -227,12 +227,6 @@ class MultiLanguageTest {
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   void react() {
-
-    // TODO: re-enable (https://sonarsource.atlassian.net/browse/SCAN4NET-659)
-    if(ORCHESTRATOR.getServer().version().isGreaterThan(2025, 1)) {
-      return;
-    }
-
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.begin.CreateAndSetUserHomeFolder("junit-react-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
@@ -262,11 +256,6 @@ class MultiLanguageTest {
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   void angular() {
-
-    // TODO: re-enable (https://sonarsource.atlassian.net/browse/SCAN4NET-659)
-    if(ORCHESTRATOR.getServer().version().isGreaterThan(2025, 1)) {
-      return;
-    }
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.begin.CreateAndSetUserHomeFolder("junit-angular-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
@@ -295,6 +284,14 @@ class MultiLanguageTest {
     }
     if (version.isGreaterThanOrEquals(2025, 1)) {
       expectedIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
+    }
+    if (version.isGreaterThanOrEquals(2025, 4)) {
+      // githubactions was released in sonar-iac 1.49 which targets 2025.5 but since we are currently using the latest analyzer versions we need to check for 2025.4.
+      // This will break when we add tests for 2025.4. (it's not an LTA but is supported like one). When that happens, change condition to 2025.5 and remove this comment.
+      expectedIssues.addAll(List.of(
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml")));
     }
 
     assertThat(issues)
