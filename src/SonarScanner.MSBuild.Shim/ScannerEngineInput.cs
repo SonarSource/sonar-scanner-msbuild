@@ -134,9 +134,9 @@ public class ScannerEngineInput
 
     private void Add(string key, string value)
     {
-        if (value is { } nonNull)
+        if (value is not null)
         {
-            scannerProperties[key] = nonNull;
+            scannerProperties[key] = value;
         }
     }
 
