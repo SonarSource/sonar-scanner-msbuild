@@ -362,7 +362,7 @@ public class SonarEngineWrapperTest
     public void Execute_TrustStorePassword_UnixNotWrappedInQuotes()
     {
         var userCmdLineArgs = new ListPropertiesProvider([new(SonarProperties.TruststorePassword, "Password")]);
-        var context = new Context(true);
+        var context = new Context(isUnix: true);
 
         context.Execute(null, userCmdLineArgs).Should().BeTrue();
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
