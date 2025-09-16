@@ -312,7 +312,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"", true), new("-jar"), new("engine.jar")]),
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
     }
@@ -328,7 +328,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"", true), new("-jar"), new("engine.jar")]),
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
     }
@@ -347,7 +347,12 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-Djavax.net.ssl.trustStorePassword=\"EnvPassword\"", true), new("-Djavax.net.ssl.trustStorePassword=\"CliPassword\"", true), new("-jar"), new("engine.jar")]),
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] {
+                new("-Djavax.net.ssl.trustStorePassword=\"EnvPassword\"", true),
+                new("-Djavax.net.ssl.trustStorePassword=\"CliPassword\"", true),
+                new("-jar"),
+                new("engine.jar")
+            },
             StandardInput = SampleInput,
         });
     }
@@ -362,7 +367,7 @@ public class SonarEngineWrapperTest
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
             ExeName = context.ResolvedJavaExe,
-            CmdLineArgs = new ProcessRunnerArguments.ArgumentList([new("-Djavax.net.ssl.trustStorePassword=Password", true), new("-jar"), new("engine.jar")]),
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=Password", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
     }
