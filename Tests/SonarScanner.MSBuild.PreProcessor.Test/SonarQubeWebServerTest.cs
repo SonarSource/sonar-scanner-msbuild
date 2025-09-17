@@ -87,7 +87,7 @@ public class SonarQubeWebServerTest
         var context = new Context();
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(responseContent) };
         context.WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
-        context.WebDownloader.BaseUrl.Returns("host");
+        context.WebDownloader.BaseUrl.Returns(new Uri("host", UriKind.Relative));
         var isValid = await context.Server.IsServerLicenseValid();
 
         isValid.Should().BeFalse();
@@ -126,7 +126,7 @@ public class SonarQubeWebServerTest
         var context = new Context();
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""License not found""}]}") };
         context.WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
-        context.WebDownloader.BaseUrl.Returns("host");
+        context.WebDownloader.BaseUrl.Returns(new Uri("host", UriKind.Relative));
         var result = await context.Server.IsServerLicenseValid();
 
         result.Should().BeFalse();

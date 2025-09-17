@@ -28,7 +28,7 @@ public sealed class WebClientDownloader : IDownloader
     private readonly ILogger logger;
     private readonly HttpClient client;
 
-    public string BaseUrl => client.BaseAddress.ToString();
+    public Uri BaseUrl => client.BaseAddress;
 
     public WebClientDownloader(HttpClient client, string baseUri, ILogger logger)
     {
@@ -38,7 +38,6 @@ public sealed class WebClientDownloader : IDownloader
 
         client.BaseAddress = WebUtils.CreateUri(baseUri);
     }
-
 
     public async Task<HttpResponseMessage> DownloadResource(Uri url) =>
         await AsyncGet(url);

@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.PreProcessor;
 
 public interface IDownloader : IDisposable
 {
-    string BaseUrl { get; }
+    Uri BaseUrl { get; }
 
     Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false);
 
