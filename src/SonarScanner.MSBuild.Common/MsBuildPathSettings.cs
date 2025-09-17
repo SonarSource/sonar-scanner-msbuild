@@ -40,10 +40,10 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
     /// </remarks>
     private readonly string[] msBuildVersions = ["4.0", "10.0", "11.0", "12.0", "14.0", "15.0", "Current"];
 
-    private readonly OperatingSystemProvider operatingSystemProvider;
+    private readonly IRuntime runtime;
 
-    public MsBuildPathSettings(OperatingSystemProvider operatingSystemProvider) =>
-        this.operatingSystemProvider = operatingSystemProvider;
+    public MsBuildPathSettings(IRuntime runtime) =>
+        this.runtime = runtime;
 
     public IEnumerable<string> ImportBeforePaths()
     {
@@ -64,7 +64,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
 
     public IEnumerable<string> GlobalTargetsPaths()
     {
-        var programFiles = operatingSystemProvider.FolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
+        var programFiles = runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
 
         if (string.IsNullOrWhiteSpace(programFiles))
         {
@@ -82,14 +82,14 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
 
     private IEnumerable<string> DotnetImportBeforePathsLinuxMac()
     {
-        if (operatingSystemProvider.OperatingSystem() == PlatformOS.Windows)
+        if (runtime.OperatingSystem.IsWindows())
         {
             return [];
         }
 
         // We don't need to create the paths here - the TargetsInstaller will do it.
         // Also, see bug #681: Environment.SpecialFolderOption.Create fails on some versions of NET Core on Linux
-        var userProfilePath = operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+        var userProfilePath = runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
 
         if (string.IsNullOrEmpty(userProfilePath))
         {
@@ -120,7 +120,7 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
     /// </summary>
     private IEnumerable<string> LocalApplicationDataPaths()
     {
-        var localAppData = operatingSystemProvider.FolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+        var localAppData = runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
 
         // Return empty enumerable when Local AppData is empty. In this case an exception should be thrown at the call site.
         if (string.IsNullOrWhiteSpace(localAppData))
@@ -130,18 +130,18 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
 
         yield return localAppData;
 
-        if (operatingSystemProvider.OperatingSystem() == PlatformOS.MacOSX)
+        if (runtime.OperatingSystem.IsMacOS())
         {
             // Target files need to be placed under LocalApplicationData, to be picked up by MSBuild.
             // Due to the breaking change of GetFolderPath on MacOSX in .NET8, we need to make sure we copy the targets file
             // both to the old and to the new location, because we don't know what runtime the build will be run on, and that
             // may differ from the runtime of the scanner.
             // See https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/8.0/getfolderpath-unix#macos
-            var userProfile = operatingSystemProvider.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+            var userProfile = runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
             yield return Path.Combine(userProfile, ".local", "share");                // LocalApplicationData on .Net 7 and earlier
             yield return Path.Combine(userProfile, "Library", "Application Support"); // LocalApplicationData on .Net 8 and later
         }
-        else if (operatingSystemProvider.OperatingSystem() == PlatformOS.Windows)
+        else if (runtime.OperatingSystem.IsWindows())
         {
             // The code below is Windows-specific, no need to be executed on non-Windows platforms.
             // When running under Local System account on a 64bit OS, the local application data folder
@@ -156,26 +156,26 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
             // https://docs.microsoft.com/en-us/windows/desktop/WinProg64/file-system-redirector
             // We need to copy the ImportBefore.targets in both locations to ensure that both the 32bit and 64bit versions
             // of MSBuild will be able to pick them up.
-            var systemPath = operatingSystemProvider.FolderPath(
+            var systemPath = runtime.OperatingSystem.FolderPath(
                 Environment.SpecialFolder.System,
                 Environment.SpecialFolderOption.None); // %windir%\System32
             if (!string.IsNullOrWhiteSpace(systemPath)
                 && localAppData.StartsWith(systemPath, StringComparison.OrdinalIgnoreCase))
             {
                 // We are under %windir%\System32 => we are running as System Account
-                var systemX86Path = operatingSystemProvider.FolderPath(
+                var systemX86Path = runtime.OperatingSystem.FolderPath(
                     Environment.SpecialFolder.SystemX86,
                     Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
                 var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
 
-                if (operatingSystemProvider.DirectoryExists(localAppDataX86))
+                if (runtime.Directory.Exists(localAppDataX86))
                 {
                     yield return localAppDataX86;
                 }
 
                 var sysNativePath = Path.Combine(Path.GetDirectoryName(systemPath), "Sysnative"); // %windir%\Sysnative
                 var localAppDataX64 = localAppData.ReplaceCaseInsensitive(systemPath, sysNativePath);
-                if (operatingSystemProvider.DirectoryExists(localAppDataX64))
+                if (runtime.Directory.Exists(localAppDataX64))
                 {
                     yield return localAppDataX64;
                 }
