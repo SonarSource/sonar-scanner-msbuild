@@ -22,9 +22,14 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
+import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.container.Edition;
+import com.sonar.orchestrator.http.HttpMethod;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +42,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.token;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -51,7 +57,8 @@ class ProvisioningTest {
   void cacheMiss_DownloadsCache(Boolean useSonarScannerCLI) {
     try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
-      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by both the scanner-cli and the scanner-engine
+      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by both the scanner-cli and the
+      // scanner-engine
       context.build.useDotNet();
       // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
       // so we can test that we updated it correctly
@@ -110,8 +117,45 @@ class ProvisioningTest {
     }
   }
 
+  @Test
+  @ServerMinVersion("2025.5")
+  void jreAutoProvisioning_disabled() {
+    // sonar.jreAutoProvisioning.disabled is a server wide setting. We need our own server instance here so we do not interfere with other JRE tests.
+    var orchestrator = ServerTests.orchestratorBuilder()
+      .setEdition(Edition.DEVELOPER)
+      .setSonarVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE"))
+      .activateLicense()
+      .build();
+    orchestrator.start();
+    orchestrator
+      .getServer()
+      .newHttpCall("api/settings/set")
+      .setAdminCredentials()
+      .setMethod(HttpMethod.POST)
+      .setParam("key", "sonar.jreAutoProvisioning.disabled")
+      .setParam("value", "true")
+      .execute();
+    var begin = ScannerCommand.createBeginStep(
+        ScannerClassifier.NET,
+        orchestrator.getDefaultAdminToken(),
+        TestUtils.projectDir(ContextExtension.currentTempDir(), DIRECTORY_NAME),
+        ContextExtension.currentTestName())
+      .setDebugLogs()
+      .setProperty("sonar.scanner.skipJreProvisioning", "false")
+      .execute(orchestrator);
+    var logs = begin.getLogs();
+    assertThat(logs)
+      .contains("JreResolver: Resolving JRE path.")
+      .contains("WARNING: JRE Metadata could not be retrieved from analysis/jres")
+      .contains("JreResolver: Metadata could not be retrieved.")
+      .as("An empty list of JREs is supposed to be invalid. Therefore a single retry is attempted.")
+      .containsOnlyOnce("JreResolver: Resolving JRE path. Retrying...");
+    orchestrator.stop();
+  }
+
   private static AnalysisContext createContext(TempDirectory userHome) {
     var context = AnalysisContext.forServer(DIRECTORY_NAME);
+    var m = context.orchestrator.getConfiguration().asMap();
     context.begin
       .setProperty("sonar.userHome", userHome.toString())
       .setProperty("sonar.scanner.skipJreProvisioning", null)  // Undo the default IT behavior and use the default scanner behavior.

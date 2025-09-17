@@ -60,7 +60,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     return ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6);
   }
 
-  private static Orchestrator createOrchestrator() {
+  public static OrchestratorExtensionBuilder orchestratorBuilder() {
     var version = System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE");
     var orchestrator = OrchestratorExtension.builderEnv()
       .useDefaultAdminCredentialsForBuilds(true)
@@ -89,8 +89,11 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
       orchestrator.addPlugin(FileLocation.of(customRoslynPlugin().toFile()));
     }
+    return orchestrator;
+  }
 
-    return orchestrator.activateLicense().build();
+  private static Orchestrator createOrchestrator() {
+    return orchestratorBuilder().activateLicense().build();
   }
 
   private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty) {
