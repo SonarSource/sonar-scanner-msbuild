@@ -71,8 +71,7 @@ public class TargetsInstallerTests
         var sourceTargetsContent2 = @"<Project ToolsVersion=""12.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" />";
 
         CreateDummySourceTargetsFile(sourceTargetsContent1);
-
-        var msBuildPathSettings = new MsBuildPathSettings(new OperatingSystemProvider(FileWrapper.Instance, runtime.Logger));
+        var msBuildPathSettings = new MsBuildPathSettings(new TestRuntime { OperatingSystem = new OperatingSystemProvider(FileWrapper.Instance, runtime.Logger) });
 
         InstallTargetsFileAndAssert(sourceTargetsContent1, expectCopy: true);
         // If the current user account is LocalSystem, then the local application data folder is inside %windir%\system32.
@@ -309,7 +308,7 @@ public class TargetsInstallerTests
     {
         // SONARMSBRU-149: we used to deploy the targets file to the 4.0 directory but this
         // is no longer supported. To be on the safe side we'll clean up the old location too.
-        var cleanUpDirs = new MsBuildPathSettings(new OperatingSystemProvider(FileWrapper.Instance, Substitute.For<ILogger>())).ImportBeforePaths().ToList();
+        var cleanUpDirs = new MsBuildPathSettings(new TestRuntime { OperatingSystem = new OperatingSystemProvider(FileWrapper.Instance, Substitute.For<ILogger>()) }).ImportBeforePaths().ToList();
 
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         cleanUpDirs.Add(Path.Combine(appData, "Microsoft", "MSBuild", "4.0", "Microsoft.Common.targets", "ImportBefore"));
@@ -350,7 +349,7 @@ public class TargetsInstallerTests
     {
         var logger = new TestLogger();
         var runtimeIO = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger, new Telemetry(FileWrapper.Instance, logger));
-        var msBuildPathSettings = new MsBuildPathSettings(runtimeIO.OperatingSystem);
+        var msBuildPathSettings = new MsBuildPathSettings(runtimeIO);
         var installer = new TargetsInstaller(runtimeIO, msBuildPathSettings);
 
         using (new AssertIgnoreScope())

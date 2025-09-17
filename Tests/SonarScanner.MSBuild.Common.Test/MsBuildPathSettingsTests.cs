@@ -170,8 +170,8 @@ public class MsBuildPathSettingsTests
     [TestMethod]
     public void GlobalTargetsPaths_WhenProgramFilesIsEmptyOrNull_Returns_Empty()
     {
-        var testSubject1 = new MsBuildPathSettings(CreateOsProvider(PlatformOS.Windows, (folder, _) => folder == Environment.SpecialFolder.ProgramFiles ? null : "f"));
-        var testSubject2 = new MsBuildPathSettings(CreateOsProvider(PlatformOS.Windows, (folder, _) => folder == Environment.SpecialFolder.ProgramFiles ? string.Empty : "f"));
+        var testSubject1 = new MsBuildPathSettings(CreateRuntime(PlatformOS.Windows, (folder, _) => folder == Environment.SpecialFolder.ProgramFiles ? null : "f"));
+        var testSubject2 = new MsBuildPathSettings(CreateRuntime(PlatformOS.Windows, (folder, _) => folder == Environment.SpecialFolder.ProgramFiles ? string.Empty : "f"));
         testSubject1.GlobalTargetsPaths().Should().BeEmpty();
         testSubject2.GlobalTargetsPaths().Should().BeEmpty();
     }
@@ -196,25 +196,25 @@ public class MsBuildPathSettingsTests
             (Environment.SpecialFolder.SystemX86, Path.Combine(TestUtils.DriveRoot(), "windows", "sysWOW64"))];
         directoryExistsFunc ??= DirectoryAlwaysExists;
 
-        return new(CreateOsProvider(os, (folder, _) => paths.First(p => p.Item1 == folder).Item2, directoryExistsFunc));
+        return new(CreateRuntime(os, (folder, _) => paths.First(p => p.Item1 == folder).Item2, directoryExistsFunc));
     }
 
     private static MsBuildPathSettings MsBuildPathSettings(
         string path,
         PlatformOS os,
         Func<string, bool> directoryExistsFunc) =>
-            new(CreateOsProvider(os, (_, _) => path, directoryExistsFunc));
+            new(CreateRuntime(os, (_, _) => path, directoryExistsFunc));
 
-    private static OperatingSystemProvider CreateOsProvider(
+    private static TestRuntime CreateRuntime(
         PlatformOS os,
         Func<Environment.SpecialFolder, Environment.SpecialFolderOption, string> getFolderPath,
         Func<string, bool> directoryExists = null)
     {
-        var provider = Substitute.For<OperatingSystemProvider>(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>());
-        provider.OperatingSystem().Returns(os);
-        provider.DirectoryExists(Arg.Any<string>()).Returns(x => directoryExists is null || directoryExists(x.Arg<string>()));
-        provider.FolderPath(Arg.Any<Environment.SpecialFolder>(), Arg.Any<Environment.SpecialFolderOption>())
+        var runtime = new TestRuntime();
+        runtime.OperatingSystem.OperatingSystem().Returns(os);
+        runtime.Directory.Exists(Arg.Any<string>()).Returns(x => directoryExists is null || directoryExists(x.Arg<string>()));
+        runtime.OperatingSystem.FolderPath(Arg.Any<Environment.SpecialFolder>(), Arg.Any<Environment.SpecialFolderOption>())
             .Returns(x => getFolderPath(x.Arg<Environment.SpecialFolder>(), x.Arg<Environment.SpecialFolderOption>()));
-        return provider;
+        return runtime;
     }
 }
