@@ -270,8 +270,5 @@ public class ProcessRunnerArguments
 
             return sb.ToString();
         }
-
-        public static implicit operator Argument(string value) =>
-            new(value);
     }
 }

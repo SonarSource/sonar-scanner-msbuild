@@ -63,7 +63,7 @@ public class PostProcessorTests
         scanner = Substitute.For<SonarScannerWrapper>(runtime);
         scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
         engine = Substitute.For<SonarEngineWrapper>(runtime, Substitute.For<IProcessRunner>());
-        engine.Execute(null, null).ReturnsForAnyArgs(true);
+        engine.Execute(null, null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(runtime.Logger);
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         coverageReportProcessor = Substitute
@@ -194,7 +194,9 @@ public class PostProcessorTests
         Execute(["/d:sonar.token=token"]).Should().BeTrue("Expecting post-processor to have succeeded");
 
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        engine.Received(1).Execute(config, $$"""
+        engine.Received(1).Execute(
+            config,
+            $$"""
             {
               "scannerProperties": [
                 {
@@ -212,7 +214,8 @@ public class PostProcessorTests
               ]
             }
             """
-                .ToEnvironmentLineEndings());
+                .ToEnvironmentLineEndings(),
+            Arg.Is<CmdLineArgPropertyProvider>(x => x.GetAllProperties().Count() == 1 && x.GetAllProperties().Any(x => x.Id == "sonar.token" && x.Value == "token")));
         runtime.Logger.Should().HaveNoErrors();
         VerifyTargetsUninstaller();
     }
@@ -223,12 +226,14 @@ public class PostProcessorTests
         config.HasBeginStepCommandLineCredentials = true;
         config.EngineJarPath = "engine.jar";
         config.UseSonarScannerCli = false;
-        engine.Execute(null, null).ReturnsForAnyArgs(false);
+        engine.Execute(null, null, null).ReturnsForAnyArgs(false);
 
         Execute(["/d:sonar.token=token"]).Should().BeFalse("Expecting post-processor to fail");
 
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
-        engine.Received(1).Execute(config, $$"""
+        engine.Received(1).Execute(
+            config,
+            $$"""
             {
               "scannerProperties": [
                 {
@@ -242,7 +247,8 @@ public class PostProcessorTests
               ]
             }
             """
-                .ToEnvironmentLineEndings());
+                .ToEnvironmentLineEndings(),
+            Arg.Is<CmdLineArgPropertyProvider>(x => x.GetAllProperties().Count() == 1 && x.GetAllProperties().Any(x => x.Id == "sonar.token" && x.Value == "token")));
         runtime.Logger.Should().HaveNoErrors();
         VerifyTargetsUninstaller();
     }

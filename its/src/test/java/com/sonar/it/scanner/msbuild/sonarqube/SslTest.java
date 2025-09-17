@@ -179,10 +179,10 @@ class SslTest {
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
         .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server, false);
+      validateAnalysis(context, server);
     }
   }
 
@@ -241,10 +241,10 @@ class SslTest {
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
         .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server, false);
+      validateAnalysis(context, server);
     }
   }
 
@@ -303,7 +303,7 @@ class SslTest {
         .setDebugLogs()
         .setProperty("sonar.userHome", sonarHome);
 
-      var result = validateAnalysis(context, server, true);
+      var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
         if (serverSupportsProvisioning()){
@@ -342,11 +342,10 @@ class SslTest {
         .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setDebugLogs()
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server, false);
+      validateAnalysis(context, server);
     }
   }
 
@@ -362,7 +361,7 @@ class SslTest {
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
-      validateAnalysis(context, server, true);
+      validateAnalysis(context, server);
     }
   }
 
@@ -374,10 +373,9 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setDebugLogs()
-        .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setProperty("sonar.host.url", server.getUrl());
 
-      var result = validateAnalysis(context, server, false);
+      var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*keystore.p12' with the default password at index 0. Reason: .*");
         assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*keystore.p12\"?' with the default password at index 0. Reason: .*");
@@ -428,7 +426,7 @@ class SslTest {
     return server;
   }
 
-  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server, Boolean scannerEngine) {
+  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server) {
     var result = context.runAnalysis();
     var logs = result.end().getLogs();
     var trustStorePath = server.getKeystorePath().replace('\\', '/');
@@ -437,7 +435,7 @@ class SslTest {
       trustStorePath = "\"" + trustStorePath + "\"";
       trustStorePassword = "\"" + trustStorePassword + "\"";
     }
-    if (scannerEngine && serverSupportsProvisioning()) {
+    if (serverSupportsProvisioning()) {
       assertThat(logs)
         .contains("Args: ")
         .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)

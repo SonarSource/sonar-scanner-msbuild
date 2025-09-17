@@ -35,23 +35,69 @@ public class SonarEngineWrapper
         javaFileName = runtime.OperatingSystem.IsUnix() ? "java" : "java.exe";
     }
 
-    public virtual bool Execute(AnalysisConfig config, string standardInput)
+    public virtual bool Execute(AnalysisConfig config, string standardInput, IAnalysisPropertyProvider userCmdLineArguments)
     {
         _ = config ?? throw new ArgumentNullException(nameof(config));
+        _ = userCmdLineArguments ?? throw new ArgumentNullException(nameof(userCmdLineArguments));
 
         var engine = config.EngineJarPath;
         var javaExe = FindJavaExe(config.JavaExePath);
-        var javaParams = JavaParams(config);
+        var javaParams = JavaParams(config, userCmdLineArguments, runtime).Select(x => new ProcessRunnerArguments.Argument(x, true));
 
         var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
         {
-            CmdLineArgs = javaParams.Any() ? [.. javaParams, "-jar", engine] : ["-jar", engine],
+            CmdLineArgs = javaParams.Any() ? [.. javaParams, new("-jar"), new(engine)] : [new("-jar"), new(engine)],
             WorkingDirectory = config.SonarScannerWorkingDirectory,
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
             StandardInput = standardInput,
             ExeMustExists = false, // Allow "java.exe" to be found via %PATH%
         };
         return Execute(args);
+    }
+
+    // this is public static so scanner-cli can call it, when it is dropped it can be private and use the runtime field
+    public static IEnumerable<string> JavaParams(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, IRuntime runtime)
+    {
+        // If there is a value for SONAR_SCANNER_OPTS pass it through explicitly
+        var scannerOpts = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
+        if (scannerOpts?.Trim() is { Length: > 0 })
+        {
+            runtime.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, EnvironmentVariables.SonarScannerOptsVariableName, scannerOpts.RedactSensitiveData());
+            yield return scannerOpts;
+        }
+
+        // If trustStorePath is set in the begin step, it will be in the ScannerOptsSettings.
+        // If it is not set in the begin step, it could be a default path in unix, or '-Djavax.net.ssl.trustStoreType=Windows-ROOT' on Windows.
+        // This is calculated in the TrustStorePreProcessor: https://github.com/SonarSource/sonar-scanner-msbuild/blob/66618b506d3d951e7ca4ca00d9f86dba35b12e48/src/SonarScanner.MSBuild.PreProcessor/AnalysisConfigProcessing/Processors/TruststorePropertiesProcessor.cs#L46
+        if (config.ScannerOptsSettings.Any())
+        {
+            // If there are any duplicates properties, the last one will be used.
+            // As of today, properties coming from ScannerOptsSettings are set
+            // via the command line, so they should take precedence over the ones
+            // set via the environment variable.
+            foreach (var property in config.ScannerOptsSettings)
+            {
+                yield return property.AsSonarScannerArg();
+            }
+        }
+
+        // We need to map the truststore password to the javax.net.ssl.trustStorePassword property and invoke java with it.
+        // If the password is set via userCmdLineArguments we use it.
+        // If it is not set, we  use the default value, unless it is already in the SONAR_SCANNER_OPTS.
+        if (!userCmdLineArguments.TryGetValue(SonarProperties.TruststorePassword, out var truststorePassword))
+        {
+            var truststorePath = config.ScannerOptsSettings.FirstOrDefault(x => x.Id == SonarProperties.JavaxNetSslTrustStore);
+            truststorePassword = TruststoreUtils.TruststoreDefaultPassword(truststorePath?.Value, runtime.Logger);
+        }
+
+        if (!SonarPropertiesDefault.TruststorePasswords.Contains(truststorePassword)
+            || scannerOpts is null
+            || !scannerOpts.Contains($"-D{SonarProperties.JavaxNetSslTrustStorePassword}="))
+        {
+            yield return runtime.OperatingSystem.IsUnix()
+                ? $"-D{SonarProperties.JavaxNetSslTrustStorePassword}={truststorePassword}"
+                : $"-D{SonarProperties.JavaxNetSslTrustStorePassword}=\"{truststorePassword}\"";
+        }
     }
 
     private bool Execute(ProcessRunnerArguments args)
@@ -82,26 +128,6 @@ public class SonarEngineWrapper
             runtime.LogError(Resources.ERR_ScannerEngineExecutionFailed);
         }
         return result.Succeeded;
-    }
-
-    private static IEnumerable<ProcessRunnerArguments.Argument> JavaParams(AnalysisConfig config)
-    {
-        if (Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName)?.Trim() is { Length: > 0 } scannerOpts)
-        {
-            yield return new ProcessRunnerArguments.Argument(scannerOpts, true);
-        }
-
-        if (config.ScannerOptsSettings.Any())
-        {
-            // If there are any duplicates properties, the last one will be used.
-            // As of today, properties coming from ScannerOptsSettings are set
-            // via the command line, so they should take precedence over the ones
-            // set via the environment variable.
-            foreach (var property in config.ScannerOptsSettings)
-            {
-                yield return new ProcessRunnerArguments.Argument(property.AsSonarScannerArg(), true);
-            }
-        }
     }
 
     private string FindJavaExe(string configJavaExe) =>

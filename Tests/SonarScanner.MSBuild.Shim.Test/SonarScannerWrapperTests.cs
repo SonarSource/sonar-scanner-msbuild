@@ -152,15 +152,15 @@ public class SonarScannerWrapperTests
         result.SuppliedArguments.CmdLineArgs.Should().BeEquivalentTo(
             new ProcessRunnerArguments.Argument[]
             {
-                "-Dxxx=yyy",
-                "-Dsonar.password=cmdline.password",                          // sensitive value from cmd line: overrides file value
-                "-Dsonar.clientcert.password=file.clientCertificatePassword", // sensitive value from file
-                "-Dsonar.login=file.username",
-                "-Dsonar.token=file.token",
-                "-Dproject.settings=c:\\foo.props",
-                $"--from=ScannerMSBuild/{Utilities.ScannerVersion}",
-                "--debug",
-                "-Dsonar.scanAllFiles=true"
+                new("-Dxxx=yyy"),
+                new("-Dsonar.password=cmdline.password"),                          // sensitive value from cmd line: overrides file value
+                new("-Dsonar.clientcert.password=file.clientCertificatePassword"), // sensitive value from file
+                new("-Dsonar.login=file.username"),
+                new("-Dsonar.token=file.token"),
+                new("-Dproject.settings=c:\\foo.props"),
+                new($"--from=ScannerMSBuild/{Utilities.ScannerVersion}"),
+                new("--debug"),
+                new("-Dsonar.scanAllFiles=true")
             });
 
         var clientCertPwdIndex = result.CheckArgExists("-Dsonar.clientcert.password=file.clientCertificatePassword"); // sensitive value from file
@@ -492,7 +492,7 @@ public class SonarScannerWrapperTests
         var result = new SonarScannerWrapperTestRunner().ExecuteJavaRunnerIgnoringAsserts();
 
         result.Success.Should().BeTrue();
-        result.SuppliedArguments.CmdLineArgs.Should().ContainSingle(x => x == "-Dsonar.scanAllFiles=true");
+        result.SuppliedArguments.CmdLineArgs.Should().ContainSingle(x => x.Value == "-Dsonar.scanAllFiles=true");
     }
 
     [TestMethod]
