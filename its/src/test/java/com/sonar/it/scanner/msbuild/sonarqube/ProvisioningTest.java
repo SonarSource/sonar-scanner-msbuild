@@ -27,8 +27,6 @@ import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.Orchestrator;
-import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.http.HttpMethod;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -42,7 +40,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.token;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -121,11 +118,7 @@ class ProvisioningTest {
   @ServerMinVersion("2025.5")
   void jreAutoProvisioning_disabled() {
     // sonar.jreAutoProvisioning.disabled is a server wide setting. We need our own server instance here so we do not interfere with other JRE tests.
-    var orchestrator = ServerTests.orchestratorBuilder()
-      .setEdition(Edition.DEVELOPER)
-      .setSonarVersion(System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE"))
-      .activateLicense()
-      .build();
+    var orchestrator = ServerTests.orchestratorBuilder().activateLicense().build();
     orchestrator.start();
     orchestrator
       .getServer()
@@ -155,7 +148,6 @@ class ProvisioningTest {
 
   private static AnalysisContext createContext(TempDirectory userHome) {
     var context = AnalysisContext.forServer(DIRECTORY_NAME);
-    var m = context.orchestrator.getConfiguration().asMap();
     context.begin
       .setProperty("sonar.userHome", userHome.toString())
       .setProperty("sonar.scanner.skipJreProvisioning", null)  // Undo the default IT behavior and use the default scanner behavior.
