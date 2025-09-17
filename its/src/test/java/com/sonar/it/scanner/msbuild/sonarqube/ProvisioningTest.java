@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestReporter;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -116,7 +115,7 @@ class ProvisioningTest {
 
   @Test
   @ServerMinVersion("2025.5")
-  void jreAutoProvisioning_disabled(TestReporter testReporter) {
+  void jreAutoProvisioning_disabled() {
     // sonar.jreAutoProvisioning.disabled is a server wide setting. We need our own server instance here so we do not interfere with other JRE tests.
     var orchestrator = ServerTests.orchestratorBuilder().activateLicense().build();
     orchestrator.start();
@@ -143,7 +142,6 @@ class ProvisioningTest {
       .contains("JreResolver: Metadata could not be retrieved.")
       .as("An empty list of JREs is supposed to be invalid. Therefore a single retry is attempted.")
       .containsOnlyOnce("JreResolver: Resolving JRE path. Retrying...");
-    testReporter.publishEntry("jreAutoProvisioning_disabled ran successfully.");
     orchestrator.stop();
   }
 
