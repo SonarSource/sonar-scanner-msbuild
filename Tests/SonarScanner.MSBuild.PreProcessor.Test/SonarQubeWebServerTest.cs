@@ -479,7 +479,7 @@ public class SonarQubeWebServerTest
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
-        context.Runtime.Logger.DebugMessages.Should().BeEmpty();    // TODO Should().HaveNoDebugs()
+        context.Runtime.Logger.Should().HaveNoDebugs();
     }
 
     [TestMethod]

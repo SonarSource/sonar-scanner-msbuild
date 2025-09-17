@@ -188,6 +188,16 @@ public class TestLoggerAssertions : ReferenceTypeAssertions<TestLogger, TestLogg
     }
 
     [CustomAssertion]
+    public AndConstraint<TestLoggerAssertions> HaveNoDebugs(string because = "", params string[] becauseArgs)
+    {
+        Execute.Assertion
+            .BecauseOf(because, becauseArgs)
+            .ForCondition(Subject.DebugMessages.Count == 0)
+            .FailWith($"Expected no DEBUG messages to be logged, but found:\n{ListOfQuotedStrings(Subject.DebugMessages)}");
+        return new(this);
+    }
+
+    [CustomAssertion]
     public AndConstraint<TestLoggerAssertions> HaveNoInfos(string because = "", params string[] becauseArgs)
     {
         Execute.Assertion

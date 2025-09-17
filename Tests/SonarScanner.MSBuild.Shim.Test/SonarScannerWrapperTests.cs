@@ -275,7 +275,7 @@ public class SonarScannerWrapperTests
             Config = { JavaExePath = path },
         }.ExecuteJavaRunnerIgnoringAsserts();
         result.Success.Should().BeTrue();
-        result.Logger.DebugMessages.Should().BeEmpty();
+        result.Logger.Should().HaveNoDebugs();
         result.Logger.Warnings.Should().BeEmpty();
         result.Logger.Errors.Should().BeEmpty();
     }
@@ -295,7 +295,7 @@ public class SonarScannerWrapperTests
 
         result.Success.Should().BeTrue();
         result.Logger.Warnings.Single().Should().StartWith($"Setting the JAVA_HOME for the scanner cli failed. `sonar.scanner.javaExePath` is `{path}`. {errorMessage}");
-        result.Logger.DebugMessages.Should().BeEmpty();
+        result.Logger.Should().HaveNoDebugs();
     }
 
     [TestMethod]
