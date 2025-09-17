@@ -105,7 +105,7 @@ public class PostProcessorTests
         scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
-        runtime.Logger.AssertNoUIWarningsLogged();
+        runtime.UiWarnings.AssertNoUIWarningsLogged();
         VerifyTargetsUninstaller();
     }
 

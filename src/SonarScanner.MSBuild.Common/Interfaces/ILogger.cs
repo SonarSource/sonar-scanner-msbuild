@@ -62,18 +62,6 @@ public interface ILogger
     void LogError(string message, params object[] args);
 
     /// <summary>
-    /// Log a warning and display it in the UI (starting from SQ 9.9 LTS).
-    /// </summary>
-    // TODO extract UIWarning logic to separate class, similar to Telemetry SCAN4NET-906
-    void LogUIWarning(string message, params object[] args);
-
-    /// <summary>
-    /// Creates the .json file in the specified output folder containing all warning messages.
-    /// See: https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-shared-library/src/main/java/org/sonarsource/dotnet/shared/plugins/AnalysisWarningsSensor.java#L54.
-    /// </summary>
-    void WriteUIWarnings(string outputFolder);
-
-    /// <summary>
     /// Suspends writing output to the console. Any messages will be recorded but
     /// not output unless and until <see cref="ResumeOutput"/> is called.
     /// </summary>

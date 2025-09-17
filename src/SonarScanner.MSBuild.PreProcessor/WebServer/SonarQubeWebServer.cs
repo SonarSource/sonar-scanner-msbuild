@@ -28,37 +28,40 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
 internal class SonarQubeWebServer : SonarWebServer
 {
+    private readonly IRuntime runtime;
+
     public override bool SupportsJreProvisioning =>
         serverVersion >= new Version(10, 6);
 
     public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
         : base(webDownloader, apiDownloader, serverVersion, runtime.Logger, organization)
     {
+        this.runtime = runtime;
         runtime.LogInfo(Resources.MSG_UsingSonarQube, serverVersion);
     }
 
     public override bool IsServerVersionSupported()
     {
-        logger.LogDebug(Resources.MSG_CheckingVersionSupported);
+        runtime.LogDebug(Resources.MSG_CheckingVersionSupported);
         if (serverVersion.CompareTo(new Version(8, 9)) < 0)
         {
-            logger.LogError(Resources.ERR_SonarQubeUnsupported);
+            runtime.LogError(Resources.ERR_SonarQubeUnsupported);
             return false;
         }
         else if (serverVersion.CompareTo(new Version(9, 9)) < 0)
         {
-            logger.LogUIWarning(Resources.WARN_UI_SonarQubeNearEndOfSupport);
+            runtime.UiWarnings.Log(Resources.WARN_UI_SonarQubeNearEndOfSupport);
         }
         return true;
     }
 
     public override async Task<bool> IsServerLicenseValid()
     {
-        logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
+        runtime.LogDebug(Resources.MSG_CheckingLicenseValidity);
         var response = await webDownloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative));
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            logger.LogError(Resources.ERR_InvalidCredentials);
+            runtime.LogError(Resources.ERR_InvalidCredentials);
             return false;
         }
 
@@ -68,12 +71,12 @@ internal class SonarQubeWebServer : SonarWebServer
             // On other editions than community, if a license was not set, the response is: {"errors":[{"msg":"License not found"}]} and http status code 404 (not found).
             if (json["errors"]?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
             {
-                logger.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
+                runtime.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
                 return false;
             }
 
             // On community edition, the API is not present and any call to `api/editions/is_valid_license` will return {"errors":[{"msg":"Unknown url : /api/editions/is_valid_license"}]}.
-            logger.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
+            runtime.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
             return true;
         }
         else
@@ -83,7 +86,7 @@ internal class SonarQubeWebServer : SonarWebServer
                 return true;
             }
 
-            logger.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
+            runtime.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
             return false;
         }
     }
@@ -96,31 +99,31 @@ internal class SonarQubeWebServer : SonarWebServer
         // SonarQube cache web API is available starting with v9.9
         if (ServerVersion.CompareTo(new Version(9, 9)) < 0)
         {
-            logger.LogInfo(Resources.MSG_IncrementalPRAnalysisUpdateSonarQube);
+            runtime.LogInfo(Resources.MSG_IncrementalPRAnalysisUpdateSonarQube);
             return empty;
         }
         if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
         {
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
+            runtime.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
             return empty;
         }
         if (!TryGetBaseBranch(localSettings, out var branch))
         {
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
+            runtime.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
             return empty;
         }
 
         try
         {
-            logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
+            runtime.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
             var uri = WebUtils.EscapedUri("api/analysis_cache/get?project={0}&branch={1}", localSettings.ProjectKey, branch);
             using var stream = await webDownloader.DownloadStream(uri);
             return ParseCacheEntries(stream);
         }
         catch (Exception e)
         {
-            logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
-            logger.LogDebug(e.ToString());
+            runtime.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+            runtime.LogDebug(e.ToString());
             return empty;
         }
     }
@@ -128,14 +131,14 @@ internal class SonarQubeWebServer : SonarWebServer
     public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
     {
         var uri = WebUtils.EscapedUri("analysis/jres/{0}", metadata.Id);
-        logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
+        runtime.LogDebug(Resources.MSG_JreDownloadUri, uri);
         return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
     }
 
     public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
     {
         const string uri = "analysis/engine";
-        logger.LogDebug(Resources.MSG_EngineDownloadUri, uri);
+        runtime.LogDebug(Resources.MSG_EngineDownloadUri, uri);
         return await apiDownloader.DownloadStream(new(uri, UriKind.Relative), new() { { "Accept", "application/octet-stream" } });
     }
 
@@ -155,7 +158,7 @@ internal class SonarQubeWebServer : SonarWebServer
     private async Task<IDictionary<string, string>> DownloadComponentPropertiesLegacy(string projectId)
     {
         var uri = WebUtils.EscapedUri("api/properties?resource={0}", projectId);
-        logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId);
+        runtime.LogDebug(Resources.MSG_FetchingProjectProperties, projectId);
         var contents = await webDownloader.Download(uri, true);
         var properties = JArray.Parse(contents);
         return CheckTestProjectPattern(properties.ToDictionary(x => x["key"].ToString(), x => x["value"].ToString()));

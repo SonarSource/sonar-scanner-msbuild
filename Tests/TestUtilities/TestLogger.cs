@@ -29,7 +29,6 @@ public class TestLogger : ILogger
     public List<string> InfoMessages { get; }
     public List<string> Warnings { get; }
     public List<string> Errors { get; }
-    public List<string> UIWarnings { get; }
     public LoggerVerbosity Verbosity { get; set; }
     public bool IncludeTimestamp { get; set; }
 
@@ -45,32 +44,12 @@ public class TestLogger : ILogger
         InfoMessages = [];
         Warnings = [];
         Errors = [];
-        UIWarnings = [];
 
         Verbosity = LoggerVerbosity.Debug;
     }
 
     public void AssertVerbosity(LoggerVerbosity expected) =>
         Verbosity.Should().Be(expected, "Logger verbosity mismatch");
-
-    public void AssertNoUIWarningsLogged() =>
-        UIWarnings.Should().BeEmpty("Expecting no UI warnings to be logged");
-
-    public void AssertUIWarningLogged(string expected)
-    {
-        UIWarnings.Should().Contain(expected.ToUnixLineEndings());
-        this.Should().HaveWarnings(expected);
-    }
-
-    /// <summary>
-    /// Checks that at least one UI warning exists that contains all of the specified strings.
-    /// </summary>
-    public void AssertUIWarningExists(params string[] expected)
-    {
-        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
-        var matches = UIWarnings.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().NotBeEmpty("No UI warning contains the expected strings: {0}", string.Join(",", expected));
-    }
 
     public void LogInfo(string message, params object[] args)
     {
@@ -96,23 +75,12 @@ public class TestLogger : ILogger
         WriteLine("DEBUG: " + message, args);
     }
 
-    public void LogUIWarning(string message, params object[] args)
-    {
-        UIWarnings.Add(FormatMessage(message, args));
-        LogWarning(message, args);
-    }
-
     public void SuspendOutput()
     {
         // no-op
     }
 
     public void ResumeOutput()
-    {
-        // no-op
-    }
-
-    public void WriteUIWarnings(string outputFolder)
     {
         // no-op
     }

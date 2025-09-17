@@ -258,7 +258,7 @@ public class ConsoleLoggerTests
     {
         const string prefixRegex = @"\d{2}:\d{2}:\d{2}(.\d{1,3})?";
         var recorder = new OutputRecorder();
-        var logger = ConsoleLogger.CreateLoggerForTesting(true, recorder, fileWrapper);
+        var logger = ConsoleLogger.CreateLoggerForTesting(true, recorder);
 
         // 1. Suspend output - should be able to call this multiple times
         logger.SuspendOutput();
@@ -298,36 +298,6 @@ public class ConsoleLoggerTests
 
         logger.LogError("error 2");
         recorder.AssertExpectedLastOutput($"{prefixRegex}  error 2", ConsoleLogger.ErrorColor, true);
-    }
-
-    [TestMethod]
-    public void ConsoleLogger_WriteUIWarnings_GenerateFile()
-    {
-        const string prefixRegex = @"\d{2}:\d{2}:\d{2}(.\d{1,3})?  WARNING:";
-        using var output = new OutputCaptureScope();
-        var logger = new ConsoleLogger(includeTimestamp: true, fileWrapper);
-
-        logger.LogUIWarning("uiWarn1");
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn1");
-
-        logger.LogUIWarning("uiWarn2", null);
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn2");
-
-        logger.LogUIWarning("uiWarn3 {0}", "xxx");
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn3 xxx");
-
-        const string outputDir = "outputDir";
-        var expected = """
-            [
-                { "text": "uiWarn1" },
-                { "text": "uiWarn2" },
-                { "text": "uiWarn3 xxx" }
-            ]
-            """;
-        logger.WriteUIWarnings(outputDir); // this should not contain any timestamps.
-        fileWrapper.Received(1).WriteAllText(
-            Path.Combine(outputDir, FileConstants.UIWarningsFileName),
-            Arg.Is<string>(x => IsMatchingJson(expected, x)));
     }
 
     [TestMethod]
@@ -377,7 +347,4 @@ public class ConsoleLoggerTests
         var logger = Substitute.For<ILogger>();
         logger.Invoking(x => x.Log((LoggerVerbosity)100, "message")).Should().ThrowExactly<ArgumentOutOfRangeException>().WithMessage(expectedMessage);
     }
-
-    private static bool IsMatchingJson(string expected, string actual) =>
-        JsonNode.DeepEquals(JsonNode.Parse(expected), JsonNode.Parse(actual));
 }

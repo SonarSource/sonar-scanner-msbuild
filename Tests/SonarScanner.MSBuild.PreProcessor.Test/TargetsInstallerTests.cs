@@ -348,7 +348,13 @@ public class TargetsInstallerTests
     private void InstallTargetsFileAndAssert(string expectedContent, bool expectCopy)
     {
         var logger = new TestLogger();
-        var runtimeIO = new Runtime(new OperatingSystemProvider(FileWrapper.Instance, logger), DirectoryWrapper.Instance, FileWrapper.Instance, logger, new Telemetry(FileWrapper.Instance, logger));
+        var runtimeIO = new Runtime(
+            new OperatingSystemProvider(FileWrapper.Instance, logger),
+            DirectoryWrapper.Instance,
+            FileWrapper.Instance,
+            logger,
+            new Telemetry(FileWrapper.Instance, logger),
+            new UiWarnings(FileWrapper.Instance, logger));
         var msBuildPathSettings = new MsBuildPathSettings(runtimeIO);
         var installer = new TargetsInstaller(runtimeIO, msBuildPathSettings);
 

@@ -126,7 +126,7 @@ public partial class PreProcessorTests
         (await context.Execute(args)).Should().BeTrue();
 
         context.Factory.Runtime.Logger.Should().HaveNoWarnings();
-        context.Factory.Runtime.Logger.AssertNoUIWarningsLogged();
+        context.Factory.Runtime.UiWarnings.AssertNoUIWarningsLogged();
     }
 
     [TestMethod]
