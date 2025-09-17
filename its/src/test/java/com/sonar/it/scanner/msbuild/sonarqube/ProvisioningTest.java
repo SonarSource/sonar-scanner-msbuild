@@ -35,6 +35,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestReporter;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -54,8 +55,7 @@ class ProvisioningTest {
   void cacheMiss_DownloadsCache(Boolean useSonarScannerCLI) {
     try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
-      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by both the scanner-cli and the
-      // scanner-engine
+      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by scanner-cli and scanner-engine
       context.build.useDotNet();
       // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
       // so we can test that we updated it correctly
@@ -116,7 +116,7 @@ class ProvisioningTest {
 
   @Test
   @ServerMinVersion("2025.5")
-  void jreAutoProvisioning_disabled() {
+  void jreAutoProvisioning_disabled(TestReporter testReporter) {
     // sonar.jreAutoProvisioning.disabled is a server wide setting. We need our own server instance here so we do not interfere with other JRE tests.
     var orchestrator = ServerTests.orchestratorBuilder().activateLicense().build();
     orchestrator.start();
@@ -143,6 +143,7 @@ class ProvisioningTest {
       .contains("JreResolver: Metadata could not be retrieved.")
       .as("An empty list of JREs is supposed to be invalid. Therefore a single retry is attempted.")
       .containsOnlyOnce("JreResolver: Resolving JRE path. Retrying...");
+    testReporter.publishEntry("jreAutoProvisioning_disabled ran successfully.");
     orchestrator.stop();
   }
 
