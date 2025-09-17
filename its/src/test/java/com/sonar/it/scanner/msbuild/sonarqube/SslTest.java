@@ -31,6 +31,9 @@ import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -103,8 +106,11 @@ class SslTest {
       var context = AnalysisContext.forServer("ProjectUnderTest").setEnvironmentVariable("SONAR_SCANNER_OPTS",
         "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword);
       context.begin.setProperty("sonar.host.url", server.getUrl());
+      context.begin.setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
 
+      // '-Djavax.net.ssl.trustStorePassword' & '-Djavax.net.ssl.trustStore' are part of the same argument.
+      // They do not appear in logs as the argument contains sensitive data.
       assertThat(logs)
         .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + keystorePassword + "\"")
         .doesNotContain(keystorePassword);
@@ -122,7 +128,6 @@ class SslTest {
         .setDebugLogs();
 
       var logs = context.runAnalysis().end().getLogs();
-
       if (serverSupportsProvisioning()) {
         assertThat(logs)
           .contains("Args: -Djavax.net.ssl.trustStoreType=Windows-ROOT");
@@ -194,12 +199,19 @@ class SslTest {
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
         .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
+        .setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
 
-      assertThat(logs)
-        .contains("SONAR_SCANNER_OPTS=-D<sensitive data removed>")
-        .doesNotContain(server.getKeystorePassword());
+      if(serverSupportsProvisioning()) {
+        assertThat(logs)
+          .containsPattern("Args: -Djavax.net.ssl.trustStore=\"?" + server.getKeystorePath().replace('\\', '/'))
+          .doesNotContain(server.getKeystorePassword());
+      }
+      else {
+        assertThat(logs)
+          .contains("SONAR_SCANNER_OPTS=-D<sensitive data removed>")
+          .doesNotContain(server.getKeystorePassword());
+      }
     }
   }
 
@@ -330,8 +342,8 @@ class SslTest {
         .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true") // TODO: remove this in SCAN4NET-859
-        .setDebugLogs();
+        .setDebugLogs()
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true"); // TODO: remove this in SCAN4NET-859
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server, false);
@@ -416,17 +428,15 @@ class SslTest {
     return server;
   }
 
-  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server, Boolean scannerEngine) { // TODO: remove this boolean param in SCAN4NET-859
+  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server, Boolean scannerEngine) {
     var result = context.runAnalysis();
     var logs = result.end().getLogs();
-
     var trustStorePath = server.getKeystorePath().replace('\\', '/');
     var trustStorePassword = server.getKeystorePassword();
     if (OSPlatform.isWindows()) {
       trustStorePath = "\"" + trustStorePath + "\"";
       trustStorePassword = "\"" + trustStorePassword + "\"";
     }
-
     if (scannerEngine && serverSupportsProvisioning()) {
       assertThat(logs)
         .contains("Args: ")
@@ -449,6 +459,7 @@ class SslTest {
 
     return result;
   }
+  
 
   private String createKeyStore(String password, String host) {
     return createKeyStore(password, Path.of(""), host, "keystore.pfx");
