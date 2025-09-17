@@ -95,6 +95,7 @@ public class ScannerEngineInput
     public void AddUserSettings(IAnalysisPropertyProvider properties)
     {
         _ = properties ?? throw new ArgumentNullException(nameof(properties));
+        // https://github.com/SonarSource/sonar-scanner-msbuild/issues/543 We should no longer pass the sonar.verbose=true parameter to the scanner CLI
         foreach (var setting in properties.GetAllProperties())
         {
             Add(setting.Id, setting.Value);

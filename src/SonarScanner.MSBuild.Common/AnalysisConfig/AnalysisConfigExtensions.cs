@@ -67,10 +67,6 @@ public static class ConfigSettingsExtensions
     public static void SetConfigValue(this AnalysisConfig config, string settingId, string value)
     {
         SetValue(config, settingId, value);
-        if (SonarPropertiesDefault.JavaScannerMapping.TryGetValue(settingId, out var mappedId))
-        {
-            SetValue(config, mappedId, value);
-        }
     }
 
     /// <summary>
