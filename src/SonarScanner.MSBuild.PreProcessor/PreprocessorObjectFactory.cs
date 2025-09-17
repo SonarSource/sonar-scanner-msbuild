@@ -77,7 +77,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         }
         else
         {
-            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization);
+            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, args.Organization);
         }
 
         IDownloader CreateDownloader(string baseUrl) =>

@@ -665,14 +665,16 @@ public class SonarQubeWebServerTest
     {
         public readonly IDownloader WebDownloader = Substitute.For<IDownloader>();
         public readonly IDownloader ApiDownloader = Substitute.For<IDownloader>();
-        public readonly TestLogger Logger = new();
+        public readonly TestLogger Logger;
         private readonly Lazy<SonarQubeWebServer> server;
 
         public SonarQubeWebServer Server => server.Value;
 
         public Context(string version = "9.9", string organization = null)
         {
-            server = new Lazy<SonarQubeWebServer>(() => new SonarQubeWebServer(WebDownloader, ApiDownloader, new(version), Logger, organization));
+            var runtime = new TestRuntime();
+            Logger = runtime.Logger;
+            server = new Lazy<SonarQubeWebServer>(() => new SonarQubeWebServer(WebDownloader, ApiDownloader, new(version), runtime, organization));
         }
 
         public void MockStreamWebDownload(Stream stream) =>
