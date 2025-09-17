@@ -86,7 +86,10 @@ public sealed class ProcessRunner : IProcessRunner
 
         // Warning: do not log the raw command line args as they
         // may contain sensitive data
-        logger.LogDebug(Resources.MSG_ExecutingFile,
+
+        // AsLogText() returns the CmdLineArgs, but we invoke the process with 'EscapedArguments'
+        logger.LogDebug(
+            Resources.MSG_ExecutingFile,
             runnerArgs.ExeName,
             runnerArgs.AsLogText(),
             runnerArgs.WorkingDirectory,

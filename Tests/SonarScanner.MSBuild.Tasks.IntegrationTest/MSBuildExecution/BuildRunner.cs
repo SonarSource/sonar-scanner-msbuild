@@ -53,7 +53,7 @@ public static class BuildRunner
         // Run the build
         var args = new ProcessRunnerArguments(exePath, false)
         {
-            CmdLineArgs = msbuildArgs
+            CmdLineArgs = msbuildArgs.Select(x => new ProcessRunnerArguments.Argument(x)).ToArray()
         };
         var runner = new ProcessRunner(new ConsoleLogger(true));
         var success = runner.Execute(args);
