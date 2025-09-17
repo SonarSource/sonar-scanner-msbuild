@@ -27,7 +27,8 @@ public class WebClientDownloaderTest
 {
     private const string TestContent = "test content";
     private const string BaseUrl = "https://www.sonarsource.com/";
-    private const string RelativeUrl = "api/relative";
+
+    private readonly Uri relativeUrl = new("api/relative", UriKind.Relative);
 
     private TestLogger testLogger;
     private WebClientDownloader sut;
@@ -50,7 +51,7 @@ public class WebClientDownloaderTest
 
     [TestMethod]
     public void GetBaseUrl_ReturnsTheBaseUrl() =>
-        sut.GetBaseUrl().Should().Be(BaseUrl);
+        sut.BaseUrl.Should().Be(BaseUrl);
 
     [TestMethod]
     [DataRow("https://sonarsource.com/", "https://sonarsource.com/")]
@@ -79,7 +80,7 @@ public class WebClientDownloaderTest
     [TestMethod]
     public async Task DownloadStream_Success()
     {
-        using var stream = await sut.DownloadStream(RelativeUrl);
+        using var stream = await sut.DownloadStream(relativeUrl);
         using var reader = new StreamReader(stream);
 
         var text = await reader.ReadToEndAsync();
@@ -96,7 +97,7 @@ public class WebClientDownloaderTest
         var handler = new HttpMessageHandlerMock();
         sut = CreateSut(handler);
 
-        using var stream = await sut.DownloadStream(RelativeUrl, new() { { "One", "Two" } });
+        using var stream = await sut.DownloadStream(relativeUrl, new() { { "One", "Two" } });
 
         handler.Requests.Should().ContainSingle();
         handler.Requests[0].Headers.Should().ContainSingle();
@@ -109,7 +110,7 @@ public class WebClientDownloaderTest
     {
         sut = CreateSut(HttpStatusCode.NotFound);
 
-        using var stream = await sut.DownloadStream(RelativeUrl);
+        using var stream = await sut.DownloadStream(relativeUrl);
 
         stream.Should().BeNull();
         testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...")
@@ -131,7 +132,7 @@ public class WebClientDownloaderTest
         };
         sut = CreateSut(new HttpMessageHandlerMock((_, _) => Task.FromResult(expected)));
 
-        var responseMessage = await sut.DownloadResource(RelativeUrl);
+        var responseMessage = await sut.DownloadResource(relativeUrl);
 
         responseMessage.Should().Be(expected);
         testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...")
@@ -141,7 +142,7 @@ public class WebClientDownloaderTest
     [TestMethod]
     public async Task Download_Success()
     {
-        var text = await sut.Download(RelativeUrl);
+        var text = await sut.Download(relativeUrl);
 
         text.Should().Be(TestContent);
         testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...")
@@ -154,7 +155,7 @@ public class WebClientDownloaderTest
     {
         sut = CreateSut(HttpStatusCode.Forbidden);
 
-        var text = await sut.Download(RelativeUrl);
+        var text = await sut.Download(relativeUrl);
 
         text.Should().BeNull();
         testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...")
@@ -167,7 +168,7 @@ public class WebClientDownloaderTest
     {
         sut = CreateSut(HttpStatusCode.Forbidden);
 
-        await sut.Invoking(async x => await x.Download(RelativeUrl, true)).Should().ThrowAsync<HttpRequestException>();
+        await sut.Invoking(async x => await x.Download(relativeUrl, true)).Should().ThrowAsync<HttpRequestException>();
 
         testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...")
             .And.HaveWarnings("To analyze private projects make sure the scanner user has 'Browse' permission.");
@@ -178,7 +179,7 @@ public class WebClientDownloaderTest
     {
         sut = CreateSut(HttpStatusCode.NotFound);
 
-        var text = await sut.Download(RelativeUrl, true);
+        var text = await sut.Download(relativeUrl, true);
 
         text.Should().BeNull();
         testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...")
@@ -205,7 +206,7 @@ public class WebClientDownloaderTest
 
         sut = CreateSut(handlerMock, baseUrl);
 
-        _ = await sut.Download("api/relative", true);
+        _ = await sut.Download(new("api/relative", UriKind.Relative), true);
 
         handlerMock.Requests.Should().ContainSingle(x => x.RequestUri == new Uri(expectedAbsoluteUrl));
         testLogger.Should().HaveDebugs(string.Format(Resources.MSG_Downloading, expectedAbsoluteUrl));
@@ -218,7 +219,7 @@ public class WebClientDownloaderTest
     {
         sut = CreateSut(baseUrl: baseUrl);
 
-        await FluentActions.Invoking(async () => await sut.Download("/starts/with/slash"))
+        await FluentActions.Invoking(async () => await sut.Download(new("/starts/with/slash", UriKind.Relative)))
             .Should()
             .ThrowAsync<NotSupportedException>()
             .WithMessage("The BaseAddress always ends in '/'. Please call this method with a url that does not start with '/'.");
@@ -230,7 +231,7 @@ public class WebClientDownloaderTest
         var handler = new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new Exception("error")));
         sut = CreateSut(handler);
 
-        Func<Task> act = async () => await sut.Download("api/relative", true);
+        Func<Task> act = async () => await sut.Download(new("api/relative", UriKind.Relative), true);
 
         await act.Should().ThrowAsync<Exception>();
         testLogger.Should().HaveErrorOnce("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
@@ -243,7 +244,7 @@ public class WebClientDownloaderTest
         var handler = new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(exception));
         sut = CreateSut(handler);
 
-        Func<Task> act = async () => await sut.Download("api/relative", true);
+        Func<Task> act = async () => await sut.Download(new("api/relative", UriKind.Relative), true);
 
         await act.Should().ThrowAsync<HttpRequestException>();
         testLogger.Should().HaveErrorOnce("Unable to connect to server. Please check if the server is running and if the address is correct. Url: 'https://www.sonarsource.com/api/relative'.");
@@ -254,7 +255,7 @@ public class WebClientDownloaderTest
     {
         sut = CreateSut(HttpStatusCode.NotFound);
 
-        await sut.Download(RelativeUrl, failureVerbosity: LoggerVerbosity.Debug);
+        await sut.Download(relativeUrl, failureVerbosity: LoggerVerbosity.Debug);
 
         testLogger.Should().HaveDebugs(
             "Downloading from https://www.sonarsource.com/api/relative...",
@@ -269,7 +270,7 @@ public class WebClientDownloaderTest
     {
         sut = CreateSut(HttpStatusCode.NotFound);
 
-        await sut.Download(RelativeUrl, failureVerbosity: LoggerVerbosity.Info);
+        await sut.Download(relativeUrl, failureVerbosity: LoggerVerbosity.Info);
 
         testLogger.Should().HaveDebugs(
             "Downloading from https://www.sonarsource.com/api/relative...",
@@ -281,7 +282,7 @@ public class WebClientDownloaderTest
     [TestMethod]
     public async Task TryDownloadIfExists_HttpCodeOk_Succeed()
     {
-        var result = await sut.TryDownloadIfExists(RelativeUrl);
+        var result = await sut.TryDownloadIfExists(relativeUrl);
 
         result.Item1.Should().BeTrue();
         result.Item2.Should().Be(TestContent);
@@ -294,7 +295,7 @@ public class WebClientDownloaderTest
     {
         var sut = CreateSut(HttpStatusCode.NotFound);
 
-        var result = await sut.TryDownloadIfExists(RelativeUrl);
+        var result = await sut.TryDownloadIfExists(relativeUrl);
 
         result.Item1.Should().BeFalse();
         result.Item2.Should().BeNull();
@@ -307,7 +308,7 @@ public class WebClientDownloaderTest
     {
         var sut = CreateSut(HttpStatusCode.Forbidden);
 
-        Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl);
+        Func<Task> act = async () => await sut.TryDownloadIfExists(relativeUrl);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
         testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...")
@@ -319,7 +320,7 @@ public class WebClientDownloaderTest
     {
         sut = CreateSut(HttpStatusCode.Forbidden);
 
-        Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl, true);
+        Func<Task> act = async () => await sut.TryDownloadIfExists(relativeUrl, true);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
         testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...")
@@ -334,7 +335,7 @@ public class WebClientDownloaderTest
     {
         sut = CreateSut(code);
 
-        Func<Task> act = async () => await sut.TryDownloadIfExists(RelativeUrl);
+        Func<Task> act = async () => await sut.TryDownloadIfExists(relativeUrl);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
         testLogger.Should().HaveDebugs("Downloading from https://www.sonarsource.com/api/relative...")
@@ -346,7 +347,7 @@ public class WebClientDownloaderTest
     {
         using var file = new TempFile();
 
-        var result = await sut.TryDownloadFileIfExists(RelativeUrl, file.FileName);
+        var result = await sut.TryDownloadFileIfExists(relativeUrl, file.FileName);
 
         result.Should().BeTrue();
         testLogger.Should().HaveDebugs($"Downloading file to {file.FileName}...")
@@ -359,7 +360,7 @@ public class WebClientDownloaderTest
         sut = CreateSut(HttpStatusCode.NotFound);
         using var file = new TempFile();
 
-        var result = await sut.TryDownloadFileIfExists(RelativeUrl, file.FileName);
+        var result = await sut.TryDownloadFileIfExists(relativeUrl, file.FileName);
 
         result.Should().BeFalse();
         testLogger.Should().HaveDebugs(
@@ -374,7 +375,7 @@ public class WebClientDownloaderTest
         sut = CreateSut(HttpStatusCode.Forbidden);
         var fileName = Path.GetRandomFileName();
 
-        Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
+        Func<Task> act = async () => await sut.TryDownloadFileIfExists(relativeUrl, fileName);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
         testLogger.Should().HaveDebugs($"Downloading file to {fileName}...")
@@ -387,7 +388,7 @@ public class WebClientDownloaderTest
         sut = CreateSut(HttpStatusCode.Forbidden);
         var fileName = Path.GetRandomFileName();
 
-        Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName, true);
+        Func<Task> act = async () => await sut.TryDownloadFileIfExists(relativeUrl, fileName, true);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
         testLogger.Should().HaveDebugs($"Downloading file to {fileName}...")
@@ -403,7 +404,7 @@ public class WebClientDownloaderTest
         sut = CreateSut(code);
         var fileName = Path.GetRandomFileName();
 
-        Func<Task> act = async () => await sut.TryDownloadFileIfExists(RelativeUrl, fileName);
+        Func<Task> act = async () => await sut.TryDownloadFileIfExists(relativeUrl, fileName);
 
         await act.Should().ThrowExactlyAsync<HttpRequestException>();
         testLogger.Should().HaveDebugs($"Downloading file to {fileName}...")
