@@ -52,7 +52,7 @@ internal class SonarQubeWebServer : SonarWebServer
     public override async Task<bool> IsServerLicenseValid()
     {
         logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
-        var response = await webDownloader.DownloadResource("api/editions/is_valid_license");
+        var response = await webDownloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative));
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
             logger.LogError(Resources.ERR_InvalidCredentials);
@@ -65,7 +65,7 @@ internal class SonarQubeWebServer : SonarWebServer
             // On other editions than community, if a license was not set, the response is: {"errors":[{"msg":"License not found"}]} and http status code 404 (not found).
             if (json["errors"]?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
             {
-                logger.LogError(Resources.ERR_UnlicensedServer, webDownloader.GetBaseUrl());
+                logger.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
                 return false;
             }
 
@@ -80,7 +80,7 @@ internal class SonarQubeWebServer : SonarWebServer
                 return true;
             }
 
-            logger.LogError(Resources.ERR_UnlicensedServer, webDownloader.GetBaseUrl());
+            logger.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
             return false;
         }
     }
@@ -110,7 +110,7 @@ internal class SonarQubeWebServer : SonarWebServer
         try
         {
             logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
-            var uri = WebUtils.Escape("api/analysis_cache/get?project={0}&branch={1}", localSettings.ProjectKey, branch);
+            var uri = WebUtils.EscapedUri("api/analysis_cache/get?project={0}&branch={1}", localSettings.ProjectKey, branch);
             using var stream = await webDownloader.DownloadStream(uri);
             return ParseCacheEntries(stream);
         }
@@ -124,7 +124,7 @@ internal class SonarQubeWebServer : SonarWebServer
 
     public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
     {
-        var uri = WebUtils.Escape("analysis/jres/{0}", metadata.Id);
+        var uri = WebUtils.EscapedUri("analysis/jres/{0}", metadata.Id);
         logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
         return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
     }
@@ -133,7 +133,7 @@ internal class SonarQubeWebServer : SonarWebServer
     {
         const string uri = "analysis/engine";
         logger.LogDebug(Resources.MSG_EngineDownloadUri, uri);
-        return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
+        return await apiDownloader.DownloadStream(new(uri, UriKind.Relative), new() { { "Accept", "application/octet-stream" } });
     }
 
     protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component) =>
@@ -141,7 +141,7 @@ internal class SonarQubeWebServer : SonarWebServer
             ? await base.DownloadComponentProperties(component)
             : await DownloadComponentPropertiesLegacy(component);
 
-    protected override string AddOrganization(string uri) =>
+    protected override Uri AddOrganization(Uri uri) =>
         serverVersion.CompareTo(new Version(6, 3)) < 0 ? uri : base.AddOrganization(uri);
 
     protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
@@ -151,7 +151,7 @@ internal class SonarQubeWebServer : SonarWebServer
 
     private async Task<IDictionary<string, string>> DownloadComponentPropertiesLegacy(string projectId)
     {
-        var uri = WebUtils.Escape("api/properties?resource={0}", projectId);
+        var uri = WebUtils.EscapedUri("api/properties?resource={0}", projectId);
         logger.LogDebug(Resources.MSG_FetchingProjectProperties, projectId);
         var contents = await webDownloader.Download(uri, true);
         var properties = JArray.Parse(contents);
