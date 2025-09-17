@@ -90,7 +90,7 @@ public class PostProcessor
                 runtime.File.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
                     ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)
-                    : InvokeScannerEngine(config, analysisResult.ScannerEngineInput);
+                    : InvokeScannerEngine(cmdLineArgs, config, analysisResult.ScannerEngineInput);
             }
             ProcessSummaryReportBuilder(config, settings, analysisResult, result);
             return result;
@@ -248,6 +248,6 @@ public class PostProcessor
         return result;
     }
 
-    private bool InvokeScannerEngine(AnalysisConfig config, ScannerEngineInput input) =>
-        sonarEngine.Execute(config, input.ToString());
+    private bool InvokeScannerEngine(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, ScannerEngineInput input) =>
+        sonarEngine.Execute(config, input.ToString(), cmdLineArgs);
 }

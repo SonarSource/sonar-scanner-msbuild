@@ -141,49 +141,11 @@ public class SonarScannerWrapper
             }
         }
 
-        // If there is a value for SONAR_SCANNER_OPTS then pass it through explicitly just in case it is
-        // set at process-level (which wouldn't otherwise be inherited by the child sonar-scanner process)
-        var sonarScannerOptsValue = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
-        if (sonarScannerOptsValue is not null)
-        {
-            envVarsDictionary.Add(EnvironmentVariables.SonarScannerOptsVariableName, sonarScannerOptsValue);
-            runtime.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, EnvironmentVariables.SonarScannerOptsVariableName, sonarScannerOptsValue.RedactSensitiveData());
-        }
-
         var scannerOptsEnvValue = new StringBuilder();
-        if (envVarsDictionary.TryGetValue(EnvironmentVariables.SonarScannerOptsVariableName, out var sonarScannerOptsOldValue))
-        {
-            scannerOptsEnvValue.Append(sonarScannerOptsOldValue);
-        }
 
-        if (config.ScannerOptsSettings?.Any() is true)
+        foreach (var scannerOpt in SonarEngineWrapper.JavaParams(config, userCmdLineArguments, runtime))
         {
-            // If there are any duplicates properties, the last one will be used.
-            // As of today, properties coming from ScannerOptsSettings are set
-            // via the command line, so they should take precedence over the ones
-            // set via the environment variable.
-            foreach (var property in config.ScannerOptsSettings)
-            {
-                scannerOptsEnvValue.Append($" {property.AsSonarScannerArg()}");
-            }
-        }
-
-        // If the truststore password is set, we need to pass it to the sonar-scanner through the SONAR_SCANNER_OPTS environment variable.
-        // And map the value to the javax.net.ssl.trustStorePassword property.
-        // If it is not set, we will use the default value, unless it was set already in the SONAR_SCANNER_OPTS.
-        if (!userCmdLineArguments.TryGetValue(SonarProperties.TruststorePassword, out var truststorePassword))
-        {
-            var truststorePath = config.ScannerOptsSettings.FirstOrDefault(x => x.Id == SonarProperties.JavaxNetSslTrustStore);
-            truststorePassword = TruststoreUtils.TruststoreDefaultPassword(truststorePath?.Value, runtime.Logger);
-        }
-
-        if (!SonarPropertiesDefault.TruststorePasswords.Contains(truststorePassword)
-            || sonarScannerOptsOldValue is null
-            || !sonarScannerOptsOldValue.Contains($"-D{SonarProperties.JavaxNetSslTrustStorePassword}="))
-        {
-            scannerOptsEnvValue.Append(runtime.OperatingSystem.IsUnix()
-                ? $" -D{SonarProperties.JavaxNetSslTrustStorePassword}={truststorePassword}"
-                : $" -D{SonarProperties.JavaxNetSslTrustStorePassword}=\"{truststorePassword}\"");
+            scannerOptsEnvValue.Append($" {scannerOpt}");
         }
 
         if (scannerOptsEnvValue.Length > 0)

@@ -377,19 +377,19 @@ public class ProcessRunnerTests
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var expected = new ProcessRunnerArguments.Argument[]
         {
-            "unquoted",
-            "\"quoted\"",
-            "\"quoted with spaces\"",
-            "/test:\"quoted arg\"",
-            "unquoted with spaces",
-            "quote in \"the middle",
-            "quotes \"& ampersands",
-            "\"multiple \"\"\"      quotes \" ",
-            "trailing backslash \\",
-            "all special chars: \\ / : * ? \" < > | %",
-            "injection \" > foo.txt",
-            "injection \" & echo haha",
-            "double escaping \\\" > foo.txt"
+            new("unquoted"),
+            new("\"quoted\""),
+            new("\"quoted with spaces\""),
+            new("/test:\"quoted arg\""),
+            new("unquoted with spaces"),
+            new("quote in \"the middle"),
+            new("quotes \"& ampersands"),
+            new("\"multiple \"\"\"      quotes \" "),
+            new("trailing backslash \\"),
+            new("all special chars: \\ / : * ? \" < > | %"),
+            new("injection \" > foo.txt"),
+            new("injection \" & echo haha"),
+            new("double escaping \\\" > foo.txt")
         };
 
         var context = new ProcessRunnerContext(TestContext)
@@ -450,19 +450,19 @@ public class ProcessRunnerTests
     {
         var expected = new ProcessRunnerArguments.Argument[]
         {
-            "unquoted",
-            "\"quoted\"",
-            "\"quoted with spaces\"",
-            "/test:\"quoted arg\"",
-            "unquoted with spaces",
-            "quote in \"the middle",
-            "quotes \"& ampersands",
-            "\"multiple \"\"\"      quotes \" ",
-            "trailing backslash \\",
-            "all special chars: \\ / : * ? \" < > | %",
-            "injection \" > foo.txt",
-            "injection \" & echo haha",
-            "double escaping \\\" > foo.txt"
+            new("unquoted"),
+            new("\"quoted\""),
+            new("\"quoted with spaces\""),
+            new("/test:\"quoted arg\""),
+            new("unquoted with spaces"),
+            new("quote in \"the middle"),
+            new("quotes \"& ampersands"),
+            new("\"multiple \"\"\"      quotes \" "),
+            new("trailing backslash \\"),
+            new("all special chars: \\ / : * ? \" < > | %"),
+            new("injection \" > foo.txt"),
+            new("injection \" & echo haha"),
+            new("double escaping \\\" > foo.txt")
         };
 
         var listArgs = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "%*" : "\"$@\"";
@@ -478,10 +478,10 @@ public class ProcessRunnerTests
     {
         var expected = new ProcessRunnerArguments.Argument[]
         {
-            @"-Dsonar.scanAllFiles=true",
-            @"-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties",
-            @"--from=ScannerMSBuild/5.13.1",
-            @"--debug"
+            new(@"-Dsonar.scanAllFiles=true"),
+            new(@"-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties"),
+            new(@"--from=ScannerMSBuild/5.13.1"),
+            new(@"--debug")
         };
 
         // The sonar-scanner.bat uses %* to pass the argument to javac.exe
@@ -537,27 +537,27 @@ public class ProcessRunnerTests
         // Public args - should appear in the log
         var publicArgs = new ProcessRunnerArguments.Argument[]
         {
-            "public1",
-            "public2",
-            "/d:sonar.projectKey=my.key"
+            new("public1"),
+            new("public2"),
+            new("/d:sonar.projectKey=my.key")
         };
         var sensitiveArgs = new ProcessRunnerArguments.Argument[]
         {
             // Public args - should appear in the log
-            "public1", "public2", "/dmy.key=value",
+            new("public1"), new("public2"), new("/dmy.key=value"),
 
             // Sensitive args - should not appear in the log
-            "/d:sonar.password=secret data password",
-            "/d:sonar.login=secret data login",
-            "/d:sonar.token=secret data token",
+            new("/d:sonar.password=secret data password"),
+            new("/d:sonar.login=secret data login"),
+            new("/d:sonar.token=secret data token"),
 
             // Sensitive args - different cases -> exclude to be on the safe side
-            "/d:sonar.PASSWORD=secret data password upper",
+            new("/d:sonar.PASSWORD=secret data password upper"),
 
             // Sensitive args - parameter format is slightly incorrect -> exclude to be on the safe side
-            "/dsonar.login =secret data login typo",
-            "sonar.password=secret data password typo",
-            "/dsonar.token =secret data token typo",
+            new("/dsonar.login =secret data login typo"),
+            new("sonar.password=secret data password typo"),
+            new("/dsonar.token =secret data token typo"),
         };
         var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
         var context = new ProcessRunnerContext(TestContext)

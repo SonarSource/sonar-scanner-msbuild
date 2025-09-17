@@ -81,7 +81,7 @@ public class LocalJreTruststoreResolver
 
         if (javaExePath is null || !runtime.File.Exists(javaExePath))
         {
-            var commandArgs = new ProcessRunnerArguments(shellPath, false) { CmdLineArgs = ["-c", "command -v java"], LogOutput = false };
+            var commandArgs = new ProcessRunnerArguments(shellPath, false) { CmdLineArgs = [new("-c"), new("command -v java")], LogOutput = false };
             var commandResult = processRunner.Execute(commandArgs);
             if (commandResult.Succeeded)
             {
@@ -100,7 +100,7 @@ public class LocalJreTruststoreResolver
 
         runtime.LogDebug(Resources.MSG_JavaExecutableLocated, javaExePath);
 
-        var readlinkArgs = new ProcessRunnerArguments(shellPath, false) { CmdLineArgs = ["-c", $"readlink -f {javaExePath}"], LogOutput = false };
+        var readlinkArgs = new ProcessRunnerArguments(shellPath, false) { CmdLineArgs = [new("-c"), new($"readlink -f {javaExePath}")], LogOutput = false };
         var readlinkResult = processRunner.Execute(readlinkArgs);
         if (readlinkResult.Succeeded)
         {
