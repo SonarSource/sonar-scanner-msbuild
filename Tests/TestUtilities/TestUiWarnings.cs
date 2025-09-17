@@ -35,25 +35,6 @@ public class TestUiWarnings : IUiWarnings
         Messages = [];
     }
 
-    public void AssertNoUIWarningsLogged() =>   // TODO custom assertions
-        Messages.Should().BeEmpty("Expecting no UI warnings to be logged");
-
-    public void AssertUIWarningLogged(string expected)
-    {
-        Messages.Should().Contain(expected.ToUnixLineEndings());
-        logger.Should().HaveWarnings(expected);
-    }
-
-    /// <summary>
-    /// Checks that at least one UI warning exists that contains all of the specified strings.
-    /// </summary>
-    public void AssertUIWarningExists(params string[] expected)
-    {
-        expected = expected.Select(x => x.ToUnixLineEndings()).ToArray();
-        var matches = Messages.Where(x => expected.All(e => x.Contains(e)));
-        matches.Should().NotBeEmpty("No UI warning contains the expected strings: {0}", string.Join(",", expected));
-    }
-
     public void Log(string message, params object[] args)
     {
         Messages.Add(FormatMessage(message, args));

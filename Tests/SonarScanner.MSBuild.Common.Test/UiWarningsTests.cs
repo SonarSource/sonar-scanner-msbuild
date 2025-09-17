@@ -50,7 +50,7 @@ public class UiWarningsTests
                 { "text": "uiWarn3 xxx" }
             ]
             """;
-        uiWarnings.Log(outputDir); // this should not contain any timestamps.
+        uiWarnings.Write(outputDir);    // this should not contain any timestamps.
         fileWrapper.Received(1).WriteAllText(
             Path.Combine(outputDir, FileConstants.UIWarningsFileName),
             Arg.Is<string>(x => IsMatchingJson(expected, x)));

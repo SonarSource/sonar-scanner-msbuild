@@ -60,7 +60,7 @@ public class SonarQubeWebServerTest
     {
         var context = new Context(sqVersion);
         context.Server.IsServerVersionSupported().Should().BeTrue();
-        context.Runtime.UiWarnings.AssertUIWarningLogged("Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.");
+        context.Runtime.UiWarnings.Should().HaveMessage("Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.");
         context.Runtime.Logger.Should().HaveNoErrors();
     }
 
@@ -71,7 +71,7 @@ public class SonarQubeWebServerTest
     {
         var context = new Context(sqVersion);
         context.Server.IsServerVersionSupported().Should().BeTrue();
-        context.Runtime.UiWarnings.AssertNoUIWarningsLogged();
+        context.Runtime.UiWarnings.Should().HaveNoMessages();
         context.Runtime.Logger.Should().HaveNoErrors();
     }
 
