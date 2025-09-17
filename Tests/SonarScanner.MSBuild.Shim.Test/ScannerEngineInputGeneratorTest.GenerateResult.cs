@@ -453,7 +453,6 @@ public partial class ScannerEngineInputGeneratorTest
         // Create project info with a managed file list and a content file list.
         // Each list refers to a file that does not exist on disk.
         // The missing files should not appear in the generated properties file.
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var projectBaseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Project1");
         var projectFullPath = TestUtils.CreateEmptyFile(projectBaseDir, "project1.proj");
         var existingManagedFile = TestUtils.CreateEmptyFile(projectBaseDir, "File1.cs");
@@ -475,14 +474,7 @@ public partial class ScannerEngineInputGeneratorTest
         var projectInfoDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "ProjectInfo1Dir");
         var projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);
         projectInfo.Save(projectInfoFilePath);
-        var config = new AnalysisConfig
-        {
-            SonarQubeHostUrl = "http://sonarqube.com",
-            SonarProjectKey = "my_project_key",
-            SonarProjectName = "my_project_name",
-            SonarProjectVersion = "1.0",
-            SonarOutputDir = testDir
-        };
+        var config = CreateValidConfig();
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult();
         var actual = File.ReadAllText(result.FullPropertiesFilePath);
 
