@@ -313,8 +313,9 @@ public class CacheProcessorTests
             var settings = Substitute.For<IBuildSettings>();
             settings.SourcesDirectory.Returns(Root);
             settings.SonarConfigDirectory.Returns(Root);
-            factory.Server.Cache = cache;
-            factory.Server.Data.SonarQubeVersion = SonarQubeVersion99;
+            factory.Server.DownloadCache(null).ReturnsForAnyArgs(cache);
+            factory.Server.DownloadCache(Arg.Is<ProcessedArgs>(x => x.ProjectKey == "key-no-cache")).Returns([]);
+            factory.Server.ServerVersion.Returns(SonarQubeVersion99);
             Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(runtime.Logger, commandLineArgs), settings, runtime.Logger);
             foreach (var (relativeFilePath, content) in fileData)
             {
