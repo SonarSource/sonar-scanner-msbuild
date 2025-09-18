@@ -20,7 +20,9 @@
 
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+#if NETFRAMEWORK
 using SonarScanner.MSBuild.Common.TFS;
+#endif
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -242,9 +244,11 @@ public class ProcessedArgs
             UseSonarScannerCli = false;
         }
 #if NETFRAMEWORK
+        // If the TFS legacy coverage processor is called, we cannot use the scanner engine because it writes information to the properties file, which would be missing from the ScannerEngineInput.
         if (buildSettings?.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
             UseSonarScannerCli = true;
+            runtime.LogDebug("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
         }
 #endif
 

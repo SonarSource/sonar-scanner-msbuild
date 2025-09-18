@@ -19,7 +19,6 @@
  */
 
 using System.Net;
-using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 namespace SonarScanner.MSBuild.PreProcessor;
@@ -93,12 +92,7 @@ public class PreProcessor
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
 
-        string scannerEngineJarPath = null;
-        if (!localSettings.UseSonarScannerCli)
-        {
-            var engineResolver = factory.CreateEngineResolver(server, localSettings.UserHome);
-            scannerEngineJarPath = await engineResolver.ResolvePath(localSettings);
-        }
+        var scannerEngineJarPath = localSettings.UseSonarScannerCli ? null : await factory.CreateEngineResolver(server, localSettings.UserHome).ResolvePath(localSettings);
 
         var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
         if (!argumentsAndRuleSets.IsSuccess)

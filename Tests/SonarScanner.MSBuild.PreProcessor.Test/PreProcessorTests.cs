@@ -164,7 +164,7 @@ public partial class PreProcessorTests
         (await context.Execute()).Should().BeTrue();
 
         context.AssertDirectoriesCreated();
-        context.AssertDownloadMethodsCalled(1, 1, 2, 2);
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
 
         context.Factory.Runtime.Logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.")
             .And.HaveDebugs("Processing analysis cache");
@@ -195,7 +195,7 @@ public partial class PreProcessorTests
         (await context.Execute(args)).Should().BeTrue();
 
         context.AssertDirectoriesCreated();
-        context.AssertDownloadMethodsCalled(1, 1, 2, 2);
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
 
         context.Factory.AssertMethodCalled(nameof(context.Factory.CreateRoslynAnalyzerProvider), 2); // C# and VBNet
         context.Factory.PluginCachePath.Should().Be(tmpCachePath);
@@ -216,7 +216,7 @@ public partial class PreProcessorTests
         (await context.Execute()).Should().BeTrue();
 
         context.AssertDirectoriesCreated();
-        context.AssertDownloadMethodsCalled(1, 1, 2, 2);
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
         context.AssertAnalysisConfig(2);
     }
 
@@ -234,7 +234,7 @@ public partial class PreProcessorTests
         (await context.Execute(CreateArgs("organization"))).Should().BeTrue();
 
         context.AssertDirectoriesCreated();
-        context.AssertDownloadMethodsCalled(1, 1, 2, 2);
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
         context.AssertAnalysisConfig(2);
     }
 
@@ -246,7 +246,7 @@ public partial class PreProcessorTests
         (await context.Execute(args)).Should().BeTrue();
 
         context.AssertDirectoriesCreated();
-        context.AssertDownloadMethodsCalled(1, 1, 2, 2);
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
         context.AssertAnalysisConfig(2);
         await context.Factory.EngineResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);
     }
@@ -281,7 +281,7 @@ public partial class PreProcessorTests
         (await context.Execute()).Should().BeTrue();
 
         context.AssertDirectoriesCreated();
-        context.AssertDownloadMethodsCalled(1, 1, 2, 0); // no quality profile assigned to project
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 0);   // no quality profile assigned to project
         context.AssertAnalysisConfig(0);
         // only contains SonarQubeAnalysisConfig (no rulesets or additional files)
         context.AssertAnalysisConfigPathInSonarConfigDirectory();

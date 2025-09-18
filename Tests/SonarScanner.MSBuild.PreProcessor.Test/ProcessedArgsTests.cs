@@ -213,8 +213,8 @@ public class ProcessedArgsTests
         sut.ServerInfo.Should().NotBeNull();
         sut.ServerInfo.IsSonarCloud.Should().BeFalse();
         sut.ServerInfo.ServerUrl.Should().Be("http://host");
-        runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.Errors.Should().BeEmpty();
+        runtime.Logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
         sut.IsValid.Should().BeTrue();
     }
 
@@ -226,8 +226,8 @@ public class ProcessedArgsTests
         sut.ServerInfo.Should().NotBeNull();
         sut.ServerInfo.IsSonarCloud.Should().BeTrue();
         sut.ServerInfo.ServerUrl.Should().Be("https://sonarcloud.proxy");
-        runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.Errors.Should().BeEmpty();
+        runtime.Logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
         sut.IsValid.Should().BeTrue();
     }
 
@@ -281,8 +281,8 @@ public class ProcessedArgsTests
         sut.ServerInfo.Should().NotBeNull();
         sut.ServerInfo.IsSonarCloud.Should().BeTrue();
         sut.ServerInfo.ServerUrl.Should().Be("https://sonarcloud.io");
-        runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.Errors.Should().BeEmpty();
+        runtime.Logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
         sut.IsValid.Should().BeTrue();
     }
 
@@ -314,8 +314,8 @@ public class ProcessedArgsTests
                 Region = expectedRegion,
             },
         });
-        runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.Errors.Should().BeEmpty();
+        runtime.Logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
     }
 
     [TestMethod]
@@ -326,8 +326,8 @@ public class ProcessedArgsTests
             new ListPropertiesProvider([new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.io")]));
 
         sut.ServerInfo.Should().BeNull();
-        runtime.Logger.Warnings.Should().BeEmpty();
-        runtime.Logger.Should().HaveErrors("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
+        runtime.Logger.Should().HaveNoWarnings()
+            .And.HaveErrors("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
             + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
         sut.IsValid.Should().BeFalse();
     }
@@ -479,8 +479,8 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(new ListPropertiesProvider(properties));
 
         sut.IsValid.Should().BeTrue();
-        runtime.Logger.Errors.Should().BeEmpty();
-        runtime.Logger.Warnings.Should().ContainSingle(expectedMessage);
+        runtime.Logger.Should().HaveNoErrors();
+        runtime.Logger.Should().HaveWarningOnce(expectedMessage);
         runtime.Logger.UIWarnings.Should().ContainSingle(expectedMessage);
     }
 
@@ -494,11 +494,12 @@ public class ProcessedArgsTests
         sut.IsValid.Should().BeTrue();
 #if NETFRAMEWORK
         sut.UseSonarScannerCli.Should().BeTrue();
+        runtime.Logger.Should().HaveDebugs("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
 #else
         sut.UseSonarScannerCli.Should().BeFalse();
 #endif
-        runtime.Logger.Errors.Should().BeEmpty();
-        runtime.Logger.Warnings.Should().BeEmpty();
+        runtime.Logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
     }
 
     [TestMethod]
@@ -511,8 +512,8 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(buildSettings: BuildSettings.GetSettingsFromEnvironment());
         sut.IsValid.Should().BeTrue();
         sut.UseSonarScannerCli.Should().BeFalse();
-        runtime.Logger.Errors.Should().BeEmpty();
-        runtime.Logger.Warnings.Should().BeEmpty();
+        runtime.Logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
     }
 
     private static IEnumerable<object[]> ProcessedArgs_SourcesOrTests_Warning_DataSource() =>
