@@ -40,11 +40,11 @@ public sealed class WebClientDownloader : IDownloader
     }
 
     public async Task<HttpResponseMessage> DownloadResource(Uri url) =>
-        await AsyncGet(url);
+        await GetAsync(url);
 
     public async Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false)
     {
-        var response = await AsyncGet(url);
+        var response = await GetAsync(url);
 
         switch (response.StatusCode)
         {
@@ -71,7 +71,7 @@ public sealed class WebClientDownloader : IDownloader
     public async Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false)
     {
         logger.LogDebug(Resources.MSG_DownloadingFile, targetFilePath);
-        var response = await AsyncGet(url);
+        var response = await GetAsync(url);
 
         switch (response.StatusCode)
         {
@@ -105,7 +105,7 @@ public sealed class WebClientDownloader : IDownloader
             throw new NotSupportedException("The BaseAddress always ends in '/'. Please call this method with a url that does not start with '/'.");
         }
 
-        var response = await AsyncGet(url);
+        var response = await GetAsync(url);
         if (response.IsSuccessStatusCode)
         {
             return await response.Content.ReadAsStringAsync();
@@ -126,7 +126,7 @@ public sealed class WebClientDownloader : IDownloader
 
     public async Task<Stream> DownloadStream(Uri url, Dictionary<string, string> headers = null)
     {
-        var response = await AsyncGet(url, headers);
+        var response = await GetAsync(url, headers);
         if (response.IsSuccessStatusCode)
         {
             return await response.Content.ReadAsStreamAsync();
@@ -141,7 +141,7 @@ public sealed class WebClientDownloader : IDownloader
     public void Dispose() =>
         client.Dispose();
 
-    private async Task<HttpResponseMessage> AsyncGet(Uri url, Dictionary<string, string> headers = null)
+    private async Task<HttpResponseMessage> GetAsync(Uri url, Dictionary<string, string> headers = null)
     {
         try
         {

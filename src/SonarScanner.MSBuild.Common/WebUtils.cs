@@ -30,5 +30,5 @@ public static class WebUtils
         new(uri.EndsWith(UriPartsDelimiter) ? uri : uri + UriPartsDelimiter);
 
     public static Uri EscapedUri(string format, params string[] args) =>
-        new(string.Format(format, args.Select(WebUtility.UrlEncode).ToArray()), UriKind.RelativeOrAbsolute);
+        new(string.Format(format, args.Select(x => Uri.EscapeDataString(x ?? string.Empty)).ToArray()), UriKind.RelativeOrAbsolute);
 }

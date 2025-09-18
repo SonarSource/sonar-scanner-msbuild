@@ -72,11 +72,11 @@ public class SonarWebServerTest
     public async Task DownloadQualityProfile_InvalidOrganizationKey_After_Version63()
     {
         downloader
-            .TryDownloadIfExists(new($"api/qualityprofiles/search?project={ProjectKey}&organization=ThisIsInvalidValue", UriKind.Relative), false)
+            .TryDownloadIfExists(WebUtils.EscapedUri("api/qualityprofiles/search?project={0}&organization=ThisIsInvalidValue", ProjectKey), false)
             .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
         // SonarCloud returns 404, WebClientDownloader returns null
         downloader
-            .Download(new("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue", UriKind.Relative), false)
+            .Download(WebUtils.EscapedUri("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)
             .Returns(Task.FromResult<string>(null));
         Func<Task> act = async () => await CreateServer(new Version("6.4"), "ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
@@ -95,11 +95,11 @@ public class SonarWebServerTest
         const string language = "cs";
         var projectKey = "someKey";
         var projectTarget = branchName is null ? projectKey : $"{projectKey}:{branchName}";
-        var baseQualityProfileUrl = $"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectTarget}")}";
-        var qualityProfileUrl = organization is null ? baseQualityProfileUrl : $"{baseQualityProfileUrl}&organization={WebUtility.UrlEncode(organization)}";
+        var baseQualityProfileUrl = WebUtils.EscapedUri("api/qualityprofiles/search?project={0}", projectTarget);
+        var qualityProfileUrl = organization is null ? baseQualityProfileUrl : WebUtils.EscapedUri($"{baseQualityProfileUrl}&organization={{0}}", organization);
         var downloadResult = Tuple.Create(true, $$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}""");
         downloader
-            .TryDownloadIfExists(new(qualityProfileUrl, UriKind.Relative), Arg.Any<bool>())
+            .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
         var result = await CreateServer(null, organization).DownloadQualityProfile(projectKey, branchName, language);
 
@@ -113,7 +113,7 @@ public class SonarWebServerTest
         const string language = "cs";
         var projectKey = "someKey";
         downloader
-            .TryDownloadIfExists(new($"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}", UriKind.Relative), Arg.Any<bool>())
+            .TryDownloadIfExists(WebUtils.EscapedUri("api/qualityprofiles/search?project={0}", projectKey), Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
         downloader
             .Download(new("api/qualityprofiles/search?defaults=true", UriKind.Relative), Arg.Any<bool>())
@@ -131,7 +131,7 @@ public class SonarWebServerTest
         const string language = "cs";
         var projectKey = "someKey";
 
-        var qualityProfileUrl = new Uri($"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}", UriKind.Relative);
+        var qualityProfileUrl = WebUtils.EscapedUri("api/qualityprofiles/search?project={0}", projectKey);
         var downloadResult = Tuple.Create(true, $$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}""");
         downloader
             .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
@@ -148,7 +148,7 @@ public class SonarWebServerTest
         const string language = "cs";
         var projectKey = "someKey";
         var downloadResult = Tuple.Create(true, "{ profiles: []}");
-        var qualityProfileUrl = new Uri($"api/qualityprofiles/search?project={WebUtility.UrlEncode(projectKey)}", UriKind.Relative);
+        var qualityProfileUrl = WebUtils.EscapedUri("api/qualityprofiles/search?project={0}", projectKey);
         downloader
             .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));

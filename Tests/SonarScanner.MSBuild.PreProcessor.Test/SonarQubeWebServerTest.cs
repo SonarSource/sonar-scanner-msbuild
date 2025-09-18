@@ -192,7 +192,7 @@ public class SonarQubeWebServerTest
         const string profileKey = "orgProfile";
         const string language = "cs";
         var context = new Context("6.2", organization);
-        var qualityProfileUrl = new Uri($"api/qualityprofiles/search?project={WebUtility.UrlEncode($"{projectKey}")}", UriKind.Relative);
+        var qualityProfileUrl = WebUtils.EscapedUri("api/qualityprofiles/search?project={0}", projectKey);
         var downloadResult = Tuple.Create(true, $$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}""");
         context.WebDownloader.TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
         var result = await context.Server.DownloadQualityProfile(projectKey, null, language);

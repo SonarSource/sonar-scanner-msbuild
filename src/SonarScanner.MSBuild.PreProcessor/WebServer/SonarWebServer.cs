@@ -240,7 +240,7 @@ public abstract class SonarWebServer : ISonarWebServer
     protected virtual Uri AddOrganization(Uri uri) =>
         string.IsNullOrEmpty(organization)
             ? uri
-            : new Uri($"{uri}&organization={WebUtility.UrlEncode(organization)}", UriKind.Relative);
+            : WebUtils.EscapedUri($"{uri}&organization={{0}}", organization);
 
     protected bool TryGetBaseBranch(ProcessedArgs localSettings, out string branch)
     {

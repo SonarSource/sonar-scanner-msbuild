@@ -385,7 +385,7 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var result = await client.Download(new("https://www.cloudflarestatus.com/api/v2/status.json", UriKind.Absolute));
+        var result = await client.Download(new("https://www.cloudflarestatus.com/api/v2/status.json"));
 
         // Assert
         var expected = new { Page = new { Name = "Cloudflare" } };
