@@ -411,18 +411,9 @@ public class JreResolverTests
         }
     }
 
-    private ProcessedArgs Args()
+    private static ProcessedArgs Args()
     {
-        var args = Substitute.For<ProcessedArgs>(
-            "valid.key",
-            "valid.name",
-            "1.0",
-            "organization",
-            false,
-            provider,
-            EmptyPropertyProvider.Instance,
-            EmptyPropertyProvider.Instance,
-            runtime with { Logger = new() }); // using a new logger to avoid message pollution
+        var args = Substitute.For<ProcessedArgs>();
         args.OperatingSystem.Returns("os");
         args.Architecture.Returns("arch");
         return args;

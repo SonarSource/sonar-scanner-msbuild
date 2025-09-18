@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public final class ProvisioningAssertions {
   public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, String oldJavaHome, Boolean isCloud, Boolean useSonarScannerCLI) {
-    assertCacheMissBeginStep(result.begin(), sqApiUrl, userHome, isCloud);
+    assertCacheMissBeginStep(result.begin(), sqApiUrl, userHome, isCloud, useSonarScannerCLI);
 
     var endLogs = result.end().getLogs();
 
@@ -40,7 +40,7 @@ public final class ProvisioningAssertions {
     }
   }
 
-  public static void assertCacheMissBeginStep(BuildResult begin, String sqApiUrl, String userHome, Boolean isCloud) {
+  public static void assertCacheMissBeginStep(BuildResult begin, String sqApiUrl, String userHome, Boolean isCloud, Boolean useSonarScannerCLI) {
     var os = OSPlatform.current().name().toLowerCase();
     var arch = OSPlatform.currentArchitecture().toLowerCase();
     var cacheFolderPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+";
@@ -58,21 +58,23 @@ public final class ProvisioningAssertions {
       "JreResolver: Resolving JRE path.",
       "Downloading from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
       "Response received from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
-      "Cache miss. Attempting to download JRE.",
-      "EngineResolver: Resolving Scanner Engine path.",
-      "Downloading from " + sqApiUrl + "/analysis/engine...",
-      "Response received from " + sqApiUrl + "/analysis/engine...",
-      "Cache miss. Attempting to download '");  // + file path to scanner engine
-
+      "Cache miss. Attempting to download JRE.");
     TestUtils.matchesSingleLine(beginLogs, "Downloading Java JRE from " + jreUrlPattern);
-    TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
     TestUtils.matchesSingleLine(beginLogs, "The checksum of the downloaded file is '.+' and the expected checksum is '.+'");
     TestUtils.matchesSingleLine(beginLogs, "Starting extracting the Java runtime environment from archive '" + cacheFolderPattern + "' to folder '" + cacheFolderPattern + "'");
     TestUtils.matchesSingleLine(beginLogs, "Moving extracted Java runtime environment from '" + cacheFolderPattern + "' to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "The Java runtime environment was successfully added to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + cacheFolderPattern + "_extracted.+java(?:\\.exe)?'");
-    TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern +
-      "((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar'");
+    if (!useSonarScannerCLI) {
+      assertThat(beginLogs).contains(
+        "EngineResolver: Resolving Scanner Engine path.",
+        "Downloading from " + sqApiUrl + "/analysis/engine...",
+        "Response received from " + sqApiUrl + "/analysis/engine...",
+        "Cache miss. Attempting to download '");  // + file path to scanner engine
+      TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
+      TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern +
+        "((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar'");
+    }
   }
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {
