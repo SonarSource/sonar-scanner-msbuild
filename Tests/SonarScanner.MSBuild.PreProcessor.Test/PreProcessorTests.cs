@@ -19,7 +19,6 @@
  */
 
 using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 

@@ -30,24 +30,18 @@ public class EmbeddedAnalyzerInstallerTests
 
     [TestMethod]
     public void Constructor_NullSonarQubeServer_ThrowsArgumentNullException() =>
-        ((Action)(() => new EmbeddedAnalyzerInstaller(
-            null,
-            "NonNullPath",
-            new TestLogger()))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
+        FluentActions.Invoking(() => new EmbeddedAnalyzerInstaller(null, "NonNullPath", new TestLogger())).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("server");
 
     [TestMethod]
     public void Constructor_NullLogger_ThrowsArgumentNullException() =>
-        ((Action)(() => new EmbeddedAnalyzerInstaller(
-            Substitute.For<ISonarWebServer>(),
-            "NonNullPath",
-            null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        FluentActions.Invoking(() => new EmbeddedAnalyzerInstaller(Substitute.For<ISonarWebServer>(), "NonNullPath", null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
     [TestMethod]
     public void InstallAssemblies_NullPlugins_ThrowsArgumentNullException()
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var embeddedAnalyzerInstaller = new EmbeddedAnalyzerInstaller(Substitute.For<ISonarWebServer>(), localCacheDir, new TestLogger());
-        ((Action)(() => embeddedAnalyzerInstaller.InstallAssemblies(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("plugins");
+        FluentActions.Invoking(() => embeddedAnalyzerInstaller.InstallAssemblies(null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("plugins");
     }
 
     [TestMethod]
@@ -55,13 +49,13 @@ public class EmbeddedAnalyzerInstallerTests
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
-        var requestedPlugin = new Plugin() { Key = "plugin1", Version = "1.0", StaticResourceName = "embeddedFile1.zip" };
+        var requestedPlugin = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = "embeddedFile1.zip" };
         var server = Substitute.For<ISonarWebServer>();
         AddPlugin(server, requestedPlugin, "file1.dll", "file2.txt");
         var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "file1.dll", "file2.txt");
         var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
-        var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
+        var actualFiles = testSubject.InstallAssemblies([requestedPlugin]);
 
         logger.Should().HaveInfos("Processing plugin: plugin1 version 1.0");
         actualFiles.Should().NotBeNull("Returned list should not be null");
@@ -77,13 +71,13 @@ public class EmbeddedAnalyzerInstallerTests
         try
         {
             var logger = new TestLogger();
-            var requestedPlugin = new Plugin() { Key = "plugin1", Version = "1.0", StaticResourceName = "embeddedFile1.zip" };
+            var requestedPlugin = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = "embeddedFile1.zip" };
             var server = Substitute.For<ISonarWebServer>();
             AddPlugin(server, requestedPlugin, "file1.dll", "file2.txt");
             var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "file1.dll", "file2.txt");
             var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
-            var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
+            var actualFiles = testSubject.InstallAssemblies([requestedPlugin]);
 
             actualFiles.Should().NotBeNull("Returned list should not be null");
             AssertExpectedFilesReturned(expectedFilePaths, actualFiles);
@@ -107,9 +101,9 @@ public class EmbeddedAnalyzerInstallerTests
         const string p2Resource1 = "p2.resource1";
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
-        var request1 = new Plugin() { Key = "plugin1", Version = "1.0", StaticResourceName = $"{p1Resource1}.zip" };
-        var request2 = new Plugin() { Key = "plugin1", Version = "1.0", StaticResourceName = $"{p1Resource2}.zip" };
-        var request3 = new Plugin() { Key = "plugin2", Version = "2.0", StaticResourceName = $"{p2Resource1}.zip" };
+        var request1 = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = $"{p1Resource1}.zip" };
+        var request2 = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = $"{p1Resource2}.zip" };
+        var request3 = new Plugin { Key = "plugin2", Version = "2.0", StaticResourceName = $"{p2Resource1}.zip" };
         var server = Substitute.For<ISonarWebServer>();
         AddPlugin(server, request1, $"{p1Resource1}.file1.dll", $"{p1Resource1}.file2.dll");
         AddPlugin(server, request2, $"{p1Resource2}.file1.dll");
@@ -120,7 +114,7 @@ public class EmbeddedAnalyzerInstallerTests
         expectedPaths.AddRange(CalculateExpectedCachedFilePaths(localCacheDir, 2, $"{p2Resource1}.dll"));
         var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
-        var actualPlugins = testSubject.InstallAssemblies(new Plugin[] { request1, request2, request3 });
+        var actualPlugins = testSubject.InstallAssemblies([request1, request2, request3]);
 
         actualPlugins.Should().NotBeNull("Returned list should not be null");
         AssertExpectedFilesReturned(expectedPaths, actualPlugins);
@@ -136,10 +130,10 @@ public class EmbeddedAnalyzerInstallerTests
         const string missingPluginVersion = "1.0";
         const string missingPluginResource = "resource.txt";
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var requestedPlugin = new Plugin() { Key = missingPluginKey, Version = missingPluginVersion, StaticResourceName = missingPluginResource };
+        var requestedPlugin = new Plugin { Key = missingPluginKey, Version = missingPluginVersion, StaticResourceName = missingPluginResource };
         var testSubject = new EmbeddedAnalyzerInstaller(CreateServerWithDummyPlugin("plugin1"), localCacheDir, new TestLogger());
 
-        Action act = () => testSubject.InstallAssemblies(new Plugin[] { requestedPlugin });
+        Action act = () => testSubject.InstallAssemblies([requestedPlugin]);
 
         act.Should().Throw<FileNotFoundException>().WithMessage($"Plugin resource not found: {missingPluginKey}, version {missingPluginVersion}. Resource: {missingPluginResource}.");
     }
@@ -152,10 +146,10 @@ public class EmbeddedAnalyzerInstallerTests
         var server = CreateServerWithDummyPlugin("plugin1");
         var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
 
-        var actualFiles = testSubject.InstallAssemblies(new Plugin[] { });
+        var actualFiles = testSubject.InstallAssemblies([]);
 
         actualFiles.Should().NotBeNull("Returned list should not be null");
-        AssertExpectedFilesReturned(Enumerable.Empty<string>(), actualFiles);
+        AssertExpectedFilesReturned([], actualFiles);
         AssertExpectedFilesInCache(0, localCacheDir);
     }
 
@@ -164,8 +158,8 @@ public class EmbeddedAnalyzerInstallerTests
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
-        var request1 = new Plugin() { Key = "plugin1", Version = "1.0", StaticResourceName = "p1.resource1.zip" };
-        var request2 = new Plugin() { Key = "plugin2", Version = "2.0", StaticResourceName = "p2.resource1.zip" };
+        var request1 = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = "p1.resource1.zip" };
+        var request2 = new Plugin { Key = "plugin2", Version = "2.0", StaticResourceName = "p2.resource1.zip" };
         var server = Substitute.For<ISonarWebServer>();
         AddPlugin(server, request1, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
         AddPlugin(server, request2 /* no assemblies */);
@@ -176,7 +170,7 @@ public class EmbeddedAnalyzerInstallerTests
         IEnumerable<AnalyzerPlugin> actualPlugins;
         using (new AssertIgnoreScope())
         {
-            actualPlugins = testSubject.InstallAssemblies(new Plugin[] { request1, request2 });
+            actualPlugins = testSubject.InstallAssemblies([request1, request2]);
         }
 
         actualPlugins.Should().NotBeNull("Returned list should not be null");
@@ -184,7 +178,7 @@ public class EmbeddedAnalyzerInstallerTests
         AssertExpectedFilesExist(expectedPaths);
         // 5 = zip files + index file + content files
         AssertExpectedFilesInCache(5, localCacheDir);
-        actualPlugins.Select(p => p.Key).Should().BeEquivalentTo(new string[] { "plugin1" }); // plugin with no resources should not be included
+        actualPlugins.Select(x => x.Key).Should().BeEquivalentTo("plugin1"); // plugin with no resources should not be included
     }
 
     [TestMethod]
@@ -192,8 +186,8 @@ public class EmbeddedAnalyzerInstallerTests
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
-        var requestA = new Plugin() { Key = "p111", Version = "1.0-SNAPSHOT", StaticResourceName = "p1.zip" };
-        var requestB = new Plugin() { Key = "p222", Version = "9.1.3.0", StaticResourceName = "p2.zip" };
+        var requestA = new Plugin { Key = "p111", Version = "1.0-SNAPSHOT", StaticResourceName = "p1.zip" };
+        var requestB = new Plugin { Key = "p222", Version = "9.1.3.0", StaticResourceName = "p2.zip" };
         var server = Substitute.For<ISonarWebServer>();
         AddPlugin(server, requestA, "aaa", "bbb");
         AddPlugin(server, requestB, "ccc");
@@ -206,7 +200,7 @@ public class EmbeddedAnalyzerInstallerTests
         AssertExpectedFilesInCache(0, localCacheDir); // cache should be empty to start with
 
         // 1. Empty cache -> cache miss -> server called
-        var actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA });
+        var actualFiles = testSubject.InstallAssemblies([requestA]);
         server.ReceivedWithAnyArgs(1).TryDownloadEmbeddedFile(null, null, null);    // should have tried to download
 
         AssertExpectedFilesReturned(expectedPlugin111Paths, actualFiles);
@@ -214,7 +208,7 @@ public class EmbeddedAnalyzerInstallerTests
         AssertExpectedFilesInCache(4, localCacheDir); // only files for the first request should exist
 
         // 2. New request + request -> partial cache miss -> server called only for the new request
-        actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
+        actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
         server.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);    // new request
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
@@ -222,7 +216,7 @@ public class EmbeddedAnalyzerInstallerTests
         AssertExpectedFilesInCache(6, localCacheDir); // files for both plugins should exist
 
         // 3. Repeat the request -> cache hit -> server not called
-        actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
+        actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
         server.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);    // call count should not have changed
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
@@ -231,7 +225,7 @@ public class EmbeddedAnalyzerInstallerTests
         Directory.Delete(localCacheDir, true);
         Directory.Exists(localCacheDir).Should().BeFalse("Test error: failed to delete the local cache directory");
 
-        actualFiles = testSubject.InstallAssemblies(new Plugin[] { requestA, requestB });
+        actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
         server.ReceivedWithAnyArgs(4).TryDownloadEmbeddedFile(null, null, null);    // two new requests
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
@@ -242,7 +236,7 @@ public class EmbeddedAnalyzerInstallerTests
     /// <summary>
     /// Used by tests that don't care about the content of the plugin, just it's existence.
     /// </summary>
-    private ISonarWebServer CreateServerWithDummyPlugin(string languageKey)
+    private static ISonarWebServer CreateServerWithDummyPlugin(string languageKey)
     {
         var server = Substitute.For<ISonarWebServer>();
         server.DownloadAllLanguages().Returns([languageKey]);
@@ -250,28 +244,19 @@ public class EmbeddedAnalyzerInstallerTests
         return server;
     }
 
-    private void AddPlugin(ISonarWebServer server, Plugin plugin, params string[] files) =>
+    private static void AddPlugin(ISonarWebServer server, Plugin plugin, params string[] files) =>
         server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, Arg.Any<string>()).Returns(true)
             .AndDoes(x => CreateZipFile(Path.Combine((string)x[2], plugin.StaticResourceName), files));
 
     private static void CreateZipFile(string zipFilePath, params string[] contentFileNames)
     {
-        // Create a temporary directory structure
         var tempDir = Path.Combine(Path.GetTempPath(), "sqTestsTemp", Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
-
-        var zipDir = Path.Combine(tempDir, "zipDir");
-        Directory.CreateDirectory(zipDir);
-
-        // Create and read the zip file
         foreach (var contentFileName in contentFileNames)
         {
-            TestUtils.CreateTextFile(zipDir, contentFileName, "dummy file content");
+            TestUtils.CreateTextFile(tempDir, contentFileName, "dummy file content");
         }
-
-        ZipFile.CreateFromDirectory(zipDir, zipFilePath);
-
-        // Cleanup
+        ZipFile.CreateFromDirectory(tempDir, zipFilePath);
         Directory.Delete(tempDir, true);
     }
 
@@ -302,7 +287,7 @@ public class EmbeddedAnalyzerInstallerTests
         TestContext.WriteLine(string.Empty);
     }
 
-    private void AssertExpectedFilesExist(IEnumerable<string> expectedFileNames)
+    private static void AssertExpectedFilesExist(IEnumerable<string> expectedFileNames)
     {
         foreach (var expected in expectedFileNames)
         {
