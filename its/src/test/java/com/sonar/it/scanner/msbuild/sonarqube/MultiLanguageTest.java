@@ -24,7 +24,6 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
-import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
 import java.nio.file.Path;
@@ -89,7 +88,7 @@ class MultiLanguageTest {
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     var version = ORCHESTRATOR.getServer().version();
-    var expectedIssues = new Tuple[]{
+    var expectedIssues = new ArrayList<>(List.of(
       tuple("csharpsquid:S1134", context.projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S6966", context.projectKey + ":AspBackend/Program.cs"),
@@ -108,16 +107,25 @@ class MultiLanguageTest {
       tuple("php:S1780", context.projectKey + ":node_modules/flatted/php/flatted.php"),
       tuple("python:S5754", context.projectKey + ":node_modules/flatted/python/flatted.py"),
       tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py"),
-      tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py")};
+      tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py")));
+    if(version.isGreaterThanOrEquals(2025,4)){
+      // SonarJs 11.4 targets 2025.5 but since we are currently using the latest analyzer versions we need to check for 2025.4.
+      // This will break when we add tests for 2025.4. (it's not an LTA but is supported like one). When that happens, change condition to 2025.5 and remove this comment.
+      expectedIssues.addAll(List.of(
+        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
+        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
+        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
+        tuple("javascript:S7772", context.projectKey + ":vite.config.js")));
+    }
     if (version.isGreaterThanOrEquals(2025, 1)) {
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(expectedIssues);
+        .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
     } else {
       assertThat(issues).hasSize(83);
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
-        .contains(expectedIssues);
+        .contains(expectedIssues.toArray(new Tuple[]{}));
     }
     // Different expected values are for different SQ and MsBuild versions and local run
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", ORCHESTRATOR)).isGreaterThan(300);
@@ -293,8 +301,17 @@ class MultiLanguageTest {
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml")));
+      // SonarJs 11.4 same as above
+      expectedIssues.addAll(List.of(
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7750", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7726", context.projectKey + ":ClientApp/karma.conf.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/karma.conf.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js"),
+        tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts")));
     }
-
     assertThat(issues)
       .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
       .extracting(Issue::getRule, Issue::getComponent)
