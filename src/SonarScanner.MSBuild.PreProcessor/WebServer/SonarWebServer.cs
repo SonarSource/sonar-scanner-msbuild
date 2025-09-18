@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.PreProcessor.EngineResolution;
