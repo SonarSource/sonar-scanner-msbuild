@@ -125,7 +125,7 @@ class ProvisioningTest {
     orchestrator.start();
     WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
         .url(orchestrator.getServer().getUrl())
-        .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
+        .token(orchestrator.getDefaultAdminToken())
         .build())
       .settings().set(new SetRequest()
         .setKey("sonar.jreAutoProvisioning.disabled")
