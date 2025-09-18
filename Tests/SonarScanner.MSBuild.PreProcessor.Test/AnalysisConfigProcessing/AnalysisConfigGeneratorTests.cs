@@ -159,10 +159,14 @@ public class AnalysisConfigGeneratorTests
         AssertConfigFileExists(actualConfig);
         runtime.Logger.Should()
             .HaveNoErrors()
-            .And.HaveNoWarnings()
-            .And.HaveDebugs("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
-
+            .And.HaveNoWarnings();
+#if NETFRAMEWORK
+        runtime.Logger.Should().HaveDebugs("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
         actualConfig.UseSonarScannerCli.Should().BeTrue();
+#else
+        runtime.Logger.Should().NotHaveDebug("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
+        actualConfig.UseSonarScannerCli.Should().BeFalse();
+#endif
     }
 
     [TestMethod]
