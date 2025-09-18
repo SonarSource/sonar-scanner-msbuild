@@ -100,7 +100,7 @@ class CloudProvisioningTest {
       // First analysis, cache misses and downloads the JRE
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var cacheMiss = context.runAnalysis().begin();
-      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), true);
+      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), true, false);
 
       // Second analysis, cache hits and does not download the JRE
       var secondBegin = context.runAnalysis().begin();
