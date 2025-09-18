@@ -479,8 +479,8 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(new ListPropertiesProvider(properties));
 
         sut.IsValid.Should().BeTrue();
-        runtime.Logger.Should().HaveNoErrors();
-        runtime.Logger.Should().HaveWarningOnce(expectedMessage);
+        runtime.Logger.Should().HaveNoErrors()
+            .And.HaveWarningOnce(expectedMessage);
         runtime.Logger.UIWarnings.Should().ContainSingle(expectedMessage);
     }
 
