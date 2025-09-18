@@ -201,7 +201,8 @@ public class EmbeddedAnalyzerInstallerTests
 
         // 1. Empty cache -> cache miss -> server called
         var actualFiles = testSubject.InstallAssemblies([requestA]);
-        server.ReceivedWithAnyArgs(1).TryDownloadEmbeddedFile(null, null, null);    // should have tried to download
+        server.Received(1).TryDownloadEmbeddedFile("p111", "p1.zip", Arg.Any<string>());
+        server.ReceivedWithAnyArgs(1).TryDownloadEmbeddedFile(null, null, null);    // no other downloads
 
         AssertExpectedFilesReturned(expectedPlugin111Paths, actualFiles);
         AssertExpectedFilesExist(expectedPlugin111Paths);
@@ -209,7 +210,8 @@ public class EmbeddedAnalyzerInstallerTests
 
         // 2. New request + request -> partial cache miss -> server called only for the new request
         actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
-        server.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);    // new request
+        server.Received(1).TryDownloadEmbeddedFile("p222", "p2.zip", Arg.Any<string>());
+        server.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);    // 1 from before + 1 new
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
         AssertExpectedFilesExist(allExpectedPaths);
@@ -217,7 +219,7 @@ public class EmbeddedAnalyzerInstallerTests
 
         // 3. Repeat the request -> cache hit -> server not called
         actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
-        server.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);    // call count should not have changed
+        server.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);    // no new downloads
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
 
@@ -226,7 +228,9 @@ public class EmbeddedAnalyzerInstallerTests
         Directory.Exists(localCacheDir).Should().BeFalse("Test error: failed to delete the local cache directory");
 
         actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
-        server.ReceivedWithAnyArgs(4).TryDownloadEmbeddedFile(null, null, null);    // two new requests
+        server.Received(2).TryDownloadEmbeddedFile("p111", "p1.zip", Arg.Any<string>());
+        server.Received(2).TryDownloadEmbeddedFile("p222", "p2.zip", Arg.Any<string>());
+        server.ReceivedWithAnyArgs(4).TryDownloadEmbeddedFile(null, null, null);    // two more downloads
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
         AssertExpectedFilesExist(allExpectedPaths);
@@ -246,7 +250,7 @@ public class EmbeddedAnalyzerInstallerTests
 
     private static void AddPlugin(ISonarWebServer server, Plugin plugin, params string[] files) =>
         server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, Arg.Any<string>()).Returns(true)
-            .AndDoes(x => CreateZipFile(Path.Combine((string)x[2], plugin.StaticResourceName), files));
+            .AndDoes(x => CreateZipFile(Path.Combine(x.ArgAt<string>(2), plugin.StaticResourceName), files));
 
     private static void CreateZipFile(string zipFilePath, params string[] contentFileNames)
     {

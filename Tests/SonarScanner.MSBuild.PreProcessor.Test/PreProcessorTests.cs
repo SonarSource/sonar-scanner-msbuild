@@ -76,7 +76,7 @@ public partial class PreProcessorTests
     public async Task Execute_InvalidLicense_ReturnsFalse()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.IsServerVersionSupported().Returns(false);
+        context.Factory.Server.IsServerLicenseValid().Returns(false);
 
         var result = await context.Execute();
 
@@ -263,7 +263,7 @@ public partial class PreProcessorTests
     }
 
     [TestMethod]
-    public async Task Execute_NoProject_ReturnsTrue()
+    public async Task Execute_NoQualityProfile_ReturnsTrue()
     {
         using var context = new Context(TestContext, new MockObjectFactory(false));
         context.Factory.Server.DownloadQualityProfile(null, null, null).ReturnsForAnyArgs((string)null);
