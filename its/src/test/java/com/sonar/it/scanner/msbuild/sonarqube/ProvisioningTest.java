@@ -27,7 +27,7 @@ import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.http.HttpMethod;
+import com.sonar.orchestrator.container.Server;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,6 +38,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.settings.SetRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -116,17 +119,17 @@ class ProvisioningTest {
   @Test
   @ServerMinVersion("2025.5")
   void jreAutoProvisioning_disabled() {
-    // sonar.jreAutoProvisioning.disabled is a server wide setting. We need our own server instance here so we do not interfere with other JRE tests.
+    // sonar.jreAutoProvisioning.disabled is a server wide setting and errors with "Setting 'sonar.jreAutoProvisioning.disabled' cannot be set on a Project"
+    // We need our own server instance here so we do not interfere with other JRE tests.
     var orchestrator = ServerTests.orchestratorBuilder().activateLicense().build();
     orchestrator.start();
-    orchestrator
-      .getServer()
-      .newHttpCall("api/settings/set")
-      .setAdminCredentials()
-      .setMethod(HttpMethod.POST)
-      .setParam("key", "sonar.jreAutoProvisioning.disabled")
-      .setParam("value", "true")
-      .execute();
+    WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
+        .url(orchestrator.getServer().getUrl())
+        .credentials(Server.ADMIN_LOGIN, Server.ADMIN_PASSWORD)
+        .build())
+      .settings().set(new SetRequest()
+        .setKey("sonar.jreAutoProvisioning.disabled")
+        .setValue("true"));
     var begin = ScannerCommand.createBeginStep(
         ScannerClassifier.NET,
         orchestrator.getDefaultAdminToken(),
