@@ -248,7 +248,7 @@ public class ProcessedArgs
         if (buildSettings?.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
             UseSonarScannerCli = true;
-            runtime.LogDebug("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
+            runtime.LogDebug(Resources.MSG_SonarScannerCliFallbackForTfsLegacySupport);
         }
 #endif
 

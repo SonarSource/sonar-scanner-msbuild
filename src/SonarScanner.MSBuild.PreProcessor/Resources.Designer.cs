@@ -1182,6 +1182,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Falling back to SonarScannerCLI to guarantee TFS Legacy support..
+        /// </summary>
+        internal static string MSG_SonarScannerCliFallbackForTfsLegacySupport {
+            get {
+                return ResourceManager.GetString("MSG_SonarScannerCliFallbackForTfsLegacySupport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Starting extracting the Java runtime environment from archive &apos;{0}&apos; to folder &apos;{1}&apos;..
         /// </summary>
         internal static string MSG_StartingJreExtraction {
