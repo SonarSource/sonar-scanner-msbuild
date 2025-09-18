@@ -145,14 +145,13 @@ public class AnalysisConfigGeneratorTests
     }
 
     [TestMethod]
-    public void AnalysisConfGen_UseSonarScannerCLI_SetToTrueInLegacyTeamBuildContext()
+    public void AnalysisConfGen_LegacyTeamBuildContext_UseScannerCliFallback()
     {
         var runtime = new TestRuntime();
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         // Set the build environment to TFS Legacy. This forces the AnalysisConfig.UseSonarScannerCli property to be set to true
         var settings = BuildSettings.CreateSettingsForTesting(analysisDir, BuildEnvironment.LegacyTeamBuild);
-        // Explicit set sonar.scanner.useSonarScannerCLI argument to false. This get's ignored/overriden in TFS Legacy context
-        var args = CreateProcessedArgs(new ListPropertiesProvider { { SonarProperties.UseSonarScannerCLI, "false" } }, EmptyPropertyProvider.Instance, runtime, settings);
+        var args = CreateProcessedArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, runtime, settings);
 
         var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, runtime);
 
@@ -167,6 +166,26 @@ public class AnalysisConfigGeneratorTests
         runtime.Logger.Should().NotHaveDebug("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
         actualConfig.UseSonarScannerCli.Should().BeFalse();
 #endif
+    }
+
+    [TestMethod]
+    public void AnalysisConfGen_LegacyTeamBuildContext_UserSettingTakesPrecedence()
+    {
+        var runtime = new TestRuntime();
+        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        // Set the build environment to TFS Legacy. This forces the AnalysisConfig.UseSonarScannerCli property to be set to true
+        var settings = BuildSettings.CreateSettingsForTesting(analysisDir, BuildEnvironment.LegacyTeamBuild);
+        // Explicit set sonar.scanner.useSonarScannerCLI argument to false. This overrides the TFS Legacy context which would set it to true.
+        var args = CreateProcessedArgs(new ListPropertiesProvider { { SonarProperties.UseSonarScannerCLI, "false" } }, EmptyPropertyProvider.Instance, runtime, settings);
+
+        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, runtime);
+
+        AssertConfigFileExists(actualConfig);
+        runtime.Logger.Should()
+            .HaveNoErrors()
+            .And.HaveNoWarnings()
+            .And.NotHaveDebug("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
+        actualConfig.UseSonarScannerCli.Should().BeFalse();
     }
 
     [TestMethod]

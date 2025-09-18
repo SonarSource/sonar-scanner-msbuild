@@ -242,15 +242,16 @@ public class ProcessedArgs
         else
         {
             UseSonarScannerCli = false;
-        }
 #if NETFRAMEWORK
-        // If the TFS legacy coverage processor is called, we cannot use the scanner engine because it writes information to the properties file, which would be missing from the ScannerEngineInput.
-        if (buildSettings?.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
-        {
-            UseSonarScannerCli = true;
-            runtime.LogDebug(Resources.MSG_SonarScannerCliFallbackForTfsLegacySupport);
-        }
+            // If the TFS legacy coverage processor is called, we cannot use the scanner engine because it writes information to the properties file,
+            // which would be missing from the ScannerEngineInput.
+            if (buildSettings?.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
+            {
+                UseSonarScannerCli = true;
+                runtime.LogDebug(Resources.MSG_SonarScannerCliFallbackForTfsLegacySupport);
+            }
 #endif
+        }
 
         if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))
         {
@@ -403,7 +404,7 @@ public class ProcessedArgs
             {
                 runtime.LogDebug(Resources.MSG_NoTruststoreProceedWithoutTruststore);
                 TruststorePath = null;
-                TruststorePassword   = null;
+                TruststorePassword = null;
                 return true;
             }
             runtime.LogDebug(Resources.MSG_FallbackTruststoreDefaultPath, TruststorePath);
