@@ -239,6 +239,19 @@ public partial class PreProcessorTests
     }
 
     [TestMethod]
+    public async Task Execute_EndToEnd_UseCli_SuccessCase()
+    {
+        using var context = new Context(TestContext);
+        var args = new List<string>(CreateArgs()) { "/d:sonar.scanner.useSonarScannerCLI=true" };
+        (await context.Execute(args)).Should().BeTrue();
+
+        context.AssertDirectoriesCreated();
+        context.AssertDownloadMethodsCalled(1, 1, 2, 2);
+        context.AssertAnalysisConfig(2);
+        await context.Factory.EngineResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);
+    }
+
+    [TestMethod]
     public async Task Execute_NoPlugin_ReturnsFalseAndLogsError()
     {
         using var context = new Context(TestContext);

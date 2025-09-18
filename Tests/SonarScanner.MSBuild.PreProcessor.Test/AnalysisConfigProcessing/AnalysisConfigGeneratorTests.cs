@@ -700,5 +700,6 @@ public class AnalysisConfigGeneratorTests
             cmdLineProperties,
             globalFileProperties,
             EmptyPropertyProvider.Instance,
+            null,
             runtime);
 }

@@ -219,6 +219,7 @@ public class PreprocessorObjectFactoryTests
             cmdLineArgs,
             new ListPropertiesProvider(),
             EmptyPropertyProvider.Instance,
+            null,
             runtime);
     }
 }
