@@ -203,6 +203,7 @@ public class EmbeddedAnalyzerInstallerTests
         var actualFiles = testSubject.InstallAssemblies([requestA]);
         server.Received(1).TryDownloadEmbeddedFile("p111", "p1.zip", Arg.Any<string>());
         server.ReceivedWithAnyArgs(1).TryDownloadEmbeddedFile(null, null, null);    // no other downloads
+        server.ClearReceivedCalls();
 
         AssertExpectedFilesReturned(expectedPlugin111Paths, actualFiles);
         AssertExpectedFilesExist(expectedPlugin111Paths);
@@ -211,7 +212,8 @@ public class EmbeddedAnalyzerInstallerTests
         // 2. New request + request -> partial cache miss -> server called only for the new request
         actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
         server.Received(1).TryDownloadEmbeddedFile("p222", "p2.zip", Arg.Any<string>());
-        server.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);    // 1 from before + 1 new
+        server.ReceivedWithAnyArgs(1).TryDownloadEmbeddedFile(null, null, null);
+        server.ClearReceivedCalls();
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
         AssertExpectedFilesExist(allExpectedPaths);
@@ -219,7 +221,7 @@ public class EmbeddedAnalyzerInstallerTests
 
         // 3. Repeat the request -> cache hit -> server not called
         actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
-        server.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);    // no new downloads
+        server.DidNotReceiveWithAnyArgs().TryDownloadEmbeddedFile(null, null, null);
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
 
@@ -228,9 +230,9 @@ public class EmbeddedAnalyzerInstallerTests
         Directory.Exists(localCacheDir).Should().BeFalse("Test error: failed to delete the local cache directory");
 
         actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
-        server.Received(2).TryDownloadEmbeddedFile("p111", "p1.zip", Arg.Any<string>());
-        server.Received(2).TryDownloadEmbeddedFile("p222", "p2.zip", Arg.Any<string>());
-        server.ReceivedWithAnyArgs(4).TryDownloadEmbeddedFile(null, null, null);    // two more downloads
+        server.Received(1).TryDownloadEmbeddedFile("p111", "p1.zip", Arg.Any<string>());
+        server.Received(1).TryDownloadEmbeddedFile("p222", "p2.zip", Arg.Any<string>());
+        server.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
         AssertExpectedFilesExist(allExpectedPaths);
@@ -254,14 +256,14 @@ public class EmbeddedAnalyzerInstallerTests
 
     private static void CreateZipFile(string zipFilePath, params string[] contentFileNames)
     {
-        var tempDir = Path.Combine(Path.GetTempPath(), "sqTestsTemp", Guid.NewGuid().ToString());
-        Directory.CreateDirectory(tempDir);
+        using var zipStream = new FileStream(zipFilePath, FileMode.Create, FileAccess.Write);
+        using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create);
         foreach (var contentFileName in contentFileNames)
         {
-            TestUtils.CreateTextFile(tempDir, contentFileName, "dummy file content");
+            using var entryStream = archive.CreateEntry(contentFileName).Open();
+            using var writer = new StreamWriter(entryStream);
+            writer.Write("dummy file content");
         }
-        ZipFile.CreateFromDirectory(tempDir, zipFilePath);
-        Directory.Delete(tempDir, true);
     }
 
     private static List<string> CalculateExpectedCachedFilePaths(string baseDir, int count, params string[] fileNames) =>
