@@ -892,20 +892,20 @@ public class SonarWebServerTest
     private SonarWebServerStub CreateServer(Version version = null, string organization = null) =>
         new(downloader, downloader, version ?? this.version, logger, organization);
 
-    private class SonarWebServerStub : SonarWebServer
+    private class SonarWebServerStub : SonarWebServer, ISonarWebServer
     {
         public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
             : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         { }
 
-        public override Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) => throw new NotImplementedException();
+        public Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) => throw new NotImplementedException();
 
-        public override bool IsServerVersionSupported() => throw new NotImplementedException();
+        public bool IsServerVersionSupported() => throw new NotImplementedException();
 
-        public override Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
+        public Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
 
-        public override Task<Stream> DownloadJreAsync(JreMetadata metadata) => throw new NotImplementedException();
+        public Task<Stream> DownloadJreAsync(JreMetadata metadata) => throw new NotImplementedException();
 
-        public override Task<Stream> DownloadEngineAsync(EngineMetadata metadata) => throw new NotImplementedException();
+        public Task<Stream> DownloadEngineAsync(EngineMetadata metadata) => throw new NotImplementedException();
     }
 }

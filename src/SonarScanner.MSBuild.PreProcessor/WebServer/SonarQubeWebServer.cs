@@ -26,7 +26,7 @@ using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
-internal class SonarQubeWebServer : SonarWebServer
+internal class SonarQubeWebServer : SonarWebServer, ISonarWebServer
 {
     public override bool SupportsJreProvisioning =>
         serverVersion >= new Version(10, 6);
@@ -37,7 +37,7 @@ internal class SonarQubeWebServer : SonarWebServer
         logger.LogInfo(Resources.MSG_UsingSonarQube, serverVersion);
     }
 
-    public override bool IsServerVersionSupported()
+    public bool IsServerVersionSupported()
     {
         logger.LogDebug(Resources.MSG_CheckingVersionSupported);
         if (serverVersion.CompareTo(new Version(8, 9)) < 0)
@@ -52,7 +52,7 @@ internal class SonarQubeWebServer : SonarWebServer
         return true;
     }
 
-    public override async Task<bool> IsServerLicenseValid()
+    public async Task<bool> IsServerLicenseValid()
     {
         logger.LogDebug(Resources.MSG_CheckingLicenseValidity);
         var response = await webDownloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative));
@@ -88,7 +88,7 @@ internal class SonarQubeWebServer : SonarWebServer
         }
     }
 
-    public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
+    public async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
     {
         var empty = Array.Empty<SensorCacheEntry>();
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
@@ -125,14 +125,14 @@ internal class SonarQubeWebServer : SonarWebServer
         }
     }
 
-    public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
+    public async Task<Stream> DownloadJreAsync(JreMetadata metadata)
     {
         var uri = WebUtils.EscapedUri("analysis/jres/{0}", metadata.Id);
         logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
         return await apiDownloader.DownloadStream(uri, new() { { "Accept", "application/octet-stream" } });
     }
 
-    public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
+    public async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
     {
         const string uri = "analysis/engine";
         logger.LogDebug(Resources.MSG_EngineDownloadUri, uri);
