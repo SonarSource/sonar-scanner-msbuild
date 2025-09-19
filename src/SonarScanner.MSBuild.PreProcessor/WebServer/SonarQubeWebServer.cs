@@ -26,7 +26,7 @@ using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
-internal class SonarQubeWebServer : SonarWebServer, ISonarWebServer
+internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
 {
     public override bool SupportsJreProvisioning =>
         serverVersion >= new Version(10, 6);

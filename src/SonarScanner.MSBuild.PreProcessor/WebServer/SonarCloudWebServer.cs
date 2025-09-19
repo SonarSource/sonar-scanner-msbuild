@@ -27,7 +27,7 @@ using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
-internal class SonarCloudWebServer : SonarWebServer, ISonarWebServer
+internal class SonarCloudWebServer : SonarWebServerBase, ISonarWebServer
 {
     private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
 

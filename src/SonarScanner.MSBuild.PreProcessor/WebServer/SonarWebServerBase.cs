@@ -27,7 +27,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
-public abstract class SonarWebServer : IDisposable
+public abstract class SonarWebServerBase : IDisposable
 {
     private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
     private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";
@@ -43,7 +43,7 @@ public abstract class SonarWebServer : IDisposable
     public Version ServerVersion => serverVersion;
     public virtual bool SupportsJreProvisioning => true;
 
-    protected SonarWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
+    protected SonarWebServerBase(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
     {
         this.webDownloader = webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
         this.apiDownloader = apiDownloader ?? throw new ArgumentNullException(nameof(apiDownloader));

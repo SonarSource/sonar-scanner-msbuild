@@ -892,7 +892,7 @@ public class SonarWebServerTest
     private SonarWebServerStub CreateServer(Version version = null, string organization = null) =>
         new(downloader, downloader, version ?? this.version, logger, organization);
 
-    private class SonarWebServerStub : SonarWebServer, ISonarWebServer
+    private class SonarWebServerStub : SonarWebServerBase, ISonarWebServer
     {
         public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
             : base(webDownloader, apiDownloader, serverVersion, logger, organization)
