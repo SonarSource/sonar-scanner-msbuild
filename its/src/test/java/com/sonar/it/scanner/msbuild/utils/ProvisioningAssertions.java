@@ -73,13 +73,13 @@ public final class ProvisioningAssertions {
         "Cache miss. Attempting to download '");  // + file path to scanner engine
       TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
       TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern +
-        "((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar'");
+        "((scanner-developer)|(sonarcloud-scanner-engine)|(sonar-scanner-engine-shaded)).+\\.jar'");
     }
   }
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {
     var javaPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+_extracted.+java(?:\\.exe)?";
-    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar";
+    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+((scanner-developer)|(sonarcloud-scanner-engine)|(sonar-scanner-engine-shaded)).+\\.jar";
     assertThat(secondBegin.isSuccess()).isTrue();
     TestUtils.matchesSingleLine(secondBegin.getLogs(),
       "JreResolver: Cache hit '" + javaPattern + "'");
