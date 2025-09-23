@@ -446,6 +446,12 @@ stages:
               SQ_EDITION: "COMMUNITY"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              CFAMILY_VERSION: "NONE"         # Bundled version with SQ 2025.1
+              CSS_VERSION: "NONE"                     # No official release in SQ 2025.1, the plug-in should not be loaded. Rules are in the JS plugin
+              DOTNET_VERSION: "10.4.0.108396"         # Bundled version with SQ 2025.1
+              GO_VERSION: "NONE"                # Bundled version with SQ 2025.1
+              IAC_VERSION: "NONE"             # Bundled version with SQ 2025.1
+              PLSQL_VERSION: "NONE"            # Bundled version with SQ 2025.1
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
