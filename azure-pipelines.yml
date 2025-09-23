@@ -449,7 +449,7 @@ stages:
               CFAMILY_VERSION: "NONE"         # Bundled version with SQ 2025.1
               CSS_VERSION: "NONE"                     # No official release in SQ 2025.1, the plug-in should not be loaded. Rules are in the JS plugin
               GO_VERSION: "NONE"                # Bundled version with SQ 2025.1
-              IAC_VERSION: "NONE"             # Bundled version with SQ 2025.1
+              IAC_ENTERPRISE_VERSION: "NONE"             # Bundled version with SQ 2025.1
               PLSQL_VERSION: "NONE"            # Bundled version with SQ 2025.1
             Cloud:
               PRODUCT: "SonarCloud"
