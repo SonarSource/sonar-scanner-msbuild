@@ -20,7 +20,6 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
-import com.sonar.orchestrator.version.Version;
 import java.util.Arrays;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
@@ -37,13 +36,13 @@ public class EditionSupportCondition implements ExecutionCondition {
     }
     var serverEdition = ServerTests.ORCHESTRATOR.getServer().getEdition();
     if (enableOnEdition != null) {
-      var supported = enableOnEdition.value();
-      return Arrays.stream(supported).anyMatch(x -> x == serverEdition)
+      var supported = Arrays.asList(enableOnEdition.value());
+      return supported.contains(serverEdition)
         ? ConditionEvaluationResult.enabled("Edition " + serverEdition.toString() + " is supported.")
         : ConditionEvaluationResult.disabled("Edition " + serverEdition.toString() + " is not supported.");
     }
-    var unsupported = disableOnEdition.value();
-    return Arrays.stream(unsupported).anyMatch(x -> x == serverEdition)
+    var unsupported = Arrays.asList(disableOnEdition.value());
+    return unsupported.contains(serverEdition)
       ? ConditionEvaluationResult.disabled("Edition " + serverEdition.toString() + " is not supported.")
       : ConditionEvaluationResult.enabled("Edition " + serverEdition.toString() + " is supported.");
   }
