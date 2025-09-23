@@ -449,7 +449,7 @@ stages:
               CFAMILY_VERSION: "NONE"         # Commercial plugin
               GO_VERSION: "NONE"              # Commercial plugin
               IAC_ENTERPRISE_VERSION: "NONE"  # Commercial plugin
-              PLSQL_VERSION: "NONE"           # Bundled version with SQ 2025.1
+              PLSQL_VERSION: "NONE"           # Commercial plugin
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
