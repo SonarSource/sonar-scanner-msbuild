@@ -21,7 +21,9 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.DisableOnEdition;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.orchestrator.container.Edition;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -38,6 +40,7 @@ class SQLServerTest {
   @Test
   // The project contains a .sqlproj file, which is only supported by Visual Studio, so it requires MSBuild to be build it
   @EnabledOnOs(OS.WINDOWS)
+  @DisableOnEdition(Edition.COMMUNITY)
   void sqlProject_AnalyzesAlsoCSharp() {
     var context = AnalysisContext.forServer("SQLServerSolution");
     context.runAnalysis();

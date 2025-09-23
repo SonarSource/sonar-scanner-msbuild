@@ -267,6 +267,7 @@ class MultiLanguageTest {
   @Test
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
+  @DisableOnEdition(Edition.COMMUNITY)
   void angular() {
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.begin.CreateAndSetUserHomeFolder("junit-angular-");
