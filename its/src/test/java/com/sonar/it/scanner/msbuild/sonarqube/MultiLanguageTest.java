@@ -21,11 +21,13 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.DisableOnEdition;
 import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
+import com.sonar.orchestrator.container.Edition;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +78,7 @@ class MultiLanguageTest {
   @ServerMinVersion("10.8")
   // This test is not supported on versions older than Visual Studio 2022
   @MSBuildMinVersion(17)
+  @DisableOnEdition(Edition.COMMUNITY)
   void esprojVueWithBackend() {
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
@@ -136,6 +139,7 @@ class MultiLanguageTest {
   @Test
   // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
   @MSBuildMinVersion(16)
+  @DisableOnEdition(Edition.COMMUNITY)
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
@@ -351,6 +355,7 @@ class MultiLanguageTest {
   // Multi-language unsupported in SQ99
   @ServerMinVersion("10.0")
   @EnabledOnOs(OS.WINDOWS)
+  @DisableOnEdition(Edition.COMMUNITY)
   void nonSdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
     context.begin.CreateAndSetUserHomeFolder("junit-nonSdkFormat-");

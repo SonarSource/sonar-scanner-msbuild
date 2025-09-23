@@ -62,7 +62,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
 
   private static Orchestrator createOrchestrator() {
     var version = System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE");
-    var edition = Edition.valueOf(System.getProperty("sonar.sonarQubeEdition", Edition.DEVELOPER.name()));
+    var edition = Edition.valueOf(System.getProperty("sonar.sonarQubeEdition", Edition.COMMUNITY.name()));
     var orchestrator = OrchestratorExtension.builderEnv()
       .useDefaultAdminCredentialsForBuilds(true)
       .setSonarVersion(version)
@@ -70,20 +70,20 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
       .setServerProperty("sonar.telemetry.enable", "false"); // Disabling telemetry to avoid polluting our own data.
     // Plugin versions are defined in https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/azure-pipelines.yml
     // Set the version to NONE to disable the plugin.
-    addPlugin(orchestrator, "com.sonarsource.cpp", "sonar-cfamily-plugin", "sonar.cfamilyplugin.version");
-    addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version");
+    // addPlugin(orchestrator, "com.sonarsource.cpp", "sonar-cfamily-plugin", "sonar.cfamilyplugin.version");
+    // addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version");
     addPlugin(orchestrator, "org.sonarsource.css", "sonar-css-plugin", "sonar.css.version", "NONE");
     addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-csharp-plugin", "sonar.csharpplugin.version", "DEV");
     addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-vbnet-plugin", "sonar.vbnetplugin.version", "DEV");
     addPlugin(orchestrator, "org.sonarsource.iac", "sonar-iac-plugin", "sonar.iacplugin.version");
-    addPlugin(orchestrator, "com.sonarsource.iac", "sonar-iac-enterprise-plugin", "sonar.iacplugin-enterprise.version");
+    // addPlugin(orchestrator, "com.sonarsource.iac", "sonar-iac-enterprise-plugin", "sonar.iacplugin-enterprise.version");
     addPlugin(orchestrator, "org.sonarsource.java", "sonar-java-plugin", "sonar.javaplugin.version");
     addPlugin(orchestrator, "org.sonarsource.javascript", "sonar-javascript-plugin", "sonar.javascriptplugin.version");
     addPlugin(orchestrator, "org.sonarsource.php", "sonar-php-plugin", "sonar.phpplugin.version");
     addPlugin(orchestrator, "org.sonarsource.python", "sonar-python-plugin", "sonar.pythonplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.text", "sonar-text-plugin", "sonar.textplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version");
-    addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version");
+    // addPlugin(orchestrator, "org.sonarsource.text", "sonar-text-plugin", "sonar.textplugin.version");
+    // addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version");
+    // addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version");
 
     // DO NOT add any additional plugin loading logic here. Everything must be in the YML
     if (!version.contains("8.9")) {
