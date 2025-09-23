@@ -65,7 +65,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     var orchestrator = OrchestratorExtension.builderEnv()
       .useDefaultAdminCredentialsForBuilds(true)
       .setSonarVersion(version)
-      .setEdition(Edition.DEVELOPER)
+      .setEdition(Edition.valueOf(System.getProperty("sonar.sonarQubeEdition", Edition.DEVELOPER.name())))
       .setServerProperty("sonar.telemetry.enable", "false"); // Disabling telemetry to avoid polluting our own data.
     // Plugin versions are defined in https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/azure-pipelines.yml
     // Set the version to NONE to disable the plugin.
