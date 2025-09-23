@@ -90,8 +90,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
       orchestrator.addPlugin(FileLocation.of(customRoslynPlugin().toFile()));
     }
-    if (edition != Edition.COMMUNITY)
-    {
+    if (edition != Edition.COMMUNITY) {
       orchestrator.activateLicense();
     }
     return orchestrator.build();
