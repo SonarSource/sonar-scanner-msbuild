@@ -19,18 +19,14 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
-import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
-import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
-import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.it.scanner.msbuild.utils.Workload;
-import com.sonar.it.scanner.msbuild.utils.WorkloadPrerequisite;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.sonar.it.scanner.msbuild.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -198,22 +194,17 @@ class SolutionKindTest {
   }
 
   private void assertUIWarnings(AnalysisResult result) {
-    // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922, so it's available from SQ 9.9 onwards
+    // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
+    // So it's available from SQ 9.9 onwards
     if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
       var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, result.end());
       assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-      if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(2025, 1)) {
-        assertThat(warnings.getWarningsList()).isEmpty();
-      } else {
-        assertThat(warnings.getWarningsList()).containsExactlyInAnyOrder(
-          "You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version."
-        );
-      }
+      assertThat(warnings.getWarningsList()).isEmpty();
     }
   }
 
   private void assertProjectFileContains(AnalysisContext context, String textToLookFor) {
-    Path csProjPath = context.projectDir.resolve(Paths.get("RazorWebApplication", "RazorWebApplication.csproj"));
+    Path csProjPath = context.projectDir.resolve(Paths.get("RazorWebApplication","RazorWebApplication.csproj"));
     try {
       String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
       assertThat(str.indexOf(textToLookFor)).isPositive();
@@ -228,7 +219,7 @@ class SolutionKindTest {
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).toList();
+    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
 
     assertThat(ruleKeys).containsAll(Arrays.asList(SONAR_RULES_PREFIX + "S1118", SONAR_RULES_PREFIX + "S1186"));
 
