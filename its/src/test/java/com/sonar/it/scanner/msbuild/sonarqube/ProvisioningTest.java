@@ -22,8 +22,11 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
+import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -109,7 +112,37 @@ class ProvisioningTest {
     }
   }
 
-  private static AnalysisContext createContext(TempDirectory userHome) {
+  @Test
+  @ServerMinVersion("2025.6")
+  void jreAutoProvisioning_disabled() {
+    // sonar.jreAutoProvisioning.disabled is a server wide setting and errors with "Setting 'sonar.jreAutoProvisioning.disabled' cannot be set on a Project"
+    // We need our own server instance here so we do not interfere with other JRE tests.
+    var orchestrator = ServerTests.orchestratorBuilder()
+      .activateLicense()
+      .setServerProperty("sonar.jreAutoProvisioning.disabled", "true")
+      .build();
+    orchestrator.start();
+    try {
+      var begin = ScannerCommand.createBeginStep(
+          ScannerClassifier.NET,
+          orchestrator.getDefaultAdminToken(),
+          TestUtils.projectDir(ContextExtension.currentTempDir(), DIRECTORY_NAME),
+          ContextExtension.currentTestName())
+        .setDebugLogs()
+        .setProperty("sonar.scanner.skipJreProvisioning", "false")
+        .execute(orchestrator);
+      assertThat(begin.getLogs())
+        .contains("JreResolver: Resolving JRE path.")
+        .contains("WARNING: JRE Metadata could not be retrieved from analysis/jres")
+        .contains("JreResolver: Metadata could not be retrieved.")
+        .as("An empty list of JREs is supposed to be invalid. Therefore a single retry is attempted.")
+        .containsOnlyOnce("JreResolver: Resolving JRE path. Retrying...");
+    } finally {
+      orchestrator.stop();
+    }
+  }
+
+    private static AnalysisContext createContext(TempDirectory userHome) {
     var context = AnalysisContext.forServer(DIRECTORY_NAME);
     context.begin
       .setProperty("sonar.userHome", userHome.toString())
