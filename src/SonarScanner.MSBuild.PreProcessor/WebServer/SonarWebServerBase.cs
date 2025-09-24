@@ -27,7 +27,7 @@ using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
-public abstract class SonarWebServer : ISonarWebServer
+public abstract class SonarWebServerBase : IDisposable
 {
     private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
     private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";
@@ -40,18 +40,10 @@ public abstract class SonarWebServer : ISonarWebServer
     private readonly string organization;
     private bool disposed;
 
-    public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
-
-    public abstract Task<Stream> DownloadJreAsync(JreMetadata metadata);
-    public abstract Task<Stream> DownloadEngineAsync(EngineMetadata metadata);
-    public abstract bool IsServerVersionSupported();
-
-    public abstract Task<bool> IsServerLicenseValid();
-
     public Version ServerVersion => serverVersion;
     public virtual bool SupportsJreProvisioning => true;
 
-    protected SonarWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
+    protected SonarWebServerBase(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
     {
         this.webDownloader = webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
         this.apiDownloader = apiDownloader ?? throw new ArgumentNullException(nameof(apiDownloader));
