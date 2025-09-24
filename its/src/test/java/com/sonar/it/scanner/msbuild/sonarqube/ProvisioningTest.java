@@ -142,7 +142,7 @@ class ProvisioningTest {
     }
   }
 
-    private static AnalysisContext createContext(TempDirectory userHome) {
+  private static AnalysisContext createContext(TempDirectory userHome) {
     var context = AnalysisContext.forServer(DIRECTORY_NAME);
     context.begin
       .setProperty("sonar.userHome", userHome.toString())
