@@ -144,7 +144,7 @@ internal class SonarCloudWebServer : SonarWebServer
 
     private async Task<Uri> DownloadEphemeralUrl(string organization, string projectKey, string branch, string token, string cacheBaseUrl)
     {
-        var uri = new Uri(WebUtils.CreateUri(cacheBaseUrl), WebUtils.Escape("sensor-cache/prepare-read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
+        var uri = new Uri(WebUtils.CreateUri(cacheBaseUrl), WebUtils.EscapedUri("sensor-cache/prepare-read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.Add("Authorization", $"Bearer {token}");
         logger.LogDebug(Resources.MSG_Processing_PullRequest_RequestPrepareRead, uri);

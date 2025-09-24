@@ -56,7 +56,7 @@ public static class ArgumentProcessor
     /// reports any errors using the logger.
     /// Returns null unless all the properties are valid.
     /// </summary>
-    public static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, IRuntime runtime)
+    public static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, BuildSettings buildSettings, IRuntime runtime)
     {
         _ = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
@@ -93,6 +93,7 @@ public static class ArgumentProcessor
                 cmdLineProperties,
                 globalFileProperties,
                 scannerEnvProperties,
+                buildSettings,
                 runtime);
 
             if (!processed.IsValid)

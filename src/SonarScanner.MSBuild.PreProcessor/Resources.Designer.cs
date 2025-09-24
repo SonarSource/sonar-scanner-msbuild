@@ -1182,6 +1182,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Falling back to SonarScannerCLI to guarantee TFS Legacy support..
+        /// </summary>
+        internal static string MSG_SonarScannerCliFallbackForTfsLegacySupport {
+            get {
+                return ResourceManager.GetString("MSG_SonarScannerCliFallbackForTfsLegacySupport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Starting extracting the Java runtime environment from archive &apos;{0}&apos; to folder &apos;{1}&apos;..
         /// </summary>
         internal static string MSG_StartingJreExtraction {
@@ -1517,11 +1526,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You&apos;re using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version..
+        ///   Looks up a localized string similar to Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version..
         /// </summary>
-        internal static string WARN_UI_SonarQubeUnsupported {
+        internal static string WARN_UI_SonarQubeNearEndOfSupport {
             get {
-                return ResourceManager.GetString("WARN_UI_SonarQubeUnsupported", resourceCulture);
+                return ResourceManager.GetString("WARN_UI_SonarQubeNearEndOfSupport", resourceCulture);
             }
         }
         

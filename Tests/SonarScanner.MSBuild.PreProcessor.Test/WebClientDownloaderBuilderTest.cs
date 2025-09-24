@@ -194,7 +194,7 @@ public partial class WebClientDownloaderBuilderTest
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         using var client = builder.Build();
-        var response = client.Download(server.Url).Result;
+        var response = client.Download(new(server.Url)).Result;
         response.Should().Be("Hello World");
     }
 
@@ -243,7 +243,7 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var response = await client.Download(server.Url);
+        var response = await client.Download(new(server.Url));
 
         // Assert
         callbackWasCalled.Should().BeTrue();
@@ -273,7 +273,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var result = await client.Download(server.Url);
+        var result = await client.Download(new(server.Url));
 
         // Assert
         result.Should().Be("Hello World");
@@ -296,7 +296,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
@@ -344,7 +344,7 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         if (valid)
@@ -385,7 +385,7 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var result = await client.Download("https://www.cloudflarestatus.com/api/v2/status.json");
+        var result = await client.Download(new("https://www.cloudflarestatus.com/api/v2/status.json"));
 
         // Assert
         var expected = new { Page = new { Name = "Cloudflare" } };
@@ -437,7 +437,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var response = await client.Download(server.Url);
+        var response = await client.Download(new(server.Url));
 
         // Assert
         response.Should().Be("Hello World");
@@ -465,7 +465,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
@@ -498,7 +498,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
@@ -532,7 +532,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
@@ -566,7 +566,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
@@ -600,7 +600,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var result = await client.Download(server.Url);
+        var result = await client.Download(new(server.Url));
 
         // Assert
         result.Should().Be("Hello World");
@@ -625,7 +625,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var downloader = async () => await client.Download(server.Url);
+        var downloader = async () => await client.Download(new(server.Url));
 
         // Assert
         // This is also how HttpClient behaves: it only trusts complete chains that end in a Root CA. An Intermediate CA is not enough
@@ -656,7 +656,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var downloader = async () => await client.Download(server.Url);
+        var downloader = async () => await client.Download(new(server.Url));
 
         // Assert
         // This is also how HttpClient behaves: If the web server certificate is not self-signed, the chain must end in a Root-CA
@@ -700,7 +700,7 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var result = await client.Download(server.Url);
+        var result = await client.Download(new(server.Url));
 
         // Assert
         result.Should().Be("Hello World");
@@ -728,7 +728,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var result = await client.Download(server.Url);
+        var result = await client.Download(new(server.Url));
 
         // Assert
         result.Should().Be("Hello World");
@@ -754,7 +754,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var downloader = async () => await client.Download(server.Url);
+        var downloader = async () => await client.Download(new(server.Url));
 
         // Assert
         // A trusted chain can not be build, because intermediateCAServer is not send by the server. The intermediateCATrustStore found in the trust store is used to build
@@ -791,7 +791,7 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);

@@ -118,7 +118,7 @@ public class BuildSettings : IBuildSettings
     /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/>
     /// in product code.
     /// </summary>
-    public static BuildSettings CreateNonTeamBuildSettingsForTesting(string analysisBaseDirectory)
+    public static BuildSettings CreateSettingsForTesting(string analysisBaseDirectory, BuildEnvironment buildEnvironment = BuildEnvironment.NotTeamBuild)
     {
         if (string.IsNullOrWhiteSpace(analysisBaseDirectory))
         {
@@ -128,7 +128,7 @@ public class BuildSettings : IBuildSettings
         var workingDirectory = Directory.GetParent(analysisBaseDirectory)?.FullName ?? throw new ArgumentException("Invalid analysis base directory");
         return new BuildSettings
         {
-            BuildEnvironment = BuildEnvironment.NotTeamBuild,
+            BuildEnvironment = buildEnvironment,
             AnalysisBaseDirectory = analysisBaseDirectory,
             SonarScannerWorkingDirectory = workingDirectory,
             SourcesDirectory = workingDirectory,

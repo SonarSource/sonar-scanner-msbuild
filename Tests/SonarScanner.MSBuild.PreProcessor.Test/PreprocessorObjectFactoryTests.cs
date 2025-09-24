@@ -46,8 +46,8 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).ThrowsAsync<InvalidOperationException>();
-        downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
+        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).ThrowsAsync<InvalidOperationException>();
+        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
 
         var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
 
@@ -90,8 +90,8 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
-        downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
+        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
+        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
 
         var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader, downloader);
 
@@ -106,8 +106,8 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
-        downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
+        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
+        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
         var detected = isCloud ? "SonarCloud" : "SonarQube";
         var real = isCloud ? "SonarQube" : "SonarCloud";
 
@@ -126,9 +126,9 @@ public class PreprocessorObjectFactoryTests
     public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned(string endpointResult, string fallbackResult, int expectedVersion)
     {
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download("analysis/version", Arg.Any<bool>(), LoggerVerbosity.Debug).Returns(Task.FromResult(endpointResult));
-        downloader.Download("api/server/version", Arg.Any<bool>(), LoggerVerbosity.Info).Returns(Task.FromResult(fallbackResult));
-        downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
+        downloader.Download(new("analysis/version", UriKind.Relative), Arg.Any<bool>(), LoggerVerbosity.Debug).Returns(Task.FromResult(endpointResult));
+        downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>(), LoggerVerbosity.Info).Returns(Task.FromResult(fallbackResult));
+        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
         var validArgs = CreateValidArguments();
         var sut = new PreprocessorObjectFactory(runtime);
 
@@ -153,8 +153,8 @@ public class PreprocessorObjectFactoryTests
     public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnErrorAndWarning()
     {
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
-        downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage());
+        downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
+        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
         var sut = new PreprocessorObjectFactory(runtime);
 
         var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: null), downloader);
@@ -173,8 +173,8 @@ public class PreprocessorObjectFactoryTests
     public async Task CreateSonarWebService_WithFailedAuthentication_ReturnsNullAndLogsWarning(HttpStatusCode status)
     {
         var downloader = Substitute.For<IDownloader>();
-        downloader.DownloadResource(Arg.Any<string>()).Returns(new HttpResponseMessage(status));
-        downloader.Download("api/server/version", Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
+        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage(status));
+        downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
         var sut = new PreprocessorObjectFactory(runtime);
 
         var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: "org"), downloader);
@@ -193,7 +193,7 @@ public class PreprocessorObjectFactoryTests
     public void CreateRoslynAnalyzerProvider_Success()
     {
         var sut = new PreprocessorObjectFactory(runtime);
-        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        var settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
         sut.CreateRoslynAnalyzerProvider(Substitute.For<ISonarWebServer>(), "cache", settings, new ListPropertiesProvider(), [], "cs").Should().NotBeNull();
     }
 
@@ -201,7 +201,7 @@ public class PreprocessorObjectFactoryTests
     public void CreateRoslynAnalyzerProvider_NullServer_ThrowsArgumentNullException()
     {
         var sut = new PreprocessorObjectFactory(runtime);
-        var settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        var settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
         FluentActions.Invoking(() => sut.CreateRoslynAnalyzerProvider(null, "cache", settings, new ListPropertiesProvider(), [], "cs")).Should()
             .ThrowExactly<ArgumentNullException>()
             .WithParameterName("server");
@@ -219,6 +219,7 @@ public class PreprocessorObjectFactoryTests
             cmdLineArgs,
             new ListPropertiesProvider(),
             EmptyPropertyProvider.Instance,
+            null,
             runtime);
     }
 }

@@ -42,7 +42,8 @@ public class PreProcessor
     public virtual async Task<bool> Execute(IEnumerable<string> args)
     {
         runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
-        var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime);
+        var buildSettings = BuildSettings.GetSettingsFromEnvironment();
+        var processedArgs = ArgumentProcessor.TryProcessArgs(args, buildSettings, runtime);
 
         if (processedArgs is null)
         {
@@ -52,17 +53,16 @@ public class PreProcessor
         }
         else
         {
-            return await DoExecute(processedArgs);
+            return await DoExecute(buildSettings, processedArgs);
         }
     }
 
-    private async Task<bool> DoExecute(ProcessedArgs localSettings)
+    private async Task<bool> DoExecute(BuildSettings buildSettings, ProcessedArgs localSettings)
     {
         Debug.Assert(localSettings is not null, "Not expecting the process arguments to be null");
         runtime.Logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, runtime.Logger);
         runtime.Logger.ResumeOutput();
         InstallLoaderTargets(localSettings);
-        var buildSettings = BuildSettings.GetSettingsFromEnvironment();
 
         // Create the directories
         runtime.LogDebug(Resources.MSG_CreatingFolders);
@@ -92,8 +92,7 @@ public class PreProcessor
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
 
-        var engineResolver = factory.CreateEngineResolver(server, localSettings.UserHome);
-        var scannerEngineJarPath = await engineResolver.ResolvePath(localSettings);
+        var scannerEngineJarPath = localSettings.UseSonarScannerCli ? null : await factory.CreateEngineResolver(server, localSettings.UserHome).ResolvePath(localSettings);
 
         var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
         if (!argumentsAndRuleSets.IsSuccess)

@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Runtime dependencies used by tasks need to be copied by SonarScanner.MSBuild.BootstrapperClass.CopyDlls() -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>

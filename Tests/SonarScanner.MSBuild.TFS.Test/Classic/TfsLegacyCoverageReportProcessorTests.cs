@@ -196,5 +196,5 @@ public class TfsLegacyCoverageReportProcessorTests
         };
 
     private BuildSettings CreateValidSettings() =>
-        BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
 }
