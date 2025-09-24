@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
+import com.google.gson.Gson;
 import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
@@ -187,8 +188,8 @@ public class TestUtils {
       .getTask();
   }
 
-  public static String scannerEngineInputJson(AnalysisContext context) throws IOException {
-    return Files.readString(context.projectDir.resolve(".sonarqube").resolve("out").resolve("ScannerEngineInput.json"));
+  public static ScannerEngineInput scannerEngineInputJson(AnalysisContext context) throws IOException {
+    return new Gson().fromJson(Files.newBufferedReader(context.projectDir.resolve(".sonarqube").resolve("out").resolve("ScannerEngineInput.json")), ScannerEngineInput.class);
   }
 
   private static String extractCeTaskId(BuildResult buildResult) {

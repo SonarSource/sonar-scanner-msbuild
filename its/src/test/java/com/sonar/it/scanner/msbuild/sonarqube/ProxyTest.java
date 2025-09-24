@@ -23,6 +23,7 @@ import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ProxyAuthenticator;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
+import com.sonar.it.scanner.msbuild.utils.SonarAssertions;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.util.NetworkUtils;
 import jakarta.servlet.ServletException;
@@ -106,7 +107,7 @@ class ProxyTest {
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "lines", ORCHESTRATOR)).isEqualTo(52);
     assertThat(seenByProxy).isNotEmpty();
-    assertThat(TestUtils.scannerEngineInputJson(context)).doesNotContain(PROXY_PASSWORD);
+    SonarAssertions.assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
   }
 
   private static void startProxy(boolean needProxyAuth) throws Exception {

@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.serverSupportsProvisioning;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -113,7 +113,7 @@ class SslTest {
       assertThat(logs)
         .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + keystorePassword + "\"")
         .doesNotContain(keystorePassword);
-      assertThat(TestUtils.scannerEngineInputJson(context)).doesNotContain(keystorePassword);
+      assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted().containsKey("sonar.token");
     }
   }
 
@@ -131,7 +131,7 @@ class SslTest {
       if (serverSupportsProvisioning()) {
         assertThat(logs)
           .contains("Args: -Djavax.net.ssl.trustStoreType=Windows-ROOT");
-        assertThat(TestUtils.scannerEngineInputJson(context)).doesNotContain(keystorePassword);
+        assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
       }
       else {
         assertThat(logs)
@@ -151,7 +151,7 @@ class SslTest {
       var logs = context.runAnalysis().end().getLogs();
       if (serverSupportsProvisioning()) {
         assertThat(logs).contains("Args: -Xmx2048m");
-        assertThat(TestUtils.scannerEngineInputJson(context)).doesNotContain(keystorePassword);
+        assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
       }
       else {
         assertThat(logs).contains("SONAR_SCANNER_OPTS=-Xmx2048m");
@@ -208,7 +208,7 @@ class SslTest {
         assertThat(logs)
           .containsPattern("Args: -Djavax.net.ssl.trustStore=\"?" + server.getKeystorePath().replace('\\', '/'))
           .doesNotContain(server.getKeystorePassword());
-        assertThat(TestUtils.scannerEngineInputJson(context)).doesNotContain(keystorePassword);
+        assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
       }
       else {
         assertThat(logs)
@@ -455,7 +455,7 @@ class SslTest {
     // because we have a lot of 'sonar' occurrences in the logs (e.g.: .sonarqube)
     if (!Objects.equals(server.getKeystorePassword(), "sonar")) {
       assertThat(logs).doesNotContain(server.getKeystorePassword());
-      assertThat(TestUtils.scannerEngineInputJson(context)).doesNotContain(server.getKeystorePassword());
+      assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
     }
 
     return result;
