@@ -20,18 +20,16 @@
 
 namespace SonarScanner.MSBuild.Common;
 
-public interface IRuntime
+public interface IUiWarnings
 {
-    OperatingSystemProvider OperatingSystem { get; }
-    IDirectoryWrapper Directory { get; }
-    IFileWrapper File { get; }
-    ILogger Logger { get; }
-    ITelemetry Telemetry { get; }
-    IUiWarnings UiWarnings { get; }
+    /// <summary>
+    /// Log a warning and display it in the UI (starting from SQ 9.9 LTS).
+    /// </summary>
+    void Log(string message, params object[] args);
 
-    // The most commonly used ILogger methods are replicated here. This is a compromise between a clean architecture and convenience:
-    void LogDebug(string message, params object[] args);
-    void LogInfo(string message, params object[] args);
-    void LogWarning(string message, params object[] args);
-    void LogError(string message, params object[] args);
+    /// <summary>
+    /// Creates the .json file in the specified output folder containing all warning messages.
+    /// See: https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-shared-library/src/main/java/org/sonarsource/dotnet/shared/plugins/AnalysisWarningsSensor.java#L54.
+    /// </summary>
+    void Write(string outputFolder);
 }

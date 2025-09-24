@@ -119,7 +119,7 @@ public class PreProcessor
             scannerEngineJarPath,
             runtime);
 
-        runtime.Logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
+        runtime.UiWarnings.Write(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
         runtime.Telemetry.Write(buildSettings.SonarOutputDirectory);
         return true;
     }

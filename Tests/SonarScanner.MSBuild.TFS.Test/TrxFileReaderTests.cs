@@ -76,7 +76,7 @@ public class TrxFileReaderTests
             .Returns([file1, file2]);
 
         AssertFindCodeCoverageFiles();
-        runtime.Logger.DebugMessages.Should().BeEmpty();
+        runtime.Logger.Should().HaveNoDebugs();
         runtime.Logger.Should().HaveInfoOnce("No code coverage attachments were found from the trx files.");
     }
 

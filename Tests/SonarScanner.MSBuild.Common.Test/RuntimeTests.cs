@@ -25,33 +25,40 @@ public class RuntimeTests
 {
     [TestMethod]
     public void Constructor_OperatingSystemNull_Throws() =>
-        FluentActions.Invoking(() => new Runtime(null, null, null, null, null))
+        FluentActions.Invoking(() => new Runtime(null, null, null, null, null, null))
             .Should().ThrowExactly<ArgumentNullException>()
             .WithParameterName("operatingSystem");
 
     [TestMethod]
     public void Constructor_DirectoryWrapperNull_Throws() =>
-        FluentActions.Invoking(() => new Runtime(OperatingSystemMock(), null, null, null, null))
+        FluentActions.Invoking(() => new Runtime(OperatingSystemMock(), null, null, null, null, null))
             .Should().ThrowExactly<ArgumentNullException>()
             .WithParameterName("directoryWrapper");
 
     [TestMethod]
     public void Constructor_FileWrapperNull_Throws() =>
-        FluentActions.Invoking(() => new Runtime(OperatingSystemMock(), Substitute.For<IDirectoryWrapper>(), null, null, null))
+        FluentActions.Invoking(() => new Runtime(OperatingSystemMock(), Substitute.For<IDirectoryWrapper>(), null, null, null, null))
             .Should().ThrowExactly<ArgumentNullException>()
             .WithParameterName("fileWrapper");
 
     [TestMethod]
     public void Constructor_LoggerNull_Throws() =>
-        FluentActions.Invoking(() => new Runtime(OperatingSystemMock(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), null, null))
+        FluentActions.Invoking(() => new Runtime(OperatingSystemMock(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), null, null, null))
             .Should().ThrowExactly<ArgumentNullException>()
             .WithParameterName("logger");
 
     [TestMethod]
     public void Constructor_TelemetryNull_Throws() =>
-        FluentActions.Invoking(() => new Runtime(OperatingSystemMock(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<ILogger>(), null))
+        FluentActions.Invoking(() => new Runtime(OperatingSystemMock(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<ILogger>(), null, null))
             .Should().ThrowExactly<ArgumentNullException>()
             .WithParameterName("telemetry");
+
+    [TestMethod]
+    public void Constructor_UiWarningsNull_Throws() =>
+        FluentActions
+            .Invoking(() => new Runtime(OperatingSystemMock(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<ILogger>(), Substitute.For<ITelemetry>(), null))
+            .Should().ThrowExactly<ArgumentNullException>()
+            .WithParameterName("uiWarnings");
 
     [TestMethod]
     public void Constructor_SetsProperties()
@@ -61,14 +68,16 @@ public class RuntimeTests
         var file = Substitute.For<IFileWrapper>();
         var logger = Substitute.For<ILogger>();
         var telemetry = Substitute.For<ITelemetry>();
+        var uiWarnings = Substitute.For<IUiWarnings>();
 
-        var sut = new Runtime(operatingSystem, directory, file, logger, telemetry);
+        var sut = new Runtime(operatingSystem, directory, file, logger, telemetry, uiWarnings);
 
         sut.OperatingSystem.Should().Be(operatingSystem);
         sut.Directory.Should().Be(directory);
         sut.File.Should().Be(file);
         sut.Logger.Should().Be(logger);
         sut.Telemetry.Should().Be(telemetry);
+        sut.UiWarnings.Should().Be(uiWarnings);
     }
 
     private static OperatingSystemProvider OperatingSystemMock() =>

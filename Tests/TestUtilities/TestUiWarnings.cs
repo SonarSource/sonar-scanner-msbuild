@@ -18,20 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common;
+using System.Globalization;
 
-public interface IRuntime
+namespace TestUtilities;
+
+public class TestUiWarnings : IUiWarnings
 {
-    OperatingSystemProvider OperatingSystem { get; }
-    IDirectoryWrapper Directory { get; }
-    IFileWrapper File { get; }
-    ILogger Logger { get; }
-    ITelemetry Telemetry { get; }
-    IUiWarnings UiWarnings { get; }
+    private readonly TestLogger logger;
 
-    // The most commonly used ILogger methods are replicated here. This is a compromise between a clean architecture and convenience:
-    void LogDebug(string message, params object[] args);
-    void LogInfo(string message, params object[] args);
-    void LogWarning(string message, params object[] args);
-    void LogError(string message, params object[] args);
+    // All messages are normalized to Unix line endings, because Resx files contains multiline messages with CRLF and we emit mix of LF and CRFL to logs on *nix system
+    public List<string> Messages { get; }
+
+    public TestUiWarnings(TestLogger logger)
+    {
+        this.logger = logger;
+        Messages = [];
+    }
+
+    public void Log(string message, params object[] args)
+    {
+        Messages.Add(FormatMessage(message, args));
+        logger.LogWarning(message, args);
+    }
+
+    public void Write(string outputFolder)
+    {
+        // no-op
+    }
+
+    private static string FormatMessage(string message, params object[] args) =>
+        string.Format(CultureInfo.CurrentCulture, message, args).ToUnixLineEndings();
 }
