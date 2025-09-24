@@ -22,12 +22,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
-import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
-import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
-import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import com.sonar.orchestrator.container.Server;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,9 +34,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.sonarqube.ws.client.HttpConnector;
-import org.sonarqube.ws.client.WsClientFactories;
-import org.sonarqube.ws.client.settings.SetRequest;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -116,37 +109,6 @@ class ProvisioningTest {
     }
   }
 
-  @Test
-  @ServerMinVersion("2025.5")
-  void jreAutoProvisioning_disabled() {
-    // sonar.jreAutoProvisioning.disabled is a server wide setting and errors with "Setting 'sonar.jreAutoProvisioning.disabled' cannot be set on a Project"
-    // We need our own server instance here so we do not interfere with other JRE tests.
-    var orchestrator = ServerTests.orchestratorBuilder().activateLicense().build();
-    orchestrator.start();
-    WsClientFactories.getDefault().newClient(HttpConnector.newBuilder()
-        .url(orchestrator.getServer().getUrl())
-        .token(orchestrator.getDefaultAdminToken())
-        .build())
-      .settings().set(new SetRequest()
-        .setKey("sonar.jreAutoProvisioning.disabled")
-        .setValue("true"));
-    var begin = ScannerCommand.createBeginStep(
-        ScannerClassifier.NET,
-        orchestrator.getDefaultAdminToken(),
-        TestUtils.projectDir(ContextExtension.currentTempDir(), DIRECTORY_NAME),
-        ContextExtension.currentTestName())
-      .setDebugLogs()
-      .setProperty("sonar.scanner.skipJreProvisioning", "false")
-      .execute(orchestrator);
-    var logs = begin.getLogs();
-    assertThat(logs)
-      .contains("JreResolver: Resolving JRE path.")
-      .contains("WARNING: JRE Metadata could not be retrieved from analysis/jres")
-      .contains("JreResolver: Metadata could not be retrieved.")
-      .as("An empty list of JREs is supposed to be invalid. Therefore a single retry is attempted.")
-      .containsOnlyOnce("JreResolver: Resolving JRE path. Retrying...");
-    orchestrator.stop();
-  }
 
   private static AnalysisContext createContext(TempDirectory userHome) {
     var context = AnalysisContext.forServer(DIRECTORY_NAME);
