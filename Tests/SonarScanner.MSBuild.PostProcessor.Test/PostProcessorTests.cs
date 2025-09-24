@@ -49,7 +49,7 @@ public class PostProcessorTests
     public PostProcessorTests(TestContext testContext)
     {
         this.testContext = testContext;
-        settings = BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
+        settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
         Directory.CreateDirectory(settings.SonarOutputDirectory);
         config = new()
         {

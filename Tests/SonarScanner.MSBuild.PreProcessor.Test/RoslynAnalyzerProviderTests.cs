@@ -228,7 +228,7 @@ public class RoslynAnalyzerProviderTests
     }
 
     private static BuildSettings CreateSettings(string rootDir) =>
-        BuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
+        BuildSettings.CreateSettingsForTesting(rootDir);
 
     private static string ExpectedSonarLintXml(string language) =>
         language switch

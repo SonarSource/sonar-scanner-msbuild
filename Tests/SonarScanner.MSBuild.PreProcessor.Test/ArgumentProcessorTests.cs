@@ -33,7 +33,7 @@ public class ArgumentProcessorTests
 
     [TestMethod]
     public void PreArgProc_NullRuntimeThrows() =>
-        FluentActions.Invoking(() => ArgumentProcessor.TryProcessArgs(null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+        FluentActions.Invoking(() => ArgumentProcessor.TryProcessArgs(null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
     [TestMethod]
     public void PreArgProc_RequiredArguments_ProcessingSucceeds()
@@ -945,7 +945,7 @@ public class ArgumentProcessorTests
 
     private static void CheckProcessingFails(TestRuntime runtime, params string[] commandLineArgs)
     {
-        var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, runtime);
+        var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, null, runtime);
 
         result.Should().BeNull();
         runtime.Logger.Should().HaveErrors();
@@ -956,7 +956,7 @@ public class ArgumentProcessorTests
 
     private static ProcessedArgs CheckProcessingSucceeds(TestRuntime runtime, params string[] commandLineArgs)
     {
-        var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, runtime);
+        var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, null, runtime);
         result.Should().NotBeNull();
         runtime.Logger.Should().HaveNoErrors();
         return result;

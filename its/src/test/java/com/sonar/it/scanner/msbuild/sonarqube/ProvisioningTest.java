@@ -79,7 +79,7 @@ class ProvisioningTest {
       // first analysis, cache misses and downloads the JRE & scanner-engine
       var cacheMiss = context.begin.execute(ORCHESTRATOR);
 
-      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), false);
+      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), false, false);
 
       // second analysis, cache hits and does not download the JRE or scanner-engine
       var cacheHit = context.begin.execute(ORCHESTRATOR);
