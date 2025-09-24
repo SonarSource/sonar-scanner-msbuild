@@ -52,7 +52,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var response = await client.Download(server.Url);
+        var response = await client.Download(new(server.Url));
 
         // Assert
         response.Should().Be("Hello World");
@@ -81,8 +81,8 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var response = await client.Download(server.Url); // ChainPolicy.RevocationMode can not be forced to query CRLs for certificates in X509ChainPolicy.ExtraStore.
-                                                          // X509ChainPolicy.CustomTrustStore (.Net5+) is needed to support CRLs.
+        var response = await client.Download(new(server.Url)); // ChainPolicy.RevocationMode can not be forced to query CRLs for certificates in X509ChainPolicy.ExtraStore.
+                                                               // X509ChainPolicy.CustomTrustStore (.Net5+) is needed to support CRLs.
 
         // Assert
         response.Should().Be("Hello World", because: ".Net5+ support is required");

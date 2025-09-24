@@ -67,7 +67,7 @@ public class SonarCloudWebServerTest
     {
         var context = new Context();
         context.WebDownloader
-            .Download("api/editions/is_valid_license")
+            .Download(new("api/editions/is_valid_license", UriKind.Relative))
             .Returns("""{ "isValidLicense": false }""");
         (await context.Server.IsServerLicenseValid()).Should().BeTrue();
     }
@@ -77,7 +77,7 @@ public class SonarCloudWebServerTest
     {
         var context = new Context();
         context.WebDownloader
-            .TryDownloadIfExists(Arg.Any<string>(), Arg.Any<bool>())
+            .TryDownloadIfExists(Arg.Any<Uri>(), Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(true, """
                 {
                   settings: [
@@ -309,7 +309,7 @@ public class SonarCloudWebServerTest
     {
         var context = new Context();
         context.WebDownloader
-            .Download("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1")
+            .Download(new("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1", UriKind.Relative))
             .Returns(
                 """
                 {
@@ -479,8 +479,8 @@ public class SonarCloudWebServerTest
             var serverSettingsJson = cacheBase is null
                 ? """{"settings":[]}"""
                 : $$"""{"settings":[{ "key":"sonar.sensor.cache.baseUrl","value": "{{cacheBase}}" }]}""";
-            WebDownloader.Download(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(serverSettingsJson));
-            WebDownloader.TryDownloadIfExists(Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(new Tuple<bool, string>(false, string.Empty)));
+            WebDownloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(serverSettingsJson));
+            WebDownloader.TryDownloadIfExists(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(new Tuple<bool, string>(false, string.Empty)));
         }
     }
 }
