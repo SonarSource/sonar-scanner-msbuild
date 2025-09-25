@@ -22,6 +22,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
+import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
+import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -51,7 +53,7 @@ class ProvisioningTest {
   void cacheMiss_DownloadsCache(Boolean useSonarScannerCLI) {
     try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       var context = createContext(userHome);
-      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by both the scanner-cli and the scanner-engine
+      context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by scanner-cli and scanner-engine
       context.build.useDotNet();
       // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
       // so we can test that we updated it correctly
@@ -107,6 +109,36 @@ class ProvisioningTest {
             "EngineResolver: Cache hit",
             "EngineResolver: Cache failure.");
       }
+    }
+  }
+
+  @Test
+  @ServerMinVersion("2025.6")
+  void jreAutoProvisioning_disabled() {
+    // sonar.jreAutoProvisioning.disabled is a server wide setting and errors with "Setting 'sonar.jreAutoProvisioning.disabled' cannot be set on a Project"
+    // We need our own server instance here so we do not interfere with other JRE tests.
+    var orchestrator = ServerTests.orchestratorBuilder()
+      .activateLicense()
+      .setServerProperty("sonar.jreAutoProvisioning.disabled", "true")
+      .build();
+    orchestrator.start();
+    try {
+      var begin = ScannerCommand.createBeginStep(
+          ScannerClassifier.NET,
+          orchestrator.getDefaultAdminToken(),
+          TestUtils.projectDir(ContextExtension.currentTempDir(), DIRECTORY_NAME),
+          ContextExtension.currentTestName())
+        .setDebugLogs()
+        .setProperty("sonar.scanner.skipJreProvisioning", "false")
+        .execute(orchestrator);
+      assertThat(begin.getLogs())
+        .contains("JreResolver: Resolving JRE path.")
+        .contains("WARNING: JRE Metadata could not be retrieved from analysis/jres")
+        .contains("JreResolver: Metadata could not be retrieved.")
+        .as("An empty list of JREs is supposed to be invalid. Therefore a single retry is attempted.")
+        .containsOnlyOnce("JreResolver: Resolving JRE path. Retrying...");
+    } finally {
+      orchestrator.stop();
     }
   }
 
