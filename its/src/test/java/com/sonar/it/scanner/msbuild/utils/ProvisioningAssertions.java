@@ -21,7 +21,7 @@ package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.orchestrator.build.BuildResult;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 public final class ProvisioningAssertions {
   public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, String oldJavaHome, Boolean isCloud, Boolean useSonarScannerCLI) {
@@ -73,13 +73,13 @@ public final class ProvisioningAssertions {
         "Cache miss. Attempting to download '");  // + file path to scanner engine
       TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
       TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern +
-        "((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar'");
+        "((scanner-developer)|(sonarcloud-scanner-engine)|(sonar-scanner-engine-shaded)).+\\.jar'");
     }
   }
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {
     var javaPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+_extracted.+java(?:\\.exe)?";
-    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+((scanner-developer)|(sonarcloud-scanner-engine)).+\\.jar";
+    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+((scanner-developer)|(sonarcloud-scanner-engine)|(sonar-scanner-engine-shaded)).+\\.jar";
     assertThat(secondBegin.isSuccess()).isTrue();
     TestUtils.matchesSingleLine(secondBegin.getLogs(),
       "JreResolver: Cache hit '" + javaPattern + "'");

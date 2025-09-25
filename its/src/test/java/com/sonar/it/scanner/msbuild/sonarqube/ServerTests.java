@@ -62,10 +62,11 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
 
   public static OrchestratorExtensionBuilder orchestratorBuilder() {
     var version = System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE");
+    var edition = Edition.valueOf(System.getProperty("sonar.sonarQubeEdition", Edition.DEVELOPER.name()));
     var orchestrator = OrchestratorExtension.builderEnv()
       .useDefaultAdminCredentialsForBuilds(true)
       .setSonarVersion(version)
-      .setEdition(Edition.DEVELOPER)
+      .setEdition(edition)
       .setServerProperty("sonar.telemetry.enable", "false"); // Disabling telemetry to avoid polluting our own data.
     // Plugin versions are defined in https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/azure-pipelines.yml
     // Set the version to NONE to disable the plugin.
@@ -89,11 +90,14 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
       orchestrator.addPlugin(FileLocation.of(customRoslynPlugin().toFile()));
     }
+    if (edition != Edition.COMMUNITY) {
+      orchestrator.activateLicense();
+    }
     return orchestrator;
   }
 
   private static Orchestrator createOrchestrator() {
-    return orchestratorBuilder().activateLicense().build();
+    return orchestratorBuilder().build();
   }
 
   private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty) {

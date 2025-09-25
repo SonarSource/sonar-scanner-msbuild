@@ -22,6 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.BuildCommand;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.DisableOnEdition;
 import com.sonar.it.scanner.msbuild.utils.GeneralCommand;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
@@ -29,6 +30,7 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Workload;
 import com.sonar.it.scanner.msbuild.utils.WorkloadPrerequisite;
 import com.sonar.orchestrator.build.BuildResult;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.util.ZipUtils;
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +45,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 /**
  * Only cpp, without C# plugin
@@ -54,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CppTest {
 
   @Test
+  @DisableOnEdition(Edition.COMMUNITY)
   void cppOnly() throws Exception {
     var context = AnalysisContext.forServer("CppSolution").setQualityProfile(QualityProfile.CPP_S106);
     File wrapperOutDir = new File(context.projectDir.toFile(), "out");
@@ -81,6 +84,7 @@ class CppTest {
   }
 
   @Test
+  @DisableOnEdition(Edition.COMMUNITY)
   void cppWithSharedFiles() throws Exception {
     var context = AnalysisContext.forServer("CppSharedFiles").setQualityProfile(QualityProfile.CPP_S106);
     File wrapperOutDir = new File(context.projectDir.toFile(), "out");
