@@ -21,6 +21,7 @@ jobs:
     variables:
       CFAMILY_VERSION: "LATEST_RELEASE"
       SQ_VERSION: "LATEST_RELEASE"
+      SQ_EDITION: "DEVELOPER"
       CSS_VERSION: "NONE" # No official release since 8.9, the plug-in should not be loaded. Rules are in the JS plugin
       DOTNET_VERSION: "DEV"
       GO_VERSION: "LATEST_RELEASE"
@@ -109,6 +110,7 @@ jobs:
             -Dsonar.goplugin.version=$(GO_VERSION)
             -Dgo.groupid=$(GO_GROUP_ID)
             -Dsonar.runtimeVersion=$(SQ_VERSION)
+            -Dsonar.sonarQubeEdition=$(SQ_EDITION)
             -Dmsbuild.path="$(MSBUILD_PATH)"
             -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET)
             -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)
