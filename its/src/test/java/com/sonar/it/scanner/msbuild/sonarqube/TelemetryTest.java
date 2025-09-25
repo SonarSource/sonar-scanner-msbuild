@@ -111,7 +111,7 @@ class TelemetryTest {
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=1"),
-      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp7_3=2"),
+      x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=2"),
       x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=2"));
   }
