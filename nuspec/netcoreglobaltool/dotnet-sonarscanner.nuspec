@@ -7,7 +7,7 @@
     <authors>SonarSource</authors>
     <projectUrl>https://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
     <iconUrl>https://cdn.rawgit.com/SonarSource/sonar-scanner-msbuild/cdd1f588/icon.png</iconUrl>
-    <license type="file">License.txt</license>
+    <license type="file">licenses/LICENSE.txt</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
     <description>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
@@ -27,7 +27,8 @@ All release notes for SonarScanner .NET can be found on the GitHub site - https:
   <files>
     <file src="..\..\build\sonarscanner-net\" target="tools\netcoreapp3.1\any" />
     <file src="DotnetToolSettings.xml" target="tools\netcoreapp3.1\any\DotnetToolSettings.xml" />
-    <file src="..\..\License.txt" target="License.txt" />
+    <file src="..\..\License.txt" target="licenses/LICENSE.txt" />
+    <file src="..\..\licenses\**" target="licenses" />
     <file src="..\..\readme.md" target="docs\" />
   </files>
 </package>
