@@ -440,6 +440,16 @@ stages:
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+            DEV_Community:
+              PRODUCT: "SonarQube"
+              SQ_VERSION: "DEV"
+              SQ_EDITION: "COMMUNITY"
+              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              TEST_INCLUDE: "**/sonarqube/*"
+              CFAMILY_VERSION: "NONE"         # Commercial plugin
+              GO_VERSION: "NONE"              # Commercial plugin
+              IAC_ENTERPRISE_VERSION: "NONE"  # Commercial plugin
+              PLSQL_VERSION: "NONE"           # Commercial plugin
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""

@@ -39,7 +39,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class ProvisioningTest {
@@ -118,7 +118,6 @@ class ProvisioningTest {
     // sonar.jreAutoProvisioning.disabled is a server wide setting and errors with "Setting 'sonar.jreAutoProvisioning.disabled' cannot be set on a Project"
     // We need our own server instance here so we do not interfere with other JRE tests.
     var orchestrator = ServerTests.orchestratorBuilder()
-      .activateLicense()
       .setServerProperty("sonar.jreAutoProvisioning.disabled", "true")
       .build();
     orchestrator.start();

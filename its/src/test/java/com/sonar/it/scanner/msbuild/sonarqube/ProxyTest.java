@@ -57,7 +57,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class ProxyTest {
@@ -106,6 +106,7 @@ class ProxyTest {
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(25);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "lines", ORCHESTRATOR)).isEqualTo(52);
     assertThat(seenByProxy).isNotEmpty();
+    assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
   }
 
   private static void startProxy(boolean needProxyAuth) throws Exception {
