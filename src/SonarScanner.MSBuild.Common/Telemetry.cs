@@ -31,11 +31,14 @@ public class Telemetry : ITelemetry
     private readonly Dictionary<string, object> messages = [];
     private readonly IFileWrapper fileWrapper;
     private readonly ILogger logger;
+    private bool hasWritten;
 
     public object this[string key]
     {
         get => messages[key];
-        set => messages[key] = value;
+        set => messages[key] = hasWritten
+                ? throw new InvalidOperationException("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to java telemetry plugin.")
+                : value;
     }
 
     public Telemetry(IFileWrapper fileWrapper, ILogger logger)
@@ -46,6 +49,10 @@ public class Telemetry : ITelemetry
 
     public void Write(string outputFolder)
     {
+        if (hasWritten)
+        {
+            throw new InvalidOperationException("The Telemetry was written already and should only write once.");
+        }
         var telemetryMessagesJson = new StringBuilder();
         foreach (var message in messages)
         {
@@ -62,6 +69,7 @@ public class Telemetry : ITelemetry
         {
             logger.LogWarning($"Could not write {FileConstants.TelemetryFileName} in {outputFolder}", ex.Message);
         }
+        hasWritten = true;
 
         static string ParseMessage(KeyValuePair<string, object> message)
         {
