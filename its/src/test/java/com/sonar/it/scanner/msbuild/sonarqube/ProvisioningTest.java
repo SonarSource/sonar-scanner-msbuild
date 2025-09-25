@@ -133,10 +133,11 @@ class ProvisioningTest {
         .execute(orchestrator);
       assertThat(begin.getLogs())
         .contains("JreResolver: Resolving JRE path.")
-        .contains("WARNING: JRE Metadata could not be retrieved from analysis/jres")
         .contains("JreResolver: Metadata could not be retrieved.")
-        .as("An empty list of JREs is supposed to be invalid. Therefore a single retry is attempted.")
-        .containsOnlyOnce("JreResolver: Resolving JRE path. Retrying...");
+        .as("An empty list of JREs is supposed to be invalid. Therefore a single retry should be attempted.")
+        .containsOnlyOnce("JreResolver: Resolving JRE path. Retrying...")
+        .as("sonar.jreAutoProvisioning.disabled=true should be handled gracefully.")
+        .doesNotContain("WARNING: JRE Metadata could not be retrieved from analysis/jres");
     } finally {
       orchestrator.stop();
     }
