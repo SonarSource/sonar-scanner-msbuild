@@ -60,7 +60,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     return ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6);
   }
 
-  private static Orchestrator createOrchestrator() {
+  public static OrchestratorExtensionBuilder orchestratorBuilder() {
     var version = System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE");
     var edition = Edition.valueOf(System.getProperty("sonar.sonarQubeEdition", Edition.DEVELOPER.name()));
     var orchestrator = OrchestratorExtension.builderEnv()
@@ -93,7 +93,11 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     if (edition != Edition.COMMUNITY) {
       orchestrator.activateLicense();
     }
-    return orchestrator.build();
+    return orchestrator;
+  }
+
+  private static Orchestrator createOrchestrator() {
+    return orchestratorBuilder().build();
   }
 
   private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty) {

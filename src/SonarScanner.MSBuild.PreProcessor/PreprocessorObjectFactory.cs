@@ -77,7 +77,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         }
         else
         {
-            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization);
+            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, args.Organization);
         }
 
         IDownloader CreateDownloader(string baseUrl) =>
@@ -163,7 +163,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 
         static async Task<Version> QueryVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
         {
-            var contents = await downloader.Download(path, failureVerbosity: failureVerbosity);
+            var contents = await downloader.Download(new(path, UriKind.Relative), failureVerbosity: failureVerbosity);
             return new Version(contents.Split('-')[0]);
         }
     }
@@ -173,7 +173,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     /// </summary>
     private async Task<bool> CanAuthenticate(IDownloader downloader)
     {
-        var response = await downloader.DownloadResource("api/settings/values?component=unknown");
+        var response = await downloader.DownloadResource(new("api/settings/values?component=unknown", UriKind.Relative));
         if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
         {
             runtime.LogWarning(Resources.WARN_AuthenticationFailed);

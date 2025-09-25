@@ -48,20 +48,12 @@ internal class MSBuildLoggerAdapter : ILogger
     void ILogger.LogWarning(string message, params object[] args) =>
         msBuildLogger.LogWarning(message, args);
 
-    void ILogger.LogUIWarning(string message, params object[] args) =>
-        msBuildLogger.LogWarning(message, args);
-
     void ILogger.SuspendOutput()
     {
         // no-op
     }
 
     void ILogger.ResumeOutput()
-    {
-        // no-op
-    }
-
-    void ILogger.WriteUIWarnings(string outputFolder)
     {
         // no-op
     }

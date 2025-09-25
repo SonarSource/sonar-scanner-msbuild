@@ -18,21 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net.Http;
+using System.Globalization;
 
-namespace SonarScanner.MSBuild.PreProcessor;
+namespace TestUtilities;
 
-public interface IDownloader : IDisposable
+public class TestUiWarnings : IUiWarnings
 {
-    Uri BaseUrl { get; }
+    private readonly TestLogger logger;
 
-    Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false);
+    // All messages are normalized to Unix line endings, because Resx files contains multiline messages with CRLF and we emit mix of LF and CRFL to logs on *nix system
+    public List<string> Messages { get; }
 
-    Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false);
+    public TestUiWarnings(TestLogger logger)
+    {
+        this.logger = logger;
+        Messages = [];
+    }
 
-    Task<string> Download(Uri url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info);
+    public void Log(string message, params object[] args)
+    {
+        Messages.Add(FormatMessage(message, args));
+        logger.LogWarning(message, args);
+    }
 
-    Task<Stream> DownloadStream(Uri url, Dictionary<string, string> headers = null);
+    public void Write(string outputFolder)
+    {
+        // no-op
+    }
 
-    Task<HttpResponseMessage> DownloadResource(Uri url);
+    private static string FormatMessage(string message, params object[] args) =>
+        string.Format(CultureInfo.CurrentCulture, message, args).ToUnixLineEndings();
 }

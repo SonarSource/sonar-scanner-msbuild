@@ -31,7 +31,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     private readonly List<string> calledMethods = [];
 
     public TestRuntime Runtime { get; } = new();
-    public MockSonarWebServer Server { get; set; }
+    public ISonarWebServer Server { get; set; } = Substitute.For<ISonarWebServer>();
     public IResolver JreResolver { get; } = Substitute.For<IResolver>();
     public IResolver EngineResolver { get; } = Substitute.For<IResolver>();
     public string PluginCachePath { get; private set; }
@@ -44,25 +44,17 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
 
     public MockObjectFactory(bool withDefaultRules = true, string organization = null, Dictionary<string, string> serverProperties = null)
     {
-        Server = new(organization);
-
-        var data = Server.Data;
-        data.ServerProperties.Add("server.key", "server value 1");
-        if (serverProperties is not null)
-        {
-            foreach (var pair in serverProperties)
-            {
-                data.ServerProperties.Add(pair.Key, pair.Value);
-            }
-        }
-        data.Languages.Add("cs");
-        data.Languages.Add("vbnet");
-        data.Languages.Add("another_plugin");
-
+        serverProperties ??= [];
+        serverProperties.Add("server.key", "server value 1");
+        Server.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
+        Server.DownloadAllLanguages().Returns(["cs", "vbnet", "another_plugin"]);
+        Server.ServerVersion.Returns(new Version(5, 6));
+        Server.IsServerVersionSupported().Returns(true);
+        Server.IsServerLicenseValid().Returns(Task.FromResult(true));
         if (withDefaultRules)
         {
-            data.AddQualityProfile("qp1", "cs", organization).AddProject("key").AddRule(new SonarRule("csharpsquid", "cs.rule.id"));
-            data.AddQualityProfile("qp2", "vbnet", organization).AddProject("key").AddRule(new SonarRule("vbnet", "vb.rule.id"));
+            Server.DownloadRules("qp1").Returns([new SonarRule("csharpsquid", "cs.rule.id")]);
+            Server.DownloadRules("qp2").Returns([new SonarRule("vbnet", "vb.rule.id")]);
         }
     }
 

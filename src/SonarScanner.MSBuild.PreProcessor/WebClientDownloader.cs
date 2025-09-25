@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -32,6 +27,8 @@ public sealed class WebClientDownloader : IDownloader
 {
     private readonly ILogger logger;
     private readonly HttpClient client;
+
+    public Uri BaseUrl => client.BaseAddress;
 
     public WebClientDownloader(HttpClient client, string baseUri, ILogger logger)
     {
@@ -42,11 +39,10 @@ public sealed class WebClientDownloader : IDownloader
         client.BaseAddress = WebUtils.CreateUri(baseUri);
     }
 
-    public string GetBaseUrl() => client.BaseAddress.ToString();
+    public async Task<HttpResponseMessage> DownloadResource(Uri url) =>
+        await GetAsync(url);
 
-    public async Task<HttpResponseMessage> DownloadResource(string url) => await GetAsync(url);
-
-    public async Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false)
+    public async Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false)
     {
         var response = await GetAsync(url);
 
@@ -72,7 +68,7 @@ public sealed class WebClientDownloader : IDownloader
         return new Tuple<bool, string>(true, await response.Content.ReadAsStringAsync());
     }
 
-    public async Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false)
+    public async Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false)
     {
         logger.LogDebug(Resources.MSG_DownloadingFile, targetFilePath);
         var response = await GetAsync(url);
@@ -100,11 +96,11 @@ public sealed class WebClientDownloader : IDownloader
         return true;
     }
 
-    public async Task<string> Download(string url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info)
+    public async Task<string> Download(Uri url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info)
     {
-        Contract.ThrowIfNullOrWhitespace(url, nameof(url));
+        Contract.ThrowIfNullOrWhitespace(url.OriginalString, nameof(url));
 
-        if (url.StartsWith("/"))
+        if (url.OriginalString.StartsWith("/"))
         {
             throw new NotSupportedException("The BaseAddress always ends in '/'. Please call this method with a url that does not start with '/'.");
         }
@@ -128,7 +124,7 @@ public sealed class WebClientDownloader : IDownloader
         return null;
     }
 
-    public async Task<Stream> DownloadStream(string url, Dictionary<string, string> headers = null)
+    public async Task<Stream> DownloadStream(Uri url, Dictionary<string, string> headers = null)
     {
         var response = await GetAsync(url, headers);
         if (response.IsSuccessStatusCode)
@@ -145,7 +141,7 @@ public sealed class WebClientDownloader : IDownloader
     public void Dispose() =>
         client.Dispose();
 
-    private async Task<HttpResponseMessage> GetAsync(string url, Dictionary<string, string> headers = null)
+    private async Task<HttpResponseMessage> GetAsync(Uri url, Dictionary<string, string> headers = null)
     {
         try
         {

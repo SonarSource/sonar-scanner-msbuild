@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using NSubstitute.ExceptionExtensions;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -76,7 +76,7 @@ public partial class PreProcessorTests
     public async Task Execute_InvalidLicense_ReturnsFalse()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.IsServerLicenseValidImplementation = () => Task.FromResult(false);
+        context.Factory.Server.IsServerLicenseValid().Returns(false);
 
         var result = await context.Execute();
 
@@ -87,7 +87,7 @@ public partial class PreProcessorTests
     public async Task Execute_LicenseCheckThrows_ReturnsFalseAndLogsError()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.IsServerLicenseValidImplementation = () => throw new InvalidOperationException("Some error was thrown during license check.");
+        context.Factory.Server.IsServerLicenseValid().ThrowsAsync(new InvalidOperationException("Some error was thrown during license check."));
 
         (await context.Execute()).Should().BeFalse();
         context.Factory.Runtime.Logger.Should().HaveErrors("Some error was thrown during license check.");
@@ -105,7 +105,7 @@ public partial class PreProcessorTests
     public async Task Execute_FetchArgumentsAndRuleSets_ConnectionIssue_ReturnsFalseAndLogsError()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
+        context.Factory.Server.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure));
 
         (await context.Execute()).Should().BeFalse();
         context.Factory.Runtime.Logger.Should().HaveErrors("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
@@ -117,7 +117,7 @@ public partial class PreProcessorTests
     public async Task Execute_ExplicitScanAllParameter_ReturnsTrue(bool scanAll)
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
+        context.Factory.Server.ServerVersion.Returns(new Version(9, 10, 1, 2));
         var args = new List<string>(CreateArgs())
         {
             $"/d:sonar.scanner.scanAll={scanAll}",
@@ -126,7 +126,7 @@ public partial class PreProcessorTests
         (await context.Execute(args)).Should().BeTrue();
 
         context.Factory.Runtime.Logger.Should().HaveNoWarnings();
-        context.Factory.Runtime.Logger.AssertNoUIWarningsLogged();
+        context.Factory.Runtime.UiWarnings.Should().HaveNoMessages();
     }
 
     [TestMethod]
@@ -144,7 +144,7 @@ public partial class PreProcessorTests
     public async Task Execute_FetchArgumentsAndRuleSets_ServerReturnsUnexpectedStatus()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
+        context.Factory.Server.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new WebException("Something else went wrong"));
 
         await context.PreProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
     }
@@ -159,7 +159,7 @@ public partial class PreProcessorTests
         // * rule sets are generated
         // * config file is created
         using var context = new Context(TestContext);
-        context.Factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
+        context.Factory.Server.ServerVersion.Returns(new Version(9, 10, 1, 2));
 
         (await context.Execute()).Should().BeTrue();
 
@@ -184,7 +184,7 @@ public partial class PreProcessorTests
         // * rule sets are generated
         // * config file is created
         using var context = new Context(TestContext);
-        context.Factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
+        context.Factory.Server.ServerVersion.Returns(new Version(9, 10, 1, 2));
 
         var tmpCachePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, ".temp-cache");
         var args = new List<string>(CreateArgs())
@@ -211,7 +211,7 @@ public partial class PreProcessorTests
     public async Task Execute_EndToEnd_SuccessCase_NoActiveRule()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.Data.FindProfile("qp1").Rules.Clear();
+        context.Factory.Server.DownloadRules("qp1").Returns([]);
 
         (await context.Execute()).Should().BeTrue();
 
@@ -255,8 +255,7 @@ public partial class PreProcessorTests
     public async Task Execute_NoPlugin_ReturnsFalseAndLogsError()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.Data.Languages.Clear();
-        context.Factory.Server.Data.Languages.Add("invalid_plugin");
+        context.Factory.Server.DownloadAllLanguages().Returns(["invalid_plugin"]);
 
         (await context.Execute()).Should().BeFalse();
 
@@ -264,19 +263,10 @@ public partial class PreProcessorTests
     }
 
     [TestMethod]
-    public async Task Execute_NoProject_ReturnsTrue()
+    public async Task Execute_NoQualityProfile_ReturnsTrue()
     {
         using var context = new Context(TestContext, new MockObjectFactory(false));
-        context.Factory.Server.Data
-            .AddQualityProfile("qp1", "cs", null)
-            .AddProject("invalid")
-            .AddRule(new SonarRule("fxcop", "cs.rule1"))
-            .AddRule(new SonarRule("fxcop", "cs.rule2"));
-        context.Factory.Server.Data
-            .AddQualityProfile("qp2", "vbnet", null)
-            .AddProject("invalid")
-            .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
-            .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
+        context.Factory.Server.DownloadQualityProfile(null, null, null).ReturnsForAnyArgs((string)null);
 
         (await context.Execute()).Should().BeTrue();
 
@@ -292,16 +282,11 @@ public partial class PreProcessorTests
     {
         // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
         using var context = new Context(TestContext);
-        var exceptionWasThrown = false;
-        context.Factory.Server.TryDownloadQualityProfilePreprocessing = () =>
-        {
-            exceptionWasThrown = true;
-            throw new AnalysisException("This message and stacktrace should not propagate to the users");
-        };
+        context.Factory.Server.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new AnalysisException("This message and stacktrace should not propagate to the users"));
 
         (await context.Execute(CreateArgs("InvalidOrganization"))).Should().BeFalse();    // Should not throw
 
-        exceptionWasThrown.Should().BeTrue();
+        await context.Factory.Server.ReceivedWithAnyArgs(1).DownloadQualityProfile(null, null, null);
     }
 
     [TestMethod]
@@ -317,8 +302,8 @@ public partial class PreProcessorTests
             .ResolvePath(Arg.Any<ProcessedArgs>())
             .Returns("some/path/to/engine.jar");
 
-        context.Factory.Server.Data.ServerProperties.Add("shared.key1", "server shared value 1");
-        context.Factory.Server.Data.ServerProperties.Add("shared.CASING", "server upper case value");
+        context.Factory.Server.DownloadProperties(null, null)
+            .ReturnsForAnyArgs(new Dictionary<string, string> { { "server.key", "server value 1" }, { "shared.key1", "server shared value 1" }, { "shared.CASING", "server upper case value" } });
         // Local settings that should override matching server settings
         var args = new List<string>(CreateArgs())
         {
@@ -449,11 +434,11 @@ public partial class PreProcessorTests
 
         public void AssertDownloadMethodsCalled(int properties, int allLanguages, int qualityProfile, int rules)
         {
-            Factory.Runtime.Logger.Should().HaveInfos("Updating build integration targets..."); // TargetsInstaller was called
-            Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), properties);
-            Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), allLanguages);
-            Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), qualityProfile); // C# and VBNet
-            Factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), rules); // C# and VBNet
+            Factory.Runtime.Logger.Should().HaveInfos("Updating build integration targets...");             // TargetsInstaller was called
+            Factory.Server.ReceivedWithAnyArgs(properties).DownloadProperties(null, null);
+            Factory.Server.ReceivedWithAnyArgs(allLanguages).DownloadAllLanguages();
+            Factory.Server.ReceivedWithAnyArgs(qualityProfile).DownloadQualityProfile(null, null, null);    // C# and VBNet
+            Factory.Server.ReceivedWithAnyArgs(rules).DownloadRules(null);                                  // C# and VBNet
         }
 
         public void Dispose() =>

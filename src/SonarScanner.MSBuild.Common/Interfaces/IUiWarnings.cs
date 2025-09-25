@@ -18,17 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
-using System.Resources;
-using System.Runtime.InteropServices;
+namespace SonarScanner.MSBuild.Common;
 
-[assembly: AssemblyVersion("11.0.0")]
-[assembly: AssemblyFileVersion("11.0.0.0")]
-[assembly: AssemblyInformationalVersion("Version:11.0.0.0 Branch:not-set Sha1:not-set")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("SonarSource")]
-[assembly: AssemblyCopyright("Copyright © SonarSource 2015-2025")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
-[assembly: ComVisible(false)]
-[assembly: NeutralResourcesLanguage("en")]
+public interface IUiWarnings
+{
+    /// <summary>
+    /// Log a warning and display it in the UI (starting from SQ 9.9 LTS).
+    /// </summary>
+    void Log(string message, params object[] args);
+
+    /// <summary>
+    /// Creates the .json file in the specified output folder containing all warning messages.
+    /// See: https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-shared-library/src/main/java/org/sonarsource/dotnet/shared/plugins/AnalysisWarningsSensor.java#L54.
+    /// </summary>
+    void Write(string outputFolder);
+}

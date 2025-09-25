@@ -116,6 +116,7 @@ public class ProgramTests
         public IFileWrapper File => throw new NotImplementedException();
         public ILogger Logger { get; } = Substitute.For<ILogger>();
         public ITelemetry Telemetry => throw new NotImplementedException();
+        public IUiWarnings UiWarnings => throw new NotImplementedException();
 
         public void LogDebug(string message, params object[] args) =>
             Logger.LogDebug(message, args);

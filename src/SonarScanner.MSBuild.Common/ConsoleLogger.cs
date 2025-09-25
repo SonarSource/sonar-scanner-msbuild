@@ -19,7 +19,6 @@
  */
 
 using System.Globalization;
-using Newtonsoft.Json;
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -42,13 +41,7 @@ public class ConsoleLogger : ILogger
         Error
     }
 
-    /// <summary>
-    /// List of UI warnings that should be logged.
-    /// </summary>
-    private readonly IList<string> uiWarnings = [];
-
     private readonly IOutputWriter outputWriter;
-    private readonly IFileWrapper fileWrapper;
 
     private bool isOutputSuspended = false;
 
@@ -65,28 +58,22 @@ public class ConsoleLogger : ILogger
     public LoggerVerbosity Verbosity { get; set; }
 
     public ConsoleLogger(bool includeTimestamp)
-        : this(includeTimestamp, new ConsoleWriter(), FileWrapper.Instance)
+        : this(includeTimestamp, new ConsoleWriter())
     {
     }
 
-    public ConsoleLogger(bool includeTimestamp, IFileWrapper fileWrapper)
-        : this(includeTimestamp, new ConsoleWriter(), fileWrapper)
-    {
-    }
-
-    private ConsoleLogger(bool includeTimestamp, IOutputWriter writer, IFileWrapper fileWrapper)
+    private ConsoleLogger(bool includeTimestamp, IOutputWriter writer)
     {
         IncludeTimestamp = includeTimestamp;
         Verbosity = DefaultVerbosity;
         outputWriter = writer;
-        this.fileWrapper = fileWrapper;
     }
 
     /// <summary>
     /// Use only for testing.
     /// </summary>
-    public static ConsoleLogger CreateLoggerForTesting(bool includeTimestamp, IOutputWriter writer, IFileWrapper fileWrapper) =>
-        new(includeTimestamp, writer, fileWrapper);
+    public static ConsoleLogger CreateLoggerForTesting(bool includeTimestamp, IOutputWriter writer) =>
+        new(includeTimestamp, writer);
 
     public void SuspendOutput()
     {
@@ -116,21 +103,6 @@ public class ConsoleLogger : ILogger
 
     public void LogInfo(string message, params object[] args) =>
         Write(MessageType.Info, message, args);
-
-    public void LogUIWarning(string message, params object[] args)
-    {
-        uiWarnings.Add(FormatMessage(message, args));
-        LogWarning(message, args);
-    }
-
-    public void WriteUIWarnings(string outputFolder)
-    {
-        if (uiWarnings.Any())
-        {
-            var warningsJson = JsonConvert.SerializeObject(uiWarnings.Select(x => new { text = x }).ToArray(), Formatting.Indented);
-            fileWrapper.WriteAllText(Path.Combine(outputFolder, FileConstants.UIWarningsFileName), warningsJson);
-        }
-    }
 
     private void FlushOutput()
     {

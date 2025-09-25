@@ -33,7 +33,7 @@ public class TruststoreUtilsTests
         var result = TruststoreUtils.TruststoreDefaultPassword(null, logger);
 
         result.Should().Be("changeit");
-        logger.DebugMessages.Should().BeEmpty();
+        logger.Should().HaveNoDebugs();
     }
 
     [TestMethod]
