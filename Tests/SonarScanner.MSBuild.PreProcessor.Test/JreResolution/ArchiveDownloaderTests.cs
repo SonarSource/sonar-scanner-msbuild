@@ -147,9 +147,9 @@ public class ArchiveDownloaderTests
             $"Deleting file '{Path.Combine(ShaPath, "filename.tar.gz")}'.",
             $"Cache miss. Attempting to download '{Path.Combine(ShaPath, "filename.tar.gz")}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{Path.Combine(ShaPath, "filename.tar.gz")}' to folder '{ShaPath}'.",
-            $"Moving extracted Java runtime environment from '{ShaPath}' to '{Path.Combine(ShaPath, "filename.tar.gz_extracted")}'.",
-            $"The Java runtime environment was successfully added to '{Path.Combine(ShaPath, "filename.tar.gz_extracted")}'.");
+            $"Starting to extract files from archive '{Path.Combine(ShaPath, "filename.tar.gz")}' to folder '{ShaPath}'.",
+            $"Moving extracted files from '{ShaPath}' to '{Path.Combine(ShaPath, "filename.tar.gz_extracted")}'.",
+            $"The archive was successfully extracted to '{Path.Combine(ShaPath, "filename.tar.gz_extracted")}'.");
     }
 
     [TestMethod]
@@ -164,12 +164,12 @@ public class ArchiveDownloaderTests
 
         var result = await ExecuteDownloadAndUnpack();
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded archive could not be extracted.");
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"The file was already downloaded from the server and stored at '{Path.Combine(ShaPath, "filename.tar.gz")}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{Path.Combine(ShaPath, "filename.tar.gz")}' to folder '{ShaPath}'.",
-            $"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at '{Path.Combine(ShaPath, "target file")}' but couldn't be found.'.");
+            $"Starting to extract files from archive '{Path.Combine(ShaPath, "filename.tar.gz")}' to folder '{ShaPath}'.",
+            $"The extraction of the downloaded archive failed with error 'The target file in the extracted archive was expected to be at '{Path.Combine(ShaPath, "target file")}' but couldn't be found.'.");
     }
 
     [TestMethod]
@@ -458,13 +458,13 @@ public class ArchiveDownloaderTests
 
         var result = await ExecuteDownloadAndUnpack(descriptor: new ArchiveDescriptor("filename.tar.gz", expectedHashValue, "target file"));
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded archive could not be extracted.");
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{file}'.",
             $"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.",
-            $"Starting extracting the Java runtime environment from archive '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "filename.tar.gz")}' "
+            $"Starting to extract files from archive '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "filename.tar.gz")}' "
             + $"to folder '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "xSecond.rnd")}'.",
-            "The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment "
+            "The extraction of the downloaded archive failed with error 'The target file in the extracted archive "
             + $"was expected to be at '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "xSecond.rnd", "target file")}' but couldn't be found.'.");
         runtime.File.Received(1).Exists(file);
         runtime.File.Received(1).Create(Path.Combine(sha, "xFirst.rnd"));
@@ -573,7 +573,7 @@ public class ArchiveDownloaderTests
 
         var result = await ExecuteDownloadAndUnpack();
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be(@"The downloaded Java runtime environment could not be extracted.");
+        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be(@"The downloaded archive could not be extracted.");
         runtime.File.Received(1).Exists(file);
         runtime.File.Received(1).Create(Arg.Any<string>());
         runtime.File.Received(1).Open(file); // For the unpacking.
@@ -582,8 +582,8 @@ public class ArchiveDownloaderTests
             $"Cache miss. Attempting to download '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             // The unpackerFactory returned an unpacker and it was called. But the test setup is incomplete and therefore fails later:
-            $"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
-            $"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at '{Path.Combine(ShaPath, "xSecond.rnd", "target file")}' but couldn't be found.'.");
+            $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
+            $"The extraction of the downloaded archive failed with error 'The target file in the extracted archive was expected to be at '{Path.Combine(ShaPath, "xSecond.rnd", "target file")}' but couldn't be found.'.");
     }
 
     [TestMethod]
@@ -610,9 +610,9 @@ public class ArchiveDownloaderTests
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
-            $"Moving extracted Java runtime environment from '{Path.Combine(ShaPath, "xSecond.rnd")}' to '{file}_extracted'.",
-            $"The Java runtime environment was successfully added to '{file}_extracted'.");
+            $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
+            $"Moving extracted files from '{Path.Combine(ShaPath, "xSecond.rnd")}' to '{file}_extracted'.",
+            $"The archive was successfully extracted to '{file}_extracted'.");
     }
 
     [TestMethod]
@@ -632,15 +632,15 @@ public class ArchiveDownloaderTests
 
         var result = await ExecuteDownloadAndUnpack();
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded archive could not be extracted.");
         runtime.Directory.Received(2).GetRandomFileName();
         runtime.Directory.DidNotReceiveWithAnyArgs().Move(null, null);
         runtime.Directory.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
-            "The extraction of the downloaded Java runtime environment failed with error 'Unpack failure'.");
+            $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
+            "The extraction of the downloaded archive failed with error 'Unpack failure'.");
     }
 
     [TestMethod]
@@ -661,16 +661,16 @@ public class ArchiveDownloaderTests
 
         var result = await ExecuteDownloadAndUnpack();
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded archive could not be extracted.");
         runtime.Directory.Received(2).GetRandomFileName();
         runtime.Directory.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
         runtime.Directory.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
-            $"Moving extracted Java runtime environment from '{Path.Combine(ShaPath, "xSecond.rnd")}' to '{file}_extracted'.",
-            "The extraction of the downloaded Java runtime environment failed with error 'I/O error occurred.'.");
+            $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
+            $"Moving extracted files from '{Path.Combine(ShaPath, "xSecond.rnd")}' to '{file}_extracted'.",
+            "The extraction of the downloaded archive failed with error 'I/O error occurred.'.");
     }
 
     [TestMethod]
@@ -690,15 +690,15 @@ public class ArchiveDownloaderTests
 
         var result = await ExecuteDownloadAndUnpack();
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded Java runtime environment could not be extracted.");
+        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded archive could not be extracted.");
         runtime.Directory.Received(2).GetRandomFileName();
         runtime.File.Received(1).Exists(Path.Combine(ShaPath, "xSecond.rnd", "target file"));
         runtime.Directory.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
-            $"The extraction of the downloaded Java runtime environment failed with error 'The java executable in the extracted Java runtime environment was expected to be at '{Path.Combine(ShaPath, "xSecond.rnd", "target file")}' but couldn't be found.'.");
+            $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
+            $"The extraction of the downloaded archive failed with error 'The target file in the extracted archive was expected to be at '{Path.Combine(ShaPath, "xSecond.rnd", "target file")}' but couldn't be found.'.");
     }
 
     [TestMethod]
@@ -725,10 +725,10 @@ public class ArchiveDownloaderTests
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Attempting to download '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
-            $"Moving extracted Java runtime environment from '{Path.Combine(ShaPath, "xSecond.rnd")}' to '{file}_extracted'.",
-            "The extraction of the downloaded Java runtime environment failed with error 'Move failure'.",
-            $"The cleanup of the temporary folder for the Java runtime environment extraction at '{Path.Combine(ShaPath, "xSecond.rnd")}' failed with message 'Folder cleanup failure'.");
+            $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
+            $"Moving extracted files from '{Path.Combine(ShaPath, "xSecond.rnd")}' to '{file}_extracted'.",
+            "The extraction of the downloaded archive failed with error 'Move failure'.",
+            $"The cleanup of the temporary folder for the archive extraction at '{Path.Combine(ShaPath, "xSecond.rnd")}' failed with message 'Folder cleanup failure'.");
     }
 
     [TestMethod]
@@ -776,17 +776,12 @@ public class ArchiveDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            runtimeIO.Logger.Should().HaveInfoOnce("""
-                The JRE provisioning is a time consuming operation.
-                JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip.
-                If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
-                """);
             runtimeIO.Logger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be($"Cache miss. Attempting to download '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip")}'."),
                 x => x.Should().Be($"The checksum of the downloaded file is '{sha}' and the expected checksum is '{sha}'."),
-                x => x.Should().Match($"Starting extracting the Java runtime environment from archive '{Path.Combine(cache, sha, file)}' to folder '{Path.Combine(cache, sha, "*")}'."),
-                x => x.Should().Match($"Moving extracted Java runtime environment from '{Path.Combine(cache, sha, "*")}' to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted")}'."),
-                x => x.Should().Be($"The Java runtime environment was successfully added to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted")}'."));
+                x => x.Should().Match($"Starting to extract files from archive '{Path.Combine(cache, sha, file)}' to folder '{Path.Combine(cache, sha, "*")}'."),
+                x => x.Should().Match($"Moving extracted files from '{Path.Combine(cache, sha, "*")}' to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted")}'."),
+                x => x.Should().Be($"The archive was successfully extracted to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted")}'."));
         }
         finally
         {
@@ -835,17 +830,12 @@ public class ArchiveDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
             File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
-            runtimeIO.Logger.Should().HaveInfoOnce("""
-                The JRE provisioning is a time consuming operation.
-                JRE provisioned: OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz.
-                If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
-                """);
             runtimeIO.Logger.DebugMessages.Should().SatisfyRespectively(
                 x => x.Should().Be($"Cache miss. Attempting to download '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz")}'."),
                 x => x.Should().Be($"The checksum of the downloaded file is '{sha}' and the expected checksum is '{sha}'."),
-                x => x.Should().Match($"Starting extracting the Java runtime environment from archive '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz")}' to folder '{Path.Combine(cache, sha, "*")}'."),
-                x => x.Should().Match($"Moving extracted Java runtime environment from '{Path.Combine(cache, sha, "*")}' to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted")}'."),
-                x => x.Should().Be($"The Java runtime environment was successfully added to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted")}'."));
+                x => x.Should().Match($"Starting to extract files from archive '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz")}' to folder '{Path.Combine(cache, sha, "*")}'."),
+                x => x.Should().Match($"Moving extracted files from '{Path.Combine(cache, sha, "*")}' to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted")}'."),
+                x => x.Should().Be($"The archive was successfully extracted to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted")}'."));
         }
         finally
         {

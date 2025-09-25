@@ -88,6 +88,7 @@ public class JreResolver : IResolver
             else
             {
                 runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, "JRE");
+                runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
                 return await DownloadJre(archiveDownloader, metadata);
             }
         }

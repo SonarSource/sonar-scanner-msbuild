@@ -55,7 +55,6 @@ public class ArchiveDownloader
 
     public async Task<DownloadResult> DownloadAsync(Func<Task<Stream>> downloadStream)
     {
-        runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, archiveDescriptor.Filename);
         var result = await cachedDownloader.DownloadFileAsync(downloadStream);
         return result is FileRetrieved success ? UnpackArchive(success.FilePath) : result;
     }
@@ -66,27 +65,27 @@ public class ArchiveDownloader
         var tempExtractionPath = Path.Combine(cachedDownloader.FileRootPath, runtime.Directory.GetRandomFileName());
         try
         {
-            runtime.LogDebug(Resources.MSG_StartingJreExtraction, archiveFile, tempExtractionPath);
+            runtime.LogDebug(Resources.MSG_StartingArchiveExtraction, archiveFile, tempExtractionPath);
             using var archiveStream = runtime.File.Open(archiveFile);
             unpacker.Unpack(archiveStream, tempExtractionPath);
             var expectedTargetFileInTempPath = Path.Combine(tempExtractionPath, archiveDescriptor.TargetFilePath);
             if (runtime.File.Exists(expectedTargetFileInTempPath))
             {
-                runtime.LogDebug(Resources.MSG_MovingUnpackedJre, tempExtractionPath, archiveExtractionPath);
+                runtime.LogDebug(Resources.MSG_MovingUnpackedFiles, tempExtractionPath, archiveExtractionPath);
                 runtime.Directory.Move(tempExtractionPath, archiveExtractionPath);
-                runtime.LogDebug(Resources.MSG_JreExtractedSucessfully, archiveExtractionPath);
+                runtime.LogDebug(Resources.MSG_ArchiveExtractedSucessfully, archiveExtractionPath);
                 return new Downloaded(extractedTargetFile);
             }
             else
             {
-                throw new InvalidOperationException(string.Format(Resources.ERR_JreJavaExeMissing, expectedTargetFileInTempPath));
+                throw new InvalidOperationException(string.Format(Resources.ERR_ArchiveTargetFileMissing, expectedTargetFileInTempPath));
             }
         }
         catch (Exception ex)
         {
-            runtime.LogDebug(Resources.ERR_JreExtractionFailedWithError, ex.Message);
+            runtime.LogDebug(Resources.ERR_ExtractionFailedWithError, ex.Message);
             CleanupFolder(tempExtractionPath);
-            return new DownloadError(Resources.ERR_JreExtractionFailed);
+            return new DownloadError(Resources.ERR_ExtractionFailed);
         }
     }
 
@@ -98,7 +97,7 @@ public class ArchiveDownloader
         }
         catch (Exception ex)
         {
-            runtime.LogDebug(Resources.ERR_JreExtractionCleanupFailed, tempExtractionPath, ex.Message);
+            runtime.LogDebug(Resources.ERR_ExtractionCleanupFailed, tempExtractionPath, ex.Message);
         }
     }
 }

@@ -61,9 +61,9 @@ public final class ProvisioningAssertions {
       "Cache miss. Attempting to download JRE.");
     TestUtils.matchesSingleLine(beginLogs, "Downloading Java JRE from " + jreUrlPattern);
     TestUtils.matchesSingleLine(beginLogs, "The checksum of the downloaded file is '.+' and the expected checksum is '.+'");
-    TestUtils.matchesSingleLine(beginLogs, "Starting extracting the Java runtime environment from archive '" + cacheFolderPattern + "' to folder '" + cacheFolderPattern + "'");
-    TestUtils.matchesSingleLine(beginLogs, "Moving extracted Java runtime environment from '" + cacheFolderPattern + "' to '" + cacheFolderPattern + "_extracted'");
-    TestUtils.matchesSingleLine(beginLogs, "The Java runtime environment was successfully added to '" + cacheFolderPattern + "_extracted'");
+    TestUtils.matchesSingleLine(beginLogs, "Starting to extract files from archive '" + cacheFolderPattern + "' to folder '" + cacheFolderPattern + "'");
+    TestUtils.matchesSingleLine(beginLogs, "Moving extracted files from '" + cacheFolderPattern + "' to '" + cacheFolderPattern + "_extracted'");
+    TestUtils.matchesSingleLine(beginLogs, "The archive was successfully extracted to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + cacheFolderPattern + "_extracted.+java(?:\\.exe)?'");
     if (!useSonarScannerCLI) {
       assertThat(beginLogs).contains(
