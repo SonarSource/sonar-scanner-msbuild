@@ -81,7 +81,7 @@ public class PostProcessor
         }
         else
         {
-            runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.NotCalled; // Will be overridden if TFS processor is called later.
+            runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.NotCalled; // Will be overridden if Legacy TFS processor is called later.
             ProcessCoverageReport(config, settings, analysisResult);
             var result = false;
             if (analysisResult.RanToCompletion)
@@ -196,7 +196,6 @@ public class PostProcessor
 #if NETFRAMEWORK
         if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
         {
-            runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.Called;
             runtime.Logger.IncludeTimestamp = false;
             tfsProcessor.Execute(
                 config,
