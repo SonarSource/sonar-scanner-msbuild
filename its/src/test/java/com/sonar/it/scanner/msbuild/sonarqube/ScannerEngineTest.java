@@ -44,7 +44,7 @@ import org.sonarqube.ws.client.projectanalyses.SearchRequest;
 import org.xml.sax.SAXException;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -120,6 +120,9 @@ class ScannerEngineTest {
         .contains("Could not find Java in Analysis Config")
         .contains("'JAVA_HOME' environment variable not set")
         .contains("Could not find Java, falling back to using PATH: java");
+      assertThat(TestUtils.scannerEngineInputJson(context))
+        .hasAllSecretsRedacted()
+        .containsKey("sonar.token");
     }
   }
 

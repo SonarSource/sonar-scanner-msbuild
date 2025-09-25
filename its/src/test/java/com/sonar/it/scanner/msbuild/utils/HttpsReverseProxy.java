@@ -42,7 +42,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 public class HttpsReverseProxy implements AutoCloseable {
   static final Logger LOG = LoggerFactory.getLogger(HttpsReverseProxy.class);

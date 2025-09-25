@@ -29,7 +29,7 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 public class RestoreCommand extends BaseCommand<RestoreCommand> {
   private static final Logger LOG = LoggerFactory.getLogger(RestoreCommand.class);

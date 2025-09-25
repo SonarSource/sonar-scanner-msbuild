@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.sonar.it.scanner.msbuild.utils.TestUtils.LOG;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 public class GeneralCommand extends BaseCommand<GeneralCommand> {
   private final String command;
