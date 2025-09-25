@@ -141,7 +141,7 @@ public abstract class SonarWebServerBase : IDisposable
             var result = await apiDownloader.Download(uri);
             var jres = JsonConvert.DeserializeObject<List<JreMetadata>>(result);
             // Spec: The API can return multiple results, and the first result should be used.
-            return jres.Any() ? jres[0] : null;
+            return jres.FirstOrDefault();
         }
         catch (Exception)
         {
