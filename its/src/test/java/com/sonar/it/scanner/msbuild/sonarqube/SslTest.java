@@ -456,7 +456,6 @@ class SslTest {
     return result;
   }
 
-
   private String createKeyStore(String password, String host) {
     return createKeyStore(password, Path.of(""), host, "keystore.pfx");
   }
