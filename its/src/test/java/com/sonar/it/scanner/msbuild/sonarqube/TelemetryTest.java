@@ -20,6 +20,10 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.*;
+import com.sonar.orchestrator.build.BuildResult;
+import org.assertj.core.api.AbstractListAssert;
+import org.assertj.core.api.ObjectAssert;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -32,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -40,20 +43,77 @@ class TelemetryTest {
 
   @Test
   @ServerMinVersion("2025.3")
-  void telemetry_telemetryFiles_areCorrect_CS() throws IOException {
-    AssertTelemetry("Telemetry");
+  void telemetry_telemetryFiles_areCorrect_CS() {
+    var result = runAnalysis("Telemetry");
+    assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
+      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp7_3=3"),
+      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=3"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.value=rooted"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scm_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_verbose.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.product=SQ_Server"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.serverUrl=custom_url"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.serverInfo.version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"));
   }
 
   @Test
   @ServerMinVersion("2025.3")
-  void telemetry_telemetryFiles_areCorrect_VB() throws IOException {
-    AssertTelemetry("TelemetryVB");
+  void telemetry_telemetryFiles_areCorrect_VB() {
+    var result = runAnalysis("TelemetryVB");
+    assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
+      x -> assertThat(x).isEqualTo("vbnet.vbnet.language_version.visualbasic17_13=3"),
+      x -> assertThat(x).isEqualTo("vbnet.vbnet.target_framework.netstandard1_6=3"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.value=rooted"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scm_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_verbose.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.product=SQ_Server"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.serverUrl=custom_url"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.version=2025.5.0.113872"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"));
   }
 
   @Test
   @ServerMinVersion("2025.3")
-  void telemetry_telemetryFiles_areCorrect_CSVB_Mixed() throws IOException {
-    AssertTelemetry("TelemetryCSVBMixed");
+  void telemetry_telemetryFiles_areCorrect_CSVB_Mixed() {
+    var result = runAnalysis("TelemetryCSVBMixed");
+    assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
+      x -> assertThat(x).isEqualTo("vbnet.vbnet.language_version.visualbasic17_13=1"),
+      x -> assertThat(x).isEqualTo("vbnet.vbnet.target_framework.netstandard1_6=1"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.value=rooted"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scm_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_verbose.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.product=SQ_Server"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.serverUrl=custom_url"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.serverInfo.version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=1"),
+      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp7_3=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=2"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=2"));
   }
 
   @Test
@@ -61,14 +121,34 @@ class TelemetryTest {
   @ServerMinVersion("2025.3")
   void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() throws IOException {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
-
     context.begin.setDebugLogs();
-    context.runAnalysis();
+    var result = context.runAnalysis();
 
+    assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
+      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp12=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp13=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net8_0=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net9_0=2"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.value=rooted"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scm_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_verbose.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.product=SQ_Server"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.serverUrl=custom_url"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.serverInfo.version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v8_0=2"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v9_0=2"));
+    
     var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
-
     ArrayList<String> projectMonikers = new ArrayList<>();
-    for (int i=0; i<4; i++) {
+    for (int i = 0; i < 4; i++) {
       projectMonikers.addAll(readContents(sonarQubeOutDirectory.resolve(String.valueOf(i)).resolve("Telemetry.json")));
     }
 
@@ -78,51 +158,14 @@ class TelemetryTest {
       "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v9.0\"}",
       "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v9.0\"}");
 
-    var result = context.end.execute(ORCHESTRATOR);
-    var logLines = Arrays.asList(result.getLogs().split("\n"));
+    var logLines = Arrays.asList(result.end().getLogs().split("\n"));
     var pathSeparator = "(?:/|\\\\{2})"; // Either a / or two \\;
-    var pathPattern = ".*" + pathSeparator+ "[0-9]" + pathSeparator + "Telemetry\\.json\",?\\\\?";
+    var pathPattern = ".*" + pathSeparator + "[0-9]" + pathSeparator + "Telemetry\\.json\",?\\\\?";
     // guid.sonar.cs.scanner.telemetry should exist once per project in the content of sonar-project.properties (dumped to the logs)
     assertThat(logLines.stream().filter(x -> x.matches(".*\\.sonar\\.cs\\.scanner\\.telemetry=\\\\"))).hasSize(2);
-    // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework in the content of sonar-project.properties (dumped to the logs)
+    // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework in the content of sonar-project.properties
+    // (dumped to the logs)
     assertThat(logLines.stream().filter(x -> x.matches(pathPattern))).hasSize(4);
-  }
-
-  private void AssertTelemetry(String projectName) throws IOException {
-    var context = AnalysisContext.forServer(Paths.get("Telemetry", projectName).toString());
-    context.begin.setProperty(
-      new Property("sonar.scanner.scanAll", "false"),
-      new Property("s", context.projectDir.resolve("SonarQube.Analysis.xml").toAbsolutePath().toString()));
-    context.runAnalysis();
-
-    var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
-
-    assertThat(readContents(sonarQubeOutDirectory.resolve(("Processed.Telemetry.S4NET.json"))))
-      .satisfiesExactly(
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source\":\"CLI\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source\":\"CLI\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_projectbasedir.source\":\"CLI\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_projectbasedir.value\":\"rooted\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.source\":\"CLI\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scm_disabled.source\":\"CLI\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.product\":\"SQ_Server\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.serverInfo.serverUrl\":\"custom_url\"}"),
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.serverInfo.version\":"),
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.jre.bootstrapping\":\"Disabled\""),
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.scannerEngine.bootstrapping\":"),
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.scannerEngine.download\":")
-      );
-
-    assertThat(readContents(sonarQubeOutDirectory.resolve("Processed.Telemetry.Targets.S4NET.json")))
-      .satisfiesExactly(
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.visual_studio_version\":"),
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.msbuild_version\":")
-      );
-
-    for (int i = 0; i < 3; i++) {
-      assertThat(readContents(sonarQubeOutDirectory.resolve(String.valueOf(i)).resolve("Telemetry.json"))).satisfiesExactly(
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETStandard,Version=v1.6\"}"));
-    }
   }
 
   private List<String> readContents(Path path) throws IOException {
@@ -130,6 +173,21 @@ class TelemetryTest {
     // see: https://stackoverflow.com/a/73590918
     content.replaceAll(x -> x.replace("\uFEFF", ""));
     return content;
+  }
+
+  @NotNull
+  private static AnalysisResult runAnalysis(String telemetryProject) {
+    var context = AnalysisContext.forServer(Paths.get("Telemetry", telemetryProject).toString());
+    context.begin.setDebugLogs();
+    var result = context.runAnalysis();
+    assertThat(result.isSuccess()).isTrue();
+    return result;
+  }
+
+  private static AbstractListAssert<?, List<? extends String>, String, ObjectAssert<String>> assertThatEndLogMetrics(BuildResult result) {
+    final String metricLog = "^[0-9.:]*  DEBUG: Adding metric: ";
+    var endLogs = result.getLogsLines(x -> x.matches(metricLog + ".*"));
+    return assertThat(endLogs).map(x -> x.replaceFirst(metricLog, ""));
   }
 }
 
