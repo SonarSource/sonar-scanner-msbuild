@@ -113,7 +113,7 @@ class SslTest {
       assertThat(logs)
         .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + keystorePassword + "\"")
         .doesNotContain(keystorePassword);
-      assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted().containsKey("sonar.token");
+      assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
     }
   }
 
@@ -132,8 +132,7 @@ class SslTest {
         assertThat(logs)
           .contains("Args: -Djavax.net.ssl.trustStoreType=Windows-ROOT");
         assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
-      }
-      else {
+      } else {
         assertThat(logs)
           .contains("SONAR_SCANNER_OPTS")
           .contains("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
@@ -152,8 +151,7 @@ class SslTest {
       if (serverSupportsProvisioning()) {
         assertThat(logs).contains("Args: -Xmx2048m");
         assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
-      }
-      else {
+      } else {
         assertThat(logs).contains("SONAR_SCANNER_OPTS=-Xmx2048m");
       }
     }
@@ -204,13 +202,12 @@ class SslTest {
         .setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
 
-      if(serverSupportsProvisioning()) {
+      if (serverSupportsProvisioning()) {
         assertThat(logs)
           .containsPattern("Args: -Djavax.net.ssl.trustStore=\"?" + server.getKeystorePath().replace('\\', '/'))
           .doesNotContain(server.getKeystorePassword());
         assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
-      }
-      else {
+      } else {
         assertThat(logs)
           .contains("SONAR_SCANNER_OPTS=-D<sensitive data removed>")
           .doesNotContain(server.getKeystorePassword());
@@ -309,10 +306,9 @@ class SslTest {
       var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
-        if (serverSupportsProvisioning()){
-            assertThat(result.end().getLogs()).containsPattern("WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'");
-        }
-        else {
+        if (serverSupportsProvisioning()) {
+          assertThat(result.end().getLogs()).containsPattern("WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'");
+        } else {
           assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
 
         }
@@ -442,8 +438,7 @@ class SslTest {
         .contains("Args: ")
         .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
         .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
-    }
-    else {
+    } else {
       assertThat(logs)
         .contains("SONAR_SCANNER_OPTS")
         .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
@@ -460,7 +455,7 @@ class SslTest {
 
     return result;
   }
-  
+
 
   private String createKeyStore(String password, String host) {
     return createKeyStore(password, Path.of(""), host, "keystore.pfx");

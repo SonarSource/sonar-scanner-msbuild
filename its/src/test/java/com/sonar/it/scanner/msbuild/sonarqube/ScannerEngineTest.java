@@ -120,6 +120,9 @@ class ScannerEngineTest {
         .contains("Could not find Java in Analysis Config")
         .contains("'JAVA_HOME' environment variable not set")
         .contains("Could not find Java, falling back to using PATH: java");
+      assertThat(TestUtils.scannerEngineInputJson(context))
+        .hasAllSecretsRedacted()
+        .containsKey("sonar.token");
     }
   }
 
