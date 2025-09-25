@@ -738,7 +738,6 @@ public class SonarWebServerTest
     [DataRow(null)]
     [DataRow("")]
     [DataRow("{broken json")]
-    [DataRow("[]")]
     public async Task DownloadJreMetadataAsync_ReturnsInvalid_Warning(string jresResponse)
     {
         downloader
@@ -792,6 +791,17 @@ public class SonarWebServerTest
 
         jreMetadata.Should().NotBeNull();
         jreMetadata.Id.Should().Be("first");
+        logger.Should().HaveNoWarnings();
+    }
+
+    [TestMethod]
+    public async Task DownloadJreMetadataAsync_ReturnsNone_ReturnsNull()
+    {
+        downloader
+            .Download(new("analysis/jres?os=what&arch=ever", UriKind.Relative))
+            .Returns("[]");
+
+        (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
         logger.Should().HaveNoWarnings();
     }
 
