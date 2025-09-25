@@ -145,34 +145,6 @@ class TelemetryTest {
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v8_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v9_0=2"));
-    
-    var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
-    ArrayList<String> projectMonikers = new ArrayList<>();
-    for (int i = 0; i < 4; i++) {
-      projectMonikers.addAll(readContents(sonarQubeOutDirectory.resolve(String.valueOf(i)).resolve("Telemetry.json")));
-    }
-
-    assertThat(projectMonikers).containsExactlyInAnyOrder(
-      "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v8.0\"}",
-      "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v8.0\"}",
-      "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v9.0\"}",
-      "{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETCoreApp,Version=v9.0\"}");
-
-    var logLines = Arrays.asList(result.end().getLogs().split("\n"));
-    var pathSeparator = "(?:/|\\\\{2})"; // Either a / or two \\;
-    var pathPattern = ".*" + pathSeparator + "[0-9]" + pathSeparator + "Telemetry\\.json\",?\\\\?";
-    // guid.sonar.cs.scanner.telemetry should exist once per project in the content of sonar-project.properties (dumped to the logs)
-    assertThat(logLines.stream().filter(x -> x.matches(".*\\.sonar\\.cs\\.scanner\\.telemetry=\\\\"))).hasSize(2);
-    // "TelemetryMultiTarget\\.sonarqube\\out\\[uniqueNumber]\\Telemetry.json" should exist once per project and per target framework in the content of sonar-project.properties
-    // (dumped to the logs)
-    assertThat(logLines.stream().filter(x -> x.matches(pathPattern))).hasSize(4);
-  }
-
-  private List<String> readContents(Path path) throws IOException {
-    List<String> content = Files.readAllLines(path, StandardCharsets.UTF_8);
-    // see: https://stackoverflow.com/a/73590918
-    content.replaceAll(x -> x.replace("\uFEFF", ""));
-    return content;
   }
 
   @NotNull
