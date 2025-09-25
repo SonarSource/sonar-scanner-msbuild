@@ -21,7 +21,7 @@ package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.orchestrator.build.BuildResult;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 public final class ProvisioningAssertions {
   public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, String oldJavaHome, Boolean isCloud, Boolean useSonarScannerCLI) {

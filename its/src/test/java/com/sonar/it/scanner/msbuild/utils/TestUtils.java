@@ -53,7 +53,7 @@ import org.sonarqube.ws.client.components.TreeRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.settings.SetRequest;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 public class TestUtils {
   static final Logger LOG = LoggerFactory.getLogger(TestUtils.class);

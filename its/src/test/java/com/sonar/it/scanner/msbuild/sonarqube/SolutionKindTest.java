@@ -37,7 +37,7 @@ import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})

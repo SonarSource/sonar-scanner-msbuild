@@ -44,7 +44,7 @@ import org.sonarqube.ws.client.projectanalyses.SearchRequest;
 import org.xml.sax.SAXException;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

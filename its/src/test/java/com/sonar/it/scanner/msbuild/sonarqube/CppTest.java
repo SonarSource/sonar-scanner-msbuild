@@ -43,7 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 /**
  * Only cpp, without C# plugin
