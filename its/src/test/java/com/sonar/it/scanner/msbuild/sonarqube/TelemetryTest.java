@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 
