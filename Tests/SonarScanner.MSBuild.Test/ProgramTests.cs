@@ -24,6 +24,10 @@ namespace SonarScanner.MSBuild.Test;
 public class ProgramTests
 {
     [TestMethod]
+    public async Task Main_ReturnsExitCode() =>
+        (await Program.Main(["MIDDLE"])).Should().Be(1);    // Unrecognized phase argument
+
+    [TestMethod]
     public async Task Execute_WhenIsHelp_ReturnsTrue()
     {
         var runtime = new TestRuntime();
