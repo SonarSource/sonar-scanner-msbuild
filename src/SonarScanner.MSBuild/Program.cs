@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild;
@@ -27,6 +28,7 @@ public static class Program
     private const int ErrorCode = 1;
     private const int SuccessCode = 0;
 
+    [ExcludeFromCodeCoverage]
     public static async Task<int> Main(string[] args)
     {
         var logger = new ConsoleLogger(includeTimestamp: false);

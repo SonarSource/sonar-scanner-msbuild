@@ -58,7 +58,5 @@ public class AnalysisWarnings : IAnalysisWarnings
     }
 
     private static string FormatMessage(string message, params object[] args) =>
-        args is not null && args.Length > 0
-            ? string.Format(CultureInfo.CurrentCulture, message ?? string.Empty, args)
-            : message;
+        string.Format(CultureInfo.CurrentCulture, message ?? string.Empty, args ?? []);
 }
