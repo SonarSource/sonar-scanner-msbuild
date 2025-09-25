@@ -44,7 +44,7 @@ public class AnalysisWarnings : IAnalysisWarnings
 
     public void Log(string message, params object[] args)
     {
-        messages.Add(FormatMessage(message, args));
+        messages.Add(string.Format(CultureInfo.CurrentCulture, message, args));
         logger.LogWarning(message, args);
     }
 
@@ -56,7 +56,4 @@ public class AnalysisWarnings : IAnalysisWarnings
             fileWrapper.WriteAllText(Path.Combine(outputFolder, FileConstants.AnalysisWarningsFileName), warningsJson);
         }
     }
-
-    private static string FormatMessage(string message, params object[] args) =>
-        string.Format(CultureInfo.CurrentCulture, message ?? string.Empty, args ?? []);
 }

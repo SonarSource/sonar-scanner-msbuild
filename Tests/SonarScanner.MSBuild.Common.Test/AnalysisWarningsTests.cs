@@ -36,18 +36,14 @@ public class AnalysisWarningsTests
         analysisWarnings.Log("warn1");
         output.AssertExpectedLastMessageRegex($"{prefixRegex} warn1");
 
-        analysisWarnings.Log("warn2", null);
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} warn2");
-
-        analysisWarnings.Log("warn3 {0}", "xxx");
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} warn3 xxx");
+        analysisWarnings.Log("warn2 {0}", "xxx");
+        output.AssertExpectedLastMessageRegex($"{prefixRegex} warn2 xxx");
 
         const string outputDir = "outputDir";
         var expected = """
             [
                 { "text": "warn1" },
-                { "text": "warn2" },
-                { "text": "warn3 xxx" }
+                { "text": "warn2 xxx" }
             ]
             """;
         analysisWarnings.Write(outputDir);    // this should not contain any timestamps.
