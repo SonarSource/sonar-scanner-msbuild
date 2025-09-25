@@ -49,9 +49,9 @@ public static class FileConstants
     public const string IntegrationTargetsName = "SonarQube.Integration.targets";
 
     /// <summary>
-    /// Name of the file containing the UI Warnings to be shown in SQ/SC.
+    /// Name of the file containing the Analysis Warnings to be shown in SQ/SC.
     /// </summary>
-    public const string UIWarningsFileName = "AnalysisWarnings.S4NET.json";
+    public const string AnalysisWarningsFileName = "AnalysisWarnings.S4NET.json";
 
     /// <summary>
     /// Name of the file containing the telemetry messages per project.

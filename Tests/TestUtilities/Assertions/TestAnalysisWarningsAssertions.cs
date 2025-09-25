@@ -23,36 +23,36 @@ using FluentAssertions.Primitives;
 
 namespace TestUtilities.Assertions;
 
-public static class TestUiWarningsExtensions
+public static class TestAnalysisWarningsExtensions
 {
-    public static TestUiWarningsAssertions Should(this TestUiWarnings subject) =>
+    public static TestAnalysisWarningsAssertions Should(this TestAnalysisWarnings subject) =>
         new(subject);
 }
 
-public class TestUiWarningsAssertions : ReferenceTypeAssertions<TestUiWarnings, TestUiWarningsAssertions>
+public class TestAnalysisWarningsAssertions : ReferenceTypeAssertions<TestAnalysisWarnings, TestAnalysisWarningsAssertions>
 {
-    protected override string Identifier { get; } = nameof(TestUiWarnings);
+    protected override string Identifier { get; } = nameof(TestAnalysisWarnings);
 
-    public TestUiWarningsAssertions(TestUiWarnings subject) : base(subject) { }
+    public TestAnalysisWarningsAssertions(TestAnalysisWarnings subject) : base(subject) { }
 
     [CustomAssertion]
-    public AndConstraint<TestUiWarningsAssertions> HaveNoMessages(string because = "", params string[] becauseArgs)
+    public AndConstraint<TestAnalysisWarningsAssertions> HaveNoMessages(string because = "", params string[] becauseArgs)
     {
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(Subject.Messages.Count == 0)
-            .FailWith($"Expected no UI warnings to be logged, but found:\n{ListOfQuotedStrings(Subject.Messages)}");
+            .FailWith($"Expected no analysis warnings to be logged, but found:\n{ListOfQuotedStrings(Subject.Messages)}");
         return new(this);
     }
 
     [CustomAssertion]
-    public AndConstraint<TestUiWarningsAssertions> HaveMessage(string expected, string because = "", params string[] becauseArgs)
+    public AndConstraint<TestAnalysisWarningsAssertions> HaveMessage(string expected, string because = "", params string[] becauseArgs)
     {
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(Subject.Messages.Contains(expected.ToUnixLineEndings()))
             .FailWith($"""
-                Expected the following UI warning to be logged:
+                Expected the following analysis warning to be logged:
                 {expected}
                 but could not find it in
                 {ListOfQuotedStrings(Subject.Messages)}

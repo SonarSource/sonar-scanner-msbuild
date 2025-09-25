@@ -23,7 +23,7 @@ using System.Text.Json.Nodes;
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
-public class UiWarningsTests
+public class AnalysisWarningsTests
 {
     [TestMethod]
     public void Write_GenerateFile()
@@ -31,28 +31,24 @@ public class UiWarningsTests
         const string prefixRegex = @"\d{2}:\d{2}:\d{2}(.\d{1,3})?  WARNING:";
         using var output = new OutputCaptureScope();
         var fileWrapper = Substitute.For<IFileWrapper>();
-        var uiWarnings = new UiWarnings(fileWrapper, new ConsoleLogger(includeTimestamp: true));
+        var analysisWarnings = new AnalysisWarnings(fileWrapper, new ConsoleLogger(includeTimestamp: true));
 
-        uiWarnings.Log("uiWarn1");
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn1");
+        analysisWarnings.Log("warn1");
+        output.AssertExpectedLastMessageRegex($"{prefixRegex} warn1");
 
-        uiWarnings.Log("uiWarn2", null);
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn2");
-
-        uiWarnings.Log("uiWarn3 {0}", "xxx");
-        output.AssertExpectedLastMessageRegex($"{prefixRegex} uiWarn3 xxx");
+        analysisWarnings.Log("warn2 {0}", "xxx");
+        output.AssertExpectedLastMessageRegex($"{prefixRegex} warn2 xxx");
 
         const string outputDir = "outputDir";
         var expected = """
             [
-                { "text": "uiWarn1" },
-                { "text": "uiWarn2" },
-                { "text": "uiWarn3 xxx" }
+                { "text": "warn1" },
+                { "text": "warn2 xxx" }
             ]
             """;
-        uiWarnings.Write(outputDir);    // this should not contain any timestamps.
+        analysisWarnings.Write(outputDir);    // this should not contain any timestamps.
         fileWrapper.Received(1).WriteAllText(
-            Path.Combine(outputDir, FileConstants.UIWarningsFileName),
+            Path.Combine(outputDir, FileConstants.AnalysisWarningsFileName),
             Arg.Is<string>(x => IsMatchingJson(expected, x)));
     }
 
