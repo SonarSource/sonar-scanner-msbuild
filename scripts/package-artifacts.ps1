@@ -5,10 +5,16 @@
 
     $destination = "$fullBuildOutputDir\sonarscanner-net-framework"
     $destinationTargets = "$destination\Targets"
+    $DestinationLicenses = "$destination\licenses"
+    $DestinationThirdPartyLicenses = "$DestinationLicenses\THIRD_PARTY_LICENSES"
+
     $sourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild.TFS.Classic\bin\Release\net462"
+
 
     if (!(Test-Path -Path $destination)) { New-Item $destination -Type Directory }
     if (!(Test-Path -Path $destinationTargets)) { New-Item $destinationTargets -Type Directory }
+    if (!(Test-Path -Path $DestinationLicenses)) { New-Item $DestinationLicenses -Type Directory }
+    if (!(Test-Path -Path $DestinationThirdPartyLicenses)) { New-Item $DestinationThirdPartyLicenses -Type Directory }
 
     Copy-Item -Path "$sourceRoot\Microsoft.CodeCoverage.IO.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\Newtonsoft.Json.dll" -Destination $destination
@@ -22,6 +28,8 @@
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination $destinationTargets -Recurse
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\net462\*" -Exclude "*.pdb" -Destination $destination -Recurse
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\net462\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
+    Copy-Item -Path "$PSScriptRoot\..\LICENSE.txt" -Destination $DestinationLicenses
+    Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\*" -Destination $DestinationThirdPartyLicenses
 
     Expand-Archive -Path "$scannerCliDownloadDir\$scannerCliArtifact" -DestinationPath $destination -Force
 
@@ -65,7 +73,7 @@ function Package-NetScanner {
     if ($SignAssemblies) {
         Sign-Assemblies -Pattern "$destination\Sonar*" -TargetName ".NET assemblies"
     }
-    
+
     # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
     # This is propably fixed in Powershell 7
     tar -c -a -C "$destination" --options "zip:compression-level=9" -f "$destination.zip" *
