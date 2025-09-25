@@ -481,7 +481,7 @@ public class ProcessedArgsTests
         sut.IsValid.Should().BeTrue();
         runtime.Logger.Should().HaveNoErrors()
             .And.HaveWarningOnce(expectedMessage);
-        runtime.UiWarnings.Messages.Should().ContainSingle(expectedMessage);
+        runtime.AnalysisWarnings.Messages.Should().ContainSingle(expectedMessage);
     }
 
     [TestMethod]

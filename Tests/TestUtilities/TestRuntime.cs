@@ -46,18 +46,18 @@ public record TestRuntime : IRuntime
 
     public TestTelemetry Telemetry { get; init; } = new();
 
-    public TestUiWarnings UiWarnings { get; init; }
+    public TestAnalysisWarnings AnalysisWarnings { get; init; }
 
     ILogger IRuntime.Logger => Logger;
 
     ITelemetry IRuntime.Telemetry => Telemetry;
 
-    IUiWarnings IRuntime.UiWarnings => UiWarnings;
+    IAnalysisWarnings IRuntime.AnalysisWarnings => AnalysisWarnings;
 
     public TestRuntime()
     {
         OperatingSystem = Substitute.For<OperatingSystemProvider>(File, Logger);
-        UiWarnings = new TestUiWarnings(Logger);
+        AnalysisWarnings = new TestAnalysisWarnings(Logger);
     }
 
     public void ConfigureOS(PlatformOS os) =>

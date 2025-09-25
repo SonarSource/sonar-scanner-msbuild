@@ -255,7 +255,7 @@ public class ProcessedArgs
 
         if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))
         {
-            runtime.UiWarnings.Log(Resources.WARN_SourcesAndTestsDeprecated);
+            runtime.AnalysisWarnings.Log(Resources.WARN_SourcesAndTestsDeprecated);
         }
         IsValid &= SetUserHome();
         IsValid &= SetTrustStoreProperties();

@@ -26,17 +26,17 @@ namespace SonarScanner.MSBuild.Common;
 /// <summary>
 /// Simple logger implementation that logs output to the console.
 /// </summary>
-public class UiWarnings : IUiWarnings
+public class AnalysisWarnings : IAnalysisWarnings
 {
     /// <summary>
-    /// List of UI warnings that should be logged.
+    /// List of analysis warnings that should be logged.
     /// </summary>
-    private readonly IList<string> uiWarnings = [];
+    private readonly IList<string> messages = [];
 
     private readonly IFileWrapper fileWrapper;
     private readonly ILogger logger;
 
-    public UiWarnings(IFileWrapper fileWrapper, ILogger logger)
+    public AnalysisWarnings(IFileWrapper fileWrapper, ILogger logger)
     {
         this.fileWrapper = fileWrapper;
         this.logger = logger;
@@ -44,16 +44,16 @@ public class UiWarnings : IUiWarnings
 
     public void Log(string message, params object[] args)
     {
-        uiWarnings.Add(FormatMessage(message, args));
+        messages.Add(FormatMessage(message, args));
         logger.LogWarning(message, args);
     }
 
     public void Write(string outputFolder)
     {
-        if (uiWarnings.Any())
+        if (messages.Any())
         {
-            var warningsJson = JsonConvert.SerializeObject(uiWarnings.Select(x => new { text = x }).ToArray(), Formatting.Indented);
-            fileWrapper.WriteAllText(Path.Combine(outputFolder, FileConstants.UIWarningsFileName), warningsJson);
+            var warningsJson = JsonConvert.SerializeObject(messages.Select(x => new { text = x }).ToArray(), Formatting.Indented);
+            fileWrapper.WriteAllText(Path.Combine(outputFolder, FileConstants.AnalysisWarningsFileName), warningsJson);
         }
     }
 

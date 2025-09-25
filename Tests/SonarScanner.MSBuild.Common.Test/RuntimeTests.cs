@@ -54,11 +54,11 @@ public class RuntimeTests
             .WithParameterName("telemetry");
 
     [TestMethod]
-    public void Constructor_UiWarningsNull_Throws() =>
+    public void Constructor_AnalysisWarningsNull_Throws() =>
         FluentActions
             .Invoking(() => new Runtime(OperatingSystemMock(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<ILogger>(), Substitute.For<ITelemetry>(), null))
             .Should().ThrowExactly<ArgumentNullException>()
-            .WithParameterName("uiWarnings");
+            .WithParameterName("analysisWarnings");
 
     [TestMethod]
     public void Constructor_SetsProperties()
@@ -68,16 +68,16 @@ public class RuntimeTests
         var file = Substitute.For<IFileWrapper>();
         var logger = Substitute.For<ILogger>();
         var telemetry = Substitute.For<ITelemetry>();
-        var uiWarnings = Substitute.For<IUiWarnings>();
+        var analysisWarnings = Substitute.For<IAnalysisWarnings>();
 
-        var sut = new Runtime(operatingSystem, directory, file, logger, telemetry, uiWarnings);
+        var sut = new Runtime(operatingSystem, directory, file, logger, telemetry, analysisWarnings);
 
         sut.OperatingSystem.Should().Be(operatingSystem);
         sut.Directory.Should().Be(directory);
         sut.File.Should().Be(file);
         sut.Logger.Should().Be(logger);
         sut.Telemetry.Should().Be(telemetry);
-        sut.UiWarnings.Should().Be(uiWarnings);
+        sut.AnalysisWarnings.Should().Be(analysisWarnings);
     }
 
     private static OperatingSystemProvider OperatingSystemMock() =>

@@ -22,14 +22,14 @@ using System.Globalization;
 
 namespace TestUtilities;
 
-public class TestUiWarnings : IUiWarnings
+public class TestAnalysisWarnings : IAnalysisWarnings
 {
     private readonly TestLogger logger;
 
     // All messages are normalized to Unix line endings, because Resx files contains multiline messages with CRLF and we emit mix of LF and CRFL to logs on *nix system
     public List<string> Messages { get; }
 
-    public TestUiWarnings(TestLogger logger)
+    public TestAnalysisWarnings(TestLogger logger)
     {
         this.logger = logger;
         Messages = [];

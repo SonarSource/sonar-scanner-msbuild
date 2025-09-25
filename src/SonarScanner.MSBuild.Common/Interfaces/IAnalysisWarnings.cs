@@ -20,7 +20,7 @@
 
 namespace SonarScanner.MSBuild.Common;
 
-public interface IUiWarnings
+public interface IAnalysisWarnings
 {
     /// <summary>
     /// Log a warning and display it in the UI (starting from SQ 9.9 LTS).
