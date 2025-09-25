@@ -20,31 +20,23 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
-import com.sonar.orchestrator.container.Edition;
 import java.util.Arrays;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class EditionSupportCondition implements ExecutionCondition {
+
   @Override
   public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
     final var method = context.getRequiredTestMethod();
-    final var enableOnEdition = method.getDeclaredAnnotation(EnableOnEdition.class);
     final var disableOnEdition = method.getDeclaredAnnotation(DisableOnEdition.class);
-    if (enableOnEdition == null && disableOnEdition == null) {
+    if (disableOnEdition == null) {
       return ConditionEvaluationResult.enabled("Test enabled");
     }
     final var serverEdition = ServerTests.ORCHESTRATOR.getServer().getEdition();
-    if (enableOnEdition != null) {
-      return editionResult(Arrays.asList(enableOnEdition.value()).contains(serverEdition), serverEdition);
-    }
-    return editionResult(!Arrays.asList(disableOnEdition.value()).contains(serverEdition), serverEdition);
-  }
-
-  private static ConditionEvaluationResult editionResult(boolean isSupported, Edition edition) {
-    return isSupported
-      ? ConditionEvaluationResult.enabled("Edition " + edition + " is supported.")
-      : ConditionEvaluationResult.disabled("Edition " + edition + " is not supported.");
+    return Arrays.asList(disableOnEdition.value()).contains(serverEdition)
+      ? ConditionEvaluationResult.disabled("Edition " + serverEdition + " is not supported.")
+      : ConditionEvaluationResult.enabled("Edition " + serverEdition + " is supported.");
   }
 }
