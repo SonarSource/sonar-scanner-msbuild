@@ -81,13 +81,17 @@ public class PostProcessor
         }
         else
         {
-            runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.NotCalled; // Will be overridden if Legacy TFS processor is called later.
             ProcessCoverageReport(config, settings, analysisResult);
             var result = false;
             if (analysisResult.RanToCompletion)
             {
                 var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
                 runtime.File.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
+                runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] =
+#if NETFRAMEWORK
+                    settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild ? TelemetryValues.EndstepLegacyTFS.Called :
+#endif
+                    TelemetryValues.EndstepLegacyTFS.NotCalled;
                 runtime.Telemetry.Write(settings.SonarOutputDirectory);
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
                     ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)
@@ -219,7 +223,6 @@ public class PostProcessor
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
-            runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.Called;
             runtime.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
             runtime.Logger.IncludeTimestamp = false;
             tfsProcessor.Execute(config, ["ConvertCoverage", Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath]);
