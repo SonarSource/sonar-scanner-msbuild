@@ -23,6 +23,6 @@ using SonarScanner.MSBuild.PreProcessor.Caching;
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 /// <summary>
-/// The descriptor of the JRE as returned from the server /analysis/jres endpoint.
+/// The descriptor of an archive file.
 /// </summary>
-public record JreDescriptor(string Filename, string Sha256, string JavaPath) : FileDescriptor(Filename, Sha256);
+public record ArchiveDescriptor(string Filename, string Sha256, string TargetFilePath) : FileDescriptor(Filename, Sha256);
