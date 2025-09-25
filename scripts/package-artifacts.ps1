@@ -50,9 +50,13 @@ function Package-NetScanner {
     $sourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1"
     $destination = "$fullBuildOutputDir\sonarscanner-net"
     $destinationTargets = "$destination\Targets"
+    $DestinationLicenses = "$destination\licenses"
+    $DestinationThirdPartyLicenses = "$DestinationLicenses\THIRD_PARTY_LICENSES"
 
     if (!(Test-Path -Path $destination)) { New-Item $destination -Type Directory }
     if (!(Test-Path -Path $destinationTargets)) { New-Item $destinationTargets -Type Directory }
+    if (!(Test-Path -Path $DestinationLicenses)) { New-Item $DestinationLicenses -Type Directory }
+    if (!(Test-Path -Path $DestinationThirdPartyLicenses)) { New-Item $DestinationThirdPartyLicenses -Type Directory }
 
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\Targets\*" -Destination $destinationTargets -Recurse
     Copy-Item -Path "$sourceRoot\SonarQube.Analysis.xml" -Destination $destination
@@ -67,6 +71,10 @@ function Package-NetScanner {
     Copy-Item -Path "$sourceRoot\Newtonsoft.Json.dll" -Destination $destination
     Copy-Item -Path "$sourceRoot\ICSharpCode.SharpZipLib.dll" -Destination $destination
     Copy-Item -Path "$PSScriptRoot\..\src\SonarScanner.MSBuild.Tasks\bin\Release\netstandard2.0\SonarScanner.MSBuild.Tasks.dll" -Destination $destination
+    Copy-Item -Path "$PSScriptRoot\..\LICENSE.txt" -Destination $DestinationLicenses
+    Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\Google.Protobuf-LICENSE.txt" -Destination $DestinationThirdPartyLicenses
+    Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\Newtonsoft.Json-LICENSE.txt" -Destination $DestinationThirdPartyLicenses
+    Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\SharpZipLib-LICENSE.txt" -Destination $DestinationThirdPartyLicenses
 
     Expand-Archive -Path "$scannerCliDownloadDir\$scannerCliArtifact" -DestinationPath $destination -Force
 
