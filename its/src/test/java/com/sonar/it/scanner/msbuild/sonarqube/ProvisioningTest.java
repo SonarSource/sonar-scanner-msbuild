@@ -118,7 +118,6 @@ class ProvisioningTest {
     // sonar.jreAutoProvisioning.disabled is a server wide setting and errors with "Setting 'sonar.jreAutoProvisioning.disabled' cannot be set on a Project"
     // We need our own server instance here so we do not interfere with other JRE tests.
     var orchestrator = ServerTests.orchestratorBuilder()
-      .activateLicense()
       .setServerProperty("sonar.jreAutoProvisioning.disabled", "true")
       .build();
     orchestrator.start();
