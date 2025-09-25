@@ -18,34 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Globalization;
-
 namespace TestUtilities;
 
-public class TestAnalysisWarnings : IAnalysisWarnings
+public class TestAnalysisWarnings : AnalysisWarnings
 {
-    private readonly TestLogger logger;
-
     // All messages are normalized to Unix line endings, because Resx files contains multiline messages with CRLF and we emit mix of LF and CRFL to logs on *nix system
-    public List<string> Messages { get; }
+    public List<string> Messages => messages.Select(x => x.ToUnixLineEndings()).ToList();
 
-    public TestAnalysisWarnings(TestLogger logger)
-    {
-        this.logger = logger;
-        Messages = [];
-    }
+    public TestAnalysisWarnings(TestLogger logger) : base(null, logger) { }
 
-    public void Log(string message, params object[] args)
-    {
-        Messages.Add(FormatMessage(message, args));
-        logger.LogWarning(message, args);
-    }
-
-    public void Write(string outputFolder)
+    public override void Write(string outputFolder)
     {
         // no-op
     }
-
-    private static string FormatMessage(string message, params object[] args) =>
-        string.Format(CultureInfo.CurrentCulture, message, args).ToUnixLineEndings();
 }

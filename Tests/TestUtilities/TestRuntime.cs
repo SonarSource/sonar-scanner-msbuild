@@ -52,7 +52,7 @@ public record TestRuntime : IRuntime
 
     ITelemetry IRuntime.Telemetry => Telemetry;
 
-    IAnalysisWarnings IRuntime.AnalysisWarnings => AnalysisWarnings;
+    AnalysisWarnings IRuntime.AnalysisWarnings => AnalysisWarnings;
 
     public TestRuntime()
     {

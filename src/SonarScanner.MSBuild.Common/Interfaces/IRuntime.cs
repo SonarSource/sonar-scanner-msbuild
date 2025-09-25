@@ -27,7 +27,7 @@ public interface IRuntime
     IFileWrapper File { get; }
     ILogger Logger { get; }
     ITelemetry Telemetry { get; }
-    IAnalysisWarnings AnalysisWarnings { get; }
+    AnalysisWarnings AnalysisWarnings { get; }
 
     // The most commonly used ILogger methods are replicated here. This is a compromise between a clean architecture and convenience:
     void LogDebug(string message, params object[] args);

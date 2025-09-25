@@ -68,7 +68,7 @@ public class RuntimeTests
         var file = Substitute.For<IFileWrapper>();
         var logger = Substitute.For<ILogger>();
         var telemetry = Substitute.For<ITelemetry>();
-        var analysisWarnings = Substitute.For<IAnalysisWarnings>();
+        var analysisWarnings = Substitute.For<AnalysisWarnings>(null, null);
 
         var sut = new Runtime(operatingSystem, directory, file, logger, telemetry, analysisWarnings);
 
