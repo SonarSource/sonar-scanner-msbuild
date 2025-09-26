@@ -74,31 +74,24 @@ public class JreResolver : IResolver
             runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
             return null;
         }
-
         var descriptor = metadata.ToDescriptor();
         var archiveDownloader = new ArchiveDownloader(runtime, unpackerFactory, checksum, sonarUserHome, descriptor);
-        if (archiveDownloader.IsTargetFileCached() is { } filePath)
-        {
-            runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), filePath);
-            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
-            return filePath;
-        }
-        else
-        {
-            runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, "JRE");
-            runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
-            return await DownloadJre(archiveDownloader, metadata);
-        }
+        runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
+        return await DownloadJre(archiveDownloader, metadata);
     }
 
     private async Task<string> DownloadJre(ArchiveDownloader archiveDownloader, JreMetadata metadata)
     {
         switch (await archiveDownloader.DownloadAsync(() => server.DownloadJreAsync(metadata)))
         {
-            case FileRetrieved success:
-                runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
+            case CacheHit cacheHit:
+                runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), cacheHit.FilePath);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
+                return cacheHit.FilePath;
+            case Downloaded downloaded:
+                runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", downloaded.FilePath);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Downloaded;
-                return success.FilePath;
+                return downloaded.FilePath;
             case DownloadError error:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
