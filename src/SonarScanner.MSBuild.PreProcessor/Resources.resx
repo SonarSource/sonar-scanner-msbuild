@@ -411,9 +411,6 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_Resolver_CacheHit" xml:space="preserve">
     <value>{0}: Cache hit '{1}'.</value>
   </data>
-  <data name="MSG_Resolver_CacheMiss" xml:space="preserve">
-    <value>Cache miss. Attempting to download {0}.</value>
-  </data>
   <data name="MSG_JreResolver_JavaExePathSet" xml:space="preserve">
     <value>JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning.</value>
   </data>
@@ -615,5 +612,8 @@ Check the certificates in the truststore file '{1}' specified via the {2} parame
   </data>
   <data name="MSG_SonarScannerCliFallbackForTfsLegacySupport" xml:space="preserve">
     <value>Falling back to SonarScannerCLI to guarantee TFS Legacy support.</value>
+  </data>
+  <data name="MSG_Downloader_CacheMiss" xml:space="preserve">
+    <value>Cache miss. Attempting to download {0}.</value>
   </data>
 </root>

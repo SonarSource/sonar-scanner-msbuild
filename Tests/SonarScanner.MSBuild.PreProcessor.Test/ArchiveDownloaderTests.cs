@@ -74,41 +74,12 @@ public class ArchiveDownloaderTests
     }
 
     [TestMethod]
-    public void IsTargetFileCached_ExtractedDirectoryDoesNotExists_ReturnsNull()
+    public async Task Download_CacheHit()
     {
-        runtime.Directory.Exists(SonarCache).Returns(true);
-        runtime.Directory.Exists(ExtractedPath).Returns(false);
-
-        var sut = CreateSutWithSubstitutes();
-        var result = sut.IsTargetFileCached();
-        result.Should().BeNull();
-        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
-    }
-
-    [TestMethod]
-    public void IsTargetFileCached_TargetFileDoesNotExists_ReturnsNull()
-    {
-        runtime.Directory.Exists(SonarCache).Returns(true);
-        runtime.Directory.Exists(ExtractedPath).Returns(true);
-        runtime.File.Exists(ExtractedTargetFile).Returns(false);
-
-        var sut = CreateSutWithSubstitutes();
-        var result = sut.IsTargetFileCached();
-        result.Should().BeNull();
-        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
-    }
-
-    [TestMethod]
-    public void IsTargetFileCached_CacheHit_ReturnsPath()
-    {
-        runtime.Directory.Exists(SonarCache).Returns(true);
-        runtime.Directory.Exists(ExtractedPath).Returns(true);
         runtime.File.Exists(ExtractedTargetFile).Returns(true);
 
-        var sut = CreateSutWithSubstitutes();
-        var result = sut.IsTargetFileCached();
-        result.Should().Be(ExtractedTargetFile);
-        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
+        var result = await ExecuteDownloadAndUnpack();
+        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(ExtractedTargetFile);
     }
 
     [TestMethod]
