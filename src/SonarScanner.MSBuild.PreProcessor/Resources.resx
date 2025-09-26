@@ -408,9 +408,6 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_JreResolver_ArchitectureMissing" xml:space="preserve">
     <value>JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning.</value>
   </data>
-  <data name="MSG_Resolver_CacheFailure" xml:space="preserve">
-    <value>{0}: Cache failure. {1}</value>
-  </data>
   <data name="MSG_Resolver_CacheHit" xml:space="preserve">
     <value>{0}: Cache hit '{1}'.</value>
   </data>
@@ -450,8 +447,8 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_JreArchiveFormatDetectionFailed" xml:space="preserve">
     <value>The archive format detection of the JRE archive `{0}` wasn't successful and returned error '{1}'.</value>
   </data>
-  <data name="ERR_JreArchiveFormatNotSupported" xml:space="preserve">
-    <value>The archive format of the JRE archive `{0}` is not supported.</value>
+  <data name="ERR_ArchiveFormatNotSupported" xml:space="preserve">
+    <value>The archive format of `{0}` is not supported.</value>
   </data>
   <data name="ERR_ExtractionFailed" xml:space="preserve">
     <value>The downloaded archive could not be extracted.</value>
