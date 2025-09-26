@@ -68,46 +68,13 @@ public class ArchiveDownloaderTests
     }
 
     [TestMethod]
-    public void IsTargetFileCached_ExtractedDirectoryDoesNotExists_ReturnsNull()
+    public async Task Download_CacheHit()
     {
-        var expectedExtractedPath = Path.Combine(SonarCache, "sha256", "filename.tar.gz_extracted");
-        runtime.Directory.Exists(SonarCache).Returns(true);
-        runtime.Directory.Exists(expectedExtractedPath).Returns(false);
-
-        var sut = CreateSutWithSubstitutes();
-        var result = sut.IsTargetFileCached();
-        result.Should().BeNull();
-        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
-    }
-
-    [TestMethod]
-    public void IsTargetFileCached_TargetFileDoesNotExists_ReturnsNull()
-    {
-        var expectedExtractedPath = Path.Combine(SonarCache, "sha256", "filename.tar.gz_extracted");
-        var expectedExtractedTargetFile = Path.Combine(expectedExtractedPath, "target file");
-        runtime.Directory.Exists(SonarCache).Returns(true);
-        runtime.Directory.Exists(expectedExtractedPath).Returns(true);
-        runtime.File.Exists(expectedExtractedTargetFile).Returns(false);
-
-        var sut = CreateSutWithSubstitutes();
-        var result = sut.IsTargetFileCached();
-        result.Should().BeNull();
-        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
-    }
-
-    [TestMethod]
-    public void IsTargetFileCached_CacheHit_ReturnsPath()
-    {
-        var expectedExtractedPath = Path.Combine(SonarCache, "sha256", "filename.tar.gz_extracted");
-        var expectedExtractedTargetFile = Path.Combine(expectedExtractedPath, "target file");
-        runtime.Directory.Exists(SonarCache).Returns(true);
-        runtime.Directory.Exists(expectedExtractedPath).Returns(true);
+        var expectedExtractedTargetFile = Path.Combine(ShaPath, "filename.tar.gz_extracted", "target file");
         runtime.File.Exists(expectedExtractedTargetFile).Returns(true);
 
-        var sut = CreateSutWithSubstitutes();
-        var result = sut.IsTargetFileCached();
-        result.Should().Be(expectedExtractedTargetFile);
-        runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
+        var result = await ExecuteDownloadAndUnpack();
+        result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(expectedExtractedTargetFile);
     }
 
     [TestMethod]
