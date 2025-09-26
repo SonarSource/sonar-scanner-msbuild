@@ -28,6 +28,6 @@ public sealed class JreMetadata(string Id, string Filename, string JavaPath, Uri
     public string JavaPath { get; } = JavaPath;
     public Uri DownloadUrl { get; } = DownloadUrl;   // Optional, only exists for SonarCloud
 
-    public JreDescriptor ToDescriptor() =>
+    public ArchiveDescriptor ToDescriptor() =>
         new(Filename, Sha256, JavaPath);
 }

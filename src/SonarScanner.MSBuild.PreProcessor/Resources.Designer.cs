@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -115,6 +115,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The target file in the extracted archive was expected to be at &apos;{0}&apos; but couldn&apos;t be found..
+        /// </summary>
+        internal static string ERR_ArchiveTargetFileMissing {
+            get {
+                return ResourceManager.GetString("ERR_ArchiveTargetFileMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The calculation of the checksum of the file &apos;{0}&apos; failed with message &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_ChecksumCalculationFailed {
@@ -187,6 +196,33 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The cleanup of the temporary folder for the archive extraction at &apos;{0}&apos; failed with message &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_ExtractionCleanupFailed {
+            get {
+                return ResourceManager.GetString("ERR_ExtractionCleanupFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The downloaded archive could not be extracted..
+        /// </summary>
+        internal static string ERR_ExtractionFailed {
+            get {
+                return ResourceManager.GetString("ERR_ExtractionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The extraction of the downloaded archive failed with error &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_ExtractionFailedWithError {
+            get {
+                return ResourceManager.GetString("ERR_ExtractionFailedWithError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters..
         /// </summary>
         internal static string ERR_InvalidCredentials {
@@ -228,42 +264,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERR_JreArchiveFormatNotSupported {
             get {
                 return ResourceManager.GetString("ERR_JreArchiveFormatNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The cleanup of the temporary folder for the Java runtime environment extraction at &apos;{0}&apos; failed with message &apos;{1}&apos;..
-        /// </summary>
-        internal static string ERR_JreExtractionCleanupFailed {
-            get {
-                return ResourceManager.GetString("ERR_JreExtractionCleanupFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The downloaded Java runtime environment could not be extracted..
-        /// </summary>
-        internal static string ERR_JreExtractionFailed {
-            get {
-                return ResourceManager.GetString("ERR_JreExtractionFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The extraction of the downloaded Java runtime environment failed with error &apos;{0}&apos;..
-        /// </summary>
-        internal static string ERR_JreExtractionFailedWithError {
-            get {
-                return ResourceManager.GetString("ERR_JreExtractionFailedWithError", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The java executable in the extracted Java runtime environment was expected to be at &apos;{0}&apos; but couldn&apos;t be found..
-        /// </summary>
-        internal static string ERR_JreJavaExeMissing {
-            get {
-                return ResourceManager.GetString("ERR_JreJavaExeMissing", resourceCulture);
             }
         }
         
@@ -483,6 +483,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERROR_UnsupportedSonarQubeVersion {
             get {
                 return ResourceManager.GetString("ERROR_UnsupportedSonarQubeVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The archive was successfully extracted to &apos;{0}&apos;..
+        /// </summary>
+        internal static string MSG_ArchiveExtractedSucessfully {
+            get {
+                return ResourceManager.GetString("MSG_ArchiveExtractedSucessfully", resourceCulture);
             }
         }
         
@@ -912,15 +921,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Java runtime environment was successfully added to &apos;{0}&apos;..
-        /// </summary>
-        internal static string MSG_JreExtractedSucessfully {
-            get {
-                return ResourceManager.GetString("MSG_JreExtractedSucessfully", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning..
         /// </summary>
         internal static string MSG_JreResolver_ArchitectureMissing {
@@ -966,11 +966,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Moving extracted Java runtime environment from &apos;{0}&apos; to &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Moving extracted files from &apos;{0}&apos; to &apos;{1}&apos;..
         /// </summary>
-        internal static string MSG_MovingUnpackedJre {
+        internal static string MSG_MovingUnpackedFiles {
             get {
-                return ResourceManager.GetString("MSG_MovingUnpackedJre", resourceCulture);
+                return ResourceManager.GetString("MSG_MovingUnpackedFiles", resourceCulture);
             }
         }
         
@@ -1191,11 +1191,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Starting extracting the Java runtime environment from archive &apos;{0}&apos; to folder &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Starting to extract files from archive &apos;{0}&apos; to folder &apos;{1}&apos;..
         /// </summary>
-        internal static string MSG_StartingJreExtraction {
+        internal static string MSG_StartingArchiveExtraction {
             get {
-                return ResourceManager.GetString("MSG_StartingJreExtraction", resourceCulture);
+                return ResourceManager.GetString("MSG_StartingArchiveExtraction", resourceCulture);
             }
         }
         

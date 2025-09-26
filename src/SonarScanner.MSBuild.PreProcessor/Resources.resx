@@ -453,26 +453,26 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_JreArchiveFormatNotSupported" xml:space="preserve">
     <value>The archive format of the JRE archive `{0}` is not supported.</value>
   </data>
-  <data name="ERR_JreExtractionFailed" xml:space="preserve">
-    <value>The downloaded Java runtime environment could not be extracted.</value>
+  <data name="ERR_ExtractionFailed" xml:space="preserve">
+    <value>The downloaded archive could not be extracted.</value>
   </data>
-  <data name="MSG_JreExtractedSucessfully" xml:space="preserve">
-    <value>The Java runtime environment was successfully added to '{0}'.</value>
+  <data name="MSG_ArchiveExtractedSucessfully" xml:space="preserve">
+    <value>The archive was successfully extracted to '{0}'.</value>
   </data>
-  <data name="MSG_MovingUnpackedJre" xml:space="preserve">
-    <value>Moving extracted Java runtime environment from '{0}' to '{1}'.</value>
+  <data name="MSG_MovingUnpackedFiles" xml:space="preserve">
+    <value>Moving extracted files from '{0}' to '{1}'.</value>
   </data>
-  <data name="MSG_StartingJreExtraction" xml:space="preserve">
-    <value>Starting extracting the Java runtime environment from archive '{0}' to folder '{1}'.</value>
+  <data name="MSG_StartingArchiveExtraction" xml:space="preserve">
+    <value>Starting to extract files from archive '{0}' to folder '{1}'.</value>
   </data>
-  <data name="ERR_JreExtractionFailedWithError" xml:space="preserve">
-    <value>The extraction of the downloaded Java runtime environment failed with error '{0}'.</value>
+  <data name="ERR_ExtractionFailedWithError" xml:space="preserve">
+    <value>The extraction of the downloaded archive failed with error '{0}'.</value>
   </data>
-  <data name="ERR_JreJavaExeMissing" xml:space="preserve">
-    <value>The java executable in the extracted Java runtime environment was expected to be at '{0}' but couldn't be found.</value>
+  <data name="ERR_ArchiveTargetFileMissing" xml:space="preserve">
+    <value>The target file in the extracted archive was expected to be at '{0}' but couldn't be found.</value>
   </data>
-  <data name="ERR_JreExtractionCleanupFailed" xml:space="preserve">
-    <value>The cleanup of the temporary folder for the Java runtime environment extraction at '{0}' failed with message '{1}'.</value>
+  <data name="ERR_ExtractionCleanupFailed" xml:space="preserve">
+    <value>The cleanup of the temporary folder for the archive extraction at '{0}' failed with message '{1}'.</value>
   </data>
   <data name="MSG_DirectoryCouldNotBeCreated" xml:space="preserve">
     <value>The directory '{0}' could not be created.</value>
