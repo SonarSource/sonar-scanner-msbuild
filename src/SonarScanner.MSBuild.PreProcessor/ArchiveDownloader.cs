@@ -48,13 +48,12 @@ public class ArchiveDownloader
         extractedTargetFile = Path.Combine(archiveExtractionPath, archiveDescriptor.TargetFilePath);
     }
 
-    public virtual string IsTargetFileCached() =>
-        runtime.File.Exists(extractedTargetFile)
-            ? extractedTargetFile
-            : null;
-
     public async Task<DownloadResult> DownloadAsync(Func<Task<Stream>> downloadStream)
     {
+        if (runtime.File.Exists(extractedTargetFile))
+        {
+            return new CacheHit(extractedTargetFile);
+        }
         if (unpacker is null)
         {
             return new DownloadError(string.Format(Resources.ERR_ArchiveFormatNotSupported, archiveDescriptor.Filename));

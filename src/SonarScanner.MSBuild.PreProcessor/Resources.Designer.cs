@@ -586,6 +586,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cache miss. Attempting to download {0}..
+        /// </summary>
+        internal static string MSG_Downloader_CacheMiss {
+            get {
+                return ResourceManager.GetString("MSG_Downloader_CacheMiss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Downloading from {0} failed. Http status code is {1}..
         /// </summary>
         internal static string MSG_DownloadFailed {
@@ -1097,15 +1106,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_Resolver_CacheHit {
             get {
                 return ResourceManager.GetString("MSG_Resolver_CacheHit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cache miss. Attempting to download {0}..
-        /// </summary>
-        internal static string MSG_Resolver_CacheMiss {
-            get {
-                return ResourceManager.GetString("MSG_Resolver_CacheMiss", resourceCulture);
             }
         }
         

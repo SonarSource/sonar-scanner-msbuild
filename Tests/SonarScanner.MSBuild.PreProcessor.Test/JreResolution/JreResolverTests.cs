@@ -176,7 +176,6 @@ public class JreResolverTests
         AssertJreBottleNeckMessage();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
@@ -208,7 +207,6 @@ public class JreResolverTests
         AssertJreBottleNeckMessage();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "Cache miss. Attempting to download JRE.",
             $"The file was already downloaded from the server and stored at '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
@@ -230,7 +228,6 @@ public class JreResolverTests
         AssertDebugMessages(
             true,
             "JreResolver: Resolving JRE path.",
-            "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
             $"Deleting file '{ShaPath}'.",  // should be temp file path but the scaffolding is not setup
             "The download of the file from the server failed with the exception 'Reason'.",
@@ -263,13 +260,11 @@ public class JreResolverTests
         await server.Received(2).DownloadJreAsync(metadata);
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
             $"Deleting file '{tempArchive}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Resolving JRE path. Retrying...",
-            "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
@@ -307,7 +302,6 @@ public class JreResolverTests
             "JreResolver: Resolving JRE path.",
             "JreResolver: Metadata could not be retrieved.",
             "JreResolver: Resolving JRE path. Retrying...",
-            "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
