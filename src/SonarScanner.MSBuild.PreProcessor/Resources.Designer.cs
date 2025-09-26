@@ -115,6 +115,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The archive format of `{0}` is not supported..
+        /// </summary>
+        internal static string ERR_ArchiveFormatNotSupported {
+            get {
+                return ResourceManager.GetString("ERR_ArchiveFormatNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The target file in the extracted archive was expected to be at &apos;{0}&apos; but couldn&apos;t be found..
         /// </summary>
         internal static string ERR_ArchiveTargetFileMissing {
@@ -255,15 +264,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERR_JreArchiveFormatDetectionFailed {
             get {
                 return ResourceManager.GetString("ERR_JreArchiveFormatDetectionFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The archive format of the JRE archive `{0}` is not supported..
-        /// </summary>
-        internal static string ERR_JreArchiveFormatNotSupported {
-            get {
-                return ResourceManager.GetString("ERR_JreArchiveFormatNotSupported", resourceCulture);
             }
         }
         
@@ -1088,15 +1088,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_PullRequestCacheBasePath {
             get {
                 return ResourceManager.GetString("MSG_PullRequestCacheBasePath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {0}: Cache failure. {1}.
-        /// </summary>
-        internal static string MSG_Resolver_CacheFailure {
-            get {
-                return ResourceManager.GetString("MSG_Resolver_CacheFailure", resourceCulture);
             }
         }
         

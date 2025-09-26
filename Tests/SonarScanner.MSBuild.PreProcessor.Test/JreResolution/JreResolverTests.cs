@@ -19,7 +19,6 @@
  */
 
 using NSubstitute.ExceptionExtensions;
-using NSubstitute.ReturnsExtensions;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
@@ -43,7 +42,6 @@ public class JreResolverTests
     private ListPropertiesProvider provider;
     private ISonarWebServer server;
     private JreResolver sut;
-    private UnpackerFactory unpackerFactory;
     private TestRuntime runtime;
 
     [TestInitialize]
@@ -55,9 +53,8 @@ public class JreResolverTests
         server.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(metadata);
         server.SupportsJreProvisioning.Returns(true);
         runtime = new();
-        unpackerFactory = Substitute.For<UnpackerFactory>(runtime);
 
-        sut = new JreResolver(server, checksum, SonarUserHome, runtime, unpackerFactory);
+        sut = new JreResolver(server, checksum, SonarUserHome, runtime, Substitute.For<UnpackerFactory>(runtime));
     }
 
     [TestMethod]
@@ -319,22 +316,6 @@ public class JreResolverTests
             $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
             .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Downloaded);    // Failed value is overridden by retry.
-    }
-
-    [TestMethod]
-    public async Task ResolveJrePath_CreateUnpackerFails_ReturnsFailure()
-    {
-        unpackerFactory.Create(null).ReturnsNullForAnyArgs();
-
-        var res = await sut.ResolvePath(Args());
-
-        res.Should().BeNull();
-        AssertDebugMessages(
-            true,
-            "JreResolver: Resolving JRE path.",
-            "JreResolver: Cache failure. The archive format of the JRE archive `filename.tar.gz` is not supported.");
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
-            .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed);
     }
 
     [TestMethod]
