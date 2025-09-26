@@ -19,6 +19,7 @@
  */
 
 using NSubstitute.ExceptionExtensions;
+using NSubstitute.ReturnsExtensions;
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
@@ -34,6 +35,7 @@ public class ArchiveDownloaderTests
 
     private readonly TestRuntime runtime;
     private readonly IChecksum checksum;
+    private readonly UnpackerFactory unpackerFactory;
     private readonly IUnpacker unpacker;
     private readonly MemoryStream failingStream;
 
@@ -59,6 +61,8 @@ public class ArchiveDownloaderTests
         runtime = new();
         checksum = Substitute.For<IChecksum>();
         unpacker = Substitute.For<IUnpacker>();
+        unpackerFactory = Substitute.For<UnpackerFactory>(runtime);
+        unpackerFactory.Create(null).ReturnsForAnyArgs(unpacker);
         failingStream = Substitute.For<MemoryStream>();
         failingStream.CopyToAsync(null, default, default).ThrowsAsyncForAnyArgs(new InvalidOperationException("Download failure simulation."));
     }
@@ -104,6 +108,15 @@ public class ArchiveDownloaderTests
         var result = sut.IsTargetFileCached();
         result.Should().Be(expectedExtractedTargetFile);
         runtime.Directory.DidNotReceive().CreateDirectory(Arg.Any<string>());
+    }
+
+    [TestMethod]
+    public async Task Download_CreateUnpackerFails_ReturnsError()
+    {
+        unpackerFactory.Create(null).ReturnsNullForAnyArgs();
+
+        var result = await ExecuteDownloadAndUnpack();
+        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The archive format of `filename.tar.gz` is not supported.");
     }
 
     [TestMethod]
@@ -214,10 +227,9 @@ public class ArchiveDownloaderTests
             Directory = DirectoryWrapper.Instance,
             File = FileWrapper.Instance
         };
-        var targzUnpacker = new TarGzUnpacker(runtimeIO);
         var downloadContentArray = new byte[] { 1, 2, 3 };
 
-        var sut = new ArchiveDownloader(runtimeIO, targzUnpacker, ChecksumSha256.Instance, home, new ArchiveDescriptor("filename.tar.gz", sha, "target file"));
+        var sut = new ArchiveDownloader(runtimeIO, ChecksumSha256.Instance, home, new ArchiveDescriptor("filename.tar.gz", sha, "target file"), new UnpackerFactory(runtimeIO));
         try
         {
             using var content = new MemoryStream(downloadContentArray);
@@ -253,9 +265,8 @@ public class ArchiveDownloaderTests
             Directory = DirectoryWrapper.Instance,
             File = FileWrapper.Instance
         };
-        var targzUnpacker = new TarGzUnpacker(runtimeIO);
 
-        var sut = new ArchiveDownloader(runtimeIO, targzUnpacker, ChecksumSha256.Instance, home, new ArchiveDescriptor("filename.tar.gz", sha, "target file"));
+        var sut = new ArchiveDownloader(runtimeIO, ChecksumSha256.Instance, home, new ArchiveDescriptor("filename.tar.gz", sha, "target file"), new UnpackerFactory(runtimeIO));
         try
         {
             var result = await sut.DownloadAsync(() => Task.FromResult<Stream>(failingStream));
@@ -759,7 +770,7 @@ public class ArchiveDownloaderTests
             Directory = DirectoryWrapper.Instance,
             File = FileWrapper.Instance
         };
-        var sut = new ArchiveDownloader(runtimeIO, new ZipUnpacker(), ChecksumSha256.Instance, home, archiveDescriptor);
+        var sut = new ArchiveDownloader(runtimeIO, ChecksumSha256.Instance, home, archiveDescriptor, new UnpackerFactory(runtimeIO));
 
         try
         {
@@ -811,9 +822,8 @@ public class ArchiveDownloaderTests
             Directory = DirectoryWrapper.Instance,
             File = FileWrapper.Instance
         };
-        var targzUnpacker = new TarGzUnpacker(runtimeIO);
 
-        var sut = new ArchiveDownloader(runtimeIO, targzUnpacker, ChecksumSha256.Instance, home, archiveDescriptor);
+        var sut = new ArchiveDownloader(runtimeIO, ChecksumSha256.Instance, home, archiveDescriptor, new UnpackerFactory(runtimeIO));
 
         try
         {
@@ -854,6 +864,6 @@ public class ArchiveDownloaderTests
     private ArchiveDownloader CreateSutWithSubstitutes(ArchiveDescriptor archiveDescriptor = null)
     {
         archiveDescriptor ??= new ArchiveDescriptor("filename.tar.gz", "sha256", "target file");
-        return new ArchiveDownloader(runtime, unpacker, checksum, SonarUserHome, archiveDescriptor);
+        return new ArchiveDownloader(runtime, checksum, SonarUserHome, archiveDescriptor, unpackerFactory);
     }
 }

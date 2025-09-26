@@ -76,27 +76,18 @@ public class JreResolver : IResolver
         }
 
         var descriptor = metadata.ToDescriptor();
-        if (unpackerFactory.Create(descriptor.Filename) is { } unpacker)
+        var archiveDownloader = new ArchiveDownloader(runtime, checksum, sonarUserHome, descriptor, unpackerFactory);
+        if (archiveDownloader.IsTargetFileCached() is { } filePath)
         {
-            var archiveDownloader = new ArchiveDownloader(runtime, unpacker, checksum, sonarUserHome, descriptor);
-            if (archiveDownloader.IsTargetFileCached() is { } filePath)
-            {
-                runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), filePath);
-                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
-                return filePath;
-            }
-            else
-            {
-                runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, "JRE");
-                runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
-                return await DownloadJre(archiveDownloader, metadata);
-            }
+            runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), filePath);
+            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
+            return filePath;
         }
         else
         {
-            runtime.LogDebug(Resources.MSG_Resolver_CacheFailure, nameof(JreResolver), string.Format(Resources.ERR_JreArchiveFormatNotSupported, descriptor.Filename));
-            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
-            return null;
+            runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, "JRE");
+            runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
+            return await DownloadJre(archiveDownloader, metadata);
         }
     }
 

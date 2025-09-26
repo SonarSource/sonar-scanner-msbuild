@@ -34,15 +34,15 @@ public class ArchiveDownloader
     private readonly string extractedTargetFile;
 
     public ArchiveDownloader(IRuntime runtime,
-                             IUnpacker unpacker,
                              IChecksum checksum,
                              string sonarUserHome,
-                             ArchiveDescriptor archiveDescriptor)
+                             ArchiveDescriptor archiveDescriptor,
+                             UnpackerFactory unpackerFactory)
     {
         this.runtime = runtime;
-        this.unpacker = unpacker;
         this.archiveDescriptor = archiveDescriptor;
 
+        unpacker = unpackerFactory.Create(archiveDescriptor.Filename);
         cachedDownloader = new CachedDownloader(runtime, checksum, archiveDescriptor, sonarUserHome);
         archiveExtractionPath = $"{cachedDownloader.CacheLocation}_extracted";
         extractedTargetFile = Path.Combine(archiveExtractionPath, archiveDescriptor.TargetFilePath);
@@ -55,6 +55,10 @@ public class ArchiveDownloader
 
     public async Task<DownloadResult> DownloadAsync(Func<Task<Stream>> downloadStream)
     {
+        if (unpacker is null)
+        {
+            return new DownloadError(string.Format(Resources.ERR_ArchiveFormatNotSupported, archiveDescriptor.Filename));
+        }
         var result = await cachedDownloader.DownloadFileAsync(downloadStream);
         return result is FileRetrieved success ? UnpackArchive(success.FilePath) : result;
     }
