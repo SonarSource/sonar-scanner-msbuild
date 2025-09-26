@@ -20,7 +20,7 @@
 
 using SonarScanner.MSBuild.PreProcessor.Caching;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
+namespace SonarScanner.MSBuild.PreProcessor;
 
 /// <summary>
 /// The descriptor of an archive file.

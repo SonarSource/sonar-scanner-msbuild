@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-namespace SonarScanner.MSBuild.PreProcessor.JreResolution.Test;
+namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
 public class ArchiveDownloaderTests
