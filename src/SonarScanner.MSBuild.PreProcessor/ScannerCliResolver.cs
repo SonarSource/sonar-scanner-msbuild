@@ -57,16 +57,14 @@ public class ScannerCliResolver : IResolver
     public async Task<string> ResolvePath(ProcessedArgs args)
     {
         runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(ScannerCliResolver), SonarScannerCLI, string.Empty);
-        if (await DownloadScannerCli() is { } scannerCLIPath)
-        {
-            return scannerCLIPath;
-        }
-        else
+        var scannerCliPath = await DownloadScannerCli();
+        if (scannerCliPath is null)
         {
             runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(ScannerCliResolver), SonarScannerCLI, " Retrying...");
-            return await DownloadScannerCli();
+            scannerCliPath = await DownloadScannerCli();
         }
-        // TODO make file executable SCAN4NET-956
+        runtime.OperatingSystem.SetPermission(scannerCliPath, Convert.ToInt32("755", 8));   // read, write and execute for owner; read and execute for group and others SCAN4NET-956
+        return scannerCliPath;
     }
 
     private async Task<string> DownloadScannerCli()

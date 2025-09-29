@@ -76,6 +76,7 @@ public class ScannerCliResolverTests
     {
         var result = await sut.ResolvePath(args);
         result.Should().Be(ExtractedScannerPath);
+        runtime.OperatingSystem.Received(1).SetPermission(ExtractedScannerPath, Convert.ToInt32("755", 8));
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             "ScannerCliResolver: Resolving SonarScanner CLI path.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
