@@ -182,9 +182,9 @@ public class JreResolverTests
             "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
-            $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
-            $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
+            $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
+            $"Moving extracted files from '{tempArchive}' to '{ExtractedPath}'.",
+            $"The archive was successfully extracted to '{ExtractedPath}'.",
             $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
             .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Downloaded);
@@ -214,9 +214,9 @@ public class JreResolverTests
             "Cache miss. Attempting to download JRE.",
             $"The file was already downloaded from the server and stored at '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
-            $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
-            $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
+            $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
+            $"Moving extracted files from '{tempArchive}' to '{ExtractedPath}'.",
+            $"The archive was successfully extracted to '{ExtractedPath}'.",
             $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
             .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Downloaded);
@@ -275,9 +275,9 @@ public class JreResolverTests
             "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
-            $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
-            $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
+            $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
+            $"Moving extracted files from '{tempArchive}' to '{ExtractedPath}'.",
+            $"The archive was successfully extracted to '{ExtractedPath}'.",
             $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
             .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Downloaded);    // Failed value is overridden by retry.
@@ -313,9 +313,9 @@ public class JreResolverTests
             "Cache miss. Attempting to download JRE.",
             $"Cache miss. Attempting to download '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
-            $"Starting extracting the Java runtime environment from archive '{DownloadPath}' to folder '{tempArchive}'.",
-            $"Moving extracted Java runtime environment from '{tempArchive}' to '{ExtractedPath}'.",
-            $"The Java runtime environment was successfully added to '{ExtractedPath}'.",
+            $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
+            $"Moving extracted files from '{tempArchive}' to '{ExtractedPath}'.",
+            $"The archive was successfully extracted to '{ExtractedPath}'.",
             $"JreResolver: Download success. JRE can be found at '{ExtractedJavaPath}'.");
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
             .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Downloaded);    // Failed value is overridden by retry.

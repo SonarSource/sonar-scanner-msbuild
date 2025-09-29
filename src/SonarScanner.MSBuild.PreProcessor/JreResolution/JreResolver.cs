@@ -78,8 +78,8 @@ public class JreResolver : IResolver
         var descriptor = metadata.ToDescriptor();
         if (unpackerFactory.Create(descriptor.Filename) is { } unpacker)
         {
-            var jreDownloader = new JreDownloader(runtime, unpacker, checksum, sonarUserHome, descriptor);
-            if (jreDownloader.IsJreCached() is { } filePath)
+            var archiveDownloader = new ArchiveDownloader(runtime, unpacker, checksum, sonarUserHome, descriptor);
+            if (archiveDownloader.IsTargetFileCached() is { } filePath)
             {
                 runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), filePath);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
@@ -88,7 +88,8 @@ public class JreResolver : IResolver
             else
             {
                 runtime.LogDebug(Resources.MSG_Resolver_CacheMiss, "JRE");
-                return await DownloadJre(jreDownloader, metadata);
+                runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
+                return await DownloadJre(archiveDownloader, metadata);
             }
         }
         else
@@ -99,9 +100,9 @@ public class JreResolver : IResolver
         }
     }
 
-    private async Task<string> DownloadJre(JreDownloader jreDownloader, JreMetadata metadata)
+    private async Task<string> DownloadJre(ArchiveDownloader archiveDownloader, JreMetadata metadata)
     {
-        switch (await jreDownloader.DownloadJreAsync(() => server.DownloadJreAsync(metadata)))
+        switch (await archiveDownloader.DownloadAsync(() => server.DownloadJreAsync(metadata)))
         {
             case FileRetrieved success:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", success.FilePath);
