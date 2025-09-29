@@ -114,7 +114,7 @@ public class ArchiveDownloaderTests
     [TestMethod]
     public async Task Download_CreateUnpackerFails_ReturnsError()
     {
-        unpackerFactory.Create(null).ReturnsNullForAnyArgs();
+        unpackerFactory.Create("filename.tar.gz").ReturnsNull();
 
         var result = await ExecuteDownloadAndUnpack();
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The archive format of `filename.tar.gz` is not supported.");
