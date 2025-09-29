@@ -111,10 +111,10 @@ public class TelemetryTest
         var telemetry = new Telemetry(fileWrapper, new TestLogger());
         telemetry["key1"] = "value1";
         telemetry.Invoking(x => x.Write(outputDir)).Should().NotThrow();
-        telemetry.Invoking(x => _ = x["key1"]).Should().NotThrow();
+        telemetry.Invoking(x => _ = x["key1"]).Should().NotThrow(because: "reading is fine after Write().");
         telemetry.Invoking(x => x["key2"] = "value2")
             .Should()
-            .ThrowExactly<InvalidOperationException>()
+            .ThrowExactly<InvalidOperationException>(because: "adding or modifying keys is forbidden after Write() to make sure, we do not try to add telemetry that will not be forwarded.")
             .WithMessage("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to the Java telemetry plugin.");
     }
 }
