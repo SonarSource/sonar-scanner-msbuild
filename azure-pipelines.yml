@@ -278,11 +278,11 @@ stages:
         workspace:
           clean: all
         steps:
-          # - task: DownloadPipelineArtifact@2    # Mend needs the Scanner CLI Jar on the disk at the time of scan
-          #   inputs:
-          #     buildType: 'current'
-          #     targetPath: '$(Build.SourcesDirectory)/build'
-          #     artifactName: build
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              targetPath: '$(Build.SourcesDirectory)/build'
+              artifactName: build
 
           - powershell: |
               $projectVersion = Get-Content "$(Build.SourcesDirectory)/build/version.txt"
