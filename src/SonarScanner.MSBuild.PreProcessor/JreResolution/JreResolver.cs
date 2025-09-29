@@ -76,7 +76,7 @@ public class JreResolver : IResolver
         }
 
         var descriptor = metadata.ToDescriptor();
-        var archiveDownloader = new ArchiveDownloader(runtime, checksum, sonarUserHome, descriptor, unpackerFactory);
+        var archiveDownloader = new ArchiveDownloader(runtime, unpackerFactory, checksum, sonarUserHome, descriptor);
         if (archiveDownloader.IsTargetFileCached() is { } filePath)
         {
             runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), filePath);

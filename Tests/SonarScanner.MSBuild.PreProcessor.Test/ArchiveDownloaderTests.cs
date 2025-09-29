@@ -230,7 +230,7 @@ public class ArchiveDownloaderTests
         };
         var downloadContentArray = new byte[] { 1, 2, 3 };
 
-        var sut = new ArchiveDownloader(runtimeIO, ChecksumSha256.Instance, home, new ArchiveDescriptor(DownloadFileName, sha, TargetFileName), new UnpackerFactory(runtimeIO));
+        var sut = new ArchiveDownloader(runtimeIO, new UnpackerFactory(runtimeIO), ChecksumSha256.Instance, home, new ArchiveDescriptor(DownloadFileName, sha, TargetFileName));
         try
         {
             using var content = new MemoryStream(downloadContentArray);
@@ -267,7 +267,7 @@ public class ArchiveDownloaderTests
             File = FileWrapper.Instance
         };
 
-        var sut = new ArchiveDownloader(runtimeIO, ChecksumSha256.Instance, home, new ArchiveDescriptor(DownloadFileName, sha, TargetFileName), new UnpackerFactory(runtimeIO));
+        var sut = new ArchiveDownloader(runtimeIO, new UnpackerFactory(runtimeIO), ChecksumSha256.Instance, home, new ArchiveDescriptor(DownloadFileName, sha, TargetFileName));
         try
         {
             var result = await sut.DownloadAsync(() => Task.FromResult<Stream>(failingStream));
@@ -771,7 +771,7 @@ public class ArchiveDownloaderTests
             Directory = DirectoryWrapper.Instance,
             File = FileWrapper.Instance
         };
-        var sut = new ArchiveDownloader(runtimeIO, ChecksumSha256.Instance, home, archiveDescriptor, new UnpackerFactory(runtimeIO));
+        var sut = new ArchiveDownloader(runtimeIO, new UnpackerFactory(runtimeIO), ChecksumSha256.Instance, home, archiveDescriptor);
 
         try
         {
@@ -824,7 +824,7 @@ public class ArchiveDownloaderTests
             File = FileWrapper.Instance
         };
 
-        var sut = new ArchiveDownloader(runtimeIO, ChecksumSha256.Instance, home, archiveDescriptor, new UnpackerFactory(runtimeIO));
+        var sut = new ArchiveDownloader(runtimeIO, new UnpackerFactory(runtimeIO), ChecksumSha256.Instance, home, archiveDescriptor);
 
         try
         {
@@ -865,6 +865,6 @@ public class ArchiveDownloaderTests
     private ArchiveDownloader CreateSutWithSubstitutes(ArchiveDescriptor archiveDescriptor = null)
     {
         archiveDescriptor ??= new ArchiveDescriptor(DownloadFileName, Sha256, TargetFileName);
-        return new ArchiveDownloader(runtime, checksum, SonarUserHome, archiveDescriptor, unpackerFactory);
+        return new ArchiveDownloader(runtime, unpackerFactory, checksum, SonarUserHome, archiveDescriptor);
     }
 }

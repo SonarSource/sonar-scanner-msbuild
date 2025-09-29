@@ -27,17 +27,17 @@ namespace SonarScanner.MSBuild.PreProcessor;
 public class ArchiveDownloader
 {
     private readonly IRuntime runtime;
-    private readonly CachedDownloader cachedDownloader;
     private readonly IUnpacker unpacker;
+    private readonly CachedDownloader cachedDownloader;
     private readonly ArchiveDescriptor archiveDescriptor;
     private readonly string archiveExtractionPath;
     private readonly string extractedTargetFile;
 
     public ArchiveDownloader(IRuntime runtime,
+                             UnpackerFactory unpackerFactory,
                              IChecksum checksum,
                              string sonarUserHome,
-                             ArchiveDescriptor archiveDescriptor,
-                             UnpackerFactory unpackerFactory)
+                             ArchiveDescriptor archiveDescriptor)
     {
         this.runtime = runtime;
         this.archiveDescriptor = archiveDescriptor;
