@@ -115,6 +115,6 @@ public class TelemetryTest
         telemetry.Invoking(x => x["key2"] = "value2")
             .Should()
             .ThrowExactly<InvalidOperationException>()
-            .WithMessage("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to java telemetry plugin.");
+            .WithMessage("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to the Java telemetry plugin.");
     }
 }
