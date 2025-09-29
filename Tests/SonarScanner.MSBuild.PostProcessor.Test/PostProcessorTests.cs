@@ -125,6 +125,13 @@ public class PostProcessorTests
     }
 
     [TestMethod]
+    public void PostProc_ExecutionSucceedsTelemetryIsWritten()
+    {
+        Execute().Should().BeTrue("Expecting post-processor to have succeeded");
+        runtime.Telemetry.OutputPath.Should().Be(settings.SonarOutputDirectory, because: "Telemetry.Write() needs to be called.");
+    }
+
+    [TestMethod]
     public void PostProc_FailsOnInvalidArgs()
     {
         Execute("/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");

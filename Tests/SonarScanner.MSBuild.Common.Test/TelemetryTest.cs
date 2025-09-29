@@ -91,4 +91,30 @@ public class TelemetryTest
             .ThrowExactly<NotSupportedException>()
             .WithMessage("Unsupported telemetry message value type: System.Collections.Generic.Dictionary`2[System.String,System.String]");
     }
+
+    [TestMethod]
+    public void Telemetry_Write_CanOnlyBeCalledOnce()
+    {
+        const string outputDir = "outputDir";
+        var telemetry = new Telemetry(fileWrapper, new TestLogger());
+        telemetry.Invoking(x => x.Write(outputDir)).Should().NotThrow();
+        telemetry.Invoking(x => x.Write(outputDir))
+            .Should()
+            .ThrowExactly<InvalidOperationException>()
+            .WithMessage("The Telemetry was written already and should only write once.");
+    }
+
+    [TestMethod]
+    public void Telemetry_Write_ImmuutableAfterWrite()
+    {
+        const string outputDir = "outputDir";
+        var telemetry = new Telemetry(fileWrapper, new TestLogger());
+        telemetry["key1"] = "value1";
+        telemetry.Invoking(x => x.Write(outputDir)).Should().NotThrow();
+        telemetry.Invoking(x => _ = x["key1"]).Should().NotThrow(because: "reading is fine after Write().");
+        telemetry.Invoking(x => x["key2"] = "value2")
+            .Should()
+            .ThrowExactly<InvalidOperationException>(because: "adding or modifying keys is forbidden after Write() to make sure, we do not try to add telemetry that will not be forwarded.")
+            .WithMessage("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to the Java telemetry plugin.");
+    }
 }
