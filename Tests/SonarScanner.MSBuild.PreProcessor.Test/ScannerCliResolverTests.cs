@@ -109,12 +109,18 @@ public class ScannerCliResolverTests
     [TestMethod]
     public async Task ResolvePath_DownloadFailure_ReturnsNull()
     {
-        runtime.File.Create(Arg.Any<string>()).Throws(new IOException("Reason"));
+        runtime.File.Create(null).ThrowsForAnyArgs(new IOException("Reason"));
 
         var result = await sut.ResolvePath(args);
         result.Should().BeNull();
-        AssertDebugMessagesWithRetry(
+        runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             "ScannerCliResolver: Resolving SonarScanner CLI path.",
+            $"Cache miss. Could not find '{ExtractedScannerPath}'.",
+            $"Cache miss. Could not find '{DownloadPath}'.",
+            $"Deleting file '{TempExtractionPath}'.",
+            "The download of the file from the server failed with the exception 'Reason'.",
+            "ScannerCliResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.",
+            "ScannerCliResolver: Resolving SonarScanner CLI path. Retrying...",
             $"Cache miss. Could not find '{ExtractedScannerPath}'.",
             $"Cache miss. Could not find '{DownloadPath}'.",
             $"Deleting file '{TempExtractionPath}'.",
@@ -125,7 +131,7 @@ public class ScannerCliResolverTests
     [TestMethod]
     public async Task ResolvePath_SuccessAfterRetry()
     {
-        runtime.File.Create(Arg.Any<string>()).Returns(x => throw new IOException("First attempt failed"), x => new MemoryStream());
+        runtime.File.Create(null).ReturnsForAnyArgs(x => throw new IOException("First attempt failed"), x => new MemoryStream());
 
         var result = await sut.ResolvePath(args);
         result.Should().Be(ExtractedScannerPath);
@@ -144,12 +150,5 @@ public class ScannerCliResolverTests
             $"Moving extracted files from '{TempExtractionPath}' to '{ExtractedPath}'.",
             $"The archive was successfully extracted to '{ExtractedPath}'.",
             $"ScannerCliResolver: Download success. SonarScanner CLI can be found at '{ExtractedScannerPath}'.");
-    }
-
-    private void AssertDebugMessagesWithRetry(params string[] messages)
-    {
-        var retryMessages = messages.ToArray();
-        retryMessages[0] += " Retrying...";
-        runtime.Logger.DebugMessages.Should().BeEquivalentTo(messages.Concat(retryMessages));
     }
 }
