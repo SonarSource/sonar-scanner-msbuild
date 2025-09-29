@@ -37,7 +37,7 @@ public class Telemetry : ITelemetry
     {
         get => messages[key];
         set => messages[key] = hasWritten
-                ? throw new InvalidOperationException("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to java telemetry plugin.")
+                ? throw new InvalidOperationException("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to the Java telemetry plugin.")
                 : value;
     }
 
