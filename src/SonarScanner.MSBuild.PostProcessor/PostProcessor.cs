@@ -122,7 +122,7 @@ public class PostProcessor
     private static string IsTfsProcessorCalled(IBuildSettings settings) =>
         // We need to know IsTfsProcessorCalled? before we call the scanner/engine because telemetry needs to be complete before that call.
         // tfsProcessor.Execute is called in ProcessSummaryReportBuilder (called after the scanner/engine invocation) if NETFRAMEWORK and BuildEnvironment.LegacyTeamBuild and also in
-        // ProcessCoverageReport (before but the scanner/engine invocation and there only if !BuildSettings.SkipLegacyCodeCoverageProcessing).
+        // ProcessCoverageReport (before the scanner/engine invocation and only if !BuildSettings.SkipLegacyCodeCoverageProcessing).
         // We are interested if either of the calls happened and therefore we assume ProcessSummaryReportBuilder will happen after the scanner/engine invocation
         // and BuildSettings.SkipLegacyCodeCoverageProcessing is ignored for telemetry.
 #if NETFRAMEWORK
