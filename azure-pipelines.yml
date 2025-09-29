@@ -273,12 +273,12 @@ stages:
     displayName: 'QA - Windows:'
     dependsOn: build
     jobs:
-      - job: uts_analysis_mend
-        displayName: 'Run UTs, SC analysis and Mend scan'
+      - job: uts_analysis
+        displayName: 'Run UTs, SC analysis'
         workspace:
           clean: all
         steps:
-          - task: DownloadPipelineArtifact@2    # Mend needs the Scanner CLI Jar on the disk at the time of scan
+          - task: DownloadPipelineArtifact@2
             inputs:
               buildType: 'current'
               targetPath: '$(Build.SourcesDirectory)/build'
@@ -348,17 +348,6 @@ stages:
             displayName: 'Code Analysis - Publish QG'
             inputs:
               pollingTimeoutSec: '300'
-
-          - powershell: .\scripts\Mend\Mend-Scan.ps1
-            displayName: "Mend scan"
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
-            env:
-              JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
-              WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
-              WS_APIKEY: '$(WHITESOURCE_APIKEY)'
-              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-
 
       - template: templates/its-jobs.yml
         parameters:
