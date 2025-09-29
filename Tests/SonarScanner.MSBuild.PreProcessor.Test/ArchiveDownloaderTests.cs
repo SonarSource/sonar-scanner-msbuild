@@ -32,11 +32,12 @@ public class ArchiveDownloaderTests
     private const string TargetFileName = "targetFileInArchive.exe";
     private const string DownloadFileName = "filename.tar.gz";
     private const string Sha256 = "sha256";
+    private const string ExtractedFolderName = "filename.tar.gz_extracted";
     private static readonly string SonarUserHome = Path.Combine("C:", "Users", "user", ".sonar");
     private static readonly string SonarCache = Path.Combine(SonarUserHome, "cache");
     private static readonly string ShaPath = Path.Combine(SonarCache, Sha256);
     private static readonly string DownloadPath = Path.Combine(ShaPath, DownloadFileName);
-    private static readonly string ExtractedPath = Path.Combine(ShaPath, "filename.tar.gz_extracted");
+    private static readonly string ExtractedPath = Path.Combine(ShaPath, ExtractedFolderName);
     private static readonly string ExtractedTargetFile = Path.Combine(ExtractedPath, TargetFileName);
 
     private readonly TestRuntime runtime;
@@ -127,10 +128,11 @@ public class ArchiveDownloaderTests
 
         result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(ExtractedTargetFile);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Could not find '{ExtractedTargetFile}'.",
             $"The file was already downloaded from the server and stored at '{DownloadPath}'.",
             "The checksum of the downloaded file is 'notValid' and the expected checksum is 'sha256'.",
             $"Deleting file '{DownloadPath}'.",
-            $"Cache miss. Attempting to download '{DownloadPath}'.",
+            $"Cache miss. Could not find '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{ShaPath}'.",
             $"Moving extracted files from '{ShaPath}' to '{ExtractedPath}'.",
@@ -151,6 +153,7 @@ public class ArchiveDownloaderTests
 
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded archive could not be extracted.");
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
+            $"Cache miss. Could not find '{ExtractedTargetFile}'.",
             $"The file was already downloaded from the server and stored at '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{ShaPath}'.",
@@ -180,7 +183,8 @@ public class ArchiveDownloaderTests
         var streamAccess = () => fileContentStream.Position;
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after success.");
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{DownloadPath}'.",
+            $"Cache miss. Could not find '{ExtractedTargetFile}'.",
+            $"Cache miss. Could not find '{DownloadPath}'.",
             "The checksum of the downloaded file is '' and the expected checksum is 'sha256'.",
             $"Deleting file '{Path.Combine(ShaPath, "xFirst.rnd")}'.",
             "The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
@@ -443,7 +447,8 @@ public class ArchiveDownloaderTests
 
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded archive could not be extracted.");
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{file}'.",
+            $"Cache miss. Could not find '{Path.Combine(sha, ExtractedFolderName, TargetFileName)}'.",
+            $"Cache miss. Could not find '{file}'.",
             $"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.",
             $"Starting to extract files from archive '{Path.Combine(SonarUserHome, "cache", expectedHashValue, DownloadFileName)}' "
             + $"to folder '{Path.Combine(SonarUserHome, "cache", expectedHashValue, "xSecond.rnd")}'.",
@@ -482,7 +487,8 @@ public class ArchiveDownloaderTests
         result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The download of the file from the server failed with the exception "
             + "'The checksum of the downloaded file does not match the expected checksum.'.");
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{file}'.",
+            $"Cache miss. Could not find '{Path.Combine(sha, ExtractedFolderName, TargetFileName)}'.",
+            $"Cache miss. Could not find '{file}'.",
             $"The checksum of the downloaded file is '{fileHashValue}' and the expected checksum is '{expectedHashValue}'.",
             @$"Deleting file '{Path.Combine(SonarCache, expectedHashValue, "xFirst.rnd")}'.",
             @$"Failed to delete file '{Path.Combine(SonarCache, expectedHashValue, "xFirst.rnd")}'. Unable to find the specified file.",
@@ -556,13 +562,14 @@ public class ArchiveDownloaderTests
 
         var result = await ExecuteDownloadAndUnpack();
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be(@"The downloaded archive could not be extracted.");
+        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded archive could not be extracted.");
         runtime.File.Received(1).Exists(file);
         runtime.File.Received(1).Create(Arg.Any<string>());
         runtime.File.Received(1).Open(file); // For the unpacking.
         checksum.Received(1).ComputeHash(Arg.Any<Stream>());
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{file}'.",
+            $"Cache miss. Could not find '{ExtractedTargetFile}'.",
+            $"Cache miss. Could not find '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             // The unpackerFactory returned an unpacker and it was called. But the test setup is incomplete and therefore fails later:
             $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
@@ -591,7 +598,8 @@ public class ArchiveDownloaderTests
         runtime.Directory.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
         unpacker.Received(1).Unpack(archiveFileStream, Path.Combine(ShaPath, "xSecond.rnd"));
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{file}'.",
+            $"Cache miss. Could not find '{ExtractedTargetFile}'.",
+            $"Cache miss. Could not find '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
             $"Moving extracted files from '{Path.Combine(ShaPath, "xSecond.rnd")}' to '{file}_extracted'.",
@@ -620,7 +628,8 @@ public class ArchiveDownloaderTests
         runtime.Directory.DidNotReceiveWithAnyArgs().Move(null, null);
         runtime.Directory.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{file}'.",
+            $"Cache miss. Could not find '{ExtractedTargetFile}'.",
+            $"Cache miss. Could not find '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
             "The extraction of the downloaded archive failed with error 'Unpack failure'.");
@@ -649,7 +658,8 @@ public class ArchiveDownloaderTests
         runtime.Directory.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
         runtime.Directory.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{file}'.",
+            $"Cache miss. Could not find '{ExtractedTargetFile}'.",
+            $"Cache miss. Could not find '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
             $"Moving extracted files from '{Path.Combine(ShaPath, "xSecond.rnd")}' to '{file}_extracted'.",
@@ -678,7 +688,8 @@ public class ArchiveDownloaderTests
         runtime.File.Received(1).Exists(Path.Combine(ShaPath, "xSecond.rnd", TargetFileName));
         runtime.Directory.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{file}'.",
+            $"Cache miss. Could not find '{ExtractedTargetFile}'.",
+            $"Cache miss. Could not find '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
             $"The extraction of the downloaded archive failed with error 'The target file in the extracted archive was expected to be at '{Path.Combine(ShaPath, "xSecond.rnd", TargetFileName)}' but couldn't be found.'.");
@@ -706,7 +717,8 @@ public class ArchiveDownloaderTests
         runtime.Directory.Received(1).Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted");
         runtime.Directory.Received(1).Delete(Path.Combine(ShaPath, "xSecond.rnd"), true);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{file}'.",
+            $"Cache miss. Could not find '{ExtractedTargetFile}'.",
+            $"Cache miss. Could not find '{file}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{file}' to folder '{Path.Combine(ShaPath, "xSecond.rnd")}'.",
             $"Moving extracted files from '{Path.Combine(ShaPath, "xSecond.rnd")}' to '{file}_extracted'.",
@@ -735,7 +747,8 @@ public class ArchiveDownloaderTests
         var cache = Path.Combine(home, "cache");
         var sha = "b192f77aa6a6154f788ab74a839b1930d59eb1034c3fe617ef0451466a8335ba";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip";
-        var archiveDescriptor = new ArchiveDescriptor(file, sha, @"jdk-17.0.11+9-jre/bin/java.exe");
+        var targetFilePath = Path.Combine("jdk-17.0.11+9-jre", "bin", "java.exe");
+        var archiveDescriptor = new ArchiveDescriptor(file, sha, targetFilePath);
 
         var runtimeIO = new TestRuntime // Do real I/O operations in this test and only fake the download.
         {
@@ -749,7 +762,7 @@ public class ArchiveDownloaderTests
             var result = await sut.DownloadAsync(() => Task.FromResult<Stream>(new MemoryStream(zipContent)));
 
             result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(
-                Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted", "jdk-17.0.11+9-jre/bin/java.exe"));
+                Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted", targetFilePath));
             Directory.EnumerateFileSystemEntries(cache, "*", SearchOption.AllDirectories).Should().BeEquivalentTo(
                 Path.Combine(cache, sha),
                 Path.Combine(cache, sha, file),
@@ -757,10 +770,11 @@ public class ArchiveDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre"),
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin"),
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
-            File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
+            File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", targetFilePath)).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
             runtimeIO.Logger.DebugMessages.Should().SatisfyRespectively(
-                x => x.Should().Be($"Cache miss. Attempting to download '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip")}'."),
+                x => x.Should().Be($"Cache miss. Could not find '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted", targetFilePath)}'."),
+                x => x.Should().Be($"Cache miss. Could not find '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip")}'."),
                 x => x.Should().Be($"The checksum of the downloaded file is '{sha}' and the expected checksum is '{sha}'."),
                 x => x.Should().Match($"Starting to extract files from archive '{Path.Combine(cache, sha, file)}' to folder '{Path.Combine(cache, sha, "*")}'."),
                 x => x.Should().Match($"Moving extracted files from '{Path.Combine(cache, sha, "*")}' to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted")}'."),
@@ -788,7 +802,8 @@ public class ArchiveDownloaderTests
         var cache = Path.Combine(home, "cache");
         var sha = "347f62ce8b0aadffd19736a189b4b79fad87a83cc36ec1273081629c9cb06d3b";
         var file = "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz";
-        var archiveDescriptor = new ArchiveDescriptor(file, sha, Path.Combine("jdk-17.0.11+9-jre", "bin", "java.exe"));
+        var targetFilePath = Path.Combine("jdk-17.0.11+9-jre", "bin", "java.exe");
+        var archiveDescriptor = new ArchiveDescriptor(file, sha, targetFilePath);
         var runtimeIO = new TestRuntime // Do real I/O operations in this test and only fake the download.
         {
             Directory = DirectoryWrapper.Instance,
@@ -802,7 +817,7 @@ public class ArchiveDownloaderTests
             var result = await sut.DownloadAsync(() => Task.FromResult<Stream>(new MemoryStream(tarContent)));
 
             result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(
-                Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
+                Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted", targetFilePath));
             Directory.EnumerateFileSystemEntries(cache, "*", SearchOption.AllDirectories).Should().BeEquivalentTo(
                 Path.Combine(cache, sha),
                 Path.Combine(cache, sha, file),
@@ -810,10 +825,11 @@ public class ArchiveDownloaderTests
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre"),
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin"),
                 Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe"));
-            File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", "jdk-17.0.11+9-jre", "bin", "java.exe")).Should().Be(
+            File.ReadAllText(Path.Combine(cache, sha, $"{file}_extracted", targetFilePath)).Should().Be(
                 "This is just a sample file for testing and not the real java.exe");
             runtimeIO.Logger.DebugMessages.Should().SatisfyRespectively(
-                x => x.Should().Be($"Cache miss. Attempting to download '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz")}'."),
+                x => x.Should().Be($"Cache miss. Could not find '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted", targetFilePath)}'."),
+                x => x.Should().Be($"Cache miss. Could not find '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz")}'."),
                 x => x.Should().Be($"The checksum of the downloaded file is '{sha}' and the expected checksum is '{sha}'."),
                 x => x.Should().Match($"Starting to extract files from archive '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz")}' to folder '{Path.Combine(cache, sha, "*")}'."),
                 x => x.Should().Match($"Moving extracted files from '{Path.Combine(cache, sha, "*")}' to '{Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted")}'."),

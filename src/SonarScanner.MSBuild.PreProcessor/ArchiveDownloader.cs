@@ -54,6 +54,7 @@ public class ArchiveDownloader
         {
             return new CacheHit(extractedTargetFile);
         }
+        runtime.LogDebug(Resources.MSG_Downloader_CacheMiss, $"'{extractedTargetFile}'");
         if (unpacker is null)
         {
             return new DownloadError(string.Format(Resources.ERR_ArchiveFormatNotSupported, archiveDescriptor.Filename));
