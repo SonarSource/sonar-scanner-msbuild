@@ -28,6 +28,8 @@ public static class TelemetryKeys
     // Scanner Engine Bootstrapping
     public const string ScannerEngineBootstrapping  = "dotnetenterprise.s4net.scannerEngine.bootstrapping";
     public const string ScannerEngineDownload       = "dotnetenterprise.s4net.scannerEngine.download";
+    // Scanner CLI Bootstrapping
+    public const string ScannerCliDownload          = "dotnetenterprise.s4net.scannerCli.download";
     // Server Info
     public const string ServerInfoRegion            = "dotnetenterprise.s4net.serverInfo.region";
     public const string ServerInfoProduct           = "dotnetenterprise.s4net.serverInfo.product";

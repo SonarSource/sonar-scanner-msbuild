@@ -66,7 +66,6 @@ public class ScannerCliResolver : IResolver
             runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(ScannerCliResolver), SonarScannerCLI, " Retrying...");
             return await DownloadScannerCli();
         }
-        // TODO make file executable SCAN4NET-956
     }
 
     private async Task<string> DownloadScannerCli()
@@ -81,15 +80,15 @@ public class ScannerCliResolver : IResolver
         {
             case CacheHit cacheHit:
                 runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(ScannerCliResolver), cacheHit.FilePath);
-                // runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit; TODO add telemetry SCAN4NET-957
+                runtime.Telemetry[TelemetryKeys.ScannerCliDownload] = TelemetryValues.ScannerCliDownload.CacheHit;
                 return cacheHit.FilePath;
             case Downloaded downloaded:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(ScannerCliResolver), SonarScannerCLI, downloaded.FilePath);
-                // runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Downloaded;   TODO add telemetry SCAN4NET-957
+                runtime.Telemetry[TelemetryKeys.ScannerCliDownload] = TelemetryValues.ScannerCliDownload.Downloaded;
                 return downloaded.FilePath;
             case DownloadError error:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(ScannerCliResolver), error.Message);
-                // runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;   TODO add telemetry SCAN4NET-957
+                runtime.Telemetry[TelemetryKeys.ScannerCliDownload] = TelemetryValues.ScannerCliDownload.Failed;
                 return null;
             default:
                 throw new NotSupportedException("Download result is expected to be FileRetrieved or DownloadError.");
