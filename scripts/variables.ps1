@@ -1,4 +1,5 @@
 ﻿$fullBuildOutputDir = "$PSScriptRoot\..\build"
+$scannerCliEmbed = $false
 $scannerCliVersion = "5.0.2.4997"
 $scannerCliAssemblyName = "sonar-scanner-cli-$ScannerCliVersion"
 $scannerCliArtifact = "$scannerCliAssemblyName.zip"

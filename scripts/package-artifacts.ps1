@@ -1,7 +1,6 @@
 ﻿function Package-NetFrameworkScanner {
     param (
-        [Bool]$SignAssemblies = $false,
-        [Bool]$EmbedScannerCli = $false
+        [Bool]$SignAssemblies = $false
     )
 
     $Destination = "$FullBuildOutputDir\sonarscanner-net-framework"
@@ -31,7 +30,7 @@
     Copy-Item -Path "$PSScriptRoot\..\LICENSE.txt" -Destination $DestinationLicenses
     Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\*" -Destination $DestinationThirdPartyLicenses
 
-    if ($EmbedScannerCli) {
+    if ($scannerCliEmbed) {
         Expand-Archive -Path "$scannerCliDownloadDir\$scannerCliArtifact" -DestinationPath $Destination -Force
     }
 
@@ -46,8 +45,7 @@
 
 function Package-NetScanner {
     param (
-        [Bool]$SignAssemblies = $false,
-        [Bool]$EmbedScannerCli = $false
+        [Bool]$SignAssemblies = $false
     )
 
     $SourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1"
@@ -79,7 +77,7 @@ function Package-NetScanner {
     Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\Newtonsoft.Json-LICENSE.txt" -Destination $DestinationThirdPartyLicenses
     Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\SharpZipLib-LICENSE.txt" -Destination $DestinationThirdPartyLicenses
 
-    if ($EmbedScannerCli) {
+    if ($scannerCliEmbed) {
         Expand-Archive -Path "$scannerCliDownloadDir\$scannerCliArtifact" -DestinationPath $Destination -Force
     }
 
