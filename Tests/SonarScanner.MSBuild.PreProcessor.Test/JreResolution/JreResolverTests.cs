@@ -66,6 +66,7 @@ public class JreResolverTests
         var res = await sut.ResolvePath(args);
 
         res.Should().BeNull();
+        runtime.Logger.Should().HaveNoInfos();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning.");
@@ -82,6 +83,7 @@ public class JreResolverTests
         var res = await sut.ResolvePath(args);
 
         res.Should().BeNull();
+        runtime.Logger.Should().HaveNoInfos();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: sonar.scanner.skipJreProvisioning is set, skipping JRE provisioning.");
@@ -98,6 +100,7 @@ public class JreResolverTests
         var res = await sut.ResolvePath(args);
 
         res.Should().BeNull();
+        runtime.Logger.Should().HaveNoInfos();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning.");
@@ -114,6 +117,7 @@ public class JreResolverTests
         var res = await sut.ResolvePath(args);
 
         res.Should().BeNull();
+        runtime.Logger.Should().HaveNoInfos();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: sonar.scanner.os is not set or detected, skipping JRE provisioning.");
@@ -131,6 +135,7 @@ public class JreResolverTests
         var res = await sut.ResolvePath(Args());
 
         res.Should().BeNull();
+        runtime.Logger.Should().HaveNoInfos();
         AssertDebugMessages(
             true,
             "JreResolver: Resolving JRE path.",
@@ -147,6 +152,7 @@ public class JreResolverTests
         var res = await sut.ResolvePath(Args());
 
         res.Should().Be(ExtractedJavaPath);
+        runtime.Logger.Should().HaveNoInfos();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             $"JreResolver: Cache hit '{ExtractedJavaPath}'.");
@@ -173,11 +179,15 @@ public class JreResolverTests
         var res = await sut.ResolvePath(Args());
 
         res.Should().Be(ExtractedJavaPath);
-        AssertJreBottleNeckMessage();
+        runtime.Logger.Should().HaveInfos("""
+            The JRE provisioning is a time consuming operation.
+            JRE provisioned: filename.tar.gz.
+            If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+            """);
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "Cache miss. Attempting to download JRE.",
-            $"Cache miss. Attempting to download '{DownloadPath}'.",
+            $"Cache miss. Could not find '{ExtractedJavaPath}'.",
+            $"Cache miss. Could not find '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
             $"Moving extracted files from '{tempArchive}' to '{ExtractedPath}'.",
@@ -205,10 +215,14 @@ public class JreResolverTests
 
         await server.DidNotReceive().DownloadJreAsync(Arg.Any<JreMetadata>());
         res.Should().Be(ExtractedJavaPath);
-        AssertJreBottleNeckMessage();
+        runtime.Logger.Should().HaveInfos("""
+            The JRE provisioning is a time consuming operation.
+            JRE provisioned: filename.tar.gz.
+            If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+            """);
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "Cache miss. Attempting to download JRE.",
+            $"Cache miss. Could not find '{ExtractedJavaPath}'.",
             $"The file was already downloaded from the server and stored at '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
@@ -225,13 +239,13 @@ public class JreResolverTests
         runtime.File.Create(Arg.Any<string>()).Throws(new IOException("Reason"));
         var res = await sut.ResolvePath(Args());
 
-        AssertJreBottleNeckMessage(true);
         res.Should().BeNull();
+        runtime.Logger.Should().HaveNoInfos();
         AssertDebugMessages(
             true,
             "JreResolver: Resolving JRE path.",
-            "Cache miss. Attempting to download JRE.",
-            $"Cache miss. Attempting to download '{DownloadPath}'.",
+            $"Cache miss. Could not find '{ExtractedJavaPath}'.",
+            $"Cache miss. Could not find '{DownloadPath}'.",
             $"Deleting file '{ShaPath}'.",  // should be temp file path but the scaffolding is not setup
             "The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
@@ -258,19 +272,23 @@ public class JreResolverTests
         var res = await sut.ResolvePath(Args());
 
         res.Should().Be(ExtractedJavaPath);
-        AssertJreBottleNeckMessage(retry: true);
+        runtime.Logger.Should().HaveInfos("""
+            The JRE provisioning is a time consuming operation.
+            JRE provisioned: filename.tar.gz.
+            If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+            """);
         await server.ReceivedWithAnyArgs(2).DownloadJreMetadataAsync(null, null);
         await server.Received(2).DownloadJreAsync(metadata);
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
-            "Cache miss. Attempting to download JRE.",
-            $"Cache miss. Attempting to download '{DownloadPath}'.",
+            $"Cache miss. Could not find '{ExtractedJavaPath}'.",
+            $"Cache miss. Could not find '{DownloadPath}'.",
             $"Deleting file '{tempArchive}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.",
             "JreResolver: Resolving JRE path. Retrying...",
-            "Cache miss. Attempting to download JRE.",
-            $"Cache miss. Attempting to download '{DownloadPath}'.",
+            $"Cache miss. Could not find '{ExtractedJavaPath}'.",
+            $"Cache miss. Could not find '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
             $"Moving extracted files from '{tempArchive}' to '{ExtractedPath}'.",
@@ -300,15 +318,19 @@ public class JreResolverTests
         var res = await sut.ResolvePath(Args());
 
         res.Should().Be(ExtractedJavaPath);
-        AssertJreBottleNeckMessage();
         await server.ReceivedWithAnyArgs(2).DownloadJreMetadataAsync(null, null);
         await server.Received(1).DownloadJreAsync(metadata);
+        runtime.Logger.Should().HaveInfos("""
+            The JRE provisioning is a time consuming operation.
+            JRE provisioned: filename.tar.gz.
+            If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+            """);
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: Metadata could not be retrieved.",
             "JreResolver: Resolving JRE path. Retrying...",
-            "Cache miss. Attempting to download JRE.",
-            $"Cache miss. Attempting to download '{DownloadPath}'.",
+            $"Cache miss. Could not find '{ExtractedJavaPath}'.",
+            $"Cache miss. Could not find '{DownloadPath}'.",
             "The checksum of the downloaded file is 'sha256' and the expected checksum is 'sha256'.",
             $"Starting to extract files from archive '{DownloadPath}' to folder '{tempArchive}'.",
             $"Moving extracted files from '{tempArchive}' to '{ExtractedPath}'.",
@@ -324,6 +346,7 @@ public class JreResolverTests
         server.SupportsJreProvisioning.Returns(false);
         await sut.ResolvePath(Args());
 
+        runtime.Logger.Should().HaveNoInfos();
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             "JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it.");
@@ -366,6 +389,7 @@ public class JreResolverTests
             }
 
             await sut.ResolvePath(args);
+            runtime.Logger.Should().HaveNoInfos();
             runtime.Logger.DebugMessages.Should().BeEquivalentTo(
                 ["JreResolver: Resolving JRE path.",
                 firstInvalid.Message],
@@ -398,16 +422,6 @@ public class JreResolverTests
         args.OperatingSystem.Returns("os");
         args.Architecture.Returns("arch");
         return args;
-    }
-
-    private void AssertJreBottleNeckMessage(bool retry = false)
-    {
-        var bottleNeckMessage = """
-            The JRE provisioning is a time consuming operation.
-            JRE provisioned: filename.tar.gz.
-            If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
-            """;
-        runtime.Logger.InfoMessages.Should().BeEquivalentTo(Enumerable.Repeat(bottleNeckMessage, retry ? 2 : 1));
     }
 
     private void AssertDebugMessages(params string[] messages) =>

@@ -57,8 +57,9 @@ public final class ProvisioningAssertions {
     assertThat(beginLogs).contains(
       "JreResolver: Resolving JRE path.",
       "Downloading from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
-      "Response received from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...",
-      "Cache miss. Attempting to download JRE.");
+      "Response received from " + sqApiUrl + "/analysis/jres?os=" + os + "&arch=" + arch + "...");
+    TestUtils.matchesSingleLine(beginLogs, "Cache miss. Could not find '" + cacheFolderPattern + "_extracted.+java(?:\\.exe)?'");
+    TestUtils.matchesSingleLine(beginLogs, "Cache miss. Could not find '" + cacheFolderPattern + "(?:zip|tar\\.gz)'");
     TestUtils.matchesSingleLine(beginLogs, "Downloading Java JRE from " + jreUrlPattern);
     TestUtils.matchesSingleLine(beginLogs, "The checksum of the downloaded file is '.+' and the expected checksum is '.+'");
     TestUtils.matchesSingleLine(beginLogs, "Starting to extract files from archive '" + cacheFolderPattern + "' to folder '" + cacheFolderPattern + "'");
@@ -70,7 +71,7 @@ public final class ProvisioningAssertions {
         "EngineResolver: Resolving Scanner Engine path.",
         "Downloading from " + sqApiUrl + "/analysis/engine...",
         "Response received from " + sqApiUrl + "/analysis/engine...",
-        "Cache miss. Attempting to download '");  // + file path to scanner engine
+        "Cache miss. Could not find '");  // + file path to scanner engine
       TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
       TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern +
         "((scanner-developer)|(sonarcloud-scanner-engine)|(sonar-scanner-engine-shaded)).+\\.jar'");

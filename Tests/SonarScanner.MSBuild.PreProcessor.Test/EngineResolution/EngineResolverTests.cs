@@ -151,7 +151,7 @@ public class EngineResolverTests
         await server.Received(1).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
-            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
+            $"Cache miss. Could not find '{CachedEnginePath}'.",
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
@@ -180,12 +180,12 @@ public class EngineResolverTests
         await server.Received(2).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
-            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
+            $"Cache miss. Could not find '{CachedEnginePath}'.",
             $"Deleting file '{tempFile}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Resolving Scanner Engine path. Retrying...",
-            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
+            $"Cache miss. Could not find '{CachedEnginePath}'.",
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
@@ -217,7 +217,7 @@ public class EngineResolverTests
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.",
             "EngineResolver: Resolving Scanner Engine path. Retrying...",
-            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
+            $"Cache miss. Could not find '{CachedEnginePath}'.",
             $"The checksum of the downloaded file is '{ChecksumValue}' and the expected checksum is '{ChecksumValue}'.",
             $"EngineResolver: Download success. Scanner Engine can be found at '{CachedEnginePath}'.");
 
@@ -238,7 +238,7 @@ public class EngineResolverTests
         AssertDebugMessages(
             retry: true,
             "EngineResolver: Resolving Scanner Engine path.",
-            $"Cache miss. Attempting to download '{CachedEnginePath}'.",
+            $"Cache miss. Could not find '{CachedEnginePath}'.",
             $"Deleting file '{ShaPath}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
             "EngineResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");

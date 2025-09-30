@@ -112,7 +112,7 @@ public sealed class CachedDownloaderTests : IDisposable
         runtime.File.Received(1).Move(TempFilePath, DownloadFilePath);
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
+            $"Cache miss. Could not find '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
 
@@ -126,7 +126,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
+            $"Cache miss. Could not find '{DownloadFilePath}'.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.");
     }
@@ -144,7 +144,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertStreamDisposed();
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
+            $"Cache miss. Could not find '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
             $"Deleting file '{Path.Combine(DownloadPath, TempFileName)}'.",
             "The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
@@ -163,7 +163,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertStreamDisposed();
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.Should().HaveDebugs(
-            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
+            $"Cache miss. Could not find '{DownloadFilePath}'.",
             $"The calculation of the checksum of the file '{TempFilePath}' failed with message 'Operation is not valid due to the current state of the object.'.",
             $"Deleting file '{Path.Combine(DownloadPath, TempFileName)}'.",
             "The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
@@ -200,7 +200,7 @@ public sealed class CachedDownloaderTests : IDisposable
             $"The file was already downloaded from the server and stored at '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is 'someOtherHash' and the expected checksum is '{ExpectedSha}'.",
             $"Deleting file '{DownloadFilePath}'.",
-            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
+            $"Cache miss. Could not find '{DownloadFilePath}'.",
             $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
 
@@ -215,7 +215,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
+            $"Cache miss. Could not find '{DownloadFilePath}'.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
             "The file was found after the download failed. Another scanner downloaded the file in parallel.",
@@ -235,7 +235,7 @@ public sealed class CachedDownloaderTests : IDisposable
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Attempting to download '{DownloadFilePath}'.",
+            $"Cache miss. Could not find '{DownloadFilePath}'.",
             $"Deleting file '{TempFilePath}'.",
             "The download of the file from the server failed with the exception 'The download stream is null. The server likely returned an error status code.'.",
             "The file was found after the download failed. Another scanner downloaded the file in parallel.",
