@@ -49,7 +49,9 @@ stages:
             - powershell: $(Build.SourcesDirectory)/scripts/ci-self-signed-certificate.ps1
               displayName: "Create self-signed certificate"
             # On Linux/MacOS we need to update the execution permissions for the ScannerCLI
-            - script: chmod -R +x $(Build.SourcesDirectory)/build/sonarscanner-net/sonar-scanner-*/bin
+            - script: |
+                chmod -R +x $(Build.SourcesDirectory)/build/sonarscanner-net/sonar-scanner-*/bin
+                exit 0 # Always return 0 chmod fails when the scanner-cli is not present.
               name: scannerPermissions
               displayName: "Update Scanner permissions"
           matrix:
