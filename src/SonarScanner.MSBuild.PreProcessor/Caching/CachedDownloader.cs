@@ -51,7 +51,7 @@ public class CachedDownloader
         {
             return cacheHit;
         }
-        runtime.LogDebug(Resources.MSG_Downloader_CacheMiss, $"'{CacheLocation}'");
+        runtime.LogDebug(Resources.MSG_Downloader_CacheMiss, CacheLocation);
         return await DownloadFile(download);
     }
 

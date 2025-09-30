@@ -76,7 +76,6 @@ public class JreResolver : IResolver
         }
         var descriptor = metadata.ToDescriptor();
         var archiveDownloader = new ArchiveDownloader(runtime, unpackerFactory, checksum, sonarUserHome, descriptor);
-        runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, descriptor.Filename);
         return await DownloadJre(archiveDownloader, metadata);
     }
 
@@ -90,6 +89,7 @@ public class JreResolver : IResolver
                 return cacheHit.FilePath;
             case Downloaded downloaded:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", downloaded.FilePath);
+                runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, metadata.Filename);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Downloaded;
                 return downloaded.FilePath;
             case DownloadError error:
