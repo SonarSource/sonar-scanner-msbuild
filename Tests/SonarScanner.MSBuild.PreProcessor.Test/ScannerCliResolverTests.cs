@@ -60,6 +60,10 @@ public class ScannerCliResolverTests
     }
 
     [TestMethod]
+    public void Ctrp_UnpackerFactoryAndHandlerAreOptional() =>
+        FluentActions.Invoking(() => new ScannerCliResolver(Substitute.For<IChecksum>(), SonarUserHome, runtime)).Should().NotThrow();
+
+    [TestMethod]
     public async Task ResolvePath_CacheHit_ReturnsPath()
     {
         runtime.File.Exists(ExtractedScannerPath).Returns(true);
