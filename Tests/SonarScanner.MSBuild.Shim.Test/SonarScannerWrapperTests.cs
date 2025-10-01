@@ -551,6 +551,8 @@ public class SonarScannerWrapperTests
     public void WrapperError_Fail_StdErr() =>
         TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: true, expectedOutcome: false);
 
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void FindScannerExe_ReturnsScannerCliBat_Windows()
     {
@@ -595,6 +597,8 @@ public class SonarScannerWrapperTests
             + "The path to the SonarScanner CLI wasn't set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step.");
     }
 
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void FindScannerExe_SonarScannerCliPath_NotFound_Windows()
     {
