@@ -49,10 +49,14 @@ public class SonarScannerWrapper
         return InternalExecute(config, userCmdLineArguments, propertiesFilePath);
     }
 
-    public virtual bool ExecuteJavaRunner(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string exeFileName, string propertiesFileName, IProcessRunner runner)
+    internal virtual bool ExecuteJavaRunner(AnalysisConfig config,
+                                                              IAnalysisPropertyProvider userCmdLineArguments,
+                                                              string exeFileName,
+                                                              string propertiesFileName,
+                                                              IProcessRunner runner)
     {
-        Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
-        Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
+        Debug.Assert(runtime.File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
+        Debug.Assert(runtime.File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
         IgnoreSonarScannerHome();
 
@@ -87,11 +91,23 @@ public class SonarScannerWrapper
         return result.Succeeded;
     }
 
-    internal string FindScannerExe()
+    internal string FindScannerExe(AnalysisConfig config)
     {
-        var binFolder = Path.GetDirectoryName(typeof(SonarScannerWrapper).Assembly.Location);
-        var fileExtension = runtime.OperatingSystem.IsWindows() ? ".bat" : string.Empty;
-        return Path.Combine(binFolder, $"sonar-scanner-{SonarScannerVersion}", "bin", $"sonar-scanner{fileExtension}");
+        var bashScript = config.SonarScannerCliPath; // Full path to the bash script sonar-scanner-5.0.2.4997/bin/sonar-scanner in the downloaded SonarScanner CLI
+        if (string.IsNullOrWhiteSpace(bashScript))
+        {
+            runtime.LogError(Resources.ERR_SonarScannerCliNotFound, Resources.MSG_SonarScannerCliPath_Missing);
+            return null;
+        }
+        var executable = runtime.OperatingSystem.IsWindows()
+            ? Path.ChangeExtension(bashScript, "bat")
+            : bashScript;
+        if (!runtime.File.Exists(executable))
+        {
+            runtime.LogError(Resources.ERR_SonarScannerCliNotFound, string.Format(Resources.MSG_SonarCliPath_FileNotFound, executable));
+            return null;
+        }
+        return executable;
     }
 
     private bool InternalExecute(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, string fullPropertiesFilePath)
@@ -104,8 +120,10 @@ public class SonarScannerWrapper
             return false;
         }
 
-        var exeFileName = FindScannerExe();
-        return ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(runtime.Logger));
+        var exeFileName = FindScannerExe(config);
+        return exeFileName is null
+            ? false
+            : ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(runtime.Logger));
     }
 
     private void IgnoreSonarScannerHome()

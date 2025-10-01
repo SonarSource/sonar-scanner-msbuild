@@ -48,12 +48,14 @@ public class SonarScannerWrapperTests
     [TestMethod]
     public void Execute_ReturnTrue()
     {
-        var testSubject = Substitute.ForPartsOf<SonarScannerWrapper>(new TestRuntime());
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Is<string>(x => x == "/SonarScannerCli/sonar-scanner" || x == "/SonarScannerCli/sonar-scanner.bat")).Returns(true);
+        var testSubject = Substitute.ForPartsOf<SonarScannerWrapper>(runtime);
         testSubject
             .Configure()
             .ExecuteJavaRunner(Arg.Any<AnalysisConfig>(), Arg.Any<IAnalysisPropertyProvider>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
             .Returns(true);
-        testSubject.Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, "some/path").Should().BeTrue();
+        testSubject.Execute(new AnalysisConfig { SonarScannerCliPath = "/SonarScannerCli/sonar-scanner" }, EmptyPropertyProvider.Instance, "some/path").Should().BeTrue();
     }
 
     [TestMethod]
@@ -512,31 +514,79 @@ public class SonarScannerWrapperTests
     public void WrapperError_Fail_StdErr() =>
         TestWrapperErrorHandling(executeResult: false, addMessageToStdErr: true, expectedOutcome: false);
 
-    [TestCategory(TestCategories.NoLinux)]
-    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    public void FindScannerExe_ReturnsScannerCliBat_Windows() =>
-        new SonarScannerWrapper(new TestRuntime { OperatingSystem = new(Substitute.For<IFileWrapper>(), new TestLogger()) })
-            .FindScannerExe()
-            .Should()
-            .EndWith(@"\bin\sonar-scanner.bat");
-
-    [TestCategory(TestCategories.NoWindows)]
-    [TestMethod]
-    public void FindScannerExe_ReturnsScannerCliBat_Unix() =>
-        new SonarScannerWrapper(new TestRuntime { OperatingSystem = new(Substitute.For<IFileWrapper>(), new TestLogger()) })
-            .FindScannerExe()
-            .Should()
-            .EndWith(@"/bin/sonar-scanner");
-
-    [TestMethod]
-    public void FindScannerExe_WhenNonWindows_ReturnsNoExtension()
+    public void FindScannerExe_ReturnsScannerCliBat_Windows()
     {
         var runtime = new TestRuntime();
-        runtime.ConfigureOS(PlatformOS.Linux);
-        var scannerCliScriptPath = new SonarScannerWrapper(runtime).FindScannerExe();
+        runtime.ConfigureOS(PlatformOS.Windows);
+        runtime.File.Exists(@"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner.bat").Returns(true);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = @"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner" })
+            .Should()
+            .Be(@"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner.bat");
+    }
 
-        Path.GetExtension(scannerCliScriptPath).Should().BeNullOrEmpty();
+    [TestMethod]
+    [DataRow(PlatformOS.Linux)]
+    [DataRow(PlatformOS.MacOSX)]
+    [DataRow(PlatformOS.Alpine)]
+    public void FindScannerExe_ReturnsScannerCliBat_Unix(PlatformOS os)
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
+        runtime.File.Exists("/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner").Returns(true);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = "/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner" })
+            .Should()
+            .Be("/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner");
+    }
+
+    [TestMethod]
+    [DataRow(PlatformOS.Windows)]
+    [DataRow(PlatformOS.Linux)]
+    [DataRow(PlatformOS.MacOSX)]
+    [DataRow(PlatformOS.Alpine)]
+    public void FindScannerExe_SonarScannerCliPath_NotSet(PlatformOS os)
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = null })
+            .Should()
+            .BeNull();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + "The path to the SonarScanner CLI wasn't set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step.");
+    }
+
+    [TestMethod]
+    public void FindScannerExe_SonarScannerCliPath_NotFound_Windows()
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(PlatformOS.Windows);
+        runtime.File.Exists(@"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner.bat").Returns(false);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = @"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner" })
+            .Should()
+            .BeNull();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + @"The path 'C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner.bat' to the SonarScanner CLI is invalid. The file does not exists.");
+    }
+
+    [TestMethod]
+    [DataRow(PlatformOS.Linux)]
+    [DataRow(PlatformOS.MacOSX)]
+    [DataRow(PlatformOS.Alpine)]
+    public void FindScannerExe_SonarScannerCliPath_NotFound_Unix(PlatformOS os)
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
+        runtime.File.Exists(@"/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner").Returns(false);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = @"/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner" })
+            .Should()
+            .BeNull();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + @"The path '/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner' to the SonarScanner CLI is invalid. The file does not exists.");
     }
 
     private static void TestWrapperErrorHandling(bool executeResult, bool addMessageToStdErr, bool expectedOutcome)

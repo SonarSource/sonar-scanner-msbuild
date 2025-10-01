@@ -25,3 +25,4 @@ using System.Runtime.CompilerServices;
 #else
 [assembly: InternalsVisibleTo("SonarScanner.MSBuild.Shim.Test")]
 #endif
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")] // NSubstitute support for internal members
