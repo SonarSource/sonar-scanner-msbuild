@@ -123,6 +123,7 @@ stages:
               command: 'restore'
               projects: '$(SOLUTION)'
               feedsToUse: 'config'
+              restoreArguments: --locked-mode
               nugetConfigPath: 'NuGet.Config'
               verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
