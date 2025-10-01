@@ -54,4 +54,9 @@ public interface IPreprocessorObjectFactory
     /// Creates the component that resolves the Scanner Engine path.
     /// </summary>
     IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome);
+
+    /// <summary>
+    /// Creates the component that resolves the Scanner Engine path.
+    /// </summary>
+    IResolver CreateScannerCliResolver(ISonarWebServer server, string sonarUserHome);
 }

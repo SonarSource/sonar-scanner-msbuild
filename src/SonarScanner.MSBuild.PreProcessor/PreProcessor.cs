@@ -94,6 +94,8 @@ public class PreProcessor
 
         var scannerEngineJarPath = localSettings.UseSonarScannerCli ? null : await factory.CreateEngineResolver(server, localSettings.UserHome).ResolvePath(localSettings);
 
+        var scannerCliPath = scannerEngineJarPath is null ? await factory.CreateScannerCliResolver(server, localSettings.UserHome).ResolvePath(localSettings) : null;
+
         var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
         if (!argumentsAndRuleSets.IsSuccess)
         {
@@ -117,6 +119,7 @@ public class PreProcessor
             server.ServerVersion.ToString(),
             resolvedJavaExePath,
             scannerEngineJarPath,
+            scannerCliPath,
             runtime);
 
         runtime.AnalysisWarnings.Write(buildSettings.SonarOutputDirectory); // Create the analysis warnings file to be picked up the plugin
