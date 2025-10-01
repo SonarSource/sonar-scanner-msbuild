@@ -43,6 +43,7 @@ public static class AnalysisConfigGenerator
                                               string sonarQubeVersion,
                                               string resolvedJavaExePath,
                                               string resolvedEngineJarPath,
+                                              string resolvedScannerCliPath,
                                               IRuntime runtime)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
@@ -60,6 +61,7 @@ public static class AnalysisConfigGenerator
             SourcesDirectory = buildSettings.SourcesDirectory,
             JavaExePath = string.IsNullOrWhiteSpace(localSettings.JavaExePath) ? resolvedJavaExePath : localSettings.JavaExePath, // the user-specified JRE overrides the resolved value
             EngineJarPath = string.IsNullOrWhiteSpace(localSettings.EngineJarPath) ? resolvedEngineJarPath : localSettings.EngineJarPath, // the user-specified engine.jar overrides the resolved value
+            SonarScannerCliPath = resolvedScannerCliPath,
             ScanAllAnalysis = localSettings.ScanAllAnalysis,
             UseSonarScannerCli = localSettings.UseSonarScannerCli,
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)

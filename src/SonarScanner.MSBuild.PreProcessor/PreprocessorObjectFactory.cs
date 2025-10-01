@@ -102,6 +102,9 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
         new EngineResolver(server, sonarUserHome, runtime);
 
+    public IResolver CreateScannerCliResolver(ISonarWebServer server, string sonarUserHome) =>
+        new ScannerCliResolver(ChecksumSha256.Instance, sonarUserHome, runtime);
+
     private bool ValidateServerUrl(string serverUrl)
     {
         if (!Uri.IsWellFormedUriString(serverUrl, UriKind.Absolute))
