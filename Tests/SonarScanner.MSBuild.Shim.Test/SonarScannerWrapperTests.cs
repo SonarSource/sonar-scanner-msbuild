@@ -59,6 +59,43 @@ public class SonarScannerWrapperTests
     }
 
     [TestMethod]
+    public void Execute_ReturnsFalse_ScannerCliNotSpecified()
+    {
+        var runtime = new TestRuntime();
+        var testSubject = new SonarScannerWrapper(runtime);
+        testSubject.Execute(new AnalysisConfig { SonarScannerCliPath = null }, EmptyPropertyProvider.Instance, "some/path").Should().BeFalse();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. The path to the SonarScanner CLI wasn't set. "
+            + "Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step.");
+    }
+
+    [TestMethod]
+    public void Execute_ReturnsFalse_ScannerCliNotFound_Windows()
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(PlatformOS.Windows);
+        runtime.File.Exists(@"c:\SonarScannerCli\sonar-scanner.bat").Returns(false);
+        var testSubject = new SonarScannerWrapper(runtime);
+        testSubject.Execute(new AnalysisConfig { SonarScannerCliPath = @"c:\SonarScannerCli\sonar-scanner" }, EmptyPropertyProvider.Instance, "some/path").Should().BeFalse();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + @"The path 'c:\SonarScannerCli\sonar-scanner.bat' to the SonarScanner CLI is invalid. The file does not exists.");
+    }
+
+    [TestMethod]
+    [DataRow(PlatformOS.Linux)]
+    [DataRow(PlatformOS.MacOSX)]
+    [DataRow(PlatformOS.Alpine)]
+    public void Execute_ReturnsFalse_ScannerCliNotFound_Unix(PlatformOS os)
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
+        runtime.File.Exists("/SonarScannerCli/sonar-scanner").Returns(false);
+        var testSubject = new SonarScannerWrapper(runtime);
+        testSubject.Execute(new AnalysisConfig { SonarScannerCliPath = "/SonarScannerCli/sonar-scanner" }, EmptyPropertyProvider.Instance, "some/path").Should().BeFalse();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + "The path '/SonarScannerCli/sonar-scanner' to the SonarScanner CLI is invalid. The file does not exists.");
+    }
+
+    [TestMethod]
     public void SonarScannerHome_NoMessageIfNotAlreadySet()
     {
         using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerHomeVariableName, null);

@@ -50,10 +50,10 @@ public class SonarScannerWrapper
     }
 
     internal virtual bool ExecuteJavaRunner(AnalysisConfig config,
-                                                              IAnalysisPropertyProvider userCmdLineArguments,
-                                                              string exeFileName,
-                                                              string propertiesFileName,
-                                                              IProcessRunner runner)
+                                            IAnalysisPropertyProvider userCmdLineArguments,
+                                            string exeFileName,
+                                            string propertiesFileName,
+                                            IProcessRunner runner)
     {
         Debug.Assert(runtime.File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
         Debug.Assert(runtime.File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
@@ -120,10 +120,7 @@ public class SonarScannerWrapper
             return false;
         }
 
-        var exeFileName = FindScannerExe(config);
-        return exeFileName is null
-            ? false
-            : ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(runtime.Logger));
+        return FindScannerExe(config) is { } exeFileName && ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(runtime.Logger));
     }
 
     private void IgnoreSonarScannerHome()
