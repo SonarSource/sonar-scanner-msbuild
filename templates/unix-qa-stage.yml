@@ -51,7 +51,7 @@ stages:
             # On Linux/MacOS we need to update the execution permissions for the ScannerCLI
             - script: |
                 chmod -R +x $(Build.SourcesDirectory)/build/sonarscanner-net/sonar-scanner-*/bin
-                exit 0 # Always return 0 chmod fails when the scanner-cli is not present.
+                exit 0 # Always return 0; chmod fails when the scanner-cli is not present.
               name: scannerPermissions
               displayName: "Update Scanner permissions"
           matrix:
