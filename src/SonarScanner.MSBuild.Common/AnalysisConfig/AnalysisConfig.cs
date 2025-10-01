@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Xml.Serialization;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -62,6 +58,11 @@ public class AnalysisConfig
     /// The path to the Scanner Engine jar.
     /// </summary>
     public string EngineJarPath { get; set; }
+
+    /// <summary>
+    /// The path to the SonarScanner Cli.
+    /// </summary>
+    public string SonarScannerCliPath { get; set; }
 
     /// <summary>
     /// Use the SonarScanner CLI instead of the engine jar.
