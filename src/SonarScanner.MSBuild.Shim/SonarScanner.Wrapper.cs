@@ -33,9 +33,6 @@ public class SonarScannerWrapper
 
     private const string CmdLineArgPrefix = "-D";
 
-    // This version needs to be in sync with version in scripts\variables.ps1.
-    private const string SonarScannerVersion = "5.0.2.4997";
-
     private readonly IRuntime runtime;
 
     public SonarScannerWrapper(IRuntime runtime) =>
