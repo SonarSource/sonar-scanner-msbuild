@@ -59,7 +59,7 @@ public class SonarScannerWrapperTests
     }
 
     [TestMethod]
-    public void Execute_ReturnsFalse_ScannerCliNotSpecified()
+    public void Execute_ScannerCliNotSpecified_ReturnsFalse()
     {
         var runtime = new TestRuntime();
         var testSubject = new SonarScannerWrapper(runtime);
