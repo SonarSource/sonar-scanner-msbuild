@@ -46,9 +46,14 @@ public class SonarScannerWrapperTests
         new SonarScannerWrapper(new TestRuntime()).Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, null).Should().BeFalse();
 
     [TestMethod]
-    public void Execute_Success_ReturnTrue()
+    [DataRow(PlatformOS.Windows)]
+    [DataRow(PlatformOS.Linux)]
+    [DataRow(PlatformOS.MacOSX)]
+    [DataRow(PlatformOS.Alpine)]
+    public void Execute_Success_ReturnTrue(PlatformOS os)
     {
         var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
         runtime.File.Exists(Arg.Is<string>(x => x == "/SonarScannerCli/sonar-scanner" || x == "/SonarScannerCli/sonar-scanner.bat")).Returns(true);
         var testSubject = Substitute.ForPartsOf<SonarScannerWrapper>(runtime);
         testSubject
