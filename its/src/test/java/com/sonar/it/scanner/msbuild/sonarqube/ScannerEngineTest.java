@@ -99,6 +99,7 @@ class ScannerEngineTest {
     context.begin
       .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
       .setProperty("sonar.scanner.skipJreProvisioning", "false") // Download a JRE we can use in %PATH%
+      .setDebugLogs()
       .execute(ORCHESTRATOR);
     var jreDetails = jreDetailsFromSonarQubeAnalysisConfig(context);
     context.begin
