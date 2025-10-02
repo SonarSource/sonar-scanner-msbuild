@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Combinatorial.MSTest;
+
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -25,10 +27,8 @@ public class MsBuildPathSettingsTests
 {
     private static readonly Func<string, bool> DirectoryAlwaysExists = _ => true;
 
-    [DataRow(PlatformOS.Windows)]
-    [DataRow(PlatformOS.Linux)]
-    [DataRow(PlatformOS.MacOSX)]
     [TestMethod]
+    [CombinatorialData]
     public void ImportBeforePaths_AppData_Is_NullOrEmpty(PlatformOS platformOS)
     {
         var action = new Action(() => MsBuildPathSettings(string.Empty, platformOS, DirectoryAlwaysExists).ImportBeforePaths());

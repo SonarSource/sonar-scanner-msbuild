@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Combinatorial.MSTest;
+
 namespace SonarScanner.MSBuild.Shim.Test;
 
 public partial class ScannerEngineInputGeneratorTest
@@ -85,10 +87,7 @@ public partial class ScannerEngineInputGeneratorTest
     }
 
     [TestMethod]
-    [DataRow(PlatformOS.Windows)]
-    [DataRow(PlatformOS.Linux)]
-    [DataRow(PlatformOS.MacOSX)]
-    [DataRow(PlatformOS.Alpine)]
+    [CombinatorialData]
     public void GenerateResult_Duplicate_SameGuid_DifferentCase(PlatformOS os)
     {
         var guid = Guid.NewGuid();

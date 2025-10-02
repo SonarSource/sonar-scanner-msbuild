@@ -19,6 +19,7 @@
  */
 
 using System.Runtime.InteropServices;
+using Combinatorial.MSTest;
 using NSubstitute.Extensions;
 using TestUtilities.Certificates;
 
@@ -46,10 +47,7 @@ public class SonarScannerWrapperTests
         new SonarScannerWrapper(new TestRuntime()).Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, null).Should().BeFalse();
 
     [TestMethod]
-    [DataRow(PlatformOS.Windows)]
-    [DataRow(PlatformOS.Linux)]
-    [DataRow(PlatformOS.MacOSX)]
-    [DataRow(PlatformOS.Alpine)]
+    [CombinatorialData]
     public void Execute_Success_ReturnTrue(PlatformOS os)
     {
         var runtime = new TestRuntime();
@@ -586,10 +584,7 @@ public class SonarScannerWrapperTests
     }
 
     [TestMethod]
-    [DataRow(PlatformOS.Windows)]
-    [DataRow(PlatformOS.Linux)]
-    [DataRow(PlatformOS.MacOSX)]
-    [DataRow(PlatformOS.Alpine)]
+    [CombinatorialData]
     public void FindScannerExe_SonarScannerCliPath_NotSet(PlatformOS os)
     {
         var runtime = new TestRuntime();

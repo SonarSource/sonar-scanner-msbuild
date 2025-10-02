@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Combinatorial.MSTest;
 using NSubstitute.ExceptionExtensions;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
@@ -112,8 +113,7 @@ public partial class PreProcessorTests
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
+    [CombinatorialData]
     public async Task Execute_ExplicitScanAllParameter_ReturnsTrue(bool scanAll)
     {
         using var context = new Context(TestContext);

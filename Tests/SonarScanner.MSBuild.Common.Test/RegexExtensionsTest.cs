@@ -20,6 +20,7 @@
 
 using System;
 using System.Text.RegularExpressions;
+using Combinatorial.MSTest;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarScanner.MSBuild.Common;
@@ -35,8 +36,7 @@ public class RegexExtensionsTest
         @"^((?<DRIVE>[a-zA-Z]):\\)*((?<DIR>[a-zA-Z0-9_]+(([a-zA-Z0-9_\s_\-\.]*[a-zA-Z0-9_]+)|([a-zA-Z0-9_]+)))\\)*(?<FILE>([a-zA-Z0-9_]+(([a-zA-Z0-9_\s_\-\.]*[a-zA-Z0-9_]+)|([a-zA-Z0-9_]+))\.(?<EXTENSION>[a-zA-Z0-9]{1,6})$))";
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
+    [CombinatorialData]
     public void SafeIsMatch_Timeout_Fallback(bool timeoutFallback)
     {
         var regex = new Regex(TimeoutPattern, RegexOptions.None, TimeSpan.FromTicks(1));

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Combinatorial.MSTest;
 using SonarScanner.MSBuild.TFS.Test.Infrastructure;
 using static SonarScanner.MSBuild.TFS.BuildVNextCoverageReportProcessor;
 
@@ -99,10 +100,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
-    [DataRow(Properties.TestReportsPathsNotNull)]
-    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    [CombinatorialData]
     public void ProcessCoverageReports_NoTrxFilesFound_DoesNotWritePropertiesFile(Properties properties)
     {
         SetupPropertiesAndFiles(properties);
@@ -161,10 +159,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
-    [DataRow(Properties.TestReportsPathsNotNull)]
-    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    [CombinatorialData]
     public void ProcessCoverageReports_NoTrxFilesFound_CoverageFileFound_DoesNotConvert(Properties properties)
     {
         SetupPropertiesAndFiles(properties, coverage: true);
@@ -202,10 +197,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
-    [DataRow(Properties.TestReportsPathsNotNull)]
-    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    [CombinatorialData]
     public void ProcessCoverageReports_ConversionFails_ReturnsTrue(Properties properties)
     {
         SetupPropertiesAndFiles(properties, trx: true, coverage: true);
