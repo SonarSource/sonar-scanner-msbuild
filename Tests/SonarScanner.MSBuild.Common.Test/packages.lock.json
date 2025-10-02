@@ -89,6 +89,16 @@
           "StyleCop.Analyzers.Unstable": "1.2.0.556"
         }
       },
+      "WireMock.Net": {
+        "type": "Direct",
+        "requested": "[1.12.0, )",
+        "resolved": "1.12.0",
+        "contentHash": "hXHi+aiwBG15UTOfMC1p5gySQjFcvuM2EzLmx0dSi8RHWE//g5Aw26ZTbnF4ik6r1JccMD94UyM0eKy72cGyiQ==",
+        "dependencies": {
+          "System.Text.RegularExpressions": "4.3.1",
+          "WireMock.Net.Minimal": "1.12.0"
+        }
+      },
       "AnyOf": {
         "type": "Transitive",
         "resolved": "0.4.0",
@@ -1593,15 +1603,6 @@
         "resolved": "4.0.0",
         "contentHash": "W5uc9QXp8PUgP3VQ1Qyt3vK8ptyjj38tJ7nEAtRKA6R/4e6+2gsgYrAmRg9fCK1hhe3E0yeAm5acC14qx2CINg=="
       },
-      "WireMock.Net": {
-        "type": "Transitive",
-        "resolved": "1.12.0",
-        "contentHash": "hXHi+aiwBG15UTOfMC1p5gySQjFcvuM2EzLmx0dSi8RHWE//g5Aw26ZTbnF4ik6r1JccMD94UyM0eKy72cGyiQ==",
-        "dependencies": {
-          "System.Text.RegularExpressions": "4.3.1",
-          "WireMock.Net.Minimal": "1.12.0"
-        }
-      },
       "WireMock.Net.Abstractions": {
         "type": "Transitive",
         "resolved": "1.12.0",
@@ -1710,7 +1711,9 @@
         "type": "Project",
         "dependencies": {
           "FluentAssertions": "[7.2.0, )",
+          "MSTest.TestAdapter": "[3.11.0, )",
           "MSTest.TestFramework": "[3.11.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.0.0, )",
           "NSubstitute": "[5.3.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
           "WireMock.Net": "[1.12.0, )"
@@ -1802,6 +1805,19 @@
         "contentHash": "llRPgmA1fhC0I0QyFLEcjvtM2239QzKr/tcnbsjArLMJxJlu0AA5G7Fft0OI30pHF3MW63Gf4aSSsjc5m82J1Q==",
         "dependencies": {
           "StyleCop.Analyzers.Unstable": "1.2.0.556"
+        }
+      },
+      "WireMock.Net": {
+        "type": "Direct",
+        "requested": "[1.12.0, )",
+        "resolved": "1.12.0",
+        "contentHash": "hXHi+aiwBG15UTOfMC1p5gySQjFcvuM2EzLmx0dSi8RHWE//g5Aw26ZTbnF4ik6r1JccMD94UyM0eKy72cGyiQ==",
+        "dependencies": {
+          "System.Text.RegularExpressions": "4.3.1",
+          "WireMock.Net.GraphQL": "1.12.0",
+          "WireMock.Net.MimePart": "1.12.0",
+          "WireMock.Net.Minimal": "1.12.0",
+          "WireMock.Net.ProtoBuf": "1.12.0"
         }
       },
       "AnyOf": {
@@ -3716,18 +3732,6 @@
         "resolved": "4.0.0",
         "contentHash": "W5uc9QXp8PUgP3VQ1Qyt3vK8ptyjj38tJ7nEAtRKA6R/4e6+2gsgYrAmRg9fCK1hhe3E0yeAm5acC14qx2CINg=="
       },
-      "WireMock.Net": {
-        "type": "Transitive",
-        "resolved": "1.12.0",
-        "contentHash": "hXHi+aiwBG15UTOfMC1p5gySQjFcvuM2EzLmx0dSi8RHWE//g5Aw26ZTbnF4ik6r1JccMD94UyM0eKy72cGyiQ==",
-        "dependencies": {
-          "System.Text.RegularExpressions": "4.3.1",
-          "WireMock.Net.GraphQL": "1.12.0",
-          "WireMock.Net.MimePart": "1.12.0",
-          "WireMock.Net.Minimal": "1.12.0",
-          "WireMock.Net.ProtoBuf": "1.12.0"
-        }
-      },
       "WireMock.Net.Abstractions": {
         "type": "Transitive",
         "resolved": "1.12.0",
@@ -3864,7 +3868,9 @@
         "type": "Project",
         "dependencies": {
           "FluentAssertions": "[7.2.0, )",
+          "MSTest.TestAdapter": "[3.11.0, )",
           "MSTest.TestFramework": "[3.11.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.0.0, )",
           "NSubstitute": "[5.3.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
           "WireMock.Net": "[1.12.0, )"
