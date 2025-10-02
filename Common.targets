@@ -6,7 +6,12 @@
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
     <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
-    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!--
+      SCAN4NET-968 Cross-framework references are confusing dotnet restore. This should be solved once we remove SonarScanner.MSBuild.TFS.Classic.
+      It needs to be in Common.targets to prevent packages.lock.json form being created by VS.
+      It needs to be in SonarScanner.MSBuild.TFS.Test.csproj for the actual builds.
+    -->
+    <RestorePackagesWithLockFile Condition="'$(ProjectName)' != 'SonarScanner.MSBuild.TFS.Test'">true</RestorePackagesWithLockFile>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
   </PropertyGroup>

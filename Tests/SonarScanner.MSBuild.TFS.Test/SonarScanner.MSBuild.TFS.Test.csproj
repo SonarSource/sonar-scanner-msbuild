@@ -1,6 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net48;net9.0</TargetFrameworks>
+    <!--
+      SCAN4NET-968 Cross-framework references are confusing dotnet restore. This should be solved once we remove SonarScanner.MSBuild.TFS.Classic.
+      It needs to be in Common.targets to prevent packages.lock.json form being created by VS.
+      It needs to be in SonarScanner.MSBuild.TFS.Test.csproj for the actual builds.
+    -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\Expected.xmlcoverage" />
