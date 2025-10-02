@@ -31,7 +31,7 @@ Before submitting the PR, make sure all tests are passing (all checks must be gr
 
 ## Build
 
-- Install Developer Pack for .NET Framework 4.6.2 from [.NET SDKs for Visual Studio](https://dotnet.microsoft.com/en-us/download/visual-studio-sdks?cid=msbuild-developerpacks)
+- Install Developer Pack for .NET Framework 4.6.2 from [.NET SDKs for Visual Studio](https://aka.ms/msbuild/developerpacks)
 
 - If you are Sonar internal you need to set these environment variables:
     1. `ARTIFACTORY_USER`: your repox.jfrog username (see e.g. `orchestrator.properties`)
