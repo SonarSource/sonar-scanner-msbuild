@@ -210,6 +210,7 @@ class MultiLanguageTest {
           tuple("docker:S6476", context.projectKey + ":src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
           tuple("ipython:S6711", context.projectKey + ":src/Intro.ipynb"),
           tuple("java:S6437", context.projectKey + ":src/main/resources/application.properties"),
+          tuple("secrets:S6703", context.projectKey + ":src/main/resources/application.properties"),
           tuple("secrets:S6702", context.projectKey + ":src/main/resources/application.yml"),
           tuple("secrets:S6702", context.projectKey + ":src/main/resources/application.yaml"),
           tuple("secrets:S6702", context.projectKey + ":.aws/config"),
