@@ -613,4 +613,8 @@ Check the certificates in the truststore file '{1}' specified via the {2} parame
   <data name="MSG_Downloader_CacheMiss" xml:space="preserve">
     <value>Cache miss. Could not find '{0}'.</value>
   </data>
+  <data name="ERR_ScannerCliDownloadFailed" xml:space="preserve">
+    <value>SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
+Make sure 'https://binaries.sonarsource.com/' is reachable or roll back to a previous version of the Scanner (&lt; 11.0).</value>
+  </data>
 </root>

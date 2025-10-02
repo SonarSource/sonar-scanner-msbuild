@@ -277,6 +277,16 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
+        ///Make sure &apos;https://binaries.sonarsource.com/&apos; is reachable or roll back to a previous version of the Scanner (&lt; 11.0)..
+        /// </summary>
+        internal static string ERR_ScannerCliDownloadFailed {
+            get {
+                return ResourceManager.GetString("ERR_ScannerCliDownloadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (&lt; 6.0.0), to be able to run the analysis..
         /// </summary>
         internal static string ERR_SonarQubeUnsupported {
