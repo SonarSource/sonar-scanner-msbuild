@@ -7,14 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
-    <PackageReference Include="coverlet.collector" Version="6.0.4">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="coverlet.msbuild" Version="6.0.4">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="altcover" Version="9.0.1" />
     <PackageReference Include="FluentAssertions" Version="7.2.0" />
     <PackageReference Include="FluentAssertions.Analyzers" Version="0.34.1">
       <PrivateAssets>all</PrivateAssets>
@@ -42,22 +35,6 @@
     <Using Include="TestUtilities" />
     <Using Include="TestUtilities.Assertions" />
   </ItemGroup>
-
-  <PropertyGroup Condition="$(BUILD_REASON) != '' ">
-    <CollectCoverage>true</CollectCoverage>
-    <CoverletOutput>$(MSBuildThisFileDirectory)\..\coverage\</CoverletOutput>
-    <Include>[SonarScanner.*]*</Include>
-    <MergeWith>$(MSBuildThisFileDirectory)\..\coverage\coverage.net48.json</MergeWith>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="$(MSBuildProjectName.Contains('SonarScanner.MSBuild.Tasks.UnitTest'))">
-    <!--
-      Currently coverlet is not able to both merge the test results and convert them to OpenCover format.
-      Due to this, we have to run tests per test project and merge the results.
-      The last test run will do the conversion by using `-p:CoverletOutputFormat=opencover` parameter.
-    -->
-    <CoverletOutputFormat>opencover</CoverletOutputFormat>
-  </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)\..\AssemblyInfo.Shared.cs">
