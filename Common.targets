@@ -8,6 +8,7 @@
     <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
