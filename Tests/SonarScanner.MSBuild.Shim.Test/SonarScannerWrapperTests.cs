@@ -46,7 +46,7 @@ public class SonarScannerWrapperTests
         new SonarScannerWrapper(new TestRuntime()).Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, null).Should().BeFalse();
 
     [TestMethod]
-    public void Execute_ReturnTrue()
+    public void Execute_Success_ReturnTrue()
     {
         var runtime = new TestRuntime();
         runtime.File.Exists(Arg.Is<string>(x => x == "/SonarScannerCli/sonar-scanner" || x == "/SonarScannerCli/sonar-scanner.bat")).Returns(true);
