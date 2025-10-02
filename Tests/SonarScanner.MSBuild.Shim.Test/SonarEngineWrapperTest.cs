@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel;
-using Combinatorial.MSTest;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 

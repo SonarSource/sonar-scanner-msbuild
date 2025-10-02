@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Combinatorial.MSTest;
 using SonarScanner.MSBuild.TFS.Test.Infrastructure;
 using static SonarScanner.MSBuild.TFS.BuildVNextCoverageReportProcessor;
 

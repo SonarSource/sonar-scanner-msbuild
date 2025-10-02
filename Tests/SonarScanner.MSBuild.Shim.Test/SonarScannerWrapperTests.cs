@@ -19,7 +19,6 @@
  */
 
 using System.Runtime.InteropServices;
-using Combinatorial.MSTest;
 using NSubstitute.Extensions;
 using TestUtilities.Certificates;
 
