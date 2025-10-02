@@ -69,7 +69,7 @@ public class SonarScannerWrapperTests
     }
 
     [TestMethod]
-    public void Execute_ReturnsFalse_ScannerCliNotFound_Windows()
+    public void Execute_ScannerCliNotFound_ReturnsFalse_Windows()
     {
         var runtime = new TestRuntime();
         runtime.ConfigureOS(PlatformOS.Windows);
