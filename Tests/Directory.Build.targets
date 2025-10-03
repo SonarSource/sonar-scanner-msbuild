@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
+  <Import Project="$(MSBuildThisFileDirectory)\..\Common.targets" />
+
   <PropertyGroup>
-    <LangVersion>latest</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
@@ -11,15 +11,8 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
     <Using Include="SonarScanner.MSBuild.Common" />
     <Using Include="SonarScanner.MSBuild.Common.Interfaces"/>
-    <Using Include="System" />
-    <Using Include="System.Collections.Generic" />
-    <Using Include="System.Diagnostics" />
     <Using Include="System.Net" />
     <Using Include="System.Net.Http" />
-    <Using Include="System.IO" />
-    <Using Include="System.Linq" />
-    <Using Include="System.Reflection" />
-    <Using Include="System.Text" />
     <Using Include="System.Threading.Tasks" />
     <Using Include="TestUtilities" />
     <Using Include="TestUtilities.Assertions" />
@@ -47,5 +40,4 @@
     </Compile>
   </ItemGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)\..\StylingAnalyzers.targets" />
 </Project>
