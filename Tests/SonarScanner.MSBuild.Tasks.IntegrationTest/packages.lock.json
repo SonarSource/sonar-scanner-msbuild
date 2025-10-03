@@ -86,6 +86,22 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       },
+      "NSubstitute": {
+        "type": "Direct",
+        "requested": "[5.3.0, )",
+        "resolved": "5.3.0",
+        "contentHash": "lJ47Cps5Qzr86N99lcwd+OUvQma7+fBgr8+Mn+aOC0WrlqMNkdivaYD9IvnZ5Mqo6Ky3LS7ZI+tUq1/s9ERd0Q==",
+        "dependencies": {
+          "Castle.Core": "5.1.1",
+          "System.Threading.Tasks.Extensions": "4.3.0"
+        }
+      },
+      "NSubstitute.Analyzers.CSharp": {
+        "type": "Direct",
+        "requested": "[1.0.17, )",
+        "resolved": "1.0.17",
+        "contentHash": "Pwz0MD7CAM/G/fvJjM3ceOfI+S0IgjanHcK7evwyrW9qAWUG8fgiEXYfSX1/s3h2JUNDOw6ik0G8zp+RT61Y1g=="
+      },
       "SonarAnalyzer.CSharp.Styling": {
         "type": "Direct",
         "requested": "[10.15.0.120848, )",
@@ -115,6 +131,16 @@
           "System.Text.Encodings.Web": "9.0.9",
           "System.Threading.Tasks.Extensions": "4.5.4",
           "System.ValueTuple": "4.5.0"
+        }
+      },
+      "WireMock.Net": {
+        "type": "Direct",
+        "requested": "[1.12.0, )",
+        "resolved": "1.12.0",
+        "contentHash": "hXHi+aiwBG15UTOfMC1p5gySQjFcvuM2EzLmx0dSi8RHWE//g5Aw26ZTbnF4ik6r1JccMD94UyM0eKy72cGyiQ==",
+        "dependencies": {
+          "System.Text.RegularExpressions": "4.3.1",
+          "WireMock.Net.Minimal": "1.12.0"
         }
       },
       "AnyOf": {
@@ -1410,15 +1436,6 @@
           "Newtonsoft.Json": "13.0.1"
         }
       },
-      "NSubstitute": {
-        "type": "Transitive",
-        "resolved": "5.3.0",
-        "contentHash": "lJ47Cps5Qzr86N99lcwd+OUvQma7+fBgr8+Mn+aOC0WrlqMNkdivaYD9IvnZ5Mqo6Ky3LS7ZI+tUq1/s9ERd0Q==",
-        "dependencies": {
-          "Castle.Core": "5.1.1",
-          "System.Threading.Tasks.Extensions": "4.3.0"
-        }
-      },
       "NSwag.Core": {
         "type": "Transitive",
         "resolved": "13.16.1",
@@ -1697,15 +1714,6 @@
         "resolved": "4.0.0",
         "contentHash": "W5uc9QXp8PUgP3VQ1Qyt3vK8ptyjj38tJ7nEAtRKA6R/4e6+2gsgYrAmRg9fCK1hhe3E0yeAm5acC14qx2CINg=="
       },
-      "WireMock.Net": {
-        "type": "Transitive",
-        "resolved": "1.12.0",
-        "contentHash": "hXHi+aiwBG15UTOfMC1p5gySQjFcvuM2EzLmx0dSi8RHWE//g5Aw26ZTbnF4ik6r1JccMD94UyM0eKy72cGyiQ==",
-        "dependencies": {
-          "System.Text.RegularExpressions": "4.3.1",
-          "WireMock.Net.Minimal": "1.12.0"
-        }
-      },
       "WireMock.Net.Abstractions": {
         "type": "Transitive",
         "resolved": "1.12.0",
@@ -1831,7 +1839,9 @@
         "type": "Project",
         "dependencies": {
           "FluentAssertions": "[7.2.0, )",
+          "MSTest.TestAdapter": "[3.11.0, )",
           "MSTest.TestFramework": "[3.11.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.0.0, )",
           "NSubstitute": "[5.3.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
           "WireMock.Net": "[1.12.0, )"
@@ -1918,6 +1928,21 @@
           "MSTest.Analyzers": "3.11.0"
         }
       },
+      "NSubstitute": {
+        "type": "Direct",
+        "requested": "[5.3.0, )",
+        "resolved": "5.3.0",
+        "contentHash": "lJ47Cps5Qzr86N99lcwd+OUvQma7+fBgr8+Mn+aOC0WrlqMNkdivaYD9IvnZ5Mqo6Ky3LS7ZI+tUq1/s9ERd0Q==",
+        "dependencies": {
+          "Castle.Core": "5.1.1"
+        }
+      },
+      "NSubstitute.Analyzers.CSharp": {
+        "type": "Direct",
+        "requested": "[1.0.17, )",
+        "resolved": "1.0.17",
+        "contentHash": "Pwz0MD7CAM/G/fvJjM3ceOfI+S0IgjanHcK7evwyrW9qAWUG8fgiEXYfSX1/s3h2JUNDOw6ik0G8zp+RT61Y1g=="
+      },
       "SonarAnalyzer.CSharp.Styling": {
         "type": "Direct",
         "requested": "[10.15.0.120848, )",
@@ -1938,6 +1963,19 @@
         "requested": "[9.0.9, )",
         "resolved": "9.0.9",
         "contentHash": "NEnpppwq67fRz/OvQRxsEMgetDJsxlxpEsAFO/4PZYbAyAMd4Ol6KS7phc8uDoKPsnbdzRLKobpX303uQwCqdg=="
+      },
+      "WireMock.Net": {
+        "type": "Direct",
+        "requested": "[1.12.0, )",
+        "resolved": "1.12.0",
+        "contentHash": "hXHi+aiwBG15UTOfMC1p5gySQjFcvuM2EzLmx0dSi8RHWE//g5Aw26ZTbnF4ik6r1JccMD94UyM0eKy72cGyiQ==",
+        "dependencies": {
+          "System.Text.RegularExpressions": "4.3.1",
+          "WireMock.Net.GraphQL": "1.12.0",
+          "WireMock.Net.MimePart": "1.12.0",
+          "WireMock.Net.Minimal": "1.12.0",
+          "WireMock.Net.ProtoBuf": "1.12.0"
+        }
       },
       "AnyOf": {
         "type": "Transitive",
@@ -2892,14 +2930,6 @@
         "dependencies": {
           "NJsonSchema": "10.6.10",
           "Newtonsoft.Json": "13.0.1"
-        }
-      },
-      "NSubstitute": {
-        "type": "Transitive",
-        "resolved": "5.3.0",
-        "contentHash": "lJ47Cps5Qzr86N99lcwd+OUvQma7+fBgr8+Mn+aOC0WrlqMNkdivaYD9IvnZ5Mqo6Ky3LS7ZI+tUq1/s9ERd0Q==",
-        "dependencies": {
-          "Castle.Core": "5.1.1"
         }
       },
       "NSwag.Core": {
@@ -4032,18 +4062,6 @@
         "resolved": "4.0.0",
         "contentHash": "W5uc9QXp8PUgP3VQ1Qyt3vK8ptyjj38tJ7nEAtRKA6R/4e6+2gsgYrAmRg9fCK1hhe3E0yeAm5acC14qx2CINg=="
       },
-      "WireMock.Net": {
-        "type": "Transitive",
-        "resolved": "1.12.0",
-        "contentHash": "hXHi+aiwBG15UTOfMC1p5gySQjFcvuM2EzLmx0dSi8RHWE//g5Aw26ZTbnF4ik6r1JccMD94UyM0eKy72cGyiQ==",
-        "dependencies": {
-          "System.Text.RegularExpressions": "4.3.1",
-          "WireMock.Net.GraphQL": "1.12.0",
-          "WireMock.Net.MimePart": "1.12.0",
-          "WireMock.Net.Minimal": "1.12.0",
-          "WireMock.Net.ProtoBuf": "1.12.0"
-        }
-      },
       "WireMock.Net.Abstractions": {
         "type": "Transitive",
         "resolved": "1.12.0",
@@ -4197,7 +4215,9 @@
         "type": "Project",
         "dependencies": {
           "FluentAssertions": "[7.2.0, )",
+          "MSTest.TestAdapter": "[3.11.0, )",
           "MSTest.TestFramework": "[3.11.0, )",
+          "Microsoft.NET.Test.Sdk": "[18.0.0, )",
           "NSubstitute": "[5.3.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
           "WireMock.Net": "[1.12.0, )"
