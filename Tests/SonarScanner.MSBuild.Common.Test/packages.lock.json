@@ -2,17 +2,11 @@
   "version": 1,
   "dependencies": {
     ".NETFramework,Version=v4.8": {
-      "coverlet.collector": {
+      "altcover": {
         "type": "Direct",
-        "requested": "[6.0.4, )",
-        "resolved": "6.0.4",
-        "contentHash": "lkhqpF8Pu2Y7IiN7OntbsTtdbpR1syMsm2F3IgX6ootA4ffRqWL5jF7XipHuZQTdVuWG/gVAAcf8mjk8Tz0xPg=="
-      },
-      "coverlet.msbuild": {
-        "type": "Direct",
-        "requested": "[6.0.4, )",
-        "resolved": "6.0.4",
-        "contentHash": "Qa7Hg+wrOMDKpXVn2dw4Wlun490bIWsFW0fdNJQFJLZnbU27MCP0HJ2mPgS+3EQBQUb0zKlkwiQzP+j38Hc3Iw=="
+        "requested": "[9.0.1, )",
+        "resolved": "9.0.1",
+        "contentHash": "aadciFNDT5bnylaYUkKal+s5hF7yU/lmZxImQWAlk1438iPqK1Uf79H5ylELpyLIU49HL5ql+tnWBihp3WVLCA=="
       },
       "FluentAssertions": {
         "type": "Direct",
@@ -1716,22 +1710,17 @@
           "Microsoft.NET.Test.Sdk": "[18.0.0, )",
           "NSubstitute": "[5.3.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "WireMock.Net": "[1.12.0, )"
+          "WireMock.Net": "[1.12.0, )",
+          "altcover": "[9.0.1, )"
         }
       }
     },
     "net9.0": {
-      "coverlet.collector": {
+      "altcover": {
         "type": "Direct",
-        "requested": "[6.0.4, )",
-        "resolved": "6.0.4",
-        "contentHash": "lkhqpF8Pu2Y7IiN7OntbsTtdbpR1syMsm2F3IgX6ootA4ffRqWL5jF7XipHuZQTdVuWG/gVAAcf8mjk8Tz0xPg=="
-      },
-      "coverlet.msbuild": {
-        "type": "Direct",
-        "requested": "[6.0.4, )",
-        "resolved": "6.0.4",
-        "contentHash": "Qa7Hg+wrOMDKpXVn2dw4Wlun490bIWsFW0fdNJQFJLZnbU27MCP0HJ2mPgS+3EQBQUb0zKlkwiQzP+j38Hc3Iw=="
+        "requested": "[9.0.1, )",
+        "resolved": "9.0.1",
+        "contentHash": "aadciFNDT5bnylaYUkKal+s5hF7yU/lmZxImQWAlk1438iPqK1Uf79H5ylELpyLIU49HL5ql+tnWBihp3WVLCA=="
       },
       "FluentAssertions": {
         "type": "Direct",
@@ -3873,7 +3862,8 @@
           "Microsoft.NET.Test.Sdk": "[18.0.0, )",
           "NSubstitute": "[5.3.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "WireMock.Net": "[1.12.0, )"
+          "WireMock.Net": "[1.12.0, )",
+          "altcover": "[9.0.1, )"
         }
       }
     }
