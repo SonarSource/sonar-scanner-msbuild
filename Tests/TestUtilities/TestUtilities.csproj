@@ -14,6 +14,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Combinatorial.MSTest" Version="1.0.0" />
     <PackageReference Include="FluentAssertions" Version="7.2.0" />
     <PackageReference Include="FluentAssertions.Analyzers" Version="0.34.1">
       <PrivateAssets>all</PrivateAssets>

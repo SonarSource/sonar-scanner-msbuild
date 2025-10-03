@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
+    <Using Include="Combinatorial.MSTest" />
     <Using Include="FluentAssertions" />
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
     <Using Include="SonarScanner.MSBuild.Common" />
