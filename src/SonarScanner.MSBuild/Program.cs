@@ -27,6 +27,16 @@ public static class Program
     private const int ErrorCode = 1;
     private const int SuccessCode = 0;
 
+    public static int Covered(int a) => a;
+
+#if NET
+    public static int CoveredNet9(int a) => a;
+#else
+    public static int CoveredNet48(int a) => a;
+#endif
+
+    public static int UnCovered(int a) => a;
+
     public static async Task<int> Main(string[] args)
     {
         var logger = new ConsoleLogger(includeTimestamp: false);

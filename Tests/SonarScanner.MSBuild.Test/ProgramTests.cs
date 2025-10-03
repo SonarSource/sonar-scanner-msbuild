@@ -61,4 +61,18 @@ public class ProgramTests
         result.Should().Be(1);
         runtime.Logger.Errors.Should().ContainSingle();
     }
+
+    [TestMethod]
+    public void Covered() =>
+        Program.Covered(42).Should().Be(42);
+
+#if NET
+    [TestMethod]
+    public void CoveredNet9() =>
+        Program.Covered(42).Should().Be(42);
+#else
+    [TestMethod]
+    public void CoveredNet48() =>
+        Program.Covered(42).Should().Be(42);
+#endif
 }
