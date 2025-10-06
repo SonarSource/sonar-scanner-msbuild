@@ -18,12 +18,7 @@
 * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-using System;
 using System.Text.RegularExpressions;
-using Combinatorial.MSTest;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarAnalyzer.Test.Extensions;
 
