@@ -123,6 +123,7 @@ stages:
               command: 'restore'
               projects: '$(SOLUTION)'
               feedsToUse: 'config'
+              restoreArguments: --locked-mode
               nugetConfigPath: 'NuGet.Config'
               verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
@@ -305,7 +306,7 @@ stages:
               projectVersion: '$(SONAR_PROJECT_VERSION)'
               scannerMode: 'dotnet'
               extraProperties: |
-                sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
+                sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/Coverage/**.xml"
                 sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
 
           - task: VSBuild@1
@@ -316,7 +317,7 @@ stages:
               configuration: '$(BUILD_CONFIGURATION)'
               msbuildArgs: '/p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true'
 
-          - powershell: .\scripts\run-unit-tests.ps1 -sourcesDirectory "$(Build.SourcesDirectory)" -buildConfiguration "$(BUILD_CONFIGURATION)"
+          - powershell: .\scripts\run-unit-tests.ps1 -SourcesDirectory "$(Build.SourcesDirectory)" -BuildConfiguration "$(BUILD_CONFIGURATION)"
             displayName: 'Run UTs and compute coverage'
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)

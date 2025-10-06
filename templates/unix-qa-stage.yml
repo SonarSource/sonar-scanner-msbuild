@@ -32,7 +32,7 @@ stages:
             inputs:
               command: 'custom'
               custom: 'test' # Run test as custom command, because we need to control the test result upload via PublishTestResults (see there for details)
-              arguments: '--framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ parameters.name }}" --logger trx --results-directory "$(Build.SourcesDirectory)/TestResults"'
+              arguments: '--framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ parameters.name }}" --logger trx --results-directory "$(Build.SourcesDirectory)/TestResults" /p:AutomaticallyUseReferenceAssemblyPackages=true'
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)

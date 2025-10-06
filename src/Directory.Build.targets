@@ -1,19 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <PropertyGroup>
-    <LangVersion>latest</LangVersion>
-    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
-  </PropertyGroup>
+  <Import Project="$(MSBuildThisFileDirectory)\..\Common.targets" />
 
   <ItemGroup>
     <Using Include="SonarScanner.MSBuild.Common" />
-    <Using Include="System" />
-    <Using Include="System.Collections.Generic" />
-    <Using Include="System.Diagnostics" />
-    <Using Include="System.IO" />
-    <Using Include="System.Linq" />
-    <Using Include="System.Reflection" />
-    <Using Include="System.Text" />
     <Using Include="System.Xml.Serialization" />
   </ItemGroup>
 
@@ -35,8 +25,6 @@
   <ItemGroup>
     <None Include="$(MSBuildProjectFileDirectory)$(AssemblyOriginatorKeyFile)" Link="%(Filename)%(Extension)" />
   </ItemGroup>
-
-  <Import Project="$(MSBuildThisFileDirectory)\..\StylingAnalyzers.targets" />
 
   <PropertyGroup Condition=" '$(SignAssembly)' == 'true' ">
     <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!-- This file is included in all projects inside src and tests directories. -->
+  <Import Project="$(MSBuildThisFileDirectory)\CodeAnalysis.targets" />
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <!--
+      SCAN4NET-968 Cross-framework references are confusing dotnet restore. This should be solved once we remove SonarScanner.MSBuild.TFS.Classic.
+      It needs to be in Common.targets to prevent packages.lock.json form being created by VS.
+      It needs to be in SonarScanner.MSBuild.TFS.Test.csproj for the actual builds.
+    -->
+    <RestorePackagesWithLockFile Condition="'$(ProjectName)' != 'SonarScanner.MSBuild.TFS.Test'">true</RestorePackagesWithLockFile>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
+    <Using Include="System" />
+    <Using Include="System.Collections.Generic" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.IO" />
+    <Using Include="System.Linq" />
+    <Using Include="System.Reflection" />
+    <Using Include="System.Text" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+</Project>

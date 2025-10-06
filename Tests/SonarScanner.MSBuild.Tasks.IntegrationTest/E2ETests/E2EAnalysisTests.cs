@@ -291,7 +291,8 @@ public class E2EAnalysisTests
         // Copy the task assembly and supporting assemblies to a folder with brackets in the name
         var taskAssemblyFilePath = typeof(WriteProjectInfoFile).Assembly.Location;
         var asmName = Path.GetFileName(taskAssemblyFilePath);
-        foreach (var file in Directory.EnumerateFiles(Path.GetDirectoryName(taskAssemblyFilePath)!, "*Sonar*.dll"))
+        var dllDir = Path.GetDirectoryName(taskAssemblyFilePath);
+        foreach (var file in Directory.EnumerateFiles(dllDir, "*Sonar*.dll").Concat(Directory.EnumerateFiles(dllDir, "*AltCover*")))
         {
             File.Copy(file, Path.Combine(context.InputFolder, Path.GetFileName(file)));
         }
