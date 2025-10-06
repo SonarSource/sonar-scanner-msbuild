@@ -30,8 +30,7 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
 {
     private readonly IRuntime runtime;
 
-    public override bool SupportsJreProvisioning =>
-        serverVersion >= new Version(10, 6);
+    public override bool SupportsJreProvisioning => serverVersion >= new Version(10, 6);
 
     public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
         : base(webDownloader, apiDownloader, serverVersion, runtime.Logger, organization)
@@ -42,15 +41,19 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
 
     public bool IsServerVersionSupported()
     {
+        // see also https://github.com/SonarSource/sonar-update-center-properties/blob/master/update-center-source.properties
         runtime.LogDebug(Resources.MSG_CheckingVersionSupported);
-        if (serverVersion.CompareTo(new Version(8, 9)) < 0)
+        if (serverVersion < new Version(8, 9))
         {
             runtime.LogError(Resources.ERR_SonarQubeUnsupported);
             return false;
         }
-        else if (serverVersion.CompareTo(new Version(9, 9)) < 0)
+        else if (
+            serverVersion < new Version(25, 1) // Community release 25.1 from 2025-01-07, first unsupported version 24.12 released 2024-12-02
+            || (serverVersion > new Version(2025, 0) // First release with year-based versioning was 2025.1 at 2025-01-23
+                && serverVersion < new Version(2025, 1))) // 2025.1 release 2025-01-23, first unsupported version 10.8.1 released 2024-12-16
         {
-            runtime.AnalysisWarnings.Log(Resources.WARN_UI_SonarQubeNearEndOfSupport);
+            runtime.AnalysisWarnings.Log(Resources.WARN_UI_SonarQubeUnsupported);
         }
         return true;
     }
