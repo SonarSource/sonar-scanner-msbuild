@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Tasks;
 
@@ -53,6 +51,8 @@ public class WriteProjectConfigFile : Task
     public bool IsTest { get; set; }
 
     public string TargetFramework { get; set; }
+
+    public string ProjectAssetsFile { get; set; }
 
     #endregion Input properties
 
