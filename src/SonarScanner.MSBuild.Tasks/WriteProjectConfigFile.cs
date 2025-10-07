@@ -66,12 +66,13 @@ public class WriteProjectConfigFile : Task
         ProjectConfigFilePath = Path.Combine(ConfigDir, FileConstants.ProjectConfigFileName);
         var config = new ProjectConfig
         {
-            AnalysisConfigPath= AnalysisConfigPath,
-            ProjectPath= ProjectPath,
-            FilesToAnalyzePath= FilesToAnalyzePath,
-            OutPath= OutPath,
+            AnalysisConfigPath = AnalysisConfigPath,
+            ProjectPath = ProjectPath,
+            FilesToAnalyzePath = FilesToAnalyzePath,
+            OutPath = OutPath,
             ProjectType = IsTest ? ProjectType.Test : ProjectType.Product,
-            TargetFramework = TargetFramework
+            TargetFramework = TargetFramework,
+            ProjectAssetsFile = ProjectAssetsFile,
         };
         config.Save(ProjectConfigFilePath);
         return true;

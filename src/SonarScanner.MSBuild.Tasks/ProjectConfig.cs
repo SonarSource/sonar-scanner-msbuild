@@ -60,6 +60,12 @@ public class ProjectConfig
     public string TargetFramework { get; set; }
 
     /// <summary>
+    /// The location of the project.assets.json file produced by a NuGet restore.
+    /// This file location corresponds to the MSBuild property 'ProjectAssetsFile'.
+    /// </summary>
+    public string ProjectAssetsFile { get; set; }
+
+    /// <summary>
     /// Saves the project configuration to the specified file as XML.
     /// </summary>
     public void Save(string fileName) =>
