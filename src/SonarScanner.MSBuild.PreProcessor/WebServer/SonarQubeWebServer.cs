@@ -31,7 +31,7 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
     private readonly IRuntime runtime;
 
     public override bool SupportsJreProvisioning => serverVersion >= new Version(10, 6);
-    private bool IsLegacyVersionBuild => serverVersion.Major < 11;
+    private bool IsLegacyVersionBuild => serverVersion.Major < 11; // Remove this once we fail hard for 2025.1 https://sonarsource.atlassian.net/browse/SCAN4NET-979
     private bool IsCommunityEdition => !IsLegacyVersionBuild && !IsCommercialEdition;
     private bool IsCommercialEdition => !IsLegacyVersionBuild && serverVersion.Major >= 2025; // First release with year-based versioning was 2025.1 at 2025-01-23
 
@@ -52,7 +52,8 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
             return false;
         }
         else if (
-            (IsCommunityEdition && serverVersion < new Version(25, 1)) // Community release 25.1 from 2025-01-07, first unsupported version 24.12 released 2024-12-02
+            IsLegacyVersionBuild
+            || (IsCommunityEdition && serverVersion < new Version(25, 1)) // Community release 25.1 from 2025-01-07, first unsupported version 24.12 released 2024-12-02
             || (IsCommercialEdition && serverVersion < new Version(2025, 1))) // 2025.1 release 2025-01-23, first unsupported version 10.8.1 released 2024-12-16
         {
             runtime.AnalysisWarnings.Log(Resources.WARN_UI_SonarQubeUnsupported);
