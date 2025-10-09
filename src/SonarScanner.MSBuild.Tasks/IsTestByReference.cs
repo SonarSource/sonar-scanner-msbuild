@@ -41,6 +41,7 @@ public sealed class IsTestByReference : Task
         "dotMemory.Unit",
         "Microsoft.VisualStudio.TestPlatform.TestFramework",
         "Microsoft.VisualStudio.QualityTools.UnitTestFramework",
+        "MSTest.TestFramework",
         "Machine.Specifications",
         "nunit.framework",
         "nunitlite",
