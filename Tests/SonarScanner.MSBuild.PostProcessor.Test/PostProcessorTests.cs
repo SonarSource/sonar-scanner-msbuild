@@ -165,9 +165,7 @@ public class PostProcessorTests
             Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)),
             Arg.Any<string>());
 
-        runtime.File.Received().WriteAllText(
-            Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json"),
-            $$"""
+        var expectedScannerEngineInput = $$"""
             {
               "scannerProperties": [
                 {
@@ -184,8 +182,10 @@ public class PostProcessorTests
                 }
               ]
             }
-            """
-                .ToEnvironmentLineEndings());
+            """;
+        runtime.File.Received().WriteAllText(Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json"), expectedScannerEngineInput.ToEnvironmentLineEndings());
+        runtime.Logger.Should().HaveDebugs($"Writing Scanner Engine Input to {Path.Combine(config.SonarOutputDir, "ScannerEngineInput.json")}");
+        runtime.Logger.Should().HaveDebugs(expectedScannerEngineInput);
         runtime.Logger.Should().HaveNoErrors();
         VerifyTargetsUninstaller();
     }

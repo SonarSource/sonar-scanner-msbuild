@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Runtime;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
@@ -85,8 +86,7 @@ public class PostProcessor
             var result = false;
             if (analysisResult.RanToCompletion)
             {
-                var engineInputDumpPath = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");   // For customer troubleshooting only
-                runtime.File.WriteAllText(engineInputDumpPath, analysisResult.ScannerEngineInput.CloneWithoutSensitiveData().ToString());
+                DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
                 // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
                 runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = IsTfsProcessorCalled(settings);
                 runtime.Telemetry.Write(settings.SonarOutputDirectory);
@@ -150,6 +150,15 @@ public class PostProcessor
             settings.SonarConfigDirectory,
             settings.SonarOutputDirectory,
             settings.AnalysisConfigFilePath);
+    }
+
+    private void DumpScannerEngineInput(IBuildSettings settings, ScannerEngineInput engineInput)
+    {
+        var path = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");
+        var sanitizedOutput = engineInput.CloneWithoutSensitiveData().ToString();
+        runtime.LogDebug(Resources.MSG_WritingScannerEngineInput, path);
+        runtime.LogDebug(sanitizedOutput);
+        runtime.File.WriteAllText(path, sanitizedOutput); // For customer troubleshooting only
     }
 
     /// <summary>
