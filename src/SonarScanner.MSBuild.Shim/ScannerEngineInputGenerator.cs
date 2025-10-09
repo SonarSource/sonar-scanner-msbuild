@@ -86,7 +86,7 @@ public class ScannerEngineInputGenerator
     /// </summary>
     /// <returns>Information about each of the project info files that was processed, together with the full path to the generated sonar-project.properties file.
     /// Note: The path to the generated file will be null if the file could not be generated.</returns>
-    public virtual AnalysisResult GenerateResult()
+    public virtual AnalysisResult GenerateResult(DateTimeOffset startTime)
     {
         var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
         var legacyWriter = new PropertiesWriter(analysisConfig);
@@ -102,7 +102,7 @@ public class ScannerEngineInputGenerator
         var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
         FixSarifAndEncoding(projects, analysisProperties);
         var allProjects = projects.ToProjectData(runtime);
-        if (GenerateProperties(analysisProperties, allProjects, legacyWriter, engineInput))
+        if (GenerateProperties(analysisProperties, allProjects, startTime, legacyWriter, engineInput))
         {
             var contents = legacyWriter.Flush();
             File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
@@ -116,7 +116,7 @@ public class ScannerEngineInputGenerator
         }
     }
 
-    internal bool GenerateProperties(AnalysisProperties analysisProperties, ProjectData[] allProjects, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
+    internal bool GenerateProperties(AnalysisProperties analysisProperties, ProjectData[] allProjects, DateTimeOffset startTime, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
     {
         var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
@@ -124,7 +124,7 @@ public class ScannerEngineInputGenerator
             runtime.LogError(Resources.ERR_NoValidProjectInfoFiles);
             return false;
         }
-
+        engineInput.AddBootstrapStartTime(startTime);
         var projectDirectories = validProjects.Select(x => x.Project.ProjectFileDirectory()).ToArray();
         var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
         if (projectBaseDir is null)

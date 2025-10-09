@@ -118,6 +118,8 @@ public class ProgramTests
         public ITelemetry Telemetry => throw new NotImplementedException();
         public AnalysisWarnings AnalysisWarnings => throw new NotImplementedException();
 
+        public IDateTime DateTime => throw new NotImplementedException();
+
         public void LogDebug(string message, params object[] args) =>
             Logger.LogDebug(message, args);
 

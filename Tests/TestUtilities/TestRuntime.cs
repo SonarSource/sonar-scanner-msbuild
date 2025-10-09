@@ -54,6 +54,8 @@ public record TestRuntime : IRuntime
 
     AnalysisWarnings IRuntime.AnalysisWarnings => AnalysisWarnings;
 
+    public IDateTime DateTime { get; } = Substitute.For<IDateTime>();
+
     public TestRuntime()
     {
         OperatingSystem = Substitute.For<OperatingSystemProvider>(File, Logger);
