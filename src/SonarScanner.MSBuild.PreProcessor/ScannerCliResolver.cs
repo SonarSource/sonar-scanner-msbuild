@@ -31,7 +31,7 @@ public class ScannerCliResolver : IResolver
 
     private static readonly ArchiveDescriptor Descriptor = new(
             "sonar-scanner-cli-5.0.2.4997.zip",
-            "2f10fe6ac36213958201a67383c712a587e3843e32ae1edf06f01062d6fd1407",
+            "2f10fe6ac36213958201a67383c712a587e3843e32ae1edf06f01062d6fd1407", // https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.2.4997.zip.sha256
             Path.Combine("sonar-scanner-5.0.2.4997", "bin", "sonar-scanner"));
     private static readonly Uri ScannerCliUri = new("https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/" + Descriptor.Filename);
 
