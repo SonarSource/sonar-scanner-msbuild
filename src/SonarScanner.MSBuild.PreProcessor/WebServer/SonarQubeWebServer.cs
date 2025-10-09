@@ -31,7 +31,7 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
     private readonly IRuntime runtime;
 
     public override bool SupportsJreProvisioning => serverVersion >= new Version(10, 6);
-    private bool IsLegacyVersionBuild => serverVersion < new Version(11, 0);
+    private bool IsLegacyVersionBuild => serverVersion.Major < 11;
     private bool IsCommunityEdition => !IsLegacyVersionBuild && !IsCommercialEdition;
     private bool IsCommercialEdition => !IsLegacyVersionBuild && serverVersion.Major >= 2025; // First release with year-based versioning was 2025.1 at 2025-01-23
 
