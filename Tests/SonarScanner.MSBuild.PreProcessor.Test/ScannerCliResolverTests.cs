@@ -30,7 +30,7 @@ public class ScannerCliResolverTests
 {
     private const string SonarUserHome = "sonarUserHome";
     private const string ScannerCliFilename = "sonar-scanner-cli-5.0.2.4997.zip";
-    private const string Sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    private const string Sha256 = "2f10fe6ac36213958201a67383c712a587e3843e32ae1edf06f01062d6fd1407";
     private const string TempFolderName = "folder.temp";
 
     private static readonly string ScannerCliTargetPath = Path.Combine("sonar-scanner-5.0.2.4997", "bin", "sonar-scanner");

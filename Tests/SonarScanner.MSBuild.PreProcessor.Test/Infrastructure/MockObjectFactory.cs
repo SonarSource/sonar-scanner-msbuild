@@ -34,6 +34,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public ISonarWebServer Server { get; set; } = Substitute.For<ISonarWebServer>();
     public IResolver JreResolver { get; } = Substitute.For<IResolver>();
     public IResolver EngineResolver { get; } = Substitute.For<IResolver>();
+    public IResolver ScannerCliResolver { get; } = Substitute.For<IResolver>();
     public string PluginCachePath { get; private set; }
     public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
 
@@ -86,6 +87,9 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
 
     public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
         EngineResolver;
+
+    public IResolver CreateScannerCliResolver(ISonarWebServer server, string sonarUserHome) =>
+        ScannerCliResolver;
 
     public void AssertMethodCalled(string methodName, int callCount) =>
         calledMethods.Count(x => x == methodName).Should().Be(callCount, "Method was not called the expected number of times");
