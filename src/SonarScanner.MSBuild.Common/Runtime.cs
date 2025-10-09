@@ -43,6 +43,7 @@ public class Runtime : IRuntime
         File = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
+        DateTime = dateTime ?? throw new ArgumentNullException(nameof(dateTime));
         AnalysisWarnings = analysisWarnings ?? throw new ArgumentNullException(nameof(analysisWarnings));
     }
 

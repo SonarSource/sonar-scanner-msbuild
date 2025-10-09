@@ -44,14 +44,18 @@ public partial class ScannerEngineInputGeneratorTest
     {
         // Only non-excluded projects with files to analyze should be marked as valid
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var testDirEscaped = testDir.Replace(@"\", @"\\");
         var withoutFilesDir = Path.Combine(testDir, "withoutFiles");
+        var withoutFilesGuid = Guid.NewGuid();
+        var withFiles1Guid = Guid.NewGuid();
+        var withFiles2Guid = Guid.NewGuid();
         Directory.CreateDirectory(withoutFilesDir);
-        TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, Guid.NewGuid(), ProjectType.Product, false, Path.Combine(withoutFilesDir, "withoutFiles.proj"), "UTF-8"); // not excluded
+        TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, withoutFilesGuid, ProjectType.Product, false, Path.Combine(withoutFilesDir, "withoutFiles.proj"), "UTF-8"); // not excluded
         TestUtils.CreateEmptyFile(withoutFilesDir, "withoutFiles.proj");
-        TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
-        TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", testDir);
+        TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", null, testDir, projectGuid: withFiles1Guid);
+        TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", null, testDir, projectGuid: withFiles2Guid);
         var config = CreateValidConfig(testDir);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
         AssertExpectedStatus("withoutFiles", ProjectInfoValidity.NoFilesToAnalyze, result);
         AssertExpectedStatus("withFiles1", ProjectInfoValidity.Valid, result);
@@ -60,6 +64,121 @@ public partial class ScannerEngineInputGeneratorTest
 
         // One valid project info file -> file created
         AssertScannerInputCreated(result);
+        result.ScannerEngineInput.ToString().Should().BeIgnoringLineEndings(
+            $$"""
+            {
+              "scannerProperties": [
+                {
+                  "key": "sonar.scanner.app",
+                  "value": "ScannerMSBuild"
+                },
+                {
+                  "key": "sonar.scanner.appVersion",
+                  "value": "{{Utilities.ScannerVersion}}"
+                },
+                {
+                  "key": "sonar.scanner.bootstrapStartTime",
+                  "value": "1735689600000"
+                },
+                {
+                  "key": "sonar.projectKey",
+                  "value": "{{config.SonarProjectKey}}"
+                },
+                {
+                  "key": "sonar.projectName",
+                  "value": "{{config.SonarProjectName}}"
+                },
+                {
+                  "key": "sonar.projectVersion",
+                  "value": "1.0"
+                },
+                {
+                  "key": "sonar.working.directory",
+                  "value": "{{testDirEscaped}}\\.sonar"
+                },
+                {
+                  "key": "sonar.projectBaseDir",
+                  "value": "{{testDirEscaped}}\\projects"
+                },
+                {
+                  "key": "sonar.sources",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.tests",
+                  "value": ""
+                },
+                {
+                  "key": "sonar.modules",
+                  "value": "{{withFiles1Guid.ToString().ToUpper()}},{{withFiles2Guid.ToString().ToUpper()}}"
+                },
+                {
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.projectKey",
+                  "value": "{{config.SonarProjectKey}}:{{withFiles1Guid.ToString().ToUpper()}}"
+                },
+                {
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.projectName",
+                  "value": "withFiles1"
+                },
+                {
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.projectBaseDir",
+                  "value": "{{testDirEscaped}}\\projects\\withFiles1"
+                },
+                {
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.working.directory",
+                  "value": "{{testDirEscaped}}\\.sonar\\mod0"
+                },
+                {
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.sourceEncoding",
+                  "value": "utf-8"
+                },
+                {
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.tests",
+                  "value": ""
+                },
+                {
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.sources",
+                  "value": "{{testDirEscaped}}\\projects\\withFiles1\\contentFile1.txt"
+                },
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.projectKey",
+                  "value": "{{config.SonarProjectKey}}:{{withFiles2Guid.ToString().ToUpper()}}"
+                },
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.projectName",
+                  "value": "withFiles2"
+                },
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.projectBaseDir",
+                  "value": "{{testDirEscaped}}\\projects\\withFiles2"
+                },
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.working.directory",
+                  "value": "{{testDirEscaped}}\\.sonar\\mod1"
+                },
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.sourceEncoding",
+                  "value": "utf-8"
+                },
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.tests",
+                  "value": ""
+                },
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.sources",
+                  "value": "{{testDirEscaped}}\\projects\\withFiles2\\contentFile1.txt"
+                },
+                {
+                  "key": "sonar.visualstudio.enable",
+                  "value": "false"
+                },
+                {
+                  "key": "sonar.host.url",
+                  "value": "http://sonarqube.com"
+                }
+              ]
+            }
+            """);
     }
 
     [TestMethod]
