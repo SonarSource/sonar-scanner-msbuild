@@ -94,11 +94,11 @@ public partial class ScannerEngineInputGeneratorTest
                 },
                 {
                   "key": "sonar.working.directory",
-                  "value": "{{testDirEscaped}}\\.sonar"
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}.sonar"
                 },
                 {
                   "key": "sonar.projectBaseDir",
-                  "value": "{{testDirEscaped}}\\projects"
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects"
                 },
                 {
                   "key": "sonar.sources",
@@ -122,11 +122,11 @@ public partial class ScannerEngineInputGeneratorTest
                 },
                 {
                   "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.projectBaseDir",
-                  "value": "{{testDirEscaped}}\\projects\\withFiles1"
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles1"
                 },
                 {
                   "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.working.directory",
-                  "value": "{{testDirEscaped}}\\.sonar\\mod0"
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}.sonar{{EscapedDirectorySeparator}}mod0"
                 },
                 {
                   "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.sourceEncoding",
@@ -138,7 +138,7 @@ public partial class ScannerEngineInputGeneratorTest
                 },
                 {
                   "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.sources",
-                  "value": "{{testDirEscaped}}\\projects\\withFiles1\\contentFile1.txt"
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles1{{EscapedDirectorySeparator}}contentFile1.txt"
                 },
                 {
                   "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.projectKey",
@@ -150,11 +150,11 @@ public partial class ScannerEngineInputGeneratorTest
                 },
                 {
                   "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.projectBaseDir",
-                  "value": "{{testDirEscaped}}\\projects\\withFiles2"
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles2"
                 },
                 {
                   "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.working.directory",
-                  "value": "{{testDirEscaped}}\\.sonar\\mod1"
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}.sonar{{EscapedDirectorySeparator}}mod1"
                 },
                 {
                   "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.sourceEncoding",
@@ -166,7 +166,7 @@ public partial class ScannerEngineInputGeneratorTest
                 },
                 {
                   "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.sources",
-                  "value": "{{testDirEscaped}}\\projects\\withFiles2\\contentFile1.txt"
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles2{{EscapedDirectorySeparator}}contentFile1.txt"
                 },
                 {
                   "key": "sonar.visualstudio.enable",
@@ -998,4 +998,6 @@ public partial class ScannerEngineInputGeneratorTest
 
     private static ScannerEngineInputReader CreateInputReader(AnalysisResult result) =>
         new(result.ScannerEngineInput.ToString());
+
+    private static string EscapedDirectorySeparator => Path.DirectorySeparatorChar == '\\' ? @"\\" : Path.DirectorySeparatorChar.ToString();
 }
