@@ -112,8 +112,7 @@ public partial class PreProcessorTests
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
+    [CombinatorialData]
     public async Task Execute_ExplicitScanAllParameter_ReturnsTrue(bool scanAll)
     {
         using var context = new Context(TestContext);

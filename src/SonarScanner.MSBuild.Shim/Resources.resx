@@ -294,4 +294,13 @@ Possible causes:
   <data name="ERR_ScannerEngineExecutionFailedWithException" xml:space="preserve">
     <value>The scanner engine execution failed with {0}: {1}.</value>
   </data>
+  <data name="ERR_SonarScannerCliNotFound" xml:space="preserve">
+    <value>The SonarScanner CLI is needed to finish the analysis, but could not be found. {0}</value>
+  </data>
+  <data name="MSG_SonarScannerCliPath_Missing" xml:space="preserve">
+    <value>The path to the SonarScanner CLI wasn't set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step.</value>
+  </data>
+  <data name="MSG_SonarCliPath_FileNotFound" xml:space="preserve">
+    <value>The path '{0}' to the SonarScanner CLI is invalid. The file does not exists.</value>
+  </data>
 </root>

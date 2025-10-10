@@ -99,10 +99,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
-    [DataRow(Properties.TestReportsPathsNotNull)]
-    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    [CombinatorialData]
     public void ProcessCoverageReports_NoTrxFilesFound_DoesNotWritePropertiesFile(Properties properties)
     {
         SetupPropertiesAndFiles(properties);
@@ -161,10 +158,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
-    [DataRow(Properties.TestReportsPathsNotNull)]
-    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    [CombinatorialData]
     public void ProcessCoverageReports_NoTrxFilesFound_CoverageFileFound_DoesNotConvert(Properties properties)
     {
         SetupPropertiesAndFiles(properties, coverage: true);
@@ -202,10 +196,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
-    [DataRow(Properties.TestReportsPathsNotNull)]
-    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    [CombinatorialData]
     public void ProcessCoverageReports_ConversionFails_ReturnsTrue(Properties properties)
     {
         SetupPropertiesAndFiles(properties, trx: true, coverage: true);

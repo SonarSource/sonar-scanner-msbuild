@@ -76,9 +76,8 @@ public class SonarEngineWrapperTest
             $"Using Java found in Analysis Config: {context.ResolvedJavaExe}");
     }
 
-    [DataRow(true)]
-    [DataRow(false)]
     [TestMethod]
+    [CombinatorialData]
     public void FindJavaExe_ConfiguredPath_DoesNotExist(bool isUnix)
     {
         using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.JavaHomeVariableName, null);
@@ -95,8 +94,7 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
+    [CombinatorialData]
     public void FindJavaExe_JavaHomeSet_Exists(bool isUnix)
     {
         var context = new Context(isUnix);
