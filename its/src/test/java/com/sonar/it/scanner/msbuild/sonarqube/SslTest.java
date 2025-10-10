@@ -488,7 +488,7 @@ class SslTest {
       var p1 = ContextExtension.currentTempDir();
       var p2 = p1.resolveSibling("junit-ssl-" + Math.random() * 1000);
       var p3 = p2.resolve("sonar");
-      var p4 = Files.createDirectory(p3);
+      var p4 = Files.createDirectories(p3);
       var p5 = p4.toRealPath();
       var p6 = p5.toAbsolutePath();
       //path = Files.createDirectory(ContextExtension.currentTempDir().resolveSibling("junit-ssl-" + Math.random() * 1000).resolve("sonar")).toRealPath().toAbsolutePath();
