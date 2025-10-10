@@ -30,6 +30,7 @@ import com.sonar.it.scanner.msbuild.utils.SslExceptionMessages;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -42,7 +43,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.internal.apachecommons.lang3.RandomStringUtils;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.serverSupportsProvisioning;
@@ -315,10 +315,13 @@ class SslTest {
         }
       }
     }
+    finally {
+      Files.deleteIfExists(sonarHome);
+    }
   }
 
   @Test
-  void defaultTruststoreExist_IncorrectPassword() {
+  void defaultTruststoreExist_IncorrectPassword() throws IOException {
     var sonarHome = sonarHome();
     try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
@@ -329,6 +332,9 @@ class SslTest {
       assertThat(result.getLogs())
         .contains(SslExceptionMessages.importFail(server.getKeystorePath()))
         .contains(SslExceptionMessages.incorrectPassword());
+    }
+    finally {
+      Files.deleteIfExists(sonarHome);
     }
   }
 
@@ -346,6 +352,9 @@ class SslTest {
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
     }
+    finally {
+      Files.deleteIfExists(sonarHome);
+    }
   }
 
   @Test
@@ -361,6 +370,9 @@ class SslTest {
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
+    }
+    finally {
+      Files.deleteIfExists(sonarHome);
     }
   }
 
@@ -470,7 +482,11 @@ class SslTest {
   // https://sonarsource.atlassian.net/browse/SCAN4NET-983
   // Enable long path support in IT images and use instead:
   // ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath().toString();
-  private Path sonarHome() {
-    return Path.of(System.getProperty("java.io.tmpdir"), RandomStringUtils.randomAlphabetic(15));
+  private Path sonarHome() throws IOException {
+    Path path;
+    do {
+      path = ContextExtension.currentTempDir().resolveSibling("junit-ssl-" + Math.random() * 1000).resolve("sonar").toRealPath().toAbsolutePath();
+    } while (Files.exists(path));
+    return path;
   }
 }
