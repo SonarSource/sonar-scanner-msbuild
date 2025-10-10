@@ -354,6 +354,7 @@ public class TargetsInstallerTests
             FileWrapper.Instance,
             logger,
             new Telemetry(FileWrapper.Instance, logger),
+            new DateTimeWrapper(),
             new AnalysisWarnings(FileWrapper.Instance, logger));
         var msBuildPathSettings = new MsBuildPathSettings(runtimeIO);
         var installer = new TargetsInstaller(runtimeIO, msBuildPathSettings);

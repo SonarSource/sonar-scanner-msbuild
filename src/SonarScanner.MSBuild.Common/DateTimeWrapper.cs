@@ -20,19 +20,7 @@
 
 namespace SonarScanner.MSBuild.Common;
 
-public interface IRuntime
+public class DateTimeWrapper : IDateTime
 {
-    OperatingSystemProvider OperatingSystem { get; }
-    IDirectoryWrapper Directory { get; }
-    IFileWrapper File { get; }
-    ILogger Logger { get; }
-    ITelemetry Telemetry { get; }
-    IDateTime DateTime { get; }
-    AnalysisWarnings AnalysisWarnings { get; }
-
-    // The most commonly used ILogger methods are replicated here. This is a compromise between a clean architecture and convenience:
-    void LogDebug(string message, params object[] args);
-    void LogInfo(string message, params object[] args);
-    void LogWarning(string message, params object[] args);
-    void LogError(string message, params object[] args);
+    public DateTimeOffset OffsetNow => DateTimeOffset.Now;
 }

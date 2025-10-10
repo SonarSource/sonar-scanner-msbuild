@@ -59,6 +59,7 @@ public class PostProcessor
         _ = args ?? throw new ArgumentNullException(nameof(args));
         _ = config ?? throw new ArgumentNullException(nameof(config));
         _ = settings ?? throw new ArgumentNullException(nameof(settings));
+        var startTime = runtime.DateTime.OffsetNow;
         runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
         targetUninstaller.UninstallTargets(config.SonarBinDir);
         if (!ArgumentProcessor.TryProcessArgs(args, runtime.Logger, out var cmdLineArgs))
@@ -74,7 +75,7 @@ public class PostProcessor
             return false;   // logging already done
         }
 
-        var analysisResult = CreateAnalysisResult(config, cmdLineArgs);
+        var analysisResult = CreateAnalysisResult(startTime, config, cmdLineArgs);
         if (analysisResult.FullPropertiesFilePath is null)
         {
             return false;
@@ -101,10 +102,10 @@ public class PostProcessor
     internal void SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
         this.scannerEngineInputGenerator = scannerEngineInputGenerator;
 
-    private AnalysisResult CreateAnalysisResult(AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
+    private AnalysisResult CreateAnalysisResult(DateTimeOffset startTime, AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
     {
         scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = scannerEngineInputGenerator.GenerateResult();
+        var result = scannerEngineInputGenerator.GenerateResult(startTime);
         if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
         {
             runtime.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
