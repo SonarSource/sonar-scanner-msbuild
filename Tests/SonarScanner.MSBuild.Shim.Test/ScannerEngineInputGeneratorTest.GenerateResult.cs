@@ -22,6 +22,8 @@ namespace SonarScanner.MSBuild.Shim.Test;
 
 public partial class ScannerEngineInputGeneratorTest
 {
+    private static string EscapedDirectorySeparator => Path.DirectorySeparatorChar == '\\' ? @"\\" : Path.DirectorySeparatorChar.ToString();
+
     [TestMethod]
     public void GenerateResult_NoProjectInfoFiles()
     {
@@ -998,6 +1000,4 @@ public partial class ScannerEngineInputGeneratorTest
 
     private static ScannerEngineInputReader CreateInputReader(AnalysisResult result) =>
         new(result.ScannerEngineInput.ToString());
-
-    private static string EscapedDirectorySeparator => Path.DirectorySeparatorChar == '\\' ? @"\\" : Path.DirectorySeparatorChar.ToString();
 }

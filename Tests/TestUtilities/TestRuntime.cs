@@ -46,6 +46,8 @@ public record TestRuntime : IRuntime
 
     public TestTelemetry Telemetry { get; init; } = new();
 
+    public IDateTime DateTime { get; } = Substitute.For<IDateTime>();
+
     public TestAnalysisWarnings AnalysisWarnings { get; init; }
 
     ILogger IRuntime.Logger => Logger;
@@ -53,8 +55,6 @@ public record TestRuntime : IRuntime
     ITelemetry IRuntime.Telemetry => Telemetry;
 
     AnalysisWarnings IRuntime.AnalysisWarnings => AnalysisWarnings;
-
-    public IDateTime DateTime { get; } = Substitute.For<IDateTime>();
 
     public TestRuntime()
     {
