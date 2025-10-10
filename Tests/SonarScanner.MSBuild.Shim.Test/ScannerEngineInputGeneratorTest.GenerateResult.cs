@@ -206,10 +206,7 @@ public partial class ScannerEngineInputGeneratorTest
     }
 
     [TestMethod]
-    [DataRow(PlatformOS.Windows)]
-    [DataRow(PlatformOS.Linux)]
-    [DataRow(PlatformOS.MacOSX)]
-    [DataRow(PlatformOS.Alpine)]
+    [CombinatorialData]
     public void GenerateResult_Duplicate_SameGuid_DifferentCase(PlatformOS os)
     {
         var guid = Guid.NewGuid();
