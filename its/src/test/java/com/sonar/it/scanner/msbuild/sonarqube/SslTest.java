@@ -42,6 +42,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.internal.apachecommons.lang3.RandomStringUtils;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.serverSupportsProvisioning;
@@ -295,13 +296,13 @@ class SslTest {
   @ParameterizedTest
   @ValueSource(strings = {"changeit", "sonar"})
   void defaultTruststoreExist(String defaultPassword) throws IOException {
-    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
+    var sonarHome = sonarHome();
     try (var server = initSslTestAndServerWithTrustStore(defaultPassword, Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
         .setDebugLogs()
-        .setProperty("sonar.userHome", sonarHome);
+        .setProperty("sonar.userHome", sonarHome.toString());
 
       var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
@@ -318,10 +319,10 @@ class SslTest {
 
   @Test
   void defaultTruststoreExist_IncorrectPassword() {
-    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
+    var sonarHome = sonarHome();
     try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
-      context.begin.setProperty("sonar.userHome", sonarHome);
+      context.begin.setProperty("sonar.userHome", sonarHome.toString());
       var result = context.begin.execute(ORCHESTRATOR);
 
       assertFalse(result.isSuccess());
@@ -333,11 +334,11 @@ class SslTest {
 
   @Test
   void defaultTruststoreExist_ProvidedPassword() throws IOException {
-    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
+    var sonarHome = sonarHome();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
-        .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
+        .setEnvironmentVariable("SONAR_USER_HOME", sonarHome.toString())
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
         .setDebugLogs();
@@ -349,13 +350,13 @@ class SslTest {
 
   @Test
   void defaultTruststoreExist_ProvidedPassword_UserHomeProperty() throws IOException {
-    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
+    var sonarHome = sonarHome();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.userHome", sonarHome)
+        .setProperty("sonar.userHome", sonarHome.toString())
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
@@ -464,5 +465,13 @@ class SslTest {
     var keystoreLocation = ContextExtension.currentTempDir().resolve(subFolder.resolve(keystoreName)).toAbsolutePath();
     LOG.info("Creating keystore at {}", keystoreLocation);
     return SslUtils.generateKeyStore(keystoreLocation, host, password);
+  }
+
+  // https://sonarsource.atlassian.net/browse/SCAN4NET-983
+  // Enable long path support in IT images and use instead:
+  // ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
+  private Path sonarHome()
+  {
+    return Path.of(System.getProperty("java.io.tmpdir") ,RandomStringUtils.randomAlphabetic(15));
   }
 }
