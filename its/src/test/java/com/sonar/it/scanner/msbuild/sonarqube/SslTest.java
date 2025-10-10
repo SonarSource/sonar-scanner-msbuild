@@ -30,6 +30,7 @@ import com.sonar.it.scanner.msbuild.utils.SslExceptionMessages;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -295,13 +296,13 @@ class SslTest {
   @ParameterizedTest
   @ValueSource(strings = {"changeit", "sonar"})
   void defaultTruststoreExist(String defaultPassword) throws IOException {
-    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
+    var sonarHome = sonarHome();
     try (var server = initSslTestAndServerWithTrustStore(defaultPassword, Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
         .setDebugLogs()
-        .setProperty("sonar.userHome", sonarHome);
+        .setProperty("sonar.userHome", sonarHome.toString());
 
       var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
@@ -314,14 +315,17 @@ class SslTest {
         }
       }
     }
+    finally {
+      Files.deleteIfExists(sonarHome);
+    }
   }
 
   @Test
-  void defaultTruststoreExist_IncorrectPassword() {
-    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
+  void defaultTruststoreExist_IncorrectPassword() throws IOException {
+    var sonarHome = sonarHome();
     try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
-      context.begin.setProperty("sonar.userHome", sonarHome);
+      context.begin.setProperty("sonar.userHome", sonarHome.toString());
       var result = context.begin.execute(ORCHESTRATOR);
 
       assertFalse(result.isSuccess());
@@ -329,15 +333,18 @@ class SslTest {
         .contains(SslExceptionMessages.importFail(server.getKeystorePath()))
         .contains(SslExceptionMessages.incorrectPassword());
     }
+    finally {
+      Files.deleteIfExists(sonarHome);
+    }
   }
 
   @Test
   void defaultTruststoreExist_ProvidedPassword() throws IOException {
-    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
+    var sonarHome = sonarHome();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
-        .setEnvironmentVariable("SONAR_USER_HOME", sonarHome)
+        .setEnvironmentVariable("SONAR_USER_HOME", sonarHome.toString())
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
         .setDebugLogs();
@@ -345,21 +352,27 @@ class SslTest {
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
     }
+    finally {
+      Files.deleteIfExists(sonarHome);
+    }
   }
 
   @Test
   void defaultTruststoreExist_ProvidedPassword_UserHomeProperty() throws IOException {
-    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
+    var sonarHome = sonarHome();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.userHome", sonarHome)
+        .setProperty("sonar.userHome", sonarHome.toString())
         .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
+    }
+    finally {
+      Files.deleteIfExists(sonarHome);
     }
   }
 
@@ -464,5 +477,16 @@ class SslTest {
     var keystoreLocation = ContextExtension.currentTempDir().resolve(subFolder.resolve(keystoreName)).toAbsolutePath();
     LOG.info("Creating keystore at {}", keystoreLocation);
     return SslUtils.generateKeyStore(keystoreLocation, host, password);
+  }
+
+  // https://sonarsource.atlassian.net/browse/SCAN4NET-983
+  // Enable long path support in IT images and use instead:
+  // ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath().toString();
+  private Path sonarHome() throws IOException {
+    Path path;
+    do {
+      path = ContextExtension.currentTempDir().resolveSibling("junit-ssl-" + Math.random() * 1000).resolve("sonar").toRealPath().toAbsolutePath();
+    } while (Files.exists(path));
+    return path;
   }
 }
