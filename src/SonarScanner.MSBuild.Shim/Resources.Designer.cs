@@ -141,6 +141,15 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The SonarScanner CLI is needed to finish the analysis, but could not be found. {0}.
+        /// </summary>
+        internal static string ERR_SonarScannerCliNotFound {
+            get {
+                return ResourceManager.GetString("ERR_SonarScannerCliNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The SonarScanner did not complete successfully.
         /// </summary>
         internal static string ERR_SonarScannerExecutionFailed {
@@ -321,11 +330,29 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The path &apos;{0}&apos; to the SonarScanner CLI is invalid. The file does not exists..
+        /// </summary>
+        internal static string MSG_SonarCliPath_FileNotFound {
+            get {
+                return ResourceManager.GetString("MSG_SonarCliPath_FileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Calling the SonarScanner CLI....
         /// </summary>
         internal static string MSG_SonarScannerCalling {
             get {
                 return ResourceManager.GetString("MSG_SonarScannerCalling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The path to the SonarScanner CLI wasn&apos;t set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step..
+        /// </summary>
+        internal static string MSG_SonarScannerCliPath_Missing {
+            get {
+                return ResourceManager.GetString("MSG_SonarScannerCliPath_Missing", resourceCulture);
             }
         }
         

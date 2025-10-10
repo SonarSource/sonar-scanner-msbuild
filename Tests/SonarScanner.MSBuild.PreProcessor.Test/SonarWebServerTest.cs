@@ -85,11 +85,10 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
-    [DataRow(null, null)]
-    [DataRow("aBranch", null)]
-    [DataRow(null, "my Org")]
-    [DataRow("aBranch", "my Org")]
-    public async Task DownloadQualityProfile_QualityProfileFound(string branchName, string organization)
+    [CombinatorialData]
+    public async Task DownloadQualityProfile_QualityProfileFound(
+        [CombinatorialValues("aBranch", null)] string branchName,
+        [CombinatorialValues("my Org", null)] string organization)
     {
         const string profileKey = "profile1k";
         const string language = "cs";
