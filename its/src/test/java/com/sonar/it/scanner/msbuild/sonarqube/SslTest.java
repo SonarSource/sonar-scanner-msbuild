@@ -485,7 +485,7 @@ class SslTest {
   private Path sonarHome() throws IOException {
     Path path;
     do {
-      path = ContextExtension.currentTempDir().resolveSibling("junit-ssl-" + Math.random() * 1000).resolve("sonar").toRealPath().toAbsolutePath();
+      path = Files.createDirectory(ContextExtension.currentTempDir().resolveSibling("junit-ssl-" + Math.random() * 1000).resolve("sonar")).toRealPath().toAbsolutePath();
     } while (Files.exists(path));
     return path;
   }
