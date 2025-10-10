@@ -497,9 +497,12 @@ public class PostProcessorTests
             withProject ? scannerEngineInput : null,
             withProject ? Path.Combine(testDir, "sonar-project.properties") : null)
         { RanToCompletion = true };
-        scannerEngineInputGenerator.GenerateResult(runtime.DateTime.OffsetNow).Returns(analysisResult);
+        var startTime = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        runtime.DateTime.OffsetNow.Returns(startTime);
+        scannerEngineInputGenerator.GenerateResult(startTime).Returns(analysisResult); // make sure runtime.DateTime.OffsetNow is used for startTime
         sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
+        _ = runtime.DateTime.Received(1).OffsetNow;
         return success;
     }
 
