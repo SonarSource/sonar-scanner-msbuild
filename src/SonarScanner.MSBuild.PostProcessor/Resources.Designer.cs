@@ -183,6 +183,15 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Writing Scanner Engine Input to {0}.
+        /// </summary>
+        internal static string MSG_WritingScannerEngineInput {
+            get {
+                return ResourceManager.GetString("MSG_WritingScannerEngineInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Creating a summary markdown file....
         /// </summary>
         internal static string Report_CreatingSummaryMarkdown {
