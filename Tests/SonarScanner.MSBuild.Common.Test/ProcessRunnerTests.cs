@@ -633,7 +633,9 @@ public class ProcessRunnerTests
 
     private static string LogArgsPath()
     {
-        var basePath = Path.GetDirectoryName(typeof(ProcessRunnerTests).Assembly.Location).Replace("SonarScanner.MSBuild.Common.Test", "LogArgs");
+        var basePath = Path.GetDirectoryName(typeof(ProcessRunnerTests).Assembly.Location)
+            .Replace("__Instrumented_SonarScanner.MSBuild.Common.Test", null)  // AltCover adds one more folder
+            .Replace("SonarScanner.MSBuild.Common.Test", "LogArgs");
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             return Path.Combine(basePath, "LogArgs.exe");

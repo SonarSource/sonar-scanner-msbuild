@@ -150,6 +150,10 @@ public class PreprocessorObjectFactoryTests
         new PreprocessorObjectFactory(runtime).CreateEngineResolver(Substitute.For<ISonarWebServer>(), "sonarUserHome").Should().NotBeNull();
 
     [TestMethod]
+    public void CreateScannerCliResolver_Success() =>
+        new PreprocessorObjectFactory(runtime).CreateScannerCliResolver(Substitute.For<ISonarWebServer>(), "sonarUserHome").Should().NotBeNull();
+
+    [TestMethod]
     public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnErrorAndWarning()
     {
         var downloader = Substitute.For<IDownloader>();

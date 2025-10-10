@@ -30,7 +30,7 @@ public class ScannerCliResolverTests
 {
     private const string SonarUserHome = "sonarUserHome";
     private const string ScannerCliFilename = "sonar-scanner-cli-5.0.2.4997.zip";
-    private const string Sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    private const string Sha256 = "2f10fe6ac36213958201a67383c712a587e3843e32ae1edf06f01062d6fd1407";
     private const string TempFolderName = "folder.temp";
 
     private static readonly string ScannerCliTargetPath = Path.Combine("sonar-scanner-5.0.2.4997", "bin", "sonar-scanner");
@@ -73,6 +73,7 @@ public class ScannerCliResolverTests
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             "ScannerCliResolver: Resolving SonarScanner CLI path.",
             $"ScannerCliResolver: Cache hit '{ExtractedScannerPath}'.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerCliDownload, TelemetryValues.ScannerCliDownload.CacheHit);
     }
 
     [TestMethod]
@@ -89,6 +90,7 @@ public class ScannerCliResolverTests
             $"Moving extracted files from '{TempExtractionPath}' to '{ExtractedPath}'.",
             $"The archive was successfully extracted to '{ExtractedPath}'.",
             $"ScannerCliResolver: Download success. SonarScanner CLI can be found at '{ExtractedScannerPath}'.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerCliDownload, TelemetryValues.ScannerCliDownload.Downloaded);
     }
 
     [TestMethod]
@@ -108,6 +110,7 @@ public class ScannerCliResolverTests
             $"Moving extracted files from '{TempExtractionPath}' to '{ExtractedPath}'.",
             $"The archive was successfully extracted to '{ExtractedPath}'.",
             $"ScannerCliResolver: Download success. SonarScanner CLI can be found at '{ExtractedScannerPath}'.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerCliDownload, TelemetryValues.ScannerCliDownload.Downloaded);
     }
 
     [TestMethod]
@@ -130,6 +133,7 @@ public class ScannerCliResolverTests
             $"Deleting file '{TempExtractionPath}'.",
             "The download of the file from the server failed with the exception 'Reason'.",
             "ScannerCliResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerCliDownload, TelemetryValues.ScannerCliDownload.Failed);
     }
 
     [TestMethod]
@@ -154,5 +158,6 @@ public class ScannerCliResolverTests
             $"Moving extracted files from '{TempExtractionPath}' to '{ExtractedPath}'.",
             $"The archive was successfully extracted to '{ExtractedPath}'.",
             $"ScannerCliResolver: Download success. SonarScanner CLI can be found at '{ExtractedScannerPath}'.");
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerCliDownload, TelemetryValues.ScannerCliDownload.Downloaded);    // Failed value is overridden by retry.
     }
 }
