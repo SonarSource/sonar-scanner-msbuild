@@ -470,8 +470,7 @@ class SslTest {
   // https://sonarsource.atlassian.net/browse/SCAN4NET-983
   // Enable long path support in IT images and use instead:
   // ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath().toString();
-  private Path sonarHome()
-  {
-    return Path.of(System.getProperty("java.io.tmpdir") ,RandomStringUtils.randomAlphabetic(15));
+  private Path sonarHome() {
+    return Path.of(System.getProperty("java.io.tmpdir"), RandomStringUtils.randomAlphabetic(15));
   }
 }
