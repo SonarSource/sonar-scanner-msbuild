@@ -20,7 +20,6 @@
 #pragma warning disable S3994 // we are specifically testing string urls
 
 using System.Runtime.InteropServices;
-using Humanizer;
 using NSubstitute.ExceptionExtensions;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
@@ -714,7 +713,7 @@ public class ArgumentProcessorTests
     [DataRow(@"""{0}Users\Some Name""")]
     public void PreArgProc_UserHome_Set_DirectoryExists_FullPath(string path)
     {
-        path = path.FormatWith(TestUtils.DriveRoot());
+        path = string.Format(path, TestUtils.DriveRoot());
         var runtime = new TestRuntime();
         runtime.Directory.Exists(path).Returns(true);
         CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(path);
@@ -748,7 +747,7 @@ public class ArgumentProcessorTests
     [DataRow(@"""{0}Users\Some Name""")]
     public void PreArgProc_UserHome_FullPathSet_DirectoryExistsNot_CanBeCreated(string path)
     {
-        path = path.FormatWith(TestUtils.DriveRoot());
+        path = string.Format(path, TestUtils.DriveRoot());
         var runtime = new TestRuntime();
         runtime.Directory.Exists(path).Returns(false);
         CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}");
