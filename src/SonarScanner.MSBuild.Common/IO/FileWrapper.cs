@@ -73,25 +73,25 @@ public class FileWrapper : IFileWrapper
 
     public string ShortName(PlatformOS os, string path)
     {
-        if (os is not PlatformOS.Windows)
-        {
-            // Short names are a Windows concept
-            return path;
-        }
-        const int MAX_PATH = 260;
-        const uint BUFFER_SIZE = 256;
-        if (path.Length < MAX_PATH)
+        const int maxPath = 260;
+        const uint bufferSize = 256;
+        const string ExtendedPathLengthSpecifier = @"\\?\"; // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+        if (path.Length < maxPath || os is not PlatformOS.Windows)
         {
             return path;
         }
 
-        if (!path.StartsWith(@"\\?\"))
+        if (!path.StartsWith(ExtendedPathLengthSpecifier))
         {
-            path = @"\\?\" + path;
+            path = ExtendedPathLengthSpecifier + path;
         }
-        var shortNameBuffer = new StringBuilder((int)BUFFER_SIZE);
-        GetShortPathName(path, shortNameBuffer, BUFFER_SIZE);
-        return shortNameBuffer.ToString();
+        var shortNameBuffer = new StringBuilder((int)bufferSize);
+        GetShortPathName(path, shortNameBuffer, bufferSize);
+        var result = shortNameBuffer.ToString();
+        result = result.StartsWith(ExtendedPathLengthSpecifier)
+            ? result.Substring(ExtendedPathLengthSpecifier.Length)
+            : result;
+        return result;
     }
 
     // https://www.pinvoke.net/default.aspx/kernel32.getshortpathname

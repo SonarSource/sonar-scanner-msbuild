@@ -296,13 +296,14 @@ class SslTest {
   @ParameterizedTest
   @ValueSource(strings = {"changeit", "sonar"})
   void defaultTruststoreExist(String defaultPassword) throws IOException {
-    var sonarHome = sonarHome();
+    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore(defaultPassword, Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.scanner.useSonarScannerCLI", "true")
         .setDebugLogs()
-        .setProperty("sonar.userHome", sonarHome.toString());
+        .setProperty("sonar.userHome", sonarHome);
 
       var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
@@ -315,26 +316,20 @@ class SslTest {
         }
       }
     }
-    finally {
-      Files.deleteIfExists(sonarHome);
-    }
   }
 
   @Test
   void defaultTruststoreExist_IncorrectPassword() throws IOException {
-    var sonarHome = sonarHome();
+    var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
-      context.begin.setProperty("sonar.userHome", sonarHome.toString());
+      context.begin.setProperty("sonar.userHome", sonarHome);
       var result = context.begin.execute(ORCHESTRATOR);
 
       assertFalse(result.isSuccess());
       assertThat(result.getLogs())
         .contains(SslExceptionMessages.importFail(server.getKeystorePath()))
         .contains(SslExceptionMessages.incorrectPassword());
-    }
-    finally {
-      Files.deleteIfExists(sonarHome);
     }
   }
 
