@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions.Common;
+
 namespace SonarScanner.MSBuild.Shim.Test;
 
 public partial class ScannerEngineInputGeneratorTest
@@ -55,6 +57,7 @@ public partial class ScannerEngineInputGeneratorTest
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
             new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(runtime),
+            runtime.DateTime.OffsetNow,
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
@@ -83,6 +86,7 @@ public partial class ScannerEngineInputGeneratorTest
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
             [new ProjectData(new[] { project }.GroupBy(x => x.ProjectGuid).Single(), runtime) { Status = ProjectInfoValidity.Valid }],
+            runtime.DateTime.OffsetNow,
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
@@ -118,6 +122,7 @@ public partial class ScannerEngineInputGeneratorTest
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
             new[] { firstProjectInfo, secondProjectInfo }.ToProjectData(runtime),
+            runtime.DateTime.OffsetNow,
             new PropertiesWriter(config),
             new ScannerEngineInput(config));
 
@@ -267,6 +272,7 @@ public partial class ScannerEngineInputGeneratorTest
         sut.GenerateProperties(
             config.ToAnalysisProperties(runtime.Logger),
             new[] { project }.ToProjectData(runtime),
+            runtime.DateTime.OffsetNow,
             legacyWriter,
             engineInput)
             .Should().BeTrue();
@@ -302,7 +308,7 @@ public partial class ScannerEngineInputGeneratorTest
         public void GenerateProperties()
         {
             var sut = new ScannerEngineInputGenerator(Config, new ListPropertiesProvider(), runtime);
-            sut.GenerateProperties(Config.ToAnalysisProperties(runtime.Logger), [Project], new PropertiesWriter(Config), EngineInput).Should().BeTrue();
+            sut.GenerateProperties(Config.ToAnalysisProperties(runtime.Logger), [Project], runtime.DateTime.OffsetNow, new PropertiesWriter(Config), EngineInput).Should().BeTrue();
         }
 
         public ScannerEngineInputReader CreateEngineInputReader() =>

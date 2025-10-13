@@ -31,6 +31,7 @@ public class ScannerEngineInput
     private const string SonarTests = "sonar.tests";
     private const string SonarScannerApp = "sonar.scanner.app";
     private const string SonarScannerAppVersion = "sonar.scanner.appVersion";
+    private const string SonarScannerBootstrapStartTime = "sonar.scanner.bootstrapStartTime";
     private readonly AnalysisConfig config;
 
     private readonly HashSet<string> moduleKeys = [];
@@ -67,6 +68,9 @@ public class ScannerEngineInput
                     })))
             },
             Formatting.Indented);
+
+    public void AddBootstrapStartTime(DateTimeOffset startTime) =>
+        Add(SonarScannerBootstrapStartTime, (startTime.ToUnixTimeSeconds() * 1_000).ToString()); // https://xtranet-sonarsource.atlassian.net/wiki/x/M4ANv
 
     public void AddProject(ProjectData project)
     {

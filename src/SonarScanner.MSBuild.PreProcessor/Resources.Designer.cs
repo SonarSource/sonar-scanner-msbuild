@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -1518,11 +1518,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version..
+        ///   Looks up a localized string similar to You&apos;re using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version..
         /// </summary>
-        internal static string WARN_UI_SonarQubeNearEndOfSupport {
+        internal static string WARN_UI_SonarQubeUnsupported {
             get {
-                return ResourceManager.GetString("WARN_UI_SonarQubeNearEndOfSupport", resourceCulture);
+                return ResourceManager.GetString("WARN_UI_SonarQubeUnsupported", resourceCulture);
             }
         }
         

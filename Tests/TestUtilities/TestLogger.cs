@@ -25,7 +25,7 @@ namespace TestUtilities;
 public class TestLogger : ILogger
 {
     // All messages are normalized to Unix line endings, because Resx files contains multiline messages with CRLF and we emit mix of LF and CRFL to logs on *nix system
-    public List<string> DebugMessages { get;  }
+    public List<string> DebugMessages { get; }
     public List<string> InfoMessages { get; }
     public List<string> Warnings { get; }
     public List<string> Errors { get; }
@@ -89,5 +89,7 @@ public class TestLogger : ILogger
         Console.WriteLine(FormatMessage(message, args));
 
     private static string FormatMessage(string message, params object[] args) =>
-        string.Format(CultureInfo.CurrentCulture, message, args).ToUnixLineEndings();
+        args.Any()  // string.Format is not happy about logging json with { } in it
+            ? string.Format(CultureInfo.CurrentCulture, message, args).ToUnixLineEndings()
+            : message.ToUnixLineEndings();
 }
