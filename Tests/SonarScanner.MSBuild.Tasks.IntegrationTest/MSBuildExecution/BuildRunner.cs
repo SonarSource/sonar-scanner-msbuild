@@ -56,6 +56,7 @@ public static class BuildRunner
             CmdLineArgs = msbuildArgs.Select(x => new ProcessRunnerArguments.Argument(x)).ToArray()
         };
         var logger = new ConsoleLogger(true);
+
         var runner = new ProcessRunner(new Runtime(
             new OperatingSystemProvider(FileWrapper.Instance, logger),
             DirectoryWrapper.Instance,
