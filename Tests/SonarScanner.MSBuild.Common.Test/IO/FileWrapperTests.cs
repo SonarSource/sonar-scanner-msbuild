@@ -212,7 +212,7 @@ public class FileWrapperTests
         var sut = FileWrapper.Instance;
         // Windows MAX_PATH is 260, but .NET can handle longer paths with \\?\ prefix.
         var longDirectory = new string('d', 200);
-        var longFileName = new string('a', 100) + ".txt";
+        var longFileName = new string('ö', 100) + ".txt";
         var tempDir = Path.GetTempPath();
         var longPath = Path.Combine(tempDir, longDirectory);
         Directory.CreateDirectory(longPath);
@@ -221,7 +221,7 @@ public class FileWrapperTests
         try
         {
             var shortName = sut.ShortName(PlatformOS.Windows, extendedPath + longFile);
-            shortName.Should().NotBeNull().And.EndWith(@"\AAAAAA~1.TXT");
+            shortName.Should().NotBeNull().And.EndWith(@"\ACB3~1.TXT");
             shortName.Length.Should().BeLessThan(longFile.Length);
         }
         finally

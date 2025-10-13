@@ -89,7 +89,7 @@ public class FileWrapper : IFileWrapper
         {
             shortNameLength = GetShortPathName(longPath, shortNameBuffer, bufferSize);
         }
-        catch
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or BadImageFormatException)
         {
             return path;
         }
