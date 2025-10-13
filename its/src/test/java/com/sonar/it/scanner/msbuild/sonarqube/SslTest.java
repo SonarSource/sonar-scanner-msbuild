@@ -30,7 +30,6 @@ import com.sonar.it.scanner.msbuild.utils.SslExceptionMessages;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;

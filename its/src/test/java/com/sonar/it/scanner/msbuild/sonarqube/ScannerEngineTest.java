@@ -22,7 +22,6 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
-import com.sonar.it.scanner.msbuild.utils.OperatingSystem;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
