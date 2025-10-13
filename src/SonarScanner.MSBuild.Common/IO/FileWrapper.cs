@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Runtime.InteropServices;
 
 namespace SonarScanner.MSBuild.Common;
@@ -95,7 +93,9 @@ public class FileWrapper : IFileWrapper
 
     // https://www.pinvoke.net/default.aspx/kernel32.getshortpathname
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    static extern uint GetShortPathName(
+#pragma warning disable T0000 // Internal Styling Rule T0000: Don't use Get prefix
+    private static extern uint GetShortPathName(
+#pragma warning restore T0000 // Internal Styling Rule T0000
         [MarshalAs(UnmanagedType.LPTStr)] string lpszLongPath,
         [MarshalAs(UnmanagedType.LPTStr)]
         StringBuilder lpszShortPath,
