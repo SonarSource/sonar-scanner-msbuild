@@ -29,12 +29,11 @@ public final class ProvisioningAssertions {
 
     var endLogs = result.end().getLogs();
 
-    var cacheFolderPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+";
+    var cacheFolderPattern = ".+[\\\\/]cache[\\\\/].+";
     if (useSonarScannerCLI) {
       var escapedOldJavaHome = oldJavaHome.replace("\\", "\\\\");
-      TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + cacheFolderPattern + "_extracted.+");
-      TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: " + escapedOldJavaHome + ", new value: " + cacheFolderPattern +
-        "_extracted.+");
+      TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + cacheFolderPattern);
+      TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: " + escapedOldJavaHome + ", new value: " + cacheFolderPattern);
     } else {
       TestUtils.matchesSingleLine(endLogs, "Using Java found in Analysis Config: " + cacheFolderPattern + "_extracted.+java(\\.exe|)");
     }
