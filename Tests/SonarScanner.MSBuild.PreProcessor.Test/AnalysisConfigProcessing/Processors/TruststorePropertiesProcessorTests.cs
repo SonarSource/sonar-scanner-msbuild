@@ -159,18 +159,18 @@ public class TruststorePropertiesProcessorTests
     public void Update_DefaultPropertyValues()
     {
         var sonarUserHome = Path.Combine("~", ".sonar");
-        var defaultTruststorePath = Path.Combine(sonarUserHome, SonarPropertiesDefault.TruststorePath);
+        var defaultTruststorePath = Path.Combine(Path.GetFullPath(sonarUserHome), SonarPropertiesDefault.TruststorePath);
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.UserHome, sonarUserHome);
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(defaultTruststorePath).Returns(true);
         var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs, fileWrapper));
-        var config = new AnalysisConfig { LocalSettings = [new Property(SonarProperties.UserHome, sonarUserHome)] };
+        var config = new AnalysisConfig { LocalSettings = [new Property(SonarProperties.UserHome, Path.GetFullPath(sonarUserHome))] };
 
         processor.Update(config);
 
-        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.UserHome && x.Value == sonarUserHome);
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.UserHome && x.Value == Path.GetFullPath(sonarUserHome));
         config.ScannerOptsSettings.Should().ContainSingle()
             .Which.Should().Match<Property>(x => x.Id == "javax.net.ssl.trustStore" && x.Value == $"\"{defaultTruststorePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"");
         config.HasBeginStepCommandLineTruststorePassword.Should().BeFalse();
