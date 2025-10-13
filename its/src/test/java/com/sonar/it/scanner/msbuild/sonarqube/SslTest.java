@@ -319,7 +319,7 @@ class SslTest {
   }
 
   @Test
-  void defaultTruststoreExist_IncorrectPassword() throws IOException {
+  void defaultTruststoreExist_IncorrectPassword() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
