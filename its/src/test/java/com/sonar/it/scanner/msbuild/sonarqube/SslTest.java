@@ -301,7 +301,6 @@ class SslTest {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.host.url", server.getUrl())
-        .setProperty("sonar.scanner.useSonarScannerCLI", "true")
         .setDebugLogs()
         .setProperty("sonar.userHome", sonarHome);
 
