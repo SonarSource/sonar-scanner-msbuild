@@ -31,7 +31,7 @@ public class ProcessRunnerTests
 
     [TestMethod]
     public void Constructor_NullLogger_ThrowsArgumentNullException() =>
-        FluentActions.Invoking(() => _ = new ProcessRunner(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("logger");
+        FluentActions.Invoking(() => _ = new ProcessRunner(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
     [TestMethod]
     public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException() =>
@@ -671,6 +671,7 @@ public class ProcessRunnerTests
             testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             ExePath = TestUtils.WriteExecutableScriptForTest(testContext, commands);
             Runtime = new TestRuntime();
+            Runtime.File.ShortName(Arg.Any<PlatformOS>(), Arg.Any<string>()).Returns(x => x[1]);
             runner = new ProcessRunner(Runtime);
             ProcessArgs = new ProcessRunnerArguments(ExePath, RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
