@@ -391,11 +391,12 @@ public class ProcessedArgsTests
     }
 
     [TestMethod]
-    public void ProcessedArgs_UserHome_ParameterProvided()
+    public void ProcessedArgs_UserHome_ParameterProvided_Windows()
     {
-        runtime.Directory.Exists(@"C:\Users\user\.sonar").Returns(true);
-        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
-        sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
+        var path = Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar");
+        runtime.Directory.Exists(path).Returns(true);
+        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, path)]));
+        sut.UserHome.Should().Be(path);
         sut.IsValid.Should().BeTrue();
         runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
@@ -404,11 +405,12 @@ public class ProcessedArgsTests
     [TestMethod]
     public void ProcessedArgs_UserHome_ParameterProvided_DoesNotExists_CanBeCreated()
     {
-        runtime.Directory.Exists(@"C:\Users\user\.sonar").Returns(false);
-        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, @"C:\Users\user\.sonar")]));
-        sut.UserHome.Should().Be(@"C:\Users\user\.sonar");
+        var path = Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar");
+        runtime.Directory.Exists(path).Returns(false);
+        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, path)]));
+        sut.UserHome.Should().Be(path);
         sut.IsValid.Should().BeTrue();
-        runtime.Logger.Should().HaveDebugs(@"Created the sonar.userHome directory at 'C:\Users\user\.sonar'.")
+        runtime.Logger.Should().HaveDebugs(@$"Created the sonar.userHome directory at '{path}'.")
             .And.HaveNoErrors()
             .And.HaveNoWarnings();
     }

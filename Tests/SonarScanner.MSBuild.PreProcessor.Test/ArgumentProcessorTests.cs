@@ -20,6 +20,7 @@
 #pragma warning disable S3994 // we are specifically testing string urls
 
 using System.Runtime.InteropServices;
+using Humanizer;
 using NSubstitute.ExceptionExtensions;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
@@ -708,11 +709,12 @@ public class ArgumentProcessorTests
     }
 
     [TestMethod]
-    [DataRow(@"""C:\Path With\Spaces")]
-    [DataRow(@"C:\Users\Some Name")]
-    [DataRow(@"""C:\Users\Some Name""")]
+    [DataRow(@"""{0}Path With\Spaces")]
+    [DataRow(@"{0}Users\Some Name")]
+    [DataRow(@"""{0}Users\Some Name""")]
     public void PreArgProc_UserHome_Set_DirectoryExists_FullPath(string path)
     {
+        path = path.FormatWith(TestUtils.DriveRoot());
         var runtime = new TestRuntime();
         runtime.Directory.Exists(path).Returns(true);
         CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(path);
@@ -741,11 +743,12 @@ public class ArgumentProcessorTests
     }
 
     [TestMethod]
-    [DataRow(@"C:\Path With\Spaces")]
-    [DataRow(@"C:\Users\Some Name")]
-    [DataRow(@"""C:\Users\Some Name""")]
+    [DataRow(@"{0}Path With\Spaces")]
+    [DataRow(@"{0}Users\Some Name")]
+    [DataRow(@"""{0}Users\Some Name""")]
     public void PreArgProc_UserHome_FullPathSet_DirectoryExistsNot_CanBeCreated(string path)
     {
+        path = path.FormatWith(TestUtils.DriveRoot());
         var runtime = new TestRuntime();
         runtime.Directory.Exists(path).Returns(false);
         CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}");
@@ -947,7 +950,7 @@ public class ArgumentProcessorTests
     [DataRow(@"'C:\sonar'")]
     public void PreArgProc_TruststorePathAndPasswordSonarUserHomePropSet_DefaultValues(string sonarUserHome)
     {
-        var truststorePath = Path.Combine(sonarUserHome.Trim('\'', '"'), "ssl", "truststore.p12");
+        var truststorePath = Path.Combine(Path.GetFullPath(sonarUserHome.Trim('\'', '"')), "ssl", "truststore.p12");
         var runtime = new TestRuntime();
         runtime.File.Exists(Arg.Any<string>()).Returns(true);
 
