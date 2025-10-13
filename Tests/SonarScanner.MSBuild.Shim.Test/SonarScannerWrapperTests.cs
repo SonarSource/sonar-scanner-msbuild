@@ -263,7 +263,7 @@ public class SonarScannerWrapperTests
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    [DataRow(@"C:\Program Files\Java\jdk-17\bin\java.exe", @"C:\Program Files\Java\jdk-17")]
+    [DataRow(@"C:\Program Files\Java\jdk-17\bin\java.exe", @"C:\Program Files\Java\jdk-17#shortened")]
     [DataRow(@"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
@@ -277,7 +277,7 @@ public class SonarScannerWrapperTests
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
-             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path")]
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path#shortened")]
     public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Windows(string path, string expected) =>
         SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
@@ -285,7 +285,7 @@ public class SonarScannerWrapperTests
     [TestMethod]
     [DataRow(@"/usr/bin/java", @"/usr")] // e.g. a symbolic link to /etc/alternatives/java which is a symlink to the actual Java executable /usr/lib/jvm/java-21-openjdk-amd64/bin/java
                                          // We assume the symbolic links are already resolved here.
-    [DataRow(@"/usr/lib/jvm/java-21-openjdk-amd64/bin/java", @"/usr/lib/jvm/java-21-openjdk-amd64")]
+    [DataRow(@"/usr/lib/jvm/java-21-openjdk-amd64/bin/java", @"/usr/lib/jvm/java-21-openjdk-amd64#shortened")]
     [DataRow(@"/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
@@ -299,7 +299,7 @@ public class SonarScannerWrapperTests
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
-             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path")]
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path#shortened")]
     public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Unix(string path, string expected) =>
         SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
@@ -687,7 +687,13 @@ public class SonarScannerWrapperTests
         {
             using (new AssertIgnoreScope())
             {
-                var result = new SonarScannerWrapper(new TestRuntime { Logger = Logger, OperatingSystem = OsProvider })
+                var runtime = new TestRuntime
+                {
+                    Logger = Logger,
+                    OperatingSystem = OsProvider,
+                };
+                runtime.File.ShortName(Arg.Any<PlatformOS>(), Arg.Any<string>()).Returns(x => $"{x[1]}#shortened");
+                var result = new SonarScannerWrapper(runtime)
                     .ExecuteJavaRunner(Config, UserCmdLineArguments, ExeFileName, PropertiesFileName, Runner);
                 return new(this, result);
             }

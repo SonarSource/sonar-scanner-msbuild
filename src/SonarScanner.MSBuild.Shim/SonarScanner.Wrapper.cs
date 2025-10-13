@@ -144,6 +144,7 @@ public class SonarScannerWrapper
             {
                 var exeDirectory = Path.GetDirectoryName(config.JavaExePath);
                 var javaHome = Directory.GetParent(exeDirectory).ToString();
+                javaHome = runtime.File.ShortName(runtime.OperatingSystem.OperatingSystem(), javaHome);
                 envVarsDictionary.Add(EnvironmentVariables.JavaHomeVariableName, javaHome);
                 runtime.LogDebug(Resources.MSG_SettingJavaHomeEnvironmentVariable, javaHome);
             }

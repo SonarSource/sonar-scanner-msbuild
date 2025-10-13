@@ -218,7 +218,7 @@ public class FileWrapperTests
         var tempDir = Path.GetTempPath();
         var longPath = Path.Combine(tempDir, longDirectory);
         Directory.CreateDirectory(longPath);
-        var longFile = Path.Combine(longPath, longFileName);
+        var longFile = $"{longPath}{Path.AltDirectorySeparatorChar}{longFileName}"; // Use '/' as separator because the GetShortPathName API fails with it and it needs to be replaced before the call
         File.Create(longFile).Dispose(); // Create the file to ensure it exists
         try
         {

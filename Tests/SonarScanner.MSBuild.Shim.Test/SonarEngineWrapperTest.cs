@@ -77,6 +77,24 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
+    public void Execute_Success_ConfiguredPathExists_IsShortened()
+    {
+        var context = new Context();
+        context.Runtime.File.ShortName(PlatformOS.Windows, context.ResolvedJavaExe).Returns($"{context.ResolvedJavaExe}_shortened");
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = $"{context.ResolvedJavaExe}_shortened",
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
+            StandardInput = SampleInput,
+        });
+        context.Runtime.Logger.Should().HaveInfos(
+            "The scanner engine has finished successfully",
+            $"Using Java found in Analysis Config: {context.ResolvedJavaExe}");
+    }
+
+    [TestMethod]
     [CombinatorialData]
     public void FindJavaExe_ConfiguredPath_DoesNotExist(bool isUnix)
     {

@@ -126,6 +126,24 @@ class ScannerEngineTest {
     }
   }
 
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  @ServerMinVersion("2025.1")
+  void javaExe_withCacheDirectory(boolean useSonarScannerCLI) throws ParserConfigurationException, IOException, SAXException {
+    var context = AnalysisContext.forServer("Empty");
+    var sonarHome = ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath().toString();
+    context.begin
+      .setProperty("sonar.userHome", sonarHome) // set the download directory for scanner-cli and JRE
+      .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
+      .setProperty("sonar.scanner.skipJreProvisioning", "false")
+      .setDebugLogs()
+      .execute(ORCHESTRATOR);
+    var result = context.runAnalysis();
+    assertThat(result.isSuccess()).isTrue();
+    var logs = result.end().getLogsLines(x -> true);
+    assertThat(logs).anyMatch(x -> x.startsWith("Setting the JAVA_HOME for the scanner cli to"));
+  }
+
   private static JreDetails jreDetailsFromSonarQubeAnalysisConfig(AnalysisContext context) throws ParserConfigurationException, IOException, SAXException {
     // Extract provisioned JRE from SonarQubeAnalysisConfig.xml -> <JavaExePath>
     var javaExe = new File(DocumentBuilderFactory.newInstance().newDocumentBuilder()

@@ -90,7 +90,7 @@ public sealed class ProcessRunner : IProcessRunner
         // AsLogText() returns the CmdLineArgs, but we invoke the process with 'EscapedArguments'
         runtime.LogDebug(
             Resources.MSG_ExecutingFile,
-            runnerArgs.ExeName,
+            psi.FileName,
             runnerArgs.AsLogText(),
             runnerArgs.WorkingDirectory,
             runnerArgs.TimeoutInMilliseconds,

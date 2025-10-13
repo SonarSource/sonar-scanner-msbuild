@@ -130,10 +130,14 @@ public class SonarEngineWrapper
         return result.Succeeded;
     }
 
-    private string FindJavaExe(string configJavaExe) =>
-        JavaFromConfig(configJavaExe)
-        ?? JavaFromJavaHome()
-        ?? JavaFromPath();
+    private string FindJavaExe(string configJavaExe)
+    {
+        var javaExe = JavaFromConfig(configJavaExe)
+            ?? JavaFromJavaHome()
+            ?? JavaFromPath();
+        javaExe = runtime.File.ShortName(runtime.OperatingSystem.OperatingSystem(), javaExe);
+        return javaExe;
+    }
 
     private string JavaFromConfig(string configJavaExe)
     {

@@ -82,6 +82,7 @@ public class FileWrapper : IFileWrapper
         {
             path = ExtendedPathLengthSpecifier + path;
         }
+        path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar); // Windows API does not like forward slashes
         var shortNameBuffer = new StringBuilder((int)bufferSize);
         GetShortPathName(path, shortNameBuffer, bufferSize);
         var result = shortNameBuffer.ToString();
