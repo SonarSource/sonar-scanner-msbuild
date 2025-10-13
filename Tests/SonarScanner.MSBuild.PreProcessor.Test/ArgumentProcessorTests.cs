@@ -708,12 +708,10 @@ public class ArgumentProcessorTests
     }
 
     [TestMethod]
-    [DataRow("Test")]
-    [DataRow(@"""Test""")]
-    [DataRow("'Test'")]
+    [DataRow(@"""C:\Path With\Spaces")]
     [DataRow(@"C:\Users\Some Name")]
     [DataRow(@"""C:\Users\Some Name""")]
-    public void PreArgProc_UserHome_Set_DirectoryExists(string path)
+    public void PreArgProc_UserHome_Set_DirectoryExists_FullPath(string path)
     {
         var runtime = new TestRuntime();
         runtime.Directory.Exists(path).Returns(true);
@@ -722,17 +720,62 @@ public class ArgumentProcessorTests
 
     [TestMethod]
     [DataRow("Test")]
+    [DataRow("./some/relative/path")]
+    [DataRow(".././some/relative/path")]
+    public void PreArgProc_UserHome_Set_DirectoryExists_RelativePath(string path)
+    {
+        var runtime = new TestRuntime();
+        runtime.Directory.Exists(path).Returns(true);
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(Path.GetFullPath(path));
+    }
+
+    [TestMethod]
+    [DataRow(@"""../some relative/path""")]
     [DataRow(@"""Test""")]
     [DataRow("'Test'")]
+    public void PreArgProc_UserHome_Set_DirectoryExists_RelativePath_Quoted(string path)
+    {
+        var runtime = new TestRuntime();
+        runtime.Directory.Exists(path).Returns(true);
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(Path.GetFullPath(path.Trim('"', '\'', '\\')));
+    }
+
+    [TestMethod]
+    [DataRow(@"C:\Path With\Spaces")]
     [DataRow(@"C:\Users\Some Name")]
     [DataRow(@"""C:\Users\Some Name""")]
-    public void PreArgProc_UserHome_Set_DirectoryExistsNot_CanBeCreated(string path)
+    public void PreArgProc_UserHome_FullPathSet_DirectoryExistsNot_CanBeCreated(string path)
     {
         var runtime = new TestRuntime();
         runtime.Directory.Exists(path).Returns(false);
         CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}");
         runtime.Directory.Received(1).CreateDirectory(path);
         runtime.Logger.Should().HaveDebugs($"Created the sonar.userHome directory at '{path}'.");
+    }
+
+    [TestMethod]
+    [DataRow("Test")]
+    [DataRow("./some/relative/path")]
+    public void PreArgProc_UserHome_RelativePathSet_DirectoryExistsNot_CanBeCreated(string path)
+    {
+        var runtime = new TestRuntime();
+        runtime.Directory.Exists(path).Returns(false);
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}");
+        runtime.Directory.Received(1).CreateDirectory(path);
+        runtime.Logger.Should().HaveDebugs($"Created the sonar.userHome directory at '{Path.GetFullPath(path)}'.");
+    }
+
+    [TestMethod]
+    [DataRow(@"""Test""")]
+    [DataRow("'Test'")]
+    [DataRow(@"""../some relative/path""")]
+    public void PreArgProc_UserHome_RelativePathQuotedSet_DirectoryExistsNot_CanBeCreated(string path)
+    {
+        var runtime = new TestRuntime();
+        runtime.Directory.Exists(path).Returns(false);
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}");
+        runtime.Directory.Received(1).CreateDirectory(path);
+        runtime.Logger.Should().HaveDebugs($"Created the sonar.userHome directory at '{Path.GetFullPath(path.Trim('"', '\'', '\\'))}'.");
     }
 
     [TestMethod]
