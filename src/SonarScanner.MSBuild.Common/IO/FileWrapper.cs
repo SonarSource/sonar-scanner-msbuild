@@ -77,14 +77,26 @@ public class FileWrapper : IFileWrapper
         {
             return path;
         }
-
-        if (!path.StartsWith(ExtendedPathLengthSpecifier))
+        var longPath = path;
+        if (!longPath.StartsWith(ExtendedPathLengthSpecifier))
         {
-            path = ExtendedPathLengthSpecifier + path;
+            longPath = ExtendedPathLengthSpecifier + longPath;
         }
-        path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar); // Windows API does not like forward slashes
+        longPath = longPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar); // Windows API does not like forward slashes
         var shortNameBuffer = new StringBuilder((int)bufferSize);
-        GetShortPathName(path, shortNameBuffer, bufferSize);
+        uint shortNameLength;
+        try
+        {
+            shortNameLength = GetShortPathName(longPath, shortNameBuffer, bufferSize);
+        }
+        catch
+        {
+            return path;
+        }
+        if (shortNameLength != shortNameBuffer.Length || shortNameLength == 0) // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getshortpathnamew#return-value
+        {
+            return path;
+        }
         var result = shortNameBuffer.ToString();
         result = result.StartsWith(ExtendedPathLengthSpecifier)
             ? result.Substring(ExtendedPathLengthSpecifier.Length)
@@ -93,10 +105,11 @@ public class FileWrapper : IFileWrapper
     }
 
     // https://www.pinvoke.net/default.aspx/kernel32.getshortpathname
-    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    // https://github.com/terrafx/terrafx.interop.windows/blob/61ac1e963e14aa75e224dfa7554e01525ab65e74/sources/Interop/Windows/Windows/um/fileapi/Windows.cs#L281-L284
+    [DllImport("KERNEL32.dll", ExactSpelling = true, EntryPoint = "GetShortPathNameW", SetLastError = true, CharSet = CharSet.Unicode)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     private static extern uint GetShortPathName(
         [MarshalAs(UnmanagedType.LPTStr)] string lpszLongPath,
-        [MarshalAs(UnmanagedType.LPTStr)]
-        StringBuilder lpszShortPath,
+        [MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpszShortPath,
         uint cchBuffer);
 }

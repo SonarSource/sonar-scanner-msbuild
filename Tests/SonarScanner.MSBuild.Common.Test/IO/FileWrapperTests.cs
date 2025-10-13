@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -231,5 +229,19 @@ public class FileWrapperTests
             File.Delete(longFile);
             Directory.Delete(longPath);
         }
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoMacOS)]
+    [TestCategory(TestCategories.NoLinux)]
+    public void ShortName_WithFileNameLongerThanMaxPath_Nonexisting()
+    {
+        var sut = FileWrapper.Instance;
+        // Windows MAX_PATH is 260, but .NET can handle longer paths with \\?\ prefix.
+        var longDirectory = new string('d', 200);
+        var longFileName = new string('b', 100) + ".txt";
+        var longPath = Path.Combine(Path.GetTempPath(), longDirectory, longFileName);
+        var shortName = sut.ShortName(PlatformOS.Windows, longPath);
+        shortName.Should().Be(longPath);
     }
 }
