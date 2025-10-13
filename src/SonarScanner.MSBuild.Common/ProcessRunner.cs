@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Runtime.InteropServices;
+
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -27,13 +29,13 @@ public sealed class ProcessRunner : IProcessRunner
 {
     public const int ErrorCode = 1;
 
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
 
     public int ExitCode { get; private set; }
 
-    public ProcessRunner(ILogger logger)
+    public ProcessRunner(IRuntime runtime)
     {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
     }
 
     /// <summary>
@@ -50,14 +52,14 @@ public sealed class ProcessRunner : IProcessRunner
 
         if (runnerArgs.ExeMustExists && !File.Exists(runnerArgs.ExeName))
         {
-            logger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
+            runtime.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
             ExitCode = ErrorCode;
             return new ProcessResult(false);
         }
 
         var psi = new ProcessStartInfo
         {
-            FileName = runnerArgs.ExeName,
+            FileName = runtime.File.ShortName(runtime.OperatingSystem.OperatingSystem(), runnerArgs.ExeName),
             RedirectStandardError = true,
             RedirectStandardOutput = true,
             RedirectStandardInput = runnerArgs.StandardInput is not null,
@@ -88,7 +90,7 @@ public sealed class ProcessRunner : IProcessRunner
         // may contain sensitive data
 
         // AsLogText() returns the CmdLineArgs, but we invoke the process with 'EscapedArguments'
-        logger.LogDebug(
+        runtime.LogDebug(
             Resources.MSG_ExecutingFile,
             runnerArgs.ExeName,
             runnerArgs.AsLogText(),
@@ -109,7 +111,7 @@ public sealed class ProcessRunner : IProcessRunner
         if (succeeded)
         {
             process.WaitForExit(); // Give any asynchronous events the chance to complete
-            logger.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
+            runtime.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
             ExitCode = process.ExitCode;
         }
         else
@@ -119,11 +121,11 @@ public sealed class ProcessRunner : IProcessRunner
             try
             {
                 process.Kill();
-                logger.LogWarning(Resources.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                runtime.LogWarning(Resources.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
             }
             catch
             {
-                logger.LogWarning(Resources.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                runtime.LogWarning(Resources.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
             }
         }
 
@@ -150,11 +152,11 @@ public sealed class ProcessRunner : IProcessRunner
 
             if (psi.EnvironmentVariables.ContainsKey(envVariable.Key))
             {
-                logger.LogDebug(Resources.MSG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key].RedactSensitiveData(), envVariable.Value.RedactSensitiveData());
+                runtime.LogDebug(Resources.MSG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key].RedactSensitiveData(), envVariable.Value.RedactSensitiveData());
             }
             else
             {
-                logger.LogDebug(Resources.MSG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value.RedactSensitiveData());
+                runtime.LogDebug(Resources.MSG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value.RedactSensitiveData());
             }
             psi.EnvironmentVariables[envVariable.Key] = envVariable.Value;
         }
@@ -171,13 +173,13 @@ public sealed class ProcessRunner : IProcessRunner
                 switch (logMessage.Level)
                 {
                     case LogLevel.Info:
-                        logger.LogInfo(redactedMsg);
+                        runtime.LogInfo(redactedMsg);
                         break;
                     case LogLevel.Warning:
-                        logger.LogWarning(redactedMsg);
+                        runtime.LogWarning(redactedMsg);
                         break;
                     case LogLevel.Error:
-                        logger.LogError(redactedMsg);
+                        runtime.LogError(redactedMsg);
                         break;
                 }
             }

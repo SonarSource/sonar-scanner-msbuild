@@ -117,7 +117,7 @@ public class SonarScannerWrapper
             return false;
         }
 
-        return FindScannerExe(config) is { } exeFileName && ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(runtime.Logger));
+        return FindScannerExe(config) is { } exeFileName && ExecuteJavaRunner(config, userCmdLineArguments, exeFileName, fullPropertiesFilePath, new ProcessRunner(runtime));
     }
 
     private void IgnoreSonarScannerHome()

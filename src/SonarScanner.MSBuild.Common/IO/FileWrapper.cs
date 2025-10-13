@@ -20,6 +20,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -69,4 +70,35 @@ public class FileWrapper : IFileWrapper
             streamWriter.WriteLine(line);
         }
     }
+
+    public string ShortName(PlatformOS os, string path)
+    {
+        if (os is not PlatformOS.Windows)
+        {
+            // Short names are a Windows concept
+            return path;
+        }
+        const int MAX_PATH = 260;
+        const uint BUFFER_SIZE = 256;
+        if (path.Length < MAX_PATH)
+        {
+            return path;
+        }
+
+        if (!path.StartsWith(@"\\?\"))
+        {
+            path = @"\\?\" + path;
+        }
+        var shortNameBuffer = new StringBuilder((int)BUFFER_SIZE);
+        GetShortPathName(path, shortNameBuffer, BUFFER_SIZE);
+        return shortNameBuffer.ToString();
+    }
+
+    // https://www.pinvoke.net/default.aspx/kernel32.getshortpathname
+    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    static extern uint GetShortPathName(
+        [MarshalAs(UnmanagedType.LPTStr)] string lpszLongPath,
+        [MarshalAs(UnmanagedType.LPTStr)]
+        StringBuilder lpszShortPath,
+        uint cchBuffer);
 }
