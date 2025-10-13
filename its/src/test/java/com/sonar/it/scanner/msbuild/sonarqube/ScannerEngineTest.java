@@ -21,6 +21,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
+import com.sonar.it.scanner.msbuild.utils.OperatingSystem;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
@@ -129,7 +131,7 @@ class ScannerEngineTest {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   @ServerMinVersion("2025.1")
-  void javaExe_withCacheDirectory(boolean useSonarScannerCLI) throws ParserConfigurationException, IOException, SAXException {
+  void javaExe_withCacheDirectory(boolean useSonarScannerCLI) {
     var context = AnalysisContext.forServer("Empty");
     var sonarHome = ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath().toString();
     context.begin
@@ -140,8 +142,10 @@ class ScannerEngineTest {
       .execute(ORCHESTRATOR);
     var result = context.runAnalysis();
     assertThat(result.isSuccess()).isTrue();
-    var logs = result.end().getLogsLines(x -> true);
-    assertThat(logs).anyMatch(x -> x.startsWith("Setting the JAVA_HOME for the scanner cli to"));
+    if (OSPlatform.isWindows()) {
+      var logs = result.end().getLogsLines(x -> x.contains("Executing file "));
+      assertThat(logs).singleElement().satisfies(x -> assertThat(x).matches(".*\\\\[A-Z0-9]{6}~\\d\\\\.*")); // Find a DOS shortened directory name like \JUD26D~1\
+    }
   }
 
   private static JreDetails jreDetailsFromSonarQubeAnalysisConfig(AnalysisContext context) throws ParserConfigurationException, IOException, SAXException {
