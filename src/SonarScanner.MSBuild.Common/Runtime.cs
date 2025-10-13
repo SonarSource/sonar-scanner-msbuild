@@ -27,15 +27,23 @@ public class Runtime : IRuntime
     public IFileWrapper File { get; }
     public ILogger Logger { get; }
     public ITelemetry Telemetry { get; }
+    public IDateTime DateTime { get; }
     public AnalysisWarnings AnalysisWarnings { get; }
 
-    public Runtime(OperatingSystemProvider operatingSystem, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, ILogger logger, ITelemetry telemetry, AnalysisWarnings analysisWarnings)
+    public Runtime(OperatingSystemProvider operatingSystem,
+                   IDirectoryWrapper directoryWrapper,
+                   IFileWrapper fileWrapper,
+                   ILogger logger,
+                   ITelemetry telemetry,
+                   IDateTime dateTime,
+                   AnalysisWarnings analysisWarnings)
     {
         OperatingSystem = operatingSystem ?? throw new ArgumentNullException(nameof(operatingSystem));
         Directory = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
         File = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
         Telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
+        DateTime = dateTime ?? throw new ArgumentNullException(nameof(dateTime));
         AnalysisWarnings = analysisWarnings ?? throw new ArgumentNullException(nameof(analysisWarnings));
     }
 
