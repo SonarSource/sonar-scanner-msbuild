@@ -93,9 +93,7 @@ public class FileWrapper : IFileWrapper
 
     // https://www.pinvoke.net/default.aspx/kernel32.getshortpathname
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-#pragma warning disable T0000 // Internal Styling Rule T0000: Don't use Get prefix
     private static extern uint GetShortPathName(
-#pragma warning restore T0000 // Internal Styling Rule T0000
         [MarshalAs(UnmanagedType.LPTStr)] string lpszLongPath,
         [MarshalAs(UnmanagedType.LPTStr)]
         StringBuilder lpszShortPath,

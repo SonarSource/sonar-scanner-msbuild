@@ -39,7 +39,6 @@ public class FileWrapperTests
         content.Should().Be("HelloWorld");
     }
 
-
     [TestMethod]
     public void AppendAllLines_AppendsLinesToFile()
     {
@@ -134,7 +133,6 @@ public class FileWrapperTests
         sut.Move(sourceFile.FileName, destFile.FileName);
         File.Exists(sourceFile.FileName).Should().BeFalse();
         File.ReadAllText(destFile.FileName).Should().Be("MoveMe");
-
     }
 
     [TestMethod]
@@ -183,7 +181,7 @@ public class FileWrapperTests
         content.Should().BeEquivalentTo(lines, x => x.WithStrictOrdering());
 
         FluentActions.Invoking(
-            () => sut.CreateNewAllLines(tempFile.FileName, lines, Encoding.UTF8)).Should().Throw<IOException>().Which.Message.Should().StartWith("The file ").And.EndWith("already exists.");
+            () => sut.CreateNewAllLines(tempFile.FileName, lines, Encoding.UTF8)).Should().Throw<IOException>().WithMessage("The file * already exists.");
     }
 
     [TestMethod]
