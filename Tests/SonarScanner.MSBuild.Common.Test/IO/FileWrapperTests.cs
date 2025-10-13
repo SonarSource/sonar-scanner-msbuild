@@ -207,20 +207,22 @@ public class FileWrapperTests
     [TestMethod]
     [TestCategory(TestCategories.NoMacOS)]
     [TestCategory(TestCategories.NoLinux)]
-    public void ShortName_WithFileNameLongerThanMaxPath_ReturnsShortName()
+    [DataRow("")]
+    [DataRow(@"\\?\")]
+    public void ShortName_WithFileNameLongerThanMaxPath_ReturnsShortName(string extendedPath)
     {
         var sut = FileWrapper.Instance;
         // Windows MAX_PATH is 260, but .NET can handle longer paths with \\?\ prefix.
         var longDirectory = new string('d', 200);
         var longFileName = new string('a', 100) + ".txt";
         var tempDir = Path.GetTempPath();
-        var longPath = @"\\?\" + Path.Combine(tempDir, longDirectory);
+        var longPath = Path.Combine(tempDir, longDirectory);
         Directory.CreateDirectory(longPath);
         var longFile = Path.Combine(longPath, longFileName);
         File.Create(longFile).Dispose(); // Create the file to ensure it exists
         try
         {
-            var shortName = sut.ShortName(PlatformOS.Windows, longFile);
+            var shortName = sut.ShortName(PlatformOS.Windows, extendedPath + longFile);
             shortName.Should().NotBeNull().And.EndWith(@"\AAAAAA~1.TXT");
             shortName.Length.Should().BeLessThan(longFile.Length);
         }
