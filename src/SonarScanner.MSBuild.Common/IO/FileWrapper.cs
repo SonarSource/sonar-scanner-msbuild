@@ -24,7 +24,6 @@ using System.Runtime.InteropServices;
 
 namespace SonarScanner.MSBuild.Common;
 
-[ExcludeFromCodeCoverage]
 public class FileWrapper : IFileWrapper
 {
     public static IFileWrapper Instance { get; } = new FileWrapper();
