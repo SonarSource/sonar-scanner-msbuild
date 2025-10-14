@@ -159,18 +159,20 @@ public class TruststorePropertiesProcessorTests
     public void Update_DefaultPropertyValues()
     {
         var sonarUserHome = Path.Combine("~", ".sonar");
-        var defaultTruststorePath = Path.Combine(Path.GetFullPath(sonarUserHome), SonarPropertiesDefault.TruststorePath);
+        var sonarUserHomeFullPath = Path.Combine(TestUtils.DriveRoot(), sonarUserHome);
+        var defaultTruststorePath = Path.Combine(sonarUserHomeFullPath, SonarPropertiesDefault.TruststorePath);
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.UserHome, sonarUserHome);
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(defaultTruststorePath).Returns(true);
-        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs, fileWrapper));
-        var config = new AnalysisConfig { LocalSettings = [new Property(SonarProperties.UserHome, Path.GetFullPath(sonarUserHome))] };
+        var runtime = new TestRuntime();
+        runtime.Directory.GetFullPath(sonarUserHome).Returns(sonarUserHomeFullPath);
+        runtime.File.Exists(defaultTruststorePath).Returns(true);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs, runtime), runtime);
+        var config = new AnalysisConfig { LocalSettings = [new Property(SonarProperties.UserHome, sonarUserHomeFullPath)] };
 
         processor.Update(config);
 
-        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.UserHome && x.Value == Path.GetFullPath(sonarUserHome));
+        config.LocalSettings.Should().ContainSingle(x => x.Id == SonarProperties.UserHome && x.Value == sonarUserHomeFullPath);
         config.ScannerOptsSettings.Should().ContainSingle()
             .Which.Should().Match<Property>(x => x.Id == "javax.net.ssl.trustStore" && x.Value == $"\"{defaultTruststorePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"");
         config.HasBeginStepCommandLineTruststorePassword.Should().BeFalse();
@@ -472,7 +474,7 @@ public class TruststorePropertiesProcessorTests
             runtime);
     }
 
-    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProvider = null, IFileWrapper fileWrapper = null) =>
+    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProvider = null, TestRuntime runtime = null) =>
         new(
             "valid.key",
             "valid.name",
@@ -483,5 +485,5 @@ public class TruststorePropertiesProcessorTests
             Substitute.For<IAnalysisPropertyProvider>(),
             EmptyPropertyProvider.Instance,
             null,
-            new TestRuntime { File = fileWrapper ?? Substitute.For<IFileWrapper>() });
+            runtime ?? new TestRuntime());
 }
