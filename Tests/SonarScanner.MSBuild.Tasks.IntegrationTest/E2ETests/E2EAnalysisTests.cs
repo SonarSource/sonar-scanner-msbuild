@@ -851,7 +851,7 @@ public class E2EAnalysisTests
             {
                 Console.WriteLine("\t{0}", additionalFile);
             }
-            Assert.Fail("Additional files exist in the project output folder: {0}", folderPath);
+            Assert.Fail($"Additional files exist in the project output folder: {folderPath}");
         }
     }
 

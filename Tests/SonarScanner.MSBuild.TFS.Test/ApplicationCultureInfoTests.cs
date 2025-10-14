@@ -70,12 +70,12 @@ public class ApplicationCultureInfoTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void ApplicationCultureInfoSetAndResetCultureOnFailure()
     {
         var previous = CultureInfo.DefaultThreadCurrentCulture;
         var enUs = CultureInfo.GetCultureInfo("en-US");
         var deDe = CultureInfo.GetCultureInfo("de-DE");
+        var finallyCalled = false;
         CultureInfo.DefaultThreadCurrentCulture = deDe;
         try
         {
@@ -86,10 +86,16 @@ public class ApplicationCultureInfoTests
                 throw new InvalidOperationException();
             }
         }
+        catch (InvalidOperationException)
+        {
+            // Don't fail the test.
+        }
         finally
         {
             CultureInfo.DefaultThreadCurrentCulture.Should().Be(deDe);
             CultureInfo.DefaultThreadCurrentCulture = previous;
+            finallyCalled = true;
         }
+        finallyCalled.Should().BeTrue();
     }
 }
