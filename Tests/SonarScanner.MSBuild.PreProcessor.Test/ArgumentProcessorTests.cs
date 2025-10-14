@@ -949,7 +949,7 @@ public class ArgumentProcessorTests
     [DataRow(@"'C:\sonar'")]
     public void PreArgProc_TruststorePathAndPasswordSonarUserHomePropSet_DefaultValues(string sonarUserHome)
     {
-        var truststorePath = Path.Combine(Path.GetFullPath(sonarUserHome.Trim('\'', '"')), "ssl", "truststore.p12");
+        var truststorePath = Path.Combine(sonarUserHome.Trim('\'', '"'), "ssl", "truststore.p12");
         var runtime = new TestRuntime();
         runtime.File.Exists(Arg.Any<string>()).Returns(true);
         runtime.Directory.GetFullPath(Arg.Any<string>()).Returns(sonarUserHome.Trim('\'', '"'));
