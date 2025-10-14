@@ -30,7 +30,6 @@ import com.sonar.it.scanner.msbuild.utils.SslExceptionMessages;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -318,7 +317,7 @@ class SslTest {
   }
 
   @Test
-  void defaultTruststoreExist_IncorrectPassword() throws IOException {
+  void defaultTruststoreExist_IncorrectPassword() {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("itchange", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
