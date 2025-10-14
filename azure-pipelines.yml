@@ -72,7 +72,7 @@ stages:
             inputs:
               secureFile: 'SonarSourceSecret.snk'
             displayName: 'Download snk'
-            # condition: eq(variables.IS_RELEASE_BRANCH, 'true')
+            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
 
           - task: DownloadSecureFile@1
             # This file is used by the "DigiCert Signing Manager KSP" Key Storage Provider to authenticate against the DigiCert private key provider server.
@@ -138,8 +138,8 @@ stages:
 
           - task: DotNetCoreCLI@2
             env:
-              SignAssembly: ${{ true }} # For testing. TODO revert before merge to master
-            # condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
+              SignAssembly: $(IS_RELEASE_BRANCH)
+            condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
             displayName: 'Build and prepare signing $(SOLUTION)'
             inputs:
               command: 'build'
