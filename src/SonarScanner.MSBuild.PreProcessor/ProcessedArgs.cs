@@ -374,11 +374,8 @@ public class ProcessedArgs
         UserHome = ConvertToFullPath(defaultPath);
         return true;
 
-        static string ConvertToFullPath(string path)
-        {
-            var trimmedPath = path.Trim('"', '\'', '\\');
-            return Path.IsPathRooted(trimmedPath) ? path : Path.GetFullPath(trimmedPath);
-        }
+        string ConvertToFullPath(string path) =>
+            $@"""{runtime.Directory.GetFullPath(path.Trim('"', '\''))}""";
     }
 
     private bool SetTrustStoreProperties()
