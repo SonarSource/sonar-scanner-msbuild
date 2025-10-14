@@ -49,9 +49,10 @@ public class StringExtensionsTests
             .Should().Be("Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D<sensitive data removed>");
 
     [TestMethod]
-    [DataRow(SonarProperties.SonarToken, SonarProperties.SonarPassword)]
-    [DataRow(SonarProperties.SonarPassword, SonarProperties.SonarToken)]
-    public void RedactSensitiveData_MixedSensitiveData(string sensitiveKey1, string sensitiveKey2) =>
+    [CombinatorialData]
+    public void RedactSensitiveData_MixedSensitiveData(
+        [CombinatorialValues(SonarProperties.SonarToken, SonarProperties.SonarPassword)] string sensitiveKey1,
+        [CombinatorialValues(SonarProperties.SonarToken, SonarProperties.SonarPassword)] string sensitiveKey2) =>
         @$"Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D{sensitiveKey1}=""changeit"" -D{sensitiveKey2}=""changeit""".RedactSensitiveData()
             .Should().Be("Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D<sensitive data removed>");
 }

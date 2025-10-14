@@ -46,14 +46,55 @@ public class SonarScannerWrapperTests
         new SonarScannerWrapper(new TestRuntime()).Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, null).Should().BeFalse();
 
     [TestMethod]
-    public void Execute_ReturnTrue()
+    [CombinatorialData]
+    public void Execute_Success_ReturnTrue(PlatformOS os)
     {
-        var testSubject = Substitute.ForPartsOf<SonarScannerWrapper>(new TestRuntime());
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
+        runtime.File.Exists(Arg.Is<string>(x => x == "/SonarScannerCli/sonar-scanner" || x == "/SonarScannerCli/sonar-scanner.bat")).Returns(true);
+        var testSubject = Substitute.ForPartsOf<SonarScannerWrapper>(runtime);
         testSubject
             .Configure()
             .ExecuteJavaRunner(Arg.Any<AnalysisConfig>(), Arg.Any<IAnalysisPropertyProvider>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IProcessRunner>())
             .Returns(true);
-        testSubject.Execute(new AnalysisConfig(), EmptyPropertyProvider.Instance, "some/path").Should().BeTrue();
+        testSubject.Execute(new AnalysisConfig { SonarScannerCliPath = "/SonarScannerCli/sonar-scanner" }, EmptyPropertyProvider.Instance, "some/path").Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void Execute_ScannerCliNotSpecified_ReturnsFalse()
+    {
+        var runtime = new TestRuntime();
+        var testSubject = new SonarScannerWrapper(runtime);
+        testSubject.Execute(new AnalysisConfig { SonarScannerCliPath = null }, EmptyPropertyProvider.Instance, "some/path").Should().BeFalse();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. The path to the SonarScanner CLI wasn't set. "
+            + "Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step.");
+    }
+
+    [TestMethod]
+    public void Execute_ScannerCliNotFound_ReturnsFalse_Windows()
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(PlatformOS.Windows);
+        runtime.File.Exists(@"c:\SonarScannerCli\sonar-scanner.bat").Returns(false);
+        var testSubject = new SonarScannerWrapper(runtime);
+        testSubject.Execute(new AnalysisConfig { SonarScannerCliPath = @"c:\SonarScannerCli\sonar-scanner" }, EmptyPropertyProvider.Instance, "some/path").Should().BeFalse();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + @"The path 'c:\SonarScannerCli\sonar-scanner.bat' to the SonarScanner CLI is invalid. The file does not exists.");
+    }
+
+    [TestMethod]
+    [DataRow(PlatformOS.Linux)]
+    [DataRow(PlatformOS.MacOSX)]
+    [DataRow(PlatformOS.Alpine)]
+    public void Execute_ReturnsFalse_ScannerCliNotFound_Unix(PlatformOS os)
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
+        runtime.File.Exists("/SonarScannerCli/sonar-scanner").Returns(false);
+        var testSubject = new SonarScannerWrapper(runtime);
+        testSubject.Execute(new AnalysisConfig { SonarScannerCliPath = "/SonarScannerCli/sonar-scanner" }, EmptyPropertyProvider.Instance, "some/path").Should().BeFalse();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + "The path '/SonarScannerCli/sonar-scanner' to the SonarScanner CLI is invalid. The file does not exists.");
     }
 
     [TestMethod]
@@ -222,7 +263,7 @@ public class SonarScannerWrapperTests
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    [DataRow(@"C:\Program Files\Java\jdk-17\bin\java.exe", @"C:\Program Files\Java\jdk-17")]
+    [DataRow(@"C:\Program Files\Java\jdk-17\bin\java.exe", @"C:\Program Files\Java\jdk-17#shortened")]
     [DataRow(@"C:\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
@@ -236,15 +277,15 @@ public class SonarScannerWrapperTests
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
              + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\very\long\path\"
-             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path")]
+             + @"very\long\path\very\long\path\very\long\path\very\long\path\very\long\path#shortened")]
     public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Windows(string path, string expected) =>
         SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
     [TestCategory(TestCategories.NoWindows)]
     [TestMethod]
-    [DataRow(@"/usr/bin/java", @"/usr")] // e.g. a symbolic link to /etc/alternatives/java which is a symlink to the actual Java executable /usr/lib/jvm/java-21-openjdk-amd64/bin/java
+    [DataRow(@"/usr/bin/java", @"/usr#shortened")] // e.g. a symbolic link to /etc/alternatives/java which is a symlink to the actual Java executable /usr/lib/jvm/java-21-openjdk-amd64/bin/java
                                          // We assume the symbolic links are already resolved here.
-    [DataRow(@"/usr/lib/jvm/java-21-openjdk-amd64/bin/java", @"/usr/lib/jvm/java-21-openjdk-amd64")]
+    [DataRow(@"/usr/lib/jvm/java-21-openjdk-amd64/bin/java", @"/usr/lib/jvm/java-21-openjdk-amd64#shortened")]
     [DataRow(@"/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
@@ -258,7 +299,7 @@ public class SonarScannerWrapperTests
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
              + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/very/long/path/"
-             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path")]
+             + @"very/long/path/very/long/path/very/long/path/very/long/path/very/long/path#shortened")]
     public void SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet_Unix(string path, string expected) =>
         SonarScanner_WhenJavaExePathIsSet_JavaHomeIsSet(path, expected);
 
@@ -515,28 +556,77 @@ public class SonarScannerWrapperTests
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
-    public void FindScannerExe_ReturnsScannerCliBat_Windows() =>
-        new SonarScannerWrapper(new TestRuntime { OperatingSystem = new(Substitute.For<IFileWrapper>(), new TestLogger()) })
-            .FindScannerExe()
-            .Should()
-            .EndWith(@"\bin\sonar-scanner.bat");
-
-    [TestCategory(TestCategories.NoWindows)]
-    [TestMethod]
-    public void FindScannerExe_ReturnsScannerCliBat_Unix() =>
-        new SonarScannerWrapper(new TestRuntime { OperatingSystem = new(Substitute.For<IFileWrapper>(), new TestLogger()) })
-            .FindScannerExe()
-            .Should()
-            .EndWith(@"/bin/sonar-scanner");
-
-    [TestMethod]
-    public void FindScannerExe_WhenNonWindows_ReturnsNoExtension()
+    public void FindScannerExe_ReturnsScannerCliBat_Windows()
     {
         var runtime = new TestRuntime();
-        runtime.ConfigureOS(PlatformOS.Linux);
-        var scannerCliScriptPath = new SonarScannerWrapper(runtime).FindScannerExe();
+        runtime.ConfigureOS(PlatformOS.Windows);
+        runtime.File.Exists(@"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner.bat").Returns(true);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = @"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner" })
+            .Should()
+            .Be(@"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner.bat");
+    }
 
-        Path.GetExtension(scannerCliScriptPath).Should().BeNullOrEmpty();
+    [TestMethod]
+    [DataRow(PlatformOS.Linux)]
+    [DataRow(PlatformOS.MacOSX)]
+    [DataRow(PlatformOS.Alpine)]
+    public void FindScannerExe_ReturnsScannerCliBat_Unix(PlatformOS os)
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
+        runtime.File.Exists("/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner").Returns(true);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = "/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner" })
+            .Should()
+            .Be("/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner");
+    }
+
+    [TestMethod]
+    [CombinatorialData]
+    public void FindScannerExe_SonarScannerCliPath_NotSet(PlatformOS os)
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = null })
+            .Should()
+            .BeNull();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + "The path to the SonarScanner CLI wasn't set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step.");
+    }
+
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
+    [TestMethod]
+    public void FindScannerExe_SonarScannerCliPath_NotFound_Windows()
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(PlatformOS.Windows);
+        runtime.File.Exists(@"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner.bat").Returns(false);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = @"C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner" })
+            .Should()
+            .BeNull();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + @"The path 'C:\SonarScannerCliCache\sonar-scanner-5.0.2.4997\bin\sonar-scanner.bat' to the SonarScanner CLI is invalid. The file does not exists.");
+    }
+
+    [TestMethod]
+    [DataRow(PlatformOS.Linux)]
+    [DataRow(PlatformOS.MacOSX)]
+    [DataRow(PlatformOS.Alpine)]
+    public void FindScannerExe_SonarScannerCliPath_NotFound_Unix(PlatformOS os)
+    {
+        var runtime = new TestRuntime();
+        runtime.ConfigureOS(os);
+        runtime.File.Exists(@"/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner").Returns(false);
+        new SonarScannerWrapper(runtime)
+            .FindScannerExe(new AnalysisConfig { SonarScannerCliPath = @"/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner" })
+            .Should()
+            .BeNull();
+        runtime.Logger.Should().HaveErrorOnce("The SonarScanner CLI is needed to finish the analysis, but could not be found. "
+            + @"The path '/SonarScannerCliCache/sonar-scanner-5.0.2.4997/bin/sonar-scanner' to the SonarScanner CLI is invalid. The file does not exists.");
     }
 
     private static void TestWrapperErrorHandling(bool executeResult, bool addMessageToStdErr, bool expectedOutcome)
@@ -597,7 +687,13 @@ public class SonarScannerWrapperTests
         {
             using (new AssertIgnoreScope())
             {
-                var result = new SonarScannerWrapper(new TestRuntime { Logger = Logger, OperatingSystem = OsProvider })
+                var runtime = new TestRuntime
+                {
+                    Logger = Logger,
+                    OperatingSystem = OsProvider,
+                };
+                runtime.File.ShortName(Arg.Any<PlatformOS>(), Arg.Any<string>()).Returns(x => $"{x[1]}#shortened");
+                var result = new SonarScannerWrapper(runtime)
                     .ExecuteJavaRunner(Config, UserCmdLineArguments, ExeFileName, PropertiesFileName, Runner);
                 return new(this, result);
             }

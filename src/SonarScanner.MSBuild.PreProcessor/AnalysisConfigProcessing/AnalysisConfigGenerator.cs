@@ -75,7 +75,7 @@ public static class AnalysisConfigGenerator
             LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
-        var processRunner = new ProcessRunner(runtime.Logger);
+        var processRunner = new ProcessRunner(runtime);
         foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, processRunner, runtime))
         {
             processor.Update(config);

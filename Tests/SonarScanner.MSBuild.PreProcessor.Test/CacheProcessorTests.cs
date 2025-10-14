@@ -135,9 +135,10 @@ public class CacheProcessorTests
     }
 
     [TestMethod]
-    [DataRow("", null)]
-    [DataRow(null, "")]
-    public void PullRequestCacheBasePath_EmptyDirectories_IsNull(string sourcesDirectory, string sonarScannerWorkingDirectory)
+    [CombinatorialData]
+    public void PullRequestCacheBasePath_EmptyDirectories_IsNull(
+        [CombinatorialValues("", null)] string sourcesDirectory,
+        [CombinatorialValues("", null)] string sonarScannerWorkingDirectory)
     {
         var buildSettings = Substitute.For<IBuildSettings>();
         buildSettings.SourcesDirectory.Returns(sourcesDirectory);

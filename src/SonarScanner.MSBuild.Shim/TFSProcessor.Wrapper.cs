@@ -68,7 +68,7 @@ public class TfsProcessorWrapper
     private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
     {
         var exeFileName = FindProcessorExe();
-        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, new ProcessRunner(runtime.Logger));
+        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, new ProcessRunner(runtime));
     }
 
     private static string FindProcessorExe()

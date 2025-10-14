@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel;
+using System.Xml.Linq;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
@@ -67,7 +68,7 @@ public class SonarEngineWrapperTest
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
@@ -76,9 +77,26 @@ public class SonarEngineWrapperTest
             $"Using Java found in Analysis Config: {context.ResolvedJavaExe}");
     }
 
-    [DataRow(true)]
-    [DataRow(false)]
     [TestMethod]
+    public void Execute_Success_ConfiguredPathExists_IsShortened()
+    {
+        var context = new Context();
+        context.Runtime.File.ShortName(PlatformOS.Windows, context.ResolvedJavaExe).Returns($"{context.ResolvedJavaExe}_shortened");
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = $"{context.ResolvedJavaExe}_shortened",
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
+            StandardInput = SampleInput,
+        });
+        context.Runtime.Logger.Should().HaveInfos(
+            "The scanner engine has finished successfully",
+            $"Using Java found in Analysis Config: {context.ResolvedJavaExe}");
+    }
+
+    [TestMethod]
+    [CombinatorialData]
     public void FindJavaExe_ConfiguredPath_DoesNotExist(bool isUnix)
     {
         using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.JavaHomeVariableName, null);
@@ -87,7 +105,7 @@ public class SonarEngineWrapperTest
 
         context.Execute().Should().BeTrue();
 
-        context.Runner.SuppliedArguments.ExeName.Should().Be(context.JavaFileName);
+        context.Runner.SuppliedArguments.ExeName.Should().Be($"{context.JavaFileName}#shortened");
         context.Runtime.Logger.Should().HaveInfos(
             $"Could not find Java in Analysis Config: {context.ResolvedJavaExe}",
             "'JAVA_HOME' environment variable not set",
@@ -95,8 +113,7 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
+    [CombinatorialData]
     public void FindJavaExe_JavaHomeSet_Exists(bool isUnix)
     {
         var context = new Context(isUnix);
@@ -107,7 +124,7 @@ public class SonarEngineWrapperTest
 
         context.Execute().Should().BeTrue();
 
-        context.Runner.SuppliedArguments.ExeName.Should().Be(context.JavaHomeExePath);
+        context.Runner.SuppliedArguments.ExeName.Should().Be($"{context.JavaHomeExePath}#shortened");
         context.Runtime.Logger.Should().HaveInfos(
             $"Could not find Java in Analysis Config: {context.ResolvedJavaExe}",
             $"Found 'JAVA_HOME': {context.JavaHome}",
@@ -125,7 +142,7 @@ public class SonarEngineWrapperTest
 
         context.Execute().Should().BeTrue();
 
-        context.Runner.SuppliedArguments.ExeName.Should().Be(context.JavaFileName);
+        context.Runner.SuppliedArguments.ExeName.Should().Be($"{context.JavaFileName}#shortened");
         context.Runtime.Logger.Should().HaveInfos(
             $"Could not find Java in Analysis Config: {context.ResolvedJavaExe}",
             $"Found 'JAVA_HOME': {context.JavaHome}",
@@ -143,7 +160,7 @@ public class SonarEngineWrapperTest
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=Env", true), new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
@@ -164,7 +181,7 @@ public class SonarEngineWrapperTest
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=Config", true), new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
@@ -185,7 +202,7 @@ public class SonarEngineWrapperTest
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
             WorkingDirectory = @"C:\MyWorkingDir",
@@ -209,8 +226,7 @@ public class SonarEngineWrapperTest
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
-
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[]
             {
                 new("-DJavaParam=Env", true),
@@ -242,7 +258,7 @@ public class SonarEngineWrapperTest
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[]
             {
                 new("-DJavaParam=Env -DJavaOtherParam=Value -DSomeOtherParam=AnotherValue", true),
@@ -318,7 +334,7 @@ public class SonarEngineWrapperTest
         context.Execute(null, userCmdLineArgs).Should().BeTrue();
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
@@ -334,7 +350,7 @@ public class SonarEngineWrapperTest
         context.Execute().Should().BeTrue();
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
@@ -353,7 +369,7 @@ public class SonarEngineWrapperTest
         context.Execute(null, userCmdLineArgs).Should().BeTrue();
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[]
             {
                 new("-Djavax.net.ssl.trustStorePassword=\"EnvPassword\"", true),
@@ -374,7 +390,7 @@ public class SonarEngineWrapperTest
         context.Execute(null, userCmdLineArgs).Should().BeTrue();
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
-            ExeName = context.ResolvedJavaExe,
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
             CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-Djavax.net.ssl.trustStorePassword=Password", true), new("-jar"), new("engine.jar") },
             StandardInput = SampleInput,
         });
@@ -397,6 +413,7 @@ public class SonarEngineWrapperTest
             Runtime.OperatingSystem.OperatingSystem().Returns(isUnix ? PlatformOS.Linux : PlatformOS.Windows);
             Engine = new SonarEngineWrapper(Runtime, Runner);
             Runtime.File.Exists(ResolvedJavaExe).Returns(true);
+            Runtime.File.ShortName(Arg.Any<PlatformOS>(), Arg.Any<string>()).Returns(x => $"{x[1]}#shortened");
         }
 
         public bool Execute(AnalysisConfig analysisConfig = null, IAnalysisPropertyProvider userCmdLineArgs = null) =>

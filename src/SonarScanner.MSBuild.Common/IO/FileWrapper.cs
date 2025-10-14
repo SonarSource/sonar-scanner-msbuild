@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
+using System.Runtime.InteropServices;
 
 namespace SonarScanner.MSBuild.Common;
 
-[ExcludeFromCodeCoverage]
 public class FileWrapper : IFileWrapper
 {
     public static IFileWrapper Instance { get; } = new FileWrapper();
@@ -69,4 +67,47 @@ public class FileWrapper : IFileWrapper
             streamWriter.WriteLine(line);
         }
     }
+
+    public string ShortName(PlatformOS os, string path)
+    {
+        const int maxPath = 260;
+        const uint bufferSize = 256;
+        const string ExtendedPathLengthSpecifier = @"\\?\"; // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+
+        if (path.Length < maxPath || os is not PlatformOS.Windows)
+        {
+            return path;
+        }
+        var longPath = path.StartsWith(ExtendedPathLengthSpecifier)
+            ? path
+            : ExtendedPathLengthSpecifier + path;
+        longPath = longPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar); // Windows API does not like forward slashes
+        var shortNameBuffer = new StringBuilder((int)bufferSize);
+        try
+        {
+            var shortNameLength = GetShortPathName(longPath, shortNameBuffer, bufferSize);
+            if (shortNameLength != shortNameBuffer.Length || shortNameLength == 0) // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getshortpathnamew#return-value
+            {
+                return path;
+            }
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or BadImageFormatException) // Any of these can happen if the DllImport fails at runtime
+        {
+            return path;
+        }
+        var shortPath = shortNameBuffer.ToString();
+        shortPath = shortPath.StartsWith(ExtendedPathLengthSpecifier)
+            ? shortPath.Substring(ExtendedPathLengthSpecifier.Length)
+            : shortPath;
+        return shortPath;
+    }
+
+    // https://www.pinvoke.net/default.aspx/kernel32.getshortpathname
+    // https://github.com/terrafx/terrafx.interop.windows/blob/61ac1e963e14aa75e224dfa7554e01525ab65e74/sources/Interop/Windows/Windows/um/fileapi/Windows.cs#L281-L284
+    [DllImport("KERNEL32.dll", ExactSpelling = true, EntryPoint = "GetShortPathNameW", SetLastError = true, CharSet = CharSet.Unicode)]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    private static extern uint GetShortPathName(
+        [MarshalAs(UnmanagedType.LPTStr)] string lpszLongPath,
+        [MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpszShortPath,
+        uint cchBuffer);
 }

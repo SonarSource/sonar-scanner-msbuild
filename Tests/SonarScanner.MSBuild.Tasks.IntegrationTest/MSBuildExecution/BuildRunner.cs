@@ -55,7 +55,16 @@ public static class BuildRunner
         {
             CmdLineArgs = msbuildArgs.Select(x => new ProcessRunnerArguments.Argument(x)).ToArray()
         };
-        var runner = new ProcessRunner(new ConsoleLogger(true));
+        var logger = new ConsoleLogger(true);
+        var runtime = new Runtime(
+            new OperatingSystemProvider(FileWrapper.Instance, logger),
+            DirectoryWrapper.Instance,
+            FileWrapper.Instance,
+            logger,
+            new Telemetry(FileWrapper.Instance, logger),
+            new DateTimeWrapper(),
+            new AnalysisWarnings(FileWrapper.Instance, logger));
+        var runner = new ProcessRunner(runtime);
         var success = runner.Execute(args);
 
         File.Exists(binaryLogPath).Should().BeTrue();
