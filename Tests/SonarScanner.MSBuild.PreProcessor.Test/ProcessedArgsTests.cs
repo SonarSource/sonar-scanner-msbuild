@@ -397,7 +397,7 @@ public class ProcessedArgsTests
         runtime.Directory.Exists(path).Returns(true);
         runtime.Directory.GetFullPath(path).Returns(path);
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, path)]));
-        sut.UserHome.Should().Be("\"" + path + "\"");
+        sut.UserHome.Should().Be(path);
         sut.IsValid.Should().BeTrue();
         runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
@@ -410,9 +410,9 @@ public class ProcessedArgsTests
         runtime.Directory.Exists(path).Returns(false);
         runtime.Directory.GetFullPath(path).Returns(path);
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, path)]));
-        sut.UserHome.Should().Be("\"" + path + "\"");
+        sut.UserHome.Should().Be(path);
         sut.IsValid.Should().BeTrue();
-        runtime.Logger.Should().HaveDebugs(@$"Created the sonar.userHome directory at '""{path}""'.")
+        runtime.Logger.Should().HaveDebugs(@$"Created the sonar.userHome directory at '{path}'.")
             .And.HaveNoErrors()
             .And.HaveNoWarnings();
     }
@@ -439,7 +439,7 @@ public class ProcessedArgsTests
         runtime.Directory.Exists(sonarPath).Returns(true);
         runtime.Directory.GetFullPath(sonarPath).Returns(sonarPath);
         var sut = CreateDefaultArgs();
-        sut.UserHome.Should().Be("\"" + sonarPath + "\"");
+        sut.UserHome.Should().Be(sonarPath);
         sut.IsValid.Should().BeTrue();
         runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
@@ -454,7 +454,7 @@ public class ProcessedArgsTests
         runtime.Directory.Exists(sonarPath).Returns(false);
         runtime.Directory.GetFullPath(sonarPath).Returns(sonarPath);
         var sut = CreateDefaultArgs();
-        sut.UserHome.Should().Be("\"" + sonarPath + "\"");
+        sut.UserHome.Should().Be(sonarPath);
         sut.IsValid.Should().BeTrue();
         runtime.Directory.Received().CreateDirectory(sonarPath);
         runtime.Logger.Should().HaveNoErrors()

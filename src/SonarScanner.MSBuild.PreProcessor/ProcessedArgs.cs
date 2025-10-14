@@ -375,7 +375,7 @@ public class ProcessedArgs
         return true;
 
         string ConvertToFullPath(string path) =>
-            $@"""{runtime.Directory.GetFullPath(path.Trim('"', '\''))}""";
+            $@"{runtime.Directory.GetFullPath(path.Trim('"', '\''))}";
     }
 
     private bool SetTrustStoreProperties()
