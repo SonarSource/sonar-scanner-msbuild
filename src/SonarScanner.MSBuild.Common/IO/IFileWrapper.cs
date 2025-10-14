@@ -43,4 +43,6 @@ public interface IFileWrapper
     void AppendAllLines(string file, IEnumerable<string> enumerable, Encoding encoding);
 
     void CreateNewAllLines(string file, IEnumerable<string> enumerable, Encoding encoding);
+
+    string ShortName(PlatformOS os, string path);
 }

@@ -165,9 +165,7 @@ public class PostProcessorTests
             Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)),
             Arg.Any<string>());
 
-        runtime.File.Received().WriteAllText(
-            Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json"),
-            $$"""
+        var expectedScannerEngineInput = $$"""
             {
               "scannerProperties": [
                 {
@@ -184,8 +182,10 @@ public class PostProcessorTests
                 }
               ]
             }
-            """
-                .ToEnvironmentLineEndings());
+            """;
+        runtime.File.Received().WriteAllText(Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json"), expectedScannerEngineInput.ToEnvironmentLineEndings());
+        runtime.Logger.Should().HaveDebugs($"Writing Scanner Engine Input to {Path.Combine(config.SonarOutputDir, "ScannerEngineInput.json")}");
+        runtime.Logger.Should().HaveDebugs(expectedScannerEngineInput);
         runtime.Logger.Should().HaveNoErrors();
         VerifyTargetsUninstaller();
     }
@@ -497,9 +497,12 @@ public class PostProcessorTests
             withProject ? scannerEngineInput : null,
             withProject ? Path.Combine(testDir, "sonar-project.properties") : null)
         { RanToCompletion = true };
-        scannerEngineInputGenerator.GenerateResult().Returns(analysisResult);
+        var startTime = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        runtime.DateTime.OffsetNow.Returns(startTime);
+        scannerEngineInputGenerator.GenerateResult(startTime).Returns(analysisResult); // make sure runtime.DateTime.OffsetNow is used for startTime
         sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
+        _ = runtime.DateTime.Received(1).OffsetNow;
         return success;
     }
 

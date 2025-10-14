@@ -45,7 +45,7 @@ public class SonarQubeWebServerTest
     [DataRow("7.9.0.5545")]
     [DataRow("8.0.0.18670")]
     [DataRow("8.8.9.999")]
-    public void IsServerVersionSupported_LessThan89_LogError(string sqVersion)
+    public void IsServerVersionSupported_FailHard_LogError(string sqVersion)
     {
         var context = new Context(sqVersion);
         context.Server.IsServerVersionSupported().Should().BeFalse();
@@ -56,18 +56,22 @@ public class SonarQubeWebServerTest
     [DataRow("8.9.0.0")]
     [DataRow("9.0.0.1121")]
     [DataRow("9.8.9.999")]
-    public void IsServerVersionSupported_Between89And99_LogWarning(string sqVersion)
+    [DataRow("9.9.0.0")]
+    [DataRow("10.15.0.1121")]
+    [DataRow("24.12.0.100206")]
+    [DataRow("2025.0.0.111222")] // There isn't any real release with the new versioning scheme that is out of support yet 2025.0 is a fake version.
+    public void IsServerVersionSupported_OutOfSupport_LogWarning(string sqVersion)
     {
         var context = new Context(sqVersion);
         context.Server.IsServerVersionSupported().Should().BeTrue();
-        context.Runtime.AnalysisWarnings.Should().HaveMessage("Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.");
+        context.Runtime.AnalysisWarnings.Should().HaveMessage("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
         context.Runtime.Logger.Should().HaveNoErrors();
     }
 
     [TestMethod]
-    [DataRow("9.9.0.0")]
-    [DataRow("10.15.0.1121")]
-    public void IsServerVersionSupported_EqualOrGreaterThan99_NoLogs(string sqVersion)
+    [DataRow("25.1.0.102122")]
+    [DataRow("2025.1.0.102418")]
+    public void IsServerVersionSupported_Supported_NoLogs(string sqVersion)
     {
         var context = new Context(sqVersion);
         context.Server.IsServerVersionSupported().Should().BeTrue();

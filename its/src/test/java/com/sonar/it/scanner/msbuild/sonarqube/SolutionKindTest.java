@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.orchestrator.version.Version;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -196,15 +197,22 @@ class SolutionKindTest {
   private void assertUIWarnings(AnalysisResult result) {
     // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
     // So it's available from SQ 9.9 onwards
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
+    var version = ORCHESTRATOR.getServer().version();
+    if (version.isGreaterThanOrEquals(9, 9)) {
       var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, result.end());
       assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-      assertThat(warnings.getWarningsList()).isEmpty();
+      if (version.getMajor() == 9) {
+        assertThat(warnings.getWarningsList())
+          .singleElement()
+          .isEqualTo("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
+      } else {
+        assertThat(warnings.getWarningsList()).isEmpty();
+      }
     }
   }
 
   private void assertProjectFileContains(AnalysisContext context, String textToLookFor) {
-    Path csProjPath = context.projectDir.resolve(Paths.get("RazorWebApplication","RazorWebApplication.csproj"));
+    Path csProjPath = context.projectDir.resolve(Paths.get("RazorWebApplication", "RazorWebApplication.csproj"));
     try {
       String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
       assertThat(str.indexOf(textToLookFor)).isPositive();

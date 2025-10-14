@@ -21,6 +21,7 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
@@ -123,6 +124,26 @@ class ScannerEngineTest {
       assertThat(TestUtils.scannerEngineInputJson(context))
         .hasAllSecretsRedacted()
         .containsKey("sonar.token");
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  @ServerMinVersion("2025.1")
+  void javaExe_withCacheDirectory(boolean useSonarScannerCLI) {
+    var context = AnalysisContext.forServer("Empty");
+    var sonarHome = ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath().toString();
+    context.begin
+      .setProperty("sonar.userHome", sonarHome) // set the download directory for scanner-cli and JRE
+      .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
+      .setProperty("sonar.scanner.skipJreProvisioning", "false")
+      .setDebugLogs()
+      .execute(ORCHESTRATOR);
+    var result = context.runAnalysis();
+    assertThat(result.isSuccess()).isTrue();
+    if (OSPlatform.isWindows()) {
+      var logs = result.end().getLogsLines(x -> x.contains("Executing file "));
+      assertThat(logs).singleElement().satisfies(x -> assertThat(x).matches(".*\\\\[A-Z0-9]{6}~\\d\\\\.*")); // Find a DOS shortened directory name like \JUD26D~1\
     }
   }
 

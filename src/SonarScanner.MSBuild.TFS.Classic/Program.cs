@@ -35,6 +35,7 @@ public static class Program
             FileWrapper.Instance,
             logger,
             new Telemetry(FileWrapper.Instance, logger),
+            new DateTimeWrapper(),
             new AnalysisWarnings(FileWrapper.Instance, logger));
         return Execute(args, runtime);
     }
