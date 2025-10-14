@@ -57,6 +57,7 @@ public sealed class ProcessRunner : IProcessRunner
 
         var psi = new ProcessStartInfo
         {
+            // ShortName avoids long path issues: https://github.com/dotnet/runtime/issues/58492#issue-984992485
             FileName = runtime.File.ShortName(runtime.OperatingSystem.OperatingSystem(), runnerArgs.ExeName),
             RedirectStandardError = true,
             RedirectStandardOutput = true,

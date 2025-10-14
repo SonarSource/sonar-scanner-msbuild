@@ -73,35 +73,33 @@ public class FileWrapper : IFileWrapper
         const int maxPath = 260;
         const uint bufferSize = 256;
         const string ExtendedPathLengthSpecifier = @"\\?\"; // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+
         if (path.Length < maxPath || os is not PlatformOS.Windows)
         {
             return path;
         }
-        var longPath = path;
-        if (!longPath.StartsWith(ExtendedPathLengthSpecifier))
-        {
-            longPath = ExtendedPathLengthSpecifier + longPath;
-        }
+        var longPath = path.StartsWith(ExtendedPathLengthSpecifier)
+            ? path
+            : ExtendedPathLengthSpecifier + path;
         longPath = longPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar); // Windows API does not like forward slashes
         var shortNameBuffer = new StringBuilder((int)bufferSize);
-        uint shortNameLength;
         try
         {
-            shortNameLength = GetShortPathName(longPath, shortNameBuffer, bufferSize);
+            var shortNameLength = GetShortPathName(longPath, shortNameBuffer, bufferSize);
+            if (shortNameLength != shortNameBuffer.Length || shortNameLength == 0) // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getshortpathnamew#return-value
+            {
+                return path;
+            }
         }
-        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or BadImageFormatException)
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or BadImageFormatException) // Any of these can happen if the DllImport fails at runtime
         {
             return path;
         }
-        if (shortNameLength != shortNameBuffer.Length || shortNameLength == 0) // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getshortpathnamew#return-value
-        {
-            return path;
-        }
-        var result = shortNameBuffer.ToString();
-        result = result.StartsWith(ExtendedPathLengthSpecifier)
-            ? result.Substring(ExtendedPathLengthSpecifier.Length)
-            : result;
-        return result;
+        var shortPath = shortNameBuffer.ToString();
+        shortPath = shortPath.StartsWith(ExtendedPathLengthSpecifier)
+            ? shortPath.Substring(ExtendedPathLengthSpecifier.Length)
+            : shortPath;
+        return shortPath;
     }
 
     // https://www.pinvoke.net/default.aspx/kernel32.getshortpathname
