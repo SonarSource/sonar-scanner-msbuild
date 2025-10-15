@@ -328,11 +328,14 @@ public class AnalysisConfigGeneratorTests
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider([new Property(SonarProperties.JavaExePath, setByUser)]);
         var runtime = new TestRuntime();
+        runtime.Directory.GetFullPath(setByUser).Returns(setByUser is null ? setByUser : Path.Combine(TestUtils.DriveRoot(), setByUser));
+        runtime.Directory.GetFullPath(resolved).Returns(resolved is null ? resolved : Path.Combine(TestUtils.DriveRoot(), resolved));
+
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, runtime);
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", resolved, null, null, runtime);
 
-        config.JavaExePath.Should().Be(expected);
+        config.JavaExePath.Should().Be(Path.Combine(TestUtils.DriveRoot(), expected));
     }
 
     [TestMethod]
@@ -348,21 +351,24 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var runtime = new TestRuntime();
+        runtime.Directory.GetFullPath(setByUser).Returns(setByUser is null ? setByUser : Path.Combine(TestUtils.DriveRoot(), setByUser));
+        runtime.Directory.GetFullPath(resolved).Returns(resolved is null ? resolved : Path.Combine(TestUtils.DriveRoot(), resolved));
         var args = CreateProcessedArgs(new ListPropertiesProvider([new Property(SonarProperties.EngineJarPath, setByUser)]), EmptyPropertyProvider.Instance, runtime);
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", null, resolved, null, runtime);
 
-        config.EngineJarPath.Should().Be(expected);
+        config.EngineJarPath.Should().Be(Path.Combine(TestUtils.DriveRoot(), expected));
     }
 
     [TestMethod]
     public void GenerateFile_ScannerCliPath()
     {
         var settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-
-        AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(), settings, [], EmptyProperties, [], "1.2.3.4", null, null, "sonar-scanner", new TestRuntime())
+        var runtime = new TestRuntime();
+        runtime.Directory.GetFullPath("sonar-scanner").Returns(Path.Combine(TestUtils.DriveRoot(), "sonar-scanner"));
+        AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(), settings, [], EmptyProperties, [], "1.2.3.4", null, null, "sonar-scanner", runtime)
             .SonarScannerCliPath
-            .Should().Be("sonar-scanner");
+            .Should().Be(Path.Combine(TestUtils.DriveRoot(), "sonar-scanner"));
     }
 
     [TestMethod]
