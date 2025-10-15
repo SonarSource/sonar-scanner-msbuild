@@ -62,7 +62,7 @@ public class TruststorePropertiesProcessor : AnalysisConfigProcessorBase
         // When passing paths between begin and end step, they must be absolute paths
         if (!string.IsNullOrWhiteSpace(truststorePath))
         {
-            truststorePath = Path.GetFullPath(truststorePath.Trim('"', '\''));
+            truststorePath = runtime.Directory.GetFullPath(truststorePath.Trim('"', '\''));
         }
         MapProperty(config, SonarProperties.JavaxNetSslTrustStore, truststorePath, ConvertToJavaPath, EnsureSurroundedByQuotes);
         config.LocalSettings.RemoveAll(x => x.Id is SonarProperties.TruststorePath or SonarProperties.TruststorePassword);
