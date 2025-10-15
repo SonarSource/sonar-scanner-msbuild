@@ -152,6 +152,7 @@ class ScannerEngineTest {
 
   @ParameterizedTest
   @MethodSource("parameterizedArgumentsForAbsolutePath")
+  @ServerMinVersion("2025.1")
   void scannerEngineJarPath_PassedAsAbsolute(String argument, String value, String element) throws ParserConfigurationException, IOException, SAXException {
     var context = AnalysisContext.forServer("Empty");
     context.begin
@@ -161,11 +162,10 @@ class ScannerEngineTest {
 
     context.begin.execute(ORCHESTRATOR);
 
-    var pathInConfig = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+    assertThat(DocumentBuilderFactory.newInstance().newDocumentBuilder()
       .parse(context.projectDir.resolve(".sonarqube").resolve("conf").resolve("SonarQubeAnalysisConfig.xml").toFile())
-      .getDocumentElement().getElementsByTagName(element).item(0).getTextContent();
-
-    assertThat(pathInConfig).startsWithIgnoringCase(context.projectDir.toAbsolutePath().toString());
+      .getDocumentElement().getElementsByTagName(element).item(0).getTextContent())
+      .startsWithIgnoringCase(context.projectDir.toAbsolutePath().toString());
   }
 
   private static Stream<Arguments> parameterizedArgumentsForAbsolutePath() {
