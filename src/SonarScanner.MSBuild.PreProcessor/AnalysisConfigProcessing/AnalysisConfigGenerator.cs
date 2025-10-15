@@ -61,10 +61,10 @@ public static class AnalysisConfigGenerator
             SourcesDirectory = buildSettings.SourcesDirectory,
             // When passing paths between begin and end step, they must be absolute paths
             // the user-specified JRE overrides the resolved value
-            JavaExePath = runtime.Directory.GetFullPath(string.IsNullOrWhiteSpace(localSettings.JavaExePath) ? resolvedJavaExePath : localSettings.JavaExePath),
+            JavaExePath = string.IsNullOrWhiteSpace(localSettings.JavaExePath) ? resolvedJavaExePath : localSettings.JavaExePath,
             // the user-specified engine.jar overrides the resolved value
-            EngineJarPath = runtime.Directory.GetFullPath(string.IsNullOrWhiteSpace(localSettings.EngineJarPath) ? resolvedEngineJarPath : localSettings.EngineJarPath),
-            SonarScannerCliPath = runtime.Directory.GetFullPath(resolvedScannerCliPath),
+            EngineJarPath = string.IsNullOrWhiteSpace(localSettings.EngineJarPath) ? resolvedEngineJarPath : localSettings.EngineJarPath,
+            SonarScannerCliPath = resolvedScannerCliPath,
             ScanAllAnalysis = localSettings.ScanAllAnalysis,
             UseSonarScannerCli = localSettings.UseSonarScannerCli,
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
@@ -78,6 +78,20 @@ public static class AnalysisConfigGenerator
             LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
+
+        if (!string.IsNullOrWhiteSpace(config.JavaExePath))
+        {
+            config.JavaExePath = runtime.Directory.GetFullPath(config.JavaExePath);
+        }
+        if (!string.IsNullOrWhiteSpace(config.EngineJarPath))
+        {
+            config.EngineJarPath = runtime.Directory.GetFullPath(config.EngineJarPath);
+        }
+        if (!string.IsNullOrWhiteSpace(config.SonarScannerCliPath))
+        {
+            config.SonarScannerCliPath = runtime.Directory.GetFullPath(config.SonarScannerCliPath);
+        }
+
         var processRunner = new ProcessRunner(runtime);
         foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, processRunner, runtime))
         {
