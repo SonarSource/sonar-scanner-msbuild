@@ -330,14 +330,13 @@ public class ProcessedArgs
         return true;
     }
 
-    // UserHome needs to be a full path so begin and end step can call it from different directories
     private bool SetUserHome()
     {
         if (AggregateProperties.TryGetProperty(SonarProperties.UserHome, out var userHomeProp))
         {
             if (runtime.Directory.Exists(userHomeProp.Value))
             {
-                UserHome = ConvertToFullPath(userHomeProp.Value);
+                UserHome = userHomeProp.Value;
                 return true;
             }
             else
@@ -345,7 +344,7 @@ public class ProcessedArgs
                 try
                 {
                     runtime.Directory.CreateDirectory(userHomeProp.Value);
-                    UserHome = ConvertToFullPath(userHomeProp.Value);
+                    UserHome = userHomeProp.Value;
                     runtime.LogDebug(Resources.MSG_UserHomeDirectoryCreated, UserHome);
                     return true;
                 }
@@ -371,11 +370,8 @@ public class ProcessedArgs
                 return true;
             }
         }
-        UserHome = ConvertToFullPath(defaultPath);
+        UserHome = defaultPath;
         return true;
-
-        string ConvertToFullPath(string path) =>
-            $@"{runtime.Directory.GetFullPath(path.Trim('"', '\''))}";
     }
 
     private bool SetTrustStoreProperties()
