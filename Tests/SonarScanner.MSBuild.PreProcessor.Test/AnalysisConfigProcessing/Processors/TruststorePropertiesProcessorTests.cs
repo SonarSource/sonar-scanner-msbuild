@@ -159,7 +159,7 @@ public class TruststorePropertiesProcessorTests
     public void Update_DefaultPropertyValues()
     {
         var sonarUserHome = Path.Combine("~", ".sonar");
-        var sonarUserHomeFullPath = Path.Combine(TestUtils.DriveRoot(), sonarUserHome);
+        var sonarUserHomeFullPath = Path.Combine(TestUtils.DriveRoot(), "Users", "User", ".sonar");
         var defaultTruststorePath = Path.Combine(sonarUserHomeFullPath, SonarPropertiesDefault.TruststorePath);
         var cmdLineArgs = new ListPropertiesProvider();
         cmdLineArgs.AddProperty(SonarProperties.UserHome, sonarUserHome);

@@ -395,7 +395,6 @@ public class ProcessedArgsTests
     {
         var path = Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar");
         runtime.Directory.Exists(path).Returns(true);
-        runtime.Directory.GetFullPath(path).Returns(path);
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, path)]));
         sut.UserHome.Should().Be(path);
         sut.IsValid.Should().BeTrue();
@@ -408,7 +407,6 @@ public class ProcessedArgsTests
     {
         var path = Path.Combine(TestUtils.DriveRoot(), "Users", "user", ".sonar");
         runtime.Directory.Exists(path).Returns(false);
-        runtime.Directory.GetFullPath(path).Returns(path);
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.UserHome, path)]));
         sut.UserHome.Should().Be(path);
         sut.IsValid.Should().BeTrue();
@@ -437,7 +435,6 @@ public class ProcessedArgsTests
         var sonarPath = Path.Combine(userPath, ".sonar");
         runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(userPath);
         runtime.Directory.Exists(sonarPath).Returns(true);
-        runtime.Directory.GetFullPath(sonarPath).Returns(sonarPath);
         var sut = CreateDefaultArgs();
         sut.UserHome.Should().Be(sonarPath);
         sut.IsValid.Should().BeTrue();
@@ -452,7 +449,6 @@ public class ProcessedArgsTests
         var sonarPath = Path.Combine(userPath, ".sonar");
         runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None).Returns(userPath);
         runtime.Directory.Exists(sonarPath).Returns(false);
-        runtime.Directory.GetFullPath(sonarPath).Returns(sonarPath);
         var sut = CreateDefaultArgs();
         sut.UserHome.Should().Be(sonarPath);
         sut.IsValid.Should().BeTrue();
