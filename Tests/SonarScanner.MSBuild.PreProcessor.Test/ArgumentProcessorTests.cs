@@ -681,9 +681,8 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PreArgProc_UserHome_NotSet()
     {
-        var defaultUserHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar");
         var runtime = new TestRuntime { OperatingSystem = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()) };
-        CheckProcessingSucceeds(runtime, "/k:key").UserHome.Should().Be(defaultUserHome);
+        CheckProcessingSucceeds(runtime, "/k:key").UserHome.Should().Be(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar"));
     }
 
     [TestMethod]
@@ -709,70 +708,31 @@ public class ArgumentProcessorTests
     }
 
     [TestMethod]
-    [DataRow(@"""{0}Path With\Spaces")]
-    [DataRow(@"""{0}Users\Some Name""")]
-    [DataRow(@"{0}Users\Some Name")]
-    [DataRow(@"\\?\c:\longpath\file.txt")]
-    [DataRow(@"\\server\share\file.txt")]
-    public void PreArgProc_UserHome_Set_DirectoryExists_FullPath(string path)
+    [DataRow("Test")]
+    [DataRow(@"""Test""")]
+    [DataRow("'Test'")]
+    [DataRow(@"C:\Users\Some Name")]
+    [DataRow(@"""C:\Users\Some Name""")]
+    public void PreArgProc_UserHome_Set_DirectoryExists(string path)
     {
-        path = string.Format(path, TestUtils.DriveRoot());
-        var trimmedPath = path.Trim('"', '\'');
         var runtime = new TestRuntime();
         runtime.Directory.Exists(path).Returns(true);
-        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(trimmedPath);
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(path);
     }
 
     [TestMethod]
     [DataRow("Test")]
-    [DataRow("./some/relative/path")]
-    [DataRow(".././some/relative/path")]
-    [DataRow(@"\Documents")]
-    [DataRow("c:file.txt")]
-    [DataRow(@"""../some relative/path""")]
     [DataRow(@"""Test""")]
     [DataRow("'Test'")]
-    // In the bootstrapper we set the CurrentDirectory to 'CurrentDirectory\.sonarqube', to maintain compatibility with the end step we save relative paths as fully qualified paths.
-    // https://github.com/SonarSource/sonar-scanner-msbuild/blob/cbe5a7339447fc4b349d55033e3b0a7967b5adbe/src/SonarScanner.MSBuild/BootstrapperClass.cs?plain=1#L102C1-L102C72
-    public void PreArgProc_UserHome_Set_DirectoryExists_RelativePath(string path)
+    [DataRow(@"C:\Users\Some Name")]
+    [DataRow(@"""C:\Users\Some Name""")]
+    public void PreArgProc_UserHome_Set_DirectoryExistsNot_CanBeCreated(string path)
     {
-        var trimmedPath = path.Trim('"', '\'');
-        var runtime = new TestRuntime();
-        runtime.Directory.Exists(path).Returns(true);
-        runtime.Directory.GetFullPath(trimmedPath).Returns("/Fully/Qualified/" + trimmedPath);
-        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be("/Fully/Qualified/" + trimmedPath);
-    }
-
-    [TestMethod]
-    [DataRow(@"{0}Path With\Spaces")]
-    [DataRow(@"{0}Users\Some Name")]
-    [DataRow(@"""{0}Users\Some Name""")]
-    public void PreArgProc_UserHome_FullPathSet_DirectoryExistsNot_CanBeCreated(string path)
-    {
-        path = string.Format(path, TestUtils.DriveRoot());
-        var trimmedPath = path.Trim('"', '\'');
         var runtime = new TestRuntime();
         runtime.Directory.Exists(path).Returns(false);
         CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}");
         runtime.Directory.Received(1).CreateDirectory(path);
-        runtime.Logger.Should().HaveDebugs(@$"Created the sonar.userHome directory at '{trimmedPath}'.");
-    }
-
-    [TestMethod]
-    [DataRow(@"""Test""")]
-    [DataRow("'Test'")]
-    [DataRow(@"""../some relative/path""")]
-    [DataRow("Test")]
-    [DataRow("./some/relative/path")]
-    public void PreArgProc_UserHome_RelativePathSet_DirectoryExistsNot_CanBeCreated(string path)
-    {
-        var trimmedPath = path.Trim('"', '\'');
-        var runtime = new TestRuntime();
-        runtime.Directory.Exists(path).Returns(false);
-        runtime.Directory.GetFullPath(trimmedPath).Returns("/Absolute/Path/" + trimmedPath);
-        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}");
-        runtime.Directory.Received(1).CreateDirectory(path);
-        runtime.Logger.Should().HaveDebugs(@$"Created the sonar.userHome directory at '/Absolute/Path/{trimmedPath}'.");
+        runtime.Logger.Should().HaveDebugs($"Created the sonar.userHome directory at '{path}'.");
     }
 
     [TestMethod]
@@ -848,6 +808,7 @@ public class ArgumentProcessorTests
         var runtime = new TestRuntime();
         runtime.File.Exists(Arg.Any<string>()).Returns(true);
         runtime.File.Open(Arg.Any<string>()).Returns(new MemoryStream());
+
         var result = CheckProcessingSucceeds(runtime, "/k:key");
         runtime.Logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
         runtime.Logger.DebugMessages.Should().ContainMatch($"Fall back on using the truststore from the default location at *{truststorePath}.");
@@ -874,6 +835,7 @@ public class ArgumentProcessorTests
         var runtime = new TestRuntime();
         runtime.File.Exists(Arg.Any<string>()).Returns(true);
         runtime.File.Open(Arg.Any<string>()).Throws(new IOException());
+
         var result = CheckProcessingSucceeds(runtime, "/k:key", "/d:sonar.scanner.truststorePassword=changeit");
         runtime.Logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
         runtime.Logger.DebugMessages.Should().ContainMatch("No truststore found at the default location; proceeding without a truststore.");
@@ -945,7 +907,6 @@ public class ArgumentProcessorTests
         var truststorePath = Path.Combine(sonarUserHome.Trim('\'', '"'), "ssl", "truststore.p12");
         var runtime = new TestRuntime();
         runtime.File.Exists(Arg.Any<string>()).Returns(true);
-        runtime.Directory.GetFullPath(Arg.Any<string>()).Returns(sonarUserHome.Trim('\'', '"'));
 
         var result = CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={sonarUserHome}");
         runtime.Logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
