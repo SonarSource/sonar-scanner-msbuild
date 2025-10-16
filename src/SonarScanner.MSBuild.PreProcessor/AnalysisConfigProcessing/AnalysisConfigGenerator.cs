@@ -59,7 +59,6 @@ public static class AnalysisConfigGenerator
             SonarBinDir = buildSettings.SonarBinDirectory,
             SonarScannerWorkingDirectory = buildSettings.SonarScannerWorkingDirectory,
             SourcesDirectory = buildSettings.SourcesDirectory,
-            // When passing paths between begin and end step, they must be absolute paths
             // the user-specified JRE overrides the resolved value
             JavaExePath = string.IsNullOrWhiteSpace(localSettings.JavaExePath) ? resolvedJavaExePath : localSettings.JavaExePath,
             // the user-specified engine.jar overrides the resolved value
@@ -79,6 +78,7 @@ public static class AnalysisConfigGenerator
             AnalyzersSettings = analyzersSettings
         };
 
+        // When passing paths between begin and end step, they must be absolute paths
         if (!string.IsNullOrWhiteSpace(config.JavaExePath))
         {
             config.JavaExePath = runtime.Directory.GetFullPath(config.JavaExePath);

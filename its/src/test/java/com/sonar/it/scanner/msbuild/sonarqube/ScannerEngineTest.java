@@ -35,13 +35,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.sonarqube.ws.ProjectAnalyses;
 import org.sonarqube.ws.client.projectanalyses.SearchRequest;
@@ -151,7 +149,10 @@ class ScannerEngineTest {
   }
 
   @ParameterizedTest
-  @MethodSource("parameterizedArgumentsForAbsolutePath")
+  @CsvSource({
+    "sonar.scanner.useSonarScannerCLI, true, SonarScannerCliPath",
+    "sonar.scanner.useSonarScannerCLI, false, EngineJarPath",
+    "sonar.scanner.skipJreProvisioning, false, JavaExePath"})
   @ServerMinVersion("2025.1")
   void scannerEngineJarPath_PassedAsAbsolute(String argument, String value, String element) throws ParserConfigurationException, IOException, SAXException {
     var context = AnalysisContext.forServer("Empty");
@@ -166,14 +167,6 @@ class ScannerEngineTest {
       .parse(context.projectDir.resolve(".sonarqube").resolve("conf").resolve("SonarQubeAnalysisConfig.xml").toFile())
       .getDocumentElement().getElementsByTagName(element).item(0).getTextContent())
       .startsWithIgnoringCase(context.projectDir.toAbsolutePath().toString());
-  }
-
-  private static Stream<Arguments> parameterizedArgumentsForAbsolutePath() {
-    return Stream.of(
-      Arguments.of("sonar.scanner.useSonarScannerCLI", "true", "SonarScannerCliPath"),
-      Arguments.of("sonar.scanner.useSonarScannerCLI", "false", "EngineJarPath"),
-      Arguments.of("sonar.scanner.skipJreProvisioning", "false", "JavaExePath")
-    );
   }
 
   private static JreDetails jreDetailsFromSonarQubeAnalysisConfig(AnalysisContext context) throws ParserConfigurationException, IOException, SAXException {
