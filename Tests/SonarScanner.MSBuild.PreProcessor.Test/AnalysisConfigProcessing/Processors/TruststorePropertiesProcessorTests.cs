@@ -165,7 +165,8 @@ public class TruststorePropertiesProcessorTests
         cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
         var fileWrapper = Substitute.For<IFileWrapper>();
         fileWrapper.Exists(defaultTruststorePath).Returns(true);
-        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs, fileWrapper));
+        var runtime = new TestRuntime();
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs, fileWrapper), runtime);
         var config = new AnalysisConfig { LocalSettings = [new Property(SonarProperties.UserHome, sonarUserHome)] };
 
         processor.Update(config);
@@ -174,6 +175,7 @@ public class TruststorePropertiesProcessorTests
         config.ScannerOptsSettings.Should().ContainSingle()
             .Which.Should().Match<Property>(x => x.Id == "javax.net.ssl.trustStore" && x.Value == $"\"{defaultTruststorePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"");
         config.HasBeginStepCommandLineTruststorePassword.Should().BeFalse();
+        runtime.Directory.Received(1).GetFullPath(defaultTruststorePath);
     }
 
     [TestMethod]
@@ -212,6 +214,33 @@ public class TruststorePropertiesProcessorTests
         config.ScannerOptsSettings.Should().ContainSingle();
         config.HasBeginStepCommandLineTruststorePassword.Should().BeFalse();
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", expected, config);
+        Property.TryGetProperty(SonarProperties.TruststorePath, config.LocalSettings, out _).Should().BeFalse();
+        Property.TryGetProperty(SonarProperties.TruststorePassword, config.LocalSettings, out _).Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow("../relative/path/to/truststore.pfx")]
+    [DataRow("../path/to/My trustore.pfx")]
+    [DataRow("\"../path/to/My trustore.pfx\"")]
+    [DataRow("'../path/to/My trustore.pfx'")]
+    public void Update_MapsTruststorePathToScannerOpts_RelativePathSavedAsAbsolute(string input)
+    {
+        var cmdLineArgs = new ListPropertiesProvider();
+        var trimmedInput = input.Trim('\"', '\'');
+        var absolutePath = Path.Combine(TestUtils.DriveRoot(), trimmedInput);
+        cmdLineArgs.AddProperty(SonarProperties.HostUrl, "https://localhost:9000");
+        cmdLineArgs.AddProperty(SonarProperties.TruststorePath, input);
+        var runtime = new TestRuntime();
+        runtime.Directory.GetFullPath(trimmedInput).Returns(absolutePath);
+        var processor = CreateProcessor(CreateProcessedArgs(cmdLineArgs), runtime);
+        var config = new AnalysisConfig { LocalSettings = [new Property(SonarProperties.TruststorePath, input)] };
+
+        processor.Update(config);
+
+        config.LocalSettings.Should().BeEmpty();
+        config.ScannerOptsSettings.Should().ContainSingle();
+        config.HasBeginStepCommandLineTruststorePassword.Should().BeFalse();
+        AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", "\"" + absolutePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + "\"", config);
         Property.TryGetProperty(SonarProperties.TruststorePath, config.LocalSettings, out _).Should().BeFalse();
         Property.TryGetProperty(SonarProperties.TruststorePassword, config.LocalSettings, out _).Should().BeFalse();
     }

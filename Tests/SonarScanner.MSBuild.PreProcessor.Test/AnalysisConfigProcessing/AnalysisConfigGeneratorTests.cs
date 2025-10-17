@@ -314,13 +314,13 @@ public class AnalysisConfigGeneratorTests
     }
 
     [TestMethod]
-    [DataRow("java1.exe", "", "java1.exe")]
-    [DataRow("java1.exe", " ", "java1.exe")]
-    [DataRow("java1.exe", null, "java1.exe")]
-    [DataRow("", "java2.exe", "java2.exe")]
-    [DataRow("  ", "java2.exe", "java2.exe")]
-    [DataRow(null, "java2.exe", "java2.exe")]
-    [DataRow("java1.exe", "java2.exe", "java1.exe")]
+    [DataRow("java.exe", "", "/Absolute/Path/SetByUser/java.exe")]
+    [DataRow("java.exe", " ", "/Absolute/Path/SetByUser/java.exe")]
+    [DataRow("java.exe", null, "/Absolute/Path/SetByUser/java.exe")]
+    [DataRow("", "java.exe", "/Absolute/Path/Resolved/java.exe")]
+    [DataRow("  ", "java.exe", "/Absolute/Path/Resolved/java.exe")]
+    [DataRow(null, "java.exe", "/Absolute/Path/Resolved/java.exe")]
+    [DataRow("java.exe", "resolvedJava.exe", "/Absolute/Path/SetByUser/java.exe")]
     public void GenerateFile_JavaExePath_Cases(string setByUser, string resolved, string expected)
     {
         var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
@@ -328,6 +328,10 @@ public class AnalysisConfigGeneratorTests
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var commandLineArguments = new ListPropertiesProvider([new Property(SonarProperties.JavaExePath, setByUser)]);
         var runtime = new TestRuntime();
+        runtime.Directory.GetFullPath(setByUser).Returns("/Absolute/Path/SetByUser/" + setByUser);
+        runtime.Directory.GetFullPath(resolved).Returns("/Absolute/Path/Resolved/" + resolved);
+        runtime.Directory.GetFullPath(null).Returns((string)null);
+
         var args = CreateProcessedArgs(commandLineArguments, EmptyPropertyProvider.Instance, runtime);
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", resolved, null, null, runtime);
@@ -336,18 +340,21 @@ public class AnalysisConfigGeneratorTests
     }
 
     [TestMethod]
-    [DataRow("userEngine.jar", "", "userEngine.jar")]
-    [DataRow("userEngine.jar", " ", "userEngine.jar")]
-    [DataRow("userEngine.jar", null, "userEngine.jar")]
-    [DataRow("", "resolvedEngine.jar", "resolvedEngine.jar")]
-    [DataRow("  ", "resolvedEngine.jar", "resolvedEngine.jar")]
-    [DataRow(null, "resolvedEngine.jar", "resolvedEngine.jar")]
-    [DataRow("userEngine.jar", "resolvedEngine.jar", "userEngine.jar")]
+    [DataRow("userEngine.jar", "", "/Absolute/Path/SetByUser/userEngine.jar")]
+    [DataRow("userEngine.jar", " ", "/Absolute/Path/SetByUser/userEngine.jar")]
+    [DataRow("userEngine.jar", null, "/Absolute/Path/SetByUser/userEngine.jar")]
+    [DataRow("", "resolvedEngine.jar", "/Absolute/Path/Resolved/resolvedEngine.jar")]
+    [DataRow("  ", "resolvedEngine.jar", "/Absolute/Path/Resolved/resolvedEngine.jar")]
+    [DataRow(null, "resolvedEngine.jar", "/Absolute/Path/Resolved/resolvedEngine.jar")]
+    [DataRow("userEngine.jar", "resolvedEngine.jar", "/Absolute/Path/SetByUser/userEngine.jar")]
     public void GenerateFile_ScannerEngine(string setByUser, string resolved, string expected)
     {
         var settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
         Directory.CreateDirectory(settings.SonarConfigDirectory);
         var runtime = new TestRuntime();
+        runtime.Directory.GetFullPath(setByUser).Returns("/Absolute/Path/SetByUser/" + setByUser);
+        runtime.Directory.GetFullPath(resolved).Returns("/Absolute/Path/Resolved/" + resolved);
+        runtime.Directory.GetFullPath(null).Returns((string)null);
         var args = CreateProcessedArgs(new ListPropertiesProvider([new Property(SonarProperties.EngineJarPath, setByUser)]), EmptyPropertyProvider.Instance, runtime);
 
         var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "1.2.3.4", null, resolved, null, runtime);
@@ -359,10 +366,11 @@ public class AnalysisConfigGeneratorTests
     public void GenerateFile_ScannerCliPath()
     {
         var settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-
-        AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(), settings, [], EmptyProperties, [], "1.2.3.4", null, null, "sonar-scanner", new TestRuntime())
+        var runtime = new TestRuntime();
+        runtime.Directory.GetFullPath("sonar-scanner").Returns(Path.Combine(TestUtils.DriveRoot(), "sonar-scanner"));
+        AnalysisConfigGenerator.GenerateFile(CreateProcessedArgs(), settings, [], EmptyProperties, [], "1.2.3.4", null, null, "sonar-scanner", runtime)
             .SonarScannerCliPath
-            .Should().Be("sonar-scanner");
+            .Should().Be(Path.Combine(TestUtils.DriveRoot(), "sonar-scanner"));
     }
 
     [TestMethod]

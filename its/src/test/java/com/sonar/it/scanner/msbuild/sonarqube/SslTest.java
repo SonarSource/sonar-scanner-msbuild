@@ -33,6 +33,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -42,6 +46,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.serverSupportsProvisioning;
@@ -227,6 +232,27 @@ class SslTest {
       var logs = context.runFailedAnalysis().end().getLogs();
       assertThat(logs)
         .contains("'sonar.scanner.truststorePassword' must be specified in the end step when specified during the begin step.");
+    }
+  }
+
+  @Test
+  void scannerEngineJarPath_PassedAsAbsolute() throws ParserConfigurationException, IOException, SAXException, XPathExpressionException {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
+      var context = AnalysisContext.forServer("Empty");
+      var relativeKeyStorePath = context.projectDir.resolve(".sonarqube").relativize(Path.of(server.getKeystorePath()).toAbsolutePath()).toString();
+      context.begin
+        .setProperty("sonar.scanner.truststorePath", relativeKeyStorePath)
+        .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString())
+        .setDebugLogs();
+
+      context.begin.execute(ORCHESTRATOR);
+
+      var doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(context.projectDir.resolve(".sonarqube").resolve("conf").resolve("SonarQubeAnalysisConfig.xml").toFile());
+      String trustStorePath = XPathFactory.newInstance().newXPath().evaluate("//*[local-name()='Property' and @Name='javax.net.ssl.trustStore']/text()", doc);
+      var absoluteKeyStore = Path.of(server.getKeystorePath()).toAbsolutePath().toString().replace('\\', '/');
+      assertThat(trustStorePath).contains(absoluteKeyStore);
     }
   }
 

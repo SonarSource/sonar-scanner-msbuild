@@ -47,6 +47,9 @@ public interface IDirectoryWrapper
     /// <inheritdoc cref="Path.GetRandomFileName()"/>
     string GetRandomFileName();
 
+    /// <inheritdoc cref="Path.GetFullPath(string)"/>
+    string GetFullPath(string path);
+
     /// <inheritdoc cref="Directory.Move(string, string)"/>
     void Move(string sourceDirName, string destDirName);
 
