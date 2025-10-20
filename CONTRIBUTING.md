@@ -71,5 +71,5 @@ These can be set either on the operating system or your preferred IDE test run c
 
 ## `sonar-secrets-pre-commit` hook
 
-If you are Sonar internal use `sonar-secrets-pre-commit` to prevent pushing secrets to the repository. The hook is configured in [.pre-commit-hooks.yaml](.pre-commit-hooks.yaml). Follow the instructions in the `sonar-secrets-pre-commit` README to activate it.
+If you are Sonar internal use `sonar-secrets-pre-commit` to prevent pushing secrets to the repository. The hook is configured in [.pre-commit-hooks.yaml](.pre-commit-hooks.yaml). Follow the instructions in the [`sonar-secrets-pre-commit` README](https://github.com/SonarSource/sonar-secrets-pre-commit?tab=readme-ov-file) to activate it.
 Despite its name, the secrets check is configured as a pre-push hook.
