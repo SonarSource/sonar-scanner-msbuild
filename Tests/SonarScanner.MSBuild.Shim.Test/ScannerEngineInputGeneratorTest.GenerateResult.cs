@@ -48,9 +48,14 @@ public partial class ScannerEngineInputGeneratorTest
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var testDirEscaped = testDir.Replace(@"\", @"\\");
         var withoutFilesDir = Path.Combine(testDir, "withoutFiles");
-        var withoutFilesGuid = Guid.NewGuid();
-        var withFiles1Guid = Guid.NewGuid();
-        var withFiles2Guid = Guid.NewGuid();
+
+        // At some point, we orderBy Guid, so need to order them so that the test is reproducible
+        var uuids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() }.OrderBy(x => x).ToArray();
+
+        var withoutFilesGuid = uuids[0];
+        var withFiles1Guid = uuids[1];
+        var withFiles2Guid = uuids[2];
+
         Directory.CreateDirectory(withoutFilesDir);
         TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, withoutFilesGuid, ProjectType.Product, false, Path.Combine(withoutFilesDir, "withoutFiles.proj"), "UTF-8"); // not excluded
         TestUtils.CreateEmptyFile(withoutFilesDir, "withoutFiles.proj");
