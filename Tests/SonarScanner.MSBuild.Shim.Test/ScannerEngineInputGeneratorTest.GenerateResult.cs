@@ -59,8 +59,8 @@ public partial class ScannerEngineInputGeneratorTest
         Directory.CreateDirectory(withoutFilesDir);
         TestUtils.CreateProjectInfoInSubDir(testDir, "withoutFiles", null, withoutFilesGuid, ProjectType.Product, false, Path.Combine(withoutFilesDir, "withoutFiles.proj"), "UTF-8"); // not excluded
         TestUtils.CreateEmptyFile(withoutFilesDir, "withoutFiles.proj");
-        TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", null, testDir, projectGuid: withFiles1Guid);
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", null, testDir, projectGuid: withFiles2Guid);
+        TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", null, testDir, projectGuid: withFiles1Guid);
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
