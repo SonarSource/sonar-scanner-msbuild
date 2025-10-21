@@ -60,6 +60,7 @@ public record TestRuntime : IRuntime
     {
         OperatingSystem = Substitute.For<OperatingSystemProvider>(File, Logger);
         AnalysisWarnings = new TestAnalysisWarnings(Logger);
+        Directory.GetFullPath(Arg.Any<string>()).Returns(x => x[0]);
     }
 
     public void ConfigureOS(PlatformOS os) =>
