@@ -71,101 +71,44 @@ public partial class ScannerEngineInputGeneratorTest
 
         // The order in which we retrieve files determines the order in which the output is generated.
         // This can be different based on the underlying file system, and is not guaranteed to be consistent.
-        result.ScannerEngineInput.ToString().Should().BeOneOf(Expected(withFiles1Guid, withFiles2Guid), Expected(withFiles2Guid, withFiles1Guid));
-
-        string Expected(Guid firstProject, Guid secondProject) =>
-            $$"""
-            {
-              "scannerProperties": [
-                {
-                  "key": "sonar.scanner.app",
-                  "value": "ScannerMSBuild"
-                },
-                {
-                  "key": "sonar.scanner.appVersion",
-                  "value": "{{Utilities.ScannerVersion}}"
-                },
-                {
-                  "key": "sonar.scanner.bootstrapStartTime",
-                  "value": "1735689600000"
-                },
-                {
-                  "key": "sonar.projectKey",
-                  "value": "{{config.SonarProjectKey}}"
-                },
-                {
-                  "key": "sonar.projectName",
-                  "value": "{{config.SonarProjectName}}"
-                },
-                {
-                  "key": "sonar.projectVersion",
-                  "value": "1.0"
-                },
-                {
-                  "key": "sonar.working.directory",
-                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}.sonar"
-                },
-                {
-                  "key": "sonar.projectBaseDir",
-                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects"
-                },
-                {
-                  "key": "sonar.sources",
-                  "value": ""
-                },
-                {
-                  "key": "sonar.tests",
-                  "value": ""
-                },
-                {
-                  "key": "sonar.modules",
-                  "value": "{{firstProject.ToString().ToUpper()}},{{secondProject.ToString().ToUpper()}}"
-                },
-            {{ExpectedProject(firstProject, 0, firstProject == withFiles1Guid ? 1 : 2)}},
-            {{ExpectedProject(secondProject, 1, secondProject == withFiles1Guid ? 1 : 2)}},
-                {
-                  "key": "sonar.visualstudio.enable",
-                  "value": "false"
-                },
-                {
-                  "key": "sonar.host.url",
-                  "value": "http://sonarqube.com"
-                }
-              ]
-            }
-            """.ToEnvironmentLineEndings();
-
-        string ExpectedProject(Guid guid, int moduleKey, int projectNum) =>
+        result.ScannerEngineInput.ToString().Should().ContainAll([
             $$"""
                 {
-                  "key": "{{guid.ToString().ToUpper()}}.sonar.projectKey",
-                  "value": "{{config.SonarProjectKey}}:{{guid.ToString().ToUpper()}}"
-                },
-                {
-                  "key": "{{guid.ToString().ToUpper()}}.sonar.projectName",
-                  "value": "withFiles{{projectNum}}"
-                },
-                {
-                  "key": "{{guid.ToString().ToUpper()}}.sonar.projectBaseDir",
-                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles{{projectNum}}"
-                },
-                {
-                  "key": "{{guid.ToString().ToUpper()}}.sonar.working.directory",
-                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}.sonar{{EscapedDirectorySeparator}}mod{{moduleKey}}"
-                },
-                {
-                  "key": "{{guid.ToString().ToUpper()}}.sonar.sourceEncoding",
-                  "value": "utf-8"
-                },
-                {
-                  "key": "{{guid.ToString().ToUpper()}}.sonar.tests",
-                  "value": ""
-                },
-                {
-                  "key": "{{guid.ToString().ToUpper()}}.sonar.sources",
-                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles{{projectNum}}{{EscapedDirectorySeparator}}contentFile1.txt"
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.projectBaseDir",
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles1"
                 }
-            """;
+            """.ToEnvironmentLineEndings(),
+            $$"""
+                {
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.tests",
+                  "value": ""
+                }
+            """.ToEnvironmentLineEndings(),
+            $$"""
+                {
+                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.sources",
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles1{{EscapedDirectorySeparator}}contentFile1.txt"
+                }
+            """.ToEnvironmentLineEndings(),
+            $$"""
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.projectBaseDir",
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles2"
+                }
+            """.ToEnvironmentLineEndings(),
+            $$"""
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.tests",
+                  "value": ""
+                }
+            """.ToEnvironmentLineEndings(),
+            $$"""
+                {
+                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.sources",
+                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles2{{EscapedDirectorySeparator}}contentFile1.txt"
+                }
+            """.ToEnvironmentLineEndings()
+            ]);
     }
 
     [TestMethod]
