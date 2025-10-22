@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarScanner.MSBuild.Shim.Test;
 
 public partial class ScannerEngineInputGeneratorTest
@@ -69,8 +67,6 @@ public partial class ScannerEngineInputGeneratorTest
         // One valid project info file -> file created
         AssertScannerInputCreated(result);
 
-        // The order in which we retrieve files determines the order in which the output is generated.
-        // This can be different based on the underlying file system, and is not guaranteed to be consistent.
         result.ScannerEngineInput.ToString().Should().ContainAll([
             $$"""
                 {
