@@ -22,8 +22,6 @@ namespace SonarScanner.MSBuild.Shim.Test;
 
 public partial class ScannerEngineInputGeneratorTest
 {
-    private static string EscapedDirectorySeparator => Path.DirectorySeparatorChar == '\\' ? @"\\" : Path.DirectorySeparatorChar.ToString();
-
     [TestMethod]
     public void GenerateResult_NoProjectInfoFiles()
     {
@@ -46,7 +44,6 @@ public partial class ScannerEngineInputGeneratorTest
     {
         // Only non-excluded projects with files to analyze should be marked as valid
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var testDirEscaped = testDir.Replace(@"\", @"\\");
         var withoutFilesDir = Path.Combine(testDir, "withoutFiles");
         var withoutFilesGuid = Guid.NewGuid();
         var withFiles1Guid = Guid.NewGuid();
@@ -67,44 +64,13 @@ public partial class ScannerEngineInputGeneratorTest
         // One valid project info file -> file created
         AssertScannerInputCreated(result);
 
-        result.ScannerEngineInput.ToString().Should().ContainAll([
-            $$"""
-                {
-                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.projectBaseDir",
-                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles1"
-                }
-            """.ToEnvironmentLineEndings(),
-            $$"""
-                {
-                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.tests",
-                  "value": ""
-                }
-            """.ToEnvironmentLineEndings(),
-            $$"""
-                {
-                  "key": "{{withFiles1Guid.ToString().ToUpper()}}.sonar.sources",
-                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles1{{EscapedDirectorySeparator}}contentFile1.txt"
-                }
-            """.ToEnvironmentLineEndings(),
-            $$"""
-                {
-                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.projectBaseDir",
-                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles2"
-                }
-            """.ToEnvironmentLineEndings(),
-            $$"""
-                {
-                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.tests",
-                  "value": ""
-                }
-            """.ToEnvironmentLineEndings(),
-            $$"""
-                {
-                  "key": "{{withFiles2Guid.ToString().ToUpper()}}.sonar.sources",
-                  "value": "{{testDirEscaped}}{{EscapedDirectorySeparator}}projects{{EscapedDirectorySeparator}}withFiles2{{EscapedDirectorySeparator}}contentFile1.txt"
-                }
-            """.ToEnvironmentLineEndings()
-            ]);
+        var reader = new ScannerEngineInputReader(result.ScannerEngineInput.ToString());
+        reader.AssertProperty($"{withFiles1Guid.ToString().ToUpper()}.sonar.projectBaseDir", $"{testDir}{Path.DirectorySeparatorChar}projects{Path.DirectorySeparatorChar}withFiles1");
+        reader.AssertProperty($"{withFiles1Guid.ToString().ToUpper()}.sonar.tests", string.Empty);
+        reader.AssertProperty($"{withFiles1Guid.ToString().ToUpper()}.sonar.sources", $"{testDir}{Path.DirectorySeparatorChar}projects{Path.DirectorySeparatorChar}withFiles1{Path.DirectorySeparatorChar}contentFile1.txt");
+        reader.AssertProperty($"{withFiles2Guid.ToString().ToUpper()}.sonar.projectBaseDir", $"{testDir}{Path.DirectorySeparatorChar}projects{Path.DirectorySeparatorChar}withFiles2");
+        reader.AssertProperty($"{withFiles2Guid.ToString().ToUpper()}.sonar.tests", string.Empty);
+        reader.AssertProperty($"{withFiles2Guid.ToString().ToUpper()}.sonar.sources", $"{testDir}{Path.DirectorySeparatorChar}projects{Path.DirectorySeparatorChar}withFiles2{Path.DirectorySeparatorChar}contentFile1.txt");
     }
 
     [TestMethod]
