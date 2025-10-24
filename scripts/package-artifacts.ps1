@@ -99,6 +99,7 @@ function Sign-Assemblies {
     Get-ChildItem -Path $Pattern -Include @("*.dll","*.exe") |
         Foreach-Object {
             & signtool sign /du https://www.sonarsource.com/ /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /csp "DigiCert Signing Manager KSP" /kc "$env:SM_KP" /f "$env:SM_CLIENT_CRT_FILE" $_.FullName
+            & signtool verify $_.FullName
         }
     Write-Host "[Completed] Signing $TargetName"
 }
