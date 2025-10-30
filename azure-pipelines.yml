@@ -415,7 +415,7 @@ stages:
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             DEV_MsBuild15:
               PRODUCT: "SonarQube"
