@@ -10,11 +10,11 @@
       },
       "Combinatorial.MSTest": {
         "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "12EDxBFglOutIvGIGUu+Numgeom/ybJiDOhM6nTL2gDu/WT/XWguj/DNxnw83VndalCKI9cWKpdx3VZE6Vo+qA==",
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "9tB2TMPkuEkYYUq64WREHMMyPt9NfKAyuitpK9yw3zbVe6v/vYkClZTR02+yKFUG+g8XHi5LMTt8jHz4RufGqw==",
         "dependencies": {
-          "MSTest.TestFramework": "3.8.3"
+          "MSTest.TestFramework": "4.0.1"
         }
       },
       "FluentAssertions": {
@@ -1719,7 +1719,7 @@
       "testutilities": {
         "type": "Project",
         "dependencies": {
-          "Combinatorial.MSTest": "[1.0.0, )",
+          "Combinatorial.MSTest": "[2.0.0, )",
           "FluentAssertions": "[7.2.0, )",
           "MSTest.TestAdapter": "[4.0.1, )",
           "MSTest.TestFramework": "[4.0.1, )",
@@ -1740,11 +1740,11 @@
       },
       "Combinatorial.MSTest": {
         "type": "Direct",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "12EDxBFglOutIvGIGUu+Numgeom/ybJiDOhM6nTL2gDu/WT/XWguj/DNxnw83VndalCKI9cWKpdx3VZE6Vo+qA==",
+        "requested": "[2.0.0, )",
+        "resolved": "2.0.0",
+        "contentHash": "9tB2TMPkuEkYYUq64WREHMMyPt9NfKAyuitpK9yw3zbVe6v/vYkClZTR02+yKFUG+g8XHi5LMTt8jHz4RufGqw==",
         "dependencies": {
-          "MSTest.TestFramework": "3.8.3"
+          "MSTest.TestFramework": "4.0.1"
         }
       },
       "FluentAssertions": {
@@ -3882,7 +3882,7 @@
       "testutilities": {
         "type": "Project",
         "dependencies": {
-          "Combinatorial.MSTest": "[1.0.0, )",
+          "Combinatorial.MSTest": "[2.0.0, )",
           "FluentAssertions": "[7.2.0, )",
           "MSTest.TestAdapter": "[4.0.1, )",
           "MSTest.TestFramework": "[4.0.1, )",
