@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Tasks;
 
@@ -54,6 +52,8 @@ public class WriteProjectConfigFile : Task
 
     public string TargetFramework { get; set; }
 
+    public string ProjectAssetsFile { get; set; }
+
     #endregion Input properties
 
     [Output]
@@ -66,12 +66,13 @@ public class WriteProjectConfigFile : Task
         ProjectConfigFilePath = Path.Combine(ConfigDir, FileConstants.ProjectConfigFileName);
         var config = new ProjectConfig
         {
-            AnalysisConfigPath= AnalysisConfigPath,
-            ProjectPath= ProjectPath,
-            FilesToAnalyzePath= FilesToAnalyzePath,
-            OutPath= OutPath,
+            AnalysisConfigPath = AnalysisConfigPath,
+            ProjectPath = ProjectPath,
+            FilesToAnalyzePath = FilesToAnalyzePath,
+            OutPath = OutPath,
             ProjectType = IsTest ? ProjectType.Test : ProjectType.Product,
-            TargetFramework = TargetFramework
+            TargetFramework = TargetFramework,
+            ProjectAssetsFile = ProjectAssetsFile,
         };
         config.Save(ProjectConfigFilePath);
         return true;
