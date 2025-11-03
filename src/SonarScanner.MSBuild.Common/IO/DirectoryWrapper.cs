@@ -56,6 +56,9 @@ public class DirectoryWrapper : IDirectoryWrapper
     public string GetRandomFileName() =>
         Path.GetRandomFileName();
 
+    public string GetFullPath(string path) =>
+        Path.GetFullPath(path);
+
     public IEnumerable<FileInfo> EnumerateFiles(DirectoryInfo path, string searchPattern, SearchOption searchOption) =>
         path.EnumerateFiles(searchPattern, searchOption);
 

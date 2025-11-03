@@ -39,6 +39,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.sonarqube.ws.ProjectAnalyses;
 import org.sonarqube.ws.client.projectanalyses.SearchRequest;
@@ -145,6 +146,27 @@ class ScannerEngineTest {
       var logs = result.end().getLogsLines(x -> x.contains("Executing file "));
       assertThat(logs).singleElement().satisfies(x -> assertThat(x).matches(".*\\\\[A-Z0-9]{6}~\\d\\\\.*")); // Find a DOS shortened directory name like \JUD26D~1\
     }
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "sonar.scanner.useSonarScannerCLI, true, SonarScannerCliPath",
+    "sonar.scanner.useSonarScannerCLI, false, EngineJarPath",
+    "sonar.scanner.skipJreProvisioning, false, JavaExePath"})
+  @ServerMinVersion("2025.1")
+  void scannerEngineJarPath_PassedAsAbsolute(String argument, String value, String element) throws ParserConfigurationException, IOException, SAXException {
+    var context = AnalysisContext.forServer("Empty");
+    context.begin
+      .setProperty(argument, value)
+      .setProperty("sonar.userHome", "../relative/path/")
+      .setDebugLogs();
+
+    context.begin.execute(ORCHESTRATOR);
+
+    assertThat(DocumentBuilderFactory.newInstance().newDocumentBuilder()
+      .parse(context.projectDir.resolve(".sonarqube").resolve("conf").resolve("SonarQubeAnalysisConfig.xml").toFile())
+      .getDocumentElement().getElementsByTagName(element).item(0).getTextContent())
+      .startsWithIgnoringCase(context.projectDir.toAbsolutePath().toString());
   }
 
   private static JreDetails jreDetailsFromSonarQubeAnalysisConfig(AnalysisContext context) throws ParserConfigurationException, IOException, SAXException {
