@@ -16,6 +16,12 @@ stages:
           clean: all
         displayName: "Run UTs"
         steps:
+          - task: UseDotNet@2
+            displayName: 'Install .NET 10.0 SDK'
+            inputs:
+              packageType: 'sdk'
+              version: '10.0.x'
+              includePreviewVersions: true
           - task: DotNetCoreCLI@2
             displayName: 'Build test pre-requisites' # Required in ProcessRunnerTests
             inputs:
@@ -54,6 +60,12 @@ stages:
                 exit 0 # Always return 0; chmod fails when the scanner-cli is not present.
               name: scannerPermissions
               displayName: "Update Scanner permissions"
+            - task: UseDotNet@2
+              displayName: 'Install .NET 10.0 SDK'
+              inputs:
+                packageType: 'sdk'
+                version: '10.0.x'
+                includePreviewVersions: true
           matrix:
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
