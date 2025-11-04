@@ -5,6 +5,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <OutputType>Exe</OutputType>
     <StartupObject>SonarScanner.MSBuild.TFS.Classic.Program</StartupObject>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />

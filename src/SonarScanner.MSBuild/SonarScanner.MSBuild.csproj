@@ -5,6 +5,7 @@
     <OutputType>Exe</OutputType>
     <RollForward>LatestMajor</RollForward>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp3.1|AnyCPU'">
     <WarningLevel>5</WarningLevel>

@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild.PostProcessor</AssemblyName>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />

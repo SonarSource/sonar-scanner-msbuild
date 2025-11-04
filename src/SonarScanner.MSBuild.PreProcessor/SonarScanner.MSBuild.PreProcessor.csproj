@@ -8,6 +8,7 @@
        We use that mechanism to build the package - as we do not use "dotnet publish".
      -->
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />

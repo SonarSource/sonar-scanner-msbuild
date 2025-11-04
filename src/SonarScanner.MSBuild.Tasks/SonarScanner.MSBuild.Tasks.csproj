@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild.Tasks</AssemblyName>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
   </PropertyGroup>
   <ItemGroup>
     <None Include="Docs\IntegrationTargetDependencies.dgml" />

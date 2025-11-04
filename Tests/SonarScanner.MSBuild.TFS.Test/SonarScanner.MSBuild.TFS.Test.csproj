@@ -7,6 +7,7 @@
       It needs to be in SonarScanner.MSBuild.TFS.Test.csproj for the actual builds.
     -->
     <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\Expected.xmlcoverage" />
