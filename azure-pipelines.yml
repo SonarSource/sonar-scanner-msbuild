@@ -15,7 +15,7 @@ trigger:
   - master
   - branch-*
 
-pool: .net-bubble-aws-re-team-prod
+pool: .net-bubble-aws-re-team-dev
 
 variables:
   - group: sonarsource-build-variables
