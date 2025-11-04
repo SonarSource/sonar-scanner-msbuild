@@ -4,7 +4,7 @@
     <TestTfmsInParallel>false</TestTfmsInParallel>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+    <Reference Include="System.IO.Compression" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.10" />
   </ItemGroup>
   <ItemGroup>
