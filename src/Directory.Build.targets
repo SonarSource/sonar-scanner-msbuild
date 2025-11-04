@@ -12,7 +12,7 @@
     <CodeGenerationEmbeddedResource Include="@(EmbeddedResource)" Exclude="**\*.??-??.resx" />
     <EmbeddedResource Update="@(CodeGenerationEmbeddedResource)" Generator="ResXFileCodeGenerator" />
   </ItemGroup>
-
+  
   <!-- Special handling for embedded resources and generated files to show as nested in Solution Explorer -->
   <ItemGroup>
     <!-- Update designer files for *.resx files -->
@@ -28,6 +28,7 @@
 
   <PropertyGroup Condition=" '$(SignAssembly)' == 'true' ">
     <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
+    <RestoreEnablePackagePruning Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' "> false</RestoreEnablePackagePruning>
   </PropertyGroup>
 
 </Project>
