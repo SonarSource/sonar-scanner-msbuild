@@ -28,7 +28,7 @@
 
   <PropertyGroup Condition=" '$(SignAssembly)' == 'true' ">
     <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
-    <RestoreEnablePackagePruning Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' "> false</RestoreEnablePackagePruning>
+    <RestoreEnablePackagePruning> false</RestoreEnablePackagePruning>
   </PropertyGroup>
 
 </Project>
