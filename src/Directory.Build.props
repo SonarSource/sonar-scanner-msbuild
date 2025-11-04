@@ -24,7 +24,7 @@
   <Import Project="$(MSBuildThisFileDirectory)\DotnetVersions.props" />
 
   <PropertyGroup>
-    <RestoreEnablePackagePruning> false</RestoreEnablePackagePruning>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
   </PropertyGroup>
 
 </Project>

@@ -30,4 +30,8 @@
     <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
+  </PropertyGroup>
+
 </Project>
