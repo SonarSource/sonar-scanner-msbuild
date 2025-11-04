@@ -39,7 +39,7 @@ variables:
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
   - name: NUGET_VERSION
-    value: "6.10.1"
+    value: "6.14.0"
 
 stages:
   - stage: build
