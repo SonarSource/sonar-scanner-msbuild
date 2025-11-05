@@ -114,7 +114,7 @@ class TelemetryTest {
   }
 
   @Test
-  @MSBuildMinVersion(17)
+  @MSBuildMinVersion(18)
   @ServerMinVersion("2025.3")
   void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
