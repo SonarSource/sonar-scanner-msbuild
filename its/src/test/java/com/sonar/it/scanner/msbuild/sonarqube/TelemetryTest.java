@@ -123,7 +123,7 @@ class TelemetryTest {
 
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp12=2"),
-      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp13=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp14=2"),
       x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net8_0=2"),
       x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net10_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
