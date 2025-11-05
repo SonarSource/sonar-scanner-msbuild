@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 
     <!-- This should be overwritten by targets file to get results -->
     <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
