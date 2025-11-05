@@ -36,7 +36,7 @@ import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 public class BuildCommand extends BaseCommand<BuildCommand> {
 
-  private static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\MSBuild\\Current\\Bin\\MSBuild.exe";
+  private static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\MSBuild\\Current\\Bin\\MSBuild.exe";
   private static final Logger LOG = LoggerFactory.getLogger(BuildCommand.class);
 
   private final ArrayList<String> arguments = new ArrayList<>();
