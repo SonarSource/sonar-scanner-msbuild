@@ -106,16 +106,16 @@ public partial class ScannerEngineInputGeneratorTest
         var config = CreateValidConfig(testRootDir);
         var result = CreateSut(config, os: os).GenerateResult(runtime.DateTime.OffsetNow);
 
-        AssertExpectedProjectCount(1, result);
+        var singleProject = result.Projects.Should().ContainSingle().Which;
         if (os == PlatformOS.Windows)
         {
-            AssertExpectedStatus("Project1", ProjectInfoValidity.Valid, result);
+            singleProject.Status.Should().Be(ProjectInfoValidity.Valid);
             runtime.Logger.Warnings.Should().BeEmpty("Windows is case insensitive and all project files are considered the same");
         }
         else
         {
             // Casing should not be ignored on non-windows OS, none of those two different project files with the same GUID will be analyzed
-            AssertExpectedStatus("Project1", ProjectInfoValidity.DuplicateGuid, result);
+            singleProject.Status.Should().Be(ProjectInfoValidity.DuplicateGuid);
             runtime.Logger.Warnings.Should().HaveCount(2).And.BeEquivalentTo(
                 $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{projectFileOrig}\"",
                 $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{projectFileDiff}\"");
