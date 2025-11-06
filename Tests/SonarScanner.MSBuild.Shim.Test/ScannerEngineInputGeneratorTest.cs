@@ -157,10 +157,10 @@ public partial class ScannerEngineInputGeneratorTest
 
     private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, AnalysisResult actual) =>
         actual.ProjectsByStatus(expectedStatus).Where(x => x.ProjectName.Equals(expectedProjectName)).Should().ContainSingle(
-            "ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}, actual status: {2}",
+            "ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}, actual projects: {2}",
             expectedProjectName,
             expectedStatus,
-            actual.Projects.FirstOrDefault(x => x.Project.ProjectName.Equals(expectedProjectName))?.Status);
+            actual.Projects.Aggregate(new StringBuilder(), (sb, x) => sb.AppendLine($"{x.Project.ProjectName}: {x.Status}"), sb => sb.ToString()));
 
     private static void AssertNoValidProjects(AnalysisResult actual) =>
         actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().BeEmpty();
