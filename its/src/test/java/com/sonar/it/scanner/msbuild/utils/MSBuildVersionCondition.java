@@ -46,15 +46,15 @@ public class MSBuildVersionCondition implements ExecutionCondition {
           return ConditionEvaluationResult.enabled(
             String.format("MSBuild version %d satisfies constraints [min: %s, max: %s]",
               currentVersion,
-              minAnnotation.isPresent() ? minVersion : "N/A",
-              maxAnnotation.isPresent() ? maxVersion : "N/A"));
+              minAnnotation.isPresent() ? minVersion : "*",
+              maxAnnotation.isPresent() ? maxVersion : "*"));
         }
         else {
           return ConditionEvaluationResult.disabled(
           String.format("MSBuild version check failed: MsBuild Version %d [min: %s, max: %s]",
             currentVersion,
-            minAnnotation.isPresent() ? String.valueOf(minVersion) : "N/A",
-            maxAnnotation.isPresent() ? String.valueOf(maxVersion) : "N/A"));
+            minAnnotation.isPresent() ? String.valueOf(minVersion) : "*",
+            maxAnnotation.isPresent() ? String.valueOf(maxVersion) : "*"));
         }
       }
     }

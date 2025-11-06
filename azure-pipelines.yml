@@ -451,7 +451,7 @@ stages:
               MSBUILD_PATH: ""
               TEST_INCLUDE: "**/others/*"
 
-  # TODO: enable when MacOS and Linux agents have .net 10 installed
+  # TODO: SCAN4NET-1004 re-enable when MacOS and Linux agents have .net 10 installed
 
   # - template: templates/unix-qa-stage.yml
   #   parameters:
