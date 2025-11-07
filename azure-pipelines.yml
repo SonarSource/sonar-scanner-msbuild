@@ -430,6 +430,11 @@ stages:
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+            DEV_MsBuild18:
+              PRODUCT: "SonarQube"
+              SQ_VERSION: "DEV"
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
+              TEST_INCLUDE: "**/sonarqube/*"
             DEV_Community:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
