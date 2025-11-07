@@ -26,7 +26,7 @@ jobs:
       DOTNET_VERSION: "DEV"
       GO_VERSION: "LATEST_RELEASE"
       GO_GROUP_ID: "org.sonarsource.go"
-      IAC_VERSION: "LATEST_RELEASE"
+      IAC_VERSION: "NONE" # Merged into sonar-iac-enterprise in 2025.5
       IAC_ENTERPRISE_VERSION: "LATEST_RELEASE"
       JAVA_VERSION: "LATEST_RELEASE"
       JAVASCRIPT_VERSION: "LATEST_RELEASE"
