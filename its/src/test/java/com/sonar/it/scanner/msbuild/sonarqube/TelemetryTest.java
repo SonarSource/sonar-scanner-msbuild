@@ -114,7 +114,7 @@ class TelemetryTest {
   }
 
   @Test
-  @MSBuildMinVersion(17)
+  @MSBuildMinVersion(18)
   @ServerMinVersion("2025.3")
   void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
@@ -123,9 +123,9 @@ class TelemetryTest {
 
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp12=2"),
-      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp13=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp14=2"),
       x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net8_0=2"),
-      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net9_0=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net10_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
@@ -142,7 +142,7 @@ class TelemetryTest {
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v8_0=2"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v9_0=2"));
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v10_0=2"));
   }
 
   @NotNull

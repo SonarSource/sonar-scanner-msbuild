@@ -76,8 +76,8 @@ class MultiLanguageTest {
   @Test
   // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
   @ServerMinVersion("10.8")
-  // This test is not supported on versions older than Visual Studio 2022
-  @MSBuildMinVersion(17)
+  // This test is not supported on versions older than Visual Studio 2026
+  @MSBuildMinVersion(18)
   @DisableOnEdition(Edition.COMMUNITY)
   void esprojVueWithBackend() {
     // For this test also the .vscode folder has been included in the project folder:

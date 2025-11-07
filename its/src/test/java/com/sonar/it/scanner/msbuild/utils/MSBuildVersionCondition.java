@@ -20,24 +20,42 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 import java.nio.file.Path;
+import java.util.Optional;
+
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.platform.commons.util.AnnotationUtils;
 
-public class MSBuildMinVersionCondition implements ExecutionCondition {
+public class MSBuildVersionCondition implements ExecutionCondition {
   private static int msbuildMajorVersion = -1;
 
   @Override
   public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
     if (OSPlatform.isWindows()) {
       final var method = context.getRequiredTestMethod();
-      final var annotation = method.getDeclaredAnnotation(MSBuildMinVersion.class);
-      if (annotation != null) {
+      Optional<MSBuildMinVersion> minAnnotation = AnnotationUtils.findAnnotation(method, MSBuildMinVersion.class);
+      Optional<MSBuildMaxVersion> maxAnnotation = AnnotationUtils.findAnnotation(method, MSBuildMaxVersion.class);
+
+      if (minAnnotation.isPresent() || maxAnnotation.isPresent()) {
         var currentVersion = getMSBuildMajorVersion();
-        var minVersion = annotation.value();
-        return currentVersion >= minVersion
-          ? ConditionEvaluationResult.enabled("MSBuild version is " + currentVersion + ", which is greater than or equal to " + minVersion)
-          : ConditionEvaluationResult.disabled("MSBuild version is " + currentVersion + ", which is less than " + minVersion);
+        int minVersion = minAnnotation.map(MSBuildMinVersion::value).orElse(Integer.MIN_VALUE);
+        int maxVersion = maxAnnotation.map(MSBuildMaxVersion::value).orElse(Integer.MAX_VALUE);
+
+        if (currentVersion >= minVersion && currentVersion <= maxVersion) {
+          return ConditionEvaluationResult.enabled(
+            String.format("MSBuild version %d satisfies constraints [min: %s, max: %s]",
+              currentVersion,
+              minAnnotation.isPresent() ? minVersion : "*",
+              maxAnnotation.isPresent() ? maxVersion : "*"));
+        }
+        else {
+          return ConditionEvaluationResult.disabled(
+          String.format("MSBuild version check failed: MsBuild Version %d [min: %s, max: %s]",
+            currentVersion,
+            minAnnotation.isPresent() ? String.valueOf(minVersion) : "*",
+            maxAnnotation.isPresent() ? String.valueOf(maxVersion) : "*"));
+        }
       }
     }
     return ConditionEvaluationResult.enabled("Test enabled");

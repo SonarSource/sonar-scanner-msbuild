@@ -356,7 +356,7 @@ stages:
             LTA-89:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[8.9]"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "6.20.5.49286"   # Bundled version with SQ 8.9
               CSS_VERSION: "1.4.2.2002"         # Bundled version with SQ 8.9
@@ -375,7 +375,7 @@ stages:
             LTA-99:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[9.9]"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "6.41.0.60884"    # Bundled version with SQ 9.9
               CSS_VERSION: "NONE"                # No official release in SQ 9.9, the plug-in should not be loaded. Rules are in the JS plugin
@@ -394,7 +394,7 @@ stages:
             LTA-2025:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[2025.1]"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "6.62.0.78645"         # Bundled version with SQ 2025.1
               CSS_VERSION: "NONE"                     # No official release in SQ 2025.1, the plug-in should not be loaded. Rules are in the JS plugin
@@ -413,7 +413,7 @@ stages:
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
             DEV_MsBuild15:
               PRODUCT: "SonarQube"
@@ -434,7 +434,7 @@ stages:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               SQ_EDITION: "COMMUNITY"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "NONE"         # Commercial plugin
               GO_VERSION: "NONE"              # Commercial plugin
@@ -443,7 +443,7 @@ stages:
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarcloud/*"
             Others:
               PRODUCT: "others"
@@ -451,23 +451,25 @@ stages:
               MSBUILD_PATH: ""
               TEST_INCLUDE: "**/others/*"
 
-  - template: templates/unix-qa-stage.yml
-    parameters:
-      vmImage: "ubuntu-22.04"
-      name: "Linux"
+  # TODO: SCAN4NET-1004 re-enable when MacOS and Linux agents have .net 10 installed
 
-  - template: templates/unix-qa-stage.yml
-    parameters:
-      vmImage: "macOS-14"
-      name: "MacOS"
+  # - template: templates/unix-qa-stage.yml
+  #   parameters:
+  #     vmImage: "ubuntu-22.04"
+  #     name: "Linux"
+
+  # - template: templates/unix-qa-stage.yml
+  #   parameters:
+  #     vmImage: "macOS-14"
+  #     name: "MacOS"
 
   - stage: artifacts
     displayName: 'Promote Artifacts:'
     dependsOn:
     - build
     - qa_windows
-    - qa_linux
-    - qa_macos
+  #  - qa_linux
+  #  - qa_macos
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
     jobs:
     - job: promoteRepox

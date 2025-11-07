@@ -52,6 +52,7 @@ class SolutionKindTest {
   // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
   // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
   @MSBuildMinVersion(16)
+  @MSBuildMaxVersion(17)
   @WorkloadPrerequisite(Workload.XAMARIN_BUILD_TOOLS)
   void xaml() {
     var context = AnalysisContext.forServer("XamarinApplication");
@@ -79,16 +80,16 @@ class SolutionKindTest {
   }
 
   @Test
-  // We can't build without MsBuild17
-  @MSBuildMinVersion(17)
+  // We can't build without MsBuild18
+  @MSBuildMinVersion(18)
   void razor_Net9_WithoutSourceGenerators() {
     String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
   }
 
   @Test
-  // We can't build without MsBuild17
-  @MSBuildMinVersion(17)
+  // We can't build without MsBuild18
+  @MSBuildMinVersion(18)
   void razor_Net9_WithSourceGenerators() {
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
@@ -155,14 +156,14 @@ class SolutionKindTest {
   }
 
   @Test
-  // dotnet sdk tests should run only on VS 2022
+  // dotnet sdk tests should run only on VS 2022 and above
   @MSBuildMinVersion(17)
   void sdk8() {
     validateCSharpSdk("CSharp.SDK.8");
   }
 
   @Test
-  // dotnet sdk tests should run only on VS 2022
+  // dotnet sdk tests should run only on VS 2022 and above
   @MSBuildMinVersion(17)
   void net8_NoAnalysisWarnings() {
     var context = AnalysisContext.forServer("CSharp.SDK.8");
@@ -173,8 +174,8 @@ class SolutionKindTest {
   }
 
   @Test
-  // dotnet sdk tests should run only on VS 2022
-  @MSBuildMinVersion(17)
+  // dotnet sdk tests should run only on VS 2022 and above
+  @MSBuildMinVersion(18)
   void sdkLatest() {
     validateCSharpSdk("CSharp.SDK.Latest");
   }
