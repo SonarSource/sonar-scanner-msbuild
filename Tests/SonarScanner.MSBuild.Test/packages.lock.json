@@ -4,9 +4,9 @@
     ".NETFramework,Version=v4.8": {
       "altcover": {
         "type": "Direct",
-        "requested": "[9.0.1, )",
-        "resolved": "9.0.1",
-        "contentHash": "aadciFNDT5bnylaYUkKal+s5hF7yU/lmZxImQWAlk1438iPqK1Uf79H5ylELpyLIU49HL5ql+tnWBihp3WVLCA=="
+        "requested": "[9.0.102, )",
+        "resolved": "9.0.102",
+        "contentHash": "q3Rf5t0M9kXlcO5qhsaAe6NrFSNd5enrhKmF/Ezgmomqw34PbUTbRSYjSDNhS3YGDyUrPTkyPn14EfLDJWztcA=="
       },
       "Combinatorial.MSTest": {
         "type": "Direct",
@@ -1793,16 +1793,16 @@
           "NSubstitute": "[5.3.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
           "WireMock.Net": "[1.15.0, )",
-          "altcover": "[9.0.1, )"
+          "altcover": "[9.0.102, )"
         }
       }
     },
     "net9.0": {
       "altcover": {
         "type": "Direct",
-        "requested": "[9.0.1, )",
-        "resolved": "9.0.1",
-        "contentHash": "aadciFNDT5bnylaYUkKal+s5hF7yU/lmZxImQWAlk1438iPqK1Uf79H5ylELpyLIU49HL5ql+tnWBihp3WVLCA=="
+        "requested": "[9.0.102, )",
+        "resolved": "9.0.102",
+        "contentHash": "q3Rf5t0M9kXlcO5qhsaAe6NrFSNd5enrhKmF/Ezgmomqw34PbUTbRSYjSDNhS3YGDyUrPTkyPn14EfLDJWztcA=="
       },
       "Combinatorial.MSTest": {
         "type": "Direct",
@@ -4015,7 +4015,7 @@
           "NSubstitute": "[5.3.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
           "WireMock.Net": "[1.15.0, )",
-          "altcover": "[9.0.1, )"
+          "altcover": "[9.0.102, )"
         }
       }
     }
