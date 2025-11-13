@@ -13,9 +13,9 @@
       },
       "Grpc.Tools": {
         "type": "Direct",
-        "requested": "[2.72.0, )",
-        "resolved": "2.72.0",
-        "contentHash": "BCiuQ03EYjLHCo9hqZmY5barsz5vvcz/+/ICt5wCbukaePHZmMPDGelKlkxWx3q+f5xOMNHa9zXQ2N6rQZ4B+w=="
+        "requested": "[2.76.0, )",
+        "resolved": "2.76.0",
+        "contentHash": "goRzYZVMgQtyLvkWdgTnPycg49hlNxnMkqGGgR3l7nCOm0bUh0YeAneiJ9JFk3XLgF4suQUdETYkl2Mg/TBr0w=="
       },
       "Newtonsoft.Json": {
         "type": "Direct",
@@ -148,9 +148,9 @@
       },
       "Grpc.Tools": {
         "type": "Direct",
-        "requested": "[2.72.0, )",
-        "resolved": "2.72.0",
-        "contentHash": "BCiuQ03EYjLHCo9hqZmY5barsz5vvcz/+/ICt5wCbukaePHZmMPDGelKlkxWx3q+f5xOMNHa9zXQ2N6rQZ4B+w=="
+        "requested": "[2.76.0, )",
+        "resolved": "2.76.0",
+        "contentHash": "goRzYZVMgQtyLvkWdgTnPycg49hlNxnMkqGGgR3l7nCOm0bUh0YeAneiJ9JFk3XLgF4suQUdETYkl2Mg/TBr0w=="
       },
       "NETStandard.Library": {
         "type": "Direct",
