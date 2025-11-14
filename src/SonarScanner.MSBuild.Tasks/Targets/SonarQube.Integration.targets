@@ -383,6 +383,9 @@
       <SonarQubeSetting Include="sonar.$(SQLanguage).scanner.telemetry" Condition="Exists($(SonarProjectTelemetryFilePath))">
         <Value>$(SonarProjectTelemetryFilePath)</Value>
       </SonarQubeSetting>
+      <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectAssetsFile" Condition="Exists($(ProjectAssetsFile))">
+        <Value>$(ProjectAssetsFile)</Value>
+      </SonarQubeSetting>
     </ItemGroup>
 
     <!-- Record the list of files as an analysis result -->
@@ -621,7 +624,8 @@
                             FilesToAnalyzePath ="$(AnalysisFileList)"
                             OutPath="$(ProjectSpecificOutDir)"
                             IsTest="$(SonarQubeTestProject)"
-                            TargetFramework="$(TargetFramework)">
+                            TargetFramework="$(TargetFramework)"
+                            ProjectAssetsFile="$(ProjectAssetsFile)">
       <Output TaskParameter="ProjectConfigFilePath" PropertyName="SonarProjectConfigFilePath" />
     </WriteProjectConfigFile>
 
