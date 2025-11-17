@@ -1,4 +1,4 @@
-namespace MultiLanguageSupportReact;
+﻿namespace MultiLanguageSupportReact;
 
 public class WeatherForecast
 {

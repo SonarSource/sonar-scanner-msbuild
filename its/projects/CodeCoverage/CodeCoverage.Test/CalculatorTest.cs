@@ -1,4 +1,4 @@
-namespace CodeCoverage.Test;
+﻿namespace CodeCoverage.Test;
 
 [TestClass]
 public class CalculatorTest

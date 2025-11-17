@@ -1,4 +1,4 @@
-namespace DotCoverExcludedCoverage.Test
+﻿namespace DotCoverExcludedCoverage.Test
 {
     [TestClass]
     public class UnitTest1

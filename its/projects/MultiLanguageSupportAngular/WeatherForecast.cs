@@ -1,4 +1,4 @@
-namespace MultiLanguageSupportAngular;
+﻿namespace MultiLanguageSupportAngular;
 
 public class WeatherForecast
 {

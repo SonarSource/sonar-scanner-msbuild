@@ -1,1 +1,1 @@
-// Fixme: Add something - csharp:S1134
+﻿// Fixme: Add something - csharp:S1134
