@@ -8,8 +8,12 @@
   "enabledManagers": [
     "nuget",
     "maven",
-    "github-actions"
+    "github-actions",
+    "pre-commit"
   ],
+  "pre-commit": {
+    "enabled": true
+  },
   "nuget": {
     "description": "ignorePaths in the root does not work due to higher-precedence built-in counter-intuitive nuget-specifc defaults",
     "ignorePaths": [ "its/projects/**" ]
