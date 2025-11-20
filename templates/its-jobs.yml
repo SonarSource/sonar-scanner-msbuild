@@ -68,10 +68,6 @@ jobs:
       - ${{ each step in parameters.initSteps }}:
           - ${{ step }}
 
-      - task: NuGetToolInstaller@1
-        inputs:
-          versionSpec: $(NUGET_VERSION)
-
       - task: Maven@4
         displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
         env:

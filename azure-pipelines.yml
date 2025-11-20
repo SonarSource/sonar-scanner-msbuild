@@ -40,8 +40,8 @@ variables:
     value: "Any CPU"
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
-  - name: NUGET_VERSION
-    value: "6.10.1"
+  - name: NUGETEXETOOLPATH
+    value: C:\ProgramData\chocolatey\bin\nuget.exe
 
 stages:
   - stage: build
@@ -57,11 +57,6 @@ stages:
           commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
         steps:
           - checkout: self
-
-          - task: NuGetToolInstaller@1
-            displayName: "Install NuGet"
-            inputs:
-              versionSpec: $(NUGET_VERSION)
 
           - task: Cache@2
             displayName: Cache Maven local repo
@@ -184,6 +179,7 @@ stages:
               packDestination: 'build'
               versioningScheme: 'off'
 
+          # Using PowerShell instead of NuGetCommand@2 because the arguments field doesn't expand wildcards which is needed for package paths (e.g., dotnet-sonarscanner*.nupkg)
           - powershell: |
               nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
             displayName: "Sign NuGet packages"
@@ -292,11 +288,14 @@ stages:
               Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
             displayName: 'Set SONAR_PROJECT_VERSION variable for this job'
 
-          - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
+          - task: NuGetCommand@2
             displayName: "NuGet Restore"
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+            inputs:
+              command: custom
+              arguments: restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
 
           - task: SonarCloudPrepare@3
             displayName: 'Code Analysis - Begin'
