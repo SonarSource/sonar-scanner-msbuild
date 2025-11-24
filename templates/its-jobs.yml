@@ -78,7 +78,6 @@ jobs:
           ARTIFACTORY_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
-          NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
           SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
         inputs:
           goals: 'verify'
