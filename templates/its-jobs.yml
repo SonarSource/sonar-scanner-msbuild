@@ -68,10 +68,6 @@ jobs:
       - ${{ each step in parameters.initSteps }}:
           - ${{ step }}
 
-      - task: NuGetToolInstaller@1
-        inputs:
-          versionSpec: $(NUGET_VERSION)
-
       - task: Maven@4
         displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
         env:
@@ -82,7 +78,7 @@ jobs:
           ARTIFACTORY_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
-          NUGET_PATH: $(NUGETEXETOOLPATH)
+          NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
           SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
         inputs:
           goals: 'verify'

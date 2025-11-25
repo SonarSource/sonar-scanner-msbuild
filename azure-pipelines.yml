@@ -38,8 +38,6 @@ variables:
     value: "Any CPU"
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
-  - name: NUGET_VERSION
-    value: "6.10.1"
 
 stages:
   - stage: build
@@ -55,11 +53,6 @@ stages:
           commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
         steps:
           - checkout: self
-
-          - task: NuGetToolInstaller@1
-            displayName: "Install NuGet"
-            inputs:
-              versionSpec: $(NUGET_VERSION)
 
           - task: Cache@2
             displayName: Cache Maven local repo
@@ -174,15 +167,10 @@ stages:
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
 
-          - task: NuGetCommand@2
+          - script: nuget pack nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec -OutputDirectory build
             displayName: 'Package dotnet global tool'
-            inputs:
-              command: 'pack'
-              packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
-              packDestination: 'build'
-              versioningScheme: 'off'
 
-          - powershell: |
+          - powershell: | # needs to be 'powershell' because wildcard expansion doesn't work with 'script'
               nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
             displayName: "Sign NuGet packages"
             condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
