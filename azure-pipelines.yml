@@ -170,8 +170,7 @@ stages:
           - script: nuget pack nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec -OutputDirectory build
             displayName: 'Package dotnet global tool'
 
-          - powershell: | # needs to be 'powershell' because wildcard expansion doesn't work with 'script'
-              nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+          - task: PowerShell@2
             displayName: "Sign NuGet packages"
             condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
             env:
@@ -180,6 +179,9 @@ stages:
               SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
               SM_API_KEY: $(SM_API_KEY)
               SM_CERT: $(SM_CERT)
+            inputs:
+              targetType: 'inline'
+              script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
           - powershell: |
               Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
@@ -278,11 +280,14 @@ stages:
               Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
             displayName: 'Set SONAR_PROJECT_VERSION variable for this job'
 
-          - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
+          - task: PowerShell@2
             displayName: "NuGet Restore"
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+            inputs:
+              targetType: 'inline'
+              script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
 
           - task: SonarCloudPrepare@3
             displayName: 'Code Analysis - Begin'
