@@ -25,8 +25,8 @@
       },
       "Google.Protobuf": {
         "type": "Transitive",
-        "resolved": "3.33.0",
-        "contentHash": "+kIa03YipuiSDeRuZwcDcXS1xBQAFeGLIjuLbgJr2i+TlwBPYAqdnQZJ2SDVzIgDyy+q+n/400WyWyrJ5ZqCgQ==",
+        "resolved": "3.33.1",
+        "contentHash": "RztiFmX9aOWDwfhxFzx/nS4fjs4DX7ZC7/XBEBl56k15lPGBftvbSwZkeo1mMCJHrNp1kK5iQYrFXB4MqCmBCA==",
         "dependencies": {
           "System.Memory": "4.5.3",
           "System.Runtime.CompilerServices.Unsafe": "4.5.2"
@@ -657,7 +657,7 @@
       "sonarscanner.msbuild.preprocessor": {
         "type": "Project",
         "dependencies": {
-          "Google.Protobuf": "[3.33.0, )",
+          "Google.Protobuf": "[3.33.1, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "SharpZipLib": "[1.4.2, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
@@ -1372,8 +1372,8 @@
       },
       "Google.Protobuf": {
         "type": "Transitive",
-        "resolved": "3.33.0",
-        "contentHash": "+kIa03YipuiSDeRuZwcDcXS1xBQAFeGLIjuLbgJr2i+TlwBPYAqdnQZJ2SDVzIgDyy+q+n/400WyWyrJ5ZqCgQ==",
+        "resolved": "3.33.1",
+        "contentHash": "RztiFmX9aOWDwfhxFzx/nS4fjs4DX7ZC7/XBEBl56k15lPGBftvbSwZkeo1mMCJHrNp1kK5iQYrFXB4MqCmBCA==",
         "dependencies": {
           "System.Memory": "4.5.3"
         }
@@ -1493,7 +1493,7 @@
       "sonarscanner.msbuild.preprocessor": {
         "type": "Project",
         "dependencies": {
-          "Google.Protobuf": "[3.33.0, )",
+          "Google.Protobuf": "[3.33.1, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "SharpZipLib": "[1.4.2, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
