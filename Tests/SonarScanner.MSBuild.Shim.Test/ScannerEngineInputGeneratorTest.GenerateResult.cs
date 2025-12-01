@@ -39,6 +39,7 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedProjectCount(0, result);
     }
 
+
     [TestMethod]
     public void GenerateResult_ValidFiles()
     {
