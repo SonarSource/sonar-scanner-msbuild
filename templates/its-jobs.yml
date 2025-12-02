@@ -68,6 +68,14 @@ jobs:
       - ${{ each step in parameters.initSteps }}:
           - ${{ step }}
 
+      - powershell: |
+          npm config --global set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
+          npm config --global set //repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$env:ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN
+          npm config list --global
+        env:
+          ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)         
+        displayName: Set npm registry to repox
+        
       - task: Maven@4
         displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
         env:
