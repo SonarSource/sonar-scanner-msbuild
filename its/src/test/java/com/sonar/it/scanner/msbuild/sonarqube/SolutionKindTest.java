@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.version.Version;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -213,7 +214,12 @@ class SolutionKindTest {
         assertThat(warnings.getWarningsList())
           .singleElement()
           .isEqualTo("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
-      } else {
+      } else if (version.isGreaterThanOrEquals(2025, 6) || ORCHESTRATOR.getServer().getEdition() == Edition.COMMUNITY) {
+        assertThat(warnings.getWarningsList())
+          .singleElement()
+          .isEqualTo("Java 17 scanner support ends with SonarQube 2026.3 (July 2026). Please upgrade to Java 21 or newer, or use JRE auto-provisioning to keep this requirement always up to date.");
+      }
+      else {
         assertThat(warnings.getWarningsList()).isEmpty();
       }
     }
