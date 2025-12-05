@@ -221,7 +221,6 @@ class SolutionKindTest {
       else {
         assertThat(warnings.getWarningsList()).isEmpty();
       }
-      }
     }
   }
 
