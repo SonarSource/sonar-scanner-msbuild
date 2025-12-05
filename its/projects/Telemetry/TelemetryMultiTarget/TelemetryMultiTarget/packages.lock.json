@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "telemetryutilsmultitarget": {
+        "type": "Project"
+      }
+    },
+    "net8.0": {
+      "telemetryutilsmultitarget": {
+        "type": "Project"
+      }
+    }
+  }
+}
