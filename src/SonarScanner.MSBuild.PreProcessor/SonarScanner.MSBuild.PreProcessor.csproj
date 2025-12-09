@@ -20,7 +20,9 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4"/>
+    <!-- Override transitive dependency to address CVE-2019-0657 -->
+    <PackageReference Include="System.Private.Uri" Version="4.3.2"/>
   </ItemGroup>
   <ItemGroup>
     <Using Include="System.Threading.Tasks" />

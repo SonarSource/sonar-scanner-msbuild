@@ -7,7 +7,9 @@
   <ItemGroup>
     <!-- Runtime dependencies used by tasks need to be copied by SonarScanner.MSBuild.BootstrapperClass.CopyDlls() -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0"/>
+    <!-- Override transitive dependency to address CVE-2019-0657 -->
+    <PackageReference Include="System.Private.Uri" Version="4.3.2"/>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
