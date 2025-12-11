@@ -214,12 +214,7 @@ class SolutionKindTest {
         assertThat(warnings.getWarningsList())
           .singleElement()
           .isEqualTo("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
-      } else if (version.isGreaterThanOrEquals(2025, 6) || ORCHESTRATOR.getServer().getEdition() == Edition.COMMUNITY) {
-        assertThat(warnings.getWarningsList())
-          .singleElement()
-          .isEqualTo("Java 17 scanner support ends with SonarQube 2026.3 (July 2026). Please upgrade to Java 21 or newer, or use JRE auto-provisioning to keep this requirement always up to date.");
-      }
-      else {
+      } else {
         assertThat(warnings.getWarningsList()).isEmpty();
       }
     }
