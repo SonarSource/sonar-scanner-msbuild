@@ -410,26 +410,31 @@ stages:
               SQ_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild15:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_15_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild16:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_16_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild17:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild18:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_Community:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
@@ -440,6 +445,7 @@ stages:
               GO_VERSION: "NONE"              # Commercial plugin
               IAC_ENTERPRISE_VERSION: "NONE"  # Commercial plugin
               PLSQL_VERSION: "NONE"           # Commercial plugin
+              JDKVERSION: "1.21"
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
