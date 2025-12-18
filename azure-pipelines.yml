@@ -215,7 +215,7 @@ stages:
                 -DgenerateBackupPoms=false -e
               javaHomeOption: 'JDKVersion'
               mavenVersionOption: 'Default'
-              jdkVersionOption: '1.17'
+              jdkVersionOption: '1.21'
               mavenOptions: $(MAVEN_OPTS)
 
           - task: DownloadSecureFile@1
@@ -240,7 +240,7 @@ stages:
                 -Pdeploy-sonarsource,sign -e -V
               publishJUnitResults: false
               javaHomeOption: 'JDKVersion'
-              jdkVersionOption: '1.17'
+              jdkVersionOption: '1.21'
               mavenOptions: $(MAVEN_OPTS)
 
           - powershell: |
@@ -408,26 +408,31 @@ stages:
               SQ_VERSION: "LATEST_RELEASE"
               MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild15:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_15_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild16:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_16_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild17:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild18:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_Community:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
@@ -438,6 +443,7 @@ stages:
               GO_VERSION: "NONE"              # Commercial plugin
               IAC_ENTERPRISE_VERSION: "NONE"  # Commercial plugin
               PLSQL_VERSION: "NONE"           # Commercial plugin
+              JDKVERSION: "1.21"
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
