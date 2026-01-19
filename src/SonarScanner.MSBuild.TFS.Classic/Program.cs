@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,22 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
+using System.Diagnostics.CodeAnalysis;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
 
 namespace SonarScanner.MSBuild.TFS.Classic;
 
 public static class Program
 {
+    [ExcludeFromCodeCoverage]
     public static int Main(string[] args)
     {
         var logger = new ConsoleLogger(includeTimestamp: false);
-        return Execute(args, logger);
+        var runtime = new Runtime(
+            new OperatingSystemProvider(FileWrapper.Instance, logger),
+            DirectoryWrapper.Instance,
+            FileWrapper.Instance,
+            logger,
+            new Telemetry(FileWrapper.Instance, logger),
+            new DateTimeWrapper(),
+            new AnalysisWarnings(FileWrapper.Instance, logger));
+        return Execute(args, runtime);
     }
 
-    public static int Execute(string[] args, ILogger logger)
+    public static int Execute(string[] args, IRuntime runtime)
     {
         try
         {
@@ -45,11 +52,11 @@ public static class Program
              */
             if (args.Length < 1)
             {
-                logger.LogError("No argument found. Exiting...");
+                runtime.LogError("No argument found. Exiting...");
                 return 1;
             }
 
-            var commandLineArgs = new CommandLineArgs(logger);
+            var commandLineArgs = new CommandLineArgs(runtime.Logger);
             if (!commandLineArgs.ParseArguments(args))
             {
                 return 1;
@@ -57,44 +64,44 @@ public static class Program
 
             var buildSettings = BuildSettings.GetSettingsFromEnvironment();
             var config = AnalysisConfig.Load(commandLineArgs.SonarQubeAnalysisConfigPath);
-            var legacyTeamBuildFactory = new LegacyTeamBuildFactory(logger);
+            var legacyTeamBuildFactory = new LegacyTeamBuildFactory(runtime.Logger);
 
             switch (commandLineArgs.ProcessToExecute)
             {
                 case Method.ConvertCoverage:
-                    ExecuteCoverageConverter(logger, config, legacyTeamBuildFactory, buildSettings, commandLineArgs.SonarProjectPropertiesPath);
+                    ExecuteCoverageConverter(runtime.Logger, config, legacyTeamBuildFactory, buildSettings, commandLineArgs.SonarProjectPropertiesPath);
                     break;
                 case Method.SummaryReportBuilder:
-                    ExecuteReportBuilder(logger, config, legacyTeamBuildFactory, buildSettings, commandLineArgs.RanToCompletion, commandLineArgs.SonarProjectPropertiesPath);
+                    ExecuteReportBuilder(runtime, config, legacyTeamBuildFactory, buildSettings, commandLineArgs.RanToCompletion, commandLineArgs.SonarProjectPropertiesPath);
                     break;
             }
         }
         catch (Exception ex)
         {
-            logger.LogError("An exception occured while executing the process : " + ex.Message);
-            logger.LogError(ex.StackTrace);
+            runtime.LogError("An exception occurred while executing the process: " + ex.Message);
+            runtime.LogError(ex.StackTrace);
+            return 1;
         }
 
         return 0;
     }
 
-    private static void ExecuteReportBuilder(ILogger logger,
+    private static void ExecuteReportBuilder(IRuntime runtime,
                                              AnalysisConfig config,
                                              ILegacyTeamBuildFactory teamBuildFactory,
                                              IBuildSettings buildSettings,
                                              bool ranToCompletion,
                                              string fullPropertiesFilePath)
     {
-        var reportBuilder = new SummaryReportBuilder(teamBuildFactory, logger);
-        reportBuilder.GenerateReports(buildSettings, config, ranToCompletion, fullPropertiesFilePath, logger);
+        var reportBuilder = new SummaryReportBuilder(teamBuildFactory, config, runtime);
+        reportBuilder.GenerateReports(buildSettings, ranToCompletion, fullPropertiesFilePath);
     }
 
     private static void ExecuteCoverageConverter(ILogger logger, AnalysisConfig config, ILegacyTeamBuildFactory teamBuildFactory, IBuildSettings buildSettings, string fullPropertiesFilePath)
     {
-        var binaryConverter = new BinaryToXmlCoverageReportConverter(logger);
-        var coverageReportProcessor = new CoverageReportProcessor(teamBuildFactory, binaryConverter, logger);
+        var coverageReportProcessor = new CoverageReportProcessor(teamBuildFactory);
 
-        if (coverageReportProcessor.Initialise(config, buildSettings, fullPropertiesFilePath))
+        if (coverageReportProcessor.Initialize(config, buildSettings, fullPropertiesFilePath))
         {
             var success = coverageReportProcessor.ProcessCoverageReports(logger);
             if (success)

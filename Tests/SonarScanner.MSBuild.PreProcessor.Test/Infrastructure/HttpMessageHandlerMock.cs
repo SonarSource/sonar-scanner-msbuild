@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
 
@@ -41,10 +35,18 @@ public class HttpMessageHandlerMock(Func<HttpRequestMessage, CancellationToken, 
             }
         });
 
+    public bool IsDisposed { get; private set; }
+
     public List<HttpRequestMessage> Requests { get; private set; } = [];
 
     public HttpMessageHandlerMock() : this((_, _) => DefaultResponse)
     {
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        IsDisposed = true;
+        base.Dispose(disposing);
     }
 
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

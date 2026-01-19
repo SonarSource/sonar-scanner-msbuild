@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,10 +19,11 @@
  */
 
 using System.Net;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.PreProcessor.Unpacking;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor;
@@ -35,18 +36,18 @@ namespace SonarScanner.MSBuild.PreProcessor;
 /// </remarks>
 public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 {
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
 
-    public PreprocessorObjectFactory(ILogger logger) =>
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    public PreprocessorObjectFactory(IRuntime runtime) =>
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
     public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
-        var userName = args.GetSetting(SonarProperties.SonarToken, null) ?? args.GetSetting(SonarProperties.SonarUserName, null);
-        var password = args.GetSetting(SonarProperties.SonarPassword, null);
-        var clientCertPath = args.GetSetting(SonarProperties.ClientCertPath, null);
-        var clientCertPassword = args.GetSetting(SonarProperties.ClientCertPassword, null);
+        var userName = args.SettingOrDefault(SonarProperties.SonarToken, null) ?? args.SettingOrDefault(SonarProperties.SonarUserName, null);
+        var password = args.SettingOrDefault(SonarProperties.SonarPassword, null);
+        var clientCertPath = args.SettingOrDefault(SonarProperties.ClientCertPath, null);
+        var clientCertPassword = args.SettingOrDefault(SonarProperties.ClientCertPassword, null);
 
         if (!ValidateServerUrl(args.ServerInfo.ServerUrl))
         {
@@ -68,49 +69,47 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         {
             if (string.IsNullOrWhiteSpace(args.Organization))
             {
-                logger.LogError(Resources.ERR_MissingOrganization);
-                logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+                runtime.LogError(Resources.ERR_MissingOrganization);
+                runtime.LogWarning(Resources.WARN_DefaultHostUrlChanged);
                 return null;
             }
-            return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization, args.HttpTimeout);
+            return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization, args.HttpTimeout);
         }
         else
         {
-            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, logger, args.Organization);
+            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, args.Organization);
         }
 
         IDownloader CreateDownloader(string baseUrl) =>
-            new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, logger)
+            new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, runtime.Logger)
                 .AddAuthorization(userName, password)
                 .AddCertificate(clientCertPath, clientCertPassword)
                 .AddServerCertificate(args.TruststorePath, args.TruststorePassword)
                 .Build();
     }
 
-    public ITargetsInstaller CreateTargetInstaller() =>
-        new TargetsInstaller(logger);
-
     public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
                                                                string localCacheTempPath,
-                                                               ILogger logger,
                                                                BuildSettings teamBuildSettings,
                                                                IAnalysisPropertyProvider sonarProperties,
                                                                IEnumerable<SonarRule> rules,
                                                                string language) =>
-        new RoslynAnalyzerProvider(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, logger), logger, teamBuildSettings, sonarProperties, rules, language);
+        new(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
 
-    public IJreResolver CreateJreResolver(ISonarWebServer server)
-    {
-        var filePermissionsWrapper = new FilePermissionsWrapper(new OperatingSystemProvider(FileWrapper.Instance, logger));
-        var cache = new JreCache(logger, DirectoryWrapper.Instance, FileWrapper.Instance, ChecksumSha256.Instance, UnpackerFactory.Instance, filePermissionsWrapper);
-        return new JreResolver(server, cache, logger);
-    }
+    public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
+        new JreResolver(server, ChecksumSha256.Instance, sonarUserHome, runtime);
+
+    public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
+        new EngineResolver(server, sonarUserHome, runtime);
+
+    public IResolver CreateScannerCliResolver(ISonarWebServer server, string sonarUserHome) =>
+        new ScannerCliResolver(ChecksumSha256.Instance, sonarUserHome, runtime);
 
     private bool ValidateServerUrl(string serverUrl)
     {
         if (!Uri.IsWellFormedUriString(serverUrl, UriKind.Absolute))
         {
-            logger.LogError(Resources.ERR_InvalidSonarHostUrl, serverUrl);
+            runtime.LogError(Resources.ERR_InvalidSonarHostUrl, serverUrl);
             return false;
         }
 
@@ -120,7 +119,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         var serverUri = WebUtils.CreateUri(serverUrl);
         if (serverUri.Scheme != Uri.UriSchemeHttp && serverUri.Scheme != Uri.UriSchemeHttps)
         {
-            logger.LogError(Resources.ERR_MissingUriScheme, serverUrl);
+            runtime.LogError(Resources.ERR_MissingUriScheme, serverUrl);
             return false;
         }
         return true;
@@ -138,7 +137,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             var errorMessage = serverInfo.IsSonarCloud
                 ? Resources.ERR_DetectedErroneouslySonarCloud
                 : Resources.ERR_DetectedErroneouslySonarQube;
-            logger.LogError(errorMessage);
+            runtime.LogError(errorMessage);
             return false;
         }
         return true;
@@ -146,28 +145,28 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
 
     private async Task<Version> QueryServerVersion(IDownloader downloader, IDownloader fallback)
     {
-        logger.LogDebug(Resources.MSG_FetchingVersion);
+        runtime.LogDebug(Resources.MSG_FetchingVersion);
 
         try
         {
-            return await GetVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
+            return await QueryVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
         }
         catch
         {
             try
             {
-                return await GetVersion(fallback, "api/server/version", LoggerVerbosity.Info);
+                return await QueryVersion(fallback, "api/server/version", LoggerVerbosity.Info);
             }
             catch
             {
-                logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
+                runtime.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
                 return null;
             }
         }
 
-        static async Task<Version> GetVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
+        static async Task<Version> QueryVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
         {
-            var contents = await downloader.Download(path, failureVerbosity: failureVerbosity);
+            var contents = await downloader.Download(new(path, UriKind.Relative), failureVerbosity: failureVerbosity);
             return new Version(contents.Split('-')[0]);
         }
     }
@@ -177,12 +176,12 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     /// </summary>
     private async Task<bool> CanAuthenticate(IDownloader downloader)
     {
-        var response = await downloader.DownloadResource("api/settings/values?component=unknown");
+        var response = await downloader.DownloadResource(new("api/settings/values?component=unknown", UriKind.Relative));
         if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
         {
-            logger.LogWarning(Resources.WARN_AuthenticationFailed);
+            runtime.LogWarning(Resources.WARN_AuthenticationFailed);
             // This might fail in the scenario where the user does not specify sonar.host.url.
-            logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+            runtime.LogWarning(Resources.WARN_DefaultHostUrlChanged);
             return false;
         }
         else

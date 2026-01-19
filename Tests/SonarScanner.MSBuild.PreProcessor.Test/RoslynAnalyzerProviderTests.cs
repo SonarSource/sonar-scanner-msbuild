@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -47,11 +47,8 @@ public class RoslynAnalyzerProviderTests
     }
 
     [TestMethod]
-    public void RoslynConfig_NoActiveRules()
-    {
-        var context = new Context(TestContext, new ListPropertiesProvider(), [], []);
-        context.ActualSettings.Should().NotBeNull();
-    }
+    public void RoslynConfig_NoActiveRules() =>
+        new Context(TestContext, [], [], []).ActualSettings.Should().NotBeNull();
 
     [TestMethod]
     public void RoslynConfig_PropertyWithoutDot()
@@ -60,25 +57,22 @@ public class RoslynAnalyzerProviderTests
         {
             {"propertyWithoutDot", "someValue"}
         });
-        var context = new Context(TestContext, sonarProperties, [], []);
-        context.ActualSettings.Should().NotBeNull();
+        new Context(TestContext, sonarProperties, [], []).ActualSettings.Should().NotBeNull();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void RoslynConfig_NoAssemblies()
     {
-        var context = new Context(TestContext, new ListPropertiesProvider(), [[@"c:\assembly1.dll"]]);
+        var context = new Context(TestContext, [], [[@"c:\assembly1.dll"]]);
         context.AssertCorrectAnalyzerSettings();
         context.AssertNoWarningsOrErrors();
         context.AssertInfoMessages("No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for cs");
         context.AssertCorrectRulesets();
-        context.AssertExpectedAssemblies([]);
+        context.AssertExpectedAssemblies();
         context.AssertEmptyPluginsRequested();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(RoslynAnalyzerProvider.CSharpLanguage)]
     [DataRow(RoslynAnalyzerProvider.VBNetLanguage)]
     public void RoslynConfig_ValidProfile_WithLegacy(string language)
@@ -131,8 +125,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(RoslynAnalyzerProvider.CSharpLanguage)]
     [DataRow(RoslynAnalyzerProvider.VBNetLanguage)]
     public void RoslynConfig_ValidProfile_LegacyOnly(string language)
@@ -177,8 +170,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(RoslynAnalyzerProvider.CSharpLanguage)]
     [DataRow(RoslynAnalyzerProvider.VBNetLanguage)]
     public void RoslynConfig_ValidProfile_WithoutLegacy(string language)
@@ -214,8 +206,7 @@ public class RoslynAnalyzerProviderTests
         context.AssertExpectedAdditionalFileExists(ExpectedSonarLintXml(language));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sonar.cs.analyzer.dotnet.missing-pluginKey", "sonar.cs.analyzer.dotnet.version", "sonar.cs.analyzer.dotnet.staticResourceName")]
     [DataRow("sonar.cs.analyzer.dotnet.pluginKey", "sonar.cs.analyzer.dotnet.missing-version", "sonar.cs.analyzer.dotnet.staticResourceName")]
     [DataRow("sonar.cs.analyzer.dotnet.pluginKey", "sonar.cs.analyzer.dotnet.version", "sonar.cs.analyzer.dotnet.missing-staticResourceName")]
@@ -232,17 +223,17 @@ public class RoslynAnalyzerProviderTests
         context.AssertNoWarningsOrErrors();
         context.AssertInfoMessages("No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for cs");
         context.AssertCorrectRulesets();
-        context.AssertExpectedAssemblies([]);
+        context.AssertExpectedAssemblies();
         context.AssertEmptyPluginsRequested();
     }
 
     private static BuildSettings CreateSettings(string rootDir) =>
-        BuildSettings.CreateNonTeamBuildSettingsForTesting(rootDir);
+        BuildSettings.CreateSettingsForTesting(rootDir);
 
     private static string ExpectedSonarLintXml(string language) =>
         language switch
         {
-            RoslynAnalyzerProvider.CSharpLanguage => $"""
+            RoslynAnalyzerProvider.CSharpLanguage => """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <AnalysisInput>
                   <Settings>
@@ -335,18 +326,15 @@ public class RoslynAnalyzerProviderTests
             CheckRuleset(ActualSettings.DeactivatedRulesetPath, true);
         }
 
-        public void AssertNoWarningsOrErrors()
-        {
-            logger.AssertWarningsLogged(0);
-            logger.AssertErrorsLogged(0);
-        }
+        public void AssertNoWarningsOrErrors() =>
+            logger.Should().HaveNoWarnings().And.HaveNoErrors();
 
         public void AssertInfoMessages(params string[] expected)
         {
-            logger.AssertMessagesLogged(expected.Length);
+            logger.Should().HaveInfos(expected.Length);
             foreach (var info in expected)
             {
-                logger.AssertInfoLogged(info);
+                logger.Should().HaveInfos(info);
             }
         }
 
@@ -409,7 +397,7 @@ public class RoslynAnalyzerProviderTests
             testContext.WriteLine(string.Empty);
             if (expectedContent is not null)
             {
-                File.ReadAllText(actualFilePath).Should().Be(expectedContent, "Additional file does not have the expected content: {0}", expectedFileName);
+                File.ReadAllText(actualFilePath).Should().BeIgnoringLineEndings(expectedContent);
             }
         }
 
@@ -475,7 +463,7 @@ public class RoslynAnalyzerProviderTests
             File.Exists(ruleSetPath).Should().BeTrue("Specified ruleset file does not exist: {0}", ruleSetPath);
             testContext.AddResultFile(ruleSetPath);
             CheckFileIsXml(ruleSetPath);
-            File.ReadAllText(ruleSetPath).Should().Be(expectedContent, "Ruleset file does not have the expected content: {0}", ruleSetPath);
+            File.ReadAllText(ruleSetPath).Should().BeIgnoringLineEndings(expectedContent);
         }
 
         private static List<AnalyzerPlugin> CreateAnalyzerPlugins(List<string[]> pluginList) =>

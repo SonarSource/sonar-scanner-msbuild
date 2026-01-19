@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -37,11 +35,17 @@ public class DirectoryWrapper : IDirectoryWrapper
     public bool Exists(string path) =>
         Directory.Exists(path);
 
+    public string GetCurrentDirectory() =>
+        Directory.GetCurrentDirectory();
+
     public string[] GetDirectories(string path, string searchPattern, SearchOption searchOption) =>
         Directory.GetDirectories(path, searchPattern, searchOption);
 
     public string[] GetFiles(string path, string searchPattern) =>
         Directory.GetFiles(path, searchPattern);
+
+    public string[] GetFiles(string path, string searchPattern, SearchOption searchOption) =>
+        Directory.GetFiles(path, searchPattern, searchOption);
 
     public void Move(string sourceDirName, string destDirName) =>
         Directory.Move(sourceDirName, destDirName);
@@ -51,6 +55,9 @@ public class DirectoryWrapper : IDirectoryWrapper
 
     public string GetRandomFileName() =>
         Path.GetRandomFileName();
+
+    public string GetFullPath(string path) =>
+        Path.GetFullPath(path);
 
     public IEnumerable<FileInfo> EnumerateFiles(DirectoryInfo path, string searchPattern, SearchOption searchOption) =>
         path.EnumerateFiles(searchPattern, searchOption);

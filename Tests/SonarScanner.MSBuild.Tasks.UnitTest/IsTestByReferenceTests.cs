@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.Tasks.UnitTest;
 [TestClass]
 public class IsTestByReferenceTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("SimpleReference")]
     [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")]
     [DataRow("mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "StrongNameAndSimple")]
@@ -36,13 +36,13 @@ public class IsTestByReferenceTests
     public void TestReference_ProductReference_IsNull(params string[] references) =>
         ExecuteAndAssert(references, null, "No test reference was found for the current project.");
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null)]
     [DataRow(new string[] { })]
     public void TestReference_EmptyReference_IsNull(string[] references) =>
         ExecuteAndAssert(references, null, "No references were resolved for the current project.");
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework")]
     [DataRow("Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL")]
     [DataRow("@(Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL)")]
@@ -59,7 +59,7 @@ public class IsTestByReferenceTests
         ExecuteAndAssert(references, "FluentAssertions", "Resolved test reference: FluentAssertions");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("MOQ", "1.0")]
     [DataRow("Moq", "2.0")]
     [DataRow("MoQ", "3.0")]
@@ -77,12 +77,14 @@ public class IsTestByReferenceTests
             "dotMemory.Unit",
             "Microsoft.VisualStudio.TestPlatform.TestFramework",
             "Microsoft.VisualStudio.QualityTools.UnitTestFramework",
+            "MSTest.TestFramework",
             "Machine.Specifications",
             "nunit.framework",
             "nunitlite",
             "TechTalk.SpecFlow",
             "xunit",
             "xunit.core",
+            "xunit.v3.core",
             "FluentAssertions",
             "Shouldly",
             "FakeItEasy",

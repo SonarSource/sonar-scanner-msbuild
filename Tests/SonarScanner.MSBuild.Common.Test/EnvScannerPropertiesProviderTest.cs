@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -54,7 +54,7 @@ public class EnvScannerPropertiesProviderTest
         using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", "trash");
         var result = EnvScannerPropertiesProvider.TryCreateProvider(logger, out _);
         result.Should().BeFalse();
-        logger.AssertWarningLogged("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Error parsing boolean value. Path '', line 1, position 2.'.");
+        logger.Should().HaveWarnings("Failed to parse properties from the environment variable 'SONARQUBE_SCANNER_PARAMS' because 'Error parsing boolean value. Path '', line 1, position 2.'.");
     }
 
     [TestMethod]

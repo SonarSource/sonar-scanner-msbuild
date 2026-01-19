@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -74,29 +74,22 @@ public static class ConfigSettingsExtensions
     /// Optionally includes settings downloaded from the SonarQube server.
     /// </summary>
     /// <remarks>This could include settings imported from a settings file</remarks>
-    public static IAnalysisPropertyProvider GetAnalysisSettings(this AnalysisConfig config, bool includeServerSettings, ILogger logger)
+    public static IAnalysisPropertyProvider AnalysisSettings(this AnalysisConfig config, bool includeServerSettings, ILogger logger)
     {
-        if (config == null)
-        {
-            throw new ArgumentNullException(nameof(config));
-        }
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
+        _ = config ?? throw new ArgumentNullException(nameof(config));
+        _ = logger ?? throw new ArgumentNullException(nameof(logger));
         var providers = new List<IAnalysisPropertyProvider>();
-
         // Note: the order in which the providers are added determines the precedence
+
         // Add local settings
-        if (config.LocalSettings != null)
+        if (config.LocalSettings is not null)
         {
             providers.Add(new ListPropertiesProvider(config.LocalSettings));
         }
 
         // Add file settings
         var settingsFilePath = config.GetSettingsFilePath();
-        if (settingsFilePath != null)
+        if (settingsFilePath is not null)
         {
             var fileProvider = new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath));
             providers.Add(fileProvider);
@@ -109,28 +102,17 @@ public static class ConfigSettingsExtensions
         }
 
         // Add server settings
-        if (includeServerSettings && config.ServerSettings != null)
+        if (includeServerSettings && config.ServerSettings is not null)
         {
             providers.Add(new ListPropertiesProvider(config.ServerSettings));
         }
 
-        IAnalysisPropertyProvider provider;
-        switch (providers.Count)
+        return providers.Count switch
         {
-            case 0:
-                provider = EmptyPropertyProvider.Instance;
-                break;
-
-            case 1:
-                provider = providers[0];
-                break;
-
-            default:
-                provider = new AggregatePropertiesProvider(providers.ToArray());
-                break;
-        }
-
-        return provider;
+            0 => EmptyPropertyProvider.Instance,
+            1 => providers[0],
+            _ => new AggregatePropertiesProvider(providers.ToArray()),
+        };
     }
 
     public static void SetSettingsFilePath(this AnalysisConfig config, string fileName)
@@ -186,7 +168,7 @@ public static class ConfigSettingsExtensions
             throw new ArgumentNullException(nameof(logger));
         }
 
-        if (config.GetAnalysisSettings(includeServerSettings, logger).TryGetValue(settingName, out var value))
+        if (config.AnalysisSettings(includeServerSettings, logger).TryGetValue(settingName, out var value))
         {
             return value;
         }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -64,7 +64,7 @@ public class TfsLegacyCoverageReportProcessor : CoverageReportProcessorBase
         foreach (var url in urls)
         {
             var targetFileName = Path.Combine(config.SonarOutputDir, DownloadFileName);
-            var localSettings = config.GetAnalysisSettings(false, Logger);
+            var localSettings = config.AnalysisSettings(false, Logger);
             var httpTimeout = TimeoutProvider.HttpTimeout(localSettings, Logger);
             var result = downloader.DownloadReport(config.GetTfsUri(), url, targetFileName, httpTimeout);
             if (result)

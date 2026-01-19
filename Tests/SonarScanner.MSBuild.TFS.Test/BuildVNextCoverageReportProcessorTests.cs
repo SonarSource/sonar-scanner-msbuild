@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,331 +18,528 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
-using TestUtilities;
+using SonarScanner.MSBuild.TFS.Test.Infrastructure;
+using static SonarScanner.MSBuild.TFS.BuildVNextCoverageReportProcessor;
 
-namespace SonarScanner.MSBuild.TFS.Tests;
+namespace SonarScanner.MSBuild.TFS.Test;
 
 [TestClass]
 public class BuildVNextCoverageReportProcessorTests
 {
-    public TestContext TestContext { get; set; }
+    public enum Properties
+    {
+        TestAndCoverageXmlReportsPathsNull,
+        TestReportsPathsNotNull,
+        CoverageXmlReportsPathsNotNull,
+        TestAndCoverageXmlReportsPathsNotNull
+    }
 
-    private const string TRX_PAYLOAD = @"<?xml version=""1.0"" encoding=""utf-8"" ?>
-                                            <x:TestRun id=""4e4e4073-b17c-4bd0-a8bc-051bbc5a63e4"" name=""John@JOHN-DOE 2019-05-22 14:26:54:768"" runUser=""JOHN-DO\John"" xmlns:x=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-                                              <x:ResultSummary outcome=""Completed"">
-                                                <x:CollectorDataEntries>
-                                                    <x:Collector uri=""datacollector://microsoft/CodeCoverage/2.0"">
-                                                        <x:UriAttachments>
-                                                            <x:UriAttachment>
-                                                                <x:A href=""dummy.coverage"">dummy.coverage</x:A>
-                                                           </x:UriAttachment>
-                                                        </x:UriAttachments>
-                                                    </x:Collector>
-                                                </x:CollectorDataEntries>
-                                              </x:ResultSummary>
-                                           </x:TestRun>";
+    private readonly AnalysisConfig analysisConfig = new();
+    private readonly TestRuntime runtime = new();
+    private readonly MockReportConverter converter = new();
+    private readonly MockBuildSettings buildSettings = new();
+    private readonly string testDir;
+    private readonly string testResultsDir;
+    private readonly string coverageDir;
+    private readonly string alternateCoverageDir;
+    private readonly EnvironmentVariableScope environmentVariableScope = new();
+
+    private BuildVNextCoverageReportProcessor sut;
+
+    public BuildVNextCoverageReportProcessorTests(TestContext testContext)
+    {
+        testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
+        runtime.Directory.Exists(testDir).Returns(true);
+        testResultsDir = Path.Combine(testDir, "TestResults");
+        runtime.Directory.GetDirectories(testDir, "TestResults", Arg.Any<SearchOption>()).Returns([testResultsDir]);
+        coverageDir = Path.Combine(testResultsDir, "dummy", "In");
+        alternateCoverageDir = Path.Combine(testResultsDir, "alternate", "In");
+        runtime.Directory.Exists(alternateCoverageDir).Returns(true);
+        buildSettings.BuildDirectory = testDir;
+        sut = new BuildVNextCoverageReportProcessor(converter, runtime);
+        environmentVariableScope.SetVariable(EnvironmentVariables.AgentTempDirectory, alternateCoverageDir);  // setup search fallback
+    }
+
+    [TestCleanup]
+    public void Cleanup() =>
+        environmentVariableScope.Dispose();
 
     [TestMethod]
-    public void SearchFallbackShouldBeCalled_IfNoTrxFilesFound()
+    public void Constructor_ConverterIsNull_ThrowsNullArgumentException() =>
+        FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(null, runtime)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("converter");
+
+    [TestMethod]
+    public void Constructor_LoggerIsNull_ThrowsNullArgumentException() =>
+        FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(converter, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+
+    [TestMethod]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
+    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
+    public void ProcessCoverageReports_TrxFileFound_WritesPropertiesFile(Properties properties)
     {
-        var mockSearchFallback = new MockSearchFallback();
-        mockSearchFallback.SetReturnedFiles("file1.txt", "file2.txt");
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        Directory.CreateDirectory(testDir);
-        var testSubject = new BuildVNextCoverageReportProcessor(new MockReportConverter(), new TestLogger(), mockSearchFallback);
+        SetupPropertiesAndFiles(properties, trx: true);
 
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-
-        IEnumerable<string> trxFilePaths = null;
-        bool result = testSubject.TryGetTrxFilesAccessor(new Common.AnalysisConfig(), settings, out trxFilePaths);
-
-        // Assert
-        result.Should().BeTrue(); // expecting true i.e. carry on even if nothing found
-        testSubject.TrxFilesLocated.Should().BeFalse();
-
-        IEnumerable<string> binaryFilePaths = null;
-        result = testSubject.TryGetVsCoverageFilesAccessor(new Common.AnalysisConfig(), settings, out binaryFilePaths);
-        result.Should().BeTrue();
-        binaryFilePaths.Should().BeEquivalentTo("file1.txt", "file2.txt");
-
-        mockSearchFallback.FallbackCalled.Should().BeTrue();
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        AssertUsesFallback(false);
+        runtime.Logger.Warnings.Should().ContainSingle().Which.StartsWith("None of the following coverage attachments could be found: dummy.coverage");
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
 
     [TestMethod]
-    public void SearchFallbackNotShouldBeCalled_IfTrxFilesFound()
+    [DataRow(Properties.TestReportsPathsNotNull)]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    public void ProcessCoverageReports_TrxFileFound_TestReportsPathsProvided_DoesNotWritePropertiesFile(Properties properties)
     {
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        Directory.CreateDirectory(testResultsDir);
-        TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
+        SetupPropertiesAndFiles(properties, trx: true);
 
-        var testSubject = new BuildVNextCoverageReportProcessor(new MockReportConverter(), new TestLogger(), mockSearchFallback);
-
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-
-        IEnumerable<string> trxFilePaths = null;
-        bool result = testSubject.TryGetTrxFilesAccessor(new Common.AnalysisConfig(), settings, out trxFilePaths);
-
-        // 1) Search for TRX files -> results found
-        result.Should().BeTrue();
-        testSubject.TrxFilesLocated.Should().BeTrue();
-
-        // 2) Now search for .coverage files
-        IEnumerable<string> binaryFilePaths = null;
-        result = testSubject.TryGetVsCoverageFilesAccessor(new Common.AnalysisConfig(), settings, out binaryFilePaths);
-        result.Should().BeTrue();
-        binaryFilePaths.Should().BeEmpty();
-
-        mockSearchFallback.FallbackCalled.Should().BeFalse();
+        sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        runtime.Logger.Warnings.Should().ContainSingle().Which.StartsWith("None of the following coverage attachments could be found: dummy.coverage");
+        runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_VsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting()
+    [CombinatorialData]
+    public void ProcessCoverageReports_NoTrxFilesFound_DoesNotWritePropertiesFile(Properties properties)
     {
-        // Arrange
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-        var testLogger = new TestLogger();
-        Directory.CreateDirectory(testResultsDir);
+        SetupPropertiesAndFiles(properties);
 
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
+        sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        AssertUsesFallback();
+        runtime.Logger.Should().HaveNoWarnings();
+        runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
+    }
 
-        TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
-        TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
+    [TestMethod]
+    public void ProcessCoverageReports_TrxAndCoverageFileFound_Converts()
+    {
+        SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNull, trx: true, coverage: true);
 
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-
-        var coveragePathValue = "ThisIsADummyPath";
-
-        analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, coveragePathValue));
-        analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, null));
-
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
-
-        // Act
-        var result = testSubject.ProcessCoverageReports(testLogger);
-
-        // Assert
-        result.Should().BeTrue();
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(1);
-
-        Assert.AreEqual(analysisConfig.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, testLogger), coveragePathValue);
+        runtime.Logger.Should().HaveNoWarnings();
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_VsTestReportsPathsProvided_ShouldSkipSearching()
+    public void ProcessCoverageReports_TrxAndCoverageFileFound_TestReportsPathsProvided_Converts_DoesNotWriteTestReportsPathsToPropertiesFile()
     {
-        // Arrange
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())).FullName;
-        var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-        var testLogger = new TestLogger();
+        SetupPropertiesAndFiles(Properties.TestReportsPathsNotNull, trx: true, coverage: true);
 
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-
-        analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsTestReportsPaths, String.Empty));
-
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
-
-        // Act
-        var result = testSubject.ProcessCoverageReports(testLogger);
-
-        // Assert
-        // 1) Property vstestreportPaths provided, we skip the search for trx files.
-        result.Should().BeTrue();
-        testSubject.TrxFilesLocated.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void ProcessCoverageReports_VsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_NotShouldTryConverting()
-    {
-
-        // Arrange
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-        var testLogger = new TestLogger();
-        Directory.CreateDirectory(testResultsDir);
-
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
-
-        TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
-        TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-        TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
-
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-
-        analysisConfig.LocalSettings.Add(new Property(SonarProperties.VsCoverageXmlReportsPaths, string.Empty));
-
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
-
-        try
-        {
-            // Act
-            var result = testSubject.ProcessCoverageReports(testLogger);
-
-            // Assert
-            result.Should().BeTrue();
-            converter.AssertConvertNotCalled();
-            testLogger.AssertWarningsLogged(0);
-        }
-        finally
-        {
-            TestUtils.DeleteTextFile(coverageDir, "dummy.coveragexml");
-        }
-    }
-
-    [TestMethod]
-    public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_CoverageXmlFileAlreadyPresent_NotShouldTryConverting()
-    {
-        // Arrange
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-        var testLogger = new TestLogger();
-
-        Directory.CreateDirectory(testResultsDir);
-
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
-
-        TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
-
-        TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-        TestUtils.CreateTextFile(coverageDir, "dummy.coveragexml", "");
-
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
-
-        // Act
-        try
-        {
-
-            using (new AssertIgnoreScope())
-            {
-                var result = testSubject.ProcessCoverageReports(testLogger);
-
-                // Assert
-                result.Should().BeTrue();
-            }
-            converter.AssertConvertNotCalled();
-        }
-        finally
-        {
-            TestUtils.DeleteTextFile(coverageDir, "dummy.coveragexml");
-        }
-    }
-
-    [TestMethod]
-    public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting()
-    {
-        // Arrange
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-        var testLogger = new TestLogger();
-
-        Directory.CreateDirectory(testResultsDir);
-
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
-
-        TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
-        TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-
-        var converter = new MockReportConverter();
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
-
-        // Act
-        var result = testSubject.ProcessCoverageReports(testLogger);
-
-        // Assert
-        result.Should().BeTrue();
-        converter.AssertConvertCalledAtLeastOnce();
-    }
-
-    [TestMethod]
-    public void ProcessCoverageReports_NotVsCoverageXmlPathProvided_NotCoverageXmlFileAlreadyPresent_ShouldTryConverting_ConversionFailed()
-    {
-        // Arrange
-        var mockSearchFallback = new MockSearchFallback();
-        var testDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var testResultsDir = Path.Combine(testDir, "TestResults");
-        var analysisConfig = new AnalysisConfig { LocalSettings = new AnalysisProperties() };
-        var testLogger = new TestLogger();
-
-        Directory.CreateDirectory(testResultsDir);
-
-        var coverageDir = Path.Combine(testResultsDir, "dummy", "In");
-        Directory.CreateDirectory(coverageDir);
-
-        TestUtils.CreateTextFile(testResultsDir, "dummy.trx", TRX_PAYLOAD);
-
-        TestUtils.CreateTextFile(coverageDir, "dummy.coverage", "");
-
-        var converter = new MockReportConverter { ShouldNotFailConversion = false };
-
-        var testSubject = new BuildVNextCoverageReportProcessor(converter, testLogger, mockSearchFallback);
-        var settings = new MockBuildSettings
-        {
-            BuildDirectory = testDir
-        };
-
-        testSubject.Initialise(analysisConfig, settings, testDir + "\\sonar-project.properties");
-
-        // Act
-        var result = testSubject.ProcessCoverageReports(testLogger);
-
-        // Assert
-        result.Should().BeTrue();
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(1);
+        runtime.Logger.Should().HaveNoWarnings();
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_TrxAndCoverageFileFound_CoverageXmlReportsPathsProvided_Converts_DoesNotWriteCoverageXmlReportsPathsToPropertiesFile()
+    {
+        SetupPropertiesAndFiles(Properties.CoverageXmlReportsPathsNotNull, trx: true, coverage: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(1);
+        runtime.Logger.Should().HaveNoWarnings();
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_TrxAndCoverageFileFound_TestReportsAndCoverageXmlPathsProvided_Converts_DoesNotWritePropertiesFile()
+    {
+        SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNotNull, trx: true, coverage: true);
+
+        sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(1);
+        runtime.Logger.Should().HaveNoWarnings();
+        runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
+    }
+
+    [TestMethod]
+    [CombinatorialData]
+    public void ProcessCoverageReports_NoTrxFilesFound_CoverageFileFound_DoesNotConvert(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, coverage: true);
+
+        sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(0);
+        runtime.Logger.Should().HaveNoWarnings();
+        runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
+    [DataRow(Properties.TestReportsPathsNotNull)]
+    public void ProcessCoverageReports_CoverageXmlFileAlreadyPresent_DoesNotConvert_WritesCoverageXmlReportsPathsToPropertiesFile(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, trx: true, coverage: true, coverageXml: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertConvertNotCalled();
+        runtime.Logger.Should().HaveNoWarnings();
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    public void ProcessCoverageReports_CoverageXmlFileAlreadyPresent_CoverageXmlReportsPathsProvided_DoesNotConvert_DoesNotWriteCoverageXmlReportsPathsToPropertiesFile(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, trx: true, coverage: true, coverageXml: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertConvertNotCalled();
+        runtime.Logger.Should().HaveNoWarnings();
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    [CombinatorialData]
+    public void ProcessCoverageReports_ConversionFails_ReturnsTrue(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, trx: true, coverage: true);
+        converter.ShouldFailConversion = true;
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(1);
+        runtime.Logger.Should().HaveNoWarnings();
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
+    [DataRow(Properties.TestReportsPathsNotNull)]
+    public void ProcessCoverageReports_NoTrxFilesFound_AlternateCoverageFileFound_Converts(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, alternate: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(1);
+        AssertUsesFallback();
+        AssertPropertiesFileContainsAlternateCoverageXmlReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    public void ProcessCoverageReports_NoTrxFilesFound_AlternateCoverageFilesFound_VsCoverageXmlReportsPathsProvided_Converts_DoesNotWritePropertiesFile(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, alternate: true);
+
+        sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        AssertUsesFallback();
+        converter.AssertExpectedNumberOfConversions(1);
+        runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
+    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
+    public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_DoesNotUseFallback(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, trx: true, alternate: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(0);
+        AssertUsesFallback(false);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.TestReportsPathsNotNull)]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_TestReportsPathsProvided_UsesFallback_Converts(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, trx: true, alternate: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(1);
+        AssertUsesFallback();
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
+    [DataRow(Properties.TestReportsPathsNotNull)]
+    public void ProcessCoverageReports_TrxAndCoverageAndAlternateCoverageFileFound_Converts_DoesNotUseFallback(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, trx: true, coverage: true, alternate: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(1);
+        AssertUsesFallback(false);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    public void ProcessCoverageReports_TrxAndCoverageAndAlternateCoverageFileFound_CoverageXmlReportsPathsProvided_Converts_DoesNotUseFallback_DoesNotWriteCoverageXmlReportsPathsToPropertiesFile(
+        Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, true, coverage: true, alternate: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(1);
+        AssertUsesFallback(false);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
+    [DataRow(Properties.TestReportsPathsNotNull)]
+    public void ProcessCoverageReports_AlternateCoverageFileFound_CoverageXmlFileAlreadyPresent_DoesNotConvert_UsesFallback(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, alternate: true, alternateXml: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertConvertNotCalled();
+        AssertUsesFallback();
+        AssertPropertiesFileContainsAlternateCoverageXmlReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    public void ProcessCoverageReports_AlternateCoverageFileFound_CoverageXmlFileAlreadyPresent_CoverageXmlReportsPathsProvided_DoesNotConvert_UsesFallback_DoesNotWritePropertiesFile(
+        Properties properties)
+    {
+        SetupPropertiesAndFiles(properties, alternate: true, alternateXml: true);
+
+        sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertConvertNotCalled();
+        AssertUsesFallback();
+        runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
+    }
+
+    [TestMethod]
+    public void AgentDirectory_CalculatedCorrectly_Null()
+    {
+        using var envVars = new EnvironmentVariableScope();
+        // env var not specified -> null
+        envVars.SetVariable(EnvironmentVariables.AgentTempDirectory, null);
+
+        sut.CheckAgentTempDirectory().Should().BeNull();
+    }
+
+    [TestMethod]
+    public void AgentDirectory_CalculatedCorrectly_NonExisting()
+    {
+        var envDir = Path.Combine(testDir, "DirSpecifiedInEnvDir");
+        using var envVars = new EnvironmentVariableScope();
+        // Env var set but dir does not exist -> null
+        envVars.SetVariable(EnvironmentVariables.AgentTempDirectory, envDir);
+
+        sut.CheckAgentTempDirectory().Should().BeNull();
+    }
+
+    [TestMethod]
+    public void AgentDirectory_CalculatedCorrectly_Existing()
+    {
+        var envDir = Path.Combine(testDir, "DirSpecifiedInEnvDir");
+        using var envVars = new EnvironmentVariableScope();
+        // Env var set and dir exists -> dir returned
+        runtime.Directory.Exists(envDir).Returns(true);
+        envVars.SetVariable(EnvironmentVariables.AgentTempDirectory, envDir);
+
+        sut.CheckAgentTempDirectory().Should().Be(envDir);
+    }
+
+    [TestMethod]
+    public void FindFallbackCoverageFiles_NoAgentDirectory_Empty()
+    {
+        using var envVars = new EnvironmentVariableScope();
+        envVars.SetVariable(EnvironmentVariables.AgentTempDirectory, null);
+
+        sut.FindFallbackCoverageFiles().Should().BeEmpty();
+    }
+
+    [TestCategory(TestCategories.NoLinux)]
+    [TestMethod]
+    public void FindFallbackCoverageFiles_FilesLocatedCorrectly_Windows_Mac()
+    {
+        sut = new BuildVNextCoverageReportProcessor(converter, new TestRuntime { Directory = DirectoryWrapper.Instance, File = FileWrapper.Instance }); // no file mocking, test actual search behavior
+        var subDir = Path.Combine(alternateCoverageDir, "subDir", "subDir2");
+        Directory.CreateDirectory(subDir);
+        TestUtils.CreateTextFile(alternateCoverageDir, "foo.coverageXXX", "1");              // wrong file extension
+        TestUtils.CreateTextFile(alternateCoverageDir, "abc.trx", "2");                      // wrong file extension
+        TestUtils.CreateTextFile(alternateCoverageDir, "BAR.coverage.XXX", "3");             // wrong file extension
+        var lowerCasePath = TestUtils.CreateTextFile(alternateCoverageDir, "foo.coverage", "4");
+        var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
+
+        sut.FindFallbackCoverageFiles().Should().BeEquivalentTo(lowerCasePath, upperCasePath);
+    }
+
+    [TestCategory(TestCategories.NoWindows)]
+    [TestCategory(TestCategories.NoMacOS)]
+    [TestMethod]
+    public void FindFallbackCoverageFiles_FilesLocatedCorrectly_Linux()
+    {
+        sut = new BuildVNextCoverageReportProcessor(converter, new TestRuntime { Directory = DirectoryWrapper.Instance, File = FileWrapper.Instance }); // no file mocking, test actual search behavior
+        var subDir = Path.Combine(alternateCoverageDir, "subDir", "subDir2");
+        Directory.CreateDirectory(subDir);
+        TestUtils.CreateTextFile(alternateCoverageDir, "foo.coverageXXX", "1");             // wrong file extension
+        TestUtils.CreateTextFile(alternateCoverageDir, "abc.trx", "2");                     // wrong file extension
+        TestUtils.CreateTextFile(alternateCoverageDir, "BAR.coverage.XXX", "3");            // wrong file extension
+        var lowerCasePath = TestUtils.CreateTextFile(alternateCoverageDir, "foo.coverage", "4");
+        var upperCasePath = TestUtils.CreateTextFile(subDir, "BAR.COVERAGE", "5");
+        var duplicate1FilePath = TestUtils.CreateTextFile(alternateCoverageDir, "DUPLICATE.coverage", "6");
+        var duplicate2FilePath = TestUtils.CreateTextFile(alternateCoverageDir, "Duplicate.coverage", "7"); // Unix file system is case-sensitive, so these are two separate files
+
+        sut.FindFallbackCoverageFiles().Should().Satisfy(
+            x => x == lowerCasePath,    // should also find upperCasePath but does not due to case-sensitivity on Linux
+            x => x == duplicate1FilePath,
+            x => x == duplicate2FilePath);
+    }
+
+    [TestMethod]
+    public void FindFallbackCoverageFiles_CalculatesAndDeDupesOnContentCorrectly()
+    {
+        sut = new BuildVNextCoverageReportProcessor(converter, new TestRuntime { Directory = DirectoryWrapper.Instance, File = FileWrapper.Instance }); // no file mocking, test actual search behavior
+        var subDir = Path.Combine(alternateCoverageDir, "subDir", "subDir2");
+        Directory.CreateDirectory(subDir);
+        var file1 = "file1.coverage";
+        var file1Duplicate = "file1Duplicate.coverage";
+        var filePath1 = TestUtils.CreateTextFile(alternateCoverageDir, file1, "same content");
+        var filePath1Duplicate = TestUtils.CreateTextFile(alternateCoverageDir, file1Duplicate, "same content");
+        var filePath1SubDir = TestUtils.CreateTextFile(subDir, file1, "same content");
+
+        sut.FindFallbackCoverageFiles().Should().ContainSingle("the 3 files should be de-duped based on content hash.")
+            .Which.Should().BeOneOf(filePath1, filePath1Duplicate, filePath1SubDir);
+    }
+
+    [TestMethod]
+    [DataRow(new byte[] { 1, 2, 3 }, new byte[] { 1, 2 })]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 2, 3 })]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 1, 3 })]
+    [DataRow(new byte[] { 1, 2 }, new byte[] { 2, 1 })]
+    [DataRow(new byte[] { }, new byte[] { 1 })]
+    public void FileWithContentHash_Equals_DifferentHash_False(byte[] hash1, byte[] hash2) =>
+        new FileWithContentHash("c:\\path.txt", hash1)
+            .Equals(new FileWithContentHash("c:\\path.txt", hash2))
+            .Should().BeFalse();
+
+    [TestMethod]
+    [DataRow("File.txt", "File.txt")]
+    [DataRow("File.txt", "FileOther.txt")]
+    [DataRow("FileOther.txt", "File.txt")]
+    [DataRow("File.txt", null)]
+    [DataRow("File.txt", "")]
+    [DataRow("", "File.txt")]
+    [DataRow(null, "File.txt")]
+    public void FileWithContentHash_Equals_SameHash_True(string fileName1, string fileName2) =>
+        new FileWithContentHash(fileName1, [1, 2])
+            .Equals(new FileWithContentHash(fileName2, [1, 2]))
+            .Should().BeTrue();
+
+    [TestMethod]
+    [DataRow("string")]
+    [DataRow(42)]
+    [DataRow(null)]
+    public void FileWithContentHash_Equals_Other_False(object other) =>
+        new FileWithContentHash("c:\\path.txt", [1, 2])
+            .Equals(other)
+            .Should().BeFalse();
+
+    private void SetupPropertiesAndFiles(Properties settings, bool trx = false, bool coverage = false, bool coverageXml = false, bool alternate = false, bool alternateXml = false)
+    {
+        analysisConfig.LocalSettings = settings switch
+        {
+            Properties.TestAndCoverageXmlReportsPathsNull => [new Property(SonarProperties.VsTestReportsPaths, null), new Property(SonarProperties.VsCoverageXmlReportsPaths, null)],
+            Properties.TestReportsPathsNotNull => [new Property(SonarProperties.VsTestReportsPaths, "not null"), new Property(SonarProperties.VsCoverageXmlReportsPaths, null)],
+            Properties.CoverageXmlReportsPathsNotNull => [new Property(SonarProperties.VsTestReportsPaths, null), new Property(SonarProperties.VsCoverageXmlReportsPaths, "not null")],
+            Properties.TestAndCoverageXmlReportsPathsNotNull => [new Property(SonarProperties.VsTestReportsPaths, "not null"), new Property(SonarProperties.VsCoverageXmlReportsPaths, "not null")],
+            _ => throw new NotSupportedException(settings + " is not a supported value.")
+        };
+        if (trx)
+        {
+            CreateFile(testResultsDir, "dummy.trx", """
+                <?xml version="1.0" encoding="utf-8" ?>
+                <x:TestRun id="4e4e4073-b17c-4bd0-a8bc-051bbc5a63e4" name="John@JOHN-DOE 2019-05-22 14:26:54:768" runUser="JOHN-DO\John" xmlns:x="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+                    <x:ResultSummary outcome="Completed">
+                    <x:CollectorDataEntries>
+                        <x:Collector uri="datacollector://microsoft/CodeCoverage/2.0">
+                            <x:UriAttachments>
+                                <x:UriAttachment>
+                                    <x:A href="dummy.coverage">dummy.coverage</x:A>
+                                </x:UriAttachment>
+                            </x:UriAttachments>
+                        </x:Collector>
+                    </x:CollectorDataEntries>
+                    </x:ResultSummary>
+                </x:TestRun>
+                """);
+            runtime.Directory.GetFiles(testResultsDir, "*.trx").Returns([Path.Combine(testResultsDir, "dummy.trx")]);
+        }
+        if (coverage)
+        {
+            CreateFile(coverageDir, "dummy.coverage", "coverage");
+        }
+        if (coverageXml)
+        {
+            CreateFile(coverageDir, "dummy.coveragexml", "coveragexml");
+        }
+        if (alternate)
+        {
+            CreateFile(alternateCoverageDir, "alternate.coverage", "alternate");
+            runtime.Directory.GetFiles(alternateCoverageDir, "*.coverage", Arg.Any<SearchOption>()).Returns([Path.Combine(alternateCoverageDir, "alternate.coverage")]);
+        }
+        if (alternateXml)
+        {
+            CreateFile(alternateCoverageDir, "alternate.coveragexml", "alternate coveragexml");
+        }
+    }
+
+    private static void AssertPropertiesFileContainsTestReportsPaths(AdditionalProperties additionalProperties, bool contains = true)
+    {
+        if (contains)
+        {
+            additionalProperties.VsTestReportsPaths.Should().ContainSingle(x => x.EndsWith(Path.Combine("TestResults", "dummy.trx")));
+        }
+        else
+        {
+            additionalProperties.VsTestReportsPaths.Should().BeNull();
+        }
+    }
+
+    private static void AssertPropertiesFileContainsCoverageXmlReportsPaths(AdditionalProperties additionalProperties, bool contains = true)
+    {
+        if (contains)
+        {
+            additionalProperties.VsCoverageXmlReportsPaths.Should().ContainSingle(x => x.EndsWith(Path.Combine("TestResults", "dummy", "In", "dummy.coveragexml")));
+        }
+        else
+        {
+            additionalProperties.VsCoverageXmlReportsPaths.Should().BeNull();
+        }
+    }
+
+    private static void AssertPropertiesFileContainsAlternateCoverageXmlReportsPaths(AdditionalProperties additionalProperties) =>
+        additionalProperties.VsCoverageXmlReportsPaths.Should().ContainSingle(x => x.EndsWith(Path.Combine("TestResults", "alternate", "In", "alternate.coveragexml")));
+
+    private void AssertUsesFallback(bool isTrue = true)
+    {
+        if (isTrue)
+        {
+            runtime.Logger.Should().HaveInfos("Did not find any binary coverage files in the expected location.")
+                .And.NotHaveDebug(Resources.TRX_DIAG_NotUsingFallback);
+        }
+        else
+        {
+            runtime.Logger.Should().NotHaveInfo(Resources.TRX_DIAG_NoCoverageFilesFound)
+                .And.HaveDebugs("Not using the fallback mechanism to detect binary coverage files.");
+        }
+    }
+
+    private void CreateFile(string path, string fileName, string fileContent = "")
+    {
+        var filePath = Path.Combine(path, fileName);
+        runtime.File.Exists(filePath).Returns(true);
+        runtime.File.Open(filePath).Returns(new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
     }
 }

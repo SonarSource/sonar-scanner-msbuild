@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,9 @@
 
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+#if NETFRAMEWORK
+using SonarScanner.MSBuild.Common.TFS;
+#endif
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -30,7 +33,7 @@ public class ProcessedArgs
 {
     /// <summary>
     /// Regular expression to validate a project key.
-    /// See http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject
+    /// See http://docs.sonarqube.org/display/SONAR/Project+Administration#ProjectAdministration-AddingaProject.
     /// </summary>
     /// <remarks>Should match the java regex here: https://github.com/SonarSource/sonarqube/blob/5.1.1/sonar-core/src/main/java/org/sonar/core/component/ComponentKeys.java#L36
     /// "Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit".
@@ -38,7 +41,7 @@ public class ProcessedArgs
     private static readonly Regex ProjectKeyRegEx = new(@"^[a-zA-Z0-9:\-_\.]*[a-zA-Z:\-_\.]+[a-zA-Z0-9:\-_\.]*$", RegexOptions.Compiled | RegexOptions.Singleline, RegexConstants.DefaultTimeout);
 
     private readonly IAnalysisPropertyProvider globalFileProperties;
-    private readonly IOperatingSystemProvider operatingSystemProvider;
+    private readonly IRuntime runtime;
 
     public /* for testing */ virtual string ProjectKey { get; }
 
@@ -55,19 +58,19 @@ public class ProcessedArgs
     /// <summary>
     /// Returns the operating system used to run the scanner.
     /// Supported values are windows|linux|macos|alpine but more can be added later
-    /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
+    /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines.
     public virtual string OperatingSystem { get; }
 
     /// <summary>
     /// Returns the platform architecture.
-    /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines
+    /// https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001395/Scanner+Bootstrappers+implementation+guidelines.
     /// </summary>
     public virtual string Architecture { get; }
 
     /// <summary>
     /// If true the preprocessor should copy the loader targets to a user location where MSBuild will pick them up.
     /// </summary>
-    public bool InstallLoaderTargets { get; private set; }
+    public bool InstallLoaderTargets { get; }
 
     /// <summary>
     /// Path to the Java executable.
@@ -80,9 +83,19 @@ public class ProcessedArgs
     public virtual bool SkipJreProvisioning { get; }
 
     /// <summary>
-    /// The sonar.userHome base directory for caching. Default value: ~/.sonar
+    /// Path to the scanner-engine.jar.
     /// </summary>
-    public string UserHome { get; }
+    public virtual string EngineJarPath { get; }
+
+    /// <summary>
+    /// Force the usage of the SonarScanner CLI even if the engine jar is available.
+    /// </summary>
+    public virtual bool UseSonarScannerCli { get; }
+
+    /// <summary>
+    /// The sonar.userHome base directory for caching. Default value: ~/.sonar.
+    /// </summary>
+    public string UserHome { get; private set; }
 
     /// <summary>
     /// Enable or disable multi-language analysis (default true, enabled).
@@ -92,12 +105,12 @@ public class ProcessedArgs
     /// <summary>
     /// The path to the p12/pfx truststore file with certificates that the scanner trusts when connecting to a server.
     /// </summary>
-    public string TruststorePath { get; }
+    public string TruststorePath { get; private set; }
 
     /// <summary>
     /// The password to unlock the <see cref="TruststorePath"/>.
     /// </summary>
-    public string TruststorePassword { get; }
+    public string TruststorePassword { get; private set; }
 
     /// <summary>
     /// Returns the combined command line and file analysis settings.
@@ -118,8 +131,7 @@ public class ProcessedArgs
             if (globalFileProperties is FilePropertyProvider fileProvider)
             {
                 Debug.Assert(fileProvider.PropertiesFile is not null, "File properties should not be null");
-                Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath),
-                    "Settings file name should not be null");
+                Debug.Assert(!string.IsNullOrWhiteSpace(fileProvider.PropertiesFile.FilePath), "Settings file name should not be null");
                 return fileProvider.PropertiesFile.FilePath;
             }
             return null;
@@ -137,19 +149,18 @@ public class ProcessedArgs
         IAnalysisPropertyProvider cmdLineProperties,
         IAnalysisPropertyProvider globalFileProperties,
         IAnalysisPropertyProvider scannerEnvProperties,
-        IFileWrapper fileWrapper,
-        IDirectoryWrapper directoryWrapper,
-        IOperatingSystemProvider operatingSystemProvider,
-        ILogger logger)
+        BuildSettings buildSettings,
+        IRuntime runtime)
     {
         IsValid = true;
         if (string.IsNullOrWhiteSpace(key))
         {
             throw new ArgumentNullException(nameof(key));
         }
+        this.runtime = runtime;
 
         ProjectKey = key;
-        IsValid &= CheckProjectKeyValidity(key, logger);
+        IsValid &= CheckProjectKeyValidity(key);
 
         ProjectName = name;
         ProjectVersion = version;
@@ -157,33 +168,33 @@ public class ProcessedArgs
 
         CmdLineProperties = cmdLineProperties ?? throw new ArgumentNullException(nameof(cmdLineProperties));
         this.globalFileProperties = globalFileProperties ?? throw new ArgumentNullException(nameof(globalFileProperties));
-        this.operatingSystemProvider = operatingSystemProvider;
         ScannerEnvProperties = scannerEnvProperties ?? throw new ArgumentNullException(nameof(scannerEnvProperties));
         InstallLoaderTargets = installLoaderTargets;
 
-        IsValid &= CheckOrganizationValidity(logger);
+        IsValid &= CheckOrganizationValidity();
         AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
-        TelemetryUtils.AddTelemetry(logger, AggregateProperties);
+        TelemetryUtils.AddTelemetry(runtime.Telemetry, AggregateProperties);
 
         AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
         AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
         AggregateProperties.TryGetValue(SonarProperties.Region, out var region);
         AggregateProperties.TryGetValue(SonarProperties.ApiBaseUrl, out var apiBaseUrl);
 
-        ServerInfo = HostInfo.FromProperties(logger, sonarHostUrl, sonarcloudUrl, apiBaseUrl, region);
+        ServerInfo = HostInfo.FromProperties(runtime.Logger, sonarHostUrl, sonarcloudUrl, apiBaseUrl, region);
         IsValid &= ServerInfo is not null;
+        TelemetryUtils.AddTelemetry(runtime.Telemetry, ServerInfo);
 
-        OperatingSystem = GetOperatingSystem(AggregateProperties);
+        OperatingSystem = OperatingSystemString(AggregateProperties);
         Architecture = AggregateProperties.TryGetProperty(SonarProperties.Architecture, out var architecture)
             ? architecture.Value
             : RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant();
 
         if (AggregateProperties.TryGetProperty(SonarProperties.JavaExePath, out var javaExePath))
         {
-            if (!fileWrapper.Exists(javaExePath.Value))
+            if (!runtime.File.Exists(javaExePath.Value))
             {
                 IsValid = false;
-                logger.LogError(Resources.ERROR_InvalidJavaExePath);
+                runtime.LogError(Resources.ERROR_InvalidJavaExePath);
             }
             JavaExePath = javaExePath.Value;
         }
@@ -192,16 +203,25 @@ public class ProcessedArgs
             if (!bool.TryParse(skipJreProvisioningString.Value, out var result))
             {
                 IsValid = false;
-                logger.LogError(Resources.ERROR_InvalidSkipJreProvisioning);
+                runtime.LogError(Resources.ERROR_InvalidSkipJreProvisioning);
             }
             SkipJreProvisioning = result;
+        }
+        if (AggregateProperties.TryGetProperty(SonarProperties.EngineJarPath, out var engineJarPath))
+        {
+            if (!runtime.File.Exists(engineJarPath.Value))
+            {
+                IsValid = false;
+                runtime.LogError(Resources.ERROR_InvalidEngineJarPath);
+            }
+            EngineJarPath = engineJarPath.Value;
         }
         if (AggregateProperties.TryGetProperty(SonarProperties.ScanAllAnalysis, out var scanAllAnalysisString))
         {
             if (!bool.TryParse(scanAllAnalysisString.Value, out var result))
             {
                 IsValid = false;
-                logger.LogError(Resources.ERROR_InvalidScanAllAnalysis);
+                runtime.LogError(Resources.ERROR_InvalidScanAllAnalysis);
             }
             ScanAllAnalysis = result;
         }
@@ -209,16 +229,37 @@ public class ProcessedArgs
         {
             ScanAllAnalysis = true;
         }
+
+        if (AggregateProperties.TryGetProperty(SonarProperties.UseSonarScannerCLI, out var useSonarScannerCli))
+        {
+            if (!bool.TryParse(useSonarScannerCli.Value, out var result))
+            {
+                IsValid = false;
+                runtime.LogError(Resources.ERROR_InvalidUseSonarScannerCli);
+            }
+            UseSonarScannerCli = result;
+        }
+        else
+        {
+            UseSonarScannerCli = false;
+#if NETFRAMEWORK
+            // If the TFS legacy coverage processor is called, we cannot use the scanner engine because it writes information to the properties file,
+            // which would be missing from the ScannerEngineInput.
+            if (buildSettings?.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
+            {
+                UseSonarScannerCli = true;
+                runtime.LogDebug(Resources.MSG_SonarScannerCliFallbackForTfsLegacySupport);
+            }
+#endif
+        }
+
         if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))
         {
-            logger.LogUIWarning(Resources.WARN_SourcesAndTestsDeprecated);
+            runtime.AnalysisWarnings.Log(Resources.WARN_SourcesAndTestsDeprecated);
         }
-        IsValid &= TryGetUserHome(logger, directoryWrapper, out var userHome);
-        UserHome = userHome;
-        IsValid &= CheckTrustStoreProperties(logger, fileWrapper, out var truststorePath, out var truststorePassword);
-        TruststorePath = truststorePath;
-        TruststorePassword = truststorePassword;
-        HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, logger);
+        IsValid &= SetUserHome();
+        IsValid &= SetTrustStoreProperties();
+        HttpTimeout = TimeoutProvider.HttpTimeout(AggregateProperties, runtime.Logger);
     }
 
     protected /* for testing */ ProcessedArgs() { }
@@ -227,7 +268,7 @@ public class ProcessedArgs
     /// Returns the value for the specified setting.
     /// Throws if the setting does not exist.
     /// </summary>
-    public string GetSetting(string key)
+    public string Setting(string key)
     {
         if (AggregateProperties.TryGetValue(key, out var value))
         {
@@ -242,7 +283,7 @@ public class ProcessedArgs
     /// Returns the value for the specified setting, or the supplied
     /// default if the setting does not exist.
     /// </summary>
-    public string GetSetting(string key, string defaultValue)
+    public string SettingOrDefault(string key, string defaultValue)
     {
         if (!AggregateProperties.TryGetValue(key, out var value))
         {
@@ -257,10 +298,10 @@ public class ProcessedArgs
     public IEnumerable<Property> AllProperties() =>
         AggregateProperties.GetAllProperties();
 
-    private string GetOperatingSystem(IAnalysisPropertyProvider properties) =>
+    private string OperatingSystemString(IAnalysisPropertyProvider properties) =>
         properties.TryGetProperty(SonarProperties.OperatingSystem, out var operatingSystem)
             ? operatingSystem.Value
-            : operatingSystemProvider.OperatingSystem() switch
+            : runtime.OperatingSystem.OperatingSystem() switch
             {
                 PlatformOS.Windows => "windows",
                 PlatformOS.MacOSX => "macos",
@@ -269,153 +310,152 @@ public class ProcessedArgs
                 _ => null
             };
 
-    private bool CheckOrganizationValidity(ILogger logger)
+    private bool CheckOrganizationValidity()
     {
         if (Organization is null && globalFileProperties.TryGetValue(SonarProperties.Organization, out _))
         {
-            logger.LogError(Resources.ERROR_Organization_Provided_In_SonarQubeAnalysis_file);
+            runtime.LogError(Resources.ERROR_Organization_Provided_In_SonarQubeAnalysis_file);
             return false;
         }
         return true;
     }
 
-    private static bool CheckProjectKeyValidity(string key, ILogger logger)
+    private bool CheckProjectKeyValidity(string key)
     {
         if (!ProjectKeyRegEx.SafeIsMatch(key, timeoutFallback: true))
         {
-            logger.LogError(Resources.ERROR_InvalidProjectKeyArg);
+            runtime.LogError(Resources.ERROR_InvalidProjectKeyArg);
             return false;
         }
         return true;
     }
 
-    private bool TryGetUserHome(ILogger logger, IDirectoryWrapper directoryWrapper, out string userHome)
+    private bool SetUserHome()
     {
         if (AggregateProperties.TryGetProperty(SonarProperties.UserHome, out var userHomeProp))
         {
-            if (directoryWrapper.Exists(userHomeProp.Value))
+            if (runtime.Directory.Exists(userHomeProp.Value))
             {
-                userHome = userHomeProp.Value;
+                UserHome = userHomeProp.Value;
                 return true;
             }
             else
             {
                 try
                 {
-                    directoryWrapper.CreateDirectory(userHomeProp.Value);
-                    userHome = userHomeProp.Value;
-                    logger.LogDebug(Resources.MSG_UserHomeDirectoryCreated, userHome);
+                    runtime.Directory.CreateDirectory(userHomeProp.Value);
+                    UserHome = userHomeProp.Value;
+                    runtime.LogDebug(Resources.MSG_UserHomeDirectoryCreated, UserHome);
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(Resources.ERR_UserHomeInvalid, userHomeProp.Value, ex.Message);
-                    userHome = null;
+                    runtime.LogError(Resources.ERR_UserHomeInvalid, userHomeProp.Value, ex.Message);
+                    UserHome = null;
                     return false;
                 }
             }
         }
-        var defaultPath = Path.Combine(operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
-        if (!directoryWrapper.Exists(defaultPath))
+        var defaultPath = Path.Combine(runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.None), ".sonar");
+        if (!runtime.Directory.Exists(defaultPath))
         {
             try
             {
-                directoryWrapper.CreateDirectory(defaultPath);
+                runtime.Directory.CreateDirectory(defaultPath);
             }
             catch (Exception ex)
             {
-                logger.LogWarning(Resources.WARN_DefaultUserHomeCreationFailed, defaultPath, ex.Message);
-                userHome = null;
+                runtime.LogWarning(Resources.WARN_DefaultUserHomeCreationFailed, defaultPath, ex.Message);
+                UserHome = null;
                 return true;
             }
         }
-        userHome = defaultPath;
+        UserHome = defaultPath;
         return true;
     }
 
-    private bool CheckTrustStoreProperties(ILogger logger, IFileWrapper fileWrapper, out string truststorePath, out string truststorePassword)
+    private bool SetTrustStoreProperties()
     {
-        truststorePath = null;
-        truststorePassword = null;
+        TruststorePassword = null;
         var hasPath = AggregateProperties.TryGetProperty(SonarProperties.TruststorePath, out var truststorePathProperty);
         var hasPassword = AggregateProperties.TryGetProperty(SonarProperties.TruststorePassword, out var truststorePasswordProperty);
         if (hasPassword)
         {
-            truststorePassword = truststorePasswordProperty.Value;
+            TruststorePassword = truststorePasswordProperty.Value;
         }
         if (hasPath)
         {
-            truststorePath = truststorePathProperty.Value;
-            truststorePassword ??= TruststoreUtils.TruststoreDefaultPassword(truststorePath, logger);
-            return CheckTrustStorePath(logger, fileWrapper, truststorePath, true);
+            TruststorePath = truststorePathProperty.Value;
+            TruststorePassword ??= TruststoreUtils.TruststoreDefaultPassword(TruststorePath, runtime.Logger);
+            return CheckTrustStorePath(true);
         }
         else
         {
-            logger.LogDebug(Resources.MSG_NoTruststoreProvideTryDefault);
+            runtime.LogDebug(Resources.MSG_NoTruststoreProvideTryDefault);
             // If the default truststore does not exist, providing the password does not make sense
-            if (!DefaultTrustStoreProperties(fileWrapper, out truststorePath, ref truststorePassword, logger) && hasPassword)
+            if (!DefaultTrustStoreProperties() && hasPassword)
             {
-                logger.LogError(Resources.ERR_TruststorePasswordWithoutTruststorePath);
+                runtime.LogError(Resources.ERR_TruststorePasswordWithoutTruststorePath);
                 return false;
             }
             // If the default truststore cannot be opened, it should be as if the user did not specify a truststore and password
             // So certificate validation can be done against the system trust store.
-            if (truststorePath is null || !CheckTrustStorePath(logger, fileWrapper, truststorePath, false))
+            if (TruststorePath is null || !CheckTrustStorePath(false))
             {
-                logger.LogDebug(Resources.MSG_NoTruststoreProceedWithoutTruststore);
-                truststorePath = null;
-                truststorePassword = null;
+                runtime.LogDebug(Resources.MSG_NoTruststoreProceedWithoutTruststore);
+                TruststorePath = null;
+                TruststorePassword = null;
                 return true;
             }
-            logger.LogDebug(Resources.MSG_FallbackTruststoreDefaultPath, truststorePath);
+            runtime.LogDebug(Resources.MSG_FallbackTruststoreDefaultPath, TruststorePath);
         }
         return true;
     }
 
-    private bool DefaultTrustStoreProperties(IFileWrapper fileWrapper, out string truststorePath, ref string truststorePassword, ILogger logger)
+    private bool DefaultTrustStoreProperties()
     {
-        var sonarUserHome = Environment.GetEnvironmentVariable("SONAR_USER_HOME") ?? UserHome;
+        var sonarUserHome = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarUserHome) ?? UserHome;
 
         if (sonarUserHome is null)
         {
-            truststorePath = null;
+            TruststorePath = null;
             return false;
         }
 
         var sonarUserHomeCertPath = Path.Combine(sonarUserHome.Trim('"', '\''), SonarPropertiesDefault.TruststorePath);
-        truststorePath = !string.IsNullOrWhiteSpace(sonarUserHome) && fileWrapper.Exists(sonarUserHomeCertPath) ? sonarUserHomeCertPath : null;
+        TruststorePath = !string.IsNullOrWhiteSpace(sonarUserHome) && runtime.File.Exists(sonarUserHomeCertPath) ? sonarUserHomeCertPath : null;
 
-        truststorePassword ??= TruststoreUtils.TruststoreDefaultPassword(truststorePath, logger);
+        TruststorePassword ??= TruststoreUtils.TruststoreDefaultPassword(TruststorePath, runtime.Logger);
 
-        return truststorePath is not null;
+        return TruststorePath is not null;
     }
 
-    private static bool CheckTrustStorePath(ILogger logger, IFileWrapper fileWrapper, string truststorePath, bool logAsError)
+    private bool CheckTrustStorePath(bool logAsError)
     {
-        if (!fileWrapper.Exists(truststorePath))
+        if (!runtime.File.Exists(TruststorePath))
         {
-            logger.LogError(Resources.ERR_TruststorePathDoesNotExist, truststorePath);
+            runtime.LogError(Resources.ERR_TruststorePathDoesNotExist, TruststorePath);
             return false;
         }
         try
         {
-            using var stream = fileWrapper.Open(truststorePath);
+            using var stream = runtime.File.Open(TruststorePath);
             return true;
         }
-        catch (Exception ex) when (ex is
-            ArgumentException or
-            ArgumentNullException or
-            PathTooLongException or
-            DirectoryNotFoundException or
-            IOException or
-            FileNotFoundException or
-            UnauthorizedAccessException or
-            ArgumentOutOfRangeException or
-            FileNotFoundException or
-            NotSupportedException)
+        catch (Exception ex) when (ex
+            is ArgumentException
+            or ArgumentNullException
+            or PathTooLongException
+            or DirectoryNotFoundException
+            or IOException
+            or FileNotFoundException
+            or UnauthorizedAccessException
+            or ArgumentOutOfRangeException
+            or FileNotFoundException
+            or NotSupportedException)
         {
-            Action<string, string[]> log = logAsError ? logger.LogError : logger.LogDebug;
-            log(Resources.ERR_TruststorePathCannotOpen, [truststorePath, $"{ex.GetType()}: {ex.Message}"]);
+            Action<string, string[]> log = logAsError ? runtime.Logger.LogError : runtime.Logger.LogDebug;
+            log(Resources.ERR_TruststorePathCannotOpen, [TruststorePath, $"{ex.GetType()}: {ex.Message}"]);
             return false;
         }
     }

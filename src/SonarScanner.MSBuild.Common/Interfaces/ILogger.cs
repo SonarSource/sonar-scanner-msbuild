@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,70 +26,40 @@ namespace SonarScanner.MSBuild.Common;
 /// <remarks>
 /// Does not cover warnings and errors.
 /// The levels are in step with the SonarQube verbosity levels (http://docs.sonarqube.org/display/SONAR/Server+Log+Management):
-/// Info, Debug (for advanced logs), Trace (for advanced logs and logs that might have a perf impact)
+/// Info, Debug (for advanced logs), Trace (for advanced logs and logs that might have a perf impact).
 /// </remarks>
 public enum LoggerVerbosity
 {
     /// <summary>
-    /// Important messages that always get logged
+    /// Important messages that always get logged.
     /// </summary>
     Info = 0,
 
     /// <summary>
-    /// Advanced information messages that help in debugging scenarios
+    /// Advanced information messages that help in debugging scenarios.
     /// </summary>
     Debug = 1
 }
 
-/// <summary>
-/// Simple logging interface
-/// </summary>
 public interface ILogger
 {
     /// <summary>
-    /// Log a message with the Debug verbosity
+    /// Gets or sets the level of detail to show in the log.
     /// </summary>
-    void LogDebug(string message, params object[] args);
+    LoggerVerbosity Verbosity { get; set; }
 
     /// <summary>
-    /// Log a message with the Info verbosity
+    /// Gets or sets whether log entries are prefixed with timestamps.
     /// </summary>
+    bool IncludeTimestamp { get; set; }
+
+    void LogDebug(string message, params object[] args);
+
     void LogInfo(string message, params object[] args);
 
     void LogWarning(string message, params object[] args);
 
     void LogError(string message, params object[] args);
-
-    /// <summary>
-    /// Log a warning and display it in the UI (starting from SQ 9.9 LTS).
-    /// </summary>
-    void LogUIWarning(string message, params object[] args);
-
-    /// <summary>
-    /// Creates the .json file in the specified output folder containing all warning messages.
-    /// See: https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-shared-library/src/main/java/org/sonarsource/dotnet/shared/plugins/AnalysisWarningsSensor.java#L54
-    /// </summary>
-    void WriteUIWarnings(string outputFolder);
-
-    /// <summary>
-    /// Adds a telemetry message to a collection.
-    /// </summary>
-    void AddTelemetryMessage(string key, object value);
-
-    /// <summary>
-    /// Writes the collection of telemetry messages to the specified output folder.
-    /// </summary>
-    void WriteTelemetry(string outputFolder);
-
-    /// <summary>
-    /// Gets or sets the level of detail to show in the log
-    /// </summary>
-    LoggerVerbosity Verbosity { get; set; }
-
-    /// <summary>
-    /// Gets or sets whether log entries are prefixed with timestamps
-    /// </summary>
-    bool IncludeTimestamp { get; set; }
 
     /// <summary>
     /// Suspends writing output to the console. Any messages will be recorded but

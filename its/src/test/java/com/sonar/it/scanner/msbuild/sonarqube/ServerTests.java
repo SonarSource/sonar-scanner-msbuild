@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -55,21 +55,28 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     return ORCHESTRATOR_STATE.token();
   }
 
-  private static Orchestrator createOrchestrator() {
+  // Supported since SQS 10.6
+  public static Boolean serverSupportsProvisioning() {
+    return ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6);
+  }
+
+  public static OrchestratorExtensionBuilder orchestratorBuilder() {
     var version = System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE");
+    var edition = Edition.valueOf(System.getProperty("sonar.sonarQubeEdition", Edition.DEVELOPER.name()));
     var orchestrator = OrchestratorExtension.builderEnv()
       .useDefaultAdminCredentialsForBuilds(true)
       .setSonarVersion(version)
-      .setEdition(Edition.DEVELOPER)
+      .setEdition(edition)
       .setServerProperty("sonar.telemetry.enable", "false"); // Disabling telemetry to avoid polluting our own data.
     // Plugin versions are defined in https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/azure-pipelines.yml
     // Set the version to NONE to disable the plugin.
     addPlugin(orchestrator, "com.sonarsource.cpp", "sonar-cfamily-plugin", "sonar.cfamilyplugin.version");
     addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version");
     addPlugin(orchestrator, "org.sonarsource.css", "sonar-css-plugin", "sonar.css.version", "NONE");
-    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-csharp-plugin", "sonar.csharpplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-vbnet-plugin", "sonar.vbnetplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-csharp-plugin", "sonar.csharpplugin.version", "DEV");
+    addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-vbnet-plugin", "sonar.vbnetplugin.version", "DEV");
     addPlugin(orchestrator, "org.sonarsource.iac", "sonar-iac-plugin", "sonar.iacplugin.version");
+    addPlugin(orchestrator, "com.sonarsource.iac", "sonar-iac-enterprise-plugin", "sonar.iacplugin-enterprise.version");
     addPlugin(orchestrator, "org.sonarsource.java", "sonar-java-plugin", "sonar.javaplugin.version");
     addPlugin(orchestrator, "org.sonarsource.javascript", "sonar-javascript-plugin", "sonar.javascriptplugin.version");
     addPlugin(orchestrator, "org.sonarsource.php", "sonar-php-plugin", "sonar.phpplugin.version");
@@ -83,8 +90,14 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
       // The latest version of the sonarqube-roslyn-sdk generates packages that are compatible only with SQ 9.9 and above.
       orchestrator.addPlugin(FileLocation.of(customRoslynPlugin().toFile()));
     }
+    if (edition != Edition.COMMUNITY) {
+      orchestrator.activateLicense();
+    }
+    return orchestrator;
+  }
 
-    return orchestrator.activateLicense().build();
+  private static Orchestrator createOrchestrator() {
+    return orchestratorBuilder().build();
   }
 
   private static void addPlugin(OrchestratorExtensionBuilder orchestrator, String groupId, String artifactId, String versionProperty) {

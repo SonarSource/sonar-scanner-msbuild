@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -43,10 +43,11 @@ public class WriteSonarTelemetryTests
                 TelemetryTaskItem("key3", "value3"),
                 TelemetryTaskItem("key3", "duplicate"),
                 TelemetryTaskItem("key4", $"""
-                    Special value with
-                    NewLines, <Html Attribute="Value"> tags </Html>
-                    Special characters {'\t'} {'\b'} {'\f'} ' " \ {'\u0007'} {'\u001F'} {'\u0020'}
-                    """),
+                        Special value with
+                        NewLines, <Html Attribute="Value"> tags </Html>
+                        Special characters {'\t'} {'\b'} {'\f'} ' " \ {'\u0007'} {'\u001F'} {'\u0020'}
+                        """
+                    .ToWindowsLineEndings()),
             ]
         };
         sut.Execute();

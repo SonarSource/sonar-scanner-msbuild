@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,17 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.Tasks;
@@ -39,9 +32,9 @@ namespace SonarScanner.MSBuild.Tasks;
 /// <remarks>The task does not make any assumptions about the type of project from which it is
 /// being called so it should work for projects of any type - C#, VB, UML, C++, and any new project types
 /// that are created.</remarks>
-public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
+public class WriteProjectInfoFile : Task
 {
-    private readonly IEncodingProvider encodingProvider = encodingProvider ?? throw new ArgumentNullException(nameof(encodingProvider));
+    private readonly IEncodingProvider encodingProvider;
     private readonly IEqualityComparer<FileInfo> fileInfoComparer = new FileInfoEqualityComparer();
 
     // TODO: we can get this from this.BuildEngine.ProjectFileOfTaskNode; we don't need the caller to supply it. Same for the full path
@@ -84,6 +77,9 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
 
     public WriteProjectInfoFile() : this(new Common.EncodingProvider()) { }
 
+    public WriteProjectInfoFile(IEncodingProvider encodingProvider) =>
+        this.encodingProvider = encodingProvider ?? throw new ArgumentNullException(nameof(encodingProvider));
+
     public override bool Execute()
     {
         var pi = new ProjectInfo
@@ -99,8 +95,9 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
             TargetFramework = TargetFramework
         };
 
-        var guid = GetProjectGuid();
-        if (guid is not null && Guid.TryParse(guid, out var projectId))
+        var guid = CalculateProjectGuid();
+        var outputFileName = Path.Combine(OutputFolder, FileConstants.ProjectInfoFileName);
+        if (Guid.TryParse(guid, out var projectId))
         {
             pi.ProjectGuid = projectId;
         }
@@ -108,14 +105,51 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         {
             Log.LogMessage(MessageImportance.High, Resources.WPIF_MissingOrInvalidProjectGuid, FullProjectPath);
         }
-
-        pi.AnalysisResults = TryCreateAnalysisResults(AnalysisResults);
+        pi.AnalysisResultFiles = TryCreateAnalysisResultFiles(AnalysisResults);
         pi.AnalysisSettings = TryCreateAnalysisSettings(AnalysisSettings);
-
-        var outputFileName = Path.Combine(OutputFolder, FileConstants.ProjectInfoFileName);
         pi.Save(outputFileName);
-
         return true;
+    }
+
+    internal /* for testing purpose */ string CalculateProjectGuid()
+    {
+        if (!string.IsNullOrEmpty(ProjectGuid))
+        {
+            return ProjectGuid;
+        }
+
+        if (!string.IsNullOrEmpty(SolutionConfigurationContents))
+        {
+            var fullProject = new FileInfo(FullProjectPath);
+            // Try to get GUID from the Solution
+            return XDocument.Parse(SolutionConfigurationContents)
+                .Descendants("ProjectConfiguration")
+                .Where(x => ArePathEquals(x.Attribute("AbsolutePath")?.Value, fullProject))
+                .Select(x => x.Attribute("Project")?.Value)
+                .FirstOrDefault();
+        }
+
+        var generatedGuid = Guid.NewGuid().ToString();
+        Log.LogMessage(Resources.WPIF_GeneratingRandomGuid, FullProjectPath, generatedGuid);
+        return generatedGuid;
+
+        bool ArePathEquals(string filePath, FileInfo file)
+        {
+            if (filePath is null)
+            {
+                return false;
+            }
+
+            try
+            {
+                var fileInfo = new FileInfo(filePath);
+                return fileInfoComparer.Equals(fileInfo, file);
+            }
+            catch (NotSupportedException nse) when (nse.Message.Equals("The given path's format is not supported."))
+            {
+                return false;
+            }
+        }
     }
 
     private Encoding ComputeEncoding(string codePage)
@@ -141,17 +175,10 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         return null;
     }
 
-    /// <summary>
-    /// Attempts to convert the supplied task items into a list of <see cref="AnalysisResult"/> objects.
-    /// </summary>
-    private List<AnalysisResult> TryCreateAnalysisResults(ITaskItem[] resultItems) =>
-        resultItems?.Select(TryCreateResultFromItem).Where(x => x is not null).ToList() ?? [];
+    private List<AnalysisResultFile> TryCreateAnalysisResultFiles(ITaskItem[] resultItems) =>
+        resultItems?.Select(TryCreateResultFileFromItem).Where(x => x is not null).ToList() ?? [];
 
-    /// <summary>
-    /// Attempts to create an <see cref="AnalysisResult"/> from the supplied task item.
-    /// Returns null if the task item does not have the required metadata.
-    /// </summary>
-    private AnalysisResult TryCreateResultFromItem(ITaskItem taskItem)
+    private AnalysisResultFile TryCreateResultFileFromItem(ITaskItem taskItem)
     {
         Debug.Assert(taskItem is not null, "Supplied task item should not be null");
         var id = taskItem.GetMetadata(BuildTaskConstants.ResultMetadataIdProperty);
@@ -162,7 +189,7 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         var path = taskItem.ItemSpec;
         if (Path.IsPathRooted(path))
         {
-            return new AnalysisResult { Id = id, Location = path };
+            return new() { Id = id, Location = path };
         }
         Log.LogMessage(MessageImportance.Low, Resources.WPIF_ResolvingRelativePath, id, path);
         var projectDir = Path.GetDirectoryName(FullProjectPath);
@@ -176,16 +203,9 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         {
             Log.LogMessage(MessageImportance.Low, Resources.WPIF_FailedToResolvePath, taskItem.ItemSpec);
         }
-        return new AnalysisResult
-        {
-            Id = id,
-            Location = path
-        };
+        return new() { Id = id, Location = path };
     }
 
-    /// <summary>
-    /// Attempts to convert the supplied task items into a list of <see cref="ConfigSetting"/> objects.
-    /// </summary>
     private AnalysisProperties TryCreateAnalysisSettings(ITaskItem[] resultItems)
     {
         var settings = new AnalysisProperties();
@@ -193,10 +213,6 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         return settings;
     }
 
-    /// <summary>
-    /// Attempts to create an <see cref="ConfigSetting"/> from the supplied task item.
-    /// Returns null if the task item does not have the required metadata.
-    /// </summary>
     private Property TryCreateSettingFromItem(ITaskItem taskItem)
     {
         Debug.Assert(taskItem is not null, "Supplied task item should not be null");
@@ -207,10 +223,6 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
             : null;
     }
 
-    /// <summary>
-    /// Attempts to extract the setting id from the supplied task item.
-    /// Logs warnings if the task item does not contain valid data.
-    /// </summary>
     private bool TryGetSettingId(ITaskItem taskItem, out string settingId)
     {
         settingId = null;
@@ -227,11 +239,6 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
         return isValid;
     }
 
-    /// <summary>
-    /// Attempts to return the value to use for the setting.
-    /// Logs warnings if the task item does not contain valid data.
-    /// </summary>
-    /// <remarks>The task should have a "Value" metadata item.</remarks>
     private bool TryGetSettingValue(ITaskItem taskItem, out string metadataValue)
     {
         bool success;
@@ -249,50 +256,5 @@ public class WriteProjectInfoFile(IEncodingProvider encodingProvider) : Task
             success = true;
         }
         return success;
-    }
-
-    internal /* for testing purpose */ string GetProjectGuid()
-    {
-        if (!string.IsNullOrEmpty(ProjectGuid))
-        {
-            return ProjectGuid;
-        }
-
-        if (!string.IsNullOrEmpty(SolutionConfigurationContents))
-        {
-            var fullProject = new FileInfo(FullProjectPath);
-
-            // Try to get GUID from the Solution
-            return XDocument.Parse(SolutionConfigurationContents)
-                .Descendants("ProjectConfiguration")
-                .Where(x => ArePathEquals(x.Attribute("AbsolutePath")?.Value, fullProject))
-                .Select(x => x.Attribute("Project")?.Value)
-                .FirstOrDefault();
-        }
-
-        var generatedGuid = Guid.NewGuid().ToString();
-
-        Log.LogMessage(Resources.WPIF_GeneratingRandomGuid, FullProjectPath, generatedGuid);
-
-        // Generating a new guid for projects without one.
-        return generatedGuid;
-
-        bool ArePathEquals(string filePath, FileInfo file)
-        {
-            if (filePath is null)
-            {
-                return false;
-            }
-
-            try
-            {
-                var fileInfo = new FileInfo(filePath);
-                return fileInfoComparer.Equals(fileInfo, file);
-            }
-            catch (NotSupportedException nse) when (nse.Message.Equals("The given path's format is not supported."))
-            {
-                return false;
-            }
-        }
     }
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -59,7 +59,7 @@ public partial class CertificateBuilderTests
             return valid;
         };
         using var client = new HttpClient(handler);
-        var result = await client.GetStringAsync(server.Url);
+        var result = await client.GetStringAsync(server.Url, TestContext.CancellationTokenSource.Token);
         result.Should().Be("Hello World");
         crlServer.LogEntries.Should().Contain(x => x.RequestMessage.Path == "/Revoked.crl");
     }
@@ -92,7 +92,7 @@ public partial class CertificateBuilderTests
             return valid;
         };
         using var client = new HttpClient(handler);
-        var download = async () => await client.GetStringAsync(server.Url);
+        var download = async () => await client.GetStringAsync(server.Url, TestContext.CancellationTokenSource.Token);
         await download.Should().ThrowAsync<HttpRequestException>();
         crlServer.LogEntries.Should().Contain(x => x.RequestMessage.Path == "/Revoked.crl");
     }

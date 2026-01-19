@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.JreResolution;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
@@ -39,16 +36,10 @@ public interface IPreprocessorObjectFactory
     Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null);
 
     /// <summary>
-    /// Creates the component to install the MSBuild targets.
-    /// </summary>
-    ITargetsInstaller CreateTargetInstaller();
-
-    /// <summary>
     /// Creates the component that provisions the Roslyn analyzers.
     /// </summary>
     RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
                                                         string localCacheTempPath,
-                                                        ILogger logger,
                                                         BuildSettings teamBuildSettings,
                                                         IAnalysisPropertyProvider sonarProperties,
                                                         IEnumerable<SonarRule> rules,
@@ -57,5 +48,15 @@ public interface IPreprocessorObjectFactory
     /// <summary>
     /// Creates the component that resolves the JRE path.
     /// </summary>
-    IJreResolver CreateJreResolver(ISonarWebServer server);
+    IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome);
+
+    /// <summary>
+    /// Creates the component that resolves the Scanner Engine path.
+    /// </summary>
+    IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome);
+
+    /// <summary>
+    /// Creates the component that resolves the Scanner Engine path.
+    /// </summary>
+    IResolver CreateScannerCliResolver(ISonarWebServer server, string sonarUserHome);
 }

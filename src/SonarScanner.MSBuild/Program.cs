@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild;
 
@@ -29,69 +27,75 @@ public static class Program
     private const int ErrorCode = 1;
     private const int SuccessCode = 0;
 
-    private static async Task<int> Main(string[] args)
-        => await Execute(args);
-
-    private static async Task<int> Execute(string[] args)
+    public static async Task<int> Main(string[] args)
     {
         var logger = new ConsoleLogger(includeTimestamp: false);
-        return await Execute(args, logger);
+        var runtime = new Runtime(
+            new OperatingSystemProvider(FileWrapper.Instance, logger),
+            DirectoryWrapper.Instance,
+            FileWrapper.Instance,
+            logger,
+            new Telemetry(FileWrapper.Instance, logger),
+            new DateTimeWrapper(),
+            new AnalysisWarnings(FileWrapper.Instance, logger));
+        return await Execute(args, runtime);
     }
 
-    public static async Task<int> Execute(string[] args, ILogger logger)
+    public static async Task<int> Execute(string[] args, IRuntime runtime)
     {
-        Utilities.LogAssemblyVersion(logger, Resources.AssemblyDescription);
+        Utilities.LogAssemblyVersion(runtime.Logger, Resources.AssemblyDescription);
 #if NETFRAMEWORK
-        logger.LogInfo("Using the .NET Framework version of the Scanner for MSBuild");
+        runtime.LogInfo("Using the .NET Framework version of the Scanner for .NET");
 #else
-        logger.LogInfo("Using the .NET Core version of the Scanner for MSBuild");
+        runtime.LogInfo("Using the .NET Core version of the Scanner for .NET");
 #endif
 
-        logger.SuspendOutput();
+        runtime.Logger.SuspendOutput();
 
         if (ArgumentProcessor.IsHelp(args))
         {
-            logger.LogInfo(@"
-Usage on SonarQube:
+            runtime.LogInfo("""
+                Usage on SonarQube:
 
-  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.token=token] [/d:sonar.{{property_name}}=value]
+                  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.token=token] [/d:sonar.{{property_name}}=value]
 
-Usage on SonarCloud:
+                Usage on SonarCloud:
 
-  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.login=token] [/d:sonar.{{property_name}}=value]
+                  {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.login=token] [/d:sonar.{{property_name}}=value]
 
-  - When executing the 'BEGIN' step, at least the project key and the authentication token must be defined.
-  - The authentication token should be provided through 'sonar.token' parameter on SonarQube or 'sonar.login' on SonarCloud in both 'BEGIN' and 'END' steps.
-    It should be the only provided parameter during the 'END' step. 'sonar.login' will soon be replaced with 'sonar.token' on SonarCloud as well.
-  - A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml
-    in the installation directory will be used. Note that any property defined from the command line overrides the
-    equivalent property in both settings files.
-  - Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.
-    See 'Useful links for full list of available properties.'
+                  - When executing the 'BEGIN' step, at least the project key and the authentication token must be defined.
+                  - The authentication token should be provided through 'sonar.token' parameter on SonarQube or 'sonar.login' on SonarCloud in both 'BEGIN' and 'END' steps.
+                    It should be the only provided parameter during the 'END' step. 'sonar.login' will soon be replaced with 'sonar.token' on SonarCloud as well.
+                  - A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml
+                    in the installation directory will be used. Note that any property defined from the command line overrides the
+                    equivalent property in both settings files.
+                  - Other properties can dynamically be defined with '/d:'. For example, '/d:sonar.verbose=true'.
+                    See 'Useful links for full list of available properties.'
 
-Useful links:
-  - Available properties for SonarQube: https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/
-  - Available properties for SonarCloud: https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/
-  - Full list of Analysis Properties that can be specified with '/d:' : https://docs.sonarqube.org/latest/analysis/analysis-parameters/
-  - Generate a token for analysis on SonarQube: https://docs.sonarqube.org/latest/user-guide/user-token/
-  - Generate a token for analysis on SonarCloud: https://docs.sonarcloud.io/advanced-setup/user-accounts/",
+                Useful links:
+                  - Available properties for SonarQube: https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/
+                  - Available properties for SonarCloud: https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/
+                  - Full list of Analysis Properties that can be specified with '/d:' : https://docs.sonarqube.org/latest/analysis/analysis-parameters/
+                  - Generate a token for analysis on SonarQube: https://docs.sonarqube.org/latest/user-guide/user-token/
+                  - Generate a token for analysis on SonarCloud: https://docs.sonarcloud.io/advanced-setup/user-accounts/
+                """,
                 AppDomain.CurrentDomain.FriendlyName);
-            logger.ResumeOutput();
+            runtime.Logger.ResumeOutput();
             return SuccessCode;
         }
 
         try
         {
-            if (!ArgumentProcessor.TryProcessArgs(args, logger, out var settings))
+            if (!ArgumentProcessor.TryProcessArgs(args, runtime, out var settings))
             {
-                logger.ResumeOutput();
+                runtime.Logger.ResumeOutput();
                 // The argument processor will have logged errors
                 Environment.ExitCode = ErrorCode;
                 return ErrorCode;
             }
 
-            var processorFactory = new DefaultProcessorFactory(logger);
-            var bootstrapper = new BootstrapperClass(processorFactory, settings, logger);
+            var processorFactory = new DefaultProcessorFactory(runtime);
+            var bootstrapper = new BootstrapperClass(processorFactory, settings, runtime.Logger);
             var exitCode = await bootstrapper.Execute();
             Environment.ExitCode = exitCode;
             return exitCode;
@@ -99,7 +103,7 @@ Useful links:
         finally
         {
 #if DEBUG
-            DEBUG_DumpLoadedAssemblies(logger);
+            DEBUG_DumpLoadedAssemblies(runtime.Logger);
 #endif
         }
     }

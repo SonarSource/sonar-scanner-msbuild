@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,105 +18,123 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.Caching;
+using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
-public class JreResolver(ISonarWebServer server, IJreCache cache, ILogger logger) : IJreResolver
+public class JreResolver : IResolver
 {
-    public async Task<string> ResolveJrePath(ProcessedArgs args, string sonarUserHome)
+    private readonly ISonarWebServer server;
+    private readonly UnpackerFactory unpackerFactory;
+    private readonly IChecksum checksum;
+    private readonly string sonarUserHome;
+    private readonly IRuntime runtime;
+
+    public JreResolver(ISonarWebServer server,
+                       IChecksum checksum,
+                       string sonarUserHome,
+                       IRuntime runtime,
+                       UnpackerFactory unpackerFactory = null)
     {
-        logger.LogDebug(Resources.MSG_JreResolver_Resolving, string.Empty);
+        this.server = server;
+        this.checksum = checksum;
+        this.sonarUserHome = sonarUserHome;
+        this.runtime = runtime;
+        this.unpackerFactory = unpackerFactory ?? new UnpackerFactory(runtime);
+    }
+
+    public async Task<string> ResolvePath(ProcessedArgs args)
+    {
+        runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", string.Empty);
         if (!IsValid(args))
         {
             return null;
         }
 
-        if (await DownloadJre(args, sonarUserHome) is { } jrePath)
+        if (await DownloadJre(args) is { } jrePath)
         {
             return jrePath;
         }
         else
         {
-            logger.LogDebug(Resources.MSG_JreResolver_Resolving, " Retrying...");
-            return await DownloadJre(args, sonarUserHome);
+            runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
+            return await DownloadJre(args);
         }
     }
 
-    private async Task<string> DownloadJre(ProcessedArgs args, string sonarUserHome)
+    private async Task<string> DownloadJre(ProcessedArgs args)
     {
         var metadata = await server.DownloadJreMetadataAsync(args.OperatingSystem, args.Architecture);
         if (metadata is null)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_MetadataFailure);
+            runtime.LogDebug(Resources.MSG_Resolver_MetadataFailure, nameof(JreResolver));
+            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
             return null;
         }
-
         var descriptor = metadata.ToDescriptor();
-        var result = cache.IsJreCached(sonarUserHome, descriptor);
-        switch (result)
-        {
-            case JreCacheHit hit:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheHit, hit.JavaExe);
-                return hit.JavaExe;
-            case JreCacheMiss:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheMiss);
-                return await DownloadJre(metadata, descriptor, sonarUserHome);
-            case JreCacheFailure failure:
-                logger.LogDebug(Resources.MSG_JreResolver_CacheFailure, failure.Message);
-                return null;
-        }
-
-        throw new NotSupportedException("Cache result is expected to be Hit, Miss, or Failure.");
+        var archiveDownloader = new ArchiveDownloader(runtime, unpackerFactory, checksum, sonarUserHome, descriptor);
+        return await DownloadJre(archiveDownloader, metadata);
     }
 
-    private async Task<string> DownloadJre(JreMetadata metadata, JreDescriptor descriptor, string sonarUserHome)
+    private async Task<string> DownloadJre(ArchiveDownloader archiveDownloader, JreMetadata metadata)
     {
-        var result = await cache.DownloadJreAsync(sonarUserHome, descriptor, () => server.DownloadJreAsync(metadata));
-        if (result is JreCacheHit hit)
+        switch (await archiveDownloader.DownloadAsync(() => server.DownloadJreAsync(metadata)))
         {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadSuccess, hit.JavaExe);
-            return hit.JavaExe;
+            case CacheHit cacheHit:
+                runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), cacheHit.FilePath);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
+                return cacheHit.FilePath;
+            case Downloaded downloaded:
+                runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", downloaded.FilePath);
+                runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, metadata.Filename);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Downloaded;
+                return downloaded.FilePath;
+            case DownloadError error:
+                runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
+                runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
+                return null;
+            default:
+                throw new NotSupportedException("Download result is expected to be FileRetrieved or DownloadError.");
         }
-        else if (result is JreCacheFailure failure)
-        {
-            logger.LogDebug(Resources.MSG_JreResolver_DownloadFailure, failure.Message);
-            return null;
-        }
-
-        throw new NotSupportedException("Download result is expected to be Hit or Failure.");
     }
 
     private bool IsValid(ProcessedArgs args)
     {
         if (!string.IsNullOrWhiteSpace(args.JavaExePath))
         {
-            logger.LogDebug(Resources.MSG_JreResolver_JavaExePathSet);
+            runtime.LogDebug(Resources.MSG_JreResolver_JavaExePathSet);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Disabled;
+            runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.UserSupplied;
             return false;
         }
         if (args.SkipJreProvisioning)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_SkipJreProvisioningSet);
+            runtime.LogDebug(Resources.MSG_JreResolver_SkipJreProvisioningSet);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Disabled;
             return false;
         }
         if (!server.SupportsJreProvisioning)
         {
-            logger.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
+            runtime.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedByServer;
             return false;
         }
         if (string.IsNullOrWhiteSpace(args.OperatingSystem))
         {
-            logger.LogDebug(Resources.MSG_JreResolver_OperatingSystemMissing);
+            runtime.LogDebug(Resources.MSG_JreResolver_OperatingSystemMissing);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedNoOS;
             return false;
         }
         if (string.IsNullOrWhiteSpace(args.Architecture))
         {
-            logger.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
+            runtime.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedNoArch;
             return false;
         }
+        runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Enabled;
         return true;
     }
 }

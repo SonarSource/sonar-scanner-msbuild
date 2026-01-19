@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -24,14 +24,21 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CloudTests implements BeforeAllCallback {
 
+  private static final Logger LOG = LoggerFactory.getLogger(CloudTests.class);
   private static volatile boolean isFirstTry = true;
   private static volatile boolean isStarted;
 
   @Override
   public void beforeAll(ExtensionContext extensionContext) {
+    ensureEnvironment("SONARCLOUD_ORGANIZATION", CloudConstants.SONARCLOUD_ORGANIZATION);
+    ensureEnvironment("SONARCLOUD_URL", CloudConstants.SONARCLOUD_URL);
+    ensureEnvironment("SONARCLOUD_API_URL", CloudConstants.SONARCLOUD_API_URL);
+
     synchronized (CloudTests.class) {
       if (!isStarted) {
         if (isFirstTry) {
@@ -50,5 +57,13 @@ public class CloudTests implements BeforeAllCallback {
     ContextExtension.init("CloudTests.Startup." + Thread.currentThread().getName() + "." + OSPlatform.current().toString());
     AnalysisContext.forCloud("Empty").runAnalysis();
     ContextExtension.cleanup();
+  }
+
+  private void ensureEnvironment(String name, String value)
+  {
+    if (value == null) {
+      LOG.error("Missing environment variable{}", name);
+      throw new IllegalStateException("Missing environment variable: " + name);
+    }
   }
 }

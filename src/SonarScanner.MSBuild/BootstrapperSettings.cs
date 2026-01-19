@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,113 +18,53 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild;
 
 public class BootstrapperSettings : IBootstrapperSettings
 {
-    #region Working directory
+    public const string RelativePathToTempDir = ".sonarqube";
+    public const string RelativePathToDownloadDir = "bin";
 
-    // Variables used when calculating the working directory
+    private readonly IRuntime runtime;
+    private readonly Lazy<string> tempDirectory;
 
-    // Note: these constant values must be kept in sync with the targets files.
-    public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
+    public AnalysisPhase Phase { get; }
+    public IEnumerable<string> ChildCmdLineArgs { get; }
+    public LoggerVerbosity LoggingVerbosity { get; }
+    public string ScannerBinaryDirPath => Path.GetDirectoryName(typeof(BootstrapperSettings).Assembly.Location);
+    public string TempDirectory => tempDirectory.Value;
 
-    public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
-
-    /// <summary>
-    /// The list of environment variables that should be checked in order to find the
-    /// root folder under which all analysis output will be written
-    /// </summary>
-    private static readonly string[] DirectoryEnvVarNames = {
-            BuildDirectory_Legacy,      // Legacy TeamBuild directory (TFS2013 and earlier)
-            BuildDirectory_TFS2015      // TeamBuild 2015 and later build directory
-           };
-
-    public const string RelativePathToTempDir = @".sonarqube";
-    public const string RelativePathToDownloadDir = @"bin";
-
-    #endregion Working directory
-
-    private readonly ILogger logger;
-
-    private string tempDir;
-
-    #region Constructor(s)
-
-    public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity,
-        ILogger logger)
+    public BootstrapperSettings(AnalysisPhase phase, IEnumerable<string> childCmdLineArgs, LoggerVerbosity verbosity, IRuntime runtime)
     {
         Phase = phase;
         ChildCmdLineArgs = childCmdLineArgs;
         LoggingVerbosity = verbosity;
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+        tempDirectory = new Lazy<string>(CalculateTempDir);
     }
-
-    #endregion Constructor(s)
-
-    #region IBootstrapperSettings
-
-    public string TempDirectory
-    {
-        get
-        {
-            if (tempDir == null)
-            {
-                tempDir = CalculateTempDir();
-            }
-            return tempDir;
-        }
-    }
-
-    public AnalysisPhase Phase { get; }
-
-    public IEnumerable<string> ChildCmdLineArgs { get; }
-
-    public LoggerVerbosity LoggingVerbosity { get; }
-
-    public string ScannerBinaryDirPath => Path.GetDirectoryName(typeof(BootstrapperSettings).Assembly.Location);
-
-    #endregion IBootstrapperSettings
-
-    #region Private methods
 
     private string CalculateTempDir()
     {
-        logger.LogDebug(Resources.MSG_UsingEnvVarToGetDirectory);
-        var rootDir = GetFirstEnvironmentVariable(DirectoryEnvVarNames);
-
+        runtime.LogDebug(Resources.MSG_UsingEnvVarToGetDirectory);
+        var rootDir = FirstEnvironmentVariable(EnvironmentVariables.BuildDirectoryLegacy, EnvironmentVariables.BuildDirectoryTfs2015);
         if (string.IsNullOrWhiteSpace(rootDir))
         {
-            rootDir = Directory.GetCurrentDirectory();
+            rootDir = runtime.Directory.GetCurrentDirectory();
         }
-
         return Path.Combine(rootDir, RelativePathToTempDir);
     }
 
-    /// <summary>
-    /// Returns the value of the first environment variable from the supplied
-    /// list that return a non-empty value
-    /// </summary>
-    private string GetFirstEnvironmentVariable(string[] varNames)
+    private string FirstEnvironmentVariable(params string[] environmentVariables)
     {
-        string result = null;
-        foreach (var varName in varNames)
+        foreach (var name in environmentVariables)
         {
-            var value = Environment.GetEnvironmentVariable(varName);
+            var value = Environment.GetEnvironmentVariable(name);
             if (!string.IsNullOrWhiteSpace(value))
             {
-                logger.LogDebug(Resources.MSG_UsingBuildEnvironmentVariable, varName, value);
-                result = value;
-                break;
+                runtime.LogDebug(Resources.MSG_UsingBuildEnvironmentVariable, name, value);
+                return value;
             }
         }
-        return result;
+        return null;
     }
-
-    #endregion Private methods
 }

@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -139,7 +139,7 @@
     <value>Writing processing summary to {0}</value>
   </data>
   <data name="ERR_NoProjectInfoFilesFound" xml:space="preserve">
-    <value>The SonarScanner for MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
+    <value>The SonarScanner for .NET integration failed: SonarQube was unable to collect the required information about your projects.
 Possible causes:
   1. The project has not been built - the project must be built in between the begin and end steps.
   2. An unsupported version of MSBuild has been used to build the project. Supported versions: MSBuild 16 and higher.
@@ -147,7 +147,7 @@ Possible causes:
   4. None of the analyzed projects have a valid ProjectGuid and you have not used a solution (.sln).</value>
   </data>
   <data name="ERR_NoValidProjectInfoFiles" xml:space="preserve">
-    <value>No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.</value>
+    <value>No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.</value>
   </data>
   <data name="ERR_SonarScannerExecutionFailed" xml:space="preserve">
     <value>The SonarScanner did not complete successfully</value>
@@ -231,15 +231,6 @@ Possible causes:
     <value>The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...
 {0}</value>
   </data>
-  <data name="WARN_InvalidCharacterInPaths" xml:space="preserve">
-    <value>The following paths contain invalid characters and will be excluded from this analysis: {0}</value>
-  </data>
-  <data name="DEBUG_DumpSonarProjectProperties" xml:space="preserve">
-    <value>Dumping content of sonar-project.properties
-------------------------------------------------------------------------
-{0}
-------------------------------------------------------------------------</value>
-  </data>
   <data name="ERR_TFSProcessorExecutionFailed" xml:space="preserve">
     <value>The TFS Processor did not complete successfully</value>
   </data>
@@ -272,5 +263,44 @@ Possible causes:
   </data>
   <data name="MSG_ProjectBaseDirChange" xml:space="preserve">
     <value>Starting with Scanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. The path may be relative (to the directory from which the analysis was started) or absolute.</value>
+  </data>
+  <data name="MSG_ScannerEngineCompleted" xml:space="preserve">
+    <value>The scanner engine has finished successfully</value>
+  </data>
+  <data name="ERR_ScannerEngineExecutionFailed" xml:space="preserve">
+    <value>The scanner engine did not complete successfully</value>
+  </data>
+  <data name="MSG_JavaExe_Found" xml:space="preserve">
+    <value>Using Java found in {0}: {1}</value>
+  </data>
+  <data name="MSG_JavaExe_NotFound" xml:space="preserve">
+    <value>Could not find Java in {0}: {1}</value>
+  </data>
+  <data name="DEBUG_DumpSonarProjectProperties" xml:space="preserve">
+    <value>Dumping content of sonar-project.properties
+------------------------------------------------------------------------
+{0}
+------------------------------------------------------------------------</value>
+  </data>
+  <data name="MSG_JavaHomeSet" xml:space="preserve">
+    <value>Found 'JAVA_HOME': {0}</value>
+  </data>
+  <data name="MSG_JavaHomeNotSet" xml:space="preserve">
+    <value>'JAVA_HOME' environment variable not set</value>
+  </data>
+  <data name="MSG_JavaExe_UsePath" xml:space="preserve">
+    <value>Could not find Java, falling back to using PATH: {0}</value>
+  </data>
+  <data name="ERR_ScannerEngineExecutionFailedWithException" xml:space="preserve">
+    <value>The scanner engine execution failed with {0}: {1}.</value>
+  </data>
+  <data name="ERR_SonarScannerCliNotFound" xml:space="preserve">
+    <value>The SonarScanner CLI is needed to finish the analysis, but could not be found. {0}</value>
+  </data>
+  <data name="MSG_SonarScannerCliPath_Missing" xml:space="preserve">
+    <value>The path to the SonarScanner CLI wasn't set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step.</value>
+  </data>
+  <data name="MSG_SonarCliPath_FileNotFound" xml:space="preserve">
+    <value>The path '{0}' to the SonarScanner CLI is invalid. The file does not exists.</value>
   </data>
 </root>

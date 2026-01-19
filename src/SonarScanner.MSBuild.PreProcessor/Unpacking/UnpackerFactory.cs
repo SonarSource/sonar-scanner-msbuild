@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,21 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-public class UnpackerFactory : IUnpackerFactory
+public class UnpackerFactory
 {
-    public static UnpackerFactory Instance { get; } = new UnpackerFactory();
+    private readonly IRuntime runtime;
 
-    public IUnpacker Create(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper, string archivePath) =>
+    public UnpackerFactory(IRuntime runtime)
+    {
+        this.runtime = runtime;
+    }
+
+    public virtual IUnpacker Create(string archivePath) =>
         archivePath switch
         {
             _ when archivePath.EndsWith(".ZIP", StringComparison.OrdinalIgnoreCase) => new ZipUnpacker(),
-            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(logger, directoryWrapper, fileWrapper, filePermissionsWrapper),
+            _ when archivePath.EndsWith(".TAR.GZ", StringComparison.OrdinalIgnoreCase) => new TarGzUnpacker(runtime),
             _ => null
         };
 }

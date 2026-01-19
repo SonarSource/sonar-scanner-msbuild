@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@ namespace SonarScanner.MSBuild.Common.Test;
 [TestClass]
 public class SonarProductTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("8.0", true)]
     [DataRow("8.0.0.18955", true)]
     [DataRow("8.0.1", true)]

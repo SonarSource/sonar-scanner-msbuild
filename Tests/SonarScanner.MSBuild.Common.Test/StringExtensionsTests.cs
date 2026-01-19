@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -42,16 +42,17 @@ public class StringExtensionsTests
     public void RedactSensitiveData_NoSensitiveData() =>
         "Some string with no sensitive data".RedactSensitiveData().Should().Be("Some string with no sensitive data");
 
-    [DataTestMethod]
+    [TestMethod]
     [DynamicData(nameof(SensitivePropertyKeys))]
     public void RedactSensitiveData_SensitiveData(string sensitiveKey) =>
         @$"Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D{sensitiveKey}=""changeit""".RedactSensitiveData()
             .Should().Be("Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D<sensitive data removed>");
 
-    [DataTestMethod]
-    [DataRow(SonarProperties.SonarToken, SonarProperties.SonarPassword)]
-    [DataRow(SonarProperties.SonarPassword, SonarProperties.SonarToken)]
-    public void RedactSensitiveData_MixedSensitiveData(string sensitiveKey1, string sensitiveKey2) =>
+    [TestMethod]
+    [CombinatorialData]
+    public void RedactSensitiveData_MixedSensitiveData(
+        [CombinatorialValues(SonarProperties.SonarToken, SonarProperties.SonarPassword)] string sensitiveKey1,
+        [CombinatorialValues(SonarProperties.SonarToken, SonarProperties.SonarPassword)] string sensitiveKey2) =>
         @$"Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D{sensitiveKey1}=""changeit"" -D{sensitiveKey2}=""changeit""".RedactSensitiveData()
             .Should().Be("Setting environment variable 'SONAR_SCANNER_OPTS'. Value: -D<sensitive data removed>");
 }

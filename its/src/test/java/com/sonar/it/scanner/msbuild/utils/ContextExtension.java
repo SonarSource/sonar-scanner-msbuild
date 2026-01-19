@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -21,7 +21,10 @@ package com.sonar.it.scanner.msbuild.utils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -35,6 +38,7 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
 
   @Override
   public void beforeEach(ExtensionContext context) {
+    checkWorkloadPrerequisites(context);
     // Adding the OS name suffix to avoid collision when running tests against SQC at the same time
     // Without this, the tests could timeout when trying to retrieve the analysis report:
     // `Report can't be processed: a newer report has already been processed, and processing older reports is not supported`
@@ -75,6 +79,38 @@ public class ContextExtension implements BeforeEachCallback, AfterEachCallback {
       throw new RuntimeException("ContextExtension.currentTestName is not available. The test class is probably missing @ExtendWith({ContextExtension.class}).");
     } else {
       return value;
+    }
+  }
+
+  private void checkWorkloadPrerequisites(ExtensionContext context) {
+    Optional<WorkloadPrerequisite> workloadPrereq = Optional
+      .ofNullable(context.getRequiredTestMethod().getAnnotation(WorkloadPrerequisite.class))
+      .or(() -> Optional.ofNullable(context.getRequiredTestClass().getAnnotation(WorkloadPrerequisite.class)));
+
+    workloadPrereq.ifPresent(prerequisite -> {
+      // Usually workloads are a VisualStudio thing, so we want to ensure that the test is run on Windows
+      // If needed, this can be extended to other OSes in the future
+      verifyWindowsOnly(context);
+      if (!prerequisite.value().isInstalled()) {
+        throw new IllegalStateException("Required workload not installed: " + prerequisite.value().id());
+      }
+    });
+  }
+
+  private void verifyWindowsOnly(ExtensionContext context) {
+    Optional<EnabledOnOs> enabledOnOs = Optional
+      .ofNullable(context.getRequiredTestMethod().getAnnotation(EnabledOnOs.class))
+      .or(() -> Optional.ofNullable(context.getRequiredTestClass().getAnnotation(EnabledOnOs.class)));
+
+    if (enabledOnOs.isEmpty()) {
+      throw new IllegalStateException("WorkloadPrerequisite annotation requires tests to be Windows-only, " +
+        "add @EnabledOnOs(OS.WINDOWS) to the test class or method. Or extend WorkloadPrerequisite logic.");
+    }
+
+    EnabledOnOs annotation = enabledOnOs.get();
+    // EnableOnOs should always contain at least one OS, so no need to for empty
+    if (annotation.value().length != 1 || annotation.value()[0] != OS.WINDOWS) {
+      throw new IllegalStateException("WorkloadPrerequisite annotation requires tests to be Windows-only. Or extend WorkloadPrerequisite logic.");
     }
   }
 }

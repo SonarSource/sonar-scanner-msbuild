@@ -1,6 +1,6 @@
 ﻿/*
 * SonarAnalyzer for .NET
-* Copyright (C) 2015-2025 SonarSource SA
+* Copyright (C) 2015-2025 SonarSource Sàrl
 * mailto: contact AT sonarsource DOT com
 *
 * This program is free software; you can redistribute it and/or
@@ -18,11 +18,7 @@
 * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-using System;
 using System.Text.RegularExpressions;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarAnalyzer.Test.Extensions;
 
@@ -34,9 +30,8 @@ public class RegexExtensionsTest
     private const string TimeoutPattern =
         @"^((?<DRIVE>[a-zA-Z]):\\)*((?<DIR>[a-zA-Z0-9_]+(([a-zA-Z0-9_\s_\-\.]*[a-zA-Z0-9_]+)|([a-zA-Z0-9_]+)))\\)*(?<FILE>([a-zA-Z0-9_]+(([a-zA-Z0-9_\s_\-\.]*[a-zA-Z0-9_]+)|([a-zA-Z0-9_]+))\.(?<EXTENSION>[a-zA-Z0-9]{1,6})$))";
 
-    [DataTestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
+    [TestMethod]
+    [CombinatorialData]
     public void SafeIsMatch_Timeout_Fallback(bool timeoutFallback)
     {
         var regex = new Regex(TimeoutPattern, RegexOptions.None, TimeSpan.FromTicks(1));
@@ -50,7 +45,7 @@ public class RegexExtensionsTest
         regex.SafeIsMatch("input").Should().BeFalse();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1, false)]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1_000_000, true)]
     [DataRow(@"äöü", 1, false)]
@@ -61,7 +56,7 @@ public class RegexExtensionsTest
         regex.SafeMatch(input).Success.Should().Be(matchSucceed);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1, 0)]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1_000_000, 1)]
     [DataRow(@"äöü", 1, 0)]
@@ -78,7 +73,7 @@ public class RegexExtensionsTest
         }
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1, false)]
     [DataRow(@"C:\Users\username\AppData\Local\Temp\00af5451-626f-40db-af1d-89d376dc5ef6\SomeFile.csproj", 1_000_000, true)]
     [DataRow(@"äöü", 1, false)]

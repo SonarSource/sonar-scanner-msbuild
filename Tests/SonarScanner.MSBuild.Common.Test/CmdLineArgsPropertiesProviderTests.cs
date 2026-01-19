@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,12 +17,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
 
 namespace SonarScanner.MSBuild.Common.Test;
 
@@ -75,41 +69,32 @@ public class CmdLineArgsPropertiesProviderTests
     }
 
     [TestMethod]
-    public void CmdLineArgProperties_DynamicProperties_Invalid()
-    {
-        // Arrange
-        // Act
-        var logger = CheckProcessingFails(
-                "invalid1 =aaa",
-                "notkeyvalue",
-                " spacebeforekey=bb",
-                "missingvalue=",
-                "validkey=validvalue");
-
-        // Assert
-        logger.AssertSingleErrorExists("invalid1 =aaa");
-        logger.AssertSingleErrorExists("notkeyvalue");
-        logger.AssertSingleErrorExists(" spacebeforekey=bb");
-        logger.AssertSingleErrorExists("missingvalue=");
-
-        logger.AssertErrorsLogged(4);
-    }
+    public void CmdLineArgProperties_DynamicProperties_Invalid() =>
+        CheckProcessingFails(
+            "invalid1 =aaa",
+            "notkeyvalue",
+            " spacebeforekey=bb",
+            "missingvalue=",
+            "validkey=validvalue")
+            .Should().HaveErrors(
+            "The format of the analysis property invalid1 =aaa is invalid",
+            "The format of the analysis property notkeyvalue is invalid",
+            "The format of the analysis property  spacebeforekey=bb is invalid",
+            "The format of the analysis property missingvalue= is invalid")
+            .And.HaveErrors(4);
 
     [TestMethod]
-    public void CmdLineArgProperties_DynamicProperties_Duplicates()
-    {
-        // Arrange
-        // Act
-        var logger = CheckProcessingFails(
-                "dup1=value1", "dup1=value2",
-                "dup2=value3", "dup2=value4",
-                "unique=value5");
-
-        // Assert
-        logger.AssertSingleErrorExists("dup1=value2", "value1");
-        logger.AssertSingleErrorExists("dup2=value4", "value3");
-        logger.AssertErrorsLogged(2);
-    }
+    public void CmdLineArgProperties_DynamicProperties_Duplicates() =>
+        CheckProcessingFails(
+            "dup1=value1",
+            "dup1=value2",
+            "dup2=value3",
+            "dup2=value4",
+            "unique=value5")
+            .Should().HaveErrors(
+            "A value has already been supplied for this property. Key: dup1=value2, existing value: value1",
+            "A value has already been supplied for this property. Key: dup2=value4, existing value: value3")
+            .And.HaveErrors(2);
 
     [TestMethod]
     public void CmdLineArgProperties_Disallowed_DynamicProperties()
@@ -118,25 +103,21 @@ public class CmdLineArgsPropertiesProviderTests
         TestLogger logger;
 
         // 1. Named arguments cannot be overridden
-        logger = CheckProcessingFails(
-            "sonar.projectKey=value1");
-        logger.AssertSingleErrorExists(SonarProperties.ProjectKey, "/k");
+        logger = CheckProcessingFails("sonar.projectKey=value1");
+        logger.Should().HaveErrorOnce("Please use the parameter prefix '/k:' to define the key of the project instead of injecting this key with the help of the 'sonar.projectKey' property.");
 
-        logger = CheckProcessingFails(
-            "sonar.projectName=value1");
-        logger.AssertSingleErrorExists(SonarProperties.ProjectName, "/n");
+        logger = CheckProcessingFails("sonar.projectName=value1");
+        logger.Should().HaveErrorOnce("Please use the parameter prefix '/n:' to define the name of the project instead of injecting this name with the help of the 'sonar.projectName' property.");
 
-        logger = CheckProcessingFails(
-            "sonar.projectVersion=value1");
-        logger.AssertSingleErrorExists(SonarProperties.ProjectVersion, "/v");
+        logger = CheckProcessingFails("sonar.projectVersion=value1");
+        logger.Should().HaveErrorOnce("Please use the parameter prefix '/v:' to define the version of the project instead of injecting this version with the help of the 'sonar.projectVersion' property.");
 
         // 2. Other values that can't be set
-        logger = CheckProcessingFails(
-            "sonar.working.directory=value1");
-        logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
+        logger = CheckProcessingFails("sonar.working.directory=value1");
+        logger.Should().HaveErrorOnce("The property 'sonar.working.directory' is automatically set by the SonarScanner for .NET and cannot be overridden on the command line.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("sonar.projectBaseDir=value1")]
     [DataRow($"{SonarProperties.SonarcloudUrl}=value1")]
     [DataRow($"{SonarProperties.JavaExePath}=value1")]
@@ -187,7 +168,7 @@ public class CmdLineArgsPropertiesProviderTests
         var success = CmdLineArgPropertyProvider.TryCreateProvider(args, logger, out var provider);
         success.Should().BeFalse("Not expecting the provider to be created");
         provider.Should().BeNull("Expecting the provider to be null is processing fails");
-        logger.AssertErrorsLogged();
+        logger.Should().HaveErrors();
 
         return logger;
     }
@@ -198,7 +179,7 @@ public class CmdLineArgsPropertiesProviderTests
 
         success.Should().BeTrue("Expected processing to succeed");
         provider.Should().NotBeNull("Not expecting a null provider when processing succeeds");
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveNoErrors();
 
         return provider;
     }

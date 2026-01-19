@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -155,7 +155,7 @@ public class GetAnalyzerSettings : Task
         return !Log.HasLoggedErrors;
 
         bool ExcludeTestProjects() =>
-            config.GetAnalysisSettings(false, logger).TryGetValue(ExcludeTestProjectsSettingId, out var excludeTestProjects)
+            config.AnalysisSettings(false, logger).TryGetValue(ExcludeTestProjectsSettingId, out var excludeTestProjects)
             && excludeTestProjects.Equals("true", StringComparison.OrdinalIgnoreCase);
     }
 

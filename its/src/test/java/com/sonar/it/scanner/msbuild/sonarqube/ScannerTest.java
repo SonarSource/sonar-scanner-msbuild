@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -42,8 +42,8 @@ class ScannerTest {
 
   @Test
   void basicAnalysis() {
-    // TODO: SCAN4NET-325 Remove classifying as .NET
     var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "false");
     var result = context.runAnalysis();
 
     assertTrue(result.isSuccess());

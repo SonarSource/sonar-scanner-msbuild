@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,13 +27,13 @@ public sealed class ProcessRunner : IProcessRunner
 {
     public const int ErrorCode = 1;
 
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
 
     public int ExitCode { get; private set; }
 
-    public ProcessRunner(ILogger logger)
+    public ProcessRunner(IRuntime runtime)
     {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
     }
 
     /// <summary>
@@ -48,18 +48,20 @@ public sealed class ProcessRunner : IProcessRunner
         }
         Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/empty");
 
-        if (!File.Exists(runnerArgs.ExeName))
+        if (runnerArgs.ExeMustExists && !File.Exists(runnerArgs.ExeName))
         {
-            logger.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
+            runtime.LogError(Resources.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
             ExitCode = ErrorCode;
             return new ProcessResult(false);
         }
 
         var psi = new ProcessStartInfo
         {
-            FileName = runnerArgs.ExeName,
+            // ShortName avoids long path issues: https://github.com/dotnet/runtime/issues/58492#issue-984992485
+            FileName = runtime.File.ShortName(runtime.OperatingSystem.OperatingSystem(), runnerArgs.ExeName),
             RedirectStandardError = true,
             RedirectStandardOutput = true,
+            RedirectStandardInput = runnerArgs.StandardInput is not null,
             UseShellExecute = false, // required if we want to capture the error output
             ErrorDialog = false,
             CreateNoWindow = true,
@@ -76,8 +78,8 @@ public sealed class ProcessRunner : IProcessRunner
 
         using var process = new Process();
         process.StartInfo = psi;
-        process.ErrorDataReceived += (_, data) => OnErrorDataReceived(data, runnerArgs.LogOutput, errorOutputWriter);
-        process.OutputDataReceived += (_, data) => OnOutputDataReceived(data, runnerArgs.LogOutput, standardOutputWriter);
+        process.OutputDataReceived += (_, e) => HandleProcessOutput(e.Data, stdOut: true, runnerArgs.LogOutput, standardOutputWriter, runnerArgs.OutputToLogMessage);
+        process.ErrorDataReceived += (_, e) => HandleProcessOutput(e.Data, stdOut: false, runnerArgs.LogOutput, errorOutputWriter, runnerArgs.OutputToLogMessage);
 
         process.Start();
         process.BeginErrorReadLine();
@@ -85,20 +87,30 @@ public sealed class ProcessRunner : IProcessRunner
 
         // Warning: do not log the raw command line args as they
         // may contain sensitive data
-        logger.LogDebug(Resources.MSG_ExecutingFile,
-            runnerArgs.ExeName,
+
+        // AsLogText() returns the CmdLineArgs, but we invoke the process with 'EscapedArguments'
+        runtime.LogDebug(
+            Resources.MSG_ExecutingFile,
+            psi.FileName,
             runnerArgs.AsLogText(),
             runnerArgs.WorkingDirectory,
             runnerArgs.TimeoutInMilliseconds,
             process.Id);
-
+        if (runnerArgs.StandardInput is { } input)
+        {
+            // We need to write to the underlying stream directly, so we can control the encoding used for writing.
+            // Without this, the encodings like https://en.wikipedia.org/wiki/Code_page_437 might be used, which can lead to issues if the input contains non-ASCII characters.
+            // This is under test by IT ScannerEngineTest.scannerInput_UTF8
+            using var utf8Writer = new StreamWriter(process.StandardInput.BaseStream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)); // StreamWriter closes StandardInput on dispose
+            utf8Writer.Write(input);
+        }
         var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
         // false means we asked the process to stop but it didn't.
         // true: we might still have timed out, but the process ended when we asked it to
         if (succeeded)
         {
             process.WaitForExit(); // Give any asynchronous events the chance to complete
-            logger.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
+            runtime.LogDebug(Resources.MSG_ExecutionExitCode, process.ExitCode);
             ExitCode = process.ExitCode;
         }
         else
@@ -108,11 +120,11 @@ public sealed class ProcessRunner : IProcessRunner
             try
             {
                 process.Kill();
-                logger.LogWarning(Resources.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                runtime.LogWarning(Resources.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
             }
             catch
             {
-                logger.LogWarning(Resources.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                runtime.LogWarning(Resources.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
             }
         }
 
@@ -139,45 +151,38 @@ public sealed class ProcessRunner : IProcessRunner
 
             if (psi.EnvironmentVariables.ContainsKey(envVariable.Key))
             {
-                logger.LogDebug(Resources.MSG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key].RedactSensitiveData(), envVariable.Value.RedactSensitiveData());
+                runtime.LogDebug(Resources.MSG_Runner_OverwritingEnvVar, envVariable.Key, psi.EnvironmentVariables[envVariable.Key].RedactSensitiveData(), envVariable.Value.RedactSensitiveData());
             }
             else
             {
-                logger.LogDebug(Resources.MSG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value.RedactSensitiveData());
+                runtime.LogDebug(Resources.MSG_Runner_SettingEnvVar, envVariable.Key, envVariable.Value.RedactSensitiveData());
             }
             psi.EnvironmentVariables[envVariable.Key] = envVariable.Value;
         }
     }
 
-    private void OnOutputDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter standardOutputWriter)
+    private void HandleProcessOutput(string data, bool stdOut, bool logOutput, TextWriter outputWriter, OutputToLogMessage outputToLogMessage)
     {
-        if (e.Data is not null)
+        if (data is not null
+            && outputToLogMessage?.Invoke(stdOut, data) is { } logMessage
+            && logMessage.Message.RedactSensitiveData() is { } redactedMsg)
         {
-            var redactedMsg = e.Data.RedactSensitiveData();
             if (logOutput)
             {
-                // It's important to log this as an important message because
-                // this the log redirection pipeline of the child process
-                logger.LogInfo(redactedMsg);
+                switch (logMessage.Level)
+                {
+                    case LogLevel.Info:
+                        runtime.LogInfo(redactedMsg);
+                        break;
+                    case LogLevel.Warning:
+                        runtime.LogWarning(redactedMsg);
+                        break;
+                    case LogLevel.Error:
+                        runtime.LogError(redactedMsg);
+                        break;
+                }
             }
-            standardOutputWriter.WriteLine(redactedMsg);
-        }
-    }
-
-    private void OnErrorDataReceived(DataReceivedEventArgs e, bool logOutput, TextWriter errorOutputWriter)
-    {
-        if (e.Data is not null)
-        {
-            var redactedMsg = e.Data.RedactSensitiveData();
-            if (logOutput && e.Data.StartsWith("WARN"))
-            {
-                logger.LogWarning(redactedMsg);
-            }
-            else if (logOutput)
-            {
-                logger.LogError(redactedMsg);
-            }
-            errorOutputWriter.WriteLine(redactedMsg);
+            outputWriter.WriteLine(redactedMsg);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.Common.Test;
 public class TelemetryUtilsTests
 {
 #pragma warning disable S103 // Lines should not be too long
-    [DataTestMethod]
+    [TestMethod]
     // Sensitive data
     [DataRow(SonarProperties.SonarToken, "secret")]
     [DataRow("SONAR.TOKEN", "secret")]
@@ -75,24 +75,51 @@ public class TelemetryUtilsTests
         AssertTelemetry(propertyId, value, exepectedTelemetry);
 
     [TestCategory(TestCategories.NoMacOS)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(SonarProperties.JavaExePath, "invalidFileName.exe;*>\0//", "dotnetenterprise.s4net.params.sonar_scanner_javaexepath.source=CLI")]
     public void LoggedTelemetryFromPropertiesNoMacOS(string propertyId, string value, params string[] exepectedTelemetry) =>
         AssertTelemetry(propertyId, value, exepectedTelemetry);
 
+    [TestMethod]
+    [DataRow("http://localhost:9000", "localhost")]
+    [DataRow("private.com", "custom_url")]
+    public void LoggedTelemetryFromHostInfoSqServer(string serverUrl, string telemetryValue)
+    {
+        var telemetry = new TestTelemetry();
+        var serverInfo = new ServerHostInfo(serverUrl, serverUrl);
+        TelemetryUtils.AddTelemetry(telemetry, serverInfo);
+        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoProduct, "SQ_Server")
+            .And.HaveMessage(TelemetryKeys.ServerInfoServerUrl, telemetryValue);
+    }
+
+    [TestMethod]
+    [DataRow("https://sonarcloud.io", "", "https://sonarcloud.io", "default")]
+    [DataRow("https://sonarcloud.io", "region", "https://sonarcloud.io", "region")]
+    [DataRow("https://sonarqube.us", "us", "https://sonarqube.us", "us")]
+    [DataRow("private/server", "region", "custom_url", "region")]
+    public void LoggedTelemetryFromHostInfoSqCloud(string serverUrl, string region, string telemetryUrlValue, string telemetryRegionValue)
+    {
+        var telemetry = new TestTelemetry();
+        var serverInfo = new CloudHostInfo(serverUrl, serverUrl, region);
+        TelemetryUtils.AddTelemetry(telemetry, serverInfo);
+        telemetry.Should().HaveMessage(TelemetryKeys.ServerInfoProduct, "SQ_Cloud")
+            .And.HaveMessage(TelemetryKeys.ServerInfoServerUrl, telemetryUrlValue)
+            .And.HaveMessage(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
+    }
+
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
     {
-        var logger = Substitute.For<ILogger>();
+        var telemetry = new TestTelemetry();
         var list = new ListPropertiesProvider(PropertyProviderKind.CLI);
         list.AddProperty(propertyId, value);
         var provider = new AggregatePropertiesProvider(list);
-        TelemetryUtils.AddTelemetry(logger, provider);
-        logger.Received(exepectedTelemetry.Length).AddTelemetryMessage(Arg.Any<string>(), Arg.Any<string>());
+        TelemetryUtils.AddTelemetry(telemetry, provider);
+        telemetry.Messages.Should().HaveCount(exepectedTelemetry.Length);
         foreach (var expected in exepectedTelemetry)
         {
             var parts = expected.Split('=');
             var (expectedPropertyId, expectedValue) = (parts[0], parts[1]);
-            logger.Received(1).AddTelemetryMessage(expectedPropertyId, expectedValue);
+            telemetry.Should().HaveMessage(expectedPropertyId, expectedValue);
         }
     }
 }

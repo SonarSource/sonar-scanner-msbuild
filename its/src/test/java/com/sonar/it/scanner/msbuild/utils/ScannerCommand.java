@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -69,7 +69,7 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
       // Default values provided by Orchestrator to ScannerForMSBuild in adjustedProperties
       .setProperty("sonar.scm.disabled", "true")
       .setProperty("sonar.branch.autoconfig.disabled", "true")
-      .setProperty("sonar.scanner.skipJreProvisioning", "true");  // Desired default behavior in ITs. Specific tests should set null or false to remove this.
+      .setProperty("sonar.scanner.skipJreProvisioning", "true"); // Desired default behavior in ITs. Specific tests should set null or false to remove this.
   }
 
   public static ScannerCommand createEndStep(ScannerClassifier classifier, String token, Path projectDir) {
@@ -98,6 +98,13 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
 
   public ScannerCommand setDebugLogs() {
     return setProperty("sonar.verbose", "true");
+  }
+
+  public ScannerCommand CreateAndSetUserHomeFolder(String userHome) {
+    // Create a temporary user home directory for the analysis
+    try (var path = new TempDirectory(userHome)) {
+      return setProperty("sonar.userHome", path.toString());
+    }
   }
 
   public ScannerCommand setOrganization(String organization) {

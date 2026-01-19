@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,9 @@ using static SonarScanner.MSBuild.Common.CommandLine.CommandLineFlagPrefix;
 namespace SonarScanner.MSBuild.PreProcessor;
 
 /// <summary>
-/// Process and validates the pre-processor command line arguments and reports any errors
+/// Process and validates the pre-processor command line arguments and reports any errors.
 /// </summary>
-public static class ArgumentProcessor // was internal
+public static class ArgumentProcessor
 {
     private const string ProjectKeyId = "projectKey.id";
     private const string ProjectNameId = "projectName.id";
@@ -33,8 +33,8 @@ public static class ArgumentProcessor // was internal
     private const string OrganizationId = "organization.id";
     private const string InstallLoaderTargetsId = "installLoaderTargets.id";
 
-    private static readonly IList<ArgumentDescriptor> Descriptors = new List<ArgumentDescriptor>
-    {
+    private static readonly IList<ArgumentDescriptor> Descriptors =
+    [
         new(id: ProjectKeyId, prefixes: GetPrefixedFlags("key:", "k:"), required: true, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectKey),
         new(id: ProjectNameId, prefixes: GetPrefixedFlags("name:", "n:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectName),
         new(id: ProjectVersionId, prefixes: GetPrefixedFlags("version:", "v:"), required: false, allowMultiple: false, description: Resources.CmdLine_ArgDescription_ProjectVersion),
@@ -43,7 +43,7 @@ public static class ArgumentProcessor // was internal
 
         FilePropertyProvider.Descriptor,
         CmdLineArgPropertyProvider.Descriptor
-    };
+    ];
 
     static ArgumentProcessor()
     {
@@ -56,34 +56,28 @@ public static class ArgumentProcessor // was internal
     /// reports any errors using the logger.
     /// Returns null unless all the properties are valid.
     /// </summary>
-    public static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, ILogger logger) =>
-        TryProcessArgs(commandLineArgs, FileWrapper.Instance, DirectoryWrapper.Instance, logger);
-
-    internal /* for testing */ static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, ILogger logger)
+    public static ProcessedArgs TryProcessArgs(IEnumerable<string> commandLineArgs, BuildSettings buildSettings, IRuntime runtime)
     {
-        if (logger is null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
+        _ = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
         ProcessedArgs processed = null;
 
         // This call will fail if there are duplicate, missing, or unrecognized arguments
         var parser = new CommandLineParser(Descriptors, false /* don't allow unrecognized */);
-        var parsedOk = parser.ParseArguments(commandLineArgs, logger, out var arguments);
+        var parsedOk = parser.ParseArguments(commandLineArgs, runtime.Logger, out var arguments);
 
         // Handle the /install: command line only argument
-        parsedOk &= TryGetInstallTargetsEnabled(arguments, logger, out var installLoaderTargets);
+        parsedOk &= TryGetInstallTargetsEnabled(arguments, runtime.Logger, out var installLoaderTargets);
 
         // Handler for command line analysis properties
-        parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out var cmdLineProperties);
+        parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, runtime.Logger, out var cmdLineProperties);
 
         // Handler for scanner environment properties
-        parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(logger, out var scannerEnvProperties);
+        parsedOk &= EnvScannerPropertiesProvider.TryCreateProvider(runtime.Logger, out var scannerEnvProperties);
 
         // Handler for property file
         var asmPath = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
-        parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out var globalFileProperties);
+        parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, runtime.Logger, out var globalFileProperties);
 
         if (parsedOk)
         {
@@ -99,10 +93,8 @@ public static class ArgumentProcessor // was internal
                 cmdLineProperties,
                 globalFileProperties,
                 scannerEnvProperties,
-                fileWrapper,
-                directoryWrapper,
-                new OperatingSystemProvider(FileWrapper.Instance, logger),
-                logger);
+                buildSettings,
+                runtime);
 
             if (!processed.IsValid)
             {

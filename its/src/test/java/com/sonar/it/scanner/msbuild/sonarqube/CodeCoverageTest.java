@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -75,7 +75,7 @@ class CodeCoverageTest {
         .end()
         .getLogs();
 
-      assertThat(logs).contains("Coverage report conversion completed successfully.");
+      assertThat(logs).contains("Converting coverage reports.");
       assertThat(logs).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
       assertThat(logs).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
       assertThat(logs).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");

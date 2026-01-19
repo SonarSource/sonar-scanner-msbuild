@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -23,50 +23,50 @@ using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
-public sealed class PreProcessor : IPreProcessor
+public class PreProcessor
 {
     private const string CSharpLanguage = "cs";
     private const string VBNetLanguage = "vbnet";
 
-    private static readonly string[] Languages = { CSharpLanguage, VBNetLanguage };
+    private static readonly string[] Languages = [CSharpLanguage, VBNetLanguage];
 
     private readonly IPreprocessorObjectFactory factory;
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
 
-    public PreProcessor(IPreprocessorObjectFactory factory, ILogger logger)
+    public PreProcessor(IPreprocessorObjectFactory factory, IRuntime runtime)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
     }
 
-    public async Task<bool> Execute(IEnumerable<string> args)
+    public virtual async Task<bool> Execute(IEnumerable<string> args)
     {
-        logger.SuspendOutput();
-        var processedArgs = ArgumentProcessor.TryProcessArgs(args, logger);
+        runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
+        var buildSettings = BuildSettings.GetSettingsFromEnvironment();
+        var processedArgs = ArgumentProcessor.TryProcessArgs(args, buildSettings, runtime);
 
         if (processedArgs is null)
         {
-            logger.ResumeOutput();
-            logger.LogError(Resources.ERROR_InvalidCommandLineArgs);
+            runtime.Logger.ResumeOutput();
+            runtime.LogError(Resources.ERROR_InvalidCommandLineArgs);
             return false;
         }
         else
         {
-            return await DoExecute(processedArgs);
+            return await DoExecute(buildSettings, processedArgs);
         }
     }
 
-    private async Task<bool> DoExecute(ProcessedArgs localSettings)
+    private async Task<bool> DoExecute(BuildSettings buildSettings, ProcessedArgs localSettings)
     {
         Debug.Assert(localSettings is not null, "Not expecting the process arguments to be null");
-        logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, logger);
-        logger.ResumeOutput();
+        runtime.Logger.Verbosity = VerbosityCalculator.ComputeVerbosity(localSettings.AggregateProperties, runtime.Logger);
+        runtime.Logger.ResumeOutput();
         InstallLoaderTargets(localSettings);
-        var buildSettings = BuildSettings.GetSettingsFromEnvironment();
 
         // Create the directories
-        logger.LogDebug(Resources.MSG_CreatingFolders);
-        if (!Utilities.TryEnsureEmptyDirectories(logger, buildSettings.SonarConfigDirectory, buildSettings.SonarOutputDirectory))
+        runtime.LogDebug(Resources.MSG_CreatingFolders);
+        if (!Utilities.TryEnsureEmptyDirectories(runtime.Logger, buildSettings.SonarConfigDirectory, buildSettings.SonarOutputDirectory))
         {
             return false;
         }
@@ -83,13 +83,23 @@ public sealed class PreProcessor : IPreProcessor
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
-            logger.LogDebug(ex.StackTrace);
+            runtime.LogError(ex.Message);
+            runtime.LogDebug(ex.StackTrace);
             return false;
         }
+        runtime.Telemetry[TelemetryKeys.ServerInfoVersion] = server.ServerVersion.ToString();
 
-        var jreResolver = factory.CreateJreResolver(server);
-        var resolvedJavaExePath = await jreResolver.ResolveJrePath(localSettings, localSettings.UserHome);
+        var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
+        var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
+
+        var scannerEngineJarPath = localSettings.UseSonarScannerCli ? null : await factory.CreateEngineResolver(server, localSettings.UserHome).ResolvePath(localSettings);
+
+        var scannerCliPath = scannerEngineJarPath is null ? await factory.CreateScannerCliResolver(server, localSettings.UserHome).ResolvePath(localSettings) : null;
+        if (scannerEngineJarPath is null && scannerCliPath is null)
+        {
+            runtime.LogError(Resources.ERR_ScannerCliDownloadFailed);
+            return false;
+        }
 
         var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
         if (!argumentsAndRuleSets.IsSuccess)
@@ -98,14 +108,14 @@ public sealed class PreProcessor : IPreProcessor
         }
         Debug.Assert(argumentsAndRuleSets.AnalyzersSettings is not null, "Not expecting the analyzers settings to be null");
 
-        using var cache = new CacheProcessor(server, localSettings, buildSettings, logger);
+        using var cache = new CacheProcessor(server, localSettings, buildSettings, runtime.Logger);
         await cache.Execute();
         var additionalSettings = new Dictionary<string, string>
         {
             { nameof(cache.UnchangedFilesPath), cache.UnchangedFilesPath },
             { SonarProperties.PullRequestCacheBasePath, cache.PullRequestCacheBasePath }
         };
-        var config = AnalysisConfigGenerator.GenerateFile(
+        AnalysisConfigGenerator.GenerateFile(
             localSettings,
             buildSettings,
             additionalSettings,
@@ -113,15 +123,12 @@ public sealed class PreProcessor : IPreProcessor
             argumentsAndRuleSets.AnalyzersSettings,
             server.ServerVersion.ToString(),
             resolvedJavaExePath,
-            logger);
+            scannerEngineJarPath,
+            scannerCliPath,
+            runtime);
 
-        if (config.ScanAllAnalysis)
-        {
-            logger.LogUIWarning(Resources.WARN_UI_ScanAllAnalysisEnabled);
-        }
-
-        logger.WriteUIWarnings(buildSettings.SonarOutputDirectory); // Create the UI warnings file to be picked up the plugin
-        logger.WriteTelemetry(buildSettings.SonarOutputDirectory);
+        runtime.AnalysisWarnings.Write(buildSettings.SonarOutputDirectory); // Create the analysis warnings file to be picked up the plugin
+        runtime.Telemetry.Write(buildSettings.SonarOutputDirectory);
         return true;
     }
 
@@ -129,13 +136,11 @@ public sealed class PreProcessor : IPreProcessor
     {
         if (args.InstallLoaderTargets)
         {
-            var installer = factory.CreateTargetInstaller();
-            Debug.Assert(installer is not null, "Factory should not return null");
-            installer.InstallLoaderTargets(Directory.GetCurrentDirectory());
+            new TargetsInstaller(runtime).InstallLoaderTargets(runtime.Directory.GetCurrentDirectory());
         }
         else
         {
-            logger.LogDebug(Resources.MSG_NotCopyingTargets);
+            runtime.LogDebug(Resources.MSG_NotCopyingTargets);
         }
     }
 
@@ -145,7 +150,7 @@ public sealed class PreProcessor : IPreProcessor
 
         try
         {
-            logger.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
+            runtime.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
 
             args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
             argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
@@ -153,7 +158,7 @@ public sealed class PreProcessor : IPreProcessor
             var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
             if (knownLanguages.Count == 0)
             {
-                logger.LogError(Resources.ERR_DotNetAnalyzersNotFound);
+                runtime.LogError(Resources.ERR_DotNetAnalyzersNotFound);
                 argumentsAndRuleSets.IsSuccess = false;
                 return argumentsAndRuleSets;
             }
@@ -161,28 +166,28 @@ public sealed class PreProcessor : IPreProcessor
             foreach (var language in knownLanguages)
             {
                 var qualityProfile = await server.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
-                if (qualityProfile is not { })
+                if (qualityProfile is null)
                 {
-                    logger.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
+                    runtime.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
                     continue;
                 }
 
                 var rules = await server.DownloadRules(qualityProfile);
                 if (!rules.Any(x => x.IsActive))
                 {
-                    logger.LogDebug(Resources.RAP_NoActiveRules, language);
+                    runtime.LogDebug(Resources.RAP_NoActiveRules, language);
                 }
 
                 // Generate Roslyn analyzers settings and rulesets
                 // It is null if the processing of server settings and active rules resulted in an empty ruleset
-                var localCacheTempPath = args.GetSetting(SonarProperties.PluginCacheDirectory, string.Empty);
+                var localCacheTempPath = args.SettingOrDefault(SonarProperties.PluginCacheDirectory, string.Empty);
 
                 // Use the aggregate of local and server properties when generating the analyzer configuration
                 // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
                 var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
                 var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
 
-                var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath, logger, settings, allProperties, rules, language);
+                var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath, settings, allProperties, rules, language);
                 if (analyzerProvider.SetupAnalyzer() is { } analyzerSettings)
                 {
                     argumentsAndRuleSets.AnalyzersSettings.Add(analyzerSettings);
@@ -196,7 +201,7 @@ public sealed class PreProcessor : IPreProcessor
         }
         catch (WebException ex)
         {
-            if (Utilities.HandleHostUrlWebException(ex, args.ServerInfo.ServerUrl, logger))
+            if (Utilities.HandleHostUrlWebException(ex, args.ServerInfo.ServerUrl, runtime.Logger))
             {
                 argumentsAndRuleSets.IsSuccess = false;
                 return argumentsAndRuleSets;
@@ -213,6 +218,6 @@ public sealed class PreProcessor : IPreProcessor
     {
         public bool IsSuccess { get; set; }
         public IDictionary<string, string> ServerSettings { get; set; }
-        public List<AnalyzerSettings> AnalyzersSettings { get; } = new();
+        public List<AnalyzerSettings> AnalyzersSettings { get; } = [];
     }
 }

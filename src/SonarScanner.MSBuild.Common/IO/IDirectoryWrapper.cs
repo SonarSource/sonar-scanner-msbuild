@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,9 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
-using System.Collections.Generic;
-using System.IO;
+#pragma warning disable T0000 // Do not use 'Get' prefix - This is a wrapper, we should not change the method names.
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -34,14 +32,23 @@ public interface IDirectoryWrapper
     /// <inheritdoc cref="Directory.Exists(string)"/>
     bool Exists(string path);
 
+    /// <inheritdoc cref="Directory.GetCurrentDirectory()"/>
+    string GetCurrentDirectory();
+
     /// <inheritdoc cref="Directory.GetDirectories(string, string, SearchOption)"/>
     string[] GetDirectories(string path, string searchPattern, SearchOption searchOption);
 
     /// <inheritdoc cref="Directory.GetFiles(string, string)"/>
     string[] GetFiles(string path, string searchPattern);
 
+    /// <inheritdoc cref="Directory.GetFiles(string, string, SearchOption)"/>
+    string[] GetFiles(string path, string searchPattern, SearchOption searchOption);
+
     /// <inheritdoc cref="Path.GetRandomFileName()"/>
     string GetRandomFileName();
+
+    /// <inheritdoc cref="Path.GetFullPath(string)"/>
+    string GetFullPath(string path);
 
     /// <inheritdoc cref="Directory.Move(string, string)"/>
     void Move(string sourceDirName, string destDirName);

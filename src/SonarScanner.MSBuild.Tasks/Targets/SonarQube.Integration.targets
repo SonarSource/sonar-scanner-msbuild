@@ -61,7 +61,7 @@
     Specifying additional types of file to be analysed
     **************************************************
 
-    The Scanner for MSBuild will automatically collect all of the common
+    The Scanner for .NET will automatically collect all of the common
     file types that can be analysed by the various Sonar language plugins
     (e.g. C# files, TypeScript, TSQL, C++ include and source files etc).
     The full list of item types that will be included for analysis is
@@ -138,8 +138,14 @@
 
   <Target Name="WriteSonarTelemetry" Condition ="$(SonarTelemetryFilePath) != ''" BeforeTargets="Build">
     <ItemGroup>
-      <SonarTelemetry Condition="$(VisualStudioVersion) != ''" Include="dotnetenterprise.s4net.build.visual_studio_version" Value="$(VisualStudioVersion)" /> <!-- https://learn.microsoft.com/en-us/visualstudio/msbuild/common-msbuild-project-properties?view=vs-2022-->
-      <SonarTelemetry Condition="$(MSBuildVersion) != ''" Include="dotnetenterprise.s4net.build.msbuild_version" Value="$(MSBuildVersion)" /> <!-- Version of MSBuild. Preferred over MSBuildToolsVersion which defaults to just "Current" https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-reserved-and-well-known-properties?view=vs-2022-->
+      <!-- https://learn.microsoft.com/en-us/visualstudio/msbuild/common-msbuild-project-properties?view=vs-2022-->
+      <SonarTelemetry Condition="$(VisualStudioVersion) != ''" Include="dotnetenterprise.s4net.build.visual_studio_version">
+        <Value>$(VisualStudioVersion)</Value>
+      </SonarTelemetry>
+      <!-- Version of MSBuild. Preferred over MSBuildToolsVersion which defaults to just "Current" https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-reserved-and-well-known-properties?view=vs-2022 -->
+      <SonarTelemetry Condition="$(MSBuildVersion) != ''" Include="dotnetenterprise.s4net.build.msbuild_version">
+        <Value>$(MSBuildVersion)</Value>
+      </SonarTelemetry>
     </ItemGroup>
 
     <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" CreateNew="true" Telemetry="@(SonarTelemetry)"/>
@@ -367,7 +373,7 @@
     <ItemGroup>
       <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(SonarReportFilePath) != '' ">
         <!-- Join the paths with |  -->
-        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <!-- This delimiter needs to be the same as ScannerEngineInputGenerator.RoslynReportPathsDelimiter -->
         <Value>@(SonarReportFilePath->'%(identity)','|')</Value>
       </SonarQubeSetting>
       <SonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(SonarErrorLogExists) == 'true'">
@@ -476,7 +482,7 @@
       <RazorSonarReportFilePath Condition= "$(RazorSonarErrorLogExists) == 'true'" Include="$(RazorSonarErrorLog)" />
       <RazorSonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(RazorSonarReportFilePath) != '' ">
         <!-- Join the paths with |  -->
-        <!-- This delimiter needs to be the same as PropertiesFileGenerator.RoslynReportPathsDelimiter -->
+        <!-- This delimiter needs to be the same as ScannerEngineInputGenerator.RoslynReportPathsDelimiter -->
         <Value>@(RazorSonarReportFilePath->'%(identity)','|')</Value>
       </RazorSonarQubeSetting>
       <RazorSonarQubeSetting Include="sonar.$(SQLanguage).analyzer.projectOutPaths" Condition= "$(RazorSonarErrorLogExists) == 'true'">

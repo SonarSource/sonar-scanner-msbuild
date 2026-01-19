@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -26,8 +26,8 @@ import java.util.Map;
 public abstract class BaseCommand<T extends BaseCommand<T>> {
 
   protected final Path projectDir;
-  protected final Map<String, String> environment = new HashMap(System.getenv());
-  protected Timeout timeout = Timeout.ONE_MINUTE;
+  protected final Map<String, String> environment = new HashMap<>(System.getenv());
+  protected Timeout timeout = Timeout.TWO_MINUTES;
 
   protected abstract T self();
 

@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.sonarsource.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>83.0.0.2369</version>
+    <version>86.0.0.3040</version>
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
@@ -58,7 +58,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.1</version>
         <executions>
           <execution>
             <id>attach-artifacts</id>
@@ -107,15 +107,15 @@
         <artifactId>sign-maven-plugin</artifactId>
         <version>1.1.0</version>
         <executions>
-            <execution>
-                <goals>
-                    <goal>sign</goal>
-                </goals>
-                <configuration>
-                    <keyPass>${env.PGP_PASSPHRASE}</keyPass>
-                    <keyFile>${env.PGP_SIGN_KEY_PATH}</keyFile>
-                </configuration>
-            </execution>
+          <execution>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+            <configuration>
+              <keyPass>${env.PGP_PASSPHRASE}</keyPass>
+              <keyFile>${env.PGP_SIGN_KEY_PATH}</keyFile>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
     </plugins>

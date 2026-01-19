@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -22,9 +22,9 @@ using System.Reflection;
 using System.Resources;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyVersion("10.2.0")]
-[assembly: AssemblyFileVersion("10.2.0.0")]
-[assembly: AssemblyInformationalVersion("Version:10.2.0.0 Branch:not-set Sha1:not-set")]
+[assembly: AssemblyVersion("11.1.0")]
+[assembly: AssemblyFileVersion("11.1.0.0")]
+[assembly: AssemblyInformationalVersion("Version:11.1.0.0 Branch:not-set Sha1:not-set")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SonarSource")]
 [assembly: AssemblyCopyright("Copyright © SonarSource 2015-2025")]

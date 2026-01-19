@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -36,14 +36,14 @@ public class ProjectInfoReportBuilder
     internal const string ReportFileName = "ProjectInfo.log";
 
     private readonly AnalysisConfig config;
-    private readonly ProjectInfoAnalysisResult result;
+    private readonly AnalysisResult result;
     private readonly ILogger logger;
 
     private readonly StringBuilder sb;
 
     #region Public methods
 
-    public static void WriteSummaryReport(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+    public static void WriteSummaryReport(AnalysisConfig config, AnalysisResult result, ILogger logger)
     {
         var builder = new ProjectInfoReportBuilder(config, result, logger);
         builder.Generate();
@@ -53,7 +53,7 @@ public class ProjectInfoReportBuilder
 
     #region Private methods
 
-    private ProjectInfoReportBuilder(AnalysisConfig config, ProjectInfoAnalysisResult result, ILogger logger)
+    private ProjectInfoReportBuilder(AnalysisConfig config, AnalysisResult result, ILogger logger)
     {
         this.config = config ?? throw new ArgumentNullException(nameof(config));
         this.result = result ?? throw new ArgumentNullException(nameof(result));
@@ -63,7 +63,7 @@ public class ProjectInfoReportBuilder
 
     private void Generate()
     {
-        IEnumerable<ProjectInfo> validProjects = result.GetProjectsByStatus(ProjectInfoValidity.Valid);
+        IEnumerable<ProjectInfo> validProjects = result.ProjectsByStatus(ProjectInfoValidity.Valid);
 
         WriteTitle(Resources.REPORT_ProductProjectsTitle);
         WriteFileList(validProjects.Where(p => p.ProjectType == ProjectType.Product));
@@ -108,7 +108,7 @@ public class ProjectInfoReportBuilder
 
         foreach (var status in statuses)
         {
-            projects = projects.Concat(result.GetProjectsByStatus(status));
+            projects = projects.Concat(result.ProjectsByStatus(status));
         }
 
         if (!projects.Any())

@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
+import com.google.gson.Gson;
 import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
@@ -52,7 +53,7 @@ import org.sonarqube.ws.client.components.TreeRequest;
 import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.settings.SetRequest;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 public class TestUtils {
   static final Logger LOG = LoggerFactory.getLogger(TestUtils.class);
@@ -185,6 +186,10 @@ public class TestUtils {
       .ce()
       .task(new TaskRequest().setId(taskId).setAdditionalFields(Collections.singletonList("warnings")))
       .getTask();
+  }
+
+  public static ScannerEngineInput scannerEngineInputJson(AnalysisContext context) throws IOException {
+    return new Gson().fromJson(Files.newBufferedReader(context.projectDir.resolve(".sonarqube").resolve("out").resolve("ScannerEngineInput.json")), ScannerEngineInput.class);
   }
 
   private static String extractCeTaskId(BuildResult buildResult) {

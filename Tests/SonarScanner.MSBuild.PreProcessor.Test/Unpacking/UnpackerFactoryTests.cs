@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
@@ -31,7 +25,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
 [TestClass]
 public class UnpackerFactoryTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("File.zip", typeof(ZipUnpacker))]
     [DataRow("File.ZIP", typeof(ZipUnpacker))]
     [DataRow(@"c:\test\File.ZIP", typeof(ZipUnpacker))]
@@ -40,26 +34,14 @@ public class UnpackerFactoryTests
     [DataRow("File.TAR.GZ", typeof(TarGzUnpacker))]
     [DataRow(@"/usr/File.TAR.gz", typeof(TarGzUnpacker))]
     [DataRow(@"/usr/File.tar.GZ", typeof(TarGzUnpacker))]
-    public void SupportedFileExtensions(string fileName, Type expectedUnpacker)
-    {
-        var sut = new UnpackerFactory();
+    public void SupportedFileExtensions(string fileName, Type expectedUnpacker) =>
+        new UnpackerFactory(new TestRuntime()).Create(fileName).Should().BeOfType(expectedUnpacker);
 
-        var unpacker = sut.Create(Substitute.For<ILogger>(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IFilePermissionsWrapper>(), fileName);
-
-        unpacker.Should().BeOfType(expectedUnpacker);
-    }
-
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("File.rar")]
     [DataRow("File.7z")]
     [DataRow("File.gz")]
     [DataRow("File.tar")]
-    public void UnsupportedFileExtensions(string fileName)
-    {
-        var sut = new UnpackerFactory();
-
-        var unpacker = sut.Create(Substitute.For<ILogger>(), Substitute.For<IDirectoryWrapper>(), Substitute.For<IFileWrapper>(), Substitute.For<IFilePermissionsWrapper>(), fileName);
-
-        unpacker.Should().BeNull();
-    }
+    public void UnsupportedFileExtensions(string fileName) =>
+        new UnpackerFactory(new TestRuntime()).Create(fileName).Should().BeNull();
 }

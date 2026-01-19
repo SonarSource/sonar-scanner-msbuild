@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,22 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
-using System.IO;
-using FluentAssertions;
-
 namespace TestUtilities;
 
 /// <summary>
-/// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-scanner.properties)
+/// Utility class that reads properties from a standard format SonarQube properties file (e.g. sonar-scanner.properties).
 /// </summary>
+/// ToDo: Remove this class in SCAN4NET-721 it's used only for the PropertiesWriter
 public class SQPropertiesFileReader
 {
     /// <summary>
     /// Mapping of property names to values
     /// </summary>
-    private JavaProperties properties;
+    public JavaProperties Properties { get; }
 
     #region Public methods
 
@@ -54,13 +50,13 @@ public class SQPropertiesFileReader
             throw new FileNotFoundException();
         }
 
-        ExtractProperties(fullPath);
+        Properties = ExtractProperties(fullPath);
     }
 
     public void AssertSettingExists(string key, string expectedValue)
     {
-        var actualValue = properties.GetProperty(key);
-        var found = actualValue != null;
+        var actualValue = Properties.GetProperty(key);
+        var found = actualValue is not null;
 
         found.Should().BeTrue("Expected setting was not found. Key: {0}", key);
         actualValue.Should().Be(expectedValue, "Property does not have the expected value. Key: {0}", key);
@@ -68,25 +64,27 @@ public class SQPropertiesFileReader
 
     public void AssertSettingDoesNotExist(string key)
     {
-        var actualValue = properties.GetProperty(key);
-        var found = actualValue != null;
+        var actualValue = Properties.GetProperty(key);
+        var found = actualValue is not null;
 
         found.Should().BeFalse("Not expecting setting to be found. Key: {0}, value: {1}", key, actualValue);
     }
+
+    public string PropertyValue(string key) =>
+        Properties.GetProperty(key);
 
     #endregion Public methods
 
     #region FilePropertiesProvider
 
-    private void ExtractProperties(string fullPath)
+    private static JavaProperties ExtractProperties(string fullPath)
     {
         Debug.Assert(!string.IsNullOrWhiteSpace(fullPath), "fullPath should be specified");
 
-        properties = new JavaProperties();
-        using (var stream = File.Open(fullPath, FileMode.Open))
-        {
-            properties.Load(stream);
-        }
+        using var stream = File.Open(fullPath, FileMode.Open);
+        var properties = new JavaProperties();
+        properties.Load(stream);
+        return properties;
     }
 
     #endregion FilePropertiesProvider

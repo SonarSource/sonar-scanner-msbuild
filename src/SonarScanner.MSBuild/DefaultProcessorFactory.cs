@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,26 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.PostProcessor;
-using SonarScanner.MSBuild.PostProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor;
 using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild;
 
-public class DefaultProcessorFactory(ILogger logger) : IProcessorFactory
+public class DefaultProcessorFactory : IProcessorFactory
 {
-    private readonly IOperatingSystemProvider operatingSystemProvider = new OperatingSystemProvider(FileWrapper.Instance, logger);
+    private readonly IRuntime runtime;
 
-    public IPostProcessor CreatePostProcessor() =>
-        new PostProcessor.PostProcessor(
-            new SonarScannerWrapper(logger, operatingSystemProvider),
-            logger,
-            new TargetsUninstaller(logger),
-            new TfsProcessorWrapper(logger, operatingSystemProvider),
-            new SonarProjectPropertiesValidator());
+    public DefaultProcessorFactory(IRuntime runtime) =>
+        this.runtime = runtime;
 
-    public IPreProcessor CreatePreProcessor() =>
-        new PreProcessor.PreProcessor(new PreprocessorObjectFactory(logger), logger);
+    public PostProcessor.PostProcessor CreatePostProcessor() =>
+        new(
+            new SonarScannerWrapper(runtime),
+            new SonarEngineWrapper(runtime, new ProcessRunner(runtime)),
+            runtime,
+            new TargetsUninstaller(runtime.Logger),
+            new TfsProcessorWrapper(runtime),
+            new SonarProjectPropertiesValidator(),
+            new BuildVNextCoverageReportProcessor(new BinaryToXmlCoverageReportConverter(runtime.Logger), runtime));
+
+    public PreProcessor.PreProcessor CreatePreProcessor() =>
+        new(new PreprocessorObjectFactory(runtime), runtime);
 }

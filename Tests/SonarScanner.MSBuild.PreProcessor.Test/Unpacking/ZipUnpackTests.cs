@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -39,15 +39,14 @@ public class ZipUnpackTests
         //  └── Sub2
         //      └── Sample.txt
         const string sampleZipFile = """
-            UEsDBBQAAAAAAPGQ41gAAAAAAAAAAAAAAAAFAAAATWFpbi9QSwMEFAAAAAAA7JDjWAAAAAAAAAAAAAAAAAoAAABNYWluL1N1YjEvUEsD
-            BBQAAAAAAPiQ41gAAAAAAAAAAAAAAAAKAAAATWFpbi9TdWIyL1BLAwQUAAAACAASkeNY1NV/TYcAAAC0AAAAFAAAAE1haW4vU3ViMi9T
-            YW1wbGUudHh0JY1BDsIwDATvSPxhX1D+QMURJNR+wE0MDXJtFCdC/T1pe1ytZmacGYMp5SGQKme8LKN73EYkR2ln5mDLwho54kcrikGo
-            aphBB/isE6NB59M+e7EaQUqyelNsul6YFL1Fxjfbh0Pxi5vUkkwd1ZO+cR+uNUk8RNGKcsEWJm0yb61pu1vdpPsDUEsBAj8AFAAAAAAA
-            8ZDjWAAAAAAAAAAAAAAAAAUAJAAAAAAAAAAQAAAAAAAAAE1haW4vCgAgAAAAAAABABgAzBR7HGPN2gHMFHscY83aAdlY2BJjzdoBUEsB
-            Aj8AFAAAAAAA7JDjWAAAAAAAAAAAAAAAAAoAJAAAAAAAAAAQAAAAIwAAAE1haW4vU3ViMS8KACAAAAAAAAEAGAAdYWYXY83aAR1hZhdj
-            zdoBHWFmF2PN2gFQSwECPwAUAAAAAAD4kONYAAAAAAAAAAAAAAAACgAkAAAAAAAAABAAAABLAAAATWFpbi9TdWIyLwoAIAAAAAAAAQAY
-            AOchsyVjzdoB5yGzJWPN2gEN//UaY83aAVBLAQI/ABQAAAAIABKR41jU1X9NhwAAALQAAAAUACQAAAAAAAAAIAAAAHMAAABNYWluL1N1
-            YjIvU2FtcGxlLnR4dAoAIAAAAAAAAQAYAM5kOEJjzdoB98Y4QmPN2gHOCFYiY83aAVBLBQYAAAAABAAEAHUBAAAsAQAAAAA=
+            UEsDBBQAAAAAAPGQ41gAAAAAAAAAAAAAAAAFAAAATWFpbi9QSwMEFAAAAAAA7JDjWAAAAAAAAAAAAAAAAAoAAABNYWluL1N1YjEvUEsDBBQAAAAAAPiQ41gA
+            AAAAAAAAAAAAAAAKAAAATWFpbi9TdWIyL1BLAwQUAAIACADWUxlbvibrvYYAAACyAAAAFAAAAE1haW4vU3ViMi9TYW1wbGUudHh0JY1BDsIwDATvSPxhX1D+
+            QMURJNR+wE0MDXJtFCeq+nvSclyNdmacGYMp5SGQKme8LKN73EYkR2kwc7BlYY0csdKGYhCqGmbQ//isE8Py+XSsXqxGkJJs3gy7rRcmRW+R8c324VD84ia1
+            JFNH9aRv3IdrTRIPT7SiXLBnSZvLW2k6aDGT7gdQSwECPwAUAAAAAADxkONYAAAAAAAAAAAAAAAABQAkAAAAAAAAABAAAAAAAAAATWFpbi8KACAAAAAAAAEA
+            GADMFHscY83aAcwUexxjzdoB2VjYEmPN2gFQSwECPwAUAAAAAADskONYAAAAAAAAAAAAAAAACgAkAAAAAAAAABAAAAAjAAAATWFpbi9TdWIxLwoAIAAAAAAA
+            AQAYAB1hZhdjzdoBHWFmF2PN2gEdYWYXY83aAVBLAQI/ABQAAAAAAPiQ41gAAAAAAAAAAAAAAAAKACQAAAAAAAAAEAAAAEsAAABNYWluL1N1YjIvCgAgAAAA
+            AAABABgA5yGzJWPN2gHnIbMlY83aAQ3/9RpjzdoBUEsBAhQAFAACAAgA1lMZW74m672GAAAAsgAAABQAAAAAAAAAAQAgAAAAcwAAAE1haW4vU3ViMi9TYW1w
+            bGUudHh0UEsFBgAAAAAEAAQAUQEAACsBAAAAAA==
             """;
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         var main = Path.Combine(baseDirectory, "Main");
@@ -63,12 +62,13 @@ public class ZipUnpackTests
             Directory.Exists(sub1).Should().BeTrue();
             Directory.Exists(sub2).Should().BeTrue();
             File.Exists(sampleTxt).Should().BeTrue();
-            var content = File.ReadAllText(sampleTxt).NormalizeLineEndings();
+            var content = File.ReadAllText(sampleTxt);
             content.Should().Be("""
-            The SonarScanner for .NET is the recommended way to launch a SonarQube or 
-            SonarCloud analysis for Clean Code projects/solutions using MSBuild or 
-            dotnet command as a build tool.
-            """.NormalizeLineEndings());
+                    The SonarScanner for .NET is the recommended way to launch a SonarQube or
+                    SonarCloud analysis for Clean Code projects/solutions using MSBuild or
+                    dotnet command as a build tool.
+                    """
+                .ToWindowsLineEndings());
         }
         finally
         {
@@ -84,7 +84,8 @@ public class ZipUnpackTests
         var sut = new ZipUnpacker();
         var action = () => sut.Unpack(zipStream, baseDirectory);
         action.Should().Throw<InvalidDataException>().WithMessage("Central Directory corrupt.")
-            .WithInnerException<IOException>().WithMessage("An attempt was made to move the position before the beginning of the stream.");
+            .WithInnerException<IOException>()
+            .WithMessage("An attempt was made to move the position before the beginning of the stream.");
         Directory.Exists(baseDirectory).Should().BeFalse();
     }
 

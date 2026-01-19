@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AssemblyDescription" xml:space="preserve">
-    <value>SonarScanner for MSBuild Begin Step</value>
+    <value>SonarScanner for .NET Begin Step</value>
   </data>
   <data name="CmdLine_ArgDescription_InstallTargets" xml:space="preserve">
     <value>/install:[true|false] - install standard MSBuild targets required for analysis (default true)</value>
@@ -147,7 +147,7 @@
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expecting at least the following command line argument:
 - SonarQube/SonarCloud project key
-The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
+The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
 Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="ERROR_InvalidProjectKeyArg" xml:space="preserve">
@@ -244,7 +244,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Generating rulesets...</value>
   </data>
   <data name="MSG_InstallTargetsLocalSystem" xml:space="preserve">
-    <value>Running the Scanner for MSBuild under Local System or Network Service account is not supported. Please, use a local or domain user account instead.</value>
+    <value>Running the Scanner for .NET under Local System or Network Service account is not supported. Please, use a local or domain user account instead.</value>
   </data>
   <data name="MSG_InstallTargets_Copy" xml:space="preserve">
     <value>Installed {0} to {1}</value>
@@ -310,7 +310,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Writing Roslyn analyzer additional file to {0}...</value>
   </data>
   <data name="WARN_ExistingGlobalTargets" xml:space="preserve">
-    <value>This version of the SonarScanner for MSBuild automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
+    <value>This version of the SonarScanner for .NET automatically deploys {0}, however a copy has been found in {1}. Please remove it if it is not intentional.</value>
   </data>
   <data name="WARN_TestProjectPattern" xml:space="preserve">
     <value>The property '{0}' defined in SonarQube is deprecated. Set the property 'sonar.msbuild.testProjectPattern' in the scanner instead.</value>
@@ -366,29 +366,11 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_DotNetAnalyzersNotFound" xml:space="preserve">
     <value>Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!</value>
   </data>
-  <data name="ERR_HostUrlAndSonarcloudUrlAreEmpty" xml:space="preserve">
-    <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.</value>
-  </data>
-  <data name="ERR_HostUrlDiffersFromSonarcloudUrl" xml:space="preserve">
-    <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.</value>
-  </data>
-  <data name="WARN_HostUrlAndSonarcloudUrlSet" xml:space="preserve">
-    <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.</value>
-  </data>
   <data name="ERROR_InvalidJavaExePath" xml:space="preserve">
     <value>The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the java executable.</value>
   </data>
   <data name="ERROR_InvalidSkipJreProvisioning" xml:space="preserve">
     <value>The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.</value>
-  </data>
-  <data name="MSG_ServerInfo_ApiUrlDetected" xml:space="preserve">
-    <value>Api Url: {0}</value>
-  </data>
-  <data name="MSG_ServerInfo_IsSonarCloudDetected" xml:space="preserve">
-    <value>Is SonarCloud: {0}</value>
-  </data>
-  <data name="MSG_ServerInfo_ServerUrlDetected" xml:space="preserve">
-    <value>Server Url: {0}</value>
   </data>
   <data name="ERR_DetectedErroneouslySonarCloud" xml:space="preserve">
     <value>Detected SonarCloud but server was found to be SonarQube. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.</value>
@@ -405,25 +387,19 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="WARN_DefaultUserHomeCreationFailed" xml:space="preserve">
     <value>Failed to create the default user home directory '{0}' with exception '{1}'.</value>
   </data>
-  <data name="ERR_JreDownloadFailed" xml:space="preserve">
-    <value>The download of the Java runtime environment from the server failed with the exception '{0}'.</value>
+  <data name="ERR_DownloadFailed" xml:space="preserve">
+    <value>The download of the file from the server failed with the exception '{0}'.</value>
   </data>
-  <data name="MSG_JreAlreadyDownloaded" xml:space="preserve">
-    <value>The Java Runtime Environment was already downloaded from the server and stored at '{0}'.</value>
+  <data name="MSG_FileAlreadyDownloaded" xml:space="preserve">
+    <value>The file was already downloaded from the server and stored at '{0}'.</value>
   </data>
-  <data name="MSG_JreFoundAfterFailedDownload" xml:space="preserve">
-    <value>The Java Runtime Environment archive was found after the download failed. Another scanner did the download in the parallel.</value>
-  </data>
-  <data name="MSG_StartingJreDownload" xml:space="preserve">
-    <value>Starting the Java Runtime Environment download.</value>
+  <data name="MSG_FileFoundAfterFailedDownload" xml:space="preserve">
+    <value>The file was found after the download failed. Another scanner downloaded the file in parallel.</value>
   </data>
   <data name="MSG_FileChecksum" xml:space="preserve">
     <value>The checksum of the downloaded file is '{0}' and the expected checksum is '{1}'.</value>
   </data>
-  <data name="ERR_JreChecksumMissmatch" xml:space="preserve">
-    <value>The checksum of the downloaded Java runtime environment does not match the expected checksum.</value>
-  </data>
-  <data name="ERR_JreChecksumCalculationFailed" xml:space="preserve">
+  <data name="ERR_ChecksumCalculationFailed" xml:space="preserve">
     <value>The calculation of the checksum of the file '{0}' failed with message '{1}'.</value>
   </data>
   <data name="MSG_JreDownloadUri" xml:space="preserve">
@@ -432,20 +408,14 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_JreResolver_ArchitectureMissing" xml:space="preserve">
     <value>JreResolver: sonar.scanner.arch is not set or detected, skipping JRE provisioning.</value>
   </data>
-  <data name="MSG_JreResolver_CacheFailure" xml:space="preserve">
-    <value>JreResolver: Cache failure. {0}</value>
-  </data>
-  <data name="MSG_JreResolver_CacheHit" xml:space="preserve">
-    <value>JreResolver: Cache hit '{0}'.</value>
-  </data>
-  <data name="MSG_JreResolver_CacheMiss" xml:space="preserve">
-    <value>JreResolver: Cache miss. Attempting to download JRE.</value>
+  <data name="MSG_Resolver_CacheHit" xml:space="preserve">
+    <value>{0}: Cache hit '{1}'.</value>
   </data>
   <data name="MSG_JreResolver_JavaExePathSet" xml:space="preserve">
     <value>JreResolver: sonar.scanner.javaExePath is set, skipping JRE provisioning.</value>
   </data>
-  <data name="MSG_JreResolver_MetadataFailure" xml:space="preserve">
-    <value>JreResolver: Metadata could not be retrieved.</value>
+  <data name="MSG_Resolver_MetadataFailure" xml:space="preserve">
+    <value>{0}: Metadata could not be retrieved.</value>
   </data>
   <data name="MSG_JreResolver_OperatingSystemMissing" xml:space="preserve">
     <value>JreResolver: sonar.scanner.os is not set or detected, skipping JRE provisioning.</value>
@@ -453,14 +423,14 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_JreResolver_SkipJreProvisioningSet" xml:space="preserve">
     <value>JreResolver: sonar.scanner.skipJreProvisioning is set, skipping JRE provisioning.</value>
   </data>
-  <data name="MSG_JreResolver_Resolving" xml:space="preserve">
-    <value>JreResolver: Resolving JRE path.{0}</value>
+  <data name="MSG_Resolver_Resolving" xml:space="preserve">
+    <value>{0}: Resolving {1} path.{2}</value>
   </data>
-  <data name="MSG_JreResolver_DownloadSuccess" xml:space="preserve">
-    <value>JreResolver: Download success. JRE can be found at '{0}'.</value>
+  <data name="MSG_Resolver_DownloadSuccess" xml:space="preserve">
+    <value>{0}: Download success. {1} can be found at '{2}'.</value>
   </data>
-  <data name="MSG_JreResolver_DownloadFailure" xml:space="preserve">
-    <value>JreResolver: Download failure. {0}</value>
+  <data name="MSG_Resolver_DownloadFailure" xml:space="preserve">
+    <value>{0}: Download failure. {1}</value>
   </data>
   <data name="MSG_DeletingFileFailure" xml:space="preserve">
     <value>Failed to delete file '{0}'. {1}</value>
@@ -471,35 +441,8 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_UserHomeDirectoryCreated" xml:space="preserve">
     <value>Created the sonar.userHome directory at '{0}'.</value>
   </data>
-  <data name="ERR_JreArchiveFormatDetectionFailed" xml:space="preserve">
-    <value>The archive format detection of the JRE archive `{0}` wasn't successful and returned error '{1}'.</value>
-  </data>
-  <data name="ERR_JreArchiveFormatNotSupported" xml:space="preserve">
-    <value>The archive format of the JRE archive `{0}` is not supported.</value>
-  </data>
-  <data name="ERR_JreExtractionFailed" xml:space="preserve">
-    <value>The downloaded Java runtime environment could not be extracted.</value>
-  </data>
-  <data name="MSG_JreExtractedSucessfully" xml:space="preserve">
-    <value>The Java runtime environment was successfully added to '{0}'.</value>
-  </data>
-  <data name="MSG_MovingUnpackedJre" xml:space="preserve">
-    <value>Moving extracted Java runtime environment from '{0}' to '{1}'.</value>
-  </data>
-  <data name="MSG_StartingJreExtraction" xml:space="preserve">
-    <value>Starting extracting the Java runtime environment from archive '{0}' to folder '{1}'.</value>
-  </data>
-  <data name="ERR_JreExtractionFailedWithError" xml:space="preserve">
-    <value>The extraction of the downloaded Java runtime environment failed with error '{0}'.</value>
-  </data>
-  <data name="ERR_JreJavaExeMissing" xml:space="preserve">
-    <value>The java executable in the extracted Java runtime environment was expected to be at '{0}' but couldn't be found.</value>
-  </data>
-  <data name="ERR_JreExtractionCleanupFailed" xml:space="preserve">
-    <value>The cleanup of the temporary folder for the Java runtime environment extraction at '{0}' failed with message '{1}'.</value>
-  </data>
-  <data name="ERR_CacheDirectoryCouldNotBeCreated" xml:space="preserve">
-    <value>The Java runtime environment cache directory in '{0}' could not be created.</value>
+  <data name="MSG_DirectoryCouldNotBeCreated" xml:space="preserve">
+    <value>The directory '{0}' could not be created.</value>
   </data>
   <data name="ERR_JavaExeNotFoundAtExpectedLocation" xml:space="preserve">
     <value>The java executable in the Java runtime environment cache could not be found at the expected location '{0}'.</value>
@@ -517,9 +460,9 @@ If the intention was to connect to the local SonarQube instance, please add the 
   <data name="MSG_JreDownloadBottleneck" xml:space="preserve">
     <value>The JRE provisioning is a time consuming operation.
 JRE provisioned: {0}.
-If you already have a compatible java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=&lt;PATH&gt;".</value>
+If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=&lt;PATH&gt;".</value>
   </data>
-  <data name="ERR_JreDownloadStreamNull" xml:space="preserve">
+  <data name="ERR_DownloadStreamNull" xml:space="preserve">
     <value>The download stream is null. The server likely returned an error status code.</value>
   </data>
   <data name="ERROR_InvalidScanAllAnalysis" xml:space="preserve">
@@ -531,11 +474,8 @@ If you already have a compatible java version installed, please add either the p
   <data name="ERROR_SonarSourcesAndTestsNotSupported" xml:space="preserve">
     <value>The arguments 'sonar.sources' and 'sonar.tests' are not supported. Please remove them and invoke the scanner again.</value>
   </data>
-  <data name="WARN_UI_SonarQubeNearEndOfSupport" xml:space="preserve">
-    <value>Starting in January 2025, the SonarScanner for .NET will not support SonarQube versions below 9.9. Please upgrade to a newer version.</value>
-  </data>
-  <data name="WARN_UI_ScanAllAnalysisEnabled" xml:space="preserve">
-    <value>Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set "/d:sonar.scanner.scanAll=false" in the begin step.</value>
+  <data name="WARN_UI_SonarQubeUnsupported" xml:space="preserve">
+    <value>You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.</value>
   </data>
   <data name="WARN_SourcesAndTestsDeprecated" xml:space="preserve">
     <value>The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.</value>
@@ -616,10 +556,65 @@ Check the certificates in the truststore file '{1}' specified via the {2} parame
   <data name="ERROR_CertificateImportFailed" xml:space="preserve">
     <value>Failed to import the {0} file {1}: {2}</value>
   </data>
-  <data name="ERROR_UnsupportedRegion" xml:space="preserve">
-    <value>Unsupported region '{0}'. List of supported regions: 'us'. Please check the 'sonar.region' property.</value>
+  <data name="MSG_PullRequestCacheBasePath" xml:space="preserve">
+    <value>Using cache base path: {0}</value>
   </data>
-  <data name="WARN_RegionIsOverriden" xml:space="preserve">
-    <value>The {0} parameter is set to "{1}". The setting will be overriden by one or more of the properties {2}, {3}, or {4}.</value>
+  <data name="ERROR_InvalidEngineJarPath" xml:space="preserve">
+    <value>The argument 'sonar.scanner.engineJarPath' contains an invalid path. Please make sure the path is correctly pointing to the scanner engine jar.</value>
+  </data>
+  <data name="MSG_EngineResolver_UsingLocalEngine" xml:space="preserve">
+    <value>Using local sonar engine provided by sonar.scanner.engineJarPath={0}</value>
+  </data>
+  <data name="WARN_EngineMetadataNotRetrieved" xml:space="preserve">
+    <value>Sonar Engine Metadata could not be retrieved from {0}.</value>
+  </data>
+  <data name="MSG_EngineResolver_NotSupportedByServer" xml:space="preserve">
+    <value>EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.</value>
+  </data>
+  <data name="MSG_EngineResolver_MetadataFailure" xml:space="preserve">
+    <value>EngineResolver: Metadata could not be retrieved.</value>
+  </data>
+  <data name="ERR_ChecksumMismatch" xml:space="preserve">
+    <value>The checksum of the downloaded file does not match the expected checksum.</value>
+  </data>
+  <data name="MSG_EngineDownloadUri" xml:space="preserve">
+    <value>Downloading Scanner Engine from {0}</value>
+  </data>
+  <data name="ERROR_InvalidUseSonarScannerCli" xml:space="preserve">
+    <value>The argument 'sonar.scanner.useSonarScannerCLI' has an invalid value. Please ensure it is set to either 'true' or 'false'.</value>
+  </data>
+  <data name="MSG_SonarScannerCliFallbackForTfsLegacySupport" xml:space="preserve">
+    <value>Falling back to SonarScannerCLI to guarantee TFS Legacy support.</value>
+  </data>
+  <data name="ERR_ArchiveFormatNotSupported" xml:space="preserve">
+    <value>The archive format of `{0}` is not supported.</value>
+  </data>
+  <data name="ERR_ExtractionFailed" xml:space="preserve">
+    <value>The downloaded archive could not be extracted.</value>
+  </data>
+  <data name="MSG_ArchiveExtractedSucessfully" xml:space="preserve">
+    <value>The archive was successfully extracted to '{0}'.</value>
+  </data>
+  <data name="MSG_MovingUnpackedFiles" xml:space="preserve">
+    <value>Moving extracted files from '{0}' to '{1}'.</value>
+  </data>
+  <data name="MSG_StartingArchiveExtraction" xml:space="preserve">
+    <value>Starting to extract files from archive '{0}' to folder '{1}'.</value>
+  </data>
+  <data name="ERR_ExtractionFailedWithError" xml:space="preserve">
+    <value>The extraction of the downloaded archive failed with error '{0}'.</value>
+  </data>
+  <data name="ERR_ArchiveTargetFileMissing" xml:space="preserve">
+    <value>The target file in the extracted archive was expected to be at '{0}' but couldn't be found.</value>
+  </data>
+  <data name="ERR_ExtractionCleanupFailed" xml:space="preserve">
+    <value>The cleanup of the temporary folder for the archive extraction at '{0}' failed with message '{1}'.</value>
+  </data>
+  <data name="MSG_Downloader_CacheMiss" xml:space="preserve">
+    <value>Cache miss. Could not find '{0}'.</value>
+  </data>
+  <data name="ERR_ScannerCliDownloadFailed" xml:space="preserve">
+    <value>SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
+Make sure 'https://binaries.sonarsource.com/' is reachable or roll back to a previous version of the Scanner (&lt; 11.0).</value>
   </data>
 </root>

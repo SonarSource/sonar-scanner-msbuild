@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,26 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
 public interface IDownloader : IDisposable
 {
-    string GetBaseUrl();
+    Uri BaseUrl { get; }
 
-    Task<Tuple<bool, string>> TryDownloadIfExists(string url, bool logPermissionDenied = false);
+    Task<Tuple<bool, string>> TryDownloadIfExists(Uri url, bool logPermissionDenied = false);
 
-    Task<bool> TryDownloadFileIfExists(string url, string targetFilePath, bool logPermissionDenied = false);
+    Task<bool> TryDownloadFileIfExists(Uri url, string targetFilePath, bool logPermissionDenied = false);
 
-    Task<string> Download(string url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info);
+    Task<string> Download(Uri url, bool logPermissionDenied = false, LoggerVerbosity failureVerbosity = LoggerVerbosity.Info);
 
-    Task<Stream> DownloadStream(string url, Dictionary<string, string> headers = null);
+    Task<Stream> DownloadStream(Uri url, Dictionary<string, string> headers = null);
 
-    Task<HttpResponseMessage> DownloadResource(string url);
+    Task<HttpResponseMessage> DownloadResource(Uri url);
 }

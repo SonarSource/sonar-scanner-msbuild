@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -138,7 +138,7 @@ public partial class WebClientDownloaderBuilderTest
         action.Should().ThrowOSBased<CryptographicException, CryptographicException, FileNotFoundException>();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, "something")]
     [DataRow("something", null)]
     [DataRow(null, null)]
@@ -164,7 +164,7 @@ public partial class WebClientDownloaderBuilderTest
             linux: "The certificate data cannot be read with the provided password, the password may be incorrect.",
             macos: "The certificate data cannot be read with the provided password, the password may be incorrect.");
         builder.Should().Throw<CryptographicException>().WithMessage(reason);
-        logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {trustStore.FileName}: {reason}");
+        logger.Should().HaveErrors($"Failed to import the sonar.scanner.truststorePath file {trustStore.FileName}: {reason}");
     }
 
     [TestMethod]
@@ -178,7 +178,7 @@ public partial class WebClientDownloaderBuilderTest
             linux: "ASN1 corrupted data.",
             macos: "Unknown format in import.");
         builder.Should().Throw<CryptographicException>().WithMessage(reason);
-        logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {brokenTrustStore.FileName}: {reason}");
+        logger.Should().HaveErrors($"Failed to import the sonar.scanner.truststorePath file {brokenTrustStore.FileName}: {reason}");
     }
 
 #if NET
@@ -194,7 +194,7 @@ public partial class WebClientDownloaderBuilderTest
         server.Given(Request.Create().WithPath("/").UsingAnyMethod()).RespondWith(Response.Create().WithStatusCode(200).WithBody("Hello World"));
 
         using var client = builder.Build();
-        var response = client.Download(server.Url).Result;
+        var response = client.Download(new(server.Url)).Result;
         response.Should().Be("Hello World");
     }
 
@@ -211,7 +211,7 @@ public partial class WebClientDownloaderBuilderTest
             linux: "error:10000080:BIO routines::no such file",
             macos: $"Could not find file '{Path.Combine(Directory.GetCurrentDirectory(), nonExisitentFile)}'.");
         builder.Should().ThrowOSBased<CryptographicException, CryptographicException, FileNotFoundException>().WithMessage(reason);
-        logger.AssertErrorLogged($"Failed to import the sonar.scanner.truststorePath file {nonExisitentFile}: {reason}");
+        logger.Should().HaveErrors($"Failed to import the sonar.scanner.truststorePath file {nonExisitentFile}: {reason}");
     }
 
     [TestMethod]
@@ -243,13 +243,13 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var response = await client.Download(server.Url);
+        var response = await client.Download(new(server.Url));
 
         // Assert
         callbackWasCalled.Should().BeTrue();
         response.Should().Be("Hello World");
         server.LogEntries.Should().ContainSingle().Which.RequestMessage.ClientCertificate.Should().NotBeNull().And.BeEquivalentTo(clientCert);
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{serverCertFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
     }
@@ -273,7 +273,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var result = await client.Download(server.Url);
+        var result = await client.Download(new(server.Url));
 
         // Assert
         result.Should().Be("Hello World");
@@ -296,19 +296,19 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStore.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
-        logger.AssertWarningLogged($"""
+        logger.Should().HaveWarnings($"""
             The self-signed server certificate (Issuer: CN=localhost, Thumbprint: {serverCert.Thumbprint}) could not be found in the truststore file '{trustStore.FileName}' specified by parameter sonar.scanner.truststorePath or its default value.
             """);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(false)]
     [DataRow(false, "google.com")]
     [DataRow(false, "sonarsource.com", "sonarcloud.io")]
@@ -344,7 +344,7 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         if (valid)
@@ -355,7 +355,7 @@ public partial class WebClientDownloaderBuilderTest
         {
             // Assert
             await ShouldThrowServerValidationFailed(download);
-            logger.AssertWarningLogged("""
+            logger.Should().HaveWarnings("""
                 The webserver returned an invalid certificate. Error details: RemoteCertificateNameMismatch, RemoteCertificateChainErrors
                 """);
         }
@@ -385,7 +385,7 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var result = await client.Download("https://www.cloudflarestatus.com/api/v2/status.json");
+        var result = await client.Download(new("https://www.cloudflarestatus.com/api/v2/status.json"));
 
         // Assert
         var expected = new { Page = new { Name = "Cloudflare" } };
@@ -437,11 +437,11 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var response = await client.Download(server.Url);
+        var response = await client.Download(new(server.Url));
 
         // Assert
         response.Should().Be("Hello World");
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{caCertFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
     }
@@ -465,11 +465,11 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         AssertInvalidTrustStoreChainMessages(
@@ -498,11 +498,11 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         AssertInvalidTrustStoreChainMessages(
@@ -532,11 +532,11 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         AssertInvalidTrustStoreChainMessages(
@@ -566,11 +566,11 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         AssertInvalidTrustStoreChainMessages(
@@ -600,11 +600,11 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var result = await client.Download(server.Url);
+        var result = await client.Download(new(server.Url));
 
         // Assert
         result.Should().Be("Hello World");
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
     }
@@ -625,12 +625,12 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var downloader = async () => await client.Download(server.Url);
+        var downloader = async () => await client.Download(new(server.Url));
 
         // Assert
         // This is also how HttpClient behaves: it only trusts complete chains that end in a Root CA. An Intermediate CA is not enough
         await ShouldThrowServerValidationFailed(downloader);
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         AssertInvalidTrustStoreChainMessages(
@@ -656,12 +656,12 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var downloader = async () => await client.Download(server.Url);
+        var downloader = async () => await client.Download(new(server.Url));
 
         // Assert
         // This is also how HttpClient behaves: If the web server certificate is not self-signed, the chain must end in a Root-CA
         await ShouldThrowServerValidationFailed(downloader);
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         AssertInvalidTrustStoreChainMessages(
@@ -700,7 +700,7 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var result = await client.Download(server.Url);
+        var result = await client.Download(new(server.Url));
 
         // Assert
         result.Should().Be("Hello World");
@@ -728,7 +728,7 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var result = await client.Download(server.Url);
+        var result = await client.Download(new(server.Url));
 
         // Assert
         result.Should().Be("Hello World");
@@ -754,13 +754,13 @@ public partial class WebClientDownloaderBuilderTest
         using var client = builder.Build();
 
         // Act
-        var downloader = async () => await client.Download(server.Url);
+        var downloader = async () => await client.Download(new(server.Url));
 
         // Assert
         // A trusted chain can not be build, because intermediateCAServer is not send by the server. The intermediateCATrustStore found in the trust store is used to build
         // the chain, but the chain status contains the error "The signature of the certificate cannot be verified.".
         await ShouldThrowServerValidationFailed(downloader);
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStoreFile.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
         logger.Warnings.Should().ContainSingle(because: "the warning is either WARN_TrustStore_Chain_Invalid or WARN_TrustStore_OtherChainStatus depending on the environment.");
@@ -791,12 +791,12 @@ public partial class WebClientDownloaderBuilderTest
         };
 
         // Act
-        var download = async () => await client.Download(server.Url);
+        var download = async () => await client.Download(new(server.Url));
 
         // Assert
         await ShouldThrowServerValidationFailed(download);
         callbackWasCalled.Should().BeTrue();
-        logger.AssertDebugLogged($"""
+        logger.Should().HaveDebugs($"""
             The remote server certificate is not trusted by the operating system. The scanner is checking the certificate against the certificates provided by the file '{trustStore.FileName}' (specified via the sonar.scanner.truststorePath parameter or its default value).
             """);
     }
@@ -820,8 +820,8 @@ public partial class WebClientDownloaderBuilderTest
                 ? linux
                 : macos;
 
-        logger.AssertWarningLogged($"""
-            The certificate chain of the web server certificate is invalid. The validation errors are
+        logger.Should().HaveWarnings($"""
+            The certificate chain of the web server certificate is invalid. The validation errors are 
             {string.Join(Environment.NewLine, messages.Select(x => $"* {x}"))}
             Check the certificates in the truststore file '{truststorePath}' specified via the sonar.scanner.truststorePath parameter or its default value.
             """);
@@ -835,8 +835,8 @@ public partial class WebClientDownloaderBuilderTest
                 ? linux
                 : macos;
 
-        logger.AssertWarningLogged($"""
-            The webserver returned an invalid certificate which could not be validated against the truststore file specified in sonar.scanner.truststorePath. The validation failed with these errors:
+        logger.Should().HaveWarnings($"""
+            The webserver returned an invalid certificate which could not be validated against the truststore file specified in sonar.scanner.truststorePath. The validation failed with these errors: 
             {string.Join(Environment.NewLine, messages.Select(x => $"* {x}"))}
             """);
     }

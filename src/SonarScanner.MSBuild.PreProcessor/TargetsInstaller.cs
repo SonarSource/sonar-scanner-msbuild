@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,46 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
 /// <summary>
-/// Handlers copying targets to well known locations and warning the user about existing targets file
+/// Handlers copying targets to well known locations and warning the user about existing targets file.
 /// </summary>
-public class TargetsInstaller : ITargetsInstaller
+public sealed class TargetsInstaller
 {
-    private static readonly string AssemblyLocation = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
-
     /// <summary>
     /// Controls the default value for installing the loader targets.
     /// </summary>
-    /// <remarks> Can be overridden from the command line</remarks>
+    /// <remarks>Can be overridden from the command line.</remarks>
     public const bool DefaultInstallSetting = true;
 
-    private readonly ILogger logger;
+    private static readonly string AssemblyLocation = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
+
+    private readonly IRuntime runtime;
     private readonly IMsBuildPathsSettings msBuildPathsSettings;
-    private readonly IFileWrapper fileWrapper;
-    private readonly IDirectoryWrapper directoryWrapper;
 
-    public TargetsInstaller(ILogger logger)
-        : this(logger, new MsBuildPathSettings(logger), FileWrapper.Instance, DirectoryWrapper.Instance)
+    public TargetsInstaller(IRuntime runtime, IMsBuildPathsSettings msBuildPathsSettings = null)
     {
-    }
-
-    public /*for testing*/ TargetsInstaller(ILogger logger, IMsBuildPathsSettings msBuildPathsSettings,
-        IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper)
-    {
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        this.msBuildPathsSettings = msBuildPathsSettings ?? throw new ArgumentNullException(nameof(msBuildPathsSettings));
-        this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
-        this.directoryWrapper = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+        this.msBuildPathsSettings = msBuildPathsSettings ?? new MsBuildPathSettings(runtime);
     }
 
     public void InstallLoaderTargets(string workDirectory)
@@ -69,27 +53,23 @@ public class TargetsInstaller : ITargetsInstaller
 
     private void InternalCopyTargetFileToProject(string workDirectory) =>
         CopyIfDifferent(
-            GetTargetSourcePath(FileConstants.IntegrationTargetsName),
-            new string[] { Path.Combine(workDirectory, "bin", "targets") });
+            TargetSourcePath(FileConstants.IntegrationTargetsName),
+            [Path.Combine(workDirectory, "bin", "targets")]);
 
     private void InternalCopyTargetsFile()
     {
-        this.logger.LogInfo(Resources.MSG_UpdatingMSBuildTargets);
+        runtime.LogInfo(Resources.MSG_UpdatingMSBuildTargets);
 
         CopyIfDifferent(
-            GetTargetSourcePath(FileConstants.ImportBeforeTargetsName),
-            this.msBuildPathsSettings.GetImportBeforePaths());
+            TargetSourcePath(FileConstants.ImportBeforeTargetsName),
+            msBuildPathsSettings.ImportBeforePaths());
     }
-
-    private string GetTargetSourcePath(string targetFileName) =>
-        Path.Combine(AssemblyLocation, "Targets", targetFileName);
 
     private void CopyIfDifferent(string sourcePath, IEnumerable<string> destinationDirs)
     {
-        Debug.Assert(this.fileWrapper.Exists(sourcePath),
-            string.Format(CultureInfo.InvariantCulture, "Could not find the loader .targets file at {0}", sourcePath));
+        Debug.Assert(runtime.File.Exists(sourcePath), string.Format(CultureInfo.InvariantCulture, "Could not find the loader .targets file at {0}", sourcePath));
 
-        var sourceContent = this.fileWrapper.ReadAllText(sourcePath);
+        var sourceContent = runtime.File.ReadAllText(sourcePath);
         var fileName = Path.GetFileName(sourcePath);
 
         foreach (var destinationDir in destinationDirs)
@@ -98,33 +78,31 @@ public class TargetsInstaller : ITargetsInstaller
 
             try
             {
-                if (!this.fileWrapper.Exists(destinationPath))
+                if (runtime.File.Exists(destinationPath))
                 {
-                    this.directoryWrapper.CreateDirectory(destinationDir); // creates all the directories in the path if needed
-
-                    // always overwrite to avoid intermittent exceptions: https://github.com/SonarSource/sonar-scanner-msbuild/issues/647
-                    this.fileWrapper.Copy(sourcePath, destinationPath, overwrite: true);
-                    this.logger.LogDebug(Resources.MSG_InstallTargets_Copy, fileName, destinationDir);
-                }
-                else
-                {
-                    var destinationContent = this.fileWrapper.ReadAllText(destinationPath);
-
-                    if (!string.Equals(sourceContent, destinationContent, StringComparison.Ordinal))
+                    if (string.Equals(sourceContent, runtime.File.ReadAllText(destinationPath), StringComparison.Ordinal))
                     {
-                        this.fileWrapper.Copy(sourcePath, destinationPath, overwrite: true);
-                        this.logger.LogDebug(Resources.MSG_InstallTargets_Overwrite, fileName, destinationDir);
+                        runtime.LogDebug(Resources.MSG_InstallTargets_UpToDate, fileName, destinationDir);
                     }
                     else
                     {
-                        this.logger.LogDebug(Resources.MSG_InstallTargets_UpToDate, fileName, destinationDir);
+                        runtime.File.Copy(sourcePath, destinationPath, overwrite: true);
+                        runtime.LogDebug(Resources.MSG_InstallTargets_Overwrite, fileName, destinationDir);
                     }
+                }
+                else
+                {
+                    runtime.Directory.CreateDirectory(destinationDir); // creates all the directories in the path if needed
+
+                    // always overwrite to avoid intermittent exceptions: https://github.com/SonarSource/sonar-scanner-msbuild/issues/647
+                    runtime.File.Copy(sourcePath, destinationPath, overwrite: true);
+                    runtime.LogDebug(Resources.MSG_InstallTargets_Copy, fileName, destinationDir);
                 }
             }
             catch (Exception e)
             {
-                this.logger.LogWarning(Resources.MSG_InstallTargets_Error, destinationPath, e.Message);
-                this.logger.LogDebug(e.StackTrace);
+                runtime.LogWarning(Resources.MSG_InstallTargets_Error, destinationPath, e.Message);
+                runtime.LogDebug(e.StackTrace);
             }
         }
     }
@@ -135,15 +113,18 @@ public class TargetsInstaller : ITargetsInstaller
     private void WarnOnGlobalTargetsFile()
     {
         // Giving a warning is best effort - if the user has installed MSBUILD in a non-standard location then this will not work
-        this.msBuildPathsSettings.GetGlobalTargetsPaths()
-            .Where(ImportBeforeTargetExists)
-            .ToList()
-            .ForEach(LogWarning);
+        foreach (var path in msBuildPathsSettings.GlobalTargetsPaths().Where(ImportBeforeTargetExists))
+        {
+            LogWarning(path);
+        }
 
         bool ImportBeforeTargetExists(string globalTargetPath) =>
-            this.fileWrapper.Exists(Path.Combine(globalTargetPath, FileConstants.ImportBeforeTargetsName));
+            runtime.File.Exists(Path.Combine(globalTargetPath, FileConstants.ImportBeforeTargetsName));
 
         void LogWarning(string globalTargetPath) =>
-            this.logger.LogWarning(Resources.WARN_ExistingGlobalTargets, FileConstants.ImportBeforeTargetsName, globalTargetPath);
+            runtime.LogWarning(Resources.WARN_ExistingGlobalTargets, FileConstants.ImportBeforeTargetsName, globalTargetPath);
     }
+
+    private static string TargetSourcePath(string targetFileName) =>
+        Path.Combine(AssemblyLocation, "Targets", targetFileName);
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,15 +31,12 @@ public static class ArgumentProcessor
 {
     // FIX: this code is very similar to that in the pre-processor. Consider refactoring to avoid duplication
     // once the other argument and properties-writing tickets have been completed.
-
-    #region Arguments definitions
-
-    private const string BeginId = "begin.id";
-    private const string EndId = "end.id";
-    public const string HelpId = "help.id";
-
     public const string BeginVerb = "begin";
     public const string EndVerb = "end";
+
+    public const string HelpId = "help.id";
+    private const string BeginId = "begin.id";
+    private const string EndId = "end.id";
 
     // Initialize the set of valid descriptors.
     // To add a new argument, just add it to the list.
@@ -53,11 +50,9 @@ public static class ArgumentProcessor
 
     static ArgumentProcessor()
     {
-        Debug.Assert(Descriptors.TrueForAll(d => d.Prefixes != null && d.Prefixes.Any()), "All descriptors must provide at least one prefix");
-        Debug.Assert(Descriptors.Select(d => d.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
+        Debug.Assert(Descriptors.TrueForAll(x => x.Prefixes is not null && x.Prefixes.Any()), "All descriptors must provide at least one prefix");
+        Debug.Assert(Descriptors.Select(x => x.Id).Distinct().Count() == Descriptors.Count, "All descriptors must have a unique id");
     }
-
-    #endregion Arguments definitions
 
     public static bool IsHelp(string[] commandLineArgs) =>
         commandLineArgs.Length == 0
@@ -67,22 +62,22 @@ public static class ArgumentProcessor
     /// Attempts to process the supplied command line arguments and reports any errors using the logger.
     /// Returns false if any parsing errors were encountered.
     /// </summary>
-    public static bool TryProcessArgs(string[] commandLineArgs, ILogger logger, out IBootstrapperSettings settings)
+    public static bool TryProcessArgs(string[] commandLineArgs, IRuntime runtime, out IBootstrapperSettings settings)
     {
         _ = commandLineArgs ?? throw new ArgumentNullException(nameof(commandLineArgs));
-        _ = logger ?? throw new ArgumentNullException(nameof(logger));
+        _ = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
         // This call will fail if there are duplicate or missing arguments
-        var parsedOk = new CommandLineParser(Descriptors, true).ParseArguments(commandLineArgs, logger, out var arguments);
+        var parsedOk = new CommandLineParser(Descriptors, true).ParseArguments(commandLineArgs, runtime.Logger, out var arguments);
 
         // Handler for command line analysis properties
-        parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, logger, out var cmdLineProperties);
+        parsedOk &= CmdLineArgPropertyProvider.TryCreateProvider(arguments, runtime.Logger, out var cmdLineProperties);
 
         // Handler for property file
         var asmPath = Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location);
-        parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, logger, out var globalFileProperties);
+        parsedOk &= FilePropertyProvider.TryCreateProvider(arguments, asmPath, runtime.Logger, out var globalFileProperties);
 
-        parsedOk &= TryGetPhase(arguments, logger, out var phase);
+        parsedOk &= TryGetPhase(arguments, runtime.Logger, out var phase);
 
         if (parsedOk)
         {
@@ -93,8 +88,8 @@ public static class ArgumentProcessor
             var baseChildArgs = commandLineArgs.Except([BeginVerb, EndVerb]).ToList(); // We don't want to forward these to the pre- or post- processor.
 
             settings = phase == AnalysisPhase.PreProcessing
-                ? CreatePreProcessorSettings(baseChildArgs, properties, globalFileProperties, logger)
-                : CreatePostProcessorSettings(baseChildArgs, properties, logger);
+                ? CreatePreProcessorSettings(baseChildArgs, properties, globalFileProperties, runtime)
+                : CreatePostProcessorSettings(baseChildArgs, properties, runtime);
             return true;
         }
         else
@@ -129,7 +124,10 @@ public static class ArgumentProcessor
         }
     }
 
-    private static IBootstrapperSettings CreatePreProcessorSettings(ICollection<string> childArgs, IAnalysisPropertyProvider properties, IAnalysisPropertyProvider globalFileProperties, ILogger logger)
+    private static IBootstrapperSettings CreatePreProcessorSettings(ICollection<string> childArgs,
+                                                                    IAnalysisPropertyProvider properties,
+                                                                    IAnalysisPropertyProvider globalFileProperties,
+                                                                    IRuntime runtime)
     {
         // If we're using the default properties file then we need to pass it
         // explicitly to the pre-processor (it's in a different folder and won't
@@ -141,12 +139,12 @@ public static class ArgumentProcessor
             childArgs.Add(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}{1}", FilePropertyProvider.Prefix, fileProvider.PropertiesFile.FilePath));
         }
 
-        return CreateSettings(AnalysisPhase.PreProcessing, childArgs, properties, logger);
+        return CreateSettings(AnalysisPhase.PreProcessing, childArgs, properties, runtime);
     }
 
-    private static IBootstrapperSettings CreatePostProcessorSettings(IEnumerable<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger) =>
-        CreateSettings(AnalysisPhase.PostProcessing, childArgs, properties, logger);
+    private static IBootstrapperSettings CreatePostProcessorSettings(IEnumerable<string> childArgs, IAnalysisPropertyProvider properties, IRuntime runtime) =>
+        CreateSettings(AnalysisPhase.PostProcessing, childArgs, properties, runtime);
 
-    private static IBootstrapperSettings CreateSettings(AnalysisPhase phase, IEnumerable<string> childArgs, IAnalysisPropertyProvider properties, ILogger logger) =>
-        new BootstrapperSettings(phase, childArgs, VerbosityCalculator.ComputeVerbosity(properties, logger), logger);
+    private static IBootstrapperSettings CreateSettings(AnalysisPhase phase, IEnumerable<string> childArgs, IAnalysisPropertyProvider properties, IRuntime runtime) =>
+        new BootstrapperSettings(phase, childArgs, VerbosityCalculator.ComputeVerbosity(properties, runtime.Logger), runtime);
 }

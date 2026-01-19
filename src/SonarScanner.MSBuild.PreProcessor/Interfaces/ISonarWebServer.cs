@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -78,8 +75,10 @@ public interface ISonarWebServer : IDisposable
     Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture);
 
     Task<Stream> DownloadJreAsync(JreMetadata metadata);
+    Task<Stream> DownloadEngineAsync(EngineMetadata metadata);
 
     bool IsServerVersionSupported();
 
     Task<bool> IsServerLicenseValid();
+    Task<EngineMetadata> DownloadEngineMetadataAsync();
 }

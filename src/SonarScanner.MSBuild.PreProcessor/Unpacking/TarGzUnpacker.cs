@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -21,12 +21,16 @@
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Tar;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
 
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, IFileWrapper fileWrapper, IFilePermissionsWrapper filePermissionsWrapper) : IUnpacker
+public class TarGzUnpacker : IUnpacker
 {
+    private readonly IRuntime runtime;
+
+    public TarGzUnpacker(IRuntime runtime) =>
+        this.runtime = runtime;
+
     // ref https://github.com/icsharpcode/SharpZipLib/blob/ff2d7c30bdb2474d507f001bc555405e9f02a0bb/src/ICSharpCode.SharpZipLib/Tar/TarArchive.cs#L608
     public void Unpack(Stream archive, string destinationDirectory)
     {
@@ -66,21 +70,21 @@ public class TarGzUnpacker(ILogger logger, IDirectoryWrapper directoryWrapper, I
 
         if (entry.IsDirectory)
         {
-            directoryWrapper.CreateDirectory(destinationFile);
+            runtime.Directory.CreateDirectory(destinationFile);
         }
         else
         {
-            directoryWrapper.CreateDirectory(destinationFileDirectory);
-            using var outputStream = fileWrapper.Create(destinationFile);
+            runtime.Directory.CreateDirectory(destinationFileDirectory);
+            using var outputStream = runtime.File.Create(destinationFile);
             tar.CopyEntryContents(outputStream);
             outputStream.Close();
             try
             {
-                filePermissionsWrapper.Set(destinationFile, entry.TarHeader.Mode);
+                runtime.OperatingSystem.SetPermission(destinationFile, entry.TarHeader.Mode);
             }
             catch (Exception ex)
             {
-                logger.LogDebug(Resources.MSG_FilePermissionsCopyFailed, destinationFile, ex.Message);
+                runtime.LogDebug(Resources.MSG_FilePermissionsCopyFailed, destinationFile, ex.Message);
             }
         }
     }

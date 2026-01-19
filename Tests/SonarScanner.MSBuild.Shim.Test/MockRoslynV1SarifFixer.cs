@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,23 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Shim.Interfaces;
-
 namespace SonarScanner.MSBuild.Shim.Test;
 
-internal class MockRoslynV1SarifFixer : IRoslynV1SarifFixer
+internal class MockRoslynV1SarifFixer : RoslynV1SarifFixer
 {
-    public string ReturnVal { get; set; }
-
-    public int CallCount { get; set; }
-
-    public string LastLanguage { get; set; }
+    public string ReturnVal { get; }
+    public string LastLanguage { get; private set; }
+    public int CallCount { get; private set; }
 
     /// <param name="returnVal">Provide null to return the original input value with ".fixed.mock.json" suffix</param>
-    public MockRoslynV1SarifFixer(string returnVal) =>
+    public MockRoslynV1SarifFixer(string returnVal) : base(Substitute.For<ILogger>()) =>
         ReturnVal = returnVal;
 
-    public string LoadAndFixFile(string sarifFilePath, string language)
+    public override string LoadAndFixFile(string sarifFilePath, string language)
     {
         CallCount++;
         LastLanguage = language;

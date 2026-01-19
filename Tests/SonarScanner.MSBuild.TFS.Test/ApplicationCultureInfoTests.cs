@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,13 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Globalization;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 
-namespace SonarScanner.MSBuild.TFS.Tests;
+namespace SonarScanner.MSBuild.TFS.Test;
 
 [TestClass]
 [DoNotParallelize]
@@ -74,12 +70,12 @@ public class ApplicationCultureInfoTests
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidOperationException))]
     public void ApplicationCultureInfoSetAndResetCultureOnFailure()
     {
         var previous = CultureInfo.DefaultThreadCurrentCulture;
         var enUs = CultureInfo.GetCultureInfo("en-US");
         var deDe = CultureInfo.GetCultureInfo("de-DE");
+        var finallyCalled = false;
         CultureInfo.DefaultThreadCurrentCulture = deDe;
         try
         {
@@ -90,10 +86,16 @@ public class ApplicationCultureInfoTests
                 throw new InvalidOperationException();
             }
         }
+        catch (InvalidOperationException)
+        {
+            // Don't fail the test.
+        }
         finally
         {
             CultureInfo.DefaultThreadCurrentCulture.Should().Be(deDe);
             CultureInfo.DefaultThreadCurrentCulture = previous;
+            finallyCalled = true;
         }
+        finallyCalled.Should().BeTrue();
     }
 }

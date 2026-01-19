@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
@@ -47,7 +41,7 @@ public sealed class CacheProcessor : IDisposable
         this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        if (localSettings.GetSetting(SonarProperties.ProjectBaseDir, NullWhenEmpty(buildSettings.SourcesDirectory) ?? NullWhenEmpty(buildSettings.SonarScannerWorkingDirectory)) is { } path)
+        if (localSettings.SettingOrDefault(SonarProperties.ProjectBaseDir, NullWhenEmpty(buildSettings.SourcesDirectory) ?? NullWhenEmpty(buildSettings.SonarScannerWorkingDirectory)) is { } path)
         {
             PullRequestCacheBasePath = Path.GetFullPath(path);
         }
@@ -62,10 +56,10 @@ public sealed class CacheProcessor : IDisposable
         if (PullRequestCacheBasePath is null)
         {
             logger.LogInfo(Resources.MSG_NoPullRequestCacheBasePath);
-            return;
         }
         if (await server.DownloadCache(localSettings) is { Count: > 0 } cache)
         {
+            logger.LogDebug(Resources.MSG_PullRequestCacheBasePath, PullRequestCacheBasePath);
             ProcessPullRequest(cache);
         }
         else

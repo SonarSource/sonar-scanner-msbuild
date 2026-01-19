@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,12 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Runtime.InteropServices;
 using SonarScanner.MSBuild.PostProcessor;
-using TestUtilities;
 
 namespace MSBuild.SonarQube.Internal.PostProcess.Tests;
 
@@ -45,19 +41,21 @@ public class TargetsUninstallerTests
         var context = new UninstallContext(TestContext, true);
         context.UninstallTargets();
         File.Exists(context.TargetsFilePath).Should().BeFalse();
-        context.Logger.AssertDebugLogged("Uninstalling target: " + context.TargetsFilePath);
+        context.Logger.Should().HaveDebugs("Uninstalling target: " + context.TargetsFilePath);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Log_MissingFile()
     {
         var context = new UninstallContext(TestContext, false);
         context.UninstallTargets();
-        context.Logger.AssertDebugLogged(context.BinDir + @"\targets\SonarQube.Integration.targets does not exist");
+        context.Logger.Should().HaveDebugs(context.BinDir + $"{Path.DirectorySeparatorChar}targets{Path.DirectorySeparatorChar}SonarQube.Integration.targets does not exist");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Windows enforces file locks at the OS level resulting in IOException.
+    // Unix does not enforce file locks at the OS level, so no exception is thrown.
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void Log_OnIOException()
     {
@@ -67,15 +65,15 @@ public class TargetsUninstallerTests
             context.UninstallTargets();
         }
         File.Exists(context.TargetsFilePath).Should().BeTrue(); // Failed to delete
-        context.Logger.AssertDebugLogged("Could not delete " + context.TargetsFilePath);
+        context.Logger.Should().HaveDebugs("Could not delete " + context.TargetsFilePath);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void Log_OnUnauthorizedAccessException()
     {
         var context = new UninstallContext(TestContext, true);
-        File.SetAttributes(context.TargetsFilePath, FileAttributes.ReadOnly);   // Make readonly to cause UnauthorizedAccessException
+        var lockPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? context.TargetsFilePath : Path.GetDirectoryName(context.TargetsFilePath);
+        File.SetAttributes(lockPath, FileAttributes.ReadOnly);   // Make readonly to cause UnauthorizedAccessException
         try
         {
             context.UninstallTargets();
@@ -86,7 +84,7 @@ public class TargetsUninstallerTests
             File.SetAttributes(context.TargetsFilePath, FileAttributes.Normal);
         }
         File.Exists(context.TargetsFilePath).Should().BeTrue(); // Failed to delete
-        context.Logger.AssertDebugLogged("Could not delete " + context.TargetsFilePath);
+        context.Logger.Should().HaveDebugs("Could not delete " + context.TargetsFilePath);
     }
 
     private class UninstallContext
@@ -112,5 +110,4 @@ public class TargetsUninstallerTests
         public void UninstallTargets() =>
             Uninstaller.UninstallTargets(BinDir);
     }
-
 }

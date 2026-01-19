@@ -61,7 +61,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarScanner for MSBuild End Step.
+        ///   Looks up a localized string similar to SonarScanner for .NET End Step.
         /// </summary>
         internal static string AssemblyDescription {
             get {
@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarScanner for MSBuild. Remove those files from the following folders: {0}.
+        ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: {0}.
         /// </summary>
         internal static string ERR_ConflictingSonarProjectProperties {
             get {
@@ -129,11 +129,29 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Converting coverage reports..
+        /// </summary>
+        internal static string MSG_ConvertingCoverageReports {
+            get {
+                return ResourceManager.GetString("MSG_ConvertingCoverageReports", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading the SonarQube analysis config from {0}.
         /// </summary>
         internal static string MSG_LoadingConfig {
             get {
                 return ResourceManager.GetString("MSG_LoadingConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calling legacy TFS processor..
+        /// </summary>
+        internal static string MSG_TFSLegacyProcessorCalled {
+            get {
+                return ResourceManager.GetString("MSG_TFSLegacyProcessorCalled", resourceCulture);
             }
         }
         
@@ -161,6 +179,15 @@ namespace SonarScanner.MSBuild.PostProcessor {
         internal static string MSG_UninstallTargets_Uninstalling {
             get {
                 return ResourceManager.GetString("MSG_UninstallTargets_Uninstalling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Writing Scanner Engine Input to {0}.
+        /// </summary>
+        internal static string MSG_WritingScannerEngineInput {
+            get {
+                return ResourceManager.GetString("MSG_WritingScannerEngineInput", resourceCulture);
             }
         }
         

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,18 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
-using SonarScanner.MSBuild.PostProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor;
-using TestUtilities;
+using SonarScanner.MSBuild.PostProcessor;
+using SonarScanner.MSBuild.Shim;
+using SonarScanner.MSBuild.TFS;
 
 namespace SonarScanner.MSBuild.Test;
 
@@ -39,9 +30,9 @@ public class BootstrapperClassTests
     private const int ErrorCode = 1;
     private string rootDir;
     private string tempDir;
-    private IProcessorFactory mockProcessorFactory;
-    private IPreProcessor mockPreProcessor;
-    private IPostProcessor mockPostProcessor;
+    private IProcessorFactory processorFactory;
+    private PreProcessor.PreProcessor preProcessor;
+    private PostProcessor.PostProcessor postProcessor;
 
     public TestContext TestContext { get; set; }
 
@@ -57,53 +48,30 @@ public class BootstrapperClassTests
         MockProcessors(true, true);
     }
 
-    private void CreateAnalysisConfig(string filePath)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-        var config = new AnalysisConfig();
-        config.Save(filePath);
-    }
-
-    private void MockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
-    {
-        mockPreProcessor = Substitute.For<IPreProcessor>();
-        mockPostProcessor = Substitute.For<IPostProcessor>();
-        mockProcessorFactory = Substitute.For<IProcessorFactory>();
-        mockPreProcessor.Execute(Arg.Any<string[]>()).Returns(Task.FromResult(preProcessorOutcome));
-        mockPostProcessor.Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>()).Returns(postProcessorOutcome);
-        mockProcessorFactory.CreatePostProcessor().Returns(mockPostProcessor);
-        mockProcessorFactory.CreatePreProcessor().Returns(mockPreProcessor);
-    }
-
-    #region Tests
-
     [TestMethod]
     public void Exe_PreProcFails()
     {
-        // Arrange
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-
+        TestUtils.EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             MockProcessors(false, true);
 
-            // Act
-            var logger = CheckExecutionFails(AnalysisPhase.PreProcessing, true,
+            var logger = CheckExecutionFails(
+                AnalysisPhase.PreProcessing,
+                true,
                 null,
                 "/install:true",  // this argument should just pass through
                 "/d:sonar.verbose=true",
                 "/d:sonar.host.url=http://host:9",
                 "/d:another.key=will be ignored");
 
-            // Assert
-            logger.AssertWarningsLogged(0);
+            logger.Should().HaveNoWarnings();
             logger.AssertVerbosity(LoggerVerbosity.Debug);
-
-            AssertPreProcessorArgs("/install:true",
+            AssertPreProcessorArgs(
+                "/install:true",
                 "/d:sonar.verbose=true",
                 "/d:sonar.host.url=http://host:9",
                 "/d:another.key=will be ignored");
-
             AssertPostProcessorNotCalled();
         }
     }
@@ -111,20 +79,15 @@ public class BootstrapperClassTests
     [TestMethod]
     public void CopyDlls_WhenFileDoNotExist_FilesAreCopied()
     {
-        // Arrange
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-
+        TestUtils.EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
-            // Sanity
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeFalse();
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeFalse();
             File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeFalse();
 
-            // Act
             CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
-            // Assert
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeTrue();
@@ -134,9 +97,7 @@ public class BootstrapperClassTests
     [TestMethod]
     public void CopyDlls_WhenFileExistButAreNotLocked_FilesAreCopied()
     {
-        // Arrange
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-
+        TestUtils.EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
@@ -144,10 +105,8 @@ public class BootstrapperClassTests
             File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Close();
             File.Create(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Close();
 
-            // Act
             CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
-            // Assert
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeTrue();
@@ -157,9 +116,7 @@ public class BootstrapperClassTests
     [TestMethod]
     public void CopyDlls_WhenFileExistAndAreLockedButSameVersion_DoNothing()
     {
-        // Arrange
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-
+        TestUtils.EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             Directory.CreateDirectory(Path.Combine(tempDir, "bin"));
@@ -167,27 +124,25 @@ public class BootstrapperClassTests
             var file2 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
             var file3 = File.Create(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll"));
 
-            // Act
             CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, _ => new Version(), "/d:sonar.host.url=http://anotherHost");
 
-            // Assert
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeTrue();
-
-            // Do not close before to ensure the file is locked
             file1.Close();
             file2.Close();
             file3.Close();
         }
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
+    // Windows uses mandatory locking, enforced at the OS level so this correctly throws,
+    // Unix uses advisory locking, the convention is to use a .lock file, which we do not do, so we do not throw on unix
     [TestMethod]
     public void CopyDlls_WhenFileExistAndAreLockedButDifferentVersion_Fails()
     {
-        // Arrange
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
+        TestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
@@ -195,38 +150,32 @@ public class BootstrapperClassTests
             var file1 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll"));
             var file2 = File.Create(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll"));
             var file3 = File.Create(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll"));
-
             var callCount = 0;
-            Func<string, Version> getAssemblyVersion = _ =>
+            Func<string, Version> assemblyVersion = _ =>
             {
                 if (callCount == 0)
                 {
                     callCount++;
                     return new Version("1.0");
                 }
-
                 return new Version("2.0");
             };
 
-            // Act
-            var logger = CheckExecutionFails(AnalysisPhase.PreProcessing, false, getAssemblyVersion, "/d:sonar.host.url=http://anotherHost");
+            var logger = CheckExecutionFails(AnalysisPhase.PreProcessing, false, assemblyVersion, "/d:sonar.host.url=http://anotherHost");
 
-            // Assert
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Common.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "SonarScanner.MSBuild.Tasks.dll")).Should().BeTrue();
             File.Exists(Path.Combine(tempDir, "bin", "Newtonsoft.Json.dll")).Should().BeTrue();
-
-            logger.DebugMessages.Should().HaveCount(4);
             logger.DebugMessages[0].Should().Match(@"Cannot delete directory: '*\.sonarqube\bin' because The process cannot access the file 'Newtonsoft.Json.dll' because it is being used by another process..");
             logger.DebugMessages[1].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\Newtonsoft.Json.dll' because The process cannot access the file '*Newtonsoft.Json.dll' because it is being used by another process..");
             logger.DebugMessages[2].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Common.dll' because The process cannot access the file '*SonarScanner.MSBuild.Common.dll' because it is being used by another process..");
             logger.DebugMessages[3].Should().Match(@"Cannot delete file: '*\.sonarqube\bin\SonarScanner.MSBuild.Tasks.dll' because The process cannot access the file '*SonarScanner.MSBuild.Tasks.dll' because it is being used by another process..");
-
-            logger.AssertErrorLogged(@"Cannot copy a different version of the SonarScanner for MSBuild assemblies because they are used by a running MSBuild/.Net Core process. To resolve this problem try one of the following:
-- Analyze this project using the same version of SonarScanner for MSBuild
-- Build your project with the '/nr:false' switch");
-
-            // Do not close before to ensure the file is locked
+            logger.Should().HaveDebugs(4)
+                .And.HaveErrors("""
+                Cannot copy a different version of the SonarScanner for .NET assemblies because they are used by a running MSBuild/.Net Core process. To resolve this problem try one of the following:
+                - Analyze this project using the same version of SonarScanner for .NET
+                - Build your project with the '/nr:false' switch
+                """);
             file1.Close();
             file2.Close();
             file3.Close();
@@ -236,18 +185,13 @@ public class BootstrapperClassTests
     [TestMethod]
     public void Exe_PreProcSucceeds()
     {
-        // Arrange
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-
+        TestUtils.EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
-            // Act
             var logger = CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
-            // Assert
-            logger.AssertWarningsLogged(0);
+            logger.Should().HaveNoWarnings();
             logger.AssertVerbosity(VerbosityCalculator.DefaultLoggingVerbosity);
-
             AssertPreProcessorArgs("/d:sonar.host.url=http://anotherHost");
         }
     }
@@ -255,22 +199,17 @@ public class BootstrapperClassTests
     [TestMethod]
     public void Exe_PreProcCleansTemp()
     {
-        // Arrange
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-
+        TestUtils.EnsureDefaultPropertiesFileDoesNotExist();
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
-            // Create dummy file in Temp
             var filePath = Path.Combine(tempDir, "myfile");
             Directory.CreateDirectory(tempDir);
             var stream = File.Create(filePath);
             stream.Close();
             File.Exists(filePath).Should().BeTrue();
 
-            // Act
             CheckExecutionSucceeds(AnalysisPhase.PreProcessing, false, null, "/d:sonar.host.url=http://anotherHost");
 
-            // Assert
             File.Exists(filePath).Should().BeFalse();
         }
     }
@@ -281,15 +220,11 @@ public class BootstrapperClassTests
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
             MockProcessors(true, false);
-            // this is usually created by the PreProcessor
             Directory.CreateDirectory(tempDir);
 
-            // Act
-            var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
-
-            // Assert
-            logger.AssertWarningsLogged(0);
-            logger.AssertErrorsLogged(1);
+            CheckExecutionFails(AnalysisPhase.PostProcessing, false)
+                .Should().HaveNoWarnings()
+                .And.HaveErrors(1);
             AssertPostProcessorArgs();
         }
     }
@@ -301,11 +236,7 @@ public class BootstrapperClassTests
 
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
-            // Act
-            var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false);
-
-            // Assert
-            logger.AssertErrorsLogged(2);
+            CheckExecutionFails(AnalysisPhase.PostProcessing, false).Should().HaveErrors(2);
         }
     }
 
@@ -314,16 +245,9 @@ public class BootstrapperClassTests
     {
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
-            // this is usually created by the PreProcessor
             Directory.CreateDirectory(tempDir);
-
-            // Act
-            var logger = CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params");
-
-            // Assert
-            logger.AssertWarningsLogged(0);
-
-            // The bootstrapper pass through any parameters it doesn't recognize so the post-processor
+            CheckExecutionSucceeds(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params").Should().HaveNoWarnings();
+            // The bootstrapper passes through any parameters it doesn't recognize so the post-processor
             // can decide whether to handle them or not
             AssertPostProcessorArgs("other params", "yet.more.params");
         }
@@ -334,50 +258,61 @@ public class BootstrapperClassTests
     {
         using (InitializeNonTeamBuildEnvironment(rootDir))
         {
-            // this is usually created by the PreProcessor
             Directory.CreateDirectory(tempDir);
-
             var analysisConfigFile = Path.Combine(tempDir, "conf", "SonarQubeAnalysisConfig.xml");
             File.Delete(analysisConfigFile);
 
-            // Act
-            var logger = CheckExecutionFails(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params");
-
-            // Assert
-            logger.AssertWarningsLogged(0);
-            logger.AssertErrorsLogged(2);
+            CheckExecutionFails(AnalysisPhase.PostProcessing, false, null, "other params", "yet.more.params")
+                .Should().HaveNoWarnings()
+                .And.HaveErrors(2);
             AssertPostProcessorNotCalled();
         }
     }
 
-    #endregion Tests
+    private static void CreateAnalysisConfig(string filePath)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+        var config = new AnalysisConfig();
+        config.Save(filePath);
+    }
 
-    #region Private methods
+    private void MockProcessors(bool preProcessorOutcome, bool postProcessorOutcome)
+    {
+        preProcessor = Substitute.For<PreProcessor.PreProcessor>(Substitute.For<PreProcessor.IPreprocessorObjectFactory>(), new TestRuntime());
+        postProcessor = Substitute.For<PostProcessor.PostProcessor>(
+            Substitute.For<SonarScannerWrapper>(Substitute.For<IRuntime>()),
+            Substitute.For<SonarEngineWrapper>(new TestRuntime(), Substitute.For<IProcessRunner>()),
+            Substitute.For<IRuntime>(),
+            Substitute.For<TargetsUninstaller>(Substitute.For<ILogger>()),
+            Substitute.For<TfsProcessorWrapper>(Substitute.For<IRuntime>()),
+            Substitute.For<SonarProjectPropertiesValidator>(),
+            Substitute.For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), Substitute.For<IRuntime>()));
+        processorFactory = Substitute.For<IProcessorFactory>();
+        preProcessor.Execute(Arg.Any<string[]>()).Returns(Task.FromResult(preProcessorOutcome));
+        postProcessor.Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>()).Returns(postProcessorOutcome);
+        processorFactory.CreatePostProcessor().Returns(postProcessor);
+        processorFactory.CreatePreProcessor().Returns(preProcessor);
+    }
 
     private static EnvironmentVariableScope InitializeNonTeamBuildEnvironment(string workingDirectory)
     {
         Directory.SetCurrentDirectory(workingDirectory);
         return new EnvironmentVariableScope()
-               .SetVariable(BootstrapperSettings.BuildDirectory_Legacy, null)
-               .SetVariable(BootstrapperSettings.BuildDirectory_TFS2015, null);
+            .SetVariable(EnvironmentVariables.BuildDirectoryLegacy, null)
+            .SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, null);
     }
-
-    #endregion Private methods
-
-    #region Checks
 
     private TestLogger CheckExecutionFails(AnalysisPhase phase, bool debug, Func<string, Version> getAssemblyVersion = null, params string[] args)
     {
         var logger = new TestLogger();
         var settings = MockBootstrapSettings(phase, debug, args);
-        var bootstrapper = getAssemblyVersion != null
-            ? new BootstrapperClass(mockProcessorFactory, settings, logger, getAssemblyVersion)
-            : new BootstrapperClass(mockProcessorFactory, settings, logger);
+        var bootstrapper = getAssemblyVersion is null
+            ? new BootstrapperClass(processorFactory, settings, logger)
+            : new BootstrapperClass(processorFactory, settings, logger, getAssemblyVersion);
+
         var exitCode = bootstrapper.Execute().Result;
-
         exitCode.Should().Be(ErrorCode, "Bootstrapper did not return the expected exit code");
-        logger.AssertErrorsLogged();
-
+        logger.Should().HaveErrors();
         return logger;
     }
 
@@ -385,13 +320,13 @@ public class BootstrapperClassTests
     {
         var logger = new TestLogger();
         var settings = MockBootstrapSettings(phase, debug, args);
-        var bootstrapper = getAssemblyVersion != null
-            ? new BootstrapperClass(mockProcessorFactory, settings, logger, getAssemblyVersion)
-            : new BootstrapperClass(mockProcessorFactory, settings, logger);
+        var bootstrapper = getAssemblyVersion is null
+            ? new BootstrapperClass(processorFactory, settings, logger)
+            : new BootstrapperClass(processorFactory, settings, logger, getAssemblyVersion);
         var exitCode = bootstrapper.Execute().Result;
 
         exitCode.Should().Be(0, "Bootstrapper did not return the expected exit code");
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveNoErrors();
 
         return logger;
     }
@@ -414,13 +349,11 @@ public class BootstrapperClassTests
     }
 
     private void AssertPostProcessorNotCalled() =>
-        mockPostProcessor.DidNotReceive().Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
+        postProcessor.DidNotReceive().Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
 
     private void AssertPostProcessorArgs(params string[] expectedArgs) =>
-        mockPostProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
+        postProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
 
     private void AssertPreProcessorArgs(params string[] expectedArgs) =>
-        mockPreProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)));
-
-    #endregion Checks
+        preProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)));
 }

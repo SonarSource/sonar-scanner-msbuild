@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -147,7 +147,8 @@ class BaseDirTest {
     // tempDirectoryName = "junit5-ContextExtension-projectBaseDir_Relative-11477225628510485675"
     // projectBaseDir = "..\.." is relative to the projectDir. That is "C:\Windows\Temp\", so component keys should start with tempDirectoryName.
     var tempDirectoryName = context.projectDir.getParent().getFileName().toString();
-    context.begin.setProperty("sonar.projectBaseDir", Paths.get("..", "..").toString());  // Relative from scanner working directory
+    context.begin
+      .setProperty("sonar.projectBaseDir", Paths.get("..", "..").toString());  // Relative from scanner working directory
     context.runAnalysis();
 
     assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))

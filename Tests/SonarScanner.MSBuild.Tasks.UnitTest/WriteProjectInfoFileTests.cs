@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,10 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using SonarScanner.MSBuild.Common.Interfaces;
 using Task = Microsoft.Build.Utilities.Task;
 
 namespace SonarScanner.MSBuild.Tasks.UnitTest;
@@ -34,6 +32,10 @@ public class WriteProjectInfoFileTests
     public TestContext TestContext { get; set; }
 
     #region Tests
+
+    [TestMethod]
+    public void Constructor_Null_Throws() =>
+        FluentActions.Invoking(() => new WriteProjectInfoFile(null)).Should().Throw<ArgumentNullException>().WithParameterName("encodingProvider");
 
     [TestMethod]
     [Description("Tests that the project info file is created when the task is executed")]
@@ -399,111 +401,53 @@ public class WriteProjectInfoFileTests
         actual.Encoding.Should().BeNull("unexpected encoding");
     }
 
-    private ProjectInfo WriteProjectInfoFile_ExecuteAndReturn(IEncodingProvider encodingProvider, decimal? codePage, string projectLanguage, string folderName)
-    {
-        // Arrange
-        var task = new WriteProjectInfoFile(encodingProvider)
-        {
-            FullProjectPath = "c:\\fullPath\\project.proj",
-            IsTest = true,
-            ProjectName = "Foo",
-            ProjectGuid = Guid.NewGuid().ToString("B"),
-            ProjectLanguage = projectLanguage,
-            CodePage = codePage.ToString(),
-            OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, folderName)
-        };
-
-        // Act
-        return ExecuteAndCheckSucceeds(task, task.OutputFolder);
-    }
-
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreNull_ReturnsNull() =>
+    public void CalculateProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreNull_ReturnsNull() =>
         AssertProjectGuidIsRandomlyGenerated(null, null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsRandomGuid() =>
+    public void CalculateProjectGuid_WhenProjectGuidAndSolutionConfigurationContentsAreEmptyString_ReturnsRandomGuid() =>
         AssertProjectGuidIsRandomlyGenerated(string.Empty, string.Empty, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull() =>
+    public void CalculateProjectGuid_WhenProjectGuidNullAndSolutionConfigurationContentsEmptyString_ReturnsNull() =>
         AssertProjectGuidIsRandomlyGenerated(null, string.Empty, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidEmptyStringAndSolutionConfigurationContentsNull_ReturnsNull() =>
+    public void CalculateProjectGuid_WhenProjectGuidEmptyStringAndSolutionConfigurationContentsNull_ReturnsNull() =>
         AssertProjectGuidIsRandomlyGenerated(string.Empty, null, @"C:\NetCorePrj\MyNetCoreProject.csproj");
 
-    private void AssertProjectGuidIsRandomlyGenerated(string projectGuid, string solutionConfigurationContents, string fullProjectPath)
-    {
-        // Arrange
-        var sut = new WriteProjectInfoFile
-        {
-            FullProjectPath = fullProjectPath,
-            ProjectGuid = projectGuid,
-            SolutionConfigurationContents = solutionConfigurationContents
-        };
-
-        var engine = new DummyBuildEngine();
-        sut.BuildEngine = engine;
-
-        // Act
-        var actual = sut.GetProjectGuid();
-
-        // Assert
-        actual.Should().NotBeNullOrEmpty();
-        actual.Should().NotBe(Guid.Empty.ToString());
-    }
-
     [TestMethod]
-    public void GetProjectGuid_WhenProjectGuidHasValue_ReturnsProjectGuid()
+    public void CalculateProjectGuid_WhenProjectGuidHasValue_ReturnsProjectGuid()
     {
         // Arrange
         var expectedGuid = Guid.Empty.ToString();
         var sut = new WriteProjectInfoFile { ProjectGuid = expectedGuid, SolutionConfigurationContents = null };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().Be(expectedGuid);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    public void GetProjectGuid_WhenSolutionConfigurationContentsHasValueAndProjectFound_ReturnsProjectGuidInSolution()
+    public void CalculateProjectGuid_WhenSolutionConfigurationContentsHasValueAndProjectFound_ReturnsProjectGuidInSolution()
     {
+        var netStdAppPath = Path.Combine("C:", "NetStdApp");
+        var projPath = Path.Combine(netStdAppPath, "NetStdApp.csproj");
         // Same paths
-        AssertThatSolutionProjectGuidIsExpected(@"C:\NetStdApp\NetStdApp.csproj", @"C:\NetStdApp\NetStdApp.csproj");
+        AssertThatSolutionProjectGuidIsExpected(projPath, projPath);
 
         // Relative path
-        AssertThatSolutionProjectGuidIsExpected(@"C:\NetStdApp\NetStdApp.csproj", @"C:\Foo\..\NetStdApp\NetStdApp.csproj");
+        AssertThatSolutionProjectGuidIsExpected(projPath, Path.Combine("C:", "Foo", "..", "NetStdApp", "NetStdApp.csproj"));
 
         // Different case
-        AssertThatSolutionProjectGuidIsExpected(@"C:\NetStdApp\NetStdApp.csproj", @"C:\NETSTDAPP\NetStdApp.csproj");
-    }
-
-    private void AssertThatSolutionProjectGuidIsExpected(string fullProjectPath, string solutionProjectPath)
-    {
-        // Arrange
-        var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
-        var sut = new WriteProjectInfoFile
-        {
-            ProjectGuid = null,
-            FullProjectPath = fullProjectPath,
-            SolutionConfigurationContents = $@"<SolutionConfiguration>
-  <ProjectConfiguration Project=""{expectedGuid}"" AbsolutePath=""{solutionProjectPath}"" BuildProjectInSolution=""True"">Debug|AnyCPU</ProjectConfiguration>
-</SolutionConfiguration>"
-        };
-
-        // Act
-        var actual = sut.GetProjectGuid();
-
-        // Assert
-        actual.Should().Be(expectedGuid);
+        AssertThatSolutionProjectGuidIsExpected(projPath, Path.Combine("C:", "NETSTDAPP", "NetStdApp.csproj"));
     }
 
     [TestMethod]
-    public void GetProjectGuid_WhenSolutionConfigurationContentsHasNoProjectAttribute_ReturnsNull()
+    public void CalculateProjectGuid_WhenSolutionConfigurationContentsHasNoProjectAttribute_ReturnsNull()
     {
         // Arrange
         var sut = new WriteProjectInfoFile
@@ -516,14 +460,14 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().BeNull();
     }
 
     [TestMethod]
-    public void GetProjectGuid_WhenSolutionConfigurationContentsHasNoAbsolutePathAttribute_ReturnsNull()
+    public void CalculateProjectGuid_WhenSolutionConfigurationContentsHasNoAbsolutePathAttribute_ReturnsNull()
     {
         // Arrange
         var sut = new WriteProjectInfoFile
@@ -536,14 +480,14 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().BeNull();
     }
 
     [TestMethod]
-    public void GetProjectGuid_WhenSolutionConfigurationContentsHasMultipleMatch_ReturnsFirstGuid()
+    public void CalculateProjectGuid_WhenSolutionConfigurationContentsHasMultipleMatch_ReturnsFirstGuid()
     {
         // Arrange
         var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
@@ -558,14 +502,14 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().Be(expectedGuid);
     }
 
     [TestMethod]
-    public void GetProjectGuid_InvalidPath_DoesNotThrow()
+    public void CalculateProjectGuid_InvalidPath_DoesNotThrow()
     {
         var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
         var notValidPath = @"D:\a\1\s\src\https://someUrl.me:1623";
@@ -581,14 +525,14 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().Be(expectedGuid);
     }
 
     [TestMethod]
-    public void GetProjectGuid_TwoProjectsWithSamePath_FirstProjectIsReturned()
+    public void CalculateProjectGuid_TwoProjectsWithSamePath_FirstProjectIsReturned()
     {
         var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
         var fullProjectPath = @"C:\NetStdApp\NetStdApp.csproj";
@@ -603,10 +547,55 @@ public class WriteProjectInfoFileTests
         };
 
         // Act
-        var actual = sut.GetProjectGuid();
+        var actual = sut.CalculateProjectGuid();
 
         // Assert
         actual.Should().Be(expectedGuid);
+    }
+
+    private static void AssertThatSolutionProjectGuidIsExpected(string fullProjectPath, string solutionProjectPath)
+    {
+        var expectedGuid = "{10F2915F-4AB3-4269-BC2B-4F72C6DE87C8}";
+        var sut = new WriteProjectInfoFile
+        {
+            ProjectGuid = null,
+            FullProjectPath = fullProjectPath,
+            SolutionConfigurationContents = $"""
+                <SolutionConfiguration>
+                  <ProjectConfiguration Project="{expectedGuid}" AbsolutePath="{solutionProjectPath}" BuildProjectInSolution="True">Debug|AnyCPU</ProjectConfiguration>
+                </SolutionConfiguration>
+                """
+        };
+        sut.CalculateProjectGuid().Should().Be(expectedGuid);
+    }
+
+    private ProjectInfo WriteProjectInfoFile_ExecuteAndReturn(IEncodingProvider encodingProvider, decimal? codePage, string projectLanguage, string folderName)
+    {
+        var task = new WriteProjectInfoFile(encodingProvider)
+        {
+            FullProjectPath = "c:\\fullPath\\project.proj",
+            IsTest = true,
+            ProjectName = "Foo",
+            ProjectGuid = Guid.NewGuid().ToString("B"),
+            ProjectLanguage = projectLanguage,
+            CodePage = codePage.ToString(),
+            OutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, folderName)
+        };
+        return ExecuteAndCheckSucceeds(task, task.OutputFolder);
+    }
+
+    private void AssertProjectGuidIsRandomlyGenerated(string projectGuid, string solutionConfigurationContents, string fullProjectPath)
+    {
+        var sut = new WriteProjectInfoFile
+        {
+            FullProjectPath = fullProjectPath,
+            ProjectGuid = projectGuid,
+            SolutionConfigurationContents = solutionConfigurationContents
+        };
+        var engine = new DummyBuildEngine();
+        sut.BuildEngine = engine;
+
+        sut.CalculateProjectGuid().Should().NotBeNullOrEmpty().And.NotBe(Guid.Empty.ToString());
     }
 
     #endregion Tests
@@ -663,9 +652,9 @@ public class WriteProjectInfoFileTests
     private static void AssertAnalysisResultExists(ProjectInfo actual, string expectedId, string expectedLocation)
     {
         actual.Should().NotBeNull("Supplied project info should not be null");
-        actual.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
+        actual.AnalysisResultFiles.Should().NotBeNull("AnalysisResults should not be null");
 
-        var result = actual.AnalysisResults.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
+        var result = actual.AnalysisResultFiles.FirstOrDefault(ar => expectedId.Equals(ar.Id, StringComparison.InvariantCulture));
         result.Should().NotBeNull("AnalysisResult with the expected id does not exist. Id: {0}", expectedId);
 
         result.Location.Should().Be(expectedLocation, "Analysis result does not have the expected location");
@@ -674,9 +663,9 @@ public class WriteProjectInfoFileTests
     private static void AssertExpectedAnalysisResultCount(int count, ProjectInfo actual)
     {
         actual.Should().NotBeNull("Supplied project info should not be null");
-        actual.AnalysisResults.Should().NotBeNull("AnalysisResults should not be null");
+        actual.AnalysisResultFiles.Should().NotBeNull("AnalysisResults should not be null");
 
-        actual.AnalysisResults.Should().HaveCount(count, "Unexpected number of AnalysisResult items");
+        actual.AnalysisResultFiles.Should().HaveCount(count, "Unexpected number of AnalysisResult items");
     }
 
     private static void AssertAnalysisSettingExists(ProjectInfo actual, string expectedId, string expectedValue)

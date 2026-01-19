@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,18 +19,13 @@
  */
 
 using ICSharpCode.SharpZipLib.Core;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor.Unpacking;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test.Unpacking;
+namespace SonarScanner.MSBuild.PreProcessor.Unpacking.Test;
 
 [TestClass]
 public class TarGzUnpackTests
 {
-    private readonly TestLogger logger = new();
-    private readonly IFileWrapper fileWrapper = Substitute.For<IFileWrapper>();
-    private readonly IDirectoryWrapper directoryWrapper = Substitute.For<IDirectoryWrapper>();
-    private readonly IFilePermissionsWrapper filePermissionsWrapper = Substitute.For<IFilePermissionsWrapper>();
+    private readonly TestRuntime runtime = new();
 
     [TestMethod]
     public void TarGzUnpacking_Success_CopyFilePermissions_Fails()
@@ -50,16 +45,16 @@ public class TarGzUnpackTests
         var filePath = Path.Combine(baseDirectory, "Main", "Sub2", "Sample.txt");
         using var archive = new MemoryStream(Convert.FromBase64String(sampleTarGzFile));
         using var unzipped = new MemoryStream();
-        fileWrapper.Create(filePath).Returns(unzipped);
-        filePermissionsWrapper.When(x => x.Set(Arg.Any<string>(), Arg.Any<int>())).Throw(new Exception("Sample exception message"));
+        runtime.File.Create(filePath).Returns(unzipped);
+        runtime.OperatingSystem.When(x => x.SetPermission(Arg.Any<string>(), Arg.Any<int>())).Throw(new Exception("Sample exception message"));
 
-        CreateUnpacker().Unpack(archive, baseDirectory);
+        new TarGzUnpacker(runtime).Unpack(archive, baseDirectory);
 
-        directoryWrapper.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main") + Path.DirectorySeparatorChar);
-        directoryWrapper.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub") + Path.DirectorySeparatorChar);
-        directoryWrapper.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub2") + Path.DirectorySeparatorChar);
-        Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().Should().Be("hey beautiful");
-        logger.AssertSingleDebugMessageExists($"""There was an error when trying to set permissions for '{filePath}'. Sample exception message""");
+        runtime.Directory.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main") + Path.DirectorySeparatorChar);
+        runtime.Directory.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub") + Path.DirectorySeparatorChar);
+        runtime.Directory.Received(1).CreateDirectory(Path.Combine(baseDirectory, "Main", "Sub2") + Path.DirectorySeparatorChar);
+        Encoding.UTF8.GetString(unzipped.ToArray()).ToUnixLineEndings().Should().Be("hey beautiful");
+        runtime.Logger.Should().HaveDebugOnce($"There was an error when trying to set permissions for '{filePath}'. Sample exception message");
     }
 
     [TestCategory(TestCategories.NoMacOS)]
@@ -97,13 +92,13 @@ public class TarGzUnpackTests
     {
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var archive = new MemoryStream([1, 2, 3]); // Invalid archive content
-        var sut = CreateUnpacker();
+        var sut = new TarGzUnpacker(runtime);
 
         var action = () => sut.Unpack(archive, baseDirectory);
 
         action.Should().Throw<Exception>().WithMessage("Error GZIP header, first magic byte doesn't match");
-        directoryWrapper.Received(0).CreateDirectory(Arg.Any<string>());
-        fileWrapper.Received(0).Create(Arg.Any<string>());
+        runtime.Directory.Received(0).CreateDirectory(Arg.Any<string>());
+        runtime.File.Received(0).Create(Arg.Any<string>());
     }
 
     [TestMethod]
@@ -121,7 +116,7 @@ public class TarGzUnpackTests
             """;
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var zipStream = new MemoryStream(Convert.FromBase64String(zipSlip));
-        var sut = CreateUnpacker();
+        var sut = new TarGzUnpacker(runtime);
 
         var action = () => sut.Unpack(zipStream, baseDirectory);
 
@@ -132,15 +127,12 @@ public class TarGzUnpackTests
     {
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var unzipped = new MemoryStream();
-        fileWrapper.Create(Path.Combine(baseDirectory, " sample.txt")).Returns(unzipped);
+        runtime.File.Create(Path.Combine(baseDirectory, " sample.txt")).Returns(unzipped);
         using var archive = new MemoryStream(Convert.FromBase64String(base64Archive));
 
-        CreateUnpacker().Unpack(archive, baseDirectory);
+        new TarGzUnpacker(runtime).Unpack(archive, baseDirectory);
 
-        directoryWrapper.Received(1).CreateDirectory(baseDirectory);
-        Encoding.UTF8.GetString(unzipped.ToArray()).NormalizeLineEndings().TrimEnd().Should().Be("hello Costin");
+        runtime.Directory.Received(1).CreateDirectory(baseDirectory);
+        Encoding.UTF8.GetString(unzipped.ToArray()).ToUnixLineEndings().TrimEnd().Should().Be("hello Costin");
     }
-
-    private TarGzUnpacker CreateUnpacker() =>
-        new(logger, directoryWrapper, fileWrapper, filePermissionsWrapper);
 }

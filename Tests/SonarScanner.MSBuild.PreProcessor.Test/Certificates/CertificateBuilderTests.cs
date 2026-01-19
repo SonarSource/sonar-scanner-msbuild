@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +31,11 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 [DoNotParallelize]
 public partial class CertificateBuilderTests
 {
+    public TestContext TestContext { get; }
+
+    public CertificateBuilderTests(TestContext testContext) =>
+        TestContext = testContext;
+
     [TestMethod]
     public async Task MockServerReturnsSelfSignedCertificate()
     {
@@ -101,7 +106,7 @@ public partial class CertificateBuilderTests
         serverCertificateValidation.Should().BeTrue();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("localhost", false)]
     [DataRow(null, true)]
     [DataRow("error.org", true)]

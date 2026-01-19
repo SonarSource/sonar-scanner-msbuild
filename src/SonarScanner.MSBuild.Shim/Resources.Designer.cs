@@ -82,12 +82,12 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarScanner for MSBuild integration failed: SonarQube was unable to collect the required information about your projects.
+        ///   Looks up a localized string similar to The SonarScanner for .NET integration failed: SonarQube was unable to collect the required information about your projects.
         ///Possible causes:
         ///  1. The project has not been built - the project must be built in between the begin and end steps.
         ///  2. An unsupported version of MSBuild has been used to build the project. Supported versions: MSBuild 16 and higher.
         ///  3. The begin, build and end steps have not all been launched from the same folder.
-        ///  4. None of the analyzed projects have a valid ProjectGuid  [rest of string was truncated]&quot;;.
+        ///  4. None of the analyzed projects have a valid ProjectGuid and [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ERR_NoProjectInfoFilesFound {
             get {
@@ -96,7 +96,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details..
+        ///   Looks up a localized string similar to No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details..
         /// </summary>
         internal static string ERR_NoValidProjectInfoFiles {
             get {
@@ -119,6 +119,33 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string ERR_ProjectBaseDirDoesNotExist {
             get {
                 return ResourceManager.GetString("ERR_ProjectBaseDirDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The scanner engine did not complete successfully.
+        /// </summary>
+        internal static string ERR_ScannerEngineExecutionFailed {
+            get {
+                return ResourceManager.GetString("ERR_ScannerEngineExecutionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The scanner engine execution failed with {0}: {1}..
+        /// </summary>
+        internal static string ERR_ScannerEngineExecutionFailedWithException {
+            get {
+                return ResourceManager.GetString("ERR_ScannerEngineExecutionFailedWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The SonarScanner CLI is needed to finish the analysis, but could not be found. {0}.
+        /// </summary>
+        internal static string ERR_SonarScannerCliNotFound {
+            get {
+                return ResourceManager.GetString("ERR_SonarScannerCliNotFound", resourceCulture);
             }
         }
         
@@ -146,6 +173,51 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_GeneratingProjectProperties {
             get {
                 return ResourceManager.GetString("MSG_GeneratingProjectProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using Java found in {0}: {1}.
+        /// </summary>
+        internal static string MSG_JavaExe_Found {
+            get {
+                return ResourceManager.GetString("MSG_JavaExe_Found", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find Java in {0}: {1}.
+        /// </summary>
+        internal static string MSG_JavaExe_NotFound {
+            get {
+                return ResourceManager.GetString("MSG_JavaExe_NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find Java, falling back to using PATH: {0}.
+        /// </summary>
+        internal static string MSG_JavaExe_UsePath {
+            get {
+                return ResourceManager.GetString("MSG_JavaExe_UsePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;JAVA_HOME&apos; environment variable not set.
+        /// </summary>
+        internal static string MSG_JavaHomeNotSet {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeNotSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found &apos;JAVA_HOME&apos;: {0}.
+        /// </summary>
+        internal static string MSG_JavaHomeSet {
+            get {
+                return ResourceManager.GetString("MSG_JavaHomeSet", resourceCulture);
             }
         }
         
@@ -222,6 +294,15 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The scanner engine has finished successfully.
+        /// </summary>
+        internal static string MSG_ScannerEngineCompleted {
+            get {
+                return ResourceManager.GetString("MSG_ScannerEngineCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Setting analysis property: {0}={1}.
         /// </summary>
         internal static string MSG_SettingAnalysisProperty {
@@ -249,11 +330,29 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The path &apos;{0}&apos; to the SonarScanner CLI is invalid. The file does not exists..
+        /// </summary>
+        internal static string MSG_SonarCliPath_FileNotFound {
+            get {
+                return ResourceManager.GetString("MSG_SonarCliPath_FileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Calling the SonarScanner CLI....
         /// </summary>
         internal static string MSG_SonarScannerCalling {
             get {
                 return ResourceManager.GetString("MSG_SonarScannerCalling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The path to the SonarScanner CLI wasn&apos;t set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step..
+        /// </summary>
+        internal static string MSG_SonarScannerCliPath_Missing {
+            get {
+                return ResourceManager.GetString("MSG_SonarScannerCliPath_Missing", resourceCulture);
             }
         }
         
@@ -462,15 +561,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string WARN_FileIsOutsideProjectDirectory {
             get {
                 return ResourceManager.GetString("WARN_FileIsOutsideProjectDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The following paths contain invalid characters and will be excluded from this analysis: {0}.
-        /// </summary>
-        internal static string WARN_InvalidCharacterInPaths {
-            get {
-                return ResourceManager.GetString("WARN_InvalidCharacterInPaths", resourceCulture);
             }
         }
         
