@@ -32,7 +32,6 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldNotChange_Valid()
     {
-        var logger = new TestLogger();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -66,7 +65,7 @@ public class RoslynV1SarifFixerTests
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
+        var returnedSarifPath = new RoslynV1SarifFixer(new TestRuntime()).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
         // Already valid -> no change to file, same file path returned
         AssertFileUnchanged(testSarifPath, originalWriteTime);
@@ -76,7 +75,6 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldNotChange_Unfixable()
     {
-        var logger = new TestLogger();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string sarifInput = """
             {
@@ -112,7 +110,7 @@ public class RoslynV1SarifFixerTests
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         File.WriteAllText(testSarifPath, sarifInput);
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
+        var returnedSarifPath = new RoslynV1SarifFixer(new TestRuntime()).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
         // Not fixable -> no change to file, null return
         AssertFileUnchanged(testSarifPath, originalWriteTime);
@@ -129,7 +127,6 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldNotChange_MultipleLineValues()
     {
-        var logger = new TestLogger();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -155,7 +152,7 @@ public class RoslynV1SarifFixerTests
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
+        var returnedSarifPath = new RoslynV1SarifFixer(new TestRuntime()).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
         // Not fixable -> no change to file, null return
         AssertFileUnchanged(testSarifPath, originalWriteTime);
@@ -165,7 +162,6 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldChange_EscapeBackslashes()
     {
-        var logger = new TestLogger();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -218,7 +214,7 @@ public class RoslynV1SarifFixerTests
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
+        var returnedSarifPath = new RoslynV1SarifFixer(new TestRuntime()).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
         // Fixable -> no change to file, file path in return value, file contents as expected
         AssertFileUnchanged(testSarifPath, originalWriteTime);
@@ -274,7 +270,7 @@ public class RoslynV1SarifFixerTests
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
+        var returnedSarifPath = new RoslynV1SarifFixer(new TestRuntime()).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
         // Fixable -> no change to file, file path in return value, file contents as expected
         AssertFileUnchanged(testSarifPath, originalWriteTime);
@@ -285,7 +281,6 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldChange_EscapeCharsInAllAffectedFields()
     {
-        var logger = new TestLogger();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -352,7 +347,7 @@ public class RoslynV1SarifFixerTests
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
+        var returnedSarifPath = new RoslynV1SarifFixer(new TestRuntime()).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
         // Fixable -> no change to file, file path in return value, file contents as expected
         AssertFileUnchanged(testSarifPath, originalWriteTime);
@@ -363,7 +358,6 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_VBNet()
     {
-        var logger = new TestLogger();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -416,7 +410,7 @@ public class RoslynV1SarifFixerTests
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
+        var returnedSarifPath = new RoslynV1SarifFixer(new TestRuntime()).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
 
         // Fixable -> no change to file, file path in return value, file contents as expected
         AssertFileUnchanged(testSarifPath, originalWriteTime);
@@ -430,7 +424,6 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldNotFixInvalid()
     {
-        var logger = new TestLogger();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -458,7 +451,7 @@ public class RoslynV1SarifFixerTests
             """;
         var testSarifPath = Path.Combine(testDir, "testSarif.json");
         File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
-        var returnedSarifPath = new RoslynV1SarifFixer(logger).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
+        var returnedSarifPath = new RoslynV1SarifFixer(new TestRuntime()).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
 
         returnedSarifPath.Should().BeNull();
     }
