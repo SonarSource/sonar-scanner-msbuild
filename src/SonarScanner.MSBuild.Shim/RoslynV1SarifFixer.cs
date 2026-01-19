@@ -29,10 +29,10 @@ public class RoslynV1SarifFixer
     public const string VBNetLanguage = "vbnet";
     private const string FixedFileSuffix = "_fixed";
 
-    private readonly ILogger logger;
+    private readonly IRuntime runtime;
 
-    public RoslynV1SarifFixer(ILogger logger) =>
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    public RoslynV1SarifFixer(IRuntime runtime) =>
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
     /// <summary>
     /// Attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
@@ -42,7 +42,7 @@ public class RoslynV1SarifFixer
         if (!File.Exists(sarifFilePath))
         {
             // file cannot be found -> inherently unfixable
-            logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
+            runtime.Logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
             return null;
         }
 
@@ -50,29 +50,31 @@ public class RoslynV1SarifFixer
         if (IsValidJson(inputSarifFileString))
         {
             // valid input -> no fix required
-            logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
+            runtime.Logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
             return sarifFilePath;
         }
-        logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifFilePath);
+        runtime.Logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifFilePath);
 
         if (!IsSarifFromRoslynV1(inputSarifFileString, language))
         {
             // invalid input NOT from Roslyn V1 -> unfixable
-            logger.LogWarning(Resources.WARN_SarifFixFail);
+            runtime.Logger.LogWarning(Resources.WARN_SarifFixFail);
             return null;
         }
+
+        runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.Called;
 
         var changedSarif = ApplyFixToSarif(inputSarifFileString);
         if (IsValidJson(changedSarif))
         {
             var newSarifFilePath = Path.Combine(Path.GetDirectoryName(sarifFilePath), Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath));
             File.WriteAllText(newSarifFilePath, changedSarif);
-            logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
+            runtime.Logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
             return newSarifFilePath;
         }
         else
         {
-            logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
+            runtime.Logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
             return null;
         }
     }
