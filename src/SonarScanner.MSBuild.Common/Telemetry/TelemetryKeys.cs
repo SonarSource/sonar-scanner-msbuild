@@ -37,4 +37,5 @@ public static class TelemetryKeys
     public const string ServerInfoVersion           = "dotnetenterprise.s4net.serverInfo.version";
     // EndStep
     public const string EndstepLegacyTFS            = "dotnetenterprise.s4net.endstep.legacyTFS";
+    public const string EndstepIsRoslynV1Report       = "dotnetenterprise.s4net.endstep.isRoslynV1Report";
 }
