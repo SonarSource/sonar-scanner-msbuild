@@ -39,6 +39,7 @@ public class RoslynV1SarifFixer
     /// </summary>
     public virtual string LoadAndFixFile(string sarifFilePath, string language)
     {
+        runtime.Telemetry[TelemetryKeys.EndstepIsRoslynV1Report] = TelemetryValues.EndstepIsRoslynV1Report.False;
         if (!File.Exists(sarifFilePath))
         {
             // file cannot be found -> inherently unfixable
@@ -62,7 +63,7 @@ public class RoslynV1SarifFixer
             return null;
         }
 
-        runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = TelemetryValues.EndstepLegacyTFS.Called;
+        runtime.Telemetry[TelemetryKeys.EndstepIsRoslynV1Report] = TelemetryValues.EndstepIsRoslynV1Report.True;
 
         var changedSarif = ApplyFixToSarif(inputSarifFileString);
         if (IsValidJson(changedSarif))
