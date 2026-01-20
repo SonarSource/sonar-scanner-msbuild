@@ -139,7 +139,7 @@ public class RoslynV1SarifFixerTests
     ///
     /// Example invalid:
     /// "fullMessage": "message
-    /// \test\ ["_"]".
+    /// \test\ ["_"]",
     /// </summary>
     [TestMethod]
     public void SarifFixer_ShouldNotChange_MultipleLineValues()

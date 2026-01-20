@@ -346,6 +346,7 @@ public class ScannerEngineInputGenerator
     {
         var globalSourceEncoding = GetSourceEncoding(analysisProperties);
         Action logIfGlobalEncodingIsIgnored = () => runtime.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
+        runtime.Telemetry[TelemetryKeys.EndstepIsRoslynV1Report] = TelemetryValues.EndstepIsRoslynV1Report.False;
         foreach (var project in projects)
         {
             TryFixSarifReport(project);
@@ -384,7 +385,6 @@ public class ScannerEngineInputGenerator
     {
         if (project.FindAnalysisSetting(reportFilesPropertyKey) is { } reportPathsProperty)
         {
-            runtime.Telemetry[TelemetryKeys.EndstepIsRoslynV1Report] = TelemetryValues.EndstepIsRoslynV1Report.False;
             project.AnalysisSettings.Remove(reportPathsProperty);
             var listOfPaths = reportPathsProperty.Value.Split(RoslynReportPathsDelimiter)
                 .Select(x => fixer.LoadAndFixFile(x, language))
