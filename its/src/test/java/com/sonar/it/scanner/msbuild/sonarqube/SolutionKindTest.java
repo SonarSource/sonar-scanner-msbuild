@@ -19,8 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
-import com.sonar.orchestrator.container.Edition;
-import com.sonar.orchestrator.version.Version;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;

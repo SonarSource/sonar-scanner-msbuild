@@ -19,7 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.orchestrator.util.Command;
+import com.sonar.orchestrator.util.command.Command;
 import java.nio.file.Path;
 
 public enum ScannerClassifier {
