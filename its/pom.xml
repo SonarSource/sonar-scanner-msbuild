@@ -45,7 +45,7 @@
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator-junit5</artifactId>
-      <version>6.0.3.3907</version>
+      <version>6.1.0.3962</version>
       <scope>test</scope>
     </dependency>
     <dependency>
