@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Test;
 
 [TestClass]
@@ -30,16 +26,14 @@ public class DefaultProcessorFactoryTests
     [TestMethod]
     public void CreatePreProcessor_Returns_New_Instance()
     {
-        var factory = new DefaultProcessorFactory(
-            new TestLogger());
+        var factory = new DefaultProcessorFactory(new TestRuntime());
         factory.CreatePreProcessor().Should().BeOfType<PreProcessor.PreProcessor>();
     }
 
     [TestMethod]
     public void CreatePostProcessor_Returns_New_Instance()
     {
-        var factory = new DefaultProcessorFactory(
-            new TestLogger());
+        var factory = new DefaultProcessorFactory(new TestRuntime());
 
         factory.CreatePostProcessor().Should().BeOfType<PostProcessor.PostProcessor>();
     }

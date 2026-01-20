@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,6 +19,8 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.orchestrator.container.Edition;
+import com.sonar.orchestrator.version.Version;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -37,7 +39,7 @@ import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -51,6 +53,8 @@ class SolutionKindTest {
   // error MSB4018: System.InvalidOperationException: This implementation is not part of the Windows Platform FIPS validated cryptographic algorithms.
   // at System.Security.Cryptography.MD5CryptoServiceProvider..ctor()
   @MSBuildMinVersion(16)
+  @MSBuildMaxVersion(17)
+  @WorkloadPrerequisite(Workload.XAMARIN_BUILD_TOOLS)
   void xaml() {
     var context = AnalysisContext.forServer("XamarinApplication");
     context.runAnalysis();
@@ -77,16 +81,16 @@ class SolutionKindTest {
   }
 
   @Test
-  // We can't build without MsBuild17
-  @MSBuildMinVersion(17)
+  // We can't build without MsBuild18
+  @MSBuildMinVersion(18)
   void razor_Net9_WithoutSourceGenerators() {
     String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
   }
 
   @Test
-  // We can't build without MsBuild17
-  @MSBuildMinVersion(17)
+  // We can't build without MsBuild18
+  @MSBuildMinVersion(18)
   void razor_Net9_WithSourceGenerators() {
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
@@ -111,6 +115,7 @@ class SolutionKindTest {
   @Test
   void sharedFiles() {
     var context = AnalysisContext.forServer("CSharpSharedFiles");
+    context.begin.setDebugLogs();
     context.runAnalysis();
 
     assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
@@ -152,10 +157,17 @@ class SolutionKindTest {
   }
 
   @Test
-  // dotnet sdk tests should run only on VS 2022
+  // dotnet sdk tests should run only on VS 2022 and above
   @MSBuildMinVersion(17)
   void sdk8() {
     validateCSharpSdk("CSharp.SDK.8");
+  }
+
+  @Test
+  // dotnet sdk tests should run only on VS 2022 and above
+  @MSBuildMinVersion(17)
+  void sdk9() {
+    validateCSharpSdk("CSharp.SDK.9");
   }
 
   @Test
@@ -170,8 +182,8 @@ class SolutionKindTest {
   }
 
   @Test
-  // dotnet sdk tests should run only on VS 2022
-  @MSBuildMinVersion(17)
+  // dotnet sdk tests should run only on VS 2022 and above
+  @MSBuildMinVersion(18)
   void sdkLatest() {
     validateCSharpSdk("CSharp.SDK.Latest");
   }
@@ -194,21 +206,22 @@ class SolutionKindTest {
   private void assertUIWarnings(AnalysisResult result) {
     // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
     // So it's available from SQ 9.9 onwards
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
+    var version = ORCHESTRATOR.getServer().version();
+    if (version.isGreaterThanOrEquals(9, 9)) {
       var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, result.end());
       assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-      var warningsList = warnings.getWarningsList();
-      assertThat(warningsList.stream().anyMatch(
-        // The warning is appended to the timestamp, we want to assert only the message
-        x -> x.endsWith("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set " +
-          "\"/d:sonar.scanner.scanAll=false\" in the begin step.")
-      )).isTrue();
-      assertThat(warningsList.size()).isEqualTo(1);
+      if (version.getMajor() == 9) {
+        assertThat(warnings.getWarningsList())
+          .singleElement()
+          .isEqualTo("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
+      } else {
+        assertThat(warnings.getWarningsList()).isEmpty();
+      }
     }
   }
 
   private void assertProjectFileContains(AnalysisContext context, String textToLookFor) {
-    Path csProjPath = context.projectDir.resolve(Paths.get("RazorWebApplication","RazorWebApplication.csproj"));
+    Path csProjPath = context.projectDir.resolve(Paths.get("RazorWebApplication", "RazorWebApplication.csproj"));
     try {
       String str = FileUtils.readFileToString(csProjPath.toFile(), "utf-8");
       assertThat(str.indexOf(textToLookFor)).isPositive();

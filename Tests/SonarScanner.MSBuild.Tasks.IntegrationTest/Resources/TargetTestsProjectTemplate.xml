@@ -1,36 +1,33 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
-<Project ToolsVersion='Current' xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
+    <PropertyGroup>
+        <!-- Prevent MSBuild to load source files automatically -->
+        <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+        <ImplicitUsings>false</ImplicitUsings>
+        <Language>LANGUAGE</Language>
+        <TargetFramework>TARGET_FRAMEWORK</TargetFramework>
+    </PropertyGroup>
 
-  <!-- Boilerplate -->
-  <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
-  <PropertyGroup>
-    <ImportByWildcardBeforeMicrosoftCommonTargets>false</ImportByWildcardBeforeMicrosoftCommonTargets>
-    <ImportByWildcardAfterMicrosoftCommonTargets>false</ImportByWildcardAfterMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>false</ImportUserLocationsByWildcardBeforeMicrosoftCommonTargets>
-    <ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>false</ImportUserLocationsByWildcardAfterMicrosoftCommonTargets>
-    <ImportMicrosoftCSharpTargets>true</ImportMicrosoftCSharpTargets>
-    <OutputPath>bin\</OutputPath>
-    <OutputType>library</OutputType>
-    <ProjectGuid>ffdb93c0-2880-44c7-89a6-bbd4ddab034a</ProjectGuid>
-    <CodePage>65001</CodePage>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <Language>C#</Language>
-  </PropertyGroup>
+    <PropertyGroup>
+        <!-- Standard values that need to be set for each/most tests -->
+        <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
 
-  <!-- Standard values that need to be set for each/most tests -->
-  <PropertyGroup>
-    <SonarQubeBuildTasksAssemblyFile>SONARSCANNER_MSBUILD_TASKS_DLL</SonarQubeBuildTasksAssemblyFile>
-  </PropertyGroup>
+        <!-- Ensure the project is isolated from environment variables that could be picked up when running on a TeamBuild build agent-->
+        <TF_BUILD_BUILDDIRECTORY />
+        <AGENT_BUILDDIRECTORY />
+    </PropertyGroup>
 
-  <!-- Test-specific properties -->
-  <PropertyGroup>
-    TEST_SPECIFIC_PROPERTIES
-  </PropertyGroup>
+    <!-- Remove items that MSBuild automatically adds to the project -->
+    <ItemGroup>
+        <None Remove="**\*" />
+    </ItemGroup>
+    
+    <!--SonarQube Properties-->
+    SONARQUBE_PROPERTIES
+    
+    <!-- Test-specific data -->
+    TEST_SPECIFIC_XML
 
-  <!-- Test-specific data -->
-  TEST_SPECIFIC_XML
-
-  <!-- Standard boilerplate closing imports -->
-  <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))SonarQube.Integration.targets' />
-  <Import Condition="$(ImportMicrosoftCSharpTargets) == 'true' " Project='$(MSBuildToolsPath)\Microsoft.CSharp.targets' />
+    <!-- Standard boilerplate closing imports -->
+    <Import Project='$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), SonarQube.Integration.targets))\SonarQube.Integration.targets' />
 </Project>

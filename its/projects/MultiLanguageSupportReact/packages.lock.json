@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net7.0": {
+      "Microsoft.AspNetCore.SpaProxy": {
+        "type": "Direct",
+        "requested": "[7.0.20, )",
+        "resolved": "7.0.20",
+        "contentHash": "ykqnzl3W8B0Yd/rfTjcfUzuwVo5hEnQjHxZf1skYf9czIyaJZ3345tRFBx8eAe58ZUmiBvrr10QDOJjJxFwnAQ=="
+      }
+    }
+  }
+}

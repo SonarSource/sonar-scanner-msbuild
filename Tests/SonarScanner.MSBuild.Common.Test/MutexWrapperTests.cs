@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +30,11 @@ namespace SonarScanner.MSBuild.Common.Test;
 [TestClass]
 public class MutexWrapperTests
 {
+    public TestContext TestContext { get; }
+
+    public MutexWrapperTests(TestContext testContext) =>
+        TestContext = testContext;
+
     [TestMethod]
     public void MultipleDispose_DoesntThrow()
     {
@@ -72,7 +77,7 @@ public class MutexWrapperTests
                 {
                     new SingleGlobalInstanceMutex(mutexName, oneMinute);
                     steps.Add(201);
-                    Task.Delay(oneMinute, cancel.Token).Wait();
+                    Task.Delay(oneMinute, cancel.Token).Wait(TestContext.CancellationTokenSource.Token);
                     steps.Add(202);
                 }
                 catch (AggregateException aggEx) when (aggEx.InnerException is TaskCanceledException)

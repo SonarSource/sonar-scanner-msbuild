@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@ namespace TestUtilities;
 
 public static class TestCategories
 {
-   public const string NoUnixNeedsReview = nameof(NoUnixNeedsReview);
-   public const string NoLinux = nameof(NoLinux);
-   public const string NoMacOS = nameof(NoMacOS);
+    public const string NoLinux = nameof(NoLinux);
+    public const string NoMacOS = nameof(NoMacOS);
+    public const string NoWindows = nameof(NoWindows);
 }

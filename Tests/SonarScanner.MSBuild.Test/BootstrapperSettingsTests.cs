@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,14 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Test;
 
 [TestClass]
@@ -34,24 +26,57 @@ public class BootstrapperSettingsTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void BootSettings_InvalidArguments()
-    {
-        IList<string> validArgs = null;
+    public void InvalidArguments() =>
+        FluentActions.Invoking(() => new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, null)).Should().ThrowExactly<ArgumentNullException>();
 
-        Action act = () => new BootstrapperSettings(AnalysisPhase.PreProcessing, validArgs, LoggerVerbosity.Debug, null);
-        act.Should().ThrowExactly<ArgumentNullException>();
+    [TestMethod]
+    public void TempDirectory_BuildDirectoryLegacySet_TempPathFromBuildDirectoryLegacy()
+    {
+        using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryLegacy, $"c:{Path.DirectorySeparatorChar}temp");
+        new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime()).TempDirectory
+            .Should().Be($"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    public void BootSettings_Properties()
+    public void TempDirectory_BuildDirectoryTfs2015Set_TempPathFromBuildDirectoryTfs2015()
     {
-        // Check the properties values and that relative paths are turned into absolute paths
-        var logger = new TestLogger();
-        using var envScope = new EnvironmentVariableScope().SetVariable(BootstrapperSettings.BuildDirectory_Legacy, @"c:\temp");
+        using var envScope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, $"c:{Path.DirectorySeparatorChar}temp");
+        new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime()).TempDirectory
+            .Should().Be($"c:{Path.DirectorySeparatorChar}temp{Path.DirectorySeparatorChar}.sonarqube");
+    }
 
-        // Default value -> relative to download dir
-        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, logger);
-        sut.TempDirectory.Should().Be(@"c:\temp\.sonarqube");
+    [TestMethod]
+    public void TempDirectory_BuildDirectoryLegacySet_BuildDirectoryTfs2015Set_BuildDirectoryLegacyTakesPrecedence()
+    {
+        using var envScope = new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "BuildDirectoryLegacy")
+            .SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "BuildDirectoryTfs2015");
+        new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime()).TempDirectory
+            .Should().Be($"BuildDirectoryLegacy{Path.DirectorySeparatorChar}.sonarqube");
+    }
+
+    [TestMethod]
+    public void TempDirectory_BuildDirectoryLegacyNotSet_BuildDirectoryTfs2015NotSet_TempPathFromCurrentDirectory()
+    {
+        using var envScope = new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.BuildDirectoryLegacy, null)
+            .SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, null);
+        var runtime = new TestRuntime();
+        runtime.Directory.GetCurrentDirectory().Returns("CurrentDirectory");
+        new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, runtime).TempDirectory
+            .Should().Be($"CurrentDirectory{Path.DirectorySeparatorChar}.sonarqube");
+    }
+
+    [TestMethod]
+    public void Properties_ScannerBinaryDirPath()
+    {
+        var sut = new BootstrapperSettings(AnalysisPhase.PreProcessing, null, LoggerVerbosity.Debug, new TestRuntime());
+        string extension;
+#if NETFRAMEWORK
+        extension = "exe";
+#else
+        extension = "dll";
+#endif
+        $"{sut.ScannerBinaryDirPath}{Path.DirectorySeparatorChar}SonarScanner.MSBuild.{extension}".Should().Be(typeof(BootstrapperSettings).Assembly.Location);
     }
 }

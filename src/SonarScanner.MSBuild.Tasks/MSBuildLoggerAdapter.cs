@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using Microsoft.Build.Utilities;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Tasks;
 
@@ -50,30 +48,12 @@ internal class MSBuildLoggerAdapter : ILogger
     void ILogger.LogWarning(string message, params object[] args) =>
         msBuildLogger.LogWarning(message, args);
 
-    void ILogger.LogUIWarning(string message, params object[] args) =>
-        msBuildLogger.LogWarning(message, args);
-
     void ILogger.SuspendOutput()
     {
         // no-op
     }
 
     void ILogger.ResumeOutput()
-    {
-        // no-op
-    }
-
-    void ILogger.WriteUIWarnings(string outputFolder)
-    {
-        // no-op
-    }
-
-    void ILogger.AddTelemetryMessage(string key, object value)
-    {
-        // no-op
-    }
-
-    void ILogger.WriteTelemetry(string outputFolder)
     {
         // no-op
     }

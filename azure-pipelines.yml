@@ -1,4 +1,4 @@
-# SonarScanner for MSBuild
+# SonarScanner for .NET
 # Build, QA, Deploy
 
 schedules:
@@ -38,8 +38,6 @@ variables:
     value: "Any CPU"
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
-  - name: NUGET_VERSION
-    value: "6.10.1"
 
 stages:
   - stage: build
@@ -55,11 +53,6 @@ stages:
           commonMavenArguments: -B -Pdeploy-sonarsource -Dmaven.test.skip=true
         steps:
           - checkout: self
-
-          - task: NuGetToolInstaller@1
-            displayName: "Install NuGet"
-            inputs:
-              versionSpec: $(NUGET_VERSION)
 
           - task: Cache@2
             displayName: Cache Maven local repo
@@ -123,6 +116,7 @@ stages:
               command: 'restore'
               projects: '$(SOLUTION)'
               feedsToUse: 'config'
+              restoreArguments: --locked-mode
               nugetConfigPath: 'NuGet.Config'
               verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
@@ -173,16 +167,10 @@ stages:
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
 
-          - task: NuGetCommand@2
+          - script: nuget pack nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec -OutputDirectory build
             displayName: 'Package dotnet global tool'
-            inputs:
-              command: 'pack'
-              packagesToPack: 'nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec'
-              packDestination: 'build'
-              versioningScheme: 'off'
 
-          - powershell: |
-              nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
+          - task: PowerShell@2
             displayName: "Sign NuGet packages"
             condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
             env:
@@ -191,6 +179,9 @@ stages:
               SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
               SM_API_KEY: $(SM_API_KEY)
               SM_CERT: $(SM_CERT)
+            inputs:
+              targetType: 'inline'
+              script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
           - powershell: |
               Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
@@ -224,7 +215,7 @@ stages:
                 -DgenerateBackupPoms=false -e
               javaHomeOption: 'JDKVersion'
               mavenVersionOption: 'Default'
-              jdkVersionOption: '1.17'
+              jdkVersionOption: '1.21'
               mavenOptions: $(MAVEN_OPTS)
 
           - task: DownloadSecureFile@1
@@ -249,7 +240,7 @@ stages:
                 -Pdeploy-sonarsource,sign -e -V
               publishJUnitResults: false
               javaHomeOption: 'JDKVersion'
-              jdkVersionOption: '1.17'
+              jdkVersionOption: '1.21'
               mavenOptions: $(MAVEN_OPTS)
 
           - powershell: |
@@ -273,16 +264,30 @@ stages:
     displayName: 'QA - Windows:'
     dependsOn: build
     jobs:
-      - job: uts_analysis_mend
-        displayName: 'Run UTs, SC analysis and Mend scan'
+      - job: uts_analysis
+        displayName: 'Run UTs, SC analysis'
         workspace:
           clean: all
         steps:
-          - script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              targetPath: '$(Build.SourcesDirectory)/build'
+              artifactName: build
+
+          - powershell: |
+              $projectVersion = Get-Content "$(Build.SourcesDirectory)/build/version.txt"
+              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
+            displayName: 'Set SONAR_PROJECT_VERSION variable for this job'
+
+          - task: PowerShell@2
             displayName: "NuGet Restore"
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+            inputs:
+              targetType: 'inline'
+              script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
 
           - task: SonarCloudPrepare@3
             displayName: 'Code Analysis - Begin'
@@ -294,7 +299,7 @@ stages:
               projectVersion: '$(SONAR_PROJECT_VERSION)'
               scannerMode: 'dotnet'
               extraProperties: |
-                sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/coverage/**.xml"
+                sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/Coverage/**.xml"
                 sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
 
           - task: VSBuild@1
@@ -303,12 +308,20 @@ stages:
               solution: '$(SOLUTION)'
               platform: '$(BUILD_PLATFORM)'
               configuration: '$(BUILD_CONFIGURATION)'
+              msbuildArgs: '/p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true'
 
-          - powershell: .\scripts\run-unit-tests.ps1 -sourcesDirectory "$(Build.SourcesDirectory)" -buildConfiguration "$(BUILD_CONFIGURATION)"
+          - powershell: .\scripts\run-unit-tests.ps1 -SourcesDirectory "$(Build.SourcesDirectory)" -BuildConfiguration "$(BUILD_CONFIGURATION)"
             displayName: 'Run UTs and compute coverage'
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testRunner: VSTest
+              testResultsFiles: $(Build.SourcesDirectory)/TestResults/*.trx # Not **/*.trx because there are invalid trx files from test resources in subdirectories
+              testRunTitle: UTs Windows
 
           - task: PublishBuildArtifacts@1
             inputs:
@@ -330,24 +343,13 @@ stages:
             inputs:
               pollingTimeoutSec: '300'
 
-          - powershell: .\scripts\Mend\Mend-Scan.ps1
-            displayName: "Mend scan"
-            condition: eq(variables.IS_RELEASE_BRANCH, 'true')
-            env:
-              JAVA_HOME_11_X64: '$(JAVA_HOME_11_X64)'
-              WS_PRODUCTNAME: '$(MEND_PRODUCTNAME)'
-              WS_APIKEY: '$(WHITESOURCE_APIKEY)'
-              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-
-
       - template: templates/its-jobs.yml
         parameters:
           matrix:
             LTA-89:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[8.9]"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "6.20.5.49286"   # Bundled version with SQ 8.9
               CSS_VERSION: "1.4.2.2002"         # Bundled version with SQ 8.9
@@ -355,6 +357,7 @@ stages:
               GO_VERSION: "1.8.3.2219"          # Bundled version with SQ 8.9
               GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "NONE"               # No release brefore SQ 9.9, the plug-in should not be loaded
+              IAC_ENTERPRISE_VERSION: "NONE"    # Not present until LTA-2025
               JAVA_VERSION: "NONE"              # Not required in our ITs for SQ 8.9
               JAVASCRIPT_VERSION: "7.4.4.15624" # Bundled version with SQ 8.9
               PHP_VERSION: "3.17.0.7439"        # Bundled version with SQ 8.9
@@ -365,7 +368,7 @@ stages:
             LTA-99:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[9.9]"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "6.41.0.60884"    # Bundled version with SQ 9.9
               CSS_VERSION: "NONE"                # No official release in SQ 9.9, the plug-in should not be loaded. Rules are in the JS plugin
@@ -373,6 +376,7 @@ stages:
               GO_VERSION: "1.11.0.3905"          # Bundled version with SQ 9.9
               GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "1.11.0.2847"         # Bundled version with SQ 9.9
+              IAC_ENTERPRISE_VERSION: "NONE"     # Not present until LTA-2025
               JAVA_VERSION: "NONE"               # Not required in our ITs for SQ 9.9
               JAVASCRIPT_VERSION: "9.13.0.20537" # Bundled version with SQ 9.9
               PHP_VERSION: "3.27.1.9352"         # Bundled version with SQ 9.9
@@ -383,45 +387,67 @@ stages:
             LTA-2025:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE[2025.1]"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
-              CFAMILY_VERSION: "6.62.0.78645"     # Bundled version with SQ 2025.1
-              CSS_VERSION: "NONE"                 # No official release in SQ 2025.1, the plug-in should not be loaded. Rules are in the JS plugin
-              DOTNET_VERSION: "10.4.0.108396"     # Bundled version with SQ 2025.1
-              GO_VERSION: "1.18.0.240"            # Bundled version with SQ 2025.1
+              CFAMILY_VERSION: "6.62.0.78645"         # Bundled version with SQ 2025.1
+              CSS_VERSION: "NONE"                     # No official release in SQ 2025.1, the plug-in should not be loaded. Rules are in the JS plugin
+              DOTNET_VERSION: "10.4.0.108396"         # Bundled version with SQ 2025.1
+              GO_VERSION: "1.18.0.240"                # Bundled version with SQ 2025.1
               GO_GROUP_ID: "org.sonarsource.slang"
-              IAC_VERSION: "1.41.0.14206"         # Bundled version with SQ 2025.1
-              JAVA_VERSION: "8.9.0.37768"         # Bundled version with SQ 2025.1, required by sonar-text to analyse .properties files
-              JAVASCRIPT_VERSION: "10.20.0.29356" # Bundled version with SQ 2025.1
-              PHP_VERSION: "3.42.0.12795"         # Bundled version with SQ 2025.1
-              PLSQL_VERSION: "3.15.0.7123"        # Bundled version with SQ 2025.1
-              PYTHON_VERSION: "4.26.0.19456"      # Bundled version with SQ 2025.1
-              TEXT_VERSION: "2.20.0.5038"         # Bundled version with SQ 2025.1
-              XML_VERSION: "2.12.0.5749"          # Bundled version with SQ 2025.1
+              IAC_VERSION: "1.41.0.14206"             # Bundled version with SQ 2025.1
+              IAC_ENTERPRISE_VERSION: "1.41.0.14206"  # Bundled version with SQ 2025.1
+              JAVA_VERSION: "8.9.0.37768"             # Bundled version with SQ 2025.1, required by sonar-text to analyse .properties files
+              JAVASCRIPT_VERSION: "10.20.0.29356"     # Bundled version with SQ 2025.1
+              PHP_VERSION: "3.42.0.12795"             # Bundled version with SQ 2025.1
+              PLSQL_VERSION: "3.15.0.7123"            # Bundled version with SQ 2025.1
+              PYTHON_VERSION: "4.26.0.19456"          # Bundled version with SQ 2025.1
+              TEXT_VERSION: "2.20.0.5038"             # Bundled version with SQ 2025.1
+              XML_VERSION: "2.12.0.5749"              # Bundled version with SQ 2025.1
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild15:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_15_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild16:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_16_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             DEV_MsBuild17:
               PRODUCT: "SonarQube"
               SQ_VERSION: "DEV"
               MSBUILD_PATH: $(MSBUILD_17_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
+            DEV_MsBuild18:
+              PRODUCT: "SonarQube"
+              SQ_VERSION: "DEV"
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
+              TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
+            DEV_Community:
+              PRODUCT: "SonarQube"
+              SQ_VERSION: "DEV"
+              SQ_EDITION: "COMMUNITY"
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
+              TEST_INCLUDE: "**/sonarqube/*"
+              CFAMILY_VERSION: "NONE"         # Commercial plugin
+              GO_VERSION: "NONE"              # Commercial plugin
+              IAC_ENTERPRISE_VERSION: "NONE"  # Commercial plugin
+              PLSQL_VERSION: "NONE"           # Commercial plugin
+              JDKVERSION: "1.21"
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
-              MSBUILD_PATH: $(MSBUILD_17_PATH)
+              MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarcloud/*"
             Others:
               PRODUCT: "others"
@@ -429,23 +455,25 @@ stages:
               MSBUILD_PATH: ""
               TEST_INCLUDE: "**/others/*"
 
-  - template: templates/unix-qa-stage.yml
-    parameters:
-      vmImage: "ubuntu-22.04"
-      name: "Linux"
+  # TODO: SCAN4NET-1004 re-enable when MacOS and Linux agents have .net 10 installed
 
-  - template: templates/unix-qa-stage.yml
-    parameters:
-      vmImage: "macOS-latest"
-      name: "MacOS"
+  # - template: templates/unix-qa-stage.yml
+  #   parameters:
+  #     vmImage: "ubuntu-22.04"
+  #     name: "Linux"
+
+  # - template: templates/unix-qa-stage.yml
+  #   parameters:
+  #     vmImage: "macOS-14"
+  #     name: "MacOS"
 
   - stage: artifacts
     displayName: 'Promote Artifacts:'
     dependsOn:
     - build
     - qa_windows
-    - qa_linux
-    - qa_macos
+  #  - qa_linux
+  #  - qa_macos
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
     jobs:
     - job: promoteRepox

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,10 +17,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
-using System;
-using System.Collections.Generic;
-using System.Xml.Serialization;
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -57,6 +53,21 @@ public class AnalysisConfig
     /// The Java exe path to be used by the end step to call the scanner cli or engine.
     /// </summary>
     public string JavaExePath { get; set; }
+
+    /// <summary>
+    /// The path to the Scanner Engine jar.
+    /// </summary>
+    public string EngineJarPath { get; set; }
+
+    /// <summary>
+    /// The path to the SonarScanner Cli.
+    /// </summary>
+    public string SonarScannerCliPath { get; set; }
+
+    /// <summary>
+    /// Use the SonarScanner CLI instead of the engine jar.
+    /// </summary>
+    public bool UseSonarScannerCli { get; set; }
 
     /// <summary>
     /// The option that enables or disables multi-language analysis.

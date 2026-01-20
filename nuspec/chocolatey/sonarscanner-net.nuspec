@@ -19,7 +19,7 @@
     <summary>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
     <description>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
     <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
-    <copyright>SonarSource SA</copyright>
+    <copyright>SonarSource Sàrl</copyright>
     <releaseNotes>
 All release notes for SonarScanner .Net can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases
     </releaseNotes>

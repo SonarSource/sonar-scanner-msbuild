@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -143,7 +143,7 @@ class ParameterTest {
     var logs = context.runFailedAnalysis().end().getLogs();
 
     assertThat(logs).contains("The exclude flag has been set so the project will not be analyzed.");
-    assertThat(logs).contains("No analysable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+    assertThat(logs).contains("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
   }
 
   @Test

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -48,18 +48,23 @@ public static class BuildRunner
         ];
         Console.WriteLine("Project Directory: " + projectDir);
 
-        // Specify the targets to be executed, if any
-        if (targets?.Length > 0)
-        {
-            msbuildArgs.Add($"/t:" + string.Join(";", targets.ToArray()));
-        }
+        msbuildArgs.Add($"/t:{(targets?.Length > 0 ? string.Join(";", targets) : $"{TargetConstants.Restore};{TargetConstants.DefaultBuild}")}");
 
         // Run the build
         var args = new ProcessRunnerArguments(exePath, false)
         {
-            CmdLineArgs = msbuildArgs
+            CmdLineArgs = msbuildArgs.Select(x => new ProcessRunnerArguments.Argument(x)).ToArray()
         };
-        var runner = new ProcessRunner(new ConsoleLogger(true));
+        var logger = new ConsoleLogger(true);
+        var runtime = new Runtime(
+            new OperatingSystemProvider(FileWrapper.Instance, logger),
+            DirectoryWrapper.Instance,
+            FileWrapper.Instance,
+            logger,
+            new Telemetry(FileWrapper.Instance, logger),
+            new DateTimeWrapper(),
+            new AnalysisWarnings(FileWrapper.Instance, logger));
+        var runner = new ProcessRunner(runtime);
         var success = runner.Execute(args);
 
         File.Exists(binaryLogPath).Should().BeTrue();

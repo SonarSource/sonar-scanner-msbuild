@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ public class PluginTests
         plugin.IsValid.Should().BeTrue();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("pluginKey", "42", null)]
     [DataRow("pluginKey", null, "test.zip")]
     [DataRow(null, "42", "test.zip")]

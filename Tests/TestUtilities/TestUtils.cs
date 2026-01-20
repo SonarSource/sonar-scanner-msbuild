@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,12 +19,12 @@
  */
 
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace TestUtilities;
 
 public static class TestUtils
 {
-    public const string FilesToAnalyze = nameof(FilesToAnalyze);
     // Target file names
     public const string AnalysisTargetFile = "SonarQube.Integration.targets";
     public const string ImportsBeforeFile = "SonarQube.Integration.ImportBefore.targets";
@@ -47,7 +47,7 @@ public static class TestUtils
         var fullPath = CreateTestSpecificFolder(testContext);
         if (subDirNames.Length > 0)
         {
-            fullPath = Path.Combine(new[] { fullPath }.Concat(subDirNames).ToArray());
+            fullPath = Path.Combine([fullPath, .. subDirNames]);
             Directory.CreateDirectory(fullPath);
         }
 
@@ -155,12 +155,24 @@ public static class TestUtils
     /// Creates a batch file with the name of the current test
     /// </summary>
     /// <returns>Returns the full file name of the new file</returns>
-    public static string WriteBatchFileForTest(TestContext context, string content)
+    public static string WriteExecutableScriptForTest(TestContext context, string content)
     {
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        var fileExtension = isWindows ? ".bat" : ".sh";
         var testPath = CreateTestSpecificFolder(context);
-        var fileName = Path.Combine(testPath, context.TestName + ".bat");
-        File.Exists(fileName).Should().BeFalse("Not expecting a batch file to already exist: {0}", fileName);
-        File.WriteAllText(fileName, content);
+        var fileName = Path.Combine(testPath, context.TestName + fileExtension);
+        File.Exists(fileName).Should().BeFalse("Not expecting a script file to already exist: {0}", fileName);
+        File.WriteAllText(fileName, content.ToUnixLineEndings());
+#if NET
+
+        if (!isWindows)
+        {
+            File.SetUnixFileMode(fileName, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
+                | UnixFileMode.GroupRead | UnixFileMode.GroupWrite | UnixFileMode.GroupExecute
+                | UnixFileMode.OtherRead | UnixFileMode.OtherWrite | UnixFileMode.OtherExecute);
+        }
+#endif
         return fileName;
     }
 
@@ -198,7 +210,7 @@ public static class TestUtils
         {
             var contentFile = CreateEmptyFile(projectDir, "contentFile1.txt");
             var contentFileList = CreateFile(projectDir, "contentList.txt", contentFile);
-            AddAnalysisResult(contentProjectInfo, AnalysisType.FilesToAnalyze, contentFileList);
+            AddAnalysisResult(contentProjectInfo, AnalysisResultFileType.FilesToAnalyze, contentFileList);
         }
 
         return contentProjectInfo;
@@ -216,6 +228,7 @@ public static class TestUtils
 
     public static string CreateFile(string parentDir, string fileName, string content)
     {
+        Directory.CreateDirectory(parentDir);
         var fullPath = Path.Combine(parentDir, fileName);
         File.WriteAllText(fullPath, content);
         return fullPath;
@@ -259,12 +272,27 @@ public static class TestUtils
         return filePath;
     }
 
-    public static void AddAnalysisResult(string projectInfoFile, AnalysisType resultType, string location)
+    public static void AddAnalysisResult(string projectInfoFile, AnalysisResultFileType fileType, string location)
     {
         var projectInfo = ProjectInfo.Load(projectInfoFile);
-        projectInfo.AddAnalyzerResult(resultType, location);
+        projectInfo.AddAnalyzerResult(fileType, location);
         projectInfo.Save(projectInfoFile);
     }
+
+    public static void EnsureDefaultPropertiesFileDoesNotExist()
+    {
+        var defaultPropertiesFilePath = DefaultPropertiesFilePath();
+        if (File.Exists(defaultPropertiesFilePath))
+        {
+            File.Delete(defaultPropertiesFilePath);
+        }
+    }
+
+    /// <summary>
+    /// Returns a OS specific drive root for a path. It returns <c>c:\</c> on Windows and <c>/mnt/c/</c> on Linux/MacOS. It can be used to build OS-independent drive rooted paths.
+    /// </summary>
+    public static string DriveRoot(string driveLetter = "c") =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @$"{driveLetter}:\" : @$"/mnt/{driveLetter}/";
 
     #endregion Public methods
 
@@ -272,7 +300,7 @@ public static class TestUtils
 
     private static string CreateTestSpecificFolder(TestContext testContext) =>
         TestDirectoriesMap.GetOrAdd(
-            testContext.FullyQualifiedTestClassName + testContext.TestName,
+            testContext.FullyQualifiedTestClassName + testContext.TestDisplayName,
             x =>
             {
                 var uniqueDir = UniqueDirectory.CreateNext(testContext.TestRunDirectory);
@@ -284,10 +312,18 @@ public static class TestUtils
     private static void ExtractResourceToFile(string resourceName, string filePath)
     {
         var stream = typeof(TestUtils).Assembly.GetManifestResourceStream(resourceName);
-        using (var reader =  new StreamReader(stream))
+        using (var reader = new StreamReader(stream))
         {
             File.WriteAllText(filePath, reader.ReadToEnd());
         }
+    }
+
+    private static string DefaultPropertiesFilePath()
+    {
+        var defaultPropertiesFilePath = Path.Combine(
+            Path.GetDirectoryName(typeof(SonarScanner.MSBuild.Common.AnalysisConfig).Assembly.Location),
+            FilePropertyProvider.DefaultFileName);
+        return defaultPropertiesFilePath;
     }
 
     #endregion Private methods

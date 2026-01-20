@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,8 @@ public static class AnalysisConfigGenerator
     /// <param name="serverProperties">Analysis properties downloaded from the SonarQube server.</param>
     /// <param name="analyzersSettings">Specifies the Roslyn analyzers to use. Can be empty.</param>
     /// <param name="sonarQubeVersion">SonarQube/SonarCloud server version.</param>
-    /// <param name="resolvedJavaExePath">Java exe path calculated from IJreResolver.</param>
+    /// <param name="resolvedJavaExePath">Java exe path calculated from JreResolver.</param>
+    /// <param name="resolvedEngineJarPath">Scanner Engine jar path calculated from EngineResolver.</param>
     public static AnalysisConfig GenerateFile(ProcessedArgs localSettings,
                                               BuildSettings buildSettings,
                                               Dictionary<string, string> additionalSettings,
@@ -41,14 +42,16 @@ public static class AnalysisConfigGenerator
                                               List<AnalyzerSettings> analyzersSettings,
                                               string sonarQubeVersion,
                                               string resolvedJavaExePath,
-                                              ILogger logger)
+                                              string resolvedEngineJarPath,
+                                              string resolvedScannerCliPath,
+                                              IRuntime runtime)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         _ = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
         _ = additionalSettings ?? throw new ArgumentNullException(nameof(additionalSettings));
         _ = serverProperties ?? throw new ArgumentNullException(nameof(serverProperties));
         _ = analyzersSettings ?? throw new ArgumentNullException(nameof(analyzersSettings));
-        _ = logger ?? throw new ArgumentNullException(nameof(logger));
+        _ = runtime ?? throw new ArgumentNullException(nameof(runtime));
         var config = new AnalysisConfig
         {
             SonarConfigDir = buildSettings.SonarConfigDirectory,
@@ -56,10 +59,15 @@ public static class AnalysisConfigGenerator
             SonarBinDir = buildSettings.SonarBinDirectory,
             SonarScannerWorkingDirectory = buildSettings.SonarScannerWorkingDirectory,
             SourcesDirectory = buildSettings.SourcesDirectory,
-            JavaExePath = string.IsNullOrWhiteSpace(localSettings.JavaExePath) ? resolvedJavaExePath : localSettings.JavaExePath, // the user-specified JRE overrides the resolved value
+            // the user-specified JRE overrides the resolved value
+            JavaExePath = string.IsNullOrWhiteSpace(localSettings.JavaExePath) ? resolvedJavaExePath : localSettings.JavaExePath,
+            // the user-specified engine.jar overrides the resolved value
+            EngineJarPath = string.IsNullOrWhiteSpace(localSettings.EngineJarPath) ? resolvedEngineJarPath : localSettings.EngineJarPath,
+            SonarScannerCliPath = resolvedScannerCliPath,
             ScanAllAnalysis = localSettings.ScanAllAnalysis,
+            UseSonarScannerCli = localSettings.UseSonarScannerCli,
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
-                                                 || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
+                || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
             SonarQubeHostUrl = localSettings.ServerInfo.ServerUrl,
             SonarQubeVersion = sonarQubeVersion,
             SonarProjectKey = localSettings.ProjectKey,
@@ -69,8 +77,23 @@ public static class AnalysisConfigGenerator
             LocalSettings = [],
             AnalyzersSettings = analyzersSettings
         };
-        var processRunner = new ProcessRunner(logger);
-        foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, processRunner, logger))
+
+        // When passing paths between begin and end step, they must be absolute paths
+        if (!string.IsNullOrWhiteSpace(config.JavaExePath))
+        {
+            config.JavaExePath = runtime.Directory.GetFullPath(config.JavaExePath);
+        }
+        if (!string.IsNullOrWhiteSpace(config.EngineJarPath))
+        {
+            config.EngineJarPath = runtime.Directory.GetFullPath(config.EngineJarPath);
+        }
+        if (!string.IsNullOrWhiteSpace(config.SonarScannerCliPath))
+        {
+            config.SonarScannerCliPath = runtime.Directory.GetFullPath(config.SonarScannerCliPath);
+        }
+
+        var processRunner = new ProcessRunner(runtime);
+        foreach (var processor in CreateProcessors(buildSettings, localSettings, additionalSettings, serverProperties, processRunner, runtime))
         {
             processor.Update(config);
         }
@@ -83,7 +106,7 @@ public static class AnalysisConfigGenerator
                                                                           Dictionary<string, string> additionalSettings,
                                                                           IDictionary<string, string> serverProperties,
                                                                           IProcessRunner processRunner,
-                                                                          ILogger logger) =>
+                                                                          IRuntime runtime) =>
     [
         new InitializationProcessor(buildSettings, localSettings, additionalSettings, serverProperties), // this must be first
         new CoverageExclusionsProcessor(localSettings, serverProperties),
@@ -91,10 +114,7 @@ public static class AnalysisConfigGenerator
         new TruststorePropertiesProcessor(
             localSettings,
             serverProperties,
-            FileWrapper.Instance,
-            DirectoryWrapper.Instance,
             processRunner,
-            logger,
-            new OperatingSystemProvider(FileWrapper.Instance, logger))
+            runtime)
     ];
 }

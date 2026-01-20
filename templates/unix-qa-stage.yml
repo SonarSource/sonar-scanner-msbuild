@@ -17,14 +17,31 @@ stages:
         displayName: "Run UTs"
         steps:
           - task: DotNetCoreCLI@2
-            displayName: 'Run dotnet test'
+            displayName: 'Build test pre-requisites' # Required in ProcessRunnerTests
             inputs:
-              command: 'test'
-              arguments: '--framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ parameters.name }}"'
-              testRunTitle: UTs ${{ parameters.name }}
+              command: 'publish'
+              projects: './Tests/LogArgs/LogArgs.csproj'
+              publishWebProjects: false
+              zipAfterPublish: false
+              arguments: '--framework net9.0 --self-contained'
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+          - task: DotNetCoreCLI@2
+            displayName: 'Run dotnet test'
+            inputs:
+              command: 'custom'
+              custom: 'test' # Run test as custom command, because we need to control the test result upload via PublishTestResults (see there for details)
+              arguments: '--framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ parameters.name }}" --logger trx --results-directory "$(Build.SourcesDirectory)/TestResults" /p:AutomaticallyUseReferenceAssemblyPackages=true'
+            env:
+              ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testRunTitle: UTs ${{ parameters.name }}
+              testRunner: VSTest
+              testResultsFiles: '$(Build.SourcesDirectory)/TestResults/*.trx' # Not **/*.trx because there are invalid trx files from test resources in subdirectories
 
       - template: ./its-jobs.yml
         parameters:
@@ -32,7 +49,9 @@ stages:
             - powershell: $(Build.SourcesDirectory)/scripts/ci-self-signed-certificate.ps1
               displayName: "Create self-signed certificate"
             # On Linux/MacOS we need to update the execution permissions for the ScannerCLI
-            - script: chmod -R +x $(Build.SourcesDirectory)/build/sonarscanner-net/sonar-scanner-*/bin
+            - script: |
+                chmod -R +x $(Build.SourcesDirectory)/build/sonarscanner-net/sonar-scanner-*/bin
+                exit 0 # Always return 0; chmod fails when the scanner-cli is not present.
               name: scannerPermissions
               displayName: "Update Scanner permissions"
           matrix:

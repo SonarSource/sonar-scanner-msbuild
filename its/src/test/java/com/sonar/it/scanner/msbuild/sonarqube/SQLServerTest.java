@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -21,7 +21,9 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.DisableOnEdition;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.orchestrator.container.Edition;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -30,7 +32,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class SQLServerTest {
@@ -38,6 +40,7 @@ class SQLServerTest {
   @Test
   // The project contains a .sqlproj file, which is only supported by Visual Studio, so it requires MSBuild to be build it
   @EnabledOnOs(OS.WINDOWS)
+  @DisableOnEdition(Edition.COMMUNITY)
   void sqlProject_AnalyzesAlsoCSharp() {
     var context = AnalysisContext.forServer("SQLServerSolution");
     context.runAnalysis();

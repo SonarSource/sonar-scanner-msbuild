@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,24 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
-internal class SonarCloudWebServer : SonarWebServer
+internal class SonarCloudWebServer : SonarWebServerBase, ISonarWebServer
 {
     private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
 
-    private readonly HttpClient cacheClient;
+    private readonly HttpClient unauthenticatedClient;
 
     public SonarCloudWebServer(IDownloader webDownloader,
                                IDownloader apiDownloader,
@@ -48,75 +44,83 @@ internal class SonarCloudWebServer : SonarWebServer
     {
         Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
 
-        cacheClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
-        cacheClient.Timeout = httpTimeout;
+        unauthenticatedClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
+        unauthenticatedClient.Timeout = httpTimeout;
         logger.LogInfo(Resources.MSG_UsingSonarCloud);
     }
 
-    public override bool IsServerVersionSupported()
+    public bool IsServerVersionSupported()
     {
         logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipVersionCheck);
         return true;
     }
 
-    public override Task<bool> IsServerLicenseValid()
+    public Task<bool> IsServerLicenseValid()
     {
         logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
         return Task.FromResult(true);
     }
 
-    public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
+    public async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
-        var empty = new List<SensorCacheEntry>();
-
         if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
-            return empty;
+            return [];
         }
         if (!TryGetBaseBranch(localSettings, out var branch))
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
-            return empty;
+            return [];
         }
-        if (GetToken(localSettings) is not { } token)
+        if (AuthToken(localSettings) is { } token)
+        {
+            var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
+            if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
+            {
+                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
+                return [];
+            }
+
+            try
+            {
+                logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
+                var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
+                if (ephemeralUrl is null)
+                {
+                    return [];
+                }
+                using var stream = await DownloadCacheStream(ephemeralUrl);
+                return ParseCacheEntries(stream);
+            }
+            catch (Exception e)
+            {
+                logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+                logger.LogDebug(e.ToString());
+                return [];
+            }
+        }
+        else
         {
             logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
-            return empty;
-        }
-        var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
-        if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
-        {
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
-            return empty;
-        }
-
-        try
-        {
-            logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
-            var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
-            if (ephemeralUrl is null)
-            {
-                return empty;
-            }
-            using var stream = await DownloadCacheStream(ephemeralUrl);
-            return ParseCacheEntries(stream);
-        }
-        catch (Exception e)
-        {
-            logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
-            logger.LogDebug(e.ToString());
-            return empty;
+            return [];
         }
     }
 
     // Do not use the downloaders here, as this is an unauthenticated request
-    public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
+    public async Task<Stream> DownloadJreAsync(JreMetadata metadata)
     {
-        var uri = new Uri(metadata.DownloadUrl);
-        logger.LogDebug(Resources.MSG_JreDownloadUri, uri);
-        return await cacheClient.GetStreamAsync(uri);
+        _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(JreMetadata)} must contain a valid download URL.");
+        logger.LogDebug(Resources.MSG_JreDownloadUri, metadata.DownloadUrl);
+        return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
+    }
+
+    public async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
+    {
+        _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(EngineMetadata)} must contain a valid download URL.");
+        logger.LogDebug(Resources.MSG_EngineDownloadUri, metadata.DownloadUrl);
+        return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
     }
 
     protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
@@ -132,7 +136,7 @@ internal class SonarCloudWebServer : SonarWebServer
     {
         if (disposing)
         {
-            cacheClient.Dispose();
+            unauthenticatedClient.Dispose();
         }
 
         base.Dispose(disposing);
@@ -140,12 +144,12 @@ internal class SonarCloudWebServer : SonarWebServer
 
     private async Task<Uri> DownloadEphemeralUrl(string organization, string projectKey, string branch, string token, string cacheBaseUrl)
     {
-        var uri = new Uri(WebUtils.CreateUri(cacheBaseUrl), WebUtils.Escape("sensor-cache/prepare-read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
+        var uri = new Uri(WebUtils.CreateUri(cacheBaseUrl), WebUtils.EscapedUri("sensor-cache/prepare-read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.Add("Authorization", $"Bearer {token}");
         logger.LogDebug(Resources.MSG_Processing_PullRequest_RequestPrepareRead, uri);
 
-        using var response = await cacheClient.SendAsync(request);
+        using var response = await unauthenticatedClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
             logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' did not respond successfully.");
@@ -169,7 +173,7 @@ internal class SonarCloudWebServer : SonarWebServer
 
     private async Task<Stream> DownloadCacheStream(Uri uri)
     {
-        var compressed = await cacheClient.GetStreamAsync(uri);
+        var compressed = await unauthenticatedClient.GetStreamAsync(uri);
         using var decompressor = new GZipStream(compressed, CompressionMode.Decompress);
         var decompressed = new MemoryStream();
         await decompressor.CopyToAsync(decompressed);
@@ -177,7 +181,7 @@ internal class SonarCloudWebServer : SonarWebServer
         return decompressed;
     }
 
-    private static string GetToken(ProcessedArgs localSettings)
+    private static string AuthToken(ProcessedArgs localSettings)
     {
         if (localSettings.TryGetSetting(SonarProperties.SonarUserName, out var login))
         {

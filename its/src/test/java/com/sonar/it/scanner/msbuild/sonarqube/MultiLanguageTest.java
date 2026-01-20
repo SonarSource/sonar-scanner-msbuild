@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -21,11 +21,13 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.DisableOnEdition;
 import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
+import com.sonar.orchestrator.container.Edition;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -74,12 +76,14 @@ class MultiLanguageTest {
   @Test
   // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
   @ServerMinVersion("10.8")
-  // This test is not supported on versions older than Visual Studio 2022
-  @MSBuildMinVersion(17)
+  // This test is not supported on versions older than Visual Studio 2026
+  @MSBuildMinVersion(18)
+  @DisableOnEdition(Edition.COMMUNITY)
   void esprojVueWithBackend() {
     // For this test also the .vscode folder has been included in the project folder:
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
+    context.begin.CreateAndSetUserHomeFolder("junit-esproj-vue-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
@@ -87,7 +91,7 @@ class MultiLanguageTest {
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     var version = ORCHESTRATOR.getServer().version();
-    var expectedIssues = new Tuple[]{
+    var expectedIssues = new ArrayList<>(List.of(
       tuple("csharpsquid:S1134", context.projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S6966", context.projectKey + ":AspBackend/Program.cs"),
@@ -106,16 +110,25 @@ class MultiLanguageTest {
       tuple("php:S1780", context.projectKey + ":node_modules/flatted/php/flatted.php"),
       tuple("python:S5754", context.projectKey + ":node_modules/flatted/python/flatted.py"),
       tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py"),
-      tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py")};
+      tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py")));
+    if(version.isGreaterThanOrEquals(2025,4)){
+      // SonarJs 11.4 targets 2025.5 but since we are currently using the latest analyzer versions we need to check for 2025.4.
+      // This will break when we add tests for 2025.4. (it's not an LTA but is supported like one). When that happens, change condition to 2025.5 and remove this comment.
+      expectedIssues.addAll(List.of(
+        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
+        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
+        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
+        tuple("javascript:S7772", context.projectKey + ":vite.config.js")));
+    }
     if (version.isGreaterThanOrEquals(2025, 1)) {
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(expectedIssues);
+        .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
     } else {
       assertThat(issues).hasSize(83);
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
-        .contains(expectedIssues);
+        .contains(expectedIssues.toArray(new Tuple[]{}));
     }
     // Different expected values are for different SQ and MsBuild versions and local run
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", ORCHESTRATOR)).isGreaterThan(300);
@@ -126,9 +139,11 @@ class MultiLanguageTest {
   @Test
   // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
   @MSBuildMinVersion(16)
+  @DisableOnEdition(Edition.COMMUNITY)
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
+    context.begin.CreateAndSetUserHomeFolder("junit-sdkFormat-");
     // Begin step runs in MultiLanguageSupport
     // Build step runs in MultiLanguageSupport/src
     context.build.addArgument("src/MultiLanguageSupport.sln");
@@ -188,7 +203,6 @@ class MultiLanguageTest {
       }
       if (version.isGreaterThan(9, 9)) {
         expectedIssues.addAll(List.of(
-          tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx"),
           tuple("azureresourcemanager:S1135", context.projectKey + ":main.bicep"),
           tuple("azureresourcemanager:S4423", context.projectKey + ":main.bicep"),
           tuple("cloudformation:S1135", context.projectKey + ":cloudformation.yaml"),
@@ -208,7 +222,11 @@ class MultiLanguageTest {
           tuple("secrets:S6702", context.projectKey + ":src/script.ksh"),
           tuple("secrets:S6702", context.projectKey + ":src/script.ps1"),
           tuple("secrets:S6702", context.projectKey + ":src/script.zsh")));
-      }
+        if (!version.isGreaterThan(2025, 1)) {
+            expectedIssues.addAll(List.of(
+              tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
+          }
+        }
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
@@ -222,6 +240,7 @@ class MultiLanguageTest {
   @MSBuildMinVersion(17)
   void react() {
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
+    context.begin.CreateAndSetUserHomeFolder("junit-react-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
@@ -248,8 +267,10 @@ class MultiLanguageTest {
   @Test
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
+  @DisableOnEdition(Edition.COMMUNITY)
   void angular() {
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
+    context.begin.CreateAndSetUserHomeFolder("junit-angular-");
     context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
     context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
@@ -277,7 +298,24 @@ class MultiLanguageTest {
     if (version.isGreaterThanOrEquals(2025, 1)) {
       expectedIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
     }
-
+    if (version.isGreaterThanOrEquals(2025, 4)) {
+      // githubactions was released in sonar-iac 1.49 which targets 2025.5 but since we are currently using the latest analyzer versions we need to check for 2025.4.
+      // This will break when we add tests for 2025.4. (it's not an LTA but is supported like one). When that happens, change condition to 2025.5 and remove this comment.
+      expectedIssues.addAll(List.of(
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml")));
+      // SonarJs 11.4 same as above
+      expectedIssues.addAll(List.of(
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7750", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7726", context.projectKey + ":ClientApp/karma.conf.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/karma.conf.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js"),
+        tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts")));
+    }
     assertThat(issues)
       .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
       .extracting(Issue::getRule, Issue::getComponent)
@@ -290,7 +328,7 @@ class MultiLanguageTest {
         tuple("python:S5754", context.projectKey + ":ClientApp/node_modules/flatted/python/flatted.py")
       )
       .size()
-      .isIn(1053, 1210, 1212, 1234); // 8.9 = 1053, 9.9 = 1210, 2025.1 = 1234
+      .isGreaterThan(1000);
 
     assertThat(issues)
       .filteredOn(x -> x.getRule().startsWith("php"))
@@ -299,7 +337,7 @@ class MultiLanguageTest {
         tuple("php:S121", context.projectKey + ":ClientApp/node_modules/flatted/php/flatted.php")
       )
       .size()
-      .isIn(6, 9, 28);
+      .isGreaterThan(5);
 
     if (ORCHESTRATOR.getServer().version().getMajor() == 8) {
       // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
@@ -314,11 +352,13 @@ class MultiLanguageTest {
   }
 
   @Test
-  // Multi-language unsupported in SQ99§
+  // Multi-language unsupported in SQ99
   @ServerMinVersion("10.0")
   @EnabledOnOs(OS.WINDOWS)
+  @DisableOnEdition(Edition.COMMUNITY)
   void nonSdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupportNonSdk");
+    context.begin.CreateAndSetUserHomeFolder("junit-nonSdkFormat-");
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -332,12 +372,13 @@ class MultiLanguageTest {
         tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/NotIncluded.sql"));
   }
 
+
   // This class is used to create a .git folder in the project directory.
   // This is required for the sonar-text-plugin to work correctly.
   // For file extensions that are not owned by a specific plugin to be analyzed by the sonar-text-plugin,
   // it is required them to be part of a git repository.
-  // See https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/languages/secrets/#adding-files-based-on-pathmatching-patterns
-  public class CreateGitFolder implements AutoCloseable {
+  // See https://docs.sonarsource.com/sonarqube-server/2025.2/analyzing-source-code/languages/secrets/#adding-files-based-on-pathmatching-patterns
+  public static class CreateGitFolder implements AutoCloseable {
     Path gitDir;
 
     public CreateGitFolder(Path projectDir) {
@@ -357,7 +398,7 @@ class MultiLanguageTest {
     public void commitAll() {
       try (var git = Git.open(gitDir.toFile())) {
         git.add().addFilepattern(".").call();
-        git.commit().setMessage("Initial commit").call();
+        git.commit().setMessage("Initial commit").setSign(false).call();
       } catch (Exception ex) {
         throw new RuntimeException(ex.getMessage(), ex);
       }

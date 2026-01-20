@@ -1,6 +1,5 @@
 # Text files should have CRLF line endings, even on non-Windows machines
 *.txt eol=crlf
-*.cs eol=crlf
 *.sln eol=crlf
 *.xml eol=crlf
 *.config eol=crlf
@@ -9,6 +8,9 @@
 *.csproj eol=crlf
 *.settings eol=crlf
 
+# C# code should have LF everywhere
+*.cs eol=lf
+
 # Java projects should have LF
 *.java eol=lf
-*.pom eol=lf
+pom.xml eol=lf

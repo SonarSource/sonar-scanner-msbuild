@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@ namespace TestUtilities;
 /// This class reads Java style properties from an input stream.
 /// </summary>
 /// Copied from https://github.com/Kajabity/Kajabity-Tools
+// ToDo: Remove this class in SCAN4NET-721
 public class JavaPropertyReader
 {
     private const int MATCH_end_of_input = 1;

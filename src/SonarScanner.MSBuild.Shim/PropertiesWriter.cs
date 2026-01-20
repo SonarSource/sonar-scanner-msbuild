@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,37 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Shim;
 
+// ToDo: Remove this class in SCAN4NET-721
 public class PropertiesWriter
 {
     private const string SonarSources = "sonar.sources";
     private const string SonarTests = "sonar.tests";
-    private readonly ILogger logger;
     private readonly AnalysisConfig config;
 
     /// <summary>
     /// Project guids that have been processed. This is used in <see cref="Flush"/> to write the module keys in the end.
     /// </summary>
-    private readonly IList<string> moduleKeys = new List<string>();
+    private readonly IList<string> moduleKeys = [];
     private readonly StringBuilder sb = new();
 
     public bool FinishedWriting { get; private set; }
 
-    public PropertiesWriter(AnalysisConfig config, ILogger logger)
-    {
+    public PropertiesWriter(AnalysisConfig config) =>
         this.config = config ?? throw new ArgumentNullException(nameof(config));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     public static string Escape(string value)
     {
@@ -114,11 +104,11 @@ public class PropertiesWriter
         Debug.Assert(projectData.ReferencedFiles.Count > 0, "Expecting a project to have files to analyze");
         Debug.Assert(projectData.SonarQubeModuleFiles.All(x => x.Exists), "Expecting all of the specified files to exist");
 
-        var guid = projectData.Project.GetProjectGuidAsString();
+        var guid = projectData.Project.ProjectGuidAsString();
 
         AppendKeyValue(guid, SonarProperties.ProjectKey, config.SonarProjectKey + ":" + guid);
         AppendKeyValue(guid, SonarProperties.ProjectName, projectData.Project.ProjectName);
-        AppendKeyValue(guid, SonarProperties.ProjectBaseDir, projectData.Project.GetDirectory().FullName);
+        AppendKeyValue(guid, SonarProperties.ProjectBaseDir, projectData.Project.ProjectFileDirectory().FullName);
 
         if (!string.IsNullOrWhiteSpace(projectData.Project.Encoding))
         {
@@ -132,7 +122,10 @@ public class PropertiesWriter
 
         if (projectData.Project.AnalysisSettings is not null && projectData.Project.AnalysisSettings.Any())
         {
-            foreach (var setting in projectData.Project.AnalysisSettings.Where(x => !PropertiesFileGenerator.IsProjectOutPaths(x.Id) && !PropertiesFileGenerator.IsReportFilePaths(x.Id)))
+            foreach (var setting in projectData.Project.AnalysisSettings.Where(x =>
+                !ScannerEngineInputGenerator.IsProjectOutPaths(x.Id)
+                && !ScannerEngineInputGenerator.IsReportFilePaths(x.Id)
+                && !ScannerEngineInputGenerator.IsTelemetryPaths(x.Id)))
             {
                 sb.AppendFormat("{0}.{1}={2}", guid, setting.Id, Escape(setting.Value));
                 sb.AppendLine();
@@ -140,7 +133,7 @@ public class PropertiesWriter
 
             WriteAnalyzerOutputPaths(projectData);
             WriteRoslynReportPaths(projectData);
-
+            WriteTelemetryPaths(projectData);
             sb.AppendLine();
         }
 
@@ -149,6 +142,30 @@ public class PropertiesWriter
 
         var moduleWorkdir = Path.Combine(config.SonarOutputDir, ".sonar", $"mod{moduleKeys.Count - 1}"); // zero-based index of projectData.Guid
         AppendKeyValue(projectData.Guid, SonarProperties.WorkingDirectory, moduleWorkdir);
+    }
+
+    public void WriteTelemetryPaths(ProjectData project)
+    {
+        if (project.TelemetryPaths.Count == 0)
+        {
+            return;
+        }
+
+        string property;
+        if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
+        {
+            property = ScannerEngineInputGenerator.TelemetryPathsKeyCS;
+        }
+        else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
+        {
+            property = ScannerEngineInputGenerator.TelemetryPathsKeyVB;
+        }
+        else
+        {
+            return;
+        }
+
+        AppendKeyValue(project.Guid, property, project.TelemetryPaths);
     }
 
     public void WriteAnalyzerOutputPaths(ProjectData project)
@@ -161,11 +178,11 @@ public class PropertiesWriter
         string property;
         if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.ProjectOutPathsCsharpPropertyKey;
+            property = ScannerEngineInputGenerator.ProjectOutPathsKeyCS;
         }
         else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.ProjectOutPathsVbNetPropertyKey;
+            property = ScannerEngineInputGenerator.ProjectOutPathsKeyVB;
         }
         else
         {
@@ -185,11 +202,11 @@ public class PropertiesWriter
         string property;
         if (ProjectLanguages.IsCSharpProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.ReportFilePathsCSharpPropertyKey;
+            property = ScannerEngineInputGenerator.ReportFilePathsKeyCS;
         }
         else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
         {
-            property = PropertiesFileGenerator.ReportFilePathsVbNetPropertyKey;
+            property = ScannerEngineInputGenerator.ReportFilePathsKeyVB;
         }
         else
         {
@@ -258,8 +275,10 @@ public class PropertiesWriter
 
     private void AppendKeyValue(string key, string value)
     {
-        Debug.Assert(!ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
-            "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}", key);
+        Debug.Assert(
+            !ProcessRunnerArguments.ContainsSensitiveData(key) && !ProcessRunnerArguments.ContainsSensitiveData(value),
+            "Not expecting sensitive data to be written to the sonar-project properties file. Key: {0}",
+            key);
 
         sb.Append(key).Append('=').AppendLine(Escape(value));
     }
@@ -275,25 +294,6 @@ public class PropertiesWriter
     private static bool IsAscii(char c) =>
         c <= sbyte.MaxValue;
 
-    internal /* for testing purposes */ string EncodeAsMultiValueProperty(IEnumerable<string> paths)
-    {
-        var multiValuesPropertySeparator = $@",\{Environment.NewLine}";
-
-        if (Version.TryParse(this.config.SonarQubeVersion, out var sonarqubeVersion) && sonarqubeVersion.CompareTo(new Version(6, 5)) >= 0)
-        {
-            return string.Join(multiValuesPropertySeparator, paths.Select(x => $"\"{x.Replace("\"", "\"\"")}\""));
-        }
-        else
-        {
-            var invalidPaths = paths.Where(InvalidPathPredicate);
-            if (invalidPaths.Any())
-            {
-                this.logger.LogWarning(Resources.WARN_InvalidCharacterInPaths, string.Join(", ", invalidPaths));
-            }
-
-            return string.Join(multiValuesPropertySeparator, paths.Where(x => !InvalidPathPredicate(x)));
-        }
-
-        bool InvalidPathPredicate(string path) => path.Contains(",");
-    }
+    private static string EncodeAsMultiValueProperty(IEnumerable<string> paths) =>
+        string.Join($@",\{Environment.NewLine}", paths.Select(x => $"\"{x.Replace("\"", "\"\"")}\""));
 }

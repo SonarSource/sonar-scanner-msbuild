@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using static TestUtilities.TestUtils;
 using MSCA = Microsoft.CodeAnalysis;
-using Task = Microsoft.Build.Utilities.Task;
 
 namespace SonarScanner.MSBuild.Tasks.UnitTest;
 
@@ -28,307 +28,237 @@ public class GetAnalyzerSettingsTests
 {
     public TestContext TestContext { get; set; }
 
-    #region Tests
-
     [TestMethod]
     public void MissingConfigDir_NoError()
     {
-        // Arrange
         var testSubject = new GetAnalyzerSettings
         {
             AnalysisConfigDir = "c:\\missing"
         };
-
-        // Act
         ExecuteAndCheckSuccess(testSubject);
-
-        // Assert
         CheckNoAnalyzerSettings(testSubject);
     }
 
     [TestMethod]
     public void MissingConfigFile_NoError()
     {
-        // Arrange
         var testSubject = new GetAnalyzerSettings
         {
-            AnalysisConfigDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)
+            AnalysisConfigDir = CreateTestSpecificFolderWithSubPaths(TestContext)
         };
-
-        // Act
         ExecuteAndCheckSuccess(testSubject);
-
-        // Assert
         CheckNoAnalyzerSettings(testSubject);
     }
 
     [TestMethod]
     public void ConfigExistsButNoAnalyzerSettings_NoError()
     {
-        // Arrange
         var testSubject = CreateConfiguredTestSubject(new AnalysisConfig(), "anyLanguage", TestContext);
-
-        // Act
         ExecuteAndCheckSuccess(testSubject);
-
-        // Assert
         CheckNoAnalyzerSettings(testSubject);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("7.3", DisplayName = "Legacy")]
     [DataRow("7.4")]
     public void ConfigExists_NoLanguage_SettingsOverwritten(string sonarQubeVersion)
     {
-        // Arrange
         var config = new AnalysisConfig
         {
             SonarQubeVersion = sonarQubeVersion,
-            AnalyzersSettings = new List<AnalyzerSettings>
-            {
+            AnalyzersSettings =
+            [
                 new AnalyzerSettings
                 {
                     Language = "cs",
                     RulesetPath = "f:\\yyy.ruleset",
-                    AnalyzerPlugins = new List<AnalyzerPlugin> { CreateAnalyzerPlugin("c:\\local_analyzer.dll") },
-                    AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
+                    AnalyzerPlugins = [CreateAnalyzerPlugin(Path.Combine(DriveRoot(), "local_analyzer.dll"))],
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "add1.txt"), Path.Combine(DriveRoot("d"), "add2.txt"), Path.Combine(DriveRoot("e"), "subdir", "add3.txt")]
                 }
-            }
+            ]
         };
-
-        var testSubject = CreateConfiguredTestSubject(config, string.Empty /* no language specified */, TestContext);
-        testSubject.OriginalAdditionalFiles = new[]
-        {
+        var testSubject = CreateConfiguredTestSubject(config, string.Empty, TestContext);
+        testSubject.OriginalAdditionalFiles =
+        [
             "original.should.be.preserved.txt"
-        };
+        ];
 
-        // Act
         ExecuteAndCheckSuccess(testSubject);
 
-        // Assert
         testSubject.RuleSetFilePath.Should().BeNull();
         testSubject.AnalyzerFilePaths.Should().BeNull();
         testSubject.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.preserved.txt");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // SONARMSBRU-216: non-assembly files should be filtered out
     [TestMethod]
     public void ConfigExists_Legacy_SettingsOverwritten()
     {
-        // Arrange
-        // SONARMSBRU-216: non-assembly files should be filtered out
         var filesInConfig = new List<AnalyzerPlugin>
         {
-            CreateAnalyzerPlugin("c:\\analyzer1.DLL"),
+            CreateAnalyzerPlugin(Path.Combine(DriveRoot(), "analyzer1.dll")),
             CreateAnalyzerPlugin(
-                "c:\\not_an_assembly.exe",
-                "c:\\not_an_assembly.zip",
-                "c:\\not_an_assembly.txt",
-                "d:\\analyzer2.dll"),
+                Path.Combine(DriveRoot(), "not_an_assembly.exe"),
+                Path.Combine(DriveRoot(), "not_an_assembly.zip"),
+                Path.Combine(DriveRoot(), "not_an_assembly.txt"),
+                Path.Combine(DriveRoot("d"), "analyzer2.dll")),
             CreateAnalyzerPlugin(
-                "c:\\not_an_assembly.dll.foo",
-                "c:\\not_an_assembly.winmd"),
-            CreateAnalyzerPlugin("e:\\analyzer3.dll")
+                Path.Combine(DriveRoot(), "not_an_assembly.dll.foo"),
+                Path.Combine(DriveRoot(), "not_an_assembly.winmd")),
+            CreateAnalyzerPlugin(Path.Combine(DriveRoot("e"), "analyzer3.dll"))
         };
-
         var config = new AnalysisConfig
         {
             SonarQubeHostUrl = "http://sonarqube.com",
             SonarQubeVersion = "7.3",
-            ServerSettings = new AnalysisProperties
-            {
+            ServerSettings =
+            [
                 // Setting should be ignored
                 new("sonar.cs.roslyn.ignoreIssues", "true")
-            },
-            AnalyzersSettings = new List<AnalyzerSettings>
-            {
+            ],
+            AnalyzersSettings =
+            [
                 new AnalyzerSettings
                 {
                     Language = "cs",
-                    RulesetPath = "f:\\yyy.ruleset",
+                    RulesetPath = Path.Combine(DriveRoot("f"), "yyy.ruleset"),
                     AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = new List<string> { "c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt" }
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "add1.txt"), Path.Combine(DriveRoot("d"), "add2.txt"), Path.Combine(DriveRoot("e"), "subdir", "add3.txt")]
                 },
 
                 new AnalyzerSettings
                 {
                     Language = "cobol",
-                    RulesetPath = "f:\\xxx.ruleset",
+                    RulesetPath = Path.Combine(DriveRoot("f"), "xxx.ruleset"),
                     AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
+                    AdditionalFilePaths = [Path.Combine(DriveRoot("e"), "cobol", "add1.txt"), Path.Combine(DriveRoot("d"), "cobol", "add2.txt")]
                 }
-            }
+            ]
         };
-
         var testSubject = CreateConfiguredTestSubject(config, "cs", TestContext);
-        testSubject.OriginalAdditionalFiles = new[]
-        {
+        testSubject.OriginalAdditionalFiles =
+        [
             "original.should.be.preserved.txt",
-            "original.should.be.removed\\add2.txt",
-            "e://foo//should.be.removed//add3.txt"
-        };
+            Path.Combine("original.should.be.removed", "add2.txt"),
+            Path.Combine(DriveRoot("e"), "foo", "should.be.removed", "add3.txt")
+        ];
 
-        // Act
         ExecuteAndCheckSuccess(testSubject);
 
-        // Assert
-        testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
-        testSubject.AnalyzerFilePaths.Should().BeEquivalentTo("c:\\analyzer1.DLL", "d:\\analyzer2.dll", "e:\\analyzer3.dll");
-        testSubject.AdditionalFilePaths.Should().BeEquivalentTo("c:\\add1.txt", "d:\\add2.txt", "e:\\subdir\\add3.txt", "original.should.be.preserved.txt");
+        testSubject.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot("f"), "yyy.ruleset"));
+        testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine(DriveRoot(), "analyzer1.dll"), Path.Combine(DriveRoot("d"), "analyzer2.dll"), Path.Combine(DriveRoot("e"), "analyzer3.dll"));
+        testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
+            Path.Combine(DriveRoot(), "add1.txt"),
+            Path.Combine(DriveRoot("d"), "add2.txt"),
+            Path.Combine(DriveRoot("e"), "subdir", "add3.txt"),
+            "original.should.be.preserved.txt");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Expecting both the additional files and the analyzers to be merged
     [TestMethod]
     public void ConfigExists_SettingsMerged()
     {
-        // Expecting both the additional files and the analyzers to be merged
-
-        // Arrange
-        // SONARMSBRU-216: non-assembly files should be filtered out
         var filesInConfig = new List<AnalyzerPlugin>
         {
-            new AnalyzerPlugin
+            new()
             {
-                AssemblyPaths = new List<string>
-                {
-                    "c:\\config\\analyzer1.DLL",
-                    "c:\\not_an_assembly.exe",
-                    "c:\\not_an_assembly.zip",
-                }
+                AssemblyPaths =
+                [
+                    Path.Combine(DriveRoot(), "config", "analyzer1.DLL"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.exe"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.zip"),
+                ]
             },
-            new AnalyzerPlugin
+            new()
             {
-                AssemblyPaths = new List<string>
-                {
-                    "c:\\config\\analyzer2.dll",
-                    "c:\\not_an_assembly.txt",
-                    "c:\\not_an_assembly.dll.foo",
-                    "c:\\not_an_assembly.winmd"
-                }
+                AssemblyPaths =
+                [
+                    Path.Combine(DriveRoot(), "config", "analyzer2.dll"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.txt"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.dll.foo"),
+                    Path.Combine(DriveRoot(), "not_an_assembly.winmd")
+                ]
             }
         };
 
         var config = new AnalysisConfig
         {
             SonarQubeVersion = "7.4",
-            ServerSettings = new AnalysisProperties { new("sonar.cs.roslyn.ignoreIssues", "false") },
-            AnalyzersSettings = new List<AnalyzerSettings>
-            {
+            ServerSettings = [new("sonar.cs.roslyn.ignoreIssues", "false")],
+            AnalyzersSettings =
+            [
                 new AnalyzerSettings
                 {
                     Language = "cs",
-                    RulesetPath = "f:\\yyy.ruleset",
+                    RulesetPath = Path.Combine(DriveRoot("f"), "yyy.ruleset"),
                     AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = new List<string> { "c:\\config\\add1.txt", "d:\\config\\add2.txt" }
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "config", "add1.txt"), Path.Combine(DriveRoot("d"), "config", "add2.txt")]
                 },
 
                 new AnalyzerSettings
                 {
                     Language = "cobol",
-                    RulesetPath = "f:\\xxx.ruleset",
-                    AnalyzerPlugins = new List<AnalyzerPlugin>(),
-                    AdditionalFilePaths = new List<string> { "c:\\cobol.\\add1.txt", "d:\\cobol\\add2.txt" }
+                    RulesetPath = Path.Combine(DriveRoot("f"), "xxx.ruleset"),
+                    AnalyzerPlugins = [],
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "cobol.", "add1.txt"), Path.Combine(DriveRoot("d"), "cobol", "add2.txt")]
                 }
-            }
+            ]
         };
-
         var testSubject = CreateConfiguredTestSubject(config, "cs", TestContext);
-
-        testSubject.OriginalAnalyzers = new[]
-        {
-            "c:\\original.should.be.preserved\\analyzer1.DLL",
-            "f:\\original.should.be.preserved\\analyzer3.dll",
-            "c:\\SonarAnalyzer\\should.be.preserved.SomeAnalyzer.dll",
-            "c:\\should.be.removed\\SonarAnalyzer.Fake.DLL", // We consider all analyzers starting with 'SonarAnalyzer' as ours, this will be removed as a duplicate reference
-            "c:\\should.be.removed\\SonarAnalyzer.CFG.dll",
-            "c:\\should.be.removed\\SonarAnalyzer.dll",
-            "c:\\should.be.removed\\SonarAnalyzer.CSharp.dll",
-            "c:\\should.be.removed\\SonarAnalyzer.vIsUaLbAsIc.dll",
-            "c:\\should.be.removed\\sOnAranaLYZer.Security.dll"
-        };
-
-        testSubject.OriginalAdditionalFiles = new[]
-        {
+        testSubject.OriginalAnalyzers =
+        [
+            Path.Combine(DriveRoot(), "original.should.be.preserved", "analyzer1.DLL"),
+            Path.Combine(DriveRoot("f"), "original.should.be.preserved", "analyzer3.dll"),
+            Path.Combine(DriveRoot(), "SonarAnalyzer", "should.be.preserved.SomeAnalyzer.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.Fake.DLL"), // We consider all analyzers starting with 'SonarAnalyzer' as ours, this will be removed as a duplicate reference
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.CFG.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.CSharp.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "SonarAnalyzer.vIsUaLbAsIc.dll"),
+            Path.Combine(DriveRoot(), "should.be.removed", "sOnAranaLYZer.Security.dll")
+        ];
+        testSubject.OriginalAdditionalFiles =
+        [
             "original.should.be.preserved.txt",
-            "original.should.be.removed\\add2.txt"
-        };
+            Path.Combine("original.should.be.removed", "add2.txt")
+        ];
 
-        // Act
         ExecuteAndCheckSuccess(testSubject);
 
-        // Assert
-        testSubject.RuleSetFilePath.Should().Be("f:\\yyy.ruleset");
-
+        testSubject.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot("f"), "yyy.ruleset"));
         testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(
-            "c:\\config\\analyzer1.DLL",
-            "c:\\config\\analyzer2.dll",
-            "c:\\original.should.be.preserved\\analyzer1.DLL",
-            "f:\\original.should.be.preserved\\analyzer3.dll",
-            "c:\\SonarAnalyzer\\should.be.preserved.SomeAnalyzer.dll");
-
+            Path.Combine(DriveRoot(), "config", "analyzer1.DLL"),
+            Path.Combine(DriveRoot(), "config", "analyzer2.dll"),
+            Path.Combine(DriveRoot(), "original.should.be.preserved", "analyzer1.DLL"),
+            Path.Combine(DriveRoot("f"), "original.should.be.preserved", "analyzer3.dll"),
+            Path.Combine(DriveRoot(), "SonarAnalyzer", "should.be.preserved.SomeAnalyzer.dll"));
         testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
-            "c:\\config\\add1.txt",
-            "d:\\config\\add2.txt",
+            Path.Combine(DriveRoot(), "config", "add1.txt"),
+            Path.Combine(DriveRoot("d"), "config", "add2.txt"),
             "original.should.be.preserved.txt");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [DataTestMethod]
-    [DataRow("7.3", "cs", DisplayName = "Legacy CS")]
-    [DataRow("7.3", "vbnet", DisplayName = "Legacy VB")]
-    public void ConfigExists_ForLegacyProductProject_SonarAnalyzersAndConfigurationUsed(string sonarQubeVersion, string language)
+    [TestMethod]
+    [DataRow("7.3", "cs", null, "wintellect1", "Google.Protobuf", DisplayName = "Legacy CS - Sonar Config used")]
+    [DataRow("7.3", "vbnet", null, "wintellect1", "Google.Protobuf", DisplayName = "Legacy VB - Sonar Config used")]
+    [DataRow("7.4", "cs", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved", DisplayName = "CS - Merged with user provided")]
+    [DataRow("7.4", "vbnet", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved", DisplayName = "VB - Merged with user provided")]
+    public void ConfigExists_ForProductProject(string sonarQubeVersion, string language, string excludeTestProject, params string[] additionalDlls)
     {
-        // Arrange and Act
-        var executedTask = Execute_ConfigExists(sonarQubeVersion, language, false, null);
+        var alwaysPresentAnalyzers = new[] { $"sonar.{language}", "Google.Protobuf" };
+        var expectedAnalyzers = alwaysPresentAnalyzers.Concat(additionalDlls).Select(x => Path.Combine(DriveRoot(), $"{x}.dll"));
 
-        // Assert
-        executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
-        // There are two Google.Protobuf.dll as one is from the C# analyzer and one from the VBNet analyzer.
-        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
-        executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
+        var sut = Execute_ConfigExists(sonarQubeVersion, language, false, null);
+
+        sut.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-normal.ruleset"));
+        sut.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
+        sut.AdditionalFilePaths.Should().BeEquivalentTo(
+            Path.Combine(DriveRoot(), $"add1.{language}.txt"),
+            Path.Combine(DriveRoot("d"), "replaced1.txt"),
+            "original.should.be.preserved.for.product.txt");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [DataTestMethod]
-    [DataRow("7.4", "cs")]
-    [DataRow("7.4", "vbnet")]
-    public void ConfigExists_ForProductProject_SonarAnalyzersAndConfigurationMergedWithUserProvided(string sonarQubeVersion, string language)
-    {
-        // Arrange and Act
-        var executedTask = Execute_ConfigExists(sonarQubeVersion, language, false, null);
-
-        // Assert
-        executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
-        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\analyzer1.should.be.preserved.dll", @"c:\analyzer2.should.be.preserved.dll");
-        executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.preserved.for.product.txt");
-    }
-
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [DataTestMethod]
-    [DataRow("8.0.0.18955", "cs", /* not set */ null, DisplayName = "SonarCloud build version CS")]
-    [DataRow("8.9", "cs", /* not set */ null)]
-    [DataRow("8.9", "cs", "false")]
-    [DataRow("9.0", "cs", "FALSE")]
-    [DataRow("10.0", "cs", "UnexpectedParamValue")]
-    [DataRow("8.0.0.18955", "vbnet", /* not set */ null, DisplayName = "SonarCloud build version VB")]
-    [DataRow("8.9", "vbnet", /* not set */ null)]
-    [DataRow("8.9", "vbnet", "false")]
-    [DataRow("9.0", "vbnet", "FALSE")]
-    [DataRow("10.0", "vbnet", "UnexpectedParamValue")]
-    public void ConfigExists_ForTestProject_SonarAnalyzersAndConfigurationMergedWithUserProvided(string sonarQubeVersion, string language, string excludeTestProject)
-    {
-        // Arrange and Act
-        var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
-
-        // Assert
-        executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-normal.ruleset");
-        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(@"c:\wintellect1.dll", @"c:\Google.Protobuf.dll", $@"c:\sonar.{language}.dll", @"c:\analyzer1.should.be.preserved.dll", @"c:\analyzer2.should.be.preserved.dll");
-        // This TestProject is not excluded => additional file "original.should.be.removed.for.excluded.test.txt" should be preserved
-        executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt", "original.should.be.removed.for.excluded.test.txt");
-    }
-
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("8.0.0.18955", "cs", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
     [DataRow("8.9", "cs", "true", DisplayName = "SQ 8.9 - needs exclusion parameter CS")]
     [DataRow("9.0", "cs", "TRUE", DisplayName = "SQ 9.0 - needs exclusion parameter CS")]
@@ -337,243 +267,249 @@ public class GetAnalyzerSettingsTests
     [DataRow("8.9", "vbnet", "true", DisplayName = "SQ 8.9 - needs exclusion parameter VB")]
     public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string excludeTestProject)
     {
-        // Arrange and Act
         var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
 
-        // Assert
-        executedTask.RuleSetFilePath.Should().Be($@"c:\{language}-deactivated.ruleset");
-        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo($@"c:\sonar.{language}.dll", @"c:\Google.Protobuf.dll");
-        executedTask.AdditionalFilePaths.Should().BeEquivalentTo($@"c:\add1.{language}.txt", @"d:\replaced1.txt");
+        executedTask.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-deactivated.ruleset"));
+        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine(DriveRoot(), $"sonar.{language}.dll"), Path.Combine(DriveRoot(), "Google.Protobuf.dll"));
+        executedTask.AdditionalFilePaths.Should().BeEquivalentTo(Path.Combine(DriveRoot(), $"add1.{language}.txt"), Path.Combine(DriveRoot("d"), "replaced1.txt"));
+    }
+
+    [TestMethod]
+    [DataRow("8.0.0.18955", "cs", null, DisplayName = "SonarCloud build version CS")]
+    [DataRow("8.9", "cs", null)]
+    [DataRow("8.9", "cs", "false")]
+    [DataRow("9.0", "cs", "FALSE")]
+    [DataRow("10.0", "cs", "UnexpectedParamValue")]
+    [DataRow("8.0.0.18955", "vbnet", null, DisplayName = "SonarCloud build version VB")]
+    [DataRow("8.9", "vbnet", null)]
+    [DataRow("8.9", "vbnet", "false")]
+    [DataRow("9.0", "vbnet", "FALSE")]
+    [DataRow("10.0", "vbnet", "UnexpectedParamValue")]
+    public void ConfigExists_ForTestProject_SonarAnalyzersAndConfigurationMergedWithUserProvided(string sonarQubeVersion, string language, string excludeTestProject)
+    {
+        var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
+
+        executedTask.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-normal.ruleset"));
+        executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(
+            Path.Combine(DriveRoot(), "wintellect1.dll"),
+            Path.Combine(DriveRoot(), "Google.Protobuf.dll"),
+            Path.Combine(DriveRoot(), $"sonar.{language}.dll"),
+            Path.Combine(DriveRoot(), "analyzer1.should.be.preserved.dll"),
+            Path.Combine(DriveRoot(), "analyzer2.should.be.preserved.dll"));
+        // This TestProject is not excluded => additional file "original.should.be.removed.for.excluded.test.txt" should be preserved
+        executedTask.AdditionalFilePaths.Should().BeEquivalentTo(
+            Path.Combine(DriveRoot(), $"add1.{language}.txt"),
+            Path.Combine(DriveRoot("d"), "replaced1.txt"),
+            "original.should.be.removed.for.excluded.test.txt");
     }
 
     [TestMethod]
     public void ConfigExists_ForTestProject_WhenUnknownLanguage_SonarAnalyzersAndConfigurationUsed()
     {
-        // Arrange and Act
         var executedTask = Execute_ConfigExists("7.4", "unknownLang", true, null);
 
-        // Assert
         executedTask.RuleSetFilePath.Should().BeNull();
         executedTask.AnalyzerFilePaths.Should().BeNull();
-        executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", "original.should.be.preserved\\replaced1.txt");
+        executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", Path.Combine("original.should.be.preserved", "replaced1.txt"));
     }
 
-    [DataTestMethod]
+    // The "importAllValue" setting should be ignored for old server versions
+    [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
-    public void ShouldMerge_OldServerVersion_ReturnsFalse(string language)
-    {
-        // The "importAllValue" setting should be ignored for old server versions
-        var logger = CheckShouldMerge("7.3.1", language, ignoreExternalIssues: "true", expected: false);
-        logger.AssertInfoMessageExists("External issues are not supported on this version of SonarQube. Version 7.4+ is required.");
-    }
+    public void ShouldMerge_OldServerVersion_ReturnsFalse(string language) =>
+        CheckShouldMerge("7.3.1", language, ignoreExternalIssues: "true", expected: false)
+            .Should().HaveInfos("External issues are not supported on this version of SonarQube. Version 7.4+ is required.");
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
     public void ShouldMerge_NewServerVersion_ReturnsTrue(string language) =>
         CheckShouldMerge("7.4.1", language, ignoreExternalIssues: "true", expected: true);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("cs")]
     [DataRow("vbnet")]
-    public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsTrue(string language)
-    {
-        var logger = CheckShouldMerge("7.4", language, ignoreExternalIssues: "not a boolean value", expected: true);
-        logger.AssertNoWarningsLogged();
-    }
+    public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsTrue(string language) =>
+        CheckShouldMerge("7.4", language, ignoreExternalIssues: "not a boolean value", expected: true)
+            .Should().HaveNoWarnings();
 
     [TestMethod]
     public void MergeRulesets_NoOriginalRuleset_FirstGeneratedRulsetUsed()
     {
-        // Arrange
         var config = new AnalysisConfig
         {
             SonarQubeVersion = "7.4",
-            AnalyzersSettings = new List<AnalyzerSettings>
-            {
+            AnalyzersSettings =
+            [
                 new AnalyzerSettings
                 {
                     Language = "xxx",
                     RulesetPath = "firstGeneratedRuleset.txt"
                 }
-            }
+            ]
         };
-
         var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
         testSubject.OriginalRulesetFilePath = null;
 
-        // Act
         ExecuteAndCheckSuccess(testSubject);
 
-        // Assert
         testSubject.RuleSetFilePath.Should().Be("firstGeneratedRuleset.txt");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
-    [DataTestMethod]
-    [DataRow(@".\..\originalRuleset.txt", DisplayName = "Relative path")]
-    [DataRow(@"c:\solution.folder\originalRuleset.txt", DisplayName = "Absolute path")]
-    public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulesetUsed(string originalRulesetFilePath)
+    [TestMethod]
+    [DataRow(@".\..\originalRuleset.txt", false, DisplayName = "Relative path")]
+    [DataRow(@"solution.folder\originalRuleset.txt", true, DisplayName = "Absolute path")]
+    public void MergeRulesets_OriginalRulesetSpecified_RelativePath_SecondGeneratedRulesetUsed(string originalRulesetFilePath, bool absolutePath)
     {
-        // Arrange
-        var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(dir, "dummyQp");
+        var rootDir = DriveRoot();
+        if (absolutePath)
+        {
+            originalRulesetFilePath = Path.Combine(rootDir, originalRulesetFilePath);
+        }
+        var dir = CreateTestSpecificFolderWithSubPaths(TestContext);
+        var dummyQpRulesetPath = CreateValidEmptyRuleset(dir, "dummyQp");
         var config = CreateMergingAnalysisConfig("xxx", dummyQpRulesetPath);
 
         var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
-        testSubject.CurrentProjectDirectoryPath = @"c:\solution.folder\project.folder";
-        testSubject.OriginalRulesetFilePath = originalRulesetFilePath;
+        testSubject.CurrentProjectDirectoryPath = Path.Combine(rootDir, "solution.folder", "project.folder");
+        testSubject.OriginalRulesetFilePath = originalRulesetFilePath.Replace('\\', Path.DirectorySeparatorChar);
         testSubject.ProjectSpecificConfigDirectory = testSubject.AnalysisConfigDir;
 
-        // Act
         ExecuteAndCheckSuccess(testSubject);
 
-        // Assert
-        CheckMergedRulesetFile(testSubject, @"c:\solution.folder\originalRuleset.txt");
+        CheckMergedRulesetFile(testSubject, Path.Combine(rootDir, "solution.folder", "originalRuleset.txt"));
     }
 
     [TestMethod]
     // Regression test for #581: Sonar issues are reported as external issues
     // https://github.com/SonarSource/sonar-scanner-msbuild/issues/581
+    // Off in QP, on locally -> off
     public void MergeRuleset_CheckQPSettingsWin()
     {
-        // Arrange
-        // Off in QP, on locally -> off
-        var qpRulesetPath = CreateRuleset("qpRuleset", @"<?xml version='1.0' encoding='utf-8'?>
-<RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
-  <Rules AnalyzerId='analyzer1' RuleNamespace='ns1'>
-    <Rule Id='SharedRuleOffInQP' Action='None' />
-    <Rule Id='SharedRuleOffInLocal' Action='Warning' />
-    <Rule Id='QPOnlyRule' Action='Info' />
-  </Rules>
-</RuleSet>");
-
-        var localRulesetPath = CreateRuleset("localRuleset", @"<?xml version='1.0' encoding='utf-8'?>
-<RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
-  <Rules AnalyzerId='analyzer1' RuleNamespace='ns1'>
-    <Rule Id='SharedRuleOffInQP' Action='Error' />
-    <Rule Id='SharedRuleOffInLocal' Action='None' />
-    <Rule Id='LocalOnlyRule' Action='Error' />
-  </Rules>
-</RuleSet>");
-
+        var qpRulesetPath = CreateRuleset("qpRuleset", """
+            <?xml version='1.0' encoding='utf-8'?>
+            <RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
+              <Rules AnalyzerId='analyzer1' RuleNamespace='ns1'>
+                <Rule Id='SharedRuleOffInQP' Action='None' />
+                <Rule Id='SharedRuleOffInLocal' Action='Warning' />
+                <Rule Id='QPOnlyRule' Action='Info' />
+              </Rules>
+            </RuleSet>
+            """);
+        var localRulesetPath = CreateRuleset("localRuleset", """
+            <?xml version='1.0' encoding='utf-8'?>
+            <RuleSet xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' Name='x' Description='x' ToolsVersion='14.0'>
+              <Rules AnalyzerId='analyzer1' RuleNamespace='ns1'>
+                <Rule Id='SharedRuleOffInQP' Action='Error' />
+                <Rule Id='SharedRuleOffInLocal' Action='None' />
+                <Rule Id='LocalOnlyRule' Action='Error' />
+              </Rules>
+            </RuleSet>
+            """);
         var config = CreateMergingAnalysisConfig("xxx", qpRulesetPath);
-
         var testSubject = CreateConfiguredTestSubject(config, "xxx", TestContext);
         testSubject.OriginalRulesetFilePath = localRulesetPath;
         testSubject.ProjectSpecificConfigDirectory = testSubject.AnalysisConfigDir;
 
-        // Act
         ExecuteAndCheckSuccess(testSubject);
 
-        // Assert
         CheckMergedRulesetFile(testSubject, localRulesetPath);
-
-        // Check individual rule severities are set correctly
-        var finalPath = testSubject.RuleSetFilePath;
-        var actualRuleset = MSCA.RuleSet.LoadEffectiveRuleSetFromFile(finalPath);
-
+        var actualRuleset = MSCA.RuleSet.LoadEffectiveRuleSetFromFile(testSubject.RuleSetFilePath);
         CheckExpectedDiagnosticLevel(actualRuleset, "SharedRuleOffInQP", MSCA.ReportDiagnostic.Suppress);
         CheckExpectedDiagnosticLevel(actualRuleset, "SharedRuleOffInLocal", MSCA.ReportDiagnostic.Warn);
         CheckExpectedDiagnosticLevel(actualRuleset, "QPOnlyRule", MSCA.ReportDiagnostic.Info);
         CheckExpectedDiagnosticLevel(actualRuleset, "LocalOnlyRule", MSCA.ReportDiagnostic.Error);
     }
 
-    #endregion Tests
-
-    #region Private methods
-
     private GetAnalyzerSettings Execute_ConfigExists(string sonarQubeVersion, string language, bool isTestProject, string excludeTestProject)
     {
         // Want to test the behaviour with old and new SQ version. Expecting the same results in each case.
-        // Arrange
         var config = new AnalysisConfig
         {
             SonarQubeVersion = sonarQubeVersion,
             SonarQubeHostUrl = "http://localhost:9000", // If any SQ 8.0 version is passed (other than 8.0.0.29455), this will be classified as SonarCloud
-            ServerSettings = new AnalysisProperties
-            {
+            ServerSettings =
+            [
                 // Server settings should be ignored. "true" value should break existing tests.
                 new("sonar.cs.roslyn.ignoreIssues", "true"),
                 new("sonar.vbnet.roslyn.ignoreIssues", "true"),
                 // Server settings should be ignored - it should never come from the server
                 new("sonar.dotnet.excludeTestProjects", "true")
-            },
-            LocalSettings = excludeTestProject == null
+            ],
+            LocalSettings = excludeTestProject is null
                 ? null
-                : new AnalysisProperties { new("sonar.dotnet.excludeTestProjects", excludeTestProject) },
-            AnalyzersSettings = new List<AnalyzerSettings>
-            {
+                : [new("sonar.dotnet.excludeTestProjects", excludeTestProject)],
+            AnalyzersSettings =
+            [
                 new AnalyzerSettings
                 {
                     Language = "cs",
-                    RulesetPath = @"c:\cs-normal.ruleset",
-                    DeactivatedRulesetPath = @"c:\cs-deactivated.ruleset",
-                    AnalyzerPlugins = new List<AnalyzerPlugin>
-                    {
-                        new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new[] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
-                        new AnalyzerPlugin("csharp", "1.1", "dummy resource2", new[] { @"c:\sonar.cs.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
-                    },
-                    AdditionalFilePaths = new List<string> { @"c:\add1.cs.txt", @"d:\replaced1.txt" }
+                    RulesetPath = Path.Combine(DriveRoot(), "cs-normal.ruleset"),
+                    DeactivatedRulesetPath = Path.Combine(DriveRoot(), "cs-deactivated.ruleset"),
+                    AnalyzerPlugins =
+                    [
+                        new("roslyn.wintellect", "2.0", "dummy resource", [Path.Combine(DriveRoot(), "wintellect1.dll"), @"c:\wintellect\bar.ps1", Path.Combine(DriveRoot(), "Google.Protobuf.dll")]),
+                        new("csharp", "1.1", "dummy resource2", [Path.Combine(DriveRoot(), "sonar.cs.dll"), @"c:\foo.ps1", Path.Combine(DriveRoot(), "Google.Protobuf.dll")]),
+                    ],
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "add1.cs.txt"), Path.Combine(DriveRoot("d"), "replaced1.txt")]
                 },
                 new AnalyzerSettings
                 {
                     Language = "vbnet",
-                    RulesetPath = @"c:\vbnet-normal.ruleset",
-                    DeactivatedRulesetPath = @"c:\vbnet-deactivated.ruleset",
-                    AnalyzerPlugins = new List<AnalyzerPlugin>
-                    {
-                        new AnalyzerPlugin("roslyn.wintellect", "2.0", "dummy resource", new[] { @"c:\wintellect1.dll", @"c:\wintellect\bar.ps1", @"c:\Google.Protobuf.dll" }),
-                        new AnalyzerPlugin("vbnet", "1.1", "dummy resource2", new[] { @"c:\sonar.vbnet.dll", @"c:\foo.ps1", @"c:\Google.Protobuf.dll" }),
-                    },
-                    AdditionalFilePaths = new List<string> { @"c:\add1.vbnet.txt", @"d:\replaced1.txt" }
+                    RulesetPath = Path.Combine(DriveRoot(), "vbnet-normal.ruleset"),
+                    DeactivatedRulesetPath = Path.Combine(DriveRoot(), "vbnet-deactivated.ruleset"),
+                    AnalyzerPlugins =
+                    [
+                        new("roslyn.wintellect", "2.0", "dummy resource", [Path.Combine(DriveRoot(), "wintellect1.dll"), @"c:\wintellect\bar.ps1", Path.Combine(DriveRoot(), "Google.Protobuf.dll")]),
+                        new("vbnet", "1.1", "dummy resource2", [Path.Combine(DriveRoot(), "sonar.vbnet.dll"), @"c:\foo.ps1", Path.Combine(DriveRoot(), "Google.Protobuf.dll")]),
+                    ],
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "add1.vbnet.txt"), Path.Combine(DriveRoot("d"), "replaced1.txt")]
                 },
                 new AnalyzerSettings // Settings for a different language
                 {
                     Language = "cobol",
                     RulesetPath = @"c:\cobol-normal.ruleset",
                     DeactivatedRulesetPath = @"c:\cobol-deactivated.ruleset",
-                    AnalyzerPlugins = new List<AnalyzerPlugin>
-                    {
-                        new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource", new[] { @"c:\cobol1.dll", @"c:\cobol2.dll" })
-                    },
-                    AdditionalFilePaths = new List<string> { @"c:\cobol.\add1.txt", @"d:\cobol\add2.txt" }
+                    AnalyzerPlugins =
+                    [
+                        new AnalyzerPlugin("cobol.analyzer", "1.0", "dummy resource", [@"c:\cobol1.dll", @"c:\cobol2.dll"])
+                    ],
+                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "cobol.", "add1.txt"), Path.Combine(DriveRoot("d"), "cobol", "add2.txt")]
                 }
-            }
+            ]
         };
-
         var testSubject = CreateConfiguredTestSubject(config, language, TestContext);
         testSubject.IsTestProject = isTestProject;
-        testSubject.OriginalAnalyzers = new[]
-        {
-             "c:\\analyzer1.should.be.preserved.dll",
-             "c:\\analyzer2.should.be.preserved.dll",
-             "c:\\Google.Protobuf.dll", // same name as an assembly in the csharp plugin (above)
-        };
-        testSubject.OriginalAdditionalFiles = new[]
-        {
+        testSubject.OriginalAnalyzers =
+        [
+            Path.Combine(DriveRoot(), "analyzer1.should.be.preserved.dll"),
+            Path.Combine(DriveRoot(), "analyzer2.should.be.preserved.dll"),
+            Path.Combine(DriveRoot(), "Google.Protobuf.dll"), // same name as an assembly in the csharp plugin (above)
+        ];
+        testSubject.OriginalAdditionalFiles =
+        [
             isTestProject ? "original.should.be.removed.for.excluded.test.txt" : "original.should.be.preserved.for.product.txt",
-            "original.should.be.preserved\\replaced1.txt",
-        };
+            Path.Combine("original.should.be.preserved", "replaced1.txt")
+        ];
 
-        // Act
         ExecuteAndCheckSuccess(testSubject);
+
         return testSubject;
     }
 
+    // Should default to true i.e. don't override, merge
     private static TestLogger CheckShouldMerge(string serverVersion, string language, string ignoreExternalIssues, bool expected)
     {
-        // Should default to true i.e. don't override, merge
         var logger = new TestLogger();
         var config = new AnalysisConfig
         {
             SonarQubeHostUrl = "http://sonarqube.com",
             SonarQubeVersion = serverVersion
         };
-        if (ignoreExternalIssues != null)
+        if (ignoreExternalIssues is null)
         {
-            config.ServerSettings = new AnalysisProperties { new($"sonar.{language}.roslyn.ignoreIssues", ignoreExternalIssues) };
+            config.ServerSettings = [new($"sonar.{language}.roslyn.ignoreIssues", ignoreExternalIssues)];
         }
 
         var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(language, config, logger);
@@ -584,54 +520,49 @@ public class GetAnalyzerSettingsTests
 
     private static GetAnalyzerSettings CreateConfiguredTestSubject(AnalysisConfig config, string language, TestContext testContext)
     {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
+        var testDir = CreateTestSpecificFolderWithSubPaths(testContext);
         var testSubject = new GetAnalyzerSettings
         {
-            Language = language
+            Language = language,
+            AnalysisConfigDir = testDir,
         };
+        config.Save(Path.Combine(testDir, FileConstants.ConfigFileName));
 
-        var fullPath = Path.Combine(testDir, FileConstants.ConfigFileName);
-        config.Save(fullPath);
-
-        testSubject.AnalysisConfigDir = testDir;
         return testSubject;
     }
 
     private static AnalysisConfig CreateMergingAnalysisConfig(string language, string qpRulesetFilePath) =>
-        new AnalysisConfig
+        new()
         {
             SonarQubeVersion = "7.4",
-            ServerSettings = new AnalysisProperties { new($"sonar.{language}.roslyn.ignoreIssues", "false") },
-            AnalyzersSettings = new List<AnalyzerSettings>
-            {
+            ServerSettings = [new($"sonar.{language}.roslyn.ignoreIssues", "false")],
+            AnalyzersSettings =
+            [
                 new AnalyzerSettings
                 {
                     Language = language,
                     RulesetPath = qpRulesetFilePath
                 }
-            }
+            ]
         };
 
-    public string CreateRuleset(string fileNameWithoutExtension, string content)
+    private string CreateRuleset(string fileNameWithoutExtension, string content)
     {
-        var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var filePath = TestUtils.CreateTextFile(dir, fileNameWithoutExtension + ".ruleset", content);
+        var dir = CreateTestSpecificFolderWithSubPaths(TestContext);
+        var filePath = CreateTextFile(dir, fileNameWithoutExtension + ".ruleset", content);
         return filePath;
     }
 
     private static AnalyzerPlugin CreateAnalyzerPlugin(params string[] fileList) =>
-        new AnalyzerPlugin { AssemblyPaths = new List<string>(fileList) };
+        new() { AssemblyPaths = [.. fileList] };
 
-    #endregion
-
-    #region Checks methods
-
-    private static void ExecuteAndCheckSuccess(Task task)
+    private static void ExecuteAndCheckSuccess(GetAnalyzerSettings analyzerSettings)
     {
         var dummyEngine = new DummyBuildEngine();
-        task.BuildEngine = dummyEngine;
+        analyzerSettings.BuildEngine = dummyEngine;
 
-        var taskSucess = task.Execute();
+        var taskSucess = analyzerSettings.Execute();
+
         taskSucess.Should().BeTrue("Expecting the task to succeed");
         dummyEngine.AssertNoErrors();
         dummyEngine.AssertNoWarnings();
@@ -653,9 +584,7 @@ public class GetAnalyzerSettingsTests
 
     private static void CheckExpectedDiagnosticLevel(MSCA.RuleSet ruleset, string ruleId, MSCA.ReportDiagnostic expected)
     {
-        ruleset.SpecificDiagnosticOptions.Keys.Contains(ruleId).Should().BeTrue();
+        ruleset.SpecificDiagnosticOptions.Should().ContainKey(ruleId);
         ruleset.SpecificDiagnosticOptions[ruleId].Should().Be(expected);
     }
-
-    #endregion Checks methods
 }

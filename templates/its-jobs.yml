@@ -21,11 +21,13 @@ jobs:
     variables:
       CFAMILY_VERSION: "LATEST_RELEASE"
       SQ_VERSION: "LATEST_RELEASE"
+      SQ_EDITION: "DEVELOPER"
       CSS_VERSION: "NONE" # No official release since 8.9, the plug-in should not be loaded. Rules are in the JS plugin
       DOTNET_VERSION: "DEV"
       GO_VERSION: "LATEST_RELEASE"
       GO_GROUP_ID: "org.sonarsource.go"
-      IAC_VERSION: "LATEST_RELEASE"
+      IAC_VERSION: "NONE" # Merged into sonar-iac-enterprise in 2025.5
+      IAC_ENTERPRISE_VERSION: "LATEST_RELEASE"
       JAVA_VERSION: "LATEST_RELEASE"
       JAVASCRIPT_VERSION: "LATEST_RELEASE"
       PHP_VERSION: "LATEST_RELEASE"
@@ -66,10 +68,14 @@ jobs:
       - ${{ each step in parameters.initSteps }}:
           - ${{ step }}
 
-      - task: NuGetToolInstaller@1
-        inputs:
-          versionSpec: $(NUGET_VERSION)
-
+      - powershell: |
+          npm config --global set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
+          npm config --global set //repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$env:ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN
+          npm config list --global
+        env:
+          ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)         
+        displayName: Set npm registry to repox
+        
       - task: Maven@4
         displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
         env:
@@ -80,7 +86,7 @@ jobs:
           ARTIFACTORY_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           MAVEN_LOCAL_REPOSITORY: $(MAVEN_CACHE_FOLDER)
-          NUGET_PATH: $(NUGETEXETOOLPATH)
+          NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
           SONARCLOUD_PROJECT_TOKEN: $(SONARCLOUD_PROJECT_TOKEN) # This is a secret variable: it needs to be propagated to the job
         inputs:
           goals: 'verify'
@@ -102,11 +108,13 @@ jobs:
             -Dsonar.pythonplugin.version=$(PYTHON_VERSION)
             -Dsonar.phpplugin.version=$(PHP_VERSION)
             -Dsonar.iacplugin.version=$(IAC_VERSION)
+            -Dsonar.iacplugin-enterprise.version=$(IAC_ENTERPRISE_VERSION)
             -Dsonar.javaplugin.version=$(JAVA_VERSION)
             -Dsonar.textplugin.version=$(TEXT_VERSION)
             -Dsonar.goplugin.version=$(GO_VERSION)
             -Dgo.groupid=$(GO_GROUP_ID)
             -Dsonar.runtimeVersion=$(SQ_VERSION)
+            -Dsonar.sonarQubeEdition=$(SQ_EDITION)
             -Dmsbuild.path="$(MSBUILD_PATH)"
             -Dmsbuild.platformtoolset=$(PLATFORMTOOLSET)
             -Dmsbuild.windowssdk=$(WINDOWSSDKTARGET)

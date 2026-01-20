@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,16 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.TFS.Classic.XamlBuild;
-using SonarScanner.MSBuild.TFS.Tests.Infrastructure;
-using TestUtilities;
+using SonarScanner.MSBuild.TFS.Test.Infrastructure;
 
-namespace SonarScanner.MSBuild.TFS.Tests;
+namespace SonarScanner.MSBuild.TFS.Test;
 
 /*
  * Scenarios:
@@ -39,7 +33,7 @@ namespace SonarScanner.MSBuild.TFS.Tests;
  */
 
 /// <summary>
-/// Unit tests for the orchestration of the code coverage handling
+/// Unit tests for the orchestration of the code coverage handling.
 /// </summary>
 [TestClass]
 public class TfsLegacyCoverageReportProcessorTests
@@ -53,7 +47,6 @@ public class TfsLegacyCoverageReportProcessorTests
     [Description("Calling ProcessCoverageReports when the processor has not been initialized should fail")]
     public void ReportProcessor_ThrowsIfNotInitialized()
     {
-        // Arrange
         var urlProvider = new MockReportUrlProvider { UrlsToReturn = new[] { ValidUrl1 } };
         var downloader = new MockReportDownloader();
         var converter = new MockReportConverter();
@@ -61,23 +54,19 @@ public class TfsLegacyCoverageReportProcessorTests
 
         var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
-        // Act
-        Action act = () => processor.ProcessCoverageReports(logger); // processor.Initialise() is not called
-
-        // Assert
-        act.Should().ThrowExactly<InvalidOperationException>().WithMessage("The Coverage Report Processor was not initialized before use.");
+        // processor.Initialize() is not called
+        processor.Invoking(x => x.ProcessCoverageReports(logger)).Should().ThrowExactly<InvalidOperationException>().WithMessage("The Coverage Report Processor was not initialized before use.");
         urlProvider.AssertGetUrlsNotCalled();
         downloader.AssertDownloadNotCalled();
         converter.AssertConvertNotCalled();
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
     }
 
     [TestMethod]
     public void ReportProcessor_NoUrlsFound()
     {
-        // Arrange
-        var urlProvider = new MockReportUrlProvider { UrlsToReturn = new string[] { } };
+        var urlProvider = new MockReportUrlProvider { UrlsToReturn = [] };
         var downloader = new MockReportDownloader();
         var converter = new MockReportConverter();
         var context = CreateValidContext();
@@ -87,25 +76,22 @@ public class TfsLegacyCoverageReportProcessorTests
 
         var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
-        // Act
-        var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
+        var initResult = processor.Initialize(context, settings, testDir + "\\sonar-project.properties");
         initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
         var result = processor.ProcessCoverageReports(logger);
 
-        // Assert
         urlProvider.AssertGetUrlsCalled();
         downloader.AssertDownloadNotCalled(); // no urls returned, so should go any further
         converter.AssertConvertNotCalled();
         result.Should().BeTrue("Expecting true: no coverage reports is a valid scenario");
 
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
     }
 
     [TestMethod]
     public void ReportProcessor_MultipleUrlsFound()
     {
-        // Arrange
         var urlProvider = new MockReportUrlProvider { UrlsToReturn = new[] { ValidUrl1, ValidUrl2 } };
         var downloader = new MockReportDownloader();
         var converter = new MockReportConverter();
@@ -121,26 +107,23 @@ public class TfsLegacyCoverageReportProcessorTests
 
         var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
-        // Act
-        var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
+        var initResult = processor.Initialize(context, settings, testDir + "\\sonar-project.properties");
         initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
         var result = processor.ProcessCoverageReports(logger);
 
-        // Assert
         urlProvider.AssertGetUrlsCalled();
         downloader.AssertExpectedDownloads(2);
         converter.AssertExpectedNumberOfConversions(2);
         downloader.AssertExpectedUrlsRequested(ValidUrl1, ValidUrl2);
         result.Should().BeTrue();
 
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
     }
 
     [TestMethod]
     public void ReportProcessor_SingleUrlFound_NotDownloaded()
     {
-        // Arrange
         var urlProvider = new MockReportUrlProvider { UrlsToReturn = new[] { ValidUrl1 } };
         var downloader = new MockReportDownloader();
         var converter = new MockReportConverter();
@@ -150,12 +133,10 @@ public class TfsLegacyCoverageReportProcessorTests
 
         var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
-        // Act
-        var initResult = processor.Initialise(context, settings, string.Empty);
+        var initResult = processor.Initialize(context, settings, string.Empty);
         initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
         var result = processor.ProcessCoverageReports(logger);
 
-        // Assert
         urlProvider.AssertGetUrlsCalled();
         downloader.AssertExpectedDownloads(1);
         converter.AssertConvertNotCalled();
@@ -164,15 +145,14 @@ public class TfsLegacyCoverageReportProcessorTests
 
         result.Should().BeFalse("Expecting false: report could not be downloaded");
 
-        logger.AssertErrorsLogged(1);
-        logger.AssertWarningsLogged(0);
+        logger.Should().HaveErrors(1)
+            .And.HaveNoWarnings();
     }
 
     [TestMethod]
     public void ReportProcessor_SingleUrlFound_DownloadedOk()
     {
-        // Arrange
-        var urlProvider = new MockReportUrlProvider { UrlsToReturn = new[] { ValidUrl2 } };
+        var urlProvider = new MockReportUrlProvider { UrlsToReturn = [ValidUrl2] };
         var downloader = new MockReportDownloader();
         var converter = new MockReportConverter();
         var context = CreateValidContext();
@@ -188,12 +168,10 @@ public class TfsLegacyCoverageReportProcessorTests
 
         var processor = new TfsLegacyCoverageReportProcessor(urlProvider, downloader, converter, logger);
 
-        // Act
-        var initResult = processor.Initialise(context, settings, testDir + "\\sonar-project.properties");
+        var initResult = processor.Initialize(context, settings, testDir + "\\sonar-project.properties");
         initResult.Should().BeTrue("Expecting true: processor should have been initialized successfully");
         var result = processor.ProcessCoverageReports(logger);
 
-        // Assert
         urlProvider.AssertGetUrlsCalled();
         downloader.AssertExpectedDownloads(1);
         converter.AssertExpectedNumberOfConversions(1);
@@ -202,8 +180,8 @@ public class TfsLegacyCoverageReportProcessorTests
         downloader.AssertExpectedTargetFileNamesSupplied(reportPath);
         result.Should().BeTrue("Expecting true: happy path");
 
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        logger.Should().HaveNoWarnings()
+            .And.HaveNoErrors();
 
         var linesWritten = File.ReadAllLines(testDir + "\\sonar-project.properties");
         linesWritten.Should().BeEquivalentTo(string.Empty, $"{SonarProperties.VsCoverageXmlReportsPaths}={reportPath.Replace(@"\", @"\\")}xml");
@@ -214,9 +192,9 @@ public class TfsLegacyCoverageReportProcessorTests
         {
             SonarOutputDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "out"), // tests can write to this directory
             SonarConfigDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "conf"), // we don't read anything from this directory, we just want it to be different from the output directory
-            LocalSettings = new AnalysisProperties()
+            LocalSettings = []
         };
 
     private BuildSettings CreateValidSettings() =>
-        BuildSettings.CreateNonTeamBuildSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
+        BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
 }

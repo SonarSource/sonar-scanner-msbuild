@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,98 +18,92 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Xml.Serialization;
+using System.Globalization;
 
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
-/// Data class to describe a single project
+/// XML-serializable data class to describe a single project.
 /// </summary>
-/// <remarks>The class is XML-serializable</remarks>
 [XmlRoot(Namespace = XmlNamespace)]
 public class ProjectInfo
 {
     public const string XmlNamespace = "http://www.sonarsource.com/msbuild/integration/2015/1";
 
-    #region Public properties
-
-    /// <summary>
-    /// The project file name
-    /// </summary>
     public string ProjectName { get; set; }
-
-    /// <summary>
-    /// The project language
-    /// </summary>
     public string ProjectLanguage { get; set; }
-
-    /// <summary>
-    /// The kind of the project
-    /// </summary>
     public ProjectType ProjectType { get; set; }
-
-    /// <summary>
-    /// Unique identifier for the project
-    /// </summary>
     public Guid ProjectGuid { get; set; }
-
-    /// <summary>
-    /// The full name and path of the project file
-    /// </summary>
-    public string FullPath { get; set; }
-
-    /// <summary>
-    /// Flag indicating whether the project should be excluded from processing
-    /// </summary>
+    public string FullPath { get; set; }    // Path to csproj/vbproj/*proj
     public bool IsExcluded { get; set; }
-
-    /// <summary>
-    /// Encoding used for source files if no BOM is present
-    /// </summary>
-    public string Encoding { get; set; }
-
-    /// <summary>
-    /// List of analysis results for the project
-    /// </summary>
-    public List<AnalysisResult> AnalysisResults { get; set; }
-
-    /// <summary>
-    /// List of additional analysis settings
-    /// </summary>
+    public string Encoding { get; set; }    // Default encoding for files without BOM
+    public List<AnalysisResultFile> AnalysisResultFiles { get; set; }
     public AnalysisProperties AnalysisSettings { get; set; }
-
-    /// <summary>
-    /// MSBuild configuration for the current build
-    /// </summary>
-    public string Configuration { get; set; }
-
-    /// <summary>
-    /// MSBuild platform for the current build
-    /// </summary>
-    public string Platform { get; set; }
-
-    /// <summary>
-    /// MSBuild target framework for the current build
-    /// </summary>
+    public string Configuration { get; set; }   // MsBuild /p:Configuration:Release|Debug|SomethingElse parameter
+    public string Platform { get; set; }        // MsBuild /p:Platform parameter
     public string TargetFramework { get; set; }
 
-    #endregion Public properties
-
-    #region Serialization
-
-    /// <summary>
-    /// Saves the project to the specified file as XML
-    /// </summary>
     public void Save(string fileName) =>
         Serializer.SaveModel(this, fileName);
 
-    /// <summary>
-    /// Loads and returns project info from the specified XML file
-    /// </summary>
     public static ProjectInfo Load(string fileName) =>
         Serializer.LoadModel<ProjectInfo>(fileName);
 
-    #endregion Serialization
+    public AnalysisResultFile FindAnalysisResultFile(AnalysisResultFileType fileType) =>
+        FindAnalysisResultFile(fileType.ToString());
+
+    public AnalysisResultFile FindAnalysisResultFile(string id) =>
+        AnalysisResultFiles?.FirstOrDefault(x => AnalysisResultFile.ResultKeyComparer.Equals(id, x.Id));
+
+    public Property FindAnalysisSetting(string id) =>
+        AnalysisSettings?.FirstOrDefault(x => Property.AreKeysEqual(id, x.Id));
+
+    public void AddAnalyzerResult(AnalysisResultFileType fileType, string location) =>
+        AddAnalyzerResult(fileType.ToString(), location);
+
+    public void AddAnalyzerResult(string id, string location)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentNullException(nameof(id));
+        }
+        if (string.IsNullOrWhiteSpace(location))
+        {
+            throw new ArgumentNullException(nameof(location));
+        }
+
+        AnalysisResultFiles ??= [];
+        AnalysisResultFiles.Add(new() { Id = id, Location = location });
+    }
+
+    public DirectoryInfo ProjectFileDirectory() =>
+        string.IsNullOrWhiteSpace(FullPath) ? null : new FileInfo(FullPath).Directory;
+
+    public string ProjectGuidAsString() =>
+        ProjectGuid.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant();
+
+    public FileInfo[] AllAnalysisFiles(ILogger logger)
+    {
+        if (FindAnalysisResultFile(AnalysisResultFileType.FilesToAnalyze)?.Location is { } filesToAnalyze && File.Exists(filesToAnalyze))
+        {
+            var paths = File.ReadAllLines(filesToAnalyze);
+            var result = new List<FileInfo>(paths.Length);
+            foreach (var path in paths)
+            {
+                try
+                {
+                    result.Add(new(path));
+                }
+                catch (Exception ex)
+                {
+                    logger.LogDebug(Resources.MSG_AnalysisFileCouldNotBeAdded, path, ex.Message);
+                }
+            }
+            return result.ToArray();
+        }
+        else
+        {
+            return [];
+        }
+    }
 }

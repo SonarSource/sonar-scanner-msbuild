@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Test;
 
 [TestClass]
@@ -32,40 +25,24 @@ public class ArgumentProcessorTests
 {
     private const string ValidUrl = "/d:sonar.host.url=http://foo";
 
+    public TestContext TestContext { get; set; }
+
     [TestInitialize]
-    public void Initialize()
-    {
+    public void Initialize() =>
         // The project setup means the default properties file will automatically
         // be copied alongside the product binaries.st of these tests assume
         // the default properties file does not exist so we'll ensure it doesn't.
         // Any tests that do require default properties file should re-create it
         // with known content.
-        BootstrapperTestUtils.EnsureDefaultPropertiesFileDoesNotExist();
-    }
-
-    public TestContext TestContext { get; set; }
-
-    #region Tests
+        TestUtils.EnsureDefaultPropertiesFileDoesNotExist();
 
     [TestMethod]
-    public void TryProcessArgs_WhenCommandLineArgsIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ArgumentProcessor.TryProcessArgs(null, new TestLogger(), out var settings);
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("commandLineArgs");
-    }
+    public void TryProcessArgs_WhenCommandLineArgsIsNull_ThrowsArgumentNullException() =>
+        FluentActions.Invoking(() => ArgumentProcessor.TryProcessArgs(null, new TestRuntime(), out var _)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("commandLineArgs");
 
     [TestMethod]
-    public void TryProcessArgs_WhenLoggerIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ArgumentProcessor.TryProcessArgs(new string[0], null, out var settings);
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-    }
+    public void TryProcessArgs_WhenLoggerIsNull_ThrowsArgumentNullException() =>
+        FluentActions.Invoking(() => ArgumentProcessor.TryProcessArgs([], null, out var _)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
     [TestMethod]
     public void ArgProc_Help()
@@ -87,22 +64,22 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void ArgProc_UnrecognizedArgumentsAreIgnored()
     {
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
 
         // 1. Minimal command line settings with extra values
-        var settings = CheckProcessingSucceeds(logger, "begin", "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
+        var settings = CheckProcessingSucceeds(runtime, "begin", "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
         AssertUrlAndChildCmdLineArgs(settings, "/d:sonar.host.url=foo", "foo", "blah", "/xxxx");
     }
 
     [TestMethod]
     public void ArgProc_StripVerbsAndPrefixes()
     {
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
 
-        var settings = CheckProcessingSucceeds(logger, "begin", "/d:sonar.host.url=foo", "/begin:true", "/install:true");
+        var settings = CheckProcessingSucceeds(runtime, "begin", "/d:sonar.host.url=foo", "/begin:true", "/install:true");
         AssertUrlAndChildCmdLineArgs(settings, "/d:sonar.host.url=foo", "/begin:true", "/install:true");
 
-        settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/installXXX:true");
+        settings = CheckProcessingSucceeds(runtime, "/d:sonar.host.url=foo", "begin", "/installXXX:true");
         AssertUrlAndChildCmdLineArgs(settings, "/d:sonar.host.url=foo", "/installXXX:true");
     }
 
@@ -110,25 +87,23 @@ public class ArgumentProcessorTests
     public void ArgProc_PropertyOverriding()
     {
         // Command line properties should take precedence
-
-        // Arrange
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "settings");
         var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
         var properties = new AnalysisProperties { new(SonarProperties.Verbose, "true") };
         properties.Save(fullPropertiesPath);
 
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
 
         // 1. Settings file only
-        var settings = CheckProcessingSucceeds(logger, "begin", "/s: " + fullPropertiesPath);
+        var settings = CheckProcessingSucceeds(runtime, "begin", "/s: " + fullPropertiesPath);
         LoggerVerbosity.Debug.Should().Be(settings.LoggingVerbosity);
 
         // 2. Both file and cmd line
-        settings = CheckProcessingSucceeds(logger, "begin", "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");
+        settings = CheckProcessingSucceeds(runtime, "begin", "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");
         LoggerVerbosity.Info.Should().Be(settings.LoggingVerbosity);
 
         // 3. Cmd line only
-        settings = CheckProcessingSucceeds(logger, "begin", "/d:sonar.verbose=false", "/d:other=property", "/d:a=b c");
+        settings = CheckProcessingSucceeds(runtime, "begin", "/d:sonar.verbose=false", "/d:other=property", "/d:a=b c");
         LoggerVerbosity.Info.Should().Be(settings.LoggingVerbosity); // cmd line wins
     }
 
@@ -138,26 +113,28 @@ public class ArgumentProcessorTests
         // Incorrectly formed /d:[key]=[value] arguments
         TestLogger logger;
 
-        logger = CheckProcessingFails("/d:sonar.host.url=foo",
+        logger = CheckProcessingFails(
+            "/d:sonar.host.url=foo",
             "/d: key1=space before",
             "/d:key2 = space after)");
 
-        logger.AssertSingleErrorExists(" key1");
-        logger.AssertSingleErrorExists("key2 ");
+        logger.Should().HaveErrors(
+            "The format of the analysis property  key1=space before is invalid",
+            "The format of the analysis property key2 = space after) is invalid");
     }
 
     [TestMethod]
     public void ArgProc_WithDashedArguments_Long()
     {
         // Incorrectly formed /d:[key]=[value] arguments
-        TestLogger logger = new TestLogger();
+        var runtime = new TestRuntime();
 
         var arguments = "-d:sonar.host.url=http://foo -version:1.2 -organization:123456789 -key:gggzzz -login:ddddd";
 
-        var settings = CheckProcessingSucceeds(logger, arguments, "begin");
+        var settings = CheckProcessingSucceeds(runtime, arguments, "begin");
 
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        runtime.Logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, arguments);
     }
 
@@ -165,108 +142,103 @@ public class ArgumentProcessorTests
     public void ArgProc_WithDashedArguments_Short()
     {
         // Incorrectly formed /d:[key]=[value] arguments
-        TestLogger logger = new TestLogger();
+        var runtime = new TestRuntime();
 
         var arguments = "-d:sonar.host.url=http://foo -v:1.2 -k:123456789";
 
-        var settings = CheckProcessingSucceeds(logger, arguments, "begin");
+        var settings = CheckProcessingSucceeds(runtime, arguments, "begin");
 
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        runtime.Logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, arguments);
     }
 
     [TestMethod]
     public void ArgProc_BeginVerb()
     {
-        TestLogger logger;
+        var runtime = new TestRuntime();
 
         // 1. Minimal parameters -> valid
-        logger = new();
-        var settings = CheckProcessingSucceeds(logger, ValidUrl, "begin");
+        var settings = CheckProcessingSucceeds(runtime, ValidUrl, "begin");
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        runtime.Logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, ValidUrl);
 
         // 2. With additional parameters -> valid
-        logger = new();
-        settings = CheckProcessingSucceeds(logger, ValidUrl, "begin", "ignored", "k=2");
+        runtime = new();
+        settings = CheckProcessingSucceeds(runtime, ValidUrl, "begin", "ignored", "k=2");
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        runtime.Logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, ValidUrl, "ignored", "k=2");
 
         // 3. Multiple occurrences -> error
-        logger = CheckProcessingFails(ValidUrl, "begin", "begin");
-        logger.AssertSingleErrorExists(ArgumentProcessor.BeginVerb);
+        var logger = CheckProcessingFails(ValidUrl, "begin", "begin");
+        logger.Should().HaveErrorOnce("A value has already been supplied for this argument: begin. Existing: ''");
 
         // 4. Missing -> invalid (missing verb)
         logger = CheckProcessingFails(ValidUrl);
-        logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
+        logger.Should().HaveErrors(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
 
         // 5. Incorrect case -> treated as unrecognized argument -> invalid (missing verb)
         logger = CheckProcessingFails(ValidUrl, "BEGIN");
-        logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
+        logger.Should().HaveErrors(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
     }
 
     [TestMethod]
     public void ArgProc_BeginVerb_MatchesOnlyCompleteWord()
     {
-        TestLogger logger;
+        var runtime = new TestRuntime();
 
         // 1. "beginx" -> invalid (missing verb)
         CheckProcessingFails("beginX");
 
         // 2. "begin", "beginx" should not be treated as duplicates
-        logger = new TestLogger();
-        var settings = CheckProcessingSucceeds(logger, ValidUrl, "begin", "beginX");
+        var settings = CheckProcessingSucceeds(runtime, ValidUrl, "begin", "beginX");
         AssertExpectedPhase(AnalysisPhase.PreProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        runtime.Logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, ValidUrl, "beginX");
     }
 
     [TestMethod]
     public void ArgProc_EndVerb()
     {
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
 
         // 1. Minimal parameters -> valid
-        var settings = CheckProcessingSucceeds(logger, "end");
+        var settings = CheckProcessingSucceeds(runtime, "end");
         AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
         AssertExpectedChildArguments(settings);
 
         // 2. With additional parameters -> valid
-        logger = new TestLogger();
-        settings = CheckProcessingSucceeds(logger, "end", "ignored", "/d:key=value");
+        runtime = new();
+        settings = CheckProcessingSucceeds(runtime, "end", "ignored", "/d:key=value");
         AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        runtime.Logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, "ignored", "/d:key=value");
 
         // 3. Multiple occurrences -> invalid (duplicated argument)
-        logger = CheckProcessingFails(ValidUrl, "end", "end");
+        var logger = CheckProcessingFails(ValidUrl, "end", "end");
         logger.Errors.Should().ContainSingle();
 
         // 4. Missing, no other arguments -> invalid (missing verb)
-        logger = CheckProcessingFails([]);
-        logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
+        logger = CheckProcessingFails();
+        logger.Should().HaveErrors(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
 
         // 5. Partial match -> unrecognized -> invalid (missing verb)
         logger = CheckProcessingFails("endx");
-        logger.AssertErrorLogged(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
+        logger.Should().HaveErrors(Resources.ERROR_CmdLine_NeitherBeginNorEndSupplied);
     }
 
     [TestMethod]
     public void ArgProc_EndVerb_MatchesOnlyCompleteWord()
     {
-        // Arrange
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
 
-        // Act
         // "end", "endx" should not be treated as duplicates
-        var settings = CheckProcessingSucceeds(logger, "end", "endX", "endXXX");
+        var settings = CheckProcessingSucceeds(runtime, "end", "endX", "endXXX");
 
-        // Assert
         AssertExpectedPhase(AnalysisPhase.PostProcessing, settings);
-        logger.AssertWarningsLogged(0);
+        runtime.Logger.Should().HaveNoWarnings();
         AssertExpectedChildArguments(settings, "endX", "endXXX");
     }
 
@@ -275,26 +247,25 @@ public class ArgumentProcessorTests
     {
         // 1. Both present
         var logger = CheckProcessingFails(ValidUrl, "begin", "end");
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("begin", "end");
+        logger.Should().HaveErrors(1)
+            .And.HaveErrors("Invalid command line parameters. Please specify either 'begin' or 'end', not both.");
     }
 
     [TestMethod]
     public void ArgProc_SonarVerbose_IsBool()
     {
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
 
-        var settings = CheckProcessingSucceeds(logger, "/d:sonar.host.url=foo", "begin", "/d:sonar.verbose=yes");
+        var settings = CheckProcessingSucceeds(runtime, "/d:sonar.host.url=foo", "begin", "/d:sonar.verbose=yes");
         settings.LoggingVerbosity.Should().Be(VerbosityCalculator.DefaultLoggingVerbosity, "Only expecting true or false");
 
-        logger.AssertErrorsLogged(0);
-        logger.AssertSingleWarningExists("yes");
+        runtime.Logger.Should().HaveNoErrors()
+            .And.HaveWarningOnce("Expecting the sonar.verbose property to be set to either 'true' or 'false' (case-sensitive) but it was set to 'yes'.");
     }
 
     [TestMethod]
     public void ArgProc_SonarVerbose_CmdAndFile()
     {
-        // Arrange
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "settings");
         var fullPropertiesPath = Path.Combine(testDir, "settings.txt");
         var properties = new AnalysisProperties
@@ -304,57 +275,45 @@ public class ArgumentProcessorTests
         };
         properties.Save(fullPropertiesPath);
 
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
 
-        var settings = CheckProcessingSucceeds(logger, "begin", "/s: " + fullPropertiesPath);
+        var settings = CheckProcessingSucceeds(runtime, "begin", "/s: " + fullPropertiesPath);
         settings.ChildCmdLineArgs.Should().Contain("/s: " + fullPropertiesPath);
         settings.LoggingVerbosity.Should().Be(LoggerVerbosity.Debug);
 
-        settings = CheckProcessingSucceeds(logger, "begin", "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");
+        settings = CheckProcessingSucceeds(runtime, "begin", "/s: " + fullPropertiesPath, "/d:sonar.verbose=false");
         settings.LoggingVerbosity.Should().Be(LoggerVerbosity.Info, "sonar.verbose takes precedence");
     }
 
-    #endregion Tests
-
-    #region Checks
-
-    private static IBootstrapperSettings CheckProcessingSucceeds(TestLogger logger, params string[] cmdLineArgs)
+    private static IBootstrapperSettings CheckProcessingSucceeds(TestRuntime runtime, params string[] cmdLineArgs)
     {
-        var success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
+        var success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, runtime, out var settings);
 
         success.Should().BeTrue("Expecting processing to succeed");
         settings.Should().NotBeNull("Settings should not be null if processing succeeds");
-        logger.AssertErrorsLogged(0);
+        runtime.Logger.Should().HaveNoErrors();
 
         return settings;
     }
 
     private static TestLogger CheckProcessingFails(params string[] cmdLineArgs)
     {
-        var logger = new TestLogger();
-        var success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, logger, out IBootstrapperSettings settings);
+        var runtime = new TestRuntime();
+        var success = ArgumentProcessor.TryProcessArgs(cmdLineArgs, runtime, out var settings);
 
         success.Should().BeFalse("Expecting processing to fail");
         settings.Should().BeNull("Settings should be null if processing fails");
-        logger.AssertErrorsLogged();
+        runtime.Logger.Should().HaveErrors();
 
-        return logger;
+        return runtime.Logger;
     }
 
-    private static void AssertUrlAndChildCmdLineArgs(IBootstrapperSettings settings, params string[] expectedCmdLineArgs)
-    {
+    private static void AssertUrlAndChildCmdLineArgs(IBootstrapperSettings settings, params string[] expectedCmdLineArgs) =>
         settings.ChildCmdLineArgs.Should().BeEquivalentTo(expectedCmdLineArgs, "Unexpected child command line arguments");
-    }
 
-    private static void AssertExpectedPhase(AnalysisPhase expected, IBootstrapperSettings settings)
-    {
+    private static void AssertExpectedPhase(AnalysisPhase expected, IBootstrapperSettings settings) =>
         settings.Phase.Should().Be(expected, "Unexpected analysis phase");
-    }
 
-    private static void AssertExpectedChildArguments(IBootstrapperSettings actualSettings, params string[] expected)
-    {
+    private static void AssertExpectedChildArguments(IBootstrapperSettings actualSettings, params string[] expected) =>
         actualSettings.ChildCmdLineArgs.Should().BeEquivalentTo(expected, "Unexpected child command line arguments");
-    }
-
-    #endregion Checks
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,66 +18,57 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Shim.Interfaces;
-
 namespace SonarScanner.MSBuild.Shim;
 
-public class TfsProcessorWrapper(ILogger logger, IOperatingSystemProvider operatingSystemProvider) : ITfsProcessor
+public class TfsProcessorWrapper
 {
-    private readonly ILogger logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    private readonly IOperatingSystemProvider operatingSystemProvider = operatingSystemProvider ?? throw new ArgumentNullException(nameof(operatingSystemProvider));
+    private readonly IRuntime runtime;
 
-    public bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    public TfsProcessorWrapper(IRuntime runtime) =>
+        this.runtime = runtime;
+
+    public virtual bool Execute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
     {
-        if (config is null)
-        {
-            throw new ArgumentNullException(nameof(config));
-        }
+        _ = config ?? throw new ArgumentNullException(nameof(config));
+        _ = userCmdLineArguments ?? throw new ArgumentNullException(nameof(userCmdLineArguments));
 
-        if (userCmdLineArguments is null)
-        {
-            throw new ArgumentNullException(nameof(userCmdLineArguments));
-        }
-
-        return InternalExecute(config, userCmdLineArguments, fullPropertiesFilePath);
+        return InternalExecute(config, userCmdLineArguments);
     }
 
     public virtual /* for test purposes */ bool ExecuteProcessorRunner(AnalysisConfig config,
                                                                        string exeFileName,
                                                                        IEnumerable<string> userCmdLineArguments,
-                                                                       string propertiesFileName,
                                                                        IProcessRunner runner)
     {
         Debug.Assert(File.Exists(exeFileName), "The specified exe file does not exist: " + exeFileName);
-        Debug.Assert(File.Exists(propertiesFileName), "The specified properties file does not exist: " + propertiesFileName);
 
-        logger.LogInfo(Resources.MSG_TFSProcessorCalling);
+        runtime.LogInfo(Resources.MSG_TFSProcessorCalling);
 
         Debug.Assert(!string.IsNullOrWhiteSpace(config.SonarScannerWorkingDirectory), "The working dir should have been set in the analysis config");
         Debug.Assert(Directory.Exists(config.SonarScannerWorkingDirectory), "The working dir should exist");
 
-        var converterArgs = new ProcessRunnerArguments(exeFileName, operatingSystemProvider.OperatingSystem() != PlatformOS.Windows)
+        var converterArgs = new ProcessRunnerArguments(exeFileName, !runtime.OperatingSystem.IsWindows())
         {
-            CmdLineArgs = userCmdLineArguments,
+            CmdLineArgs = userCmdLineArguments.Select(x => new ProcessRunnerArguments.Argument(x)).ToArray(),
             WorkingDirectory = config.SonarScannerWorkingDirectory,
         };
 
         var result = runner.Execute(converterArgs);
         if (result.Succeeded)
         {
-            logger.LogInfo(Resources.MSG_TFSProcessorCompleted);
+            runtime.LogInfo(Resources.MSG_TFSProcessorCompleted);
         }
         else
         {
-            logger.LogError(Resources.ERR_TFSProcessorExecutionFailed);
+            runtime.LogError(Resources.ERR_TFSProcessorExecutionFailed);
         }
         return result.Succeeded;
     }
 
-    private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments, string fullPropertiesFilePath)
+    private bool InternalExecute(AnalysisConfig config, IEnumerable<string> userCmdLineArguments)
     {
         var exeFileName = FindProcessorExe();
-        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, fullPropertiesFilePath, new ProcessRunner(logger));
+        return ExecuteProcessorRunner(config, exeFileName, userCmdLineArguments, new ProcessRunner(runtime));
     }
 
     private static string FindProcessorExe()

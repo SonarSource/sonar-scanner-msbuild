@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest;
 /// </summary>
 internal static class MSBuildLocator
 {
-    public static IOperatingSystemProvider OperatingSystemProvider { get; set; } = new OperatingSystemProvider(FileWrapper.Instance, new ConsoleLogger(true));
+    public static OperatingSystemProvider OperatingSystemProvider { get; set; } = new OperatingSystemProvider(FileWrapper.Instance, new ConsoleLogger(true));
 
     /// <summary>
     /// Returns a path to an instance of msbuild.exe or null if one could

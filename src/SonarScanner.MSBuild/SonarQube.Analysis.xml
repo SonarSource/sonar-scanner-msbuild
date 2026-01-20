@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
-  This file defines properties which would be understood by the SonarQube Scanner for MSBuild, if not overridden (see below)
+  This file defines properties which would be understood by the SonarQube Scanner for .NET, if not overridden (see below)
   By default the SonarScanner.MSBuild.exe picks-up a file named SonarQube.Analysis.xml in the folder it
   is located (if it exists). It is possible to use another properties file by using the /s:filePath.xml flag
 

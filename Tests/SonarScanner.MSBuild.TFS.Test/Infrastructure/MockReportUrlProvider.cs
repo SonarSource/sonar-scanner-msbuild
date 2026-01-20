@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using FluentAssertions;
-
-namespace SonarScanner.MSBuild.TFS.Tests.Infrastructure;
+namespace SonarScanner.MSBuild.TFS.Test.Infrastructure;
 
 internal class MockReportUrlProvider : ICoverageUrlProvider // was internal
 {

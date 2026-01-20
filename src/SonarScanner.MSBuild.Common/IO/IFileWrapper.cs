@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -43,4 +43,6 @@ public interface IFileWrapper
     void AppendAllLines(string file, IEnumerable<string> enumerable, Encoding encoding);
 
     void CreateNewAllLines(string file, IEnumerable<string> enumerable, Encoding encoding);
+
+    string ShortName(PlatformOS os, string path);
 }

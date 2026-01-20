@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -20,64 +20,144 @@
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.*;
+import com.sonar.orchestrator.build.BuildResult;
+import org.assertj.core.api.AbstractListAssert;
+import org.assertj.core.api.ObjectAssert;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.sonarqube.ws.Components;
-import org.sonarqube.ws.Issues.Issue;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class TelemetryTest {
 
   @Test
-  void telemetry_telemetryFiles_areCorrect() throws IOException {
-    var context = AnalysisContext.forServer("Telemetry");
-    context.begin.setProperty(
-      new Property("sonar.scanner.scanAll", "false"),
-      new Property("s", context.projectDir.resolve("SonarQube.Analysis.xml").toAbsolutePath().toString()));
-    context.runAnalysis();
-
-    var sonarQubeOutDirectory = context.projectDir.resolve(".sonarqube").resolve("out");
-
-    assertThat(readContents(sonarQubeOutDirectory.resolve(("Telemetry.S4NET.json"))))
-      .satisfiesExactly(
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.value\":\"false\"}"),
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.params.sonar_scanner_scanall.source\":\"CLI\"}")
-      );
-
-    assertThat(readContents(sonarQubeOutDirectory.resolve("Telemetry.Targets.S4NET.json")))
-      .satisfiesExactly(
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.visual_studio_version\":"),
-        x -> assertThat(x).startsWith("{\"dotnetenterprise.s4net.build.msbuild_tools_version\":")
-      );
-
-    for (int i = 0; i<3; i++) {
-      assertThat(readContents(sonarQubeOutDirectory.resolve(String.valueOf(i)).resolve("Telemetry.json"))).satisfiesExactly(
-        x -> assertThat(x).isEqualTo("{\"dotnetenterprise.s4net.build.target_framework_moniker\":\".NETStandard,Version=v1.6\"}"));
-    }
+  @ServerMinVersion("2025.3")
+  void telemetry_telemetryFiles_areCorrect_CS() {
+    var result = runAnalysis("Telemetry");
+    assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
+      x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=3"),
+      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=3"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.value=rooted"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scm_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_verbose.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.product=SQ_Server"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.serverUrl=custom_url"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.serverInfo.version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"));
   }
 
-  private List<String> readContents(Path path) throws IOException  {
-    List<String> content = Files.readAllLines(path, StandardCharsets.UTF_8);
-    // see: https://stackoverflow.com/a/73590918
-    content.replaceAll(x -> x.replace("\uFEFF", ""));
-    return content;
+  @Test
+  @ServerMinVersion("2025.3")
+  void telemetry_telemetryFiles_areCorrect_VB() {
+    var result = runAnalysis("TelemetryVB");
+    assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
+      x -> assertThat(x).matches("vbnet\\.vbnet\\.language_version\\.visualbasic(15|16|17_13)=3"),
+      x -> assertThat(x).isEqualTo("vbnet.vbnet.target_framework.netstandard1_6=3"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.value=rooted"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scm_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_verbose.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.product=SQ_Server"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.serverUrl=custom_url"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.serverInfo.version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"));
+  }
+
+  @Test
+  @ServerMinVersion("2025.3")
+  void telemetry_telemetryFiles_areCorrect_CSVB_Mixed() {
+    var result = runAnalysis("TelemetryCSVBMixed");
+    assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
+      x -> assertThat(x).matches("vbnet\\.vbnet\\.language_version\\.visualbasic(15|16|17_13)=1"),
+      x -> assertThat(x).isEqualTo("vbnet.vbnet.target_framework.netstandard1_6=1"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.value=rooted"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scm_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_verbose.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.product=SQ_Server"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.serverUrl=custom_url"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.serverInfo.version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=1"),
+      x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=2"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=2"));
+  }
+
+  @Test
+  @MSBuildMinVersion(18)
+  @ServerMinVersion("2025.3")
+  void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() {
+    var context = AnalysisContext.forServer(Paths.get("Telemetry", "TelemetryMultiTarget").toString());
+    context.begin.setDebugLogs();
+    var result = context.runAnalysis();
+
+    assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
+      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp12=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp14=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net8_0=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net10_0=2"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.value=rooted"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scm_disabled.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_verbose.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.product=SQ_Server"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.serverUrl=custom_url"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.serverInfo.version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
+      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v8_0=2"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v10_0=2"));
+  }
+
+  @NotNull
+  private static AnalysisResult runAnalysis(String telemetryProject) {
+    var context = AnalysisContext.forServer(Paths.get("Telemetry", telemetryProject).toString());
+    context.begin.setDebugLogs();
+    var result = context.runAnalysis();
+    assertThat(result.isSuccess()).isTrue();
+    return result;
+  }
+
+  private static AbstractListAssert<?, List<? extends String>, String, ObjectAssert<String>> assertThatEndLogMetrics(BuildResult result) {
+    final String metricLog = "^[0-9.:]*  DEBUG: Adding metric: ";
+    var endLogs = result.getLogsLines(x -> x.matches(metricLog + ".*"));
+    return assertThat(endLogs).map(x -> x.replaceFirst(metricLog, ""));
   }
 }
 

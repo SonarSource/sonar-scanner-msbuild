@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -33,10 +33,10 @@ public class TruststoreUtilsTests
         var result = TruststoreUtils.TruststoreDefaultPassword(null, logger);
 
         result.Should().Be("changeit");
-        logger.DebugMessages.Should().BeEmpty();
+        logger.Should().HaveNoDebugs();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("doesnotexist.p12")]
     [DataRow("folder/doesnotexist.p12")]
     public void TruststoreDefaultPassword_TruststoreDoesNotExists(string path)
@@ -64,7 +64,7 @@ public class TruststoreUtilsTests
         logger.DebugMessages.Should().ContainMatch($"Could not import the truststore '{truststoreFile.FileName}' with the default password at index 1. Reason: *");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("changeit", 0)]
     [DataRow("sonar", 1)]
     public void TruststoreDefaultPassword_CorrectPassword(string password, int expectedMessagesCount)

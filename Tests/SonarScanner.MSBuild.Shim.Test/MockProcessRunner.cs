@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -20,15 +20,20 @@
 
 namespace SonarScanner.MSBuild.Shim.Test;
 
-internal class MockProcessRunner(bool executeResult, string std = "", string error = "") : IProcessRunner
+internal class MockProcessRunner(bool executeResult) : IProcessRunner
 {
+    public string StandardOutput { get; init; } = string.Empty;
+    public string ErrorOutput { get; init; } = string.Empty;
+    public Exception Exception { get; set; }
+
     public ProcessRunnerArguments SuppliedArguments { get; private set; }
 
     public ProcessResult Execute(ProcessRunnerArguments runnerArgs)
     {
         runnerArgs.Should().NotBeNull();
         SuppliedArguments = runnerArgs;
-
-        return new ProcessResult(executeResult, std, error);
+        return Exception is null
+            ? new ProcessResult(executeResult, StandardOutput, ErrorOutput)
+            : throw Exception;
     }
 }

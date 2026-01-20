@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -27,17 +27,32 @@ using System.Threading;
 
 namespace SonarScanner.MSBuild.Common;
 
+public enum LogLevel
+{
+    None,
+    Info,
+    Warning,
+    Error
+}
+
+public readonly record struct LogMessage(LogLevel Level, string Message);
+
+public delegate LogMessage? OutputToLogMessage(bool stdOut, string outputLine);
+
 /// <summary>
-/// Data class containing parameters required to execute a new process
+/// Data class containing parameters required to execute a new process.
 /// </summary>
 public class ProcessRunnerArguments
 {
+    // ToDo: Remove this in https://sonarsource.atlassian.net/browse/SCAN4NET-721
+    private readonly bool isBatchScript;
+
     public string ExeName { get; }
 
     /// <summary>
     /// Non-sensitive command line arguments (i.e. ones that can safely be logged). Optional.
     /// </summary>
-    public IEnumerable<string> CmdLineArgs { get; set; }
+    public IReadOnlyList<Argument> CmdLineArgs { get; set; }
 
     public string WorkingDirectory { get; set; }
 
@@ -54,9 +69,9 @@ public class ProcessRunnerArguments
                 return null;
             }
 
-            var result = string.Join(" ", CmdLineArgs.Select(EscapeArgument));
+            var result = string.Join(" ", CmdLineArgs.Select(x => x.EscapeArgument()));
 
-            if (IsBatchScript)
+            if (isBatchScript)
             {
                 result = ShellEscape(result);
             }
@@ -70,7 +85,21 @@ public class ProcessRunnerArguments
     /// </summary>
     public IDictionary<string, string> EnvironmentVariables { get; set; }
 
-    private bool IsBatchScript { get; set; }
+    public OutputToLogMessage OutputToLogMessage { get; set; }
+
+    public string StandardInput { get; set; }
+
+    /// <summary>
+    /// Specifies that <see cref="ProcessRunner"/> checks whether the <see cref="ExeName"/> file can be found via <see cref="File.Exists(string)"/>.
+    /// Turn this off, if the <see cref="ExeName"/> can also be resolved via <c>%PATH%</c> lookups.
+    /// See also <seealso href="https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-diagnostics-processstartinfo-useshellexecute#workingdirectory">
+    /// ProcessStartInfo remarks about %PATH% lookup.
+    /// </seealso>.
+    /// </summary>
+    /// <remarks>
+    /// Default: <see langword="true"/>.
+    /// </remarks>
+    public bool ExeMustExists { get; set; } = true;
 
     public ProcessRunnerArguments(string exeName, bool isBatchScript)
     {
@@ -80,14 +109,24 @@ public class ProcessRunnerArguments
         }
 
         ExeName = exeName;
-        IsBatchScript = isBatchScript;
+        this.isBatchScript = isBatchScript;
 
         TimeoutInMilliseconds = Timeout.Infinite;
+        OutputToLogMessage = (stdOut, outputLine) =>
+        {
+            var logLevel = stdOut
+                ? LogLevel.Info
+                : LogLevel.Error;
+            logLevel = logLevel == LogLevel.Error && outputLine.StartsWith("WARN")
+                ? LogLevel.Warning
+                : logLevel;
+            return new(logLevel, outputLine);
+        };
     }
 
     /// <summary>
     /// Returns the string that should be used when logging command line arguments
-    /// (sensitive data will have been removed)
+    /// (sensitive data will have been removed).
     /// </summary>
     public string AsLogText()
     {
@@ -100,7 +139,7 @@ public class ProcessRunnerArguments
 
         var sb = new StringBuilder();
 
-        foreach (var arg in CmdLineArgs)
+        foreach (var arg in CmdLineArgs.Select(x => x.Value))
         {
             if (ContainsSensitiveData(arg))
             {
@@ -123,7 +162,7 @@ public class ProcessRunnerArguments
 
     /// <summary>
     /// Determines whether the text contains sensitive data that
-    /// should not be logged/written to file
+    /// should not be logged/written to file.
     /// </summary>
     public static bool ContainsSensitiveData(string text)
     {
@@ -135,56 +174,6 @@ public class ProcessRunnerArguments
         }
 
         return SonarProperties.SensitivePropertyKeys.Any(x => text.IndexOf(x, StringComparison.OrdinalIgnoreCase) > -1);
-    }
-
-    /// <summary>
-    /// The CreateProcess Win32 API call only takes 1 string for all arguments.
-    /// Ultimately, it is the responsibility of each program to decide how to split this string into multiple arguments.
-    ///
-    /// See:
-    /// https://blogs.msdn.microsoft.com/oldnewthing/20100917-00/?p=12833/
-    /// https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
-    /// http://www.daviddeley.com/autohotkey/parameters/parameters.htm
-    /// </summary>
-    private static string EscapeArgument(string arg)
-    {
-        Debug.Assert(arg is not null, "Not expecting an argument to be null");
-
-        var sb = new StringBuilder();
-
-        sb.Append("\"");
-        for (var i = 0; i < arg.Length; i++)
-        {
-            var numberOfBackslashes = 0;
-            for (; i < arg.Length && arg[i] == '\\'; i++)
-            {
-                numberOfBackslashes++;
-            }
-
-            if (i == arg.Length)
-            {
-                // Escape all backslashes, but let the terminating
-                // double quotation mark we add below be interpreted
-                // as a meta-character.
-                sb.Append('\\', numberOfBackslashes * 2);
-            }
-            else if (arg[i] == '"')
-            {
-                // Escape all backslashes and the following
-                // double quotation mark.
-                sb.Append('\\', numberOfBackslashes * 2 + 1);
-                sb.Append(arg[i]);
-            }
-            else
-            {
-                // Backslashes aren't special here.
-                sb.Append('\\', numberOfBackslashes);
-                sb.Append(arg[i]);
-            }
-        }
-        sb.Append("\"");
-
-        return sb.ToString();
     }
 
     /// <summary>
@@ -226,5 +215,60 @@ public class ProcessRunnerArguments
             sb.Append(c);
         }
         return sb.ToString();
+    }
+
+    public readonly record struct Argument(string Value, bool Escaped = false)
+    {
+        /// <summary>
+        /// The CreateProcess Win32 API call only takes 1 string for all arguments.
+        /// Ultimately, it is the responsibility of each program to decide how to split this string into multiple arguments.
+        ///
+        /// See:
+        /// https://blogs.msdn.microsoft.com/oldnewthing/20100917-00/?p=12833/
+        /// https://blogs.msdn.microsoft.com/twistylittlepassagesallalike/2011/04/23/everyone-quotes-command-line-arguments-the-wrong-way/
+        /// http://www.daviddeley.com/autohotkey/parameters/parameters.htm.
+        /// </summary>
+        public string EscapeArgument()
+        {
+            if (Escaped)
+            {
+                return Value;
+            }
+            var sb = new StringBuilder(capacity: Value.Length + 2);
+            sb.Append("\"");
+
+            for (var i = 0; i < Value.Length; i++)
+            {
+                var numberOfBackslashes = 0;
+                for (; i < Value.Length && Value[i] == '\\'; i++)
+                {
+                    numberOfBackslashes++;
+                }
+
+                if (i == Value.Length)
+                {
+                    // Escape all backslashes, but let the terminating
+                    // double quotation mark we add below be interpreted
+                    // as a meta-character.
+                    sb.Append('\\', numberOfBackslashes * 2);
+                }
+                else if (Value[i] == '"')
+                {
+                    // Escape all backslashes and the following
+                    // double quotation mark.
+                    sb.Append('\\', numberOfBackslashes * 2 + 1);
+                    sb.Append(Value[i]);
+                }
+                else
+                {
+                    // Backslashes aren't special here.
+                    sb.Append('\\', numberOfBackslashes);
+                    sb.Append(Value[i]);
+                }
+            }
+            sb.Append("\"");
+
+            return sb.ToString();
+        }
     }
 }

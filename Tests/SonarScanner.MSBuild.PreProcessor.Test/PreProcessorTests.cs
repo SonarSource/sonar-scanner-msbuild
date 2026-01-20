@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using NSubstitute.ExceptionExtensions;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -30,60 +30,55 @@ public partial class PreProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        var logger = Substitute.For<ILogger>();
-        var factory = Substitute.For<IPreprocessorObjectFactory>();
-        ((Func<PreProcessor>)(() => new PreProcessor(null, logger))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("factory");
-        ((Func<PreProcessor>)(() => new PreProcessor(factory, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        FluentActions.Invoking(() => new PreProcessor(null, new TestRuntime())).Should().Throw<ArgumentNullException>().WithParameterName("factory");
+        FluentActions.Invoking(() => new PreProcessor(Substitute.For<IPreprocessorObjectFactory>(), null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
     }
 
     [TestMethod]
     public void Execute_NullArguments_ThrowsArgumentNullException()
     {
         var factory = new MockObjectFactory();
-        var preProcessor = new PreProcessor(factory, factory.Logger);
-
-        preProcessor.Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
+        new PreProcessor(factory, factory.Runtime).Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
     }
 
     [TestMethod]
     public async Task Execute_InvalidArguments_ReturnsFalseAndLogsError()
     {
         var factory = new MockObjectFactory();
-        var sut = CreatePreProcessor(factory);
 
-        (await sut.Execute(["invalid args"])).Should().Be(false);
-        factory.Logger.AssertErrorLogged("""
-        Expecting at least the following command line argument:
-        - SonarQube/SonarCloud project key
-        The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for MSBuild.
-        Use '/?' or '/h' to see the help message.
-        """);
+        (await new PreProcessor(factory, factory.Runtime).Execute(["invalid args"])).Should().Be(false);
+        factory.Runtime.Logger.Should().HaveErrors("""
+            Expecting at least the following command line argument:
+            - SonarQube/SonarCloud project key
+            The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
+            Use '/?' or '/h' to see the help message.
+            """);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Windows enforces file locks at the OS level.
+    // Unix does not enforce file locks at the OS level, so this doesn't work.
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public async Task Execute_CannotCreateDirectories_ReturnsFalseAndLogsError()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var preProcessor = CreatePreProcessor(factory);
-        var configDirectory = Path.Combine(scope.WorkingDir, "conf");
+        using var context = new Context(TestContext);
+        var configDirectory = Path.Combine(context.WorkingDir, "conf");
         Directory.CreateDirectory(configDirectory);
         using var lockedFile = new FileStream(Path.Combine(configDirectory, "LockedFile.txt"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
 
-        (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
-        factory.Logger.Errors.Should().ContainMatch($"Failed to create an empty directory '{configDirectory}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.*  Detailed error message: The process cannot access the file 'LockedFile.txt' because it is being used by another process.");
+        (await context.Execute()).Should().BeFalse();
+        context.Factory.Runtime.Logger.Errors.Should().ContainMatch(
+            $"Failed to create an empty directory '{configDirectory}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.*  Detailed error message: The process cannot access the file 'LockedFile.txt' because it is being used by another process.");
     }
 
     [TestMethod]
     public async Task Execute_InvalidLicense_ReturnsFalse()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var preProcessor = CreatePreProcessor(factory);
-        factory.Server.IsServerLicenseValidImplementation = () => Task.FromResult(false);
+        using var context = new Context(TestContext);
+        context.Factory.Server.IsServerLicenseValid().Returns(false);
 
-        var result = await preProcessor.Execute(CreateArgs());
+        var result = await context.Execute();
 
         result.Should().BeFalse();
     }
@@ -91,77 +86,55 @@ public partial class PreProcessorTests
     [TestMethod]
     public async Task Execute_LicenseCheckThrows_ReturnsFalseAndLogsError()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var preProcessor = CreatePreProcessor(factory);
-        factory.Server.IsServerLicenseValidImplementation = () => throw new InvalidOperationException("Some error was thrown during license check.");
+        using var context = new Context(TestContext);
+        context.Factory.Server.IsServerLicenseValid().ThrowsAsync(new InvalidOperationException("Some error was thrown during license check."));
 
-        (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
-        factory.Logger.AssertErrorLogged("Some error was thrown during license check.");
+        (await context.Execute()).Should().BeFalse();
+        context.Factory.Runtime.Logger.Should().HaveErrors("Some error was thrown during license check.");
     }
 
     [TestMethod]
     public async Task Execute_TargetsNotInstalled_ReturnsFalseAndLogsDebugMessage()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var preProcessor = CreatePreProcessor(factory);
-
-        (await preProcessor.Execute(CreateArgs().Append("/install:false"))).Should().BeTrue();
-        factory.Logger.AssertDebugLogged("Skipping installing the ImportsBefore targets file.");
+        using var context = new Context(TestContext);
+        (await context.Execute(CreateArgs().Append("/install:false"))).Should().BeTrue();
+        context.Factory.Runtime.Logger.Should().HaveDebugs("Skipping installing the ImportsBefore targets file.");
     }
 
     [TestMethod]
     public async Task Execute_FetchArgumentsAndRuleSets_ConnectionIssue_ReturnsFalseAndLogsError()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var preProcessor = CreatePreProcessor(factory);
-        factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure);
+        using var context = new Context(TestContext);
+        context.Factory.Server.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure));
 
-        (await preProcessor.Execute(CreateArgs())).Should().BeFalse();
-        factory.Logger.AssertErrorLogged("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
+        (await context.Execute()).Should().BeFalse();
+        context.Factory.Runtime.Logger.Should().HaveErrors("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
     }
 
-    [DataTestMethod]
-    [DataRow(true)]
-    [DataRow(false)]
+    [TestMethod]
+    [CombinatorialData]
     public async Task Execute_ExplicitScanAllParameter_ReturnsTrue(bool scanAll)
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
-        var preProcessor = CreatePreProcessor(factory);
+        using var context = new Context(TestContext);
+        context.Factory.Server.ServerVersion.Returns(new Version(9, 10, 1, 2));
         var args = new List<string>(CreateArgs())
         {
             $"/d:sonar.scanner.scanAll={scanAll}",
         };
 
-        var success = await preProcessor.Execute(args);
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        (await context.Execute(args)).Should().BeTrue();
 
-        if (scanAll)
-        {
-            factory.Logger.AssertUIWarningLogged("Multi-Language analysis is enabled. " +
-                "If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
-        }
-        else
-        {
-            factory.Logger.AssertNoWarningsLogged();
-            factory.Logger.AssertNoUIWarningsLogged();
-        }
+        context.Factory.Runtime.Logger.Should().HaveNoWarnings();
+        context.Factory.Runtime.AnalysisWarnings.Should().HaveNoMessages();
     }
 
     [TestMethod]
     public async Task Execute_ServerNotAvailable_ReturnsFalse()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = Substitute.For<IPreprocessorObjectFactory>();
-        factory.CreateTargetInstaller().Returns(Substitute.For<ITargetsInstaller>());
-        factory.CreateSonarWebServer(Arg.Any<ProcessedArgs>(), null).Returns(Task.FromResult<ISonarWebServer>(null));
-        var preProcessor = new PreProcessor(factory, new TestLogger());
+        using var context = new Context(TestContext);
+        context.Factory.Server = null;
 
-        var result = await preProcessor.Execute(CreateArgs());
+        var result = await context.Execute();
 
         result.Should().BeFalse();
     }
@@ -169,12 +142,10 @@ public partial class PreProcessorTests
     [TestMethod]
     public async Task Execute_FetchArgumentsAndRuleSets_ServerReturnsUnexpectedStatus()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var preProcessor = CreatePreProcessor(factory);
-        factory.Server.TryDownloadQualityProfilePreprocessing = () => throw new WebException("Something else went wrong");
+        using var context = new Context(TestContext);
+        context.Factory.Server.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new WebException("Something else went wrong"));
 
-        await preProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
+        await context.PreProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
     }
 
     [TestMethod]
@@ -186,29 +157,21 @@ public partial class PreProcessorTests
         // * server properties are fetched
         // * rule sets are generated
         // * config file is created
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
-        var settings = factory.ReadSettings();
-        var preProcessor = CreatePreProcessor(factory);
+        using var context = new Context(TestContext);
+        context.Factory.Server.ServerVersion.Returns(new Version(9, 10, 1, 2));
 
-        var success = await preProcessor.Execute(CreateArgs());
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        (await context.Execute()).Should().BeTrue();
 
-        AssertDirectoriesCreated(settings);
+        context.AssertDirectoriesCreated();
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
 
-        factory.TargetsInstaller.Received(1).InstallLoaderTargets(scope.WorkingDir);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), 2); // C# and VBNet
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
+        context.Factory.Runtime.Logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.")
+            .And.HaveDebugs("Processing analysis cache");
 
-        factory.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
-        factory.Logger.AssertDebugLogged("Processing analysis cache");
-
-        var config = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
+        var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("9.10.1.2");
-        config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(scope.WorkingDir));
+        config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
+        await context.Factory.ScannerCliResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);  // engine was resolved so CLI should not be used
     }
 
     [TestMethod]
@@ -220,11 +183,8 @@ public partial class PreProcessorTests
         // * server properties are fetched
         // * rule sets are generated
         // * config file is created
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        factory.Server.Data.SonarQubeVersion = new Version(9, 10, 1, 2);
-        var settings = factory.ReadSettings();
-        var preProcessor = CreatePreProcessor(factory);
+        using var context = new Context(TestContext);
+        context.Factory.Server.ServerVersion.Returns(new Version(9, 10, 1, 2));
 
         var tmpCachePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, ".temp-cache");
         var args = new List<string>(CreateArgs())
@@ -232,49 +192,32 @@ public partial class PreProcessorTests
             $"/d:sonar.plugin.cache.directory={tmpCachePath}",
         };
 
-        var success = await preProcessor.Execute(args);
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        (await context.Execute(args)).Should().BeTrue();
 
-        AssertDirectoriesCreated(settings);
+        context.AssertDirectoriesCreated();
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
 
-        factory.AssertMethodCalled(nameof(MockObjectFactory.CreateRoslynAnalyzerProvider), 2); // C# and VBNet
-        factory.PluginCachePath.Should().Be(tmpCachePath);
+        context.Factory.AssertMethodCalled(nameof(context.Factory.CreateRoslynAnalyzerProvider), 2); // C# and VBNet
+        context.Factory.PluginCachePath.Should().Be(tmpCachePath);
+        context.Factory.Runtime.Logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.")
+            .And.HaveDebugs("Processing analysis cache");
 
-        factory.TargetsInstaller.Received(1).InstallLoaderTargets(scope.WorkingDir);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), 2); // C# and VBNet
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
-
-        factory.Logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
-        factory.Logger.AssertDebugLogged("Processing analysis cache");
-
-        var config = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
+        var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("9.10.1.2");
-        config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(scope.WorkingDir));
+        config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
     }
 
     [TestMethod]
     public async Task Execute_EndToEnd_SuccessCase_NoActiveRule()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        factory.Server.Data.FindProfile("qp1").Rules.Clear();
-        var settings = factory.ReadSettings();
-        var preProcessor = CreatePreProcessor(factory);
+        using var context = new Context(TestContext);
+        context.Factory.Server.DownloadRules("qp1").Returns([]);
 
-        var success = await preProcessor.Execute(CreateArgs());
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        (await context.Execute()).Should().BeTrue();
 
-        AssertDirectoriesCreated(settings);
-
-        factory.TargetsInstaller.Received(1).InstallLoaderTargets(scope.WorkingDir);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), 2); // C# and VBNet
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
-
-        AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
+        context.AssertDirectoriesCreated();
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
+        context.AssertAnalysisConfig(2);
     }
 
     [TestMethod]
@@ -286,91 +229,145 @@ public partial class PreProcessorTests
         // * server properties are fetched
         // * rule sets are generated
         // * config file is created
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory(organization: "organization");
-        var settings = factory.ReadSettings();
-        var preProcessor = CreatePreProcessor(factory);
+        using var context = new Context(TestContext, new MockObjectFactory(organization: "organization"));
 
-        var success = await preProcessor.Execute(CreateArgs("organization"));
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        (await context.Execute(CreateArgs("organization"))).Should().BeTrue();
 
-        AssertDirectoriesCreated(settings);
+        context.AssertDirectoriesCreated();
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
+        context.AssertAnalysisConfig(2);
+    }
 
-        factory.TargetsInstaller.Received(1).InstallLoaderTargets(scope.WorkingDir);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), 2); // C# and VBNet
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 2); // C# and VBNet
+    [TestMethod]
+    public async Task Execute_EndToEnd_UseCli_SuccessCase()
+    {
+        using var context = new Context(TestContext);
+        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs("some/path/to/sonar-scanner");
+        var args = new List<string>(CreateArgs()) { "/d:sonar.scanner.useSonarScannerCLI=true" };
 
-        AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
+        (await context.Execute(args)).Should().BeTrue();
+        context.AssertDirectoriesCreated();
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
+        context.AssertAnalysisConfig(2).SonarScannerCliPath.Should().Be("some/path/to/sonar-scanner");
+        await context.Factory.EngineResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);
+    }
+
+    [TestMethod]
+    public async Task Execute_EndToEnd_UseCLI_ScannerCliDownloadFails()
+    {
+        using var context = new Context(TestContext);
+        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
+        var args = new List<string>(CreateArgs()) { "/d:sonar.scanner.useSonarScannerCLI=true" };
+
+        (await context.Execute(args)).Should().BeFalse();
+        context.Factory.Runtime.Logger.Should().HaveErrors("""
+            SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
+            Make sure 'https://binaries.sonarsource.com/' is reachable or roll back to a previous version of the Scanner (< 11.0).
+            """);
+    }
+
+#if NETFRAMEWORK
+
+    [TestMethod]
+    public async Task Execute_EndToEnd_LegacyTFS_UsesScannerCli()
+    {
+        using var context = new Context(TestContext);
+        using (var env = new EnvironmentVariableScope())
+        {
+            env.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "true");
+            env.SetVariable(EnvironmentVariables.BuildUriLegacy, "LegacyBuildUri");
+            context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs("some/path/to/sonar-scanner");
+
+            (await context.Execute()).Should().BeTrue();
+        }
+        context.AssertDirectoriesCreated();
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
+        context.AssertAnalysisConfig(2).SonarScannerCliPath.Should().Be("some/path/to/sonar-scanner");
+        await context.Factory.EngineResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);
+    }
+
+    [TestMethod]
+    public async Task Execute_EndToEnd_LegacyTFS_ScannerCliDownloadFails()
+    {
+        using var context = new Context(TestContext);
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "true");
+        env.SetVariable(EnvironmentVariables.BuildUriLegacy, "LegacyBuildUri");
+        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
+
+        (await context.Execute()).Should().BeFalse();
+        context.Factory.Runtime.Logger.Should().HaveErrors("""
+            SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
+            Make sure 'https://binaries.sonarsource.com/' is reachable or roll back to a previous version of the Scanner (< 11.0).
+            """);
+    }
+
+#endif
+
+    [TestMethod]
+    public async Task Execute_EndToEnd_EngineNotResolved_FallbackToCli()
+    {
+        using var context = new Context(TestContext);
+        context.Factory.EngineResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
+        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs("some/path/to/sonar-scanner");
+
+        (await context.Execute()).Should().BeTrue();
+        var actualConfig = context.AssertAnalysisConfig(2);
+        actualConfig.SonarScannerCliPath.Should().Be("some/path/to/sonar-scanner");
+        actualConfig.UseSonarScannerCli.Should().BeFalse();
+        actualConfig.EngineJarPath.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task Execute_EndToEnd_EngineNotResolved_ScannerCliDownloadFails()
+    {
+        using var context = new Context(TestContext);
+        context.Factory.EngineResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
+        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
+
+        (await context.Execute()).Should().BeFalse();
+        context.Factory.Runtime.Logger.Should().HaveErrors("""
+            SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
+            Make sure 'https://binaries.sonarsource.com/' is reachable or roll back to a previous version of the Scanner (< 11.0).
+            """);
     }
 
     [TestMethod]
     public async Task Execute_NoPlugin_ReturnsFalseAndLogsError()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        factory.Server.Data.Languages.Clear();
-        factory.Server.Data.Languages.Add("invalid_plugin");
-        var preProcessor = CreatePreProcessor(factory);
+        using var context = new Context(TestContext);
+        context.Factory.Server.DownloadAllLanguages().Returns(["invalid_plugin"]);
 
-        var success = await preProcessor.Execute(CreateArgs());
-        success.Should().BeFalse("Expecting the pre-processing to fail");
+        (await context.Execute()).Should().BeFalse();
 
-        factory.Logger.AssertErrorLogged("Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!");
+        context.Factory.Runtime.Logger.Should().HaveErrors("Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!");
     }
 
     [TestMethod]
-    public async Task Execute_NoProject_ReturnsTrue()
+    public async Task Execute_NoQualityProfile_ReturnsTrue()
     {
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory(false);
-        factory.Server.Data
-            .AddQualityProfile("qp1", "cs", null)
-            .AddProject("invalid")
-            .AddRule(new SonarRule("fxcop", "cs.rule1"))
-            .AddRule(new SonarRule("fxcop", "cs.rule2"));
-        factory.Server.Data
-            .AddQualityProfile("qp2", "vbnet", null)
-            .AddProject("invalid")
-            .AddRule(new SonarRule("fxcop-vbnet", "vb.rule1"))
-            .AddRule(new SonarRule("fxcop-vbnet", "vb.rule2"));
-        var settings = factory.ReadSettings();
-        var preProcessor = CreatePreProcessor(factory);
+        using var context = new Context(TestContext, new MockObjectFactory(false));
+        context.Factory.Server.DownloadQualityProfile(null, null, null).ReturnsForAnyArgs((string)null);
 
-        var success = await preProcessor.Execute(CreateArgs());
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        (await context.Execute()).Should().BeTrue();
 
-        AssertDirectoriesCreated(settings);
-
-        factory.TargetsInstaller.Received(1).InstallLoaderTargets(scope.WorkingDir);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadProperties), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadAllLanguages), 1);
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadQualityProfile), 2); // C# and VBNet
-        factory.Server.AssertMethodCalled(nameof(ISonarWebServer.DownloadRules), 0); // no quality profile assigned to project
-
-        AssertAnalysisConfig(settings.AnalysisConfigFilePath, 0, factory.Logger);
-
+        context.AssertDirectoriesCreated();
+        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 0);   // no quality profile assigned to project
+        context.AssertAnalysisConfig(0);
         // only contains SonarQubeAnalysisConfig (no rulesets or additional files)
-        AssertDirectoryExactlyContains(settings.SonarConfigDirectory, Path.GetFileName(settings.AnalysisConfigFilePath));
+        context.AssertAnalysisConfigPathInSonarConfigDirectory();
     }
 
     [TestMethod]
     public async Task Execute_HandleAnalysisException_ReturnsFalse()
     {
         // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        var exceptionWasThrown = false;
-        factory.Server.TryDownloadQualityProfilePreprocessing = () =>
-        {
-            exceptionWasThrown = true;
-            throw new AnalysisException("This message and stacktrace should not propagate to the users");
-        };
-        var preProcessor = CreatePreProcessor(factory);
-        var success = await preProcessor.Execute(CreateArgs("InvalidOrganization"));    // Should not throw
-        success.Should().BeFalse("Expecting the pre-processing to fail");
-        exceptionWasThrown.Should().BeTrue();
+        using var context = new Context(TestContext);
+        context.Factory.Server.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new AnalysisException("This message and stacktrace should not propagate to the users"));
+
+        (await context.Execute(CreateArgs("InvalidOrganization"))).Should().BeFalse();    // Should not throw
+
+        await context.Factory.Server.ReceivedWithAnyArgs(1).DownloadQualityProfile(null, null, null);
     }
 
     [TestMethod]
@@ -378,13 +375,16 @@ public partial class PreProcessorTests
     public async Task Execute_EndToEnd_Success_LocalSettingsAreUsedInSonarLintXML()
     {
         // Checks that local settings are used when creating the SonarLint.xml file, overriding
-        using var scope = new TestScope(TestContext);
-        var factory = new MockObjectFactory();
-        factory.JreResolver
-            .ResolveJrePath(Arg.Any<ProcessedArgs>(), "homeSweetHome")
+        using var context = new Context(TestContext);
+        context.Factory.JreResolver
+            .ResolvePath(Arg.Any<ProcessedArgs>())
             .Returns("some/path/bin/java.exe");
-        factory.Server.Data.ServerProperties.Add("shared.key1", "server shared value 1");
-        factory.Server.Data.ServerProperties.Add("shared.CASING", "server upper case value");
+        context.Factory.EngineResolver
+            .ResolvePath(Arg.Any<ProcessedArgs>())
+            .Returns("some/path/to/engine.jar");
+
+        context.Factory.Server.DownloadProperties(null, null)
+            .ReturnsForAnyArgs(new Dictionary<string, string> { { "server.key", "server value 1" }, { "shared.key1", "server shared value 1" }, { "shared.CASING", "server upper case value" } });
         // Local settings that should override matching server settings
         var args = new List<string>(CreateArgs())
         {
@@ -393,24 +393,22 @@ public partial class PreProcessorTests
             "/d:shared.casing=local lower case value",
             "/d:sonar.userHome=homeSweetHome"
         };
-        var settings = factory.ReadSettings();
-        var preProcessor = CreatePreProcessor(factory);
 
-        var success = await preProcessor.Execute(args);
-        success.Should().BeTrue("Expecting the pre-processing to complete successfully");
+        (await context.Execute(args)).Should().BeTrue();
 
         // Check the settings used when creating the SonarLint file - local and server settings should be merged
-        factory.AnalyzerProvider.SuppliedSonarProperties.Should().NotBeNull();
-        factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("server.key", "server value 1");
-        factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("local.key", "local value 1");
-        factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.key1", "local shared value 1 - should override server value");
+        context.Factory.AnalyzerProvider.SuppliedSonarProperties.Should().NotBeNull();
+        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("server.key", "server value 1");
+        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("local.key", "local value 1");
+        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.key1", "local shared value 1 - should override server value");
         // Keys are case-sensitive so differently cased values should be preserved
-        factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.CASING", "server upper case value");
-        factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.casing", "local lower case value");
+        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.CASING", "server upper case value");
+        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.casing", "local lower case value");
 
         // Check the settings used when creating the config file - settings should be separate
-        var actualConfig = AssertAnalysisConfig(settings.AnalysisConfigFilePath, 2, factory.Logger);
+        var actualConfig = context.AssertAnalysisConfig(2);
         actualConfig.JavaExePath.Should().Be("some/path/bin/java.exe");
+        actualConfig.EngineJarPath.Should().Be("some/path/to/engine.jar");
         AssertExpectedLocalSetting(actualConfig, "local.key", "local value 1");
         AssertExpectedLocalSetting(actualConfig, "shared.key1", "local shared value 1 - should override server value");
         AssertExpectedLocalSetting(actualConfig, "shared.casing", "local lower case value");
@@ -442,88 +440,98 @@ public partial class PreProcessorTests
         }
     }
 
-    private static void AssertDirectoriesCreated(IBuildSettings settings)
-    {
-        AssertDirectoryExists(settings.AnalysisBaseDirectory);
-        AssertDirectoryExists(settings.SonarConfigDirectory);
-        AssertDirectoryExists(settings.SonarOutputDirectory);
-        // The bootstrapper is responsible for creating the bin directory
-    }
-
-    private AnalysisConfig AssertAnalysisConfig(string filePath, int noAnalyzers, TestLogger logger)
-    {
-        logger.AssertNoErrorsLogged();
-        logger.AssertUIWarningLogged("Multi-Language analysis is enabled. If this was not intended and you have issues such as hitting your LOC limit or analyzing unwanted files, please set \"/d:sonar.scanner.scanAll=false\" in the begin step.");
-        logger.AssertVerbosity(LoggerVerbosity.Debug);
-
-        AssertConfigFileExists(filePath);
-        var actualConfig = AnalysisConfig.Load(filePath);
-        actualConfig.SonarProjectKey.Should().Be("key", "Unexpected project key");
-        actualConfig.SonarProjectName.Should().Be("name", "Unexpected project name");
-        actualConfig.SonarProjectVersion.Should().Be("1.0", "Unexpected project version");
-        actualConfig.AnalyzersSettings.Should().NotBeNull("Analyzer settings should not be null");
-        actualConfig.AnalyzersSettings.Should().HaveCount(noAnalyzers);
-
-        AssertExpectedLocalSetting(actualConfig, SonarProperties.HostUrl, "http://host");
-        AssertExpectedLocalSetting(actualConfig, "cmd.line1", "cmdline.value.1");
-        AssertExpectedServerSetting(actualConfig, "server.key", "server value 1");
-
-        return actualConfig;
-    }
-
-    private void AssertConfigFileExists(string filePath)
-    {
-        File.Exists(filePath).Should().BeTrue("Expecting the analysis config file to exist. Path: {0}", filePath);
-        TestContext.AddResultFile(filePath);
-    }
-
-    private static void AssertDirectoryExactlyContains(string dirPath, params string[] fileNames)
-    {
-        Directory.Exists(dirPath);
-        var actualFileNames = Directory.GetFiles(dirPath).Select(Path.GetFileName);
-        actualFileNames.Should().BeEquivalentTo(fileNames);
-    }
-
     private static void AssertExpectedLocalSetting(AnalysisConfig actualConfig, string key, string expectedValue)
     {
         var found = Property.TryGetProperty(key, actualConfig.LocalSettings, out var actualProperty);
-
-        found.Should().BeTrue("Failed to find the expected local setting: {0}", key);
-        actualProperty.Value.Should().Be(expectedValue, "Unexpected property value. Key: {0}", key);
+        found.Should().BeTrue();
+        actualProperty.Value.Should().Be(expectedValue);
     }
 
     private static void AssertExpectedServerSetting(AnalysisConfig actualConfig, string key, string expectedValue)
     {
         var found = Property.TryGetProperty(key, actualConfig.ServerSettings, out var actualProperty);
-
-        found.Should().BeTrue("Failed to find the expected server setting: {0}", key);
-        actualProperty.Value.Should().Be(expectedValue, "Unexpected property value. Key: {0}", key);
+        found.Should().BeTrue();
+        actualProperty.Value.Should().Be(expectedValue);
     }
 
-    private static void AssertDirectoryExists(string path) =>
-        Directory.Exists(path).Should().BeTrue("Expected directory does not exist: {0}", path);
-
-    private static PreProcessor CreatePreProcessor(MockObjectFactory factory) =>
-        new(factory, factory.Logger);
-
-    private sealed class TestScope : IDisposable
+    private sealed class Context : IDisposable
     {
         public readonly string WorkingDir;
+        public readonly MockObjectFactory Factory;
+        public readonly PreProcessor PreProcessor;
 
         private readonly WorkingDirectoryScope workingDirectory;
-        private readonly EnvironmentVariableScope environmentScope;
+        private readonly TestContext testContext;
 
-        public TestScope(TestContext context)
+        public Context(TestContext testContext, MockObjectFactory factory = null)
         {
-            WorkingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(context);
+            this.testContext = testContext;
+            WorkingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             workingDirectory = new WorkingDirectoryScope(WorkingDir);
-            environmentScope = PreprocessTestUtils.CreateValidNonTeamBuildScope();
+            Factory = factory ?? new MockObjectFactory();
+            PreProcessor = new PreProcessor(Factory, Factory.Runtime);
+            Factory.Runtime.OperatingSystem.FolderPath(default, default).ReturnsForAnyArgs("some folder");
+            Factory.Runtime.File.Exists(Path.Combine(Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location), "Targets", FileConstants.ImportBeforeTargetsName)).Returns(true);
+            Factory.Runtime.File.Exists(Path.Combine(Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location), "Targets", FileConstants.IntegrationTargetsName)).Returns(true);
         }
 
-        public void Dispose()
+        public void AssertDirectoriesCreated()
         {
-            workingDirectory.Dispose();
-            environmentScope.Dispose();
+            var settings = Factory.ReadSettings();
+            AssertDirectoryExists(settings.AnalysisBaseDirectory);
+            AssertDirectoryExists(settings.SonarConfigDirectory);
+            AssertDirectoryExists(settings.SonarOutputDirectory);
+            // We do not assert SonarBinDirectory as it is created in BootstrapperClass.CopyDlls()
+            // https://github.com/SonarSource/sonar-scanner-msbuild/blob/b2cc4de9b0dbf916f3956e59c21d2d730af3d26b/src/SonarScanner.MSBuild/BootstrapperClass.cs#L173
         }
+
+        public async Task<bool> Execute(IEnumerable<string> args = null) =>
+            await PreProcessor.Execute(args ?? CreateArgs());
+
+        public AnalysisConfig AssertAnalysisConfig(int numAnalyzers)
+        {
+            var filePath = Factory.ReadSettings().AnalysisConfigFilePath;
+            Factory.Runtime.Logger.Should().HaveNoErrors();
+            Factory.Runtime.Logger.AssertVerbosity(LoggerVerbosity.Debug);
+
+            AssertConfigFileExists(filePath);
+            var actualConfig = AnalysisConfig.Load(filePath);
+            actualConfig.SonarProjectKey.Should().Be("key");
+            actualConfig.SonarProjectName.Should().Be("name");
+            actualConfig.SonarProjectVersion.Should().Be("1.0");
+            actualConfig.AnalyzersSettings.Should().NotBeNull();
+            actualConfig.AnalyzersSettings.Should().HaveCount(numAnalyzers);
+
+            AssertExpectedLocalSetting(actualConfig, SonarProperties.HostUrl, "http://host");
+            AssertExpectedLocalSetting(actualConfig, "cmd.line1", "cmdline.value.1");
+            AssertExpectedServerSetting(actualConfig, "server.key", "server value 1");
+
+            return actualConfig;
+        }
+
+        public void AssertAnalysisConfigPathInSonarConfigDirectory() =>
+            Directory.GetFiles(Factory.ReadSettings().SonarConfigDirectory).Select(Path.GetFileName)
+                .Should().BeEquivalentTo("SonarQubeAnalysisConfig.xml");
+
+        public void AssertDownloadMethodsCalled(int properties, int allLanguages, int qualityProfile, int rules)
+        {
+            Factory.Runtime.Logger.Should().HaveInfos("Updating build integration targets...");             // TargetsInstaller was called
+            Factory.Server.ReceivedWithAnyArgs(properties).DownloadProperties(null, null);
+            Factory.Server.ReceivedWithAnyArgs(allLanguages).DownloadAllLanguages();
+            Factory.Server.ReceivedWithAnyArgs(qualityProfile).DownloadQualityProfile(null, null, null);    // C# and VBNet
+            Factory.Server.ReceivedWithAnyArgs(rules).DownloadRules(null);                                  // C# and VBNet
+        }
+
+        public void Dispose() =>
+            workingDirectory.Dispose();
+
+        private void AssertConfigFileExists(string filePath)
+        {
+            File.Exists(filePath).Should().BeTrue();
+            testContext.AddResultFile(filePath);
+        }
+
+        private static void AssertDirectoryExists(string path) =>
+            Directory.Exists(path).Should().BeTrue();
     }
 }

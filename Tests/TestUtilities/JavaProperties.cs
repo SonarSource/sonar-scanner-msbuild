@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -19,8 +19,6 @@
  */
 
 using System.Collections;
-using System.IO;
-using System.Text;
 
 namespace TestUtilities;
 
@@ -31,6 +29,7 @@ namespace TestUtilities;
 /// application <see cref="string"/> are Unicode - but all values outside the basic US-ASCII set are escaped.
 /// </summary>
 /// Copied from https://github.com/Kajabity/Kajabity-Tools
+// ToDo: Remove this class in SCAN4NET-721
 public class JavaProperties : Hashtable
 {
     /// <summary>

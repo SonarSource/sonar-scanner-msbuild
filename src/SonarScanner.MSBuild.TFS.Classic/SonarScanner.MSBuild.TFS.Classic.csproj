@@ -40,8 +40,7 @@
 
   <ItemGroup>
     <Reference Include="System.Net.Http" />
-    <PackageReference Include="Microsoft.CodeCoverage.IO" Version="17.7.0" />
-    <PackageReference Include="Newtonsoft.Json" version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" version="13.0.4" />
   </ItemGroup>
 
   <ItemGroup>

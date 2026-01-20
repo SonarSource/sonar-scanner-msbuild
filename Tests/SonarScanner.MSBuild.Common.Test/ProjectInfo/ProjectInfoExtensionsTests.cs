@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -32,131 +26,14 @@ public class ProjectInfoExtensionsTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void TryGetAnalysisSetting_WhenProjectInfoIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.TryGetAnalyzerResult(null, "foo", out var result);
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
-    }
-
-    [TestMethod]
-    public void TryGetAnalyzerResult_WhenProjectInfoIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.TryGetAnalysisSetting(null, "foo", out var result);
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
-    }
-
-    [TestMethod]
-    public void AddAnalyzerResult_WhenProjectInfoIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(null, "foo", "bar");
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
-    }
-
-    [TestMethod]
-    public void AddAnalyzerResult_WhenIdIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), null, "bar");
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
-    }
-
-    [TestMethod]
-    public void AddAnalyzerResult_WhenIdIsEmpty_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "", "bar");
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
-    }
-
-    [TestMethod]
-    public void AddAnalyzerResult_WhenIdIsWhitespaces_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "   ", "bar");
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
-    }
-
-    [TestMethod]
-    public void AddAnalyzerResult_WhenLocationIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", null);
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
-    }
-
-    [TestMethod]
-    public void AddAnalyzerResult_WhenLocationIsEmpty_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", "");
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
-    }
-
-    [TestMethod]
-    public void AddAnalyzerResult_WhenLocationIsWhitespaces_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.AddAnalyzerResult(new ProjectInfo(), "foo", "   ");
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
-    }
-
-    [TestMethod]
-    public void GetDirectory_WhenProjectInfoIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.GetDirectory(null);
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
-    }
-
-    [TestMethod]
-    public void GetProjectGuidAsString_WhenProjectInfoIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => ProjectInfoExtensions.GetProjectGuidAsString(null);
-
-        // Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectInfo");
-    }
-
-    [TestMethod]
     public void GetAllAnalysisFilesTest()
     {
         var dir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var filesToAnalyze = Path.Combine(dir, TestUtils.FilesToAnalyze);
+        var filesToAnalyze = Path.Combine(dir, AnalysisResultFileType.FilesToAnalyze.ToString());
         var logger = new TestLogger();
         var projectInfo = new ProjectInfo
         {
-            AnalysisResults =
-            [
-                new AnalysisResult
-                {
-                    Id = TestUtils.FilesToAnalyze,
-                    Location = filesToAnalyze,
-                }
-            ]
+            AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyze)]
         };
         File.WriteAllLines(
             filesToAnalyze,
@@ -167,14 +44,14 @@ public class ProjectInfoExtensionsTests
                 "C:\\baz",
             ]);
 
-        var result = projectInfo.GetAllAnalysisFiles(logger);
+        var result = projectInfo.AllAnalysisFiles(logger);
 
 #if NETFRAMEWORK
         result.Should().HaveCount(3);
         result[0].Name.Should().Be("foo");
         result[1].Name.Should().Be("bar");
         result[2].Name.Should().Be("baz");
-        logger.AssertSingleDebugMessageExists("Could not add 'not:allowed' to the analysis. The given path's format is not supported.");
+        logger.Should().HaveDebugOnce("Could not add 'not:allowed' to the analysis. The given path's format is not supported.");
 #else
         // NET supports "not:allowed"
         result.Should().HaveCount(4);

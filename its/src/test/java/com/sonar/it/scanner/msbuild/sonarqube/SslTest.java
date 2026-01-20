@@ -1,6 +1,6 @@
 /*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +17,6 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
@@ -28,9 +27,15 @@ import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.SslExceptionMessages;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -40,9 +45,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.serverSupportsProvisioning;
+import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -97,42 +104,60 @@ class SslTest {
    * <p>See the init method for more details.
    */
   @Test
-  void trustedSelfSignedCertificate() {
+  void trustedSelfSignedCertificate() throws IOException {
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest").setEnvironmentVariable("SONAR_SCANNER_OPTS",
         "-Djavax.net.ssl.trustStore=" + keystorePath.replace('\\', '/') + " -Djavax.net.ssl.trustStorePassword=" + keystorePassword);
       context.begin.setProperty("sonar.host.url", server.getUrl());
+      context.begin.setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
 
+      // '-Djavax.net.ssl.trustStorePassword' & '-Djavax.net.ssl.trustStore' are part of the same argument.
+      // They do not appear in logs as the argument contains sensitive data.
       assertThat(logs)
         .doesNotContain("-Djavax.net.ssl.trustStorePassword=\"" + keystorePassword + "\"")
         .doesNotContain(keystorePassword);
+      assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
     }
   }
 
   @Test
   // The javax.net.ssl.trustStoreType=Windows-ROOT is not valid on Unix
   @EnabledOnOs(OS.WINDOWS)
-  void trustedSelfSignedCertificate_WindowsRoot() {
+  void trustedSelfSignedCertificate_WindowsRoot() throws IOException {
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET_FRAMEWORK);
-      context.begin.setProperty("sonar.host.url", server.getUrl());
-      var logs = context.runAnalysis().end().getLogs();
+      context.begin
+        .setProperty("sonar.host.url", server.getUrl())
+        .setDebugLogs();
 
-      assertThat(logs)
-        .contains("SONAR_SCANNER_OPTS")
-        .contains("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
+      var logs = context.runAnalysis().end().getLogs();
+      if (serverSupportsProvisioning()) {
+        assertThat(logs)
+          .contains("Args: -Djavax.net.ssl.trustStoreType=Windows-ROOT");
+        assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
+      } else {
+        assertThat(logs)
+          .contains("SONAR_SCANNER_OPTS")
+          .contains("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
+      }
     }
   }
 
   @Test
-  void trustedSelfSignedCertificate_ExistingValueInScannerOpts() {
+  void trustedSelfSignedCertificate_ExistingValueInScannerOpts() throws IOException {
     try (var server = initSslTestAndServer(keystorePath, keystorePassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest", ScannerClassifier.NET).setEnvironmentVariable("SONAR_SCANNER_OPTS", "-Xmx2048m");
-      context.begin.setProperty("sonar.host.url", server.getUrl());
+      context.begin
+        .setProperty("sonar.host.url", server.getUrl())
+        .setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
-
-      assertThat(logs).contains("SONAR_SCANNER_OPTS=-Xmx2048m");
+      if (serverSupportsProvisioning()) {
+        assertThat(logs).contains("Args: -Xmx2048m");
+        assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
+      } else {
+        assertThat(logs).contains("SONAR_SCANNER_OPTS=-Xmx2048m");
+      }
     }
   }
 
@@ -151,13 +176,14 @@ class SslTest {
   }
 
   @Test
-  void selfSignedCertificateInGivenTrustStore() {
+  void selfSignedCertificateInGivenTrustStore() throws IOException {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
@@ -165,7 +191,7 @@ class SslTest {
   }
 
   @Test
-  void selfSignedCertificateInGivenTrustStore_EndStepPasswordProvidedInEnv() {
+  void selfSignedCertificateInGivenTrustStore_EndStepPasswordProvidedInEnv() throws IOException {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
       var passwordEnvValue = server.getKeystorePassword();
       if (OSPlatform.isWindows()) {
@@ -176,12 +202,20 @@ class SslTest {
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
 
-      assertThat(logs)
-        .contains("SONAR_SCANNER_OPTS=-D<sensitive data removed>")
-        .doesNotContain(server.getKeystorePassword());
+      if (serverSupportsProvisioning()) {
+        assertThat(logs)
+          .containsPattern("Args: -Djavax.net.ssl.trustStore=\"?" + server.getKeystorePath().replace('\\', '/'))
+          .doesNotContain(server.getKeystorePassword());
+        assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
+      } else {
+        assertThat(logs)
+          .contains("SONAR_SCANNER_OPTS=-D<sensitive data removed>")
+          .doesNotContain(server.getKeystorePassword());
+      }
     }
   }
 
@@ -201,16 +235,38 @@ class SslTest {
   }
 
   @Test
+  void scannerEngineJarPath_PassedAsAbsolute() throws ParserConfigurationException, IOException, SAXException, XPathExpressionException {
+    try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42")) {
+      var context = AnalysisContext.forServer("Empty");
+      var relativeKeyStorePath = context.projectDir.resolve(".sonarqube").relativize(Path.of(server.getKeystorePath()).toAbsolutePath()).toString();
+      context.begin
+        .setProperty("sonar.scanner.truststorePath", relativeKeyStorePath)
+        .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
+        .setProperty("sonar.host.url", server.getUrl())
+        .setProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString())
+        .setDebugLogs();
+
+      context.begin.execute(ORCHESTRATOR);
+
+      var doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(context.projectDir.resolve(".sonarqube").resolve("conf").resolve("SonarQubeAnalysisConfig.xml").toFile());
+      String trustStorePath = XPathFactory.newInstance().newXPath().evaluate("//*[local-name()='Property' and @Name='javax.net.ssl.trustStore']/text()", doc);
+      var absoluteKeyStore = Path.of(server.getKeystorePath()).toAbsolutePath().toString().replace('\\', '/');
+      assertThat(trustStorePath).contains(absoluteKeyStore);
+    }
+  }
+
+  @Test
   // We don't support spaces in the truststore path and password on Unix
   // Running this test on Unix would always fail
   @EnabledOnOs(OS.WINDOWS)
-  void selfSignedCertificateInGivenTrustStore_PathAndPasswordWithSpace() {
+  void selfSignedCertificateInGivenTrustStore_PathAndPasswordWithSpace() throws IOException {
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd w1th sp@ce", Path.of("sub", "folder with spaces"))) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
         .setProperty("sonar.scanner.truststorePath", server.getKeystorePath())
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword())
-        .setProperty("sonar.host.url", server.getUrl());
+        .setProperty("sonar.host.url", server.getUrl())
+        .setDebugLogs();
       context.end
         .setProperty("sonar.scanner.truststorePassword", server.getKeystorePassword());
       validateAnalysis(context, server);
@@ -263,7 +319,7 @@ class SslTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"changeit", "sonar"})
-  void defaultTruststoreExist(String defaultPassword) {
+  void defaultTruststoreExist(String defaultPassword) throws IOException {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore(defaultPassword, Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
@@ -271,12 +327,17 @@ class SslTest {
         .setProperty("sonar.host.url", server.getUrl())
         .setDebugLogs()
         .setProperty("sonar.userHome", sonarHome);
+
       var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
-        assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
-      }
+        if (serverSupportsProvisioning()) {
+          assertThat(result.end().getLogs()).containsPattern("WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'");
+        } else {
+          assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
 
+        }
+      }
     }
   }
 
@@ -296,7 +357,7 @@ class SslTest {
   }
 
   @Test
-  void defaultTruststoreExist_ProvidedPassword() {
+  void defaultTruststoreExist_ProvidedPassword() throws IOException {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
@@ -312,7 +373,7 @@ class SslTest {
   }
 
   @Test
-  void defaultTruststoreExist_ProvidedPassword_UserHomeProperty() {
+  void defaultTruststoreExist_ProvidedPassword_UserHomeProperty() throws IOException {
     var sonarHome = ContextExtension.currentTempDir().resolve("sonar").toAbsolutePath().toString();
     try (var server = initSslTestAndServerWithTrustStore("p@ssw0rd42", Path.of("sonar", "ssl"), "truststore.p12")) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
@@ -329,7 +390,7 @@ class SslTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"changeit", "sonar"})
-  void truststorePasswordNotProvided_UseDefaultPassword(String defaultPassword) {
+  void truststorePasswordNotProvided_UseDefaultPassword(String defaultPassword) throws IOException {
     try (var server = initSslTestAndServerWithTrustStore(defaultPassword)) {
       var context = AnalysisContext.forServer("ProjectUnderTest");
       context.begin
@@ -388,27 +449,33 @@ class SslTest {
     return server;
   }
 
-  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server) {
+  private AnalysisResult validateAnalysis(AnalysisContext context, HttpsReverseProxy server) throws IOException {
     var result = context.runAnalysis();
     var logs = result.end().getLogs();
-
     var trustStorePath = server.getKeystorePath().replace('\\', '/');
     var trustStorePassword = server.getKeystorePassword();
     if (OSPlatform.isWindows()) {
       trustStorePath = "\"" + trustStorePath + "\"";
       trustStorePassword = "\"" + trustStorePassword + "\"";
     }
-
-    assertThat(logs)
-      .contains("SONAR_SCANNER_OPTS")
-      .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
-      .contains("-D<sensitive data removed>")
-      .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
+    if (serverSupportsProvisioning()) {
+      assertThat(logs)
+        .contains("Args: ")
+        .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
+        .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
+    } else {
+      assertThat(logs)
+        .contains("SONAR_SCANNER_OPTS")
+        .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
+        .contains("-D<sensitive data removed>")
+        .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
+    }
 
     // When using the 'sonar' default password, check if it is not logged will always fail
     // because we have a lot of 'sonar' occurrences in the logs (e.g.: .sonarqube)
     if (!Objects.equals(server.getKeystorePassword(), "sonar")) {
       assertThat(logs).doesNotContain(server.getKeystorePassword());
+      assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
     }
 
     return result;

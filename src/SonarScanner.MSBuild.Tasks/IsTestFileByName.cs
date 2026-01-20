@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -70,7 +70,7 @@ public sealed class IsTestFileByName : Task
 
         if (TaskUtilities.TryGetConfig(AnalysisConfigDir, new MSBuildLoggerAdapter(Log)) is AnalysisConfig config)
         {
-            if (config.GetAnalysisSettings(true, logger).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
+            if (config.AnalysisSettings(true, logger).TryGetValue(TestRegExSettingId, out var regEx) && !string.IsNullOrWhiteSpace(regEx))
             {
                 Log.LogMessage(MessageImportance.Low, Resources.IsTest_UsingRegExFromConfig, regEx);
                 try

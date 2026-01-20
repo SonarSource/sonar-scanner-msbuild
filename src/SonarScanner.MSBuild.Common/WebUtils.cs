@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using System.Net;
-
 namespace SonarScanner.MSBuild.Common;
 
 public static class WebUtils
@@ -31,6 +27,6 @@ public static class WebUtils
     public static Uri CreateUri(string uri) =>
         new(uri.EndsWith(UriPartsDelimiter) ? uri : uri + UriPartsDelimiter);
 
-    public static string Escape(string format, params string[] args) =>
-        string.Format(format, args.Select(WebUtility.UrlEncode).ToArray());
+    public static Uri EscapedUri(string format, params string[] args) =>
+        new(string.Format(format, args.Select(x => Uri.EscapeDataString(x ?? string.Empty)).ToArray()), UriKind.RelativeOrAbsolute);
 }

@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,24 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using System.Linq;
-using System.Text;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using SonarScanner.MSBuild.Common;
-using TestUtilities;
-
-namespace SonarScanner.MSBuild.TFS.Tests;
+namespace SonarScanner.MSBuild.TFS.Test;
 
 [TestClass]
 public class TrxFileReaderTests
 {
-    private TestLogger logger;
-    private IFileWrapper fileMock;
-    private IDirectoryWrapper directoryMock;
+    private readonly TestRuntime runtime = new();
     private TrxFileReader trxReader;
 
     public TestContext TestContext { get; set; }
@@ -44,295 +32,267 @@ public class TrxFileReaderTests
     /// The directory where test results are supposed to be stored. It could be anything, because
     /// we don't create actual files, but regardless we still use test-specific folders.
     /// </summary>
-    private string RootDirectory =>
-        TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+    private string RootDirectory => TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
 
     [TestInitialize]
     public void TestInitialize()
     {
-        fileMock = Substitute.For<IFileWrapper>();
-        // Any file does not exist unless it is setup afterwards
-        fileMock.Exists(Arg.Any<string>()).Returns(false);
+        runtime.File.Exists(Arg.Any<string>()).Returns(false);
 
-        directoryMock = Substitute.For<IDirectoryWrapper>();
-        // Any directory does not exist unless it is setup afterwards
-        directoryMock.Exists(Arg.Any<string>()).Returns(false);
-        // RootDirectory exists
-        directoryMock.Exists(RootDirectory).Returns(true);
+        runtime.Directory.Exists(Arg.Any<string>()).Returns(false);
+        runtime.Directory.Exists(RootDirectory).Returns(true);
 
-        logger = new TestLogger();
-        trxReader = new TrxFileReader(logger, fileMock, directoryMock);
+        trxReader = new TrxFileReader(runtime);
     }
 
     [TestMethod]
-    public void TrxReader_TestsResultsDirectoryMissing()
-    {
-        // Arrange
-        // No subdirectories, we call CreateDirectories to setup Directory.GetDirectories(RootDirectory)
-        // to return empty array and avoid throwing.
-        CreateDirectories(RootDirectory);
+    public void Constructor_RuntimeNull_Throws() =>
+        FluentActions.Invoking(() => new TrxFileReader(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
+    [TestMethod]
+    public void TrxReader_TestsResultsDirectoryMissing() =>
+        // With no call to CreateDirectories, Directory.GetDirectories(RootDirectory) will return an empty array.
+        AssertFindCodeCoverageFiles();
 
-        // Assert
-        coverageFilePaths.Should().BeEmpty();
-
-        // Not expecting errors or warnings: we assume it means that tests have not been executed
-        logger.AssertErrorsLogged(0);
-        logger.AssertWarningsLogged(0);
-    }
-
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void TrxReader_InvalidTrxFile()
     {
-        // Arrange
-        var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
-        CreateFiles(testResults, ("dummy.trx", "this is not a trx file"));
-
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
-
-        // Assert
-        coverageFilePaths.Should().BeEmpty();
-
-        logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
-        logger.Warnings.Should().HaveCount(1);
-        logger.Warnings[0].Should().Match(@"Located trx file is not a valid xml file. File: *\TestResults\dummy.trx. File load error: Data at the root level is invalid. Line 1, position 1."); // expecting a warning about the invalid file
-        logger.AssertErrorsLogged(0); // should be a warning, not an error
+        CreateDirectory(RootDirectory, "dummy.trx", "this is not a trx file");
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
+        runtime.Logger.Should().HaveInfoOnce("No code coverage attachments were found from the trx files.");
+        runtime.Logger.Warnings.Should().ContainSingle().Which.Should()
+            .Match($"Located trx file is not a valid xml file. File: *{Path.Combine("TestResults", "dummy.trx")}. File load error: Data at the root level is invalid. Line 1, position 1.");
+        runtime.Logger.Should().HaveNoErrors(); // should be a warning, not an error
     }
 
     [TestMethod]
     public void TrxReader_MultipleTrxFiles()
     {
-        // Arrange
-        var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
-        var trx1 = CreateFiles(testResults,
-            ("mytrx1.trx", "<TestRun />"),
-            ("mytrx2.trx", "<TestRun />"));
+        var testResults = CreateDirectory(RootDirectory);
+        var file1 = CreateFile(testResults, "mytrx1.trx", "<TestRun />");
+        var file2 = CreateFile(testResults, "mytrx2.trx", "<TestRun />");
+        runtime.Directory.GetFiles(Arg.Is<string>(x => testResults.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>())
+            .Returns([file1, file2]);
 
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
-
-        // Assert
-        coverageFilePaths.Should().BeEmpty();
-
-        logger.DebugMessages.Should().HaveCount(0);
-        logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
-        logger.AssertWarningsLogged(0);
-        logger.AssertErrorsLogged(0);
+        AssertFindCodeCoverageFiles();
+        runtime.Logger.Should().HaveNoDebugs();
+        runtime.Logger.Should().HaveInfoOnce("No code coverage attachments were found from the trx files.");
     }
 
     [TestMethod]
     public void TrxReader_SingleTrxFileInSubfolder()
     {
-        // Arrange
-        var testResults = CreateDirectories(RootDirectory, "Dummy\\TestResults")[0];
-        CreateFiles(testResults, ("no_attachments.trx", GetTrxContent()));
+        var testResults = CreateDirectory(Path.Combine(RootDirectory, "Dummy"), "no_attachments.trx", TrxContent());
+        runtime.Directory
+            .GetDirectories(Arg.Is<string>(x => RootDirectory.Equals(x, StringComparison.InvariantCultureIgnoreCase)), "TestResults", SearchOption.AllDirectories)
+            .Returns([testResults]);
 
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
-
-        // Assert
-        coverageFilePaths.Should().BeEmpty();
-
-        // Not finding attachment info in the file shouldn't cause a warning/error
-        logger.AssertErrorsLogged(0);
-        logger.AssertWarningsLogged(0);
-        logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
+        AssertFindCodeCoverageFiles();
+        runtime.Logger.Should().HaveInfoOnce("No code coverage attachments were found from the trx files.");
     }
 
     [TestMethod]
     public void TrxReader_TrxWithNoAttachments()
     {
-        // Arrange
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
-        CreateFiles(resultsDir, ("no_attachments.trx", GetTrxContent()));
-
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
-
-        // Assert
-        coverageFilePaths.Should().BeEmpty();
-
-        // Not finding attachment info in the file shouldn't cause a warning/error
-        logger.AssertErrorsLogged(0);
-        logger.AssertWarningsLogged(0);
-        logger.AssertSingleInfoMessageExists("No code coverage attachments were found from the trx files.");
+        CreateDirectory(RootDirectory, "no_attachments.trx", TrxContent());
+        AssertFindCodeCoverageFiles();
+        runtime.Logger.Should().HaveInfoOnce("No code coverage attachments were found from the trx files.");
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contains information about multiple code coverage runs (i.e. an error case, as we're not expecting this)")]
     public void TrxReader_TrxWithMultipleAttachments()
     {
-        // Arrange
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
-        CreateFiles(resultsDir, ("multiple_attachments.trx", GetTrxContent("MACHINENAME\\AAA.coverage", "XXX.coverage")));
-
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
-
-        // Assert
-        coverageFilePaths.Should().BeEmpty();
-
-        logger.Warnings.Should().HaveCount(2);
-        logger.Warnings[0].Should().Match(@"None of the following coverage attachments could be found: MACHINENAME\AAA.coverage, *\TestResults\multiple_attachments\In\MACHINENAME\AAA.coverage, *\TestResults\multiple_attachments\In\MACHINENAME\AAA.coverage. Trx file: *\TestResults\multiple_attachments.trx");
-        logger.Warnings[1].Should().Match(@"None of the following coverage attachments could be found: XXX.coverage, *\TestResults\multiple_attachments\In\XXX.coverage, *\TestResults\multiple_attachments\In\XXX.coverage. Trx file: *\TestResults\multiple_attachments.trx");
-        logger.AssertErrorsLogged(0);
+        CreateDirectory(RootDirectory, "multiple_attachments.trx", TrxContent("MACHINENAME\\AAA.coverage", "XXX.coverage"));
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
+        runtime.Logger.Warnings.OrderBy(x => x).Should().SatisfyRespectively(
+            x => x.Should().Match(
+                    "None of the following coverage attachments could be found: "
+                    + @"MACHINENAME\AAA.coverage, "
+                    + $"*{Path.Combine("TestResults", "multiple_attachments", "In", @"MACHINENAME\AAA.coverage")}, "
+                    + $"*{Path.Combine("TestResults", "multiple_attachments", "In", @"MACHINENAME\AAA.coverage")}. "
+                    + $"Trx file: *{Path.Combine("TestResults", "multiple_attachments.trx")}"),
+            x => x.Should().Match(
+                    "None of the following coverage attachments could be found: "
+                    + "XXX.coverage, "
+                    + $"*{Path.Combine("TestResults", "multiple_attachments", "In", "XXX.coverage")}, "
+                    + $"*{Path.Combine("TestResults", "multiple_attachments", "In", "XXX.coverage")}. "
+                    + $"Trx file: *{Path.Combine("TestResults", "multiple_attachments.trx")}"));
+        runtime.Logger.Should().HaveNoErrors();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a non existing file")]
     public void TrxReader_SingleAttachment_PathDoesNotExist()
     {
-        // Arrange
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
-        var coverageFileName = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
-
-        CreateFiles(resultsDir, ("single_attachment.trx", GetTrxContent(coverageFileName)));
-
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
-
-        // Assert
-        coverageFilePaths.Should().BeEmpty();
-
-        logger.Warnings.Should().HaveCount(1);
-        logger.Warnings[0].Should().Match(@"None of the following coverage attachments could be found: MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, *\TestResults\single_attachment\In\MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage. Trx file: *\TestResults\single_attachment.trx");
+        CreateDirectory(RootDirectory, "single_attachment.trx", TrxContent("MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage"));
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
+        runtime.Logger.Warnings.Should().ContainSingle().Which.Should().Match(
+            "None of the following coverage attachments could be found: "
+            + @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
+            + $"*{Path.Combine("TestResults", "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}, "
+            + $"*{Path.Combine("TestResults", "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}. "
+            + $"Trx file: *{Path.Combine("TestResults", "single_attachment.trx")}");
     }
 
     [TestMethod]
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
     public void TrxReader_SingleAttachment_Path1()
     {
-        // Arrange
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
-
         var relativeCoveragePath = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var resultsDir = CreateDirectory(RootDirectory, "single attachment.trx", TrxContent(relativeCoveragePath));
         var fullCoveragePath = Path.Combine(resultsDir, "single attachment", "In", relativeCoveragePath);
-        CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
+        CreateFile(Path.GetDirectoryName(fullCoveragePath), Path.GetFileName(fullCoveragePath));
 
-        CreateFiles(resultsDir, ("single attachment.trx", GetTrxContent(relativeCoveragePath)));
-
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
-
-        // Assert
-        coverageFilePaths.Should().BeEquivalentTo(fullCoveragePath);
-
-        logger.AssertDebugMessageExists(relativeCoveragePath);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(fullCoveragePath);
+        runtime.Logger.Should().HaveDebugs("Absolute path to coverage file: " + fullCoveragePath);
     }
 
     [TestMethod]
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a non-rooted path")]
     public void TrxReader_SingleAttachment_Path2()
     {
-        // Arrange
-        var resultsDir = CreateDirectories(RootDirectory, "TestResults")[0];
         var relativeCoveragePath = "MACHINENAME\\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var resultsDir = CreateDirectory(RootDirectory, "single attachment.trx", TrxContent(relativeCoveragePath));
         // With VSTest task the coverage file name uses underscore instead of spaces.
         var fullCoveragePath = Path.Combine(resultsDir, "single_attachment", "In", relativeCoveragePath);
-        CreateFiles(Path.GetDirectoryName(fullCoveragePath), (Path.GetFileName(fullCoveragePath), string.Empty));
+        CreateFile(Path.GetDirectoryName(fullCoveragePath), Path.GetFileName(fullCoveragePath));
 
-        CreateFiles(resultsDir, ("single attachment.trx", GetTrxContent(relativeCoveragePath)));
-
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
-
-        // Assert
-        coverageFilePaths.Should().BeEquivalentTo(fullCoveragePath);
-
-        logger.AssertDebugMessageExists(relativeCoveragePath);
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(fullCoveragePath);
+        runtime.Logger.Should().HaveDebugs("Absolute path to coverage file: " + fullCoveragePath);
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     [Description("Tests handling of a trx file that contains a single code coverage attachment with a rooted path")]
     public void TrxReader_SingleAttachment_AbsolutePath()
     {
-        // Arrange
-        var coverageResults = CreateDirectories("x:\\dir1", "dir2")[0];
-        var coverageFileName = CreateFiles(coverageResults, ("xxx.coverage", string.Empty))[0];
+        var coverageResults = CreateDirectory(@"x:\dir1");
+        var coverageFileName = CreateFile(coverageResults, "xxx.coverage");
+        CreateDirectory(RootDirectory, "single_attachment.trx", TrxContent(coverageFileName));
 
-        var testResults = CreateDirectories(RootDirectory, "TestResults")[0];
-        CreateFiles(testResults, ("single_attachment.trx", GetTrxContent(coverageFileName)));
-
-        // Act
-        var coverageFilePaths = trxReader.FindCodeCoverageFiles(RootDirectory);
-
-        // Assert
-        coverageFilePaths.Should().BeEquivalentTo(coverageFileName);
-        logger.AssertDebugMessageExists(@"Absolute path to coverage file: x:\dir1\dir2\xxx.coverage");
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(coverageFileName);
+        runtime.Logger.Should().HaveDebugs($"Absolute path to coverage file: {Path.Combine(@"x:\dir1", "TestResults", "xxx.coverage")}");
     }
 
-    private string[] CreateDirectories(string path, params string[] names)
+    [TestMethod]
+    [Description("Tests handling of a trx file that contain a single code coverage attachment with a path specified by the runDeploymentRoot attribute")]
+    public void TrxReader_RunDeploymentRoot_Valid()
     {
-        var subdirs = names.Select(name => Path.Combine(path, name)).ToArray();
+        var relativeCoveragePath = @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var resultsDir = CreateDirectory(RootDirectory, "single_attachment.trx", TrxContentWithDeploymentRoot("pathFromDeploymentRoot", relativeCoveragePath));
+        var coverageFileName = Path.Combine(resultsDir, "pathFromDeploymentRoot", "In", relativeCoveragePath);
+        CreateFile(Path.GetDirectoryName(coverageFileName), Path.GetFileName(coverageFileName));
 
-        // Directories can be checked for existence, making sure the check is case insensitive
-        Array.ForEach(subdirs, x =>
-            directoryMock
-                .Exists(Arg.Is<string>(s => x.Equals(s, StringComparison.InvariantCultureIgnoreCase)))
-                .Returns(true));
-
-        directoryMock
-            .GetDirectories(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>(), Arg.Any<SearchOption>())
-            .Returns(subdirs);
-
-        return subdirs;
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().ContainSingle()
+            .Which.Should().EndWith($"{Path.Combine("TestResults", "pathFromDeploymentRoot", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}")
+            .And.Be(coverageFileName);
+        runtime.Logger.Should().HaveDebugs($"Absolute path to coverage file: {coverageFileName}");
     }
 
-    private string[] CreateFiles(string path, params (string Name, string Content)[] files)
+    [TestMethod]
+    [Description("Tests handling of a trx file that contain a single code coverage attachment with an invalid path specified by the runDeploymentRoot attribute")]
+    public void TrxReader_RunDeploymentRoot_Invalid()
     {
-        var filePaths = files.Select(f => Path.Combine(path, f.Name)).ToArray();
+        var relativeCoveragePath = @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var resultsDir = CreateDirectory(RootDirectory, "single_attachment.trx", TrxContentWithDeploymentRoot("invalidRoot", relativeCoveragePath));
+        var coverageFileName = Path.Combine(resultsDir, "pathFromDeploymentRoot", "In", relativeCoveragePath);
+        CreateFile(Path.GetDirectoryName(coverageFileName), Path.GetFileName(coverageFileName));
 
-        for (var i = 0; i < files.Length; i++)
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
+        runtime.Logger.Should().HaveWarnings(
+            "None of the following coverage attachments could be found: "
+            + @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage, "
+            + $"{Path.Combine(resultsDir, "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}, "
+            + $"{Path.Combine(resultsDir, "single_attachment", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}, "
+            + $"{Path.Combine(resultsDir, "invalidRoot", "In", @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage")}. "
+            + $"Trx file: {Path.Combine(resultsDir, "single_attachment.trx")}");
+    }
+
+    private string CreateDirectory(string path, string fileName = null, string fileContent = "")
+    {
+        var subdir = Path.Combine(path, "TestResults");
+        runtime.Directory.Exists(Arg.Is<string>(x => subdir.Equals(x, StringComparison.InvariantCultureIgnoreCase))).Returns(true);
+        runtime.Directory.GetDirectories(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), "TestResults", Arg.Any<SearchOption>())
+            .Returns([subdir]);
+        if (fileName is not null)
         {
-            var filePath = filePaths[i];
-            var fileContent = files[i].Content;
-            // File can be checked for existence, making sure the check is case insensitive
-            fileMock
-                .Exists(Arg.Is<string>(x => filePath.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
-                .Returns(true);
-            // File can be opened, making sure the check is case insensitive
-            fileMock
-                .Open(Arg.Is<string>(x => filePath.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
-                .Returns(new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
+            CreateFile(subdir, fileName, fileContent);
         }
-
-        directoryMock
-            .GetFiles(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>())
-            .Returns(filePaths);
-
-        return filePaths;
+        return subdir;
     }
 
-    private static string GetTrxContent(params string[] attachmentUris)
+    private string CreateFile(string path, string fileName, string fileContent = "")
     {
-        return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
-<TestRun id=""eb906034-f363-4bf0-ac6a-29fa47645f67""
-    name=""LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39"" runUser=""NT AUTHORITY\LOCAL SERVICE""
-    xmlns=""http://microsoft.com/schemas/VisualStudio/TeamTest/2010"">
-  <ResultSummary outcome=""Completed"">
-    <Counters total=""123"" executed=""123"" passed=""123"" failed=""0"" error=""0"" timeout=""0"" aborted=""0"" inconclusive=""0"" passedButRunAborted=""0"" notRunnable=""0"" notExecuted=""0"" disconnected=""0"" warning=""0"" completed=""0"" inProgress=""0"" pending=""0"" />
-    <RunInfos />
-    <CollectorDataEntries>
-      {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
-    </CollectorDataEntries>
-  </ResultSummary>
-</TestRun>";
+        var filePath = Path.Combine(path, fileName);
+        // File can be checked for existence, making sure the check is case insensitive
+        runtime.File.Exists(Arg.Is<string>(x => filePath.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
+            .Returns(true);
+        // File can be opened, making sure the check is case insensitive
+        runtime.File.Open(Arg.Is<string>(x => filePath.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
+            .Returns(new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
+        runtime.Directory.GetFiles(Arg.Is<string>(x => path.Equals(x, StringComparison.InvariantCultureIgnoreCase)), Arg.Any<string>())
+            .Returns([filePath]);
+        return filePath;
+    }
 
-        string FormatCollectorElement(string uri) =>
-            $@"<Collector agentName=""MACHINENAME"" uri=""datacollector://microsoft/CodeCoverage/2.0"" collectorDisplayName=""Code Coverage"">
-        <UriAttachments>
-          <UriAttachment>
-            <A href=""{uri}"">
-            </A>
-          </UriAttachment>
-        </UriAttachments>
-      </Collector>";
+    private static string TrxContent(params string[] attachmentUris) =>
+        $"""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <TestRun id="eb906034-f363-4bf0-ac6a-29fa47645f67"
+            name="LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39" runUser="NT AUTHORITY\LOCAL SERVICE"
+            xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+            <ResultSummary outcome="Completed">
+                <Counters total="123" executed="123" passed="123" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+                <RunInfos />
+                <CollectorDataEntries>
+                    {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
+                </CollectorDataEntries>
+            </ResultSummary>
+        </TestRun>
+        """;
+
+    private static string TrxContentWithDeploymentRoot(string deploymentRoot, params string[] attachmentUris) =>
+        $"""
+        <?xml version="1.0" encoding="UTF-8"?>
+        <TestRun xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010"
+            id="eb906034-f363-4bf0-ac6a-29fa47645f67" name="LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39" runUser="NT AUTHORITY\LOCAL SERVICE">
+            <TestSettings name="default" >
+              <Deployment runDeploymentRoot="{deploymentRoot}" />
+            </TestSettings>
+            <ResultSummary outcome="Completed">
+                <RunInfos />
+                <CollectorDataEntries>
+                    {string.Join(Environment.NewLine, attachmentUris.Select(FormatCollectorElement))}
+                </CollectorDataEntries>
+            </ResultSummary>
+        </TestRun>
+        """;
+
+    private static string FormatCollectorElement(string uri) =>
+        $"""
+        <Collector agentName="MACHINENAME" uri="datacollector://microsoft/CodeCoverage/2.0" collectorDisplayName="Code Coverage">
+            <UriAttachments>
+                <UriAttachment>
+                    <A href="{uri}">
+                    </A>
+                </UriAttachment>
+            </UriAttachments>
+        </Collector>
+        """;
+
+    private void AssertFindCodeCoverageFiles()
+    {
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEmpty();
+        runtime.Logger.Should().HaveNoErrors()
+            .And.HaveNoWarnings();
     }
 }

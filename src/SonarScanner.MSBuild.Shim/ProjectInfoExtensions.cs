@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,29 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Text;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.Shim;
 
 public static class ProjectInfoExtensions
 {
-    public static ProjectInfoValidity Classify(this ProjectInfo projectInfo, ILogger logger)
+    public static bool IsValid(this ProjectInfo projectInfo, ILogger logger)
     {
         if (projectInfo.IsExcluded)
         {
             logger.LogInfo(Resources.MSG_ProjectIsExcluded, projectInfo.FullPath);
-            return ProjectInfoValidity.ExcludeFlagSet;
+            return false;
         }
-
-        if (HasInvalidGuid(projectInfo))
+        else if (HasInvalidGuid(projectInfo))
         {
             logger.LogWarning(Resources.WARN_InvalidProjectGuid, projectInfo.ProjectGuid, projectInfo.FullPath);
-            return ProjectInfoValidity.InvalidGuid;
+            return false;
         }
-
-        return ProjectInfoValidity.Valid;
+        else
+        {
+            return true;
+        }
     }
 
     public static void FixEncoding(this ProjectInfo projectInfo, string globalSourceEncoding, Action logIfGlobalEncodingIsIgnored)
@@ -64,6 +61,9 @@ public static class ProjectInfoExtensions
             logIfGlobalEncodingIsIgnored();
         }
     }
+
+    public static ProjectData[] ToProjectData(this IEnumerable<ProjectInfo> projects, IRuntime runtime) =>
+        projects.GroupBy(x => x.ProjectGuid).Select(x => new ProjectData(x, runtime)).ToArray();
 
     private static bool HasInvalidGuid(ProjectInfo project)
     {

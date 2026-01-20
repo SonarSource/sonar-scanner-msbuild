@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+#pragma warning disable S3994 // we are specifically testing string urls
 
 using System.Runtime.InteropServices;
 using NSubstitute.ExceptionExtensions;
@@ -30,43 +31,35 @@ public class ArgumentProcessorTests
 
     public TestContext TestContext { get; set; }
 
-    #region Tests
+    [TestMethod]
+    public void PreArgProc_NullRuntimeThrows() =>
+        FluentActions.Invoking(() => ArgumentProcessor.TryProcessArgs(null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
     [TestMethod]
-    public void PreArgProc_MissingArguments()
+    public void PreArgProc_RequiredArguments_ProcessingSucceeds()
     {
-        // 0. Setup
-        TestLogger logger;
-
-        // 1. Null logger
-        Action act = () => ArgumentProcessor.TryProcessArgs(null, null);
-        act.Should().ThrowExactly<ArgumentNullException>();
-
-        // 2. required argument missing
-        logger = CheckProcessingFails(/* no command line args */);
-        logger.AssertSingleErrorExists("/key:"); // we expect error with info about the missing required parameter, which should include the primary alias
-        logger.AssertErrorsLogged(1);
-
-        // 3. Only key and host URL are required
         var args = CheckProcessingSucceeds("/k:key", "/d:sonar.host.url=myurl");
         "key".Should().Be(args.ProjectKey);
         args.ServerInfo.Should().NotBeNull();
         args.ServerInfo.ServerUrl.Should().Be("myurl");
         args.ServerInfo.IsSonarCloud.Should().Be(false);
-
-        // 4. Argument is present but has no value
-        logger = CheckProcessingFails("/key:");
-        logger.AssertSingleErrorExists("/key:");
-        logger.AssertErrorsLogged(1);
     }
 
     [TestMethod]
-    public void PreArgProc_HostAndSonarcloudUrlError()
-    {
-        var logger = CheckProcessingFails("/k:key", "/d:sonar.host.url=firstUrl", "/d:sonar.scanner.sonarcloudUrl=secondUrl");
-        logger.AssertErrorLogged("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. " +
-            "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
-    }
+    public void PreArgProc_NoArguments_ProcessingFails() =>
+        CheckProcessingFails().Logger.Should().HaveErrorOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]")
+            .And.HaveErrors(1);
+
+    [TestMethod]
+    public void PreArgProc_KeyHasNoValue_ProcessingFails() =>
+        CheckProcessingFails("/key:").Logger.Should().HaveErrorOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]")
+            .And.HaveErrors(1);
+
+    [TestMethod]
+    public void PreArgProc_HostAndSonarcloudUrlError() =>
+        CheckProcessingFails("/k:key", "/d:sonar.host.url=firstUrl", "/d:sonar.scanner.sonarcloudUrl=secondUrl").Logger
+            .Should().HaveErrors("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
+            + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
 
     [TestMethod]
     public void PreArgProc_DefaultHostUrl()
@@ -80,42 +73,31 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PreArgProc_ApiBaseUrl_Set()
     {
-        var logger = new TestLogger();
-        var args = CheckProcessingSucceeds(
-            logger,
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>(),
-            "/k:key",
-            "/d:sonar.scanner.apiBaseUrl=test");
-
-        args.ServerInfo.ApiBaseUrl.Should().Be("test");
-        logger.AssertDebugLogged($"Server Url: https://sonarcloud.io");
-        logger.AssertDebugLogged($"Api Url: test");
-        logger.AssertDebugLogged("Is SonarCloud: True");
+        var runtime = new TestRuntime();
+        CheckProcessingSucceeds(runtime, "/k:key", "/d:sonar.scanner.apiBaseUrl=test").ServerInfo.ApiBaseUrl.Should().Be("test");
+        runtime.Logger.Should().HaveDebugs(
+            "Server Url: https://sonarcloud.io",
+            "Api Url: test",
+            "Is SonarCloud: True");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("test")]
     [DataRow("https://sonarcloud.io")]
     [DataRow("https://sonar-test.io")]
     [DataRow("https://www.sonarcloud.io")]
     public void PreArgProc_ApiBaseUrl_NotSet_SonarCloudDefault(string sonarcloudUrl)
     {
-        var logger = new TestLogger();
-        var args = CheckProcessingSucceeds(
-            logger,
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>(),
-            "/k:key",
-            $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}");
-
-        args.ServerInfo.ApiBaseUrl.Should().Be("https://api.sonarcloud.io", because: "it is not so easy to transform the api url for a user specified sonarcloudUrl (Subdomain change).");
-        logger.AssertDebugLogged($"Server Url: {sonarcloudUrl}");
-        logger.AssertDebugLogged($"Api Url: https://api.sonarcloud.io");
-        logger.AssertDebugLogged("Is SonarCloud: True");
+        var runtime = new TestRuntime();
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}").ServerInfo.ApiBaseUrl
+            .Should().Be("https://api.sonarcloud.io", because: "it is not so easy to transform the api url for a user specified sonarcloudUrl (Subdomain change).");
+        runtime.Logger.Should().HaveDebugs(
+            $"Server Url: {sonarcloudUrl}",
+            "Api Url: https://api.sonarcloud.io",
+            "Is SonarCloud: True");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("http://host", "http://host/api/v2")]
     [DataRow("http://host/", "http://host/api/v2")]
     [DataRow("http://host ", "http://host /api/v2")]
@@ -124,79 +106,59 @@ public class ArgumentProcessorTests
     [DataRow("/", "/api/v2")]
     public void PreArgProc_ApiBaseUrl_NotSet_SonarQubeDefault(string hostUri, string expectedApiUri)
     {
-        var logger = new TestLogger();
-        var args = CheckProcessingSucceeds(
-            logger,
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>(),
-            "/k:key",
-            $"/d:sonar.host.url={hostUri}");
-
-        args.ServerInfo.ApiBaseUrl.Should().Be(expectedApiUri);
-        logger.AssertDebugLogged($"Server Url: {hostUri}");
-        logger.AssertDebugLogged($"Api Url: {expectedApiUri}");
-        logger.AssertDebugLogged("Is SonarCloud: False");
+        var runtime = new TestRuntime();
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.host.url={hostUri}").ServerInfo.ApiBaseUrl.Should().Be(expectedApiUri);
+        runtime.Logger.Should().HaveDebugs(
+            $"Server Url: {hostUri}",
+            $"Api Url: {expectedApiUri}",
+            "Is SonarCloud: False");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("us")]
     [DataRow("US")]
     [DataRow("uS")]
     [DataRow("Us")]
     public void PreArgProc_Region_US(string region)
     {
-        var logger = new TestLogger();
-        var args = CheckProcessingSucceeds(
-            logger,
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>(),
-            "/k:key",
-            $"/d:sonar.region={region}");
-
-        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarqube.us", "https://api.sonarqube.us", "us"));
-        logger.AssertDebugLogged("Server Url: https://sonarqube.us");
-        logger.AssertDebugLogged("Api Url: https://api.sonarqube.us");
-        logger.AssertDebugLogged("Is SonarCloud: True");
+        var runtime = new TestRuntime();
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.region={region}").ServerInfo
+            .Should().Be(new CloudHostInfo("https://sonarqube.us", "https://api.sonarqube.us", "us"));
+        runtime.Logger.Should().HaveDebugs(
+            "Server Url: https://sonarqube.us",
+            "Api Url: https://api.sonarqube.us",
+            "Is SonarCloud: True");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(" ")]          // "" is PreArgProc_Region_Invalid
     [DataRow("  ")]
     public void PreArgProc_Region_EU(string region)
     {
-        var logger = new TestLogger();
-        var args = CheckProcessingSucceeds(
-            logger,
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>(),
-            "/k:key",
-            $"/d:sonar.region={region}");
-
-        args.ServerInfo.Should().BeOfType<CloudHostInfo>().Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarcloud.io", "https://api.sonarcloud.io", string.Empty));
-        logger.AssertDebugLogged("Server Url: https://sonarcloud.io");
-        logger.AssertDebugLogged("Api Url: https://api.sonarcloud.io");
-        logger.AssertDebugLogged("Is SonarCloud: True");
+        var runtime = new TestRuntime();
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.region={region}").ServerInfo.Should().BeOfType<CloudHostInfo>()
+            .Which.Should().BeEquivalentTo(new CloudHostInfo("https://sonarcloud.io", "https://api.sonarcloud.io", string.Empty));
+        runtime.Logger.Should().HaveDebugs(
+            "Server Url: https://sonarcloud.io",
+            "Api Url: https://api.sonarcloud.io",
+            "Is SonarCloud: True");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("eu")]
     [DataRow("default")]
     [DataRow("global")]
     [DataRow(@"""us""")]
-    public void PreArgProc_Region_Unknown(string region)
-    {
-        var logger = CheckProcessingFails("/k:key", $"/d:sonar.region={region}");
-        logger.AssertErrorLogged($"Unsupported region '{region}'. List of supported regions: 'us'. Please check the 'sonar.region' property.");
-    }
+    public void PreArgProc_Region_Unknown(string region) =>
+        CheckProcessingFails("/k:key", $"/d:sonar.region={region}").Logger
+            .Should().HaveErrors($"Unsupported region '{region}'. List of supported regions: 'us'. Please check the 'sonar.region' property.");
 
     [TestMethod]
-    public void PreArgProc_Region_Invalid()
-    {
-        var logger = CheckProcessingFails("/k:key", $"/d:sonar.region=");
-        logger.AssertErrorLogged("The format of the analysis property sonar.region= is invalid");
-    }
+    public void PreArgProc_Region_Invalid() =>
+        CheckProcessingFails("/k:key", "/d:sonar.region=").Logger
+            .Should().HaveErrors("The format of the analysis property sonar.region= is invalid");
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("us", null, null, null, typeof(CloudHostInfo), "https://sonarqube.us", "https://api.sonarqube.us")]
     [DataRow("us", null, "https://cloud", "https://api", typeof(CloudHostInfo), "https://cloud", "https://api",
         @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
@@ -231,13 +193,18 @@ public class ArgumentProcessorTests
         @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
     [DataRow("us", null, "https://sonarcloud.io", null, typeof(CloudHostInfo), "https://sonarcloud.io", "https://api.sonarcloud.io",
         @"The sonar.region parameter is set to ""us"". The setting will be overriden by one or more of the properties sonar.host.url, sonar.scanner.sonarcloudUrl, or sonar.scanner.apiBaseUrl.")]
-    public void PreArgProc_Region_Overrides(string region, string hostOverride, string sonarClourUrlOverride, string apiOverride, Type expectedHostInfoType, string expectedHostUri, string expectedApiUri, params string[] expectedWarnings)
+    public void PreArgProc_Region_Overrides(string region,
+                                            string hostOverride,
+                                            string sonarClourUrlOverride,
+                                            string apiOverride,
+                                            Type expectedHostInfoType,
+                                            string expectedHostUri,
+                                            string expectedApiUri,
+                                            params string[] expectedWarnings)
     {
-        var logger = new TestLogger();
+        var runtime = new TestRuntime();
         var args = CheckProcessingSucceeds(
-            logger,
-            Substitute.For<IFileWrapper>(),
-            Substitute.For<IDirectoryWrapper>(),
+            runtime,
             [
                 "/k:key",
                 .. region is null ? Array.Empty<string>() : [$"/d:{SonarProperties.Region}={region}"],
@@ -248,25 +215,37 @@ public class ArgumentProcessorTests
 
         args.ServerInfo.Should().BeOfType(expectedHostInfoType);
         args.ServerInfo.Should().BeEquivalentTo(new { ServerUrl = expectedHostUri, ApiBaseUrl = expectedApiUri, IsSonarCloud = expectedHostInfoType == typeof(CloudHostInfo) });
-        logger.AssertDebugLogged($"Server Url: {expectedHostUri}");
-        logger.AssertDebugLogged($"Api Url: {expectedApiUri}");
-        logger.AssertDebugLogged($"Is SonarCloud: {args.ServerInfo.IsSonarCloud}");
-        logger.Warnings.Should().BeEquivalentTo(expectedWarnings);
+        runtime.Logger.Should().HaveDebugs(
+            $"Server Url: {expectedHostUri}",
+            $"Api Url: {expectedApiUri}",
+            $"Is SonarCloud: {args.ServerInfo.IsSonarCloud}");
+        runtime.Logger.Warnings.Should().BeEquivalentTo(expectedWarnings);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/d:sonar.scanner.os=macos", "macos")]
     [DataRow("/d:sonar.scanner.os=Something", "Something")]
     [DataRow("/d:sonar.scanner.os=1", "1")]
     public void PreArgProc_OperatingSystem_Set(string parameter, string expectedValue) =>
         CheckProcessingSucceeds("/k:key", parameter).OperatingSystem.Should().Be(expectedValue);
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
-    public void PreArgProc_OperatingSystem_NotSet_Windows() =>
-        CheckProcessingSucceeds("/k:key").OperatingSystem.Should().Be("windows");
+    public void PreArgProc_OperatingSystem_NotSet()
+    {
+        var expected = "windows";
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            expected = "macos";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            expected = "linux";
+        }
+        var runtime = new TestRuntime { OperatingSystem = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()) };
+        CheckProcessingSucceeds(runtime, "/k:key").OperatingSystem.Should().Be(expected);
+    }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("/d:sonar.scanner.arch=a1", "a1")]
     [DataRow("/d:sonar.scanner.arch=b2", "b2")]
     public void PreArgProc_Architecture_Set(string parameter, string expectedValue) =>
@@ -276,137 +255,97 @@ public class ArgumentProcessorTests
     public void PreArgProc_Architecture_NotSet() =>
         CheckProcessingSucceeds("/k:key").Architecture.Should().Be(RuntimeInformation.OSArchitecture.ToString().ToLowerInvariant());
 
+    [DataRow("0123456789.abcdefghijklmnopqrstuvwxyz:-._ABCDEFGHIJKLMNOPQRSTUVWXYZ")] // all valid characters
+    [DataRow("a")]
+    [DataRow("_")]
+    [DataRow(":")]
+    [DataRow("-")]
+    [DataRow(".")]
+    [DataRow(".-_:")]
+    [DataRow("0.1")]    // numerics with any other valid character is ok
+    [DataRow("_0")]
+    [DataRow("0.")]
+    [DataRow("myproject")]
+    [DataRow("my.Project")]
+    [DataRow("my_second_Project")]
+    [DataRow("my-other_Project")]
     [TestMethod]
-    [WorkItem(102)] // http://jira.sonarsource.com/browse/SONARMSBRU-102
-    public void PreArgProc_ProjectKeyValidity()
+    public void PreArgProc_ProjectKey_Valid(string projectKey) =>
+        CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid")
+            .ProjectKey
+            .Should().Be(projectKey, "Unexpected project key");
+
+    [DataRow("spaces in name")]
+    [DataRow("a\tb")]
+    [DataRow("a\rb")]
+    [DataRow("a\r\nb")]
+    [DataRow("+a")]         // invalid non-alpha characters
+    [DataRow("b@")]
+    [DataRow("c~")]
+    [DataRow("d,")]
+    [DataRow("0")]          // single numeric is not ok
+    [DataRow("0123456789")] // all numeric is not ok
+    [TestMethod]
+    public void PreArgProc_ProjectKey_Invalid(string projectKey)
     {
-        // 0. Setup - none
-
-        // 1. Invalid characters
-        // Whitespace
-        CheckProjectKeyIsInvalid("spaces in name");
-        CheckProjectKeyIsInvalid("a\tb");
-        CheckProjectKeyIsInvalid("a\rb");
-        CheckProjectKeyIsInvalid("a\r\nb");
-
-        // invalid non-alpha characters
-        CheckProjectKeyIsInvalid("+a");
-        CheckProjectKeyIsInvalid("b@");
-        CheckProjectKeyIsInvalid("c~");
-        CheckProjectKeyIsInvalid("d,");
-
-        CheckProjectKeyIsInvalid("0"); // single numeric is not ok
-        CheckProjectKeyIsInvalid("0123456789"); // all numeric is not ok
-
-        // 2. Valid
-        CheckProjectKeyIsValid("0123456789.abcdefghijklmnopqrstuvwxyz:-._ABCDEFGHIJKLMNOPQRSTUVWXYZ"); // all valid characters
-
-        CheckProjectKeyIsValid("a"); // single alpha character
-        CheckProjectKeyIsValid("_"); // single non-alpha character
-        CheckProjectKeyIsValid(":"); // single non-alpha character
-        CheckProjectKeyIsValid("-"); // single non-alpha character
-        CheckProjectKeyIsValid("."); // single non-alpha character
-
-        CheckProjectKeyIsValid(".-_:"); // all non-alpha characters
-
-        CheckProjectKeyIsValid("0.1"); // numerics with any other valid character is ok
-        CheckProjectKeyIsValid("_0"); // numeric with any other valid character is ok
-        CheckProjectKeyIsValid("0."); // numeric with any other valid character is ok
-
-        // 3. More realistic valid options
-        CheckProjectKeyIsValid("myproject");
-        CheckProjectKeyIsValid("my.Project");
-        CheckProjectKeyIsValid("my_second_Project");
-        CheckProjectKeyIsValid("my-other_Project");
+        var runtime = CheckProcessingFails("/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl");
+        runtime.Logger.Should().HaveErrorOnce("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.")
+            .And.HaveErrors(1);
     }
 
+    [DataRow("unrecog2", "unrecog1", "/p:key=value", "")]   // /p: is no longer supported - should be /d:
+    [DataRow("/key=k1", "/name=n1", "/version=v1")]         // Arguments using the wrong separator i.e. /k=k1 instead of /k:k1
     [TestMethod]
-    public void PreArgProc_UnrecognisedArguments()
+    public void PreArgProc_UnrecognisedArguments(params string[] args)
     {
-        // 0. Setup
-        TestLogger logger;
+        var runtime = CheckProcessingFails([.. args, "/key:k1", "/name:n1", "/version:v1"]);
 
-        // 1. Additional unrecognized arguments
-        logger = CheckProcessingFails("unrecog2", "/key:k1", "/name:n1", "/version:v1", "unrecog1", "/p:key=value", string.Empty);
-
-        logger.AssertNoErrorsLogged("/key:");
-        logger.AssertNoErrorsLogged("/name:");
-        logger.AssertNoErrorsLogged("/version:");
-
-        logger.AssertSingleErrorExists("unrecog1");
-        logger.AssertSingleErrorExists("unrecog2");
-        logger.AssertSingleErrorExists("/p:key=value"); // /p: is no longer supported - should be /d:
-        logger.AssertErrorsLogged(4); // unrecog1, unrecog2, /p: and the empty string
-
-        // 2. Arguments using the wrong separator i.e. /k=k1  instead of /k:k1
-        logger = CheckProcessingFails("/key=k1", "/name=n1", "/version=v1");
-
-        // Expecting errors for the unrecognized arguments...
-        logger.AssertSingleErrorExists("/key=k1");
-        logger.AssertSingleErrorExists("/name=n1");
-        logger.AssertSingleErrorExists("/version=v1");
-        // ... and errors for the missing required arguments
-        logger.AssertSingleErrorExists("/key:");
-        logger.AssertErrorsLogged(4);
+        runtime.Logger.Should().NotHaveError("/key:")
+            .And.NotHaveError("/name:")
+            .And.NotHaveError("/version:");
+        foreach (var arg in args.Where(x => x is not "")) // we still log an error for "", but we cannot match on it
+        {
+            runtime.Logger.Should().HaveErrorOnce("Unrecognized command line argument: " + arg);
+        }
+        runtime.Logger.Should().HaveErrors(args.Length);
     }
 
+    [DataRow(TargetsInstaller.DefaultInstallSetting, null)]
+    [DataRow(true, "true")]
+    [DataRow(true, "TrUe")]
+    [DataRow(false, "false")]
+    [DataRow(false, "falSE")]
     [TestMethod]
-    public void ArgProc_InstallTargets()
+    public void ArgProc_InstallTargets_Valid(bool expected, string installValue)
     {
-        ProcessedArgs actual;
-
-        var validUrlArg = "/d:sonar.host.url=foo";
-
-        // Valid
-        // No install argument passed -> install targets
-        actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg);
-        AssertExpectedInstallTargets(TargetsInstaller.DefaultInstallSetting, actual);
-
-        // "true"-> install targets
-        actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg, "/install:true");
-        AssertExpectedInstallTargets(true, actual);
-
-        // Case insensitive "TrUe"-> install targets
-        actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg, "/install:TrUe");
-        AssertExpectedInstallTargets(true, actual);
-
-        // "false"-> don't install targets
-        actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg, "/install:false");
-        AssertExpectedInstallTargets(false, actual);
-
-        // Case insensitive "falSE"
-        actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg, "/install:falSE");
-        AssertExpectedInstallTargets(false, actual);
-
-        // Invalid value (only true and false are supported)
-        var logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:1");
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("/install"); // we expect the error to include the first value and the duplicate argument
-
-        // No value
-        logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:");
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("/install"); // we expect the error to include the first value and the duplicate argument
-
-        // Empty value -> parsing should fail
-        logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", @"/install:"" """);
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("/install"); // we expect the error to include the first value and the duplicate argument
-
-        // Duplicate value -> parsing should fail
-        logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:true", "/install:false");
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("/install"); // we expect the error to include the first value and the duplicate argument
+        var args = new[] { "/key:my.key", "/name:my name", "/version:1.0", "/d:sonar.host.url=foo" };
+        if (installValue is not null)
+        {
+            args = [.. args, $"/install:{installValue}"];
+        }
+        CheckProcessingSucceeds(args).InstallLoaderTargets.Should().Be(expected);
     }
 
+    [DataRow("1")]
+    [DataRow("")]
+    [DataRow("\" \"")]
     [TestMethod]
-    public void PreArgProc_PropertiesFileSpecifiedOnCommandLine()
+    public void ArgProc_InstallTargets_Invalid(string installValue) =>
+        CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", $"/install:{installValue}").Logger.Should()
+            .HaveErrorOnce($"""Invalid value for /install: {installValue}. Valid values are "true" or "false".""")
+            .And.HaveErrors(1);
+
+    [TestMethod]
+    public void ArgProc_InstallTargets_Duplicate() =>
+        CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/install:true", "/install:false").Logger.Should()
+            .HaveErrorOnce("A value has already been supplied for this argument: /install:false. Existing: 'true'")
+            .And.HaveErrors(1);
+
+    [TestMethod]
+    public void PreArgProc_PropertiesFileSpecifiedOnCommandLine_Exists()
     {
-        // 0. Setup
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
-
-        // 1. File exists -> args ok
         var properties = new AnalysisProperties
         {
             new("key1", "value1"), new(SonarProperties.HostUrl, "url") // required property
@@ -414,245 +353,189 @@ public class ArgumentProcessorTests
         properties.Save(propertiesFilePath);
 
         var result = CheckProcessingSucceeds("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
+
         AssertExpectedValues("key", "name", "version", result);
         AssertExpectedPropertyValue("key1", "value1", result);
+    }
 
-        // 2. File does not exist -> args not ok
-        File.Delete(propertiesFilePath);
-
-        var logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
-        logger.AssertErrorsLogged(1);
+    [TestMethod]
+    public void PreArgProc_PropertiesFileSpecifiedOnCommandLine_DoesNotExist()
+    {
+        var runtime = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:some/File/Path");
+        runtime.Logger.Should().HaveErrors(1);
+        runtime.Logger.Errors.Should().Contain(x => x.Contains("Unable to find the analysis settings file") && x.Contains("Please fix the path to this settings file."));
     }
 
     [TestMethod]
     public void PreArgProc_With_PropertiesFileSpecifiedOnCommandLine_Organization_Set_Only_In_It_Should_Fail()
     {
-        // 0. Setup
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var propertiesFilePath = Path.Combine(testDir, "mysettings.txt");
-
-        // 1. File exists -> args ok
         var properties = new AnalysisProperties
         {
             new(SonarProperties.Organization, "myorg1"), new(SonarProperties.HostUrl, "url") // required property
         };
         properties.Save(propertiesFilePath);
 
-        var logger = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
-        logger.AssertErrorsLogged(1);
+        var runtime = CheckProcessingFails("/k:key", "/n:name", "/v:version", "/s:" + propertiesFilePath);
+        runtime.Logger.Should()
+            .HaveErrorOnce("sonar.organization parameter has been detected in the provided SonarQube.Analysis.xml config file. Please pass it in the command line instead, using /o: flag.")
+            .And.HaveErrors(1);
     }
+
+    [DataRow("/key:my.key", "/name:my name", "/version:1.0")]
+    [DataRow("/v:1.0", "/k:my.key", "/n:my name")]
+    [DataRow("/k:my.key", "/v:1.0", "/n:my name")]
+    [TestMethod]
+    public void PreArgProc_Aliases_Valid(params string[] args) =>
+        AssertExpectedValues("my.key", "my name", "1.0", CheckProcessingSucceeds([.. args, "/d:sonar.host.url=foo"]));
 
     [TestMethod]
-    public void PreArgProc_Aliases()
-    {
-        // 0. Setup
-        ProcessedArgs actual;
+    // Full names, wrong case -> ignored
+    public void PreArgProc_Aliases_Invalid() =>
+        CheckProcessingFails("/KEY:my.key", "/nAme:my name", "/versIOn:1.0", "/d:sonar.host.url=foo").Logger.Should()
+            .HaveErrors(
+                "Unrecognized command line argument: /KEY:my.key",
+                "Unrecognized command line argument: /nAme:my name",
+                "Unrecognized command line argument: /versIOn:1.0");
 
-        var validUrlArg = "/d:sonar.host.url=foo"; // this doesn't have an alias but does need to be supplied
-
-        // Valid
-        // Full names, no path
-        actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg);
-        AssertExpectedValues("my.key", "my name", "1.0", actual);
-
-        // Aliases, no path, different order
-        actual = CheckProcessingSucceeds("/v:2.0", "/k:my.key", "/n:my name", validUrlArg);
-        AssertExpectedValues("my.key", "my name", "2.0", actual);
-
-        // Full names
-        actual = CheckProcessingSucceeds("/key:my.key", "/name:my name", "/version:1.0", validUrlArg);
-        AssertExpectedValues("my.key", "my name", "1.0", actual);
-
-        // Aliases, different order
-        actual = CheckProcessingSucceeds("/v:2:0", "/k:my.key", "/n:my name", validUrlArg);
-        AssertExpectedValues("my.key", "my name", "2:0", actual);
-
-        // Full names, wrong case -> ignored
-        var logger = CheckProcessingFails("/KEY:my.key", "/nAme:my name", "/versIOn:1.0", validUrlArg);
-        logger.AssertSingleErrorExists("/KEY:my.key");
-        logger.AssertSingleErrorExists("/nAme:my name");
-        logger.AssertSingleErrorExists("/versIOn:1.0");
-    }
+    [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/k:key2" }, "A value has already been supplied for this argument: /k:key2. Existing: 'my.key'")]
+    [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/name:dupName" }, "A value has already been supplied for this argument: /name:dupName. Existing: 'my name'")]
+    [DataRow(new[] { "/key:my.key", "/name:my name", "/version:1.2", "/v:version2.0" }, "A value has already been supplied for this argument: /v:version2.0. Existing: '1.2'")]
+    [TestMethod]
+    public void PreArgProc_SingleDuplicate_ProcessingFails(string[] args, string expectedError) =>
+        CheckProcessingFails(args).Logger.Should().HaveErrorOnce(expectedError)
+            .And.HaveErrors(1);
 
     [TestMethod]
-    public void PreArgProc_Duplicates()
-    {
-        // 0. Setup
-        TestLogger logger;
-
-        // 1. Duplicate key using alias
-        logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/k:key2");
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("/k:key2", "my.key"); // we expect the error to include the first value and the duplicate argument
-
-        // 2. Duplicate name, not using alias
-        logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/name:dupName");
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("/name:dupName", "my name");
-
-        // 3. Duplicate version, not using alias
-        logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "/v:version2.0");
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("/v:version2.0", "1.2");
-
-        // Duplicate key (specified three times)
-        logger = CheckProcessingFails("/key:my.key", "/k:k2", "/k:key3");
-
-        logger.AssertSingleErrorExists("/k:k2", "my.key"); // Warning about key appears twice
-        logger.AssertSingleErrorExists("/k:key3", "my.key");
-
-        logger.AssertErrorsLogged(2);
-    }
+    public void PreArgProc_MultipleDuplicates_ProcessingFails() =>
+        CheckProcessingFails("/key:my.key", "/k:k2", "/k:key3").Logger.Should()
+            .HaveErrors(
+                "A value has already been supplied for this argument: /k:k2. Existing: 'my.key'",
+                "A value has already been supplied for this argument: /k:key3. Existing: 'my.key'")
+            .And.HaveErrors(2);
 
     [TestMethod]
     public void PreArgProc_DynamicSettings()
     {
-        // 0. Setup - none
-
-        // 1. Args ok
         var result = CheckProcessingSucceeds(
             // Non-dynamic values
-            "/key:my.key", "/name:my name", "/version:1.2",
+            "/key:my.key",
+            "/name:my name",
+            "/version:1.2",
             // Dynamic values
             "/d:sonar.host.url=required value",
             "/d:key1=value1",
-            "/d:key2=value two with spaces"
-        );
+            "/d:key2=value two with spaces");
 
         AssertExpectedValues("my.key", "my name", "1.2", result);
-
         AssertExpectedPropertyValue(SonarProperties.HostUrl, "required value", result);
         AssertExpectedPropertyValue("key1", "value1", result);
         AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
-        result.AllProperties().Should().NotBeNull("GetAllProperties should not return null");
-        result.AllProperties().Should().HaveCount(3, "Unexpected number of properties");
+        result.AllProperties().Should().NotBeNull()
+            .And.HaveCount(3);
     }
 
     [TestMethod]
     public void PreArgProc_DynamicSettings_Invalid()
     {
-        // Arrange
-        TestLogger logger;
-
-        // Act
-        logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
+        var runtime = CheckProcessingFails(
+            "/key:my.key",
+            "/name:my name",
+            "/version:1.2",
             "/d:invalid1 =aaa",
             "/d:notkeyvalue",
             "/d: spacebeforekey=bb",
             "/d:missingvalue=",
             "/d:validkey=validvalue");
 
-        // Assert
-        logger.AssertSingleErrorExists("invalid1 =aaa");
-        logger.AssertSingleErrorExists("notkeyvalue");
-        logger.AssertSingleErrorExists(" spacebeforekey=bb");
-        logger.AssertSingleErrorExists("missingvalue=");
-
-        logger.AssertErrorsLogged(4);
+        runtime.Logger.Should()
+            .HaveErrors(
+                "The format of the analysis property invalid1 =aaa is invalid",
+                "The format of the analysis property notkeyvalue is invalid",
+                "The format of the analysis property  spacebeforekey=bb is invalid",
+                "The format of the analysis property missingvalue= is invalid")
+            .And.HaveErrors(4);
     }
 
     [TestMethod]
     public void PreArgProc_DynamicSettings_Duplicates()
     {
-        // Arrange
-        TestLogger logger;
-
-        // Act
-        logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2",
-            "/d:dup1=value1", "/d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
+        var runtime = CheckProcessingFails(
+            "/key:my.key",
+            "/name:my name",
+            "/version:1.2",
+            "/d:dup1=value1",
+            "/d:dup1=value2",
+            "/d:dup2=value3",
+            "/d:dup2=value4",
             "/d:unique=value5");
 
-        // Assert
-        logger.AssertSingleErrorExists("dup1=value2", "value1");
-        logger.AssertSingleErrorExists("dup2=value4", "value3");
-        logger.AssertErrorsLogged(2);
+        runtime.Logger.Should()
+            .HaveErrors(
+                "A value has already been supplied for this property. Key: dup1=value2, existing value: value1",
+                "A value has already been supplied for this property. Key: dup2=value4, existing value: value3")
+            .And.HaveErrors(2);
     }
 
     [TestMethod]
-    public void PreArgProc_Arguments_Duplicates_WithDifferentFlagsPrefixes()
-    {
-        // Arrange
-        TestLogger logger;
-
-        // Act
-        logger = CheckProcessingFails("/key:my.key", "/name:my name", "/version:1.2", "-version:1.2",
-            "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
-            "/d:unique=value5");
-
-        // Assert
-        logger.AssertErrorsLogged(3);
-        logger.AssertSingleErrorExists("dup1=value2", "value1");
-        logger.AssertSingleErrorExists("dup2=value4", "value3");
-        logger.AssertSingleErrorExists("version:1.2", "1.2");
-    }
-
-    [TestMethod]
-    public void PreArgProc_DynamicSettings_Duplicates_WithDifferentFlagsPrefixes()
-    {
-        // Arrange
-        TestLogger logger;
-
-        // Act
-        logger = CheckProcessingFails("/key:my.key", "/name:my name",
-            "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4",
-            "/d:unique=value5");
-
-        // Assert
-        logger.AssertSingleErrorExists("dup1=value2", "value1");
-        logger.AssertSingleErrorExists("dup2=value4", "value3");
-        logger.AssertErrorsLogged(2);
-    }
+    public void PreArgProc_Arguments_Duplicates_WithDifferentFlagsPrefixes() =>
+        CheckProcessingFails(
+            "/key:my.key",
+            "/name:my name",
+            "/version:1.2",
+            "-version:1.2",
+            "/d:dup1=value1",
+            "-d:dup1=value2",
+            "/d:dup2=value3",
+            "/d:dup2=value4",
+            "/d:unique=value5").Logger.Should()
+            .HaveErrors(
+                "A value has already been supplied for this property. Key: dup1=value2, existing value: value1",
+                "A value has already been supplied for this property. Key: dup2=value4, existing value: value3",
+                "A value has already been supplied for this argument: -version:1.2. Existing: '1.2'")
+            .And.HaveErrors(3);
 
     [TestMethod]
-    public void PreArgProc_Disallowed_DynamicSettings()
-    {
-        // 0. Setup
-        TestLogger logger;
+    public void PreArgProc_DynamicSettings_Duplicates_WithDifferentFlagsPrefixes() =>
+        CheckProcessingFails("/key:my.key", "/name:my name", "/d:dup1=value1", "-d:dup1=value2", "/d:dup2=value3", "/d:dup2=value4", "/d:unique=value5").Logger.Should()
+            .HaveErrors(
+                "A value has already been supplied for this property. Key: dup1=value2, existing value: value1",
+                "A value has already been supplied for this property. Key: dup2=value4, existing value: value3")
+            .And.HaveErrors(2);
 
-        // 1. Named arguments cannot be overridden
-        logger = CheckProcessingFails(
-            "/key:my.key", "/name:my name", "/version:1.2",
-            "/d:sonar.projectKey=value1");
-        logger.AssertSingleErrorExists(SonarProperties.ProjectKey, "/k");
+    [DataRow(
+        new[] { "/d:sonar.projectKey=value1" },
+        "Please use the parameter prefix '/k:' to define the key of the project instead of injecting this key with the help of the 'sonar.projectKey' property.")]
+    [DataRow(
+        new[] { "/d:sonar.projectName=value1" },
+        "Please use the parameter prefix '/n:' to define the name of the project instead of injecting this name with the help of the 'sonar.projectName' property.")]
+    [DataRow(
+        new[] { "/d:sonar.projectVersion=value1" },
+        "Please use the parameter prefix '/v:' to define the version of the project instead of injecting this version with the help of the 'sonar.projectVersion' property.")]
+    [DataRow(
+        new[] { "/organization:my_org", "/d:sonar.organization=value1" },
+        "Please use the parameter prefix '/o:' to define the organization of the project instead of injecting this organization with the help of the 'sonar.organization' property.")]
+    [DataRow(
+        new[] { "/key:my.key", "/name:my name", "/version:1.2", "/d:sonar.working.directory=value1" },
+        "The property 'sonar.working.directory' is automatically set by the SonarScanner for .NET and cannot be overridden on the command line.")]
+    [TestMethod]
+    public void PreArgProc_Disallowed_DynamicSettings_ProcessingFails(string[] args, string error) =>
+        CheckProcessingFails([.. args, "/key:my.key", "/name:my name", "/version:1.2"]).Logger
+            .Should().HaveErrorOnce(error);
 
-        logger = CheckProcessingFails(
-            "/key:my.key", "/name:my name", "/version:1.2",
-            "/d:sonar.projectName=value1");
-        logger.AssertSingleErrorExists(SonarProperties.ProjectName, "/n");
-
-        logger = CheckProcessingFails(
-            "/key:my.key", "/name:my name", "/version:1.2",
-            "/d:sonar.projectVersion=value1");
-        logger.AssertSingleErrorExists(SonarProperties.ProjectVersion, "/v");
-
-        logger = CheckProcessingFails(
-            "/key:my.key", "/name:my name", "/version:1.2", "/organization:my_org",
-            "/d:sonar.organization=value1");
-        logger.AssertSingleErrorExists(SonarProperties.Organization, "/o");
-
-        // 2. Other values that can't be set
-
-        logger = CheckProcessingFails(
-            "/key:my.key", "/name:my name", "/version:1.2",
-            "/d:sonar.working.directory=value1");
-        logger.AssertSingleErrorExists(SonarProperties.WorkingDirectory);
-    }
+    [DataRow("/organization:my_org", "my_org")]
+    [DataRow("/o:my_org", "my_org")]
+    [TestMethod]
+    public void PreArgProc_Organization(string arg, string expected) =>
+        CheckProcessingSucceeds("/key:my.key", arg).Organization.Should().Be(expected);
 
     [TestMethod]
-    public void PreArgProc_Organization()
-    {
-        var args = CheckProcessingSucceeds("/key:my.key", "/organization:my_org");
-        args.Organization.Should().Be("my_org");
+    public void PreArgProc_Organization_NotSet() =>
+        CheckProcessingSucceeds("/key:my.key").Organization.Should().BeNullOrEmpty();
 
-        args = CheckProcessingSucceeds("/key:my.key", "/o:my_org");
-        args.Organization.Should().Be("my_org");
-
-        args = CheckProcessingSucceeds("/key:my.key");
-        args.Organization.Should().BeNull();
-    }
-
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(new string[] { }, 100, null)]
     [DataRow(new[] { "/d:sonar.http.timeout=1" }, 1, null)]
     [DataRow(new[] { "/d:sonar.http.timeout=2" }, 2, null)]
@@ -672,50 +555,50 @@ public class ArgumentProcessorTests
     [DataRow(new[] { "/d:sonar.scanner.connectTimeout=11", "/d:sonar.scanner.socketTimeout=22", "/d:sonar.scanner.responseTimeout=33" }, 11, null)]
     public void PreArgProc_HttpTimeout(string[] timeOuts, int expectedTimeoutSeconds, string[] expectedWarningParts)
     {
-        TestLogger logger = new();
-        const string warningTemplate = "The specified value `{0}` for `{1}` cannot be parsed. The default value of {2}s will be used. " +
-            "Please remove the parameter or specify the value in seconds, greater than 0.";
-        var args = CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), ["/key:k", .. timeOuts]);
+        var runtime = new TestRuntime();
+        const string warningTemplate = "The specified value `{0}` for `{1}` cannot be parsed. The default value of {2}s will be used. "
+            + "Please remove the parameter or specify the value in seconds, greater than 0.";
+        var args = CheckProcessingSucceeds(runtime, ["/key:k", .. timeOuts]);
         args.HttpTimeout.Should().Be(TimeSpan.FromSeconds(expectedTimeoutSeconds));
         if (expectedWarningParts is { } warningParts)
         {
-            logger.AssertWarningLogged(string.Format(warningTemplate, warningParts));
+            runtime.Logger.Should().HaveWarnings(string.Format(warningTemplate, warningParts));
         }
         else
         {
-            logger.AssertNoWarningsLogged();
+            runtime.Logger.Should().HaveNoWarnings();
         }
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\Program Files\Java\jdk1.6.0_30\bin\java.exe")]
     [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java.exe")]
     [DataRow(@"\jdk1.6.0_30\bin\java.exe")]
     public void PreArgProc_JavaExePath_SetValid(string javaExePath)
     {
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(javaExePath).Returns(true);
-        CheckProcessingSucceeds(new TestLogger(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(javaExePath);
+        var runtime = new TestRuntime();
+        runtime.File.Exists(javaExePath).Returns(true);
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}").JavaExePath.Should().Be(javaExePath);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"jdk1.6.0_30\bin\java.exe")]
     [DataRow(@"C:Program Files\Java\jdk1.6.0_30\bin\java")]
     [DataRow(@"not a path")]
     [DataRow(@" ")]
     public void PreArgProc_JavaExePath_SetInvalid(string javaExePath)
     {
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(javaExePath).Returns(false);
-        var logger = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}");
-        logger.AssertErrorLogged("The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the java executable.");
+        var runtime = new TestRuntime();
+        runtime.File.Exists(javaExePath).Returns(false);
+        CheckProcessingFails(runtime, "/k:key", $"/d:sonar.scanner.javaExePath={javaExePath}");
+        runtime.Logger.Should().HaveErrors("The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the java executable.");
     }
 
     [TestMethod]
     public void PreArgProc_JavaExePath_NotSet() =>
         CheckProcessingSucceeds("/k:key").JavaExePath.Should().BeNull();
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("true", true)]
     [DataRow("True", true)]
     [DataRow("false", false)]
@@ -723,20 +606,60 @@ public class ArgumentProcessorTests
     public void PreArgProc_SkipJreProvisioning_SetValid(string skipJreProvisioning, bool result) =>
         CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}").SkipJreProvisioning.Should().Be(result);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("gibberish")]
     [DataRow(" ")]
-    public void PreArgProc_SkipJreProvisioning_SetInvalid(string skipJreProvisioning)
-    {
-        var logger = CheckProcessingFails("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}");
-        logger.AssertErrorLogged("The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
-    }
+    public void PreArgProc_SkipJreProvisioning_SetInvalid(string skipJreProvisioning) =>
+        CheckProcessingFails("/k:key", $"/d:sonar.scanner.skipJreProvisioning={skipJreProvisioning}").Logger
+            .Should().HaveErrors("The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
 
     [TestMethod]
     public void PreArgProc_SkipJreProvisioning_NotSet() =>
         CheckProcessingSucceeds("/k:key").SkipJreProvisioning.Should().BeFalse();
 
-    [DataTestMethod]
+    [TestMethod]
+    public void PreArgProc_EngineJarPath_SetValid()
+    {
+        var runtime = new TestRuntime();
+        runtime.File.Exists("scanner-engine.jar").Returns(true);
+        CheckProcessingSucceeds(runtime, "/k:key", "/d:sonar.scanner.engineJarPath=scanner-engine.jar")
+            .EngineJarPath
+            .Should().Be("scanner-engine.jar");
+    }
+
+    [TestMethod]
+    public void PreArgProc_EngineJarPath_SetInvalid()
+    {
+        var runtime = new TestRuntime();
+        runtime.File.Exists("scanner-engine.jar").Returns(false);
+        CheckProcessingFails(runtime, "/k:key", "/d:sonar.scanner.engineJarPath=scanner-engine.jar");
+        runtime.Logger.Should().HaveErrors("The argument 'sonar.scanner.engineJarPath' contains an invalid path. Please make sure the path is correctly pointing to the scanner engine jar.");
+    }
+
+    [TestMethod]
+    public void PreArgProc_EngineJarPath_NotSet() =>
+        CheckProcessingSucceeds("/k:key").EngineJarPath.Should().BeNull();
+
+    [TestMethod]
+    [DataRow("true", true)]
+    [DataRow("True", true)]
+    [DataRow("false", false)]
+    [DataRow("False", false)]
+    public void PreArgProc_UseSonarScannerCli_SetValid(string useSonarScannerCli, bool result) =>
+        CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCli}").UseSonarScannerCli.Should().Be(result);
+
+    [TestMethod]
+    [DataRow("gibberish")]
+    [DataRow(" ")]
+    public void PreArgProc_UseSonarScannerCli_SetInvalid(string useSonarScannerCli) =>
+        CheckProcessingFails("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCli}").Logger
+            .Should().HaveErrors("The argument 'sonar.scanner.useSonarScannerCLI' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
+
+    [TestMethod]
+    public void PreArgProc_UseSonarScannerCli_NotSet() =>
+        CheckProcessingSucceeds("/k:key").UseSonarScannerCli.Should().BeFalse();
+
+    [TestMethod]
     [DataRow("true", true)]
     [DataRow("True", true)]
     [DataRow("false", false)]
@@ -744,47 +667,47 @@ public class ArgumentProcessorTests
     public void PreArgProc_ScanAllAnalysis_SetValid(string scanAll, bool result) =>
         CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.scanAll={scanAll}").ScanAllAnalysis.Should().Be(result);
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("gibberish")]
     [DataRow(" ")]
-    public void PreArgProc_ScanAllAnalysis_SetInvalid(string scanAll)
-    {
-        var logger = CheckProcessingFails("/k:key", $"/d:sonar.scanner.scanAll={scanAll}");
-        logger.AssertErrorLogged("The argument 'sonar.scanner.scanAll' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
-    }
+    public void PreArgProc_ScanAllAnalysis_SetInvalid(string scanAll) =>
+        CheckProcessingFails("/k:key", $"/d:sonar.scanner.scanAll={scanAll}").Logger
+            .Should().HaveErrors("The argument 'sonar.scanner.scanAll' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
 
     [TestMethod]
     public void PreArgProc_ScanAllAnalysis_NotSet() =>
         CheckProcessingSucceeds("/k:key").ScanAllAnalysis.Should().BeTrue();
 
     [TestMethod]
-    public void PreArgProc_UserHome_NotSet() =>
-        CheckProcessingSucceeds("/k:key").UserHome.Should().Be(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar"));
+    public void PreArgProc_UserHome_NotSet()
+    {
+        var runtime = new TestRuntime { OperatingSystem = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()) };
+        CheckProcessingSucceeds(runtime, "/k:key").UserHome.Should().Be(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar"));
+    }
 
     [TestMethod]
     public void PreArgProc_UserHome_NotSet_CreatedIfNotExists()
     {
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var defaultUserHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar");
-        directoryWrapper.Exists(defaultUserHome).Returns(false);
-        CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key").UserHome.Should().Be(defaultUserHome);
-        directoryWrapper.Received(1).CreateDirectory(defaultUserHome);
+        var runtime = new TestRuntime { OperatingSystem = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()) };
+        runtime.Directory.Exists(defaultUserHome).Returns(false);
+        CheckProcessingSucceeds(runtime, "/k:key").UserHome.Should().Be(defaultUserHome);
+        runtime.Directory.Received(1).CreateDirectory(defaultUserHome);
     }
 
     [TestMethod]
     public void PreArgProc_UserHome_NotSet_CreationFails()
     {
-        var logger = new TestLogger();
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
         var defaultUserHome = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".sonar");
-        directoryWrapper.Exists(defaultUserHome).Returns(false);
-        directoryWrapper.When(x => x.CreateDirectory(defaultUserHome)).Do(_ => throw new IOException("Directory can not be created."));
-        CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key").UserHome.Should().BeNull();
-        directoryWrapper.Received(1).CreateDirectory(defaultUserHome);
-        logger.AssertWarningLogged($"Failed to create the default user home directory '{defaultUserHome}' with exception 'Directory can not be created.'.");
+        var runtime = new TestRuntime { OperatingSystem = new OperatingSystemProvider(Substitute.For<IFileWrapper>(), Substitute.For<ILogger>()) };
+        runtime.Directory.Exists(defaultUserHome).Returns(false);
+        runtime.Directory.When(x => x.CreateDirectory(defaultUserHome)).Do(_ => throw new IOException("Directory can not be created."));
+        CheckProcessingSucceeds(runtime, "/k:key").UserHome.Should().BeNull();
+        runtime.Directory.Received(1).CreateDirectory(defaultUserHome);
+        runtime.Logger.Should().HaveWarnings($"Failed to create the default user home directory '{defaultUserHome}' with exception 'Directory can not be created.'.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Test")]
     [DataRow(@"""Test""")]
     [DataRow("'Test'")]
@@ -792,12 +715,12 @@ public class ArgumentProcessorTests
     [DataRow(@"""C:\Users\Some Name""")]
     public void PreArgProc_UserHome_Set_DirectoryExists(string path)
     {
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(path).Returns(true);
-        CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(path);
+        var runtime = new TestRuntime();
+        runtime.Directory.Exists(path).Returns(true);
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}").UserHome.Should().Be(path);
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Test")]
     [DataRow(@"""Test""")]
     [DataRow("'Test'")]
@@ -805,15 +728,14 @@ public class ArgumentProcessorTests
     [DataRow(@"""C:\Users\Some Name""")]
     public void PreArgProc_UserHome_Set_DirectoryExistsNot_CanBeCreated(string path)
     {
-        var logger = new TestLogger();
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(path).Returns(false);
-        CheckProcessingSucceeds(logger, Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}");
-        directoryWrapper.Received(1).CreateDirectory(path);
-        logger.AssertDebugLogged($"Created the sonar.userHome directory at '{path}'.");
+        var runtime = new TestRuntime();
+        runtime.Directory.Exists(path).Returns(false);
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={path}");
+        runtime.Directory.Received(1).CreateDirectory(path);
+        runtime.Logger.Should().HaveDebugs($"Created the sonar.userHome directory at '{path}'.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Test")]
     [DataRow(@"""Test""")]
     [DataRow("'Test'")]
@@ -821,16 +743,16 @@ public class ArgumentProcessorTests
     [DataRow(@"""C:\Users\Some Name""")]
     public void PreArgProc_UserHome_Set_DirectoryExistsNot_CanNotBeCreated(string path)
     {
-        var directoryWrapper = Substitute.For<IDirectoryWrapper>();
-        directoryWrapper.Exists(path).Returns(false);
-        directoryWrapper.When(x => x.CreateDirectory(path)).Do(_ => throw new IOException("Directory creation failed."));
-        var logger = CheckProcessingFails(Substitute.For<IFileWrapper>(), directoryWrapper, "/k:key", $"/d:sonar.userHome={path}");
-        directoryWrapper.Received(1).CreateDirectory(path);
-        logger.AssertErrorLogged($"The attempt to create the directory specified by 'sonar.userHome' at '{path}' failed with error 'Directory creation failed.'. " +
-            "Provide a valid path for 'sonar.userHome' to a directory that can be created.");
+        var runtime = new TestRuntime();
+        runtime.Directory.Exists(path).Returns(false);
+        runtime.Directory.When(x => x.CreateDirectory(path)).Do(_ => throw new IOException("Directory creation failed."));
+        CheckProcessingFails(runtime, "/k:key", $"/d:sonar.userHome={path}");
+        runtime.Directory.Received(1).CreateDirectory(path);
+        runtime.Logger.Should().HaveErrors($"The attempt to create the directory specified by 'sonar.userHome' at '{path}' failed with error 'Directory creation failed.'. "
+            + "Provide a valid path for 'sonar.userHome' to a directory that can be created.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow("Test.pfx", "changeit")]
     [DataRow(@"""Test.p12""", " ")]
     [DataRow("'Test.pfx'", @"""changeit""")]
@@ -838,10 +760,10 @@ public class ArgumentProcessorTests
     [DataRow(@"""C:\Users\Some Name.pfx""", "ghws9uEo3GE%X!")]
     public void PreArgProc_TruststorePath_Password(string path, string password)
     {
-        var logger = new TestLogger();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
-        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(),
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(true);
+        var result = CheckProcessingSucceeds(
+            runtime,
             "/k:key",
             $"/d:sonar.scanner.truststorePath={path}",
             $"/d:sonar.scanner.truststorePassword={password}");
@@ -852,48 +774,44 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PreArgProc_TruststorePath()
     {
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
-        var result = CheckProcessingSucceeds(new TestLogger(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", @"/d:sonar.scanner.truststorePath=""c:\test.pfx""");
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(true);
+        var result = CheckProcessingSucceeds(runtime, "/k:key", @"/d:sonar.scanner.truststorePath=""c:\test.pfx""");
         result.TruststorePath.Should().Be(@"""c:\test.pfx""");
         result.TruststorePassword.Should().Be("changeit");
     }
 
     [TestMethod]
-    public void PreArgProc_Fail_TruststorePassword_Only()
-    {
-        var logger = CheckProcessingFails("/k:key", @"/d:sonar.scanner.truststorePassword=changeit");
-        logger.Errors.Should().Contain("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
-    }
+    public void PreArgProc_Fail_TruststorePassword_Only() =>
+        CheckProcessingFails("/k:key", @"/d:sonar.scanner.truststorePassword=changeit").Logger.Errors
+            .Should().Contain("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"/d:sonar.scanner.truststorePassword=changeit", "changeit")]
     [DataRow(@"/d:sonar.scanner.truststorePassword=changeit now", "changeit now")]
-
     // https://sonarsource.atlassian.net/browse/SCAN4NET-204
     [DataRow(@"/d:sonar.scanner.truststorePassword=""changeit now""", @"""changeit now""")] // should be 'changeit now' without double quotes
     [DataRow(@"/d:sonar.scanner.truststorePassword=""hjdska/msm^#&%!""", @"""hjdska/msm^#&%!""")] // should be 'hjdska/msm^#&%!' without double quotes
     // [DataRow(@"/d:sonar.scanner.truststorePassword=", null)] // empty password should be allowed
     public void PreArgProc_TruststorePassword_Quoted(string passwordProperty, string parsedPassword)
     {
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
-        var result = CheckProcessingSucceeds(new(), fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", @"/d:sonar.scanner.truststorePath=test.pfx", passwordProperty);
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(true);
+        var result = CheckProcessingSucceeds(runtime, "/k:key", @"/d:sonar.scanner.truststorePath=test.pfx", passwordProperty);
         result.TruststorePassword.Should().Be(parsedPassword);
     }
 
     [TestMethod]
     public void PreArgProc_TruststorePathAndPassword_DefaultValues()
     {
-        var logger = new TestLogger();
         var truststorePath = Path.Combine(".sonar", "ssl", "truststore.p12");
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
-        fileWrapper.Open(Arg.Any<string>()).Returns(new MemoryStream());
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(true);
+        runtime.File.Open(Arg.Any<string>()).Returns(new MemoryStream());
 
-        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key");
-        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
-        logger.DebugMessages.Should().ContainMatch($"Fall back on using the truststore from the default location at *{truststorePath}.");
+        var result = CheckProcessingSucceeds(runtime, "/k:key");
+        runtime.Logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        runtime.Logger.DebugMessages.Should().ContainMatch($"Fall back on using the truststore from the default location at *{truststorePath}.");
         result.TruststorePath.Should().EndWith(truststorePath);
         result.TruststorePassword.Should().Be("changeit");
     }
@@ -901,13 +819,12 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PreArgProc_TruststorePathAndPassword_DefaultValuesTruststoreNotFound()
     {
-        var logger = new TestLogger();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(false);
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(false);
 
-        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key");
-        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
-        logger.DebugMessages.Should().ContainMatch("No truststore found at the default location; proceeding without a truststore.");
+        var result = CheckProcessingSucceeds(runtime, "/k:key");
+        runtime.Logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        runtime.Logger.DebugMessages.Should().ContainMatch("No truststore found at the default location; proceeding without a truststore.");
         result.TruststorePath.Should().BeNull();
         result.TruststorePassword.Should().BeNull();
     }
@@ -915,41 +832,38 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PreArgProc_TruststorePathAndPassword_DefaultValuesTruststoreCannotOpenPasswordProvided()
     {
-        var logger = new TestLogger();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
-        fileWrapper.Open(Arg.Any<string>()).Throws(new IOException());
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(true);
+        runtime.File.Open(Arg.Any<string>()).Throws(new IOException());
 
-        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", "/d:sonar.scanner.truststorePassword=changeit");
-        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
-        logger.DebugMessages.Should().ContainMatch("No truststore found at the default location; proceeding without a truststore.");
+        var result = CheckProcessingSucceeds(runtime, "/k:key", "/d:sonar.scanner.truststorePassword=changeit");
+        runtime.Logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        runtime.Logger.DebugMessages.Should().ContainMatch("No truststore found at the default location; proceeding without a truststore.");
         result.TruststorePath.Should().BeNull();
         result.TruststorePassword.Should().BeNull();
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(typeof(ArgumentException))]
     [DataRow(typeof(ArgumentNullException))]
-    [DataRow(typeof(PathTooLongException))]
-    [DataRow(typeof(DirectoryNotFoundException))]
-    [DataRow(typeof(IOException))]
-    [DataRow(typeof(FileNotFoundException))]
-    [DataRow(typeof(UnauthorizedAccessException))]
     [DataRow(typeof(ArgumentOutOfRangeException))]
+    [DataRow(typeof(DirectoryNotFoundException))]
     [DataRow(typeof(FileNotFoundException))]
+    [DataRow(typeof(IOException))]
     [DataRow(typeof(NotSupportedException))]
+    [DataRow(typeof(PathTooLongException))]
+    [DataRow(typeof(UnauthorizedAccessException))]
     public void PreArgProc_TruststorePathAndPassword_DefaultValuesTruststoreCannotOpen(Type exceptionType)
     {
         var exception = (Exception)Activator.CreateInstance(exceptionType);
-        var logger = new TestLogger();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
-        fileWrapper.Open(Arg.Any<string>()).Throws(exception);
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(true);
+        runtime.File.Open(Arg.Any<string>()).Throws(exception);
 
-        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key");
+        var result = CheckProcessingSucceeds(runtime, "/k:key");
         result.TruststorePath.Should().BeNull();
         result.TruststorePassword.Should().BeNull();
-        logger.DebugMessages.Should()
+        runtime.Logger.DebugMessages.Should()
             .ContainMatch(
                 $"The sonar.scanner.truststorePath file '*.sonar{Separator}ssl{Separator}truststore.p12' can not be opened. Details: {exceptionType.FullName}: {exception.Message}");
     }
@@ -957,48 +871,46 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PreArgProc_TruststorePathAndPassword_DefaultValuesTruststoreNotFoundPasswordProvided()
     {
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(false);
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(false);
 
-        var logger = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", "/d:sonar.scanner.truststorePassword=\"changeit\"");
+        CheckProcessingFails(runtime, "/k:key", "/d:sonar.scanner.truststorePassword=\"changeit\"");
 
-        logger.AssertErrorLogged("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
+        runtime.Logger.Should().HaveErrors("'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\sonar")]
     [DataRow(@"""C:\sonar""")]
     [DataRow(@"'C:\sonar'")]
     public void PreArgProc_TruststorePathAndPasswordSonarUserHomeEnvSet_DefaultValues(string sonarUserHome)
     {
         var truststorePath = Path.Combine(sonarUserHome.Trim('\'', '"'), "ssl", "truststore.p12");
-        var logger = new TestLogger();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(true);
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable("SONAR_USER_HOME", sonarUserHome);
 
-        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key");
-        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
-        logger.DebugMessages.Should().Contain($"Fall back on using the truststore from the default location at {truststorePath}.");
+        var result = CheckProcessingSucceeds(runtime, "/k:key");
+        runtime.Logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        runtime.Logger.DebugMessages.Should().Contain($"Fall back on using the truststore from the default location at {truststorePath}.");
         result.TruststorePath.Should().Be(truststorePath);
         result.TruststorePassword.Should().Be("changeit");
     }
 
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(@"C:\sonar")]
     [DataRow(@"""C:\sonar""")]
     [DataRow(@"'C:\sonar'")]
     public void PreArgProc_TruststorePathAndPasswordSonarUserHomePropSet_DefaultValues(string sonarUserHome)
     {
         var truststorePath = Path.Combine(sonarUserHome.Trim('\'', '"'), "ssl", "truststore.p12");
-        var logger = new TestLogger();
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(Arg.Any<string>()).Returns(true);
+        var runtime = new TestRuntime();
+        runtime.File.Exists(Arg.Any<string>()).Returns(true);
 
-        var result = CheckProcessingSucceeds(logger, fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.userHome={sonarUserHome}");
-        logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
-        logger.DebugMessages.Should().Contain($"Fall back on using the truststore from the default location at {truststorePath}.");
+        var result = CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.userHome={sonarUserHome}");
+        runtime.Logger.DebugMessages.Should().Contain("No truststore provided; attempting to use the default location.");
+        runtime.Logger.DebugMessages.Should().Contain($"Fall back on using the truststore from the default location at {truststorePath}.");
         result.TruststorePath.Should().Be(truststorePath);
         result.TruststorePassword.Should().Be("changeit");
     }
@@ -1007,69 +919,46 @@ public class ArgumentProcessorTests
     public void PreArgProc_TruststorePath_FileNotExists()
     {
         const string fileName = "test.pfx";
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(fileName).Returns(false);
-        var log = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={fileName}");
-        log.AssertErrorLogged($"The specified sonar.scanner.truststorePath file '{fileName}' can not be found.");
+        var runtime = new TestRuntime();
+        runtime.File.Exists(fileName).Returns(false);
+        CheckProcessingFails(runtime, "/k:key", $"/d:sonar.scanner.truststorePath={fileName}");
+        runtime.Logger.Should().HaveErrors($"The specified sonar.scanner.truststorePath file '{fileName}' can not be found.");
     }
 
     [TestMethod]
     public void PreArgProc_TruststorePath_FileNotOpen()
     {
         const string fileName = "test.pfx";
-        var fileWrapper = Substitute.For<IFileWrapper>();
-        fileWrapper.Exists(fileName).Returns(true);
-        fileWrapper.Open(fileName).Throws(new IOException("File can not be opened."));
-        var log = CheckProcessingFails(fileWrapper, Substitute.For<IDirectoryWrapper>(), "/k:key", $"/d:sonar.scanner.truststorePath={fileName}");
-        log.AssertErrorLogged($"The sonar.scanner.truststorePath file '{fileName}' can not be opened. Details: System.IO.IOException: File can not be opened.");
+        var runtime = new TestRuntime();
+        runtime.File.Exists(fileName).Returns(true);
+        runtime.File.Open(fileName).Throws(new IOException("File can not be opened."));
+        CheckProcessingFails(runtime, "/k:key", $"/d:sonar.scanner.truststorePath={fileName}");
+        runtime.Logger.Should().HaveErrors($"The sonar.scanner.truststorePath file '{fileName}' can not be opened. Details: System.IO.IOException: File can not be opened.");
     }
 
-    #endregion Tests
-
-    #region Checks
-
-    private static TestLogger CheckProcessingFails(params string[] commandLineArgs) =>
-        CheckProcessingFails(Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), commandLineArgs);
-
-    private static TestLogger CheckProcessingFails(IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, params string[] commandLineArgs)
+    private static TestRuntime CheckProcessingFails(params string[] commandLineArgs)
     {
-        var logger = new TestLogger();
-
-        var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, directoryWrapper, logger);
-
-        result.Should().BeNull("Not expecting the arguments to be processed successfully");
-        logger.AssertErrorsLogged();
-        return logger;
+        var runtime = new TestRuntime();
+        CheckProcessingFails(runtime, commandLineArgs);
+        return runtime;
     }
 
-    private static void CheckProjectKeyIsInvalid(string projectKey)
+    private static void CheckProcessingFails(TestRuntime runtime, params string[] commandLineArgs)
     {
-        TestLogger logger;
+        var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, null, runtime);
 
-        var commandLineArgs = new[] { "/k:" + projectKey, "/n:valid_name", "/v:1.0", "/d:" + SonarProperties.HostUrl + "=http://validUrl" };
-
-        logger = CheckProcessingFails(commandLineArgs);
-        logger.AssertErrorsLogged(1);
-        logger.AssertSingleErrorExists("Invalid project key. Allowed characters are alphanumeric, '-', '_', '.' and ':', with at least one non-digit.");
-    }
-
-    private static void CheckProjectKeyIsValid(string projectKey)
-    {
-        var result = CheckProcessingSucceeds("/key:" + projectKey, "/name:valid name", "/version:1.0", "/d:sonar.host.url=http://valid");
-        result.ProjectKey.Should().Be(projectKey, "Unexpected project key");
+        result.Should().BeNull();
+        runtime.Logger.Should().HaveErrors();
     }
 
     private static ProcessedArgs CheckProcessingSucceeds(params string[] commandLineArgs) =>
-        CheckProcessingSucceeds(new TestLogger(), Substitute.For<IFileWrapper>(), Substitute.For<IDirectoryWrapper>(), commandLineArgs);
+        CheckProcessingSucceeds(new TestRuntime(), commandLineArgs);
 
-    private static ProcessedArgs CheckProcessingSucceeds(TestLogger logger, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, params string[] commandLineArgs)
+    private static ProcessedArgs CheckProcessingSucceeds(TestRuntime runtime, params string[] commandLineArgs)
     {
-        var result = TryProcessArgsIsolatedFromEnvironment(commandLineArgs, fileWrapper, directoryWrapper, logger);
-
-        result.Should().NotBeNull("Expecting the arguments to be processed successfully");
-
-        logger.AssertErrorsLogged(0);
-
+        var result = ArgumentProcessor.TryProcessArgs(commandLineArgs, null, runtime);
+        result.Should().NotBeNull();
+        runtime.Logger.Should().HaveNoErrors();
         return result;
     }
 
@@ -1083,30 +972,14 @@ public class ArgumentProcessorTests
     private static void AssertExpectedPropertyValue(string key, string value, ProcessedArgs actual)
     {
         // Test the GetSetting method
-        var actualValue = actual.GetSetting(key);
+        var actualValue = actual.Setting(key);
         actualValue.Should().NotBeNull("Expected dynamic settings does not exist. Key: {0}", key);
-        actualValue.Should().Be(value, "Dynamic setting does not have the expected value");
+        actualValue.Should().Be(value);
 
         // Check the public list of properties
-        var found = Property.TryGetProperty(key, actual.AllProperties(), out Property match);
+        var found = Property.TryGetProperty(key, actual.AllProperties(), out var match);
         found.Should().BeTrue("Failed to find the expected property. Key: {0}", key);
         match.Should().NotBeNull("Returned property should not be null. Key: {0}", key);
-        match.Value.Should().Be(value, "Property does not have the expected value");
+        match.Value.Should().Be(value);
     }
-
-    private static void AssertExpectedInstallTargets(bool expected, ProcessedArgs actual)
-    {
-        actual.InstallLoaderTargets.Should().Be(expected);
-    }
-
-    private static ProcessedArgs TryProcessArgsIsolatedFromEnvironment(string[] commandLineArgs, IFileWrapper fileWrapper, IDirectoryWrapper directoryWrapper, ILogger logger)
-    {
-        // Make sure the test isn't affected by the hosting environment
-        // The SonarCloud AzDO extension sets additional properties in an environment variable that
-        // would be picked up by the argument processor
-        using var scope = new EnvironmentVariableScope().SetVariable(EnvScannerPropertiesProvider.ENV_VAR_KEY, null);
-        return ArgumentProcessor.TryProcessArgs(commandLineArgs, fileWrapper, directoryWrapper, logger);
-    }
-
-    #endregion Checks
 }

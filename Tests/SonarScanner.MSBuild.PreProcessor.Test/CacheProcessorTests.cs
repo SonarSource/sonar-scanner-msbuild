@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -67,7 +67,7 @@ public class CacheProcessorTests
         var utf16 = CreateFile(root, "Utf16.cs", diacritics, Encoding.Unicode);
         var ansi = CreateFile(root, "Ansi.cs", diacritics, Encoding.GetEncoding(1250));
         File.ReadAllBytes(emptyWithBom).Should().HaveCount(3, "UTF8 encoding should generate BOM");
-        File.ReadAllBytes(emptyNoBom).Should().HaveCount(0, "ASCII encoding should not generate BOM");
+        File.ReadAllBytes(emptyNoBom).Should().BeEmpty("ASCII encoding should not generate BOM");
 
         Serialize(sut.ContentHash(emptyWithBom)).Should().Be("f1945cd6c19e56b3c1c78943ef5ec18116907a4ca1efc40a57d48ab1db7adfc5");
         Serialize(sut.ContentHash(emptyNoBom)).Should().Be("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
@@ -96,7 +96,7 @@ public class CacheProcessorTests
     {
         var workingDirectory = TestContext.ResultsDirectory;
         using var scope = new WorkingDirectoryScope(workingDirectory);
-        var localSettings = ArgumentProcessor.TryProcessArgs(["/k:key", "/d:sonar.projectBaseDir=Custom"], logger);
+        var localSettings = ArgumentProcessor.TryProcessArgs(["/k:key", "/d:sonar.projectBaseDir=Custom"], null, new TestRuntime { Logger = logger });
         var buildSettings = Substitute.For<IBuildSettings>();
         buildSettings.SourcesDirectory.Returns(@"C:\Sources\Directory");
         buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
@@ -105,27 +105,25 @@ public class CacheProcessorTests
         sut.PullRequestCacheBasePath.Should().Be(Path.Combine(workingDirectory, "Custom"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void PullRequestCacheBasePath_NoProjectBaseDir_UsesSourcesDirectory()
     {
         var buildSettings = Substitute.For<IBuildSettings>();
-        buildSettings.SourcesDirectory.Returns(@"C:\Sources\Directory");
-        buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
+        buildSettings.SourcesDirectory.Returns(Path.Combine(TestUtils.DriveRoot(), "Sources", "Directory"));
+        buildSettings.SonarScannerWorkingDirectory.Returns(TestUtils.DriveRoot(), "SonarScanner", "WorkingDirectory");
         using var sut = CreateSut(buildSettings);
 
-        sut.PullRequestCacheBasePath.Should().Be(@"C:\Sources\Directory");
+        sut.PullRequestCacheBasePath.Should().Be(Path.Combine(TestUtils.DriveRoot(), "Sources", "Directory"));
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
     [TestMethod]
     public void PullRequestCacheBasePath_NoSourcesDirectory_UsesSonarScannerWorkingDirectory()
     {
         var buildSettings = Substitute.For<IBuildSettings>();
-        buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
+        buildSettings.SonarScannerWorkingDirectory.Returns(TestUtils.DriveRoot(), "SonarScanner", "WorkingDirectory");
         using var sut = CreateSut(buildSettings);
 
-        sut.PullRequestCacheBasePath.Should().Be(@"C:\SonarScanner\WorkingDirectory");
+        sut.PullRequestCacheBasePath.Should().Be(TestUtils.DriveRoot(), "SonarScanner", "WorkingDirectory");
     }
 
     [TestMethod]
@@ -136,10 +134,11 @@ public class CacheProcessorTests
         sut.PullRequestCacheBasePath.Should().Be(null);
     }
 
-    [DataTestMethod]
-    [DataRow("", null)]
-    [DataRow(null, "")]
-    public void PullRequestCacheBasePath_EmptyDirectories_IsNull(string sourcesDirectory, string sonarScannerWorkingDirectory)
+    [TestMethod]
+    [CombinatorialData]
+    public void PullRequestCacheBasePath_EmptyDirectories_IsNull(
+        [CombinatorialValues("", null)] string sourcesDirectory,
+        [CombinatorialValues("", null)] string sonarScannerWorkingDirectory)
     {
         var buildSettings = Substitute.For<IBuildSettings>();
         buildSettings.SourcesDirectory.Returns(sourcesDirectory);
@@ -153,10 +152,9 @@ public class CacheProcessorTests
     public async Task Execute_PullRequest_NoBasePath()
     {
         using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Substitute.For<IBuildSettings>(), logger);
-
         await sut.Execute();
 
-        logger.AssertSingleInfoMessageExists("Cannot determine project base path. Incremental PR analysis is disabled.");
+        logger.Should().HaveInfoOnce("Cannot determine project base path. Incremental PR analysis is disabled.");
         sut.UnchangedFilesPath.Should().BeNull();
     }
 
@@ -166,21 +164,20 @@ public class CacheProcessorTests
         var settings = Substitute.For<IBuildSettings>();
         settings.SourcesDirectory.Returns(@"C:\Sources");
         using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
-
         await sut.Execute();
 
-        logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
+        logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
         sut.UnchangedFilesPath.Should().BeNull();
     }
 
     [TestMethod]
     public async Task Execute_PullRequest_CacheEmpty()
     {
-        var context = new CacheContext(this, "/k:key-no-cache /d:sonar.pullrequest.base=TARGET_BRANCH");
-
+        var context = new CacheContext(this);
+        context.Factory.Server.DownloadCache(null).ReturnsForAnyArgs([]);
         await context.Sut.Execute();
 
-        logger.AssertInfoLogged("Cache data is empty. A full analysis will be performed.");
+        logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
         context.Sut.UnchangedFilesPath.Should().BeNull();
     }
 
@@ -188,9 +185,9 @@ public class CacheProcessorTests
     public async Task Execute_PullRequest_CacheHappyFlow()
     {
         var context = new CacheContext(this, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
-
         await context.Sut.Execute();
 
+        logger.Should().HaveDebugs($"Using cache base path: {context.Root}");
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
     }
 
@@ -201,7 +198,7 @@ public class CacheProcessorTests
         sut.ProcessPullRequest(Array.Empty<SensorCacheEntry>());
 
         sut.UnchangedFilesPath.Should().BeNull();
-        logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 0 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 0 are unchanged.");
     }
 
     [TestMethod]
@@ -215,7 +212,7 @@ public class CacheProcessorTests
         context.ProcessPullRequest();
 
         context.Sut.UnchangedFilesPath.Should().BeNull();
-        logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 3 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 3 are unchanged.");
     }
 
     [TestMethod]
@@ -226,7 +223,7 @@ public class CacheProcessorTests
 
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths);
-        logger.AssertInfoLogged("Incremental PR analysis: 3 files out of 3 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 3 files out of 3 are unchanged.");
     }
 
     [TestMethod]
@@ -234,13 +231,13 @@ public class CacheProcessorTests
     {
         using var context = new CacheContext(this);
         CreateFile(context.Root, "AddedFile.cs", "// This file is not in cache", Encoding.UTF8);
-        File.Delete(context.Paths.First());       // This file was in cache, but doesn't exist anymore
-        File.WriteAllText(context.Paths.Last(), " // This file was modified");
+        File.Delete(context.Paths[0]);       // This file was in cache, but doesn't exist anymore
+        File.WriteAllText(context.Paths[context.Paths.Count - 1], " // This file was modified");
         context.ProcessPullRequest();
 
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths[1]);  // Only a single file was not modified
-        logger.AssertInfoLogged("Incremental PR analysis: 1 files out of 3 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 1 files out of 3 are unchanged.");
     }
 
     [TestMethod]
@@ -263,7 +260,7 @@ public class CacheProcessorTests
         sut.ProcessPullRequest(cache);
 
         sut.UnchangedFilesPath.Should().BeNull();
-        logger.AssertInfoLogged("Incremental PR analysis: 0 files out of 7 are unchanged.");
+        logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 7 are unchanged.");
     }
 
     private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
@@ -272,11 +269,11 @@ public class CacheProcessorTests
     private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key") =>
         CreateProcessedArgs(logger, commandLineArgs);
 
-    private static ProcessedArgs CreateProcessedArgs(ILogger logger, string commandLineArgs = "/k:key")
+    private static ProcessedArgs CreateProcessedArgs(TestLogger logger, string commandLineArgs = "/k:key")
     {
         // When CI is run for a PR, AzureDevOps extension sets this to the actual PR analysis of S4NET project.
         using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", null);
-        var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), logger);
+        var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), null, new TestRuntime { Logger = logger });
         processedArgs.Should().NotBeNull();
         return processedArgs;
     }
@@ -296,6 +293,7 @@ public class CacheProcessorTests
     {
         public readonly string Root;
         public readonly List<string> Paths = [];
+        public readonly MockObjectFactory Factory;
         public readonly CacheProcessor Sut;
 
         private readonly List<SensorCacheEntry> cache = [];
@@ -307,19 +305,18 @@ public class CacheProcessorTests
             // - are part of a directory structure
             // The tests should reflect that.
             (string RelativeFilePath, string Content)[] fileData =
-                {
-                    new("Project/File1.cs", "// Hello"),
-                    new("Project/Common/File2.cs", "// Hello World"),
-                    new("File3.vb", "' Hello World!")
-                };
+            [
+                new("Project/File1.cs", "// Hello"),
+                new("Project/Common/File2.cs", "// Hello World"),
+                new("File3.vb", "' Hello World!")
+            ];
             Root = TestUtils.CreateTestSpecificFolderWithSubPaths(owner.TestContext);
-            var factory = new MockObjectFactory(owner.logger);
+            var runtime = new TestRuntime { Logger = owner.logger };
+            Factory = new MockObjectFactory(runtime);
             var settings = Substitute.For<IBuildSettings>();
             settings.SourcesDirectory.Returns(Root);
             settings.SonarConfigDirectory.Returns(Root);
-            factory.Server.Cache = cache;
-            factory.Server.Data.SonarQubeVersion = SonarQubeVersion99;
-            Sut = new CacheProcessor(factory.Server, CreateProcessedArgs(factory.Logger, commandLineArgs), settings, factory.Logger);
+            Sut = new CacheProcessor(Factory.Server, CreateProcessedArgs(runtime.Logger, commandLineArgs), settings, runtime.Logger);
             foreach (var (relativeFilePath, content) in fileData)
             {
                 var fullFilePath = Path.GetFullPath(CreateFile(Root, relativeFilePath, content, Encoding.UTF8));
@@ -330,6 +327,8 @@ public class CacheProcessorTests
                               Data = ByteString.CopyFrom(Sut.ContentHash(fullFilePath))
                           });
             }
+            Factory.Server.DownloadCache(null).ReturnsForAnyArgs(cache);
+            Factory.Server.ServerVersion.Returns(SonarQubeVersion99);
             Sut.PullRequestCacheBasePath.Should().Be(Root, "Cache files must exist on expected path.");
         }
 

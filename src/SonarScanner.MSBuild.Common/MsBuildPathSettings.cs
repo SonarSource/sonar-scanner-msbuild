@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
 namespace SonarScanner.MSBuild.Common;
 
 public class MsBuildPathSettings : IMsBuildPathsSettings
@@ -35,32 +30,26 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
     /// <remarks>
     /// From MSBuild 16.0 onwards, there will no longer be a version-specific folder. Instead,
     /// all versions of MSBuild use "Current".
-    /// This means that if we ever need to provide version-specific behaviour in the ImportBefore
-    /// targets, we will need to put all the behaviours in a single file, and use the
+    /// This means that if we ever need to provide version-specific behavior in the ImportBefore
+    /// targets, we will need to put all the behaviors in a single file, and use the
     /// property $(MSBuildAssemblyVersion) to determine version of MSBuild is executing.
-    /// See the following tickest for more info:
+    /// See the following tickets for more info:
     /// * https://github.com/SonarSource/sonar-scanner-msbuild/issues/676
     /// * https://github.com/Microsoft/msbuild/issues/3778
-    /// * https://github.com/Microsoft/msbuild/issues/4149 (closed as "Won't fix")
+    /// * https://github.com/Microsoft/msbuild/issues/4149 (closed as "Won't fix").
     /// </remarks>
     private readonly string[] msBuildVersions = ["4.0", "10.0", "11.0", "12.0", "14.0", "15.0", "Current"];
 
-    private readonly IOperatingSystemProvider operatingSystemProvider;
+    private readonly IRuntime runtime;
 
-    public MsBuildPathSettings(ILogger logger) : this(new OperatingSystemProvider(FileWrapper.Instance, logger))
-    {
-    }
+    public MsBuildPathSettings(IRuntime runtime) =>
+        this.runtime = runtime;
 
-    public /* for testing purposes */ MsBuildPathSettings(IOperatingSystemProvider operatingSystemProvider)
+    public IEnumerable<string> ImportBeforePaths()
     {
-        this.operatingSystemProvider = operatingSystemProvider;
-    }
-
-    public IEnumerable<string> GetImportBeforePaths()
-    {
-        var msBuildUserExtensionsPaths = GetLocalApplicationDataPaths()
+        var msBuildUserExtensionsPaths = LocalApplicationDataPaths()
             .Distinct()
-            .SelectMany(appData => msBuildVersions.Select(msBuildVersion => GetMsBuildImportBeforePath(appData, msBuildVersion)))
+            .SelectMany(x => msBuildVersions.Select(msBuildVersion => MsBuildImportBeforePath(x, msBuildVersion)))
             .ToList();
 
         if (msBuildUserExtensionsPaths.Count == 0)
@@ -73,16 +62,34 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
         return msBuildUserExtensionsPaths;
     }
 
-    private IEnumerable<string> DotnetImportBeforePathsLinuxMac()
+    public IEnumerable<string> GlobalTargetsPaths()
     {
-        if (operatingSystemProvider.OperatingSystem() == PlatformOS.Windows)
+        var programFiles = runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
+
+        if (string.IsNullOrWhiteSpace(programFiles))
         {
-            return Enumerable.Empty<string>();
+            return [];
         }
 
-        // We don't need to create the paths here - the ITargetsInstaller will do it.
+        return
+        [
+            // Up to v15, global targets are dropped under Program Files (x86)\MSBuild.
+            // This doesn't appear to be the case for later versions.
+            Path.Combine(programFiles, "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore"),
+            Path.Combine(programFiles, "MSBuild", "15.0", "Microsoft.Common.Targets", "ImportBefore")
+        ];
+    }
+
+    private IEnumerable<string> DotnetImportBeforePathsLinuxMac()
+    {
+        if (runtime.OperatingSystem.IsWindows())
+        {
+            return [];
+        }
+
+        // We don't need to create the paths here - the TargetsInstaller will do it.
         // Also, see bug #681: Environment.SpecialFolderOption.Create fails on some versions of NET Core on Linux
-        var userProfilePath = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+        var userProfilePath = runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
 
         if (string.IsNullOrEmpty(userProfilePath))
         {
@@ -100,20 +107,20 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
         // MSBuildUserExtensionsPath --> in Local AppData
 
         // "dotnet build" and "dotnet msbuild" on non-Windows use a different path for import before
-        return new[]
-        {
+        return
+        [
             // Older versions are not supported on non-Windows OS
-            GetMsBuildImportBeforePath(userProfilePath, "15.0"),
-            GetMsBuildImportBeforePath(userProfilePath, "Current")
-        };
+            MsBuildImportBeforePath(userProfilePath, "15.0"),
+            MsBuildImportBeforePath(userProfilePath, "Current")
+        ];
     }
 
     /// <summary>
     /// Returns the local AppData path for the current user. This method will return multiple paths if running as Local System.
     /// </summary>
-    private IEnumerable<string> GetLocalApplicationDataPaths()
+    private IEnumerable<string> LocalApplicationDataPaths()
     {
-        var localAppData = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
+        var localAppData = runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify);
 
         // Return empty enumerable when Local AppData is empty. In this case an exception should be thrown at the call site.
         if (string.IsNullOrWhiteSpace(localAppData))
@@ -123,18 +130,18 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
 
         yield return localAppData;
 
-        if (operatingSystemProvider.OperatingSystem() == PlatformOS.MacOSX)
+        if (runtime.OperatingSystem.IsMacOS())
         {
             // Target files need to be placed under LocalApplicationData, to be picked up by MSBuild.
             // Due to the breaking change of GetFolderPath on MacOSX in .NET8, we need to make sure we copy the targets file
             // both to the old and to the new location, because we don't know what runtime the build will be run on, and that
             // may differ from the runtime of the scanner.
             // See https://learn.microsoft.com/en-us/dotnet/core/compatibility/core-libraries/8.0/getfolderpath-unix#macos
-            var userProfile = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
+            var userProfile = runtime.OperatingSystem.FolderPath(Environment.SpecialFolder.UserProfile, Environment.SpecialFolderOption.DoNotVerify);
             yield return Path.Combine(userProfile, ".local", "share");                // LocalApplicationData on .Net 7 and earlier
             yield return Path.Combine(userProfile, "Library", "Application Support"); // LocalApplicationData on .Net 8 and later
         }
-        else if (operatingSystemProvider.OperatingSystem() == PlatformOS.Windows)
+        else if (runtime.OperatingSystem.IsWindows())
         {
             // The code below is Windows-specific, no need to be executed on non-Windows platforms.
             // When running under Local System account on a 64bit OS, the local application data folder
@@ -149,26 +156,26 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
             // https://docs.microsoft.com/en-us/windows/desktop/WinProg64/file-system-redirector
             // We need to copy the ImportBefore.targets in both locations to ensure that both the 32bit and 64bit versions
             // of MSBuild will be able to pick them up.
-            var systemPath = operatingSystemProvider.GetFolderPath(
+            var systemPath = runtime.OperatingSystem.FolderPath(
                 Environment.SpecialFolder.System,
                 Environment.SpecialFolderOption.None); // %windir%\System32
-            if (!string.IsNullOrWhiteSpace(systemPath) &&
-                localAppData.StartsWith(systemPath, StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(systemPath)
+                && localAppData.StartsWith(systemPath, StringComparison.OrdinalIgnoreCase))
             {
                 // We are under %windir%\System32 => we are running as System Account
-                var systemX86Path = operatingSystemProvider.GetFolderPath(
+                var systemX86Path = runtime.OperatingSystem.FolderPath(
                     Environment.SpecialFolder.SystemX86,
                     Environment.SpecialFolderOption.None); // %windir%\SysWOW64 (or System32 on 32bit windows)
                 var localAppDataX86 = localAppData.ReplaceCaseInsensitive(systemPath, systemX86Path);
 
-                if (operatingSystemProvider.DirectoryExists(localAppDataX86))
+                if (runtime.Directory.Exists(localAppDataX86))
                 {
                     yield return localAppDataX86;
                 }
 
                 var sysNativePath = Path.Combine(Path.GetDirectoryName(systemPath), "Sysnative"); // %windir%\Sysnative
                 var localAppDataX64 = localAppData.ReplaceCaseInsensitive(systemPath, sysNativePath);
-                if (operatingSystemProvider.DirectoryExists(localAppDataX64))
+                if (runtime.Directory.Exists(localAppDataX64))
                 {
                     yield return localAppDataX64;
                 }
@@ -176,24 +183,6 @@ public class MsBuildPathSettings : IMsBuildPathsSettings
         }
     }
 
-    public IEnumerable<string> GetGlobalTargetsPaths()
-    {
-        var programFiles = operatingSystemProvider.GetFolderPath(Environment.SpecialFolder.ProgramFiles, Environment.SpecialFolderOption.None);
-
-        if (string.IsNullOrWhiteSpace(programFiles))
-        {
-            return Enumerable.Empty<string>();
-        }
-
-        return new[]
-        {
-            // Up to v15, global targets are dropped under Program Files (x86)\MSBuild.
-            // This doesn't appear to be the case for later versions.
-            Path.Combine(programFiles, "MSBuild", "14.0", "Microsoft.Common.Targets", "ImportBefore"),
-            Path.Combine(programFiles, "MSBuild", "15.0", "Microsoft.Common.Targets", "ImportBefore")
-        };
-    }
-
-    private static string GetMsBuildImportBeforePath(string basePath, string msBuildVersion) =>
+    private static string MsBuildImportBeforePath(string basePath, string msBuildVersion) =>
         Path.Combine(basePath, "Microsoft", "MSBuild", msBuildVersion, "Microsoft.Common.targets", "ImportBefore");
 }

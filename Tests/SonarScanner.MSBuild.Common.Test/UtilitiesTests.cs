@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TestUtilities;
-
 namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
@@ -31,120 +25,26 @@ public class UtilitiesTests
 {
     public TestContext TestContext { get; set; }
 
+    [DataRow("1.2.0.0", "1.2")]
+    [DataRow("1.0.0.0", "1.0")]
+    [DataRow("0.0.0.0", "0.0")]
+    [DataRow("1.2.3.0", "1.2.3")]
+    [DataRow("1.2.0.4", "1.2.0.4")]
+    [DataRow("1.2.3.4", "1.2.3.4")]
+    [DataRow("0.2.3.4", "0.2.3.4")]
+    [DataRow("0.0.3.4", "0.0.3.4")]
     [TestMethod]
-    public void VersionDisplayString()
-    {
-        CheckVersionString("1.2.0.0", "1.2");
-        CheckVersionString("1.0.0.0", "1.0");
-        CheckVersionString("0.0.0.0", "0.0");
-        CheckVersionString("1.2.3.0", "1.2.3");
-
-        CheckVersionString("1.2.0.4", "1.2.0.4");
-        CheckVersionString("1.2.3.4", "1.2.3.4");
-        CheckVersionString("0.2.3.4", "0.2.3.4");
-        CheckVersionString("0.0.3.4", "0.0.3.4");
-    }
-
-    private static void CheckVersionString(string version, string expectedDisplayString)
-    {
-        var actualVersion = new Version(version);
-        var actualVersionString = actualVersion.ToDisplayString();
-
-         actualVersionString.Should().Be(expectedDisplayString);
-    }
-
-    [TestMethod]
-    public void Retry_WhenTimeoutInMillisecondsIsLessThan1_ThrowsArgumentOutOfRangeException()
-    {
-        // Arrange
-        Action action = () => Utilities.Retry(0, 1, new TestLogger(), () => true);
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("timeoutInMilliseconds");
-    }
-
-    [TestMethod]
-    public void Retry_WhenPauseBetweenTriesInMillisecondsIsLessThan1_ThrowsArgumentOutOfRangeException()
-    {
-        // Arrange
-        Action action = () => Utilities.Retry(1, 0, new TestLogger(), () => true);
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("pauseBetweenTriesInMilliseconds");
-    }
-
-    [TestMethod]
-    public void Retry_WhenLoggerIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => Utilities.Retry(1, 1, null, () => true);
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-    }
-
-    [TestMethod]
-    public void Retry_WhenOperationIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => Utilities.Retry(1, 1, new TestLogger(), null);
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("op");
-    }
-
-    [TestMethod]
-    public void EnsureDirectoryExists_WhenLoggerIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => Utilities.EnsureDirectoryExists("directory", null);
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-    }
-
-    [TestMethod]
-    public void EnsureDirectoryExists_WhenDirectoryIsNull_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => Utilities.EnsureDirectoryExists(null, new TestLogger());
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
-    }
-
-    [TestMethod]
-    public void EnsureDirectoryExists_WhenDirectoryIsEmpty_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => Utilities.EnsureDirectoryExists("", new TestLogger());
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
-    }
-
-    [TestMethod]
-    public void EnsureDirectoryExists_WhenDirectoryIsWhitespaces_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => Utilities.EnsureDirectoryExists("   ", new TestLogger());
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
-    }
+    public void VersionDisplayString(string version, string expectedDisplayString) =>
+        new Version(version).ToDisplayString().Should().Be(expectedDisplayString);
 
     [TestMethod]
     public void EnsureDirectoryExists_WhenDirectoryMissing_IsCreated()
     {
-        // Arrange
-        var baseDir =TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var newDir = Path.Combine(baseDir, "newDir");
+        var newDir = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "newDir");
         var logger = new TestLogger();
 
-        // Act
         Utilities.EnsureDirectoryExists(newDir, logger);
 
-        // Assert
         Directory.Exists(newDir).Should().BeTrue();
         logger.Warnings.Should().BeEmpty();
         logger.Errors.Should().BeEmpty();
@@ -153,63 +53,24 @@ public class UtilitiesTests
     [TestMethod]
     public void EnsureDirectoryExists_WhenDirectoryExists_IsNoOp()
     {
-        // Arrange
         var baseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
 
-        // Act
         Utilities.EnsureDirectoryExists(baseDir, logger);
 
-        // Assert
         Directory.Exists(baseDir).Should().BeTrue();
         logger.Warnings.Should().BeEmpty();
         logger.Errors.Should().BeEmpty();
     }
 
     [TestMethod]
-    public void EnsureEmptyDirectory_WhenDirectoryIsInvalid_ThrowsArgumentNullException()
-    {
-        // 1. Null
-        Action action = () => Utilities.EnsureEmptyDirectory(null, new TestLogger());
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
-
-        // 2. Empty
-        action = () => Utilities.EnsureDirectoryExists("", new TestLogger());
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
-
-        // 3. Whitespace
-        action = () => Utilities.EnsureDirectoryExists("   ", new TestLogger());
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
-    }
-
-    [TestMethod]
-    public void EnsureEmptyDirectory_WhenLoggerIsInvalid_ThrowsArgumentNullException()
-    {
-        // 1. Null
-        Action action = () => Utilities.EnsureEmptyDirectory("c:\\foo", null);
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-
-        // 2. Empty
-        action = () => Utilities.EnsureDirectoryExists("c:\\foo", null);
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-
-        // 3. Whitespace
-        action = () => Utilities.EnsureDirectoryExists("c:\\foo", null);
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-    }
-
-    [TestMethod]
     public void EnsureEmptyDirectory_WhenDirectoryMissing_IsCreated()
     {
-        // Arrange
-        var baseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var newDir = Path.Combine(baseDir, "newDir");
+        var newDir = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "newDir");
         var logger = new TestLogger();
 
-        // Act
-        Utilities.EnsureDirectoryExists(newDir, logger);
+        Utilities.EnsureEmptyDirectory(newDir, logger);
 
-        // Assert
         Directory.Exists(newDir).Should().BeTrue();
         logger.Warnings.Should().BeEmpty();
         logger.Errors.Should().BeEmpty();
@@ -218,17 +79,13 @@ public class UtilitiesTests
     [TestMethod]
     public void EnsureEmptyDirectory_WhenDirectoryExistsAndHasFiles_FilesAreDeleted()
     {
-        // Arrange
-        var baseDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        File.WriteAllText(Path.Combine(baseDir, "file1.txt"), "xxx");
+        var baseDir = CreateDirectoryWithFile("baseDir1");
         File.WriteAllText(Path.Combine(baseDir, "file2.txt"), "xxx");
         Directory.CreateDirectory(Path.Combine(baseDir, "subdir1"));
         var logger = new TestLogger();
 
-        // Act
         Utilities.EnsureEmptyDirectory(baseDir, logger);
 
-        // Assert
         Directory.Exists(baseDir).Should().BeTrue();
         Directory.GetFiles(baseDir).Should().BeEmpty();
         logger.Warnings.Should().BeEmpty();
@@ -236,126 +93,143 @@ public class UtilitiesTests
     }
 
     [TestMethod]
-    public void TryEnsureEmptyDirectory_WhenLoggerIsInvalid_ThrowsArgumentNullException()
-    {
-        // Arrange
-        Action action = () => Utilities.TryEnsureEmptyDirectories(null, "c:\\foo");
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-    }
-
-    [TestMethod]
     public void TryEnsureEmptyDirectories_WhenDirectoriesExistsAndHaveFiles_FilesAreDeleted()
     {
-        // Arrange
-        // Directory with file
-        var baseDir1 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir1");
-        File.WriteAllText(Path.Combine(baseDir1, "file1.txt"), "xxx");
-
-        // Directory with file and sub-directory
-        var baseDir2 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir2");
-        File.WriteAllText(Path.Combine(baseDir2, "file2.txt"), "xxx");
-        Directory.CreateDirectory(Path.Combine(baseDir2, "subdir1"));
-
-        // Empty directory
-        var baseDir3 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir3");
-
+        var dirWithFile = CreateDirectoryWithFile("baseDir1");
+        var dirWithFileAndSubDir = CreateDirectoryWithFile("baseDir2");
+        Directory.CreateDirectory(Path.Combine(dirWithFileAndSubDir, "subdir1"));
+        var emptyDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir3");
         var logger = new TestLogger();
 
-        // Act
-        var result = Utilities.TryEnsureEmptyDirectories(logger, baseDir1, baseDir2, baseDir3);
+        var result = Utilities.TryEnsureEmptyDirectories(logger, dirWithFile, dirWithFileAndSubDir, emptyDir);
 
-        // Assert
         result.Should().BeTrue();
-
-        Directory.Exists(baseDir1).Should().BeTrue();
-        Directory.GetFiles(baseDir1).Should().BeEmpty();
-
-        Directory.Exists(baseDir2).Should().BeTrue();
-        Directory.GetFiles(baseDir2).Should().BeEmpty();
-
-        Directory.Exists(baseDir3).Should().BeTrue();
-        Directory.GetFiles(baseDir3).Should().BeEmpty();
-
+        Directory.Exists(dirWithFile).Should().BeTrue();
+        Directory.GetFiles(dirWithFile).Should().BeEmpty();
+        Directory.Exists(dirWithFileAndSubDir).Should().BeTrue();
+        Directory.GetFiles(dirWithFileAndSubDir).Should().BeEmpty();
+        Directory.Exists(emptyDir).Should().BeTrue();
+        Directory.GetFiles(emptyDir).Should().BeEmpty();
         logger.Warnings.Should().BeEmpty();
         logger.Errors.Should().BeEmpty();
     }
 
-    [TestCategory(TestCategories.NoUnixNeedsReview)]
+    // Windows enforces file locks at the OS level resulting in IOException.
+    // Unix does not enforce file locks at the OS level, so no exception is thrown.
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     [TestMethod]
     public void TryEnsureEmptyDirectories_WhenIOException_ReturnsFalse()
     {
-        // Arrange
-        // Directory with file
-        var baseDir1 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir1");
-        var filePath = Path.Combine(baseDir1, "file1.txt");
-        File.WriteAllText(filePath, "xxx");
-
-        // Directory with file
-        var baseDir2 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "baseDir2");
-        File.WriteAllText(Path.Combine(baseDir2, "file2.txt"), "xxx");
-
+        var dirWithFile = CreateDirectoryWithFile("baseDir1");
+        var dirWithFile2 = CreateDirectoryWithFile("baseDir2");
         var logger = new TestLogger();
-
         bool result;
-        using (File.OpenRead(filePath)) // lock the file to cause an IO error
+
+        using (File.OpenRead(Path.Combine(dirWithFile, "file1.txt"))) // lock the file to cause an IO error
         {
-            // Act
-            result = Utilities.TryEnsureEmptyDirectories(logger, baseDir1, baseDir2);
+            result = Utilities.TryEnsureEmptyDirectories(logger, dirWithFile, dirWithFile2);
         }
 
-        // Assert
         result.Should().BeFalse();
-
-        Directory.Exists(baseDir1).Should().BeTrue();
-        Directory.GetFiles(baseDir1).Should().HaveCount(1);
-
-        Directory.Exists(baseDir2).Should().BeTrue();
-        Directory.GetFiles(baseDir2).Should().HaveCount(1);
-
+        Directory.Exists(dirWithFile).Should().BeTrue();
+        Directory.GetFiles(dirWithFile).Should().ContainSingle();
+        Directory.Exists(dirWithFile2).Should().BeTrue();
+        Directory.GetFiles(dirWithFile2).Should().ContainSingle();
         logger.Warnings.Should().BeEmpty();
-        logger.Errors.Should().HaveCount(1);
-        logger.AssertSingleErrorExists(baseDir1); // expecting the directory name to be in the message
+        logger.Errors.Should().ContainSingle();
+        logger.Should().HaveErrorOnce($"""
+            Failed to create an empty directory '{dirWithFile}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
+              Detailed error message: The process cannot access the file 'file1.txt' because it is being used by another process.
+            """);
+    }
+
+    [DataRow(0, 1, "timeoutInMilliseconds")]
+    [DataRow(1, 0, "pauseBetweenTriesInMilliseconds")]
+    [TestMethod]
+    public void Retry_ThrowsArgumentOutOfRangeException(int timeout, int pause, string expected)
+    {
+        Action action = () => Utilities.Retry(timeout, pause, new TestLogger(), () => true);
+        action.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be(expected);
     }
 
     [TestMethod]
-    public void LogAssemblyVersion_WhenLoggerIsNull_ThrowsArgumentNullException()
+    public void Retry_NullLogger_ThrowsArgumentNullException()
     {
-        // Arrange
-        Action action = () => Utilities.LogAssemblyVersion(null, "foo");
-
-        // Act & Assert
+        Action action = () => Utilities.Retry(1, 1,  null, () => true);
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
-    public void LogAssemblyVersion_WhenDescriptionIsNull_ThrowsArgumentNullException()
+    public void Retry_NullOp_ThrowsArgumentNullException()
     {
-        // Arrange
-        Action action = () => Utilities.LogAssemblyVersion(new TestLogger(), null);
+        Action action = () => Utilities.Retry(1, 1, new TestLogger(), null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("op");
+    }
 
-        // Act & Assert
+    [TestMethod]
+    public void EnsureDirectoryExists_NullLogger_ThrowsArgumentNullException()
+    {
+        Action action = () => Utilities.EnsureDirectoryExists("directory", null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("   ")]
+    [TestMethod]
+    public void EnsureDirectoryExists_InvalidDirectory_ThrowsArgumentNullException(string directory)
+    {
+        Action action = () => Utilities.EnsureDirectoryExists(directory, new TestLogger());
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
+    }
+
+    [TestMethod]
+    public void EnsureEmptyDirectory_NullLogger_ThrowsArgumentNullException()
+    {
+        Action action = () => Utilities.EnsureEmptyDirectory("directory", null);
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("   ")]
+    [TestMethod]
+    public void EnsureEmptyDirectory_InvalidDirectory_ThrowsArgumentNullException(string directory)
+    {
+        Action action = () => Utilities.EnsureEmptyDirectory(directory, new TestLogger());
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("directory");
+    }
+
+    [TestMethod]
+    public void LogAssemblyVersion_NullLogger_ThrowsArgumentNullException()
+    {
+        Action action = () => Utilities.LogAssemblyVersion(null, "description");
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("  ")]
+    [TestMethod]
+    public void LogAssemblyVersion_InvaliDescription_ThrowsArgumentNullException(string description)
+    {
+        Action action = () => Utilities.LogAssemblyVersion(new TestLogger(), description);
         action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
     }
 
     [TestMethod]
-    public void LogAssemblyVersion_WhenDescriptionIsEmpty_ThrowsArgumentNullException()
+    public void TryEnsureEmptyDirectory_WhenLoggerIsInvalid_ThrowsArgumentNullException()
     {
-        // Arrange
-        Action action = () => Utilities.LogAssemblyVersion(new TestLogger(), "");
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
+        Action action = () => Utilities.TryEnsureEmptyDirectories(null, "foo");
+        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
-    [TestMethod]
-    public void LogAssemblyVersion_WhenDescriptionIsWhitespaces_ThrowsArgumentNullException()
+    private string CreateDirectoryWithFile(string directoryName)
     {
-        // Arrange
-        Action action = () => Utilities.LogAssemblyVersion(new TestLogger(), "   ");
-
-        // Act & Assert
-        action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("description");
+        var dir = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), directoryName);
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "file1.txt"), "xxx");
+        return dir;
     }
 }
