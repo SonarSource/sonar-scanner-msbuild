@@ -371,6 +371,22 @@
     </ItemGroup>
 
     <ItemGroup>
+      <SonarProjectTelemetry Condition="$(TargetFrameworkMoniker) != ''" Include="dotnetenterprise.s4net.build.target_framework_moniker" >
+        <Value>$(TargetFrameworkMoniker)</Value>
+      </SonarProjectTelemetry>
+      <SonarProjectTelemetry Condition="$(UsingMicrosoftNETSdk) != ''" Include="dotnetenterprise.s4net.build.using_microsoft_net_sdk"> 
+        <Value>$(UsingMicrosoftNETSdk)</Value> <!-- new SDK style projects https://stackoverflow.com/a/53530363 -->
+      </SonarProjectTelemetry>
+      <SonarProjectTelemetry Condition="$(Deterministic) != ''" Include="dotnetenterprise.s4net.build.deterministic">
+        <Value>$(Deterministic)</Value>
+      </SonarProjectTelemetry>
+      <SonarProjectTelemetry Condition="$(NuGetProjectStyle) != ''" Include="dotnetenterprise.s4net.build.nuget_project_style">
+        <Value>$(NuGetProjectStyle)</Value>
+      </SonarProjectTelemetry>
+    </ItemGroup>
+    <WriteSonarTelemetry Condition="$(SonarProjectTelemetryFilePath)!=''" Filename="$(SonarProjectTelemetryFilePath)" Telemetry="@(SonarProjectTelemetry)" />
+
+    <ItemGroup>
       <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(SonarReportFilePath) != '' ">
         <!-- Join the paths with |  -->
         <!-- This delimiter needs to be the same as ScannerEngineInputGenerator.RoslynReportPathsDelimiter -->
@@ -408,22 +424,6 @@
        Platform="$(Platform)"
        TargetFramework="$(TargetFramework)" />
     
-    <ItemGroup>
-      <SonarProjectTelemetry Condition="$(TargetFrameworkMoniker) != ''" Include="dotnetenterprise.s4net.build.target_framework_moniker" >
-        <Value>$(TargetFrameworkMoniker)</Value>
-      </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="$(UsingMicrosoftNETSdk) != ''" Include="dotnetenterprise.s4net.build.using_microsoft_net_sdk"> 
-        <Value>$(UsingMicrosoftNETSdk)</Value> <!-- new SDK style projects https://stackoverflow.com/a/53530363 -->
-      </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="$(Deterministic) != ''" Include="dotnetenterprise.s4net.build.deterministic">
-        <Value>$(Deterministic)</Value>
-      </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="$(NuGetProjectStyle) != ''" Include="dotnetenterprise.s4net.build.nuget_project_style">
-        <Value>$(NuGetProjectStyle)</Value>
-      </SonarProjectTelemetry>
-    </ItemGroup>
-    <WriteSonarTelemetry Condition="$(SonarProjectTelemetryFilePath)!=''" Filename="$(SonarProjectTelemetryFilePath)" Telemetry="@(SonarProjectTelemetry)" />
-
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Project processed successfully" />
   </Target>
 
