@@ -30,11 +30,11 @@ public static class TelemetryUtils
         }
     }
 
-    public static void AddCIEnvironmentTelemetry(ILogger logger)
+    public static void AddCIEnvironmentTelemetry(ITelemetry telemetry)
     {
         if (CIPlatformDetector.Detect() is var ciPlatform && ciPlatform is not CIPlatform.None)
         {
-            logger.AddTelemetryMessage("dotnetenterprise.s4net.ci_platform", ciPlatform.ToString());
+            telemetry["dotnetenterprise.s4net.ci_platform"] = ciPlatform.ToString();
         }
     }
 

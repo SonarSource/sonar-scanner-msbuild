@@ -18,12 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common.Test.Telemetry;
+namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class CIPlatformDetectorTests
 {
-    [DataTestMethod]
+    [TestMethod]
     [DataRow(null, null, CIPlatform.None)]
     [DataRow("GITHUB_ACTIONS", "true", CIPlatform.GitHubActions)]
     [DataRow("TF_BUILD", "true", CIPlatform.AzureDevops)]

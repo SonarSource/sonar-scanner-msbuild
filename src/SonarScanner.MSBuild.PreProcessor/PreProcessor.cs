@@ -128,7 +128,7 @@ public class PreProcessor
             runtime);
 
         runtime.AnalysisWarnings.Write(buildSettings.SonarOutputDirectory); // Create the analysis warnings file to be picked up the plugin
-        TelemetryUtils.AddCIEnvironmentTelemetry(logger);
+        TelemetryUtils.AddCIEnvironmentTelemetry(runtime.Telemetry);
         runtime.Telemetry.Write(buildSettings.SonarOutputDirectory);
         return true;
     }
