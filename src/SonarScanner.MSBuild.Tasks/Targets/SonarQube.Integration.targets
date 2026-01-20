@@ -204,6 +204,13 @@
     </PropertyGroup>
     <!-- Before deciding to exclude or tag as test such a project, make sure it is not a legitimate project that happens to be called something.fakes
          In this case, we require from the user to explicitely state whether the project is to be analyzed/considered a test project -->
+
+    <!-- We want to know if users are setting SonarQubeExclude, so we get its value before we set it ourselves.-->
+    <ItemGroup>
+      <SonarProjectTelemetry Condition ="$(SonarQubeExclude) != ''" Include="dotnetenterprise.cnt.s4net.build.exclusion_csproj">
+        <Value>$(SonarQubeExclude)</Value>
+      </SonarProjectTelemetry>
+    </ItemGroup>
     <PropertyGroup Condition="$(IsFakesProject) == 'true' and $(SonarQubeExclude) == ''">
       <SonarQubeExclude>true</SonarQubeExclude>
     </PropertyGroup>
