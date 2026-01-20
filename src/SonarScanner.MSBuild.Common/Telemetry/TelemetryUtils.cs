@@ -30,14 +30,6 @@ public static class TelemetryUtils
         }
     }
 
-    public static void AddCIEnvironmentTelemetry(ITelemetry telemetry)
-    {
-        if (CIPlatformDetector.Detect() is var ciPlatform && ciPlatform is not CIPlatform.None)
-        {
-            telemetry["dotnetenterprise.s4net.ci_platform"] = ciPlatform.ToString();
-        }
-    }
-
     public static void AddTelemetry(ITelemetry telemetry, HostInfo serverInfo)
     {
         if (serverInfo is null)
@@ -58,6 +50,14 @@ public static class TelemetryUtils
 
         telemetry[TelemetryKeys.ServerInfoProduct] = serverInfo.IsSonarCloud ? TelemetryValues.Product.Cloud : TelemetryValues.Product.Server;
         telemetry[TelemetryKeys.ServerInfoServerUrl] = serverUrl;
+    }
+
+    public static void AddCIEnvironmentTelemetry(ITelemetry telemetry)
+    {
+        if (CIPlatformDetector.Detect() is { } ciPlatform && ciPlatform is not CIPlatform.None)
+        {
+            telemetry["dotnetenterprise.s4net.ci_platform"] = ciPlatform.ToString();
+        }
     }
 
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
