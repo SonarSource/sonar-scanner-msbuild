@@ -32,7 +32,7 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldNotChange_Valid()
     {
-        var runtime = new TestRuntime();;
+        var runtime = new TestRuntime();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -77,7 +77,7 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldNotChange_Unfixable()
     {
-        var runtime = new TestRuntime();;
+        var runtime = new TestRuntime();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string sarifInput = """
             {
@@ -127,7 +127,7 @@ public class RoslynV1SarifFixerTests
     ///
     /// Example invalid:
     /// "fullMessage": "message
-    /// \test\ ["_"]",
+    /// \test\ ["_"]".
     /// </summary>
     [TestMethod]
     public void SarifFixer_ShouldNotChange_MultipleLineValues()
@@ -170,7 +170,7 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldChange_EscapeBackslashes()
     {
-        var runtime = new TestRuntime();;
+        var runtime = new TestRuntime();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -236,7 +236,7 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldChange_EscapeQuotes()
     {
-        var runtime = new TestRuntime();;
+        var runtime = new TestRuntime();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -294,7 +294,7 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldChange_EscapeCharsInAllAffectedFields()
     {
-        var runtime = new TestRuntime();;
+        var runtime = new TestRuntime();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -374,7 +374,7 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_VBNet()
     {
-        var runtime = new TestRuntime();;
+        var runtime = new TestRuntime();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
@@ -443,7 +443,7 @@ public class RoslynV1SarifFixerTests
     [TestMethod]
     public void SarifFixer_ShouldNotFixInvalid()
     {
-        var runtime = new TestRuntime();;
+        var runtime = new TestRuntime();
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         const string inputSarif = """
             {
