@@ -1,6 +1,6 @@
 ﻿/*
  * SonarScanner for .NET
- * Copyright (C) 2016-2025 SonarSource SA
+ * Copyright (C) 2016-2025 SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -30,7 +30,13 @@ public enum CIPlatform
     CircleCI,
     Jenkins,
     BitbucketPipelines,
-    AppVeyor
+    AppVeyor,
+    TeamCity,
+    Bamboo,
+    CodeBuild,
+    CloudBuild,
+    Drone,
+    Buildkite
 }
 
 public static class CIPlatformDetector
@@ -52,7 +58,19 @@ public static class CIPlatformDetector
         // https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
         { CIPlatform.BitbucketPipelines, () => EnvironmentVariablePresent("BITBUCKET_BUILD_NUMBER") },
         // https://www.appveyor.com/docs/environment-variables/
-        { CIPlatform.AppVeyor,           () => EnvironmentVariablePresent("APPVEYOR") }
+        { CIPlatform.AppVeyor,           () => EnvironmentVariablePresent("APPVEYOR") },
+        // https://www.jetbrains.com/help/teamcity/predefined-build-parameters.html
+        { CIPlatform.TeamCity,           () => EnvironmentVariablePresent("TEAMCITY_VERSION") },
+        // https://confluence.atlassian.com/bamboo/bamboo-variables-289277087.html
+        { CIPlatform.Bamboo,             () => EnvironmentVariablePresent("bamboo_buildKey") },
+        // https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
+        { CIPlatform.CodeBuild,          () => EnvironmentVariablePresent("CODEBUILD_BUILD_ID") },
+        // https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values
+        { CIPlatform.CloudBuild,         () => EnvironmentVariablePresent("BUILD_ID") && EnvironmentVariablePresent("PROJECT_ID") },
+        // https://docs.drone.io/pipeline/environment/reference/
+        { CIPlatform.Drone,              () => EnvironmentVariablePresent("DRONE") },
+        // https://buildkite.com/docs/pipelines/environment-variables
+        { CIPlatform.Buildkite,          () => EnvironmentVariablePresent("BUILDKITE") }
     };
 
     public static CIPlatform Detect() =>

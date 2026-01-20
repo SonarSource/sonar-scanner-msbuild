@@ -34,6 +34,11 @@ public class CIPlatformDetectorTests
     [DataRow("JENKINS_HOME", "/var/jenkins_home", CIPlatform.Jenkins)]
     [DataRow("BITBUCKET_BUILD_NUMBER", "123", CIPlatform.BitbucketPipelines)]
     [DataRow("APPVEYOR", "True", CIPlatform.AppVeyor)]
+    [DataRow("TEAMCITY_VERSION", "2023.11", CIPlatform.TeamCity)]
+    [DataRow("bamboo_buildKey", "PROJECT-PLAN-123", CIPlatform.Bamboo)]
+    [DataRow("CODEBUILD_BUILD_ID", "project:build-id", CIPlatform.CodeBuild)]
+    [DataRow("DRONE", "true", CIPlatform.Drone)]
+    [DataRow("BUILDKITE", "true", CIPlatform.Buildkite)]
     public void Detect_ReturnsExpectedPlatform_WhenEnvVarSet(string variable, string value, CIPlatform expected)
     {
         using var scope = new EnvironmentVariableScope();
@@ -42,5 +47,14 @@ public class CIPlatformDetectorTests
             scope.SetVariable(variable, value);
         }
         CIPlatformDetector.Detect().Should().Be(expected);
+    }
+
+    [TestMethod]
+    public void Detect_ReturnsCloudBuild_WhenBothBuildIdAndProjectIdSet()
+    {
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable("BUILD_ID", "build-123");
+        scope.SetVariable("PROJECT_ID", "my-project");
+        CIPlatformDetector.Detect().Should().Be(CIPlatform.CloudBuild);
     }
 }
