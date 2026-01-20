@@ -20,9 +20,9 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.util.Command;
-import com.sonar.orchestrator.util.CommandExecutor;
 import com.sonar.orchestrator.util.StreamConsumer;
+import com.sonar.orchestrator.util.command.Command;
+import com.sonar.orchestrator.util.command.CommandExecutor;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;

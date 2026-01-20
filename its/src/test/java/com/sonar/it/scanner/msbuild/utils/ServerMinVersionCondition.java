@@ -20,7 +20,7 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
-import com.sonar.orchestrator.version.Version;
+import com.sonar.orchestrator.util.Version;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;

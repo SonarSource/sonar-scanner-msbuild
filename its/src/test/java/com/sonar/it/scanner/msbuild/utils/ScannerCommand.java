@@ -22,11 +22,11 @@ package com.sonar.it.scanner.msbuild.utils;
 import com.sonar.it.scanner.msbuild.sonarcloud.CloudUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.build.SynchronousAnalyzer;
-import com.sonar.orchestrator.util.Command;
-import com.sonar.orchestrator.util.CommandExecutor;
+import com.sonar.orchestrator.server.SynchronousAnalyzer;
 import com.sonar.orchestrator.util.StreamConsumer;
 
+import com.sonar.orchestrator.util.command.Command;
+import com.sonar.orchestrator.util.command.CommandExecutor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
