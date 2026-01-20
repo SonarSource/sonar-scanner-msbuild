@@ -423,7 +423,7 @@
        Configuration="$(Configuration)"
        Platform="$(Platform)"
        TargetFramework="$(TargetFramework)" />
-    
+
     <Message Importance="high" Text="Sonar: ($(MSBuildProjectFile)) Project processed successfully" />
   </Target>
 
