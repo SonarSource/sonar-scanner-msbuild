@@ -25,6 +25,18 @@ public class RoslynV1SarifFixerTests
 {
     public TestContext TestContext { get; set; }
 
+    [TestMethod]
+    public void SarifFixer_ConstructorThrows() =>
+        FluentActions.Invoking(() => new RoslynV1SarifFixer(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+
+    [TestMethod]
+    public void SarifFixer_FileDoesNotExist_LogsMessage()
+    {
+        var runtime = new TestRuntime();
+        new RoslynV1SarifFixer(runtime).LoadAndFixFile("Some/NonexistantPath", RoslynV1SarifFixer.CSharpLanguage).Should().BeNull();
+        runtime.Logger.InfoMessages.Should().ContainSingle().Which.Should().Contain("No Code Analysis ErrorLog file found");
+    }
+
     /// <summary>
     /// There should be no change to input if it is already valid, as attempting to fix valid SARIF may cause over-escaping.
     /// This should be the case even if the output came from VS 2015 RTM.
