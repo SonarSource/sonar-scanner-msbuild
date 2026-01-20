@@ -39,7 +39,6 @@ public class RoslynV1SarifFixer
     /// </summary>
     public virtual string LoadAndFixFile(string sarifFilePath, string language)
     {
-        runtime.Telemetry[TelemetryKeys.EndstepIsRoslynV1Report] = TelemetryValues.EndstepIsRoslynV1Report.False;
         if (!File.Exists(sarifFilePath))
         {
             // file cannot be found -> inherently unfixable

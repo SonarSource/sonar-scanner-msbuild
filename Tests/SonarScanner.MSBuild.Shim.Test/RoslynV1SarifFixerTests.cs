@@ -71,8 +71,7 @@ public class RoslynV1SarifFixerTests
         // Already valid -> no change to file, same file path returned
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().Be(testSarifPath);
-        runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>(TelemetryKeys.EndstepIsRoslynV1Report, TelemetryValues.EndstepIsRoslynV1Report.False));
+        runtime.Telemetry.Messages.Should().BeEmpty();
     }
 
     [TestMethod]
@@ -475,8 +474,7 @@ public class RoslynV1SarifFixerTests
         var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
 
         returnedSarifPath.Should().BeNull();
-        runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>(TelemetryKeys.EndstepIsRoslynV1Report, TelemetryValues.EndstepIsRoslynV1Report.False));
+        runtime.Telemetry.Messages.Should().BeEmpty();
     }
 
     private static void AssertFileUnchanged(string filePath, DateTime originalWriteTime) =>
