@@ -52,7 +52,7 @@ public class RoslynV1SarifFixer
         {
             if (IsSarifFromRoslynV1(inputSarifFileString, language))
             {
-                runtime.Telemetry[TelemetryKeys.EndStepValidRoslynV1Sarif] = EndStepFixedRoslynV1Sarif.True;
+                runtime.Telemetry[TelemetryKeys.EndStepValidRoslynV1Sarif] = EndStepValidRoslynV1Sarif.True;
             }
             // valid input -> no fix required
             runtime.Logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
@@ -79,7 +79,7 @@ public class RoslynV1SarifFixer
         else
         {
             runtime.Logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
-            runtime.Telemetry[TelemetryKeys.EndStepFailedRoslynV1Sarif] = EndStepFixedRoslynV1Sarif.True;
+            runtime.Telemetry[TelemetryKeys.EndStepFailedRoslynV1Sarif] = EndStepFailedRoslynV1Sarif.True;
             return null;
         }
     }
