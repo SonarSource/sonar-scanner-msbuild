@@ -107,6 +107,31 @@ public class TelemetryUtilsTests
             .And.HaveMessage(TelemetryKeys.ServerInfoRegion, telemetryRegionValue);
     }
 
+    [TestMethod]
+    public void AddCIEnvironmentTelemetry_NoCIEnvironment_DoesNotAddTelemetry()
+    {
+        using var scope = new EnvironmentVariableScope();
+        var telemetry = new TestTelemetry();
+        TelemetryUtils.AddCIEnvironmentTelemetry(telemetry);
+        telemetry.Messages.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    [DataRow("GITHUB_ACTIONS", "true", "GitHubActions")]
+    [DataRow("TF_BUILD", "true", "AzureDevops")]
+    [DataRow("GITLAB_CI", "true", "GitLabCI")]
+    [DataRow("JENKINS_URL", "http://jenkins/", "Jenkins")]
+    [DataRow("TEAMCITY_VERSION", "2023.11", "TeamCity")]
+    [DataRow("BUILDKITE", "true", "Buildkite")]
+    public void AddCIEnvironmentTelemetry_CIEnvironmentDetected_AddsTelemetry(string envVar, string value, string expectedPlatform)
+    {
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(envVar, value);
+        var telemetry = new TestTelemetry();
+        TelemetryUtils.AddCIEnvironmentTelemetry(telemetry);
+        telemetry.Should().HaveMessage("dotnetenterprise.s4net.ci_platform", expectedPlatform);
+    }
+
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
     {
         var telemetry = new TestTelemetry();

@@ -52,6 +52,14 @@ public static class TelemetryUtils
         telemetry[TelemetryKeys.ServerInfoServerUrl] = serverUrl;
     }
 
+    public static void AddCIEnvironmentTelemetry(ITelemetry telemetry)
+    {
+        if (CIPlatformDetector.Detect() is { } ciPlatform and not CIPlatform.None)
+        {
+            telemetry["dotnetenterprise.s4net.ci_platform"] = ciPlatform.ToString();
+        }
+    }
+
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {
         var property = argument.Key;
