@@ -108,7 +108,7 @@ public class RoslynV1SarifFixer
     /// <summary>
     /// Returns true if the input is parseable JSON. No checks are made for conformation to the SARIF specification.
     /// </summary>
-    private bool IsValidJson(string input)
+    private static bool IsValidJson(string input)
     {
         try
         {
