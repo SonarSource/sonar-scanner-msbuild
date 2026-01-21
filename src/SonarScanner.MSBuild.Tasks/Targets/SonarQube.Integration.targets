@@ -138,6 +138,7 @@
 
   <Target Name="WriteSonarTelemetry" Condition ="$(SonarTelemetryFilePath) != ''" BeforeTargets="Build">
     <ItemGroup>
+      <!-- https://learn.microsoft.com/en-us/visualstudio/msbuild/common-msbuild-project-properties?view=vs-2022-->
       <SonarTelemetry Condition="$(VisualStudioVersion) != ''" Include="dotnetenterprise.s4net.build.visual_studio_version">
         <Value>$(VisualStudioVersion)</Value>
       </SonarTelemetry>
@@ -369,7 +370,21 @@
       <SonarReportFilePath Condition= "$(SonarErrorLogExists) == 'true'" Include="$(SonarErrorLog)" />
     </ItemGroup>
 
-    <WriteSonarTelemetry Filename="$(SonarProjectTelemetryFilePath)" Key="dotnetenterprise.s4net.build.target_framework_moniker" Value="$(TargetFrameworkMoniker)" />
+    <ItemGroup>
+      <SonarProjectTelemetry Condition="$(TargetFrameworkMoniker) != ''" Include="dotnetenterprise.s4net.build.target_framework_moniker" >
+        <Value>$(TargetFrameworkMoniker)</Value>
+      </SonarProjectTelemetry>
+      <SonarProjectTelemetry Condition="$(UsingMicrosoftNETSdk) != ''" Include="dotnetenterprise.cnt.s4net.build.using_microsoft_net_sdk">
+        <Value>$(UsingMicrosoftNETSdk)</Value> <!-- new SDK style projects https://stackoverflow.com/a/53530363 -->
+      </SonarProjectTelemetry>
+      <SonarProjectTelemetry Condition="$(Deterministic) != ''" Include="dotnetenterprise.cnt.s4net.build.deterministic">
+        <Value>$(Deterministic)</Value>
+      </SonarProjectTelemetry>
+      <SonarProjectTelemetry Condition="$(NuGetProjectStyle) != ''" Include="dotnetenterprise.cnt.s4net.build.nuget_project_style">
+        <Value>$(NuGetProjectStyle)</Value>
+      </SonarProjectTelemetry>
+    </ItemGroup>
+    <WriteSonarTelemetry Condition="$(SonarProjectTelemetryFilePath)!=''" Filename="$(SonarProjectTelemetryFilePath)" Telemetry="@(SonarProjectTelemetry)" />
 
     <ItemGroup>
       <SonarQubeSetting Include="sonar.$(SQLanguage).roslyn.reportFilePaths" Condition=" @(SonarReportFilePath) != '' ">
