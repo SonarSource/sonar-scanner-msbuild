@@ -20,6 +20,7 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using static SonarScanner.MSBuild.Common.TelemetryValues;
 
 namespace SonarScanner.MSBuild.Shim;
 
@@ -43,13 +44,16 @@ public class RoslynV1SarifFixer
         {
             // file cannot be found -> inherently unfixable
             runtime.Logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
-            runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + ".NoFile");
             return null;
         }
 
         var inputSarifFileString = File.ReadAllText(sarifFilePath);
         if (IsValidJson(inputSarifFileString))
         {
+            if (IsSarifFromRoslynV1(inputSarifFileString, language))
+            {
+                runtime.Telemetry[TelemetryKeys.EndStepValidRoslynV1Sarif] = EndStepFixedRoslynV1Sarif.True;
+            }
             // valid input -> no fix required
             runtime.Logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
             return sarifFilePath;
@@ -60,7 +64,6 @@ public class RoslynV1SarifFixer
         {
             // invalid input NOT from Roslyn V1 -> unfixable
             runtime.Logger.LogWarning(Resources.WARN_SarifFixFail);
-            runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + ".InvalidNotV1");
             return null;
         }
 
@@ -70,12 +73,13 @@ public class RoslynV1SarifFixer
             var newSarifFilePath = Path.Combine(Path.GetDirectoryName(sarifFilePath), Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath));
             File.WriteAllText(newSarifFilePath, changedSarif);
             runtime.Logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
+            runtime.Telemetry[TelemetryKeys.EndStepFixedRoslynV1Sarif] = EndStepFixedRoslynV1Sarif.True;
             return newSarifFilePath;
         }
         else
         {
             runtime.Logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
-            runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + ".InvalidV1");
+            runtime.Telemetry[TelemetryKeys.EndStepFixedRoslynV1Sarif] = EndStepFixedRoslynV1Sarif.Failed;
             return null;
         }
     }
@@ -108,13 +112,7 @@ public class RoslynV1SarifFixer
     {
         try
         {
-            var json = JObject.Parse(input);
-            if (json["toolInfo"] is { } toolInfo
-                && toolInfo["productVersion"] is { } productVersion
-                && productVersion.Value<string>() is { } roslynVersion)
-            {
-                runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + "." + roslynVersion);
-            }
+            JObject.Parse(input);
             return true;
         }
         catch (JsonReaderException) // we expect invalid JSON

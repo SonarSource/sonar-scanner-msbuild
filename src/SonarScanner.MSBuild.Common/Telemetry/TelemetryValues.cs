@@ -67,6 +67,17 @@ public static class TelemetryValues
         public static readonly string NotCalled = nameof(NotCalled);
     }
 
+    public static class EndStepValidRoslynV1Sarif
+    {
+        public static readonly string True = nameof(True);
+    }
+
+    public static class EndStepFixedRoslynV1Sarif
+    {
+        public static readonly string True = nameof(True);
+        public static readonly string Failed = nameof(Failed);
+    }
+
     public static class Product
     {
         public static readonly string Server = "SQ_Server";
