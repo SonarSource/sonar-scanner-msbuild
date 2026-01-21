@@ -83,7 +83,8 @@ public class RoslynV1SarifFixerTests
         // Already valid -> no change to file, same file path returned
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().Be(testSarifPath);
-        runtime.Telemetry.Messages.Should().BeEmpty();
+        runtime.Telemetry.Messages.Should().ContainEquivalentOf(
+            new KeyValuePair<string, int>("dotnetenterprise.s4net.endstep.RoslynSarifVersion.0.1", 1));
     }
 
     [TestMethod]
@@ -131,7 +132,7 @@ public class RoslynV1SarifFixerTests
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().BeNull();
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>(TelemetryKeys.EndstepIsRoslynV1Report, TelemetryValues.EndstepIsRoslynV1Report.True));
+            new KeyValuePair<string, int>("dotnetenterprise.s4net.endstep.RoslynSarifVersion.InvalidV1", 1));
     }
 
     /// <summary>
@@ -176,7 +177,7 @@ public class RoslynV1SarifFixerTests
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().BeNull();
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>(TelemetryKeys.EndstepIsRoslynV1Report, TelemetryValues.EndstepIsRoslynV1Report.True));
+            new KeyValuePair<string, int>("dotnetenterprise.s4net.endstep.RoslynSarifVersion.InvalidV1", 1));
     }
 
     [TestMethod]
@@ -242,7 +243,7 @@ public class RoslynV1SarifFixerTests
         returnedSarifPath.Should().NotBeNull();
         File.ReadAllText(returnedSarifPath).Should().Be(expectedSarif.ToEnvironmentLineEndings());
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>(TelemetryKeys.EndstepIsRoslynV1Report, TelemetryValues.EndstepIsRoslynV1Report.True));
+            new KeyValuePair<string, int>("dotnetenterprise.s4net.endstep.RoslynSarifVersion.0.1", 1));
     }
 
     [TestMethod]
@@ -300,7 +301,7 @@ public class RoslynV1SarifFixerTests
         returnedSarifPath.Should().NotBeNull();
         File.ReadAllText(returnedSarifPath).Should().Be(expectedSarif.ToEnvironmentLineEndings());
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>(TelemetryKeys.EndstepIsRoslynV1Report, TelemetryValues.EndstepIsRoslynV1Report.True));
+            new KeyValuePair<string, int>("dotnetenterprise.s4net.endstep.RoslynSarifVersion.0.1", 1));
     }
 
     [TestMethod]
@@ -380,7 +381,7 @@ public class RoslynV1SarifFixerTests
         returnedSarifPath.Should().NotBeNull();
         File.ReadAllText(returnedSarifPath).Should().Be(expectedSarif.ToEnvironmentLineEndings());
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>(TelemetryKeys.EndstepIsRoslynV1Report, TelemetryValues.EndstepIsRoslynV1Report.True));
+            new KeyValuePair<string, int>("dotnetenterprise.s4net.endstep.RoslynSarifVersion.0.1", 1));
     }
 
     [TestMethod]
@@ -446,7 +447,7 @@ public class RoslynV1SarifFixerTests
         returnedSarifPath.Should().NotBeNull();
         File.ReadAllText(returnedSarifPath).Should().Be(expectedSarif.ToEnvironmentLineEndings());
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>(TelemetryKeys.EndstepIsRoslynV1Report, TelemetryValues.EndstepIsRoslynV1Report.True));
+            new KeyValuePair<string, int>("dotnetenterprise.s4net.endstep.RoslynSarifVersion.0.1", 1));
     }
 
     /// <summary>
@@ -486,7 +487,8 @@ public class RoslynV1SarifFixerTests
         var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
 
         returnedSarifPath.Should().BeNull();
-        runtime.Telemetry.Messages.Should().BeEmpty();
+        runtime.Telemetry.Messages.Should().ContainEquivalentOf(
+            new KeyValuePair<string, int>("dotnetenterprise.s4net.endstep.RoslynSarifVersion.InvalidNotV1", 1));
     }
 
     private static void AssertFileUnchanged(string filePath, DateTime originalWriteTime) =>

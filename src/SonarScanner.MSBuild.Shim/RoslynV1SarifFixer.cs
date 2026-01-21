@@ -20,6 +20,7 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using static SonarScanner.MSBuild.Common.TelemetryValues;
 
 namespace SonarScanner.MSBuild.Shim;
 
@@ -43,6 +44,7 @@ public class RoslynV1SarifFixer
         {
             // file cannot be found -> inherently unfixable
             runtime.Logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
+            runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + ".NoFile");
             return null;
         }
 
@@ -59,10 +61,9 @@ public class RoslynV1SarifFixer
         {
             // invalid input NOT from Roslyn V1 -> unfixable
             runtime.Logger.LogWarning(Resources.WARN_SarifFixFail);
+            runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + ".InvalidNotV1");
             return null;
         }
-
-        runtime.Telemetry[TelemetryKeys.EndstepIsRoslynV1Report] = TelemetryValues.EndstepIsRoslynV1Report.True;
 
         var changedSarif = ApplyFixToSarif(inputSarifFileString);
         if (IsValidJson(changedSarif))
@@ -75,6 +76,7 @@ public class RoslynV1SarifFixer
         else
         {
             runtime.Logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
+            runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + ".InvalidV1");
             return null;
         }
     }
@@ -103,11 +105,15 @@ public class RoslynV1SarifFixer
     /// <summary>
     /// Returns true if the input is parseable JSON. No checks are made for conformation to the SARIF specification.
     /// </summary>
-    private static bool IsValidJson(string input)
+    private bool IsValidJson(string input)
     {
         try
         {
-            JObject.Parse(input);
+            var json = JObject.Parse(input);
+            if (json.Value<string>("version") is { } version)
+            {
+                runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + "." + version);
+            }
             return true;
         }
         catch (JsonReaderException) // we expect invalid JSON
