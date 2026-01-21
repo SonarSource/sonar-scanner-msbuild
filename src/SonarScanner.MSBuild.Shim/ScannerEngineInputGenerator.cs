@@ -346,7 +346,6 @@ public class ScannerEngineInputGenerator
     {
         var globalSourceEncoding = GetSourceEncoding(analysisProperties);
         Action logIfGlobalEncodingIsIgnored = () => runtime.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
-        runtime.Telemetry[TelemetryKeys.EndstepIsRoslynV1Report] = TelemetryValues.EndstepIsRoslynV1Report.False;
         foreach (var project in projects)
         {
             TryFixSarifReport(project);

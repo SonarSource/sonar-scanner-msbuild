@@ -70,7 +70,6 @@ public static class TelemetryValues
     public static class EndstepIsRoslynV1Report
     {
         public static readonly string True = nameof(True);
-        public static readonly string False = nameof(False);
     }
 
     public static class Product
