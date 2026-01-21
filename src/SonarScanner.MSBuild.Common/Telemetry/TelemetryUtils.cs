@@ -54,7 +54,7 @@ public static class TelemetryUtils
 
     public static void AddCIEnvironmentTelemetry(ITelemetry telemetry)
     {
-        if (CIPlatformDetector.Detect() is { } ciPlatform && ciPlatform is not CIPlatform.None)
+        if (CIPlatformDetector.Detect() is { } ciPlatform and not CIPlatform.None)
         {
             telemetry["dotnetenterprise.s4net.ci_platform"] = ciPlatform.ToString();
         }
