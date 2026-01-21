@@ -43,7 +43,7 @@ public static class CIPlatformDetector
 {
     private static readonly Dictionary<CIPlatform, Func<bool>> PlatformDetectors = new()
     {
-        // https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
+        // https://docs.github.com/en/actions/reference/workflows-and-actions/variables#default-environment-variables
         { CIPlatform.GitHubActions,      () => EnvironmentVariablePresent("GITHUB_ACTIONS") },
         // https://learn.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml#system-variables-devops-services
         { CIPlatform.AzureDevops,        () => EnvironmentVariablePresent("TF_BUILD") },
