@@ -27,8 +27,6 @@ public interface ITelemetry
     /// </summary>
     object this[string key] { get; set; }
 
-    void IncrementAggregatedTelemetry(string key);
-
     /// <summary>
     /// Writes the collection of telemetry messages to the specified output folder.
     /// </summary>

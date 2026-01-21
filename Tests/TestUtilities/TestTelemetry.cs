@@ -33,9 +33,6 @@ public class TestTelemetry : ITelemetry
         set => messages[key] = value;
     }
 
-    public void IncrementAggregatedTelemetry(string key) =>
-        messages[key] = (int)(messages.TryGetValue(key, out var val) ? val : 0) + 1;
-
     public void Write(string outputFolder) =>
         OutputPath = outputFolder;
 }
