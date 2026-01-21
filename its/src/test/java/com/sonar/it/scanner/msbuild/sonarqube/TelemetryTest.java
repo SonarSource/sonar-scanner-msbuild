@@ -36,6 +36,7 @@ import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 class TelemetryTest {
 
   @Test
+  @MSBuildMinVersion(16)
   @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CS() {
     var result = runAnalysis("Telemetry");
@@ -64,6 +65,7 @@ class TelemetryTest {
   }
 
   @Test
+  @MSBuildMinVersion(16)
   @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_VB() {
     var result = runAnalysis("TelemetryVB");
@@ -92,6 +94,7 @@ class TelemetryTest {
   }
 
   @Test
+  @MSBuildMinVersion(16)
   @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CSVB_Mixed() {
     var result = runAnalysis("TelemetryCSVBMixed");
