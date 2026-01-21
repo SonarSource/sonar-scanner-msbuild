@@ -116,5 +116,27 @@ public class TelemetryTest
             .Should()
             .ThrowExactly<InvalidOperationException>(because: "adding or modifying keys is forbidden after Write() to make sure, we do not try to add telemetry that will not be forwarded.")
             .WithMessage("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to the Java telemetry plugin.");
+        telemetry.Invoking(x => x.IncrementAggregatedTelemetry("key3"))
+            .Should()
+            .ThrowExactly<InvalidOperationException>(because: "adding or modifying keys is forbidden after Write() to make sure, we do not try to add telemetry that will not be forwarded.")
+            .WithMessage("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to the Java telemetry plugin.");
+    }
+
+    [TestMethod]
+    public void Telemetry_IncrementAggregatedTelemetry_Increments()
+    {
+        var telemetry = new Telemetry(fileWrapper, new TestLogger());
+        telemetry.IncrementAggregatedTelemetry("key1");
+        telemetry.IncrementAggregatedTelemetry("key2");
+        telemetry.IncrementAggregatedTelemetry("key2");
+
+        const string outputDir = "outputDir";
+        telemetry.Write(outputDir);
+
+        var contents = new StringBuilder()
+            .AppendLine("""{"key1":1}""")
+            .AppendLine("""{"key2":2}""")
+            .ToString();
+        fileWrapper.Received(1).AppendAllText(Path.Combine(outputDir, FileConstants.TelemetryFileName), contents);
     }
 }
