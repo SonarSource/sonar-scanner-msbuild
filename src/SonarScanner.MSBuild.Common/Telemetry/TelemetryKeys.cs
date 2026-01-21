@@ -39,4 +39,5 @@ public static class TelemetryKeys
     public const string EndstepLegacyTFS            = "dotnetenterprise.s4net.endstep.legacyTFS";
     public const string EndStepValidRoslynV1Sarif   = "dotnetenterprise.s4net.endstep.ValidRoslynV1Sarif";
     public const string EndStepFixedRoslynV1Sarif   = "dotnetenterprise.s4net.endstep.FixedRoslynV1Sarif";
+    public const string EndStepFailedRoslynV1Sarif  = "dotnetenterprise.s4net.endstep.FailedRoslynV1Sarif";
 }

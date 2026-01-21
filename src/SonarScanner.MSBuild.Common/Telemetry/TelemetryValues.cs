@@ -75,7 +75,11 @@ public static class TelemetryValues
     public static class EndStepFixedRoslynV1Sarif
     {
         public static readonly string True = nameof(True);
-        public static readonly string Failed = nameof(Failed);
+    }
+
+    public static class EndStepFailedRoslynV1Sarif
+    {
+        public static readonly string True = nameof(True);
     }
 
     public static class Product

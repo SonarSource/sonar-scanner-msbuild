@@ -79,7 +79,7 @@ public class RoslynV1SarifFixer
         else
         {
             runtime.Logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
-            runtime.Telemetry[TelemetryKeys.EndStepFixedRoslynV1Sarif] = EndStepFixedRoslynV1Sarif.Failed;
+            runtime.Telemetry[TelemetryKeys.EndStepFailedRoslynV1Sarif] = EndStepFixedRoslynV1Sarif.True;
             return null;
         }
     }

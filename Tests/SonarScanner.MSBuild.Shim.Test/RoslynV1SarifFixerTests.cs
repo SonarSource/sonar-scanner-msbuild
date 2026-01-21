@@ -132,7 +132,7 @@ public class RoslynV1SarifFixerTests
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().BeNull();
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.FixedRoslynV1Sarif", "Failed"));
+            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.FailedRoslynV1Sarif", "True"));
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public class RoslynV1SarifFixerTests
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().BeNull();
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.FixedRoslynV1Sarif", "Failed"));
+            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.FailedRoslynV1Sarif", "True"));
     }
 
     [TestMethod]
