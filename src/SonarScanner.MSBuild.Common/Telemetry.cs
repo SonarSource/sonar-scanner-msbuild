@@ -41,6 +41,15 @@ public class Telemetry : ITelemetry
                 : value;
     }
 
+    public void IncrementAggregatedTelemetry(string key)
+    {
+        if (hasWritten)
+        {
+            throw new InvalidOperationException("The Telemetry was written already. Any additions after the write are invalid, because they are not forwarded to the Java telemetry plugin.");
+        }
+        messages[key] = (int)(messages.TryGetValue(key, out var val) ? val : 0) + 1;
+    }
+
     public Telemetry(IFileWrapper fileWrapper, ILogger logger)
     {
         this.fileWrapper = fileWrapper;
