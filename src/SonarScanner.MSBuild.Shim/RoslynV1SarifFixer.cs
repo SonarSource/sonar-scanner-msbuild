@@ -20,7 +20,6 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static SonarScanner.MSBuild.Common.TelemetryValues;
 
 namespace SonarScanner.MSBuild.Shim;
 
@@ -110,9 +109,11 @@ public class RoslynV1SarifFixer
         try
         {
             var json = JObject.Parse(input);
-            if (json.Value<string>("version") is { } version)
+            if (json["toolInfo"] is { } toolInfo
+                && toolInfo["productVersion"] is { } productVersion
+                && productVersion.Value<string>() is { } roslynVersion)
             {
-                runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + "." + version);
+                runtime.Telemetry.IncrementAggregatedTelemetry(TelemetryKeys.EndStepRoslynSarifVersion + "." + roslynVersion);
             }
             return true;
         }
