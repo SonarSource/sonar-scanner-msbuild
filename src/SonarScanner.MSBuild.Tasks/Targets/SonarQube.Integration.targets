@@ -592,7 +592,7 @@
 
       <!-- The Roslyn analyzers output messages with different warning levels. This is tied to the diagnostic severity and currently
       is translated as follows - error: 0, warning: 1, info: 4. To avoid issues being missed override the warning level by setting it to max tolerance.-->
-      <WarningLevel>4</WarningLevel>
+      <WarningLevel Condition="'$(WarningLevel)' == '' OR '$(WarningLevel)' &lt; '4'">4</WarningLevel>
     </PropertyGroup>
 
     <CallTarget Targets="SetRoslynCodeAnalysisProperties" Condition="$(SonarQubeExclude) != 'true'" />
