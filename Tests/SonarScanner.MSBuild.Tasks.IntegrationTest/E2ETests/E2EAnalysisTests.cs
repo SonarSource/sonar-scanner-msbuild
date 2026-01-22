@@ -768,10 +768,10 @@ public class E2EAnalysisTests
 
         var solutionTargetTelemetryFile = Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json");
         File.Exists(solutionTargetTelemetryFile).Should().BeTrue();
-        File.ReadAllLines(solutionTargetTelemetryFile).Should().SatisfyRespectively(
-            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.visual_studio_version":"""),
-            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.msbuild_version":"""),
-            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.netcore_sdk_version":"""));
+        var telemetryLines = File.ReadAllLines(solutionTargetTelemetryFile);
+        telemetryLines.Should().Contain(x => x.StartsWith("""{"dotnetenterprise.s4net.build.visual_studio_version":"""));
+        telemetryLines.Should().Contain(x => x.StartsWith("""{"dotnetenterprise.s4net.build.msbuild_version":"""));
+        telemetryLines.Should().Contain(x => x.StartsWith("""{"dotnetenterprise.s4net.build.netcore_sdk_version":"""));
 
         var projectTelemetryFile = Path.Combine(rootOutputFolder, "0", "Telemetry.json");
         File.Exists(projectTelemetryFile).Should().BeTrue();
