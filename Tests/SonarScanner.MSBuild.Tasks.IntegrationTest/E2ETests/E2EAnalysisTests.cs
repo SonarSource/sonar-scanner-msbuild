@@ -354,13 +354,12 @@ public class E2EAnalysisTests
         actualStructure.AssertConfigFileDoesNotExist(ExpectedProjectConfigFileName);
         actualStructure.AssertExpectedFileList("code1.txt");
         actualStructure.ProjectInfo.AnalysisSettings.Should().NotContain(x => ScannerEngineInputGenerator.IsReportFilePaths(x.Id));
-        var projectTelemetryFile = Path.Combine(rootOutputFolder, "0", "Telemetry.json");
-        File.Exists(projectTelemetryFile).Should().BeTrue();
-        File.ReadAllLines(projectTelemetryFile).Should().SatisfyRespectively(
-            x => x.Should().Be("""{"dotnetenterprise.cnt.s4net.build.exclusion_csproj":"true"}"""),
-            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.target_framework_moniker":"""),
-            x => x.Should().Be("""{"dotnetenterprise.cnt.s4net.build.using_microsoft_net_sdk":"true"}"""),
-            x => x.Should().Be("""{"dotnetenterprise.cnt.s4net.build.deterministic":"true"}"""));
+        var solutionTargetTelemetryFile = Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json");
+        File.Exists(solutionTargetTelemetryFile).Should().BeTrue();
+        File.ReadAllLines(solutionTargetTelemetryFile).Should().SatisfyRespectively(
+            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.visual_studio_version":"""),
+            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.msbuild_version":"""),
+            x => x.Should().Be("""{"dotnetenterprise.cnt.s4net.build.exclusion_csproj":"true"}"""));
     }
 
     [TestMethod]
@@ -570,9 +569,11 @@ public class E2EAnalysisTests
         projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
         projectInfo.ProjectType.Should().Be(ProjectType.Test, "Project should be marked as a test project");
         projectInfo.AnalysisResultFiles.Should().BeEmpty("Unexpected number of analysis results created");
-        var projectTelemetryFile = Path.Combine(rootOutputFolder, "0", "Telemetry.json");
-        File.Exists(projectTelemetryFile).Should().BeTrue();
-        File.ReadAllLines(projectTelemetryFile).Should().SatisfyRespectively(
+        var solutionTargetTelemetryFile = Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json");
+        File.Exists(solutionTargetTelemetryFile).Should().BeTrue();
+        File.ReadAllLines(solutionTargetTelemetryFile).Should().SatisfyRespectively(
+            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.visual_studio_version":"""),
+            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.msbuild_version":"""),
             x => x.Should().Be("""{"dotnetenterprise.cnt.s4net.build.exclusion_csproj":"true"}"""));
     }
 
