@@ -37,22 +37,14 @@
 
 package com.sonar.it.scanner.msbuild.utils;
 
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.client.Authentication;
-import org.eclipse.jetty.ee9.security.UserAuthentication;
-import org.eclipse.jetty.ee9.security.authentication.DeferredAuthentication;
 import org.eclipse.jetty.http.HttpHeader;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.security.AuthenticationState;
 import org.eclipse.jetty.security.Authenticator;
-import org.eclipse.jetty.security.ServerAuthException;
 import org.eclipse.jetty.security.UserIdentity;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.security.authentication.LoginAuthenticator;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import org.eclipse.jetty.server.Request;
@@ -96,15 +88,21 @@ public class ProxyAuthenticator extends LoginAuthenticator {
           if (i > 0) {
             String username = credentials.substring(0, i);
             String password = credentials.substring(i + 1);
-
-            return AuthenticationState.login(username, password, req, res);
+            UserIdentity user = login(username, password, req, res);
+            if (user != null) {
+              return new UserAuthenticationSucceeded(getAuthenticationType(), user);
+            }
           }
         }
       }
     }
 
-    res.getHeaders().add(HttpHeader.PROXY_AUTHENTICATE.asString(), "basic realm=\"" + _loginService.getName() + '"');
-    res.setStatus(HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED);
+    if (res.isCommitted()) {
+      return null;
+    }
+
+    res.getHeaders().put(HttpHeader.PROXY_AUTHENTICATE.asString(), "Basic realm=\"" + _loginService.getName() + "\"");
+    Response.writeError(req, res, callback, HttpStatus.PROXY_AUTHENTICATION_REQUIRED_407);
     return AuthenticationState.CHALLENGE;
   }
 }
