@@ -58,6 +58,9 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      // Telemetry/Telemetry/Telemetry.csproj has TreatWarningsAsErrors=true
+      x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.override_treat_warnings_as_errors.true=1"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.override_warnings_as_errors.true=3"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.nuget_project_style.packagereference=3"),
@@ -88,6 +91,7 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.override_warnings_as_errors.true=3"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.nuget_project_style.packagereference=3"),
@@ -122,12 +126,14 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.nuget_project_style.packagereference=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.using_microsoft_net_sdk.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.deterministic.true=1"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.override_warnings_as_errors.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=1"),
       x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=2"),
       x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.nuget_project_style.packagereference=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.using_microsoft_net_sdk.true=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.deterministic.true=2"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.override_warnings_as_errors.true=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=2"));
   }
 
@@ -159,6 +165,7 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.override_warnings_as_errors.true=4"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v8_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v10_0=2"),
