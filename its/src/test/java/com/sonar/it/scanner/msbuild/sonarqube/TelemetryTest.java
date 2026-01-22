@@ -163,6 +163,7 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.override_warnings_as_errors.true=4"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v8_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v10_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.cnt.s4net.build.nuget_project_style.packagereference=4"),
