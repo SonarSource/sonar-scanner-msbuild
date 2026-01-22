@@ -67,12 +67,12 @@ public static class TelemetryValues
         public static readonly string NotCalled = nameof(NotCalled);
     }
 
-    public static class EndStepRoslynV1SarifValid
+    public static class EndStepSarifVersionValid
     {
         public static readonly string True = nameof(True);
     }
 
-    public static class EndStepRoslynV1SarifFixed
+    public static class EndStepSarifVersionFixed
     {
         public static readonly string True = nameof(True);
     }
