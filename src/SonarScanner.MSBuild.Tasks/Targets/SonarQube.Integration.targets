@@ -152,6 +152,18 @@
     </ItemGroup>
 
     <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" CreateNew="true" Telemetry="@(SonarTelemetry)"/>
+
+    <ItemGroup>
+      <!-- We want to know if users are setting SonarQubeExclude, so we get its value before we set it ourselves.-->
+      <SonarExclusionTelemetry Condition ="$(SonarQubeExclude) != ''" Include="dotnetenterprise.cnt.s4net.build.exclusion_csproj">
+        <Value>$(SonarQubeExclude)</Value>
+      </SonarExclusionTelemetry>
+    </ItemGroup>
+    <!--We want to append any exclusions to the existing solution level telemetry file as:
+        - the project level telemetry file will not be picked up as it is excluded.
+        - Only the first write to '$(SonarTelemetryFilePath)'is respected due to the 'CreateNew' parameter -->
+    <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" Telemetry="@(SonarExclusionTelemetry)"/>
+
   </Target>
 
   <Target Name="SkippingSonarQubeAnalysis" BeforeTargets="Build"
@@ -204,13 +216,6 @@
     </PropertyGroup>
     <!-- Before deciding to exclude or tag as test such a project, make sure it is not a legitimate project that happens to be called something.fakes
          In this case, we require from the user to explicitely state whether the project is to be analyzed/considered a test project -->
-
-    <!-- We want to know if users are setting SonarQubeExclude, so we get its value before we set it ourselves.-->
-    <ItemGroup>
-      <SonarProjectTelemetry Condition ="$(SonarQubeExclude) != ''" Include="dotnetenterprise.cnt.s4net.build.exclusion_csproj">
-        <Value>$(SonarQubeExclude)</Value>
-      </SonarProjectTelemetry>
-    </ItemGroup>
     <PropertyGroup Condition="$(IsFakesProject) == 'true' and $(SonarQubeExclude) == ''">
       <SonarQubeExclude>true</SonarQubeExclude>
     </PropertyGroup>
