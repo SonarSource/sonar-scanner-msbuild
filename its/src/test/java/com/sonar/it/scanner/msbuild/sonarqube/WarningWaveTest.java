@@ -30,12 +30,12 @@ import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
-class WarningWave7Test {
+class WarningWaveTest {
 
   @Test
   @MSBuildMinVersion(16)
-  void warningWave7_CS8981_isRaised() {
-    var context = AnalysisContext.forServer("WarningWave7Test");
+  void warningWave_CS8981_isRaised() {
+    var context = AnalysisContext.forServer("WarningWaveTest");
     var result = context.runAnalysis();
 
     assertThat(result.isSuccess()).isTrue();
