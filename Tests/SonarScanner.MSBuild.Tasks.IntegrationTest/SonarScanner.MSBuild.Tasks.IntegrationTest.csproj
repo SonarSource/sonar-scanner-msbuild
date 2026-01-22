@@ -3,6 +3,12 @@
     <TargetFrameworks>net48;net9.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Exclude TestResults folder from compilation to prevent leftover test artifacts from being included -->
+    <Compile Remove="TestResults\**\*" />
+    <EmbeddedResource Remove="TestResults\**\*" />
+    <None Remove="TestResults\**\*" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Build.Framework" Version="17.11.4" />
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="3.14.2075" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.71" />
