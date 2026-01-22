@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.tuple;
 class WarningWaveTest {
 
   @Test
-  @MSBuildMinVersion(16)
+  @MSBuildMinVersion(17)
   void warningWave_CS8981_isRaised() {
     var context = AnalysisContext.forServer("WarningWaveTest");
     var result = context.runAnalysis();
