@@ -77,11 +77,6 @@ public static class TelemetryValues
         public static readonly string True = nameof(True);
     }
 
-    public static class EndStepRoslynV1SarifFailed
-    {
-        public static readonly string True = nameof(True);
-    }
-
     public static class Product
     {
         public static readonly string Server = "SQ_Server";

@@ -29,7 +29,7 @@ public class RoslynV1SarifFixer
     public const string CSharpLanguage = "cs";
     public const string VBNetLanguage = "vbnet";
     private const string FixedFileSuffix = "_fixed";
-
+    private const string Version = "version";
     private readonly IRuntime runtime;
 
     public RoslynV1SarifFixer(IRuntime runtime) =>
@@ -50,7 +50,7 @@ public class RoslynV1SarifFixer
         var inputSarifFileString = File.ReadAllText(sarifFilePath);
         if (ValidJson(inputSarifFileString) is { } validJson)
         {
-            if (validJson.ContainsKey("version") && validJson.Value<string>("version") is { } version)
+            if (validJson.ContainsKey(Version) && validJson.Value<string>(Version) is { } version)
             {
                 runtime.Telemetry[string.Format(TelemetryKeys.EndStepSarifVersionValid, version)] = EndStepSarifVersionValid.True;
             }
@@ -73,9 +73,9 @@ public class RoslynV1SarifFixer
             var newSarifFilePath = Path.Combine(Path.GetDirectoryName(sarifFilePath), Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath));
             File.WriteAllText(newSarifFilePath, changedSarif);
             runtime.Logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
-            if (fixedJson.ContainsKey("version") && fixedJson.Value<string>("version") is { } version)
+            if (fixedJson.ContainsKey(Version) && fixedJson.Value<string>(Version) is { } version)
             {
-                runtime.Telemetry[string.Format(TelemetryKeys.EndStepSarifVersionFixed, version)] = EndStepSarifVersionValid.True;
+                runtime.Telemetry[string.Format(TelemetryKeys.EndStepSarifVersionFixed, version)] = EndStepSarifVersionFixed.True;
             }
             return newSarifFilePath;
         }
