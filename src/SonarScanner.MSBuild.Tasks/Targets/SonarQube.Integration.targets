@@ -146,6 +146,9 @@
       <SonarTelemetry Condition="$(MSBuildVersion) != ''" Include="dotnetenterprise.s4net.build.msbuild_version">
         <Value>$(MSBuildVersion)</Value>
       </SonarTelemetry>
+      <SonarTelemetry Condition="$(NETCoreSdkVersion) != ''" Include="dotnetenterprise.s4net.build.netcore_sdk_version">
+        <Value>$(NETCoreSdkVersion)</Value>
+      </SonarTelemetry>
     </ItemGroup>
 
     <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" CreateNew="true" Telemetry="@(SonarTelemetry)"/>
