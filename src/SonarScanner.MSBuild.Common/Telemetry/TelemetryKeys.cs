@@ -37,7 +37,9 @@ public static class TelemetryKeys
     public const string ServerInfoVersion           = "dotnetenterprise.s4net.serverInfo.version";
     // EndStep
     public const string EndstepLegacyTFS            = "dotnetenterprise.s4net.endstep.legacyTFS";
-    public const string EndStepValidRoslynV1Sarif   = "dotnetenterprise.s4net.endstep.ValidRoslynV1Sarif";
-    public const string EndStepFixedRoslynV1Sarif   = "dotnetenterprise.s4net.endstep.FixedRoslynV1Sarif";
-    public const string EndStepFailedRoslynV1Sarif  = "dotnetenterprise.s4net.endstep.FailedRoslynV1Sarif";
+    // We only care if any of these occur, we look at multiple csproj and each one has the possibility of setting any of these to true
+    // This is essentially a form of aggregation, but uses significantly less keys
+    public const string EndStepRoslynV1SarifValid   = "dotnetenterprise.s4net.endstep.RoslynV1Sarif.Valid";
+    public const string EndStepRoslynV1SarifFixed   = "dotnetenterprise.s4net.endstep.RoslynV1Sarif.Fixed";
+    public const string EndStepRoslynV1SarifFailed  = "dotnetenterprise.s4net.endstep.RoslynV1Sarif.Failed";
 }

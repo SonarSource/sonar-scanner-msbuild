@@ -52,7 +52,7 @@ public class RoslynV1SarifFixer
         {
             if (IsSarifFromRoslynV1(inputSarifFileString, language))
             {
-                runtime.Telemetry[TelemetryKeys.EndStepValidRoslynV1Sarif] = EndStepValidRoslynV1Sarif.True;
+                runtime.Telemetry[TelemetryKeys.EndStepRoslynV1SarifValid] = EndStepRoslynV1SarifValid.True;
             }
             // valid input -> no fix required
             runtime.Logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
@@ -73,13 +73,13 @@ public class RoslynV1SarifFixer
             var newSarifFilePath = Path.Combine(Path.GetDirectoryName(sarifFilePath), Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath));
             File.WriteAllText(newSarifFilePath, changedSarif);
             runtime.Logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
-            runtime.Telemetry[TelemetryKeys.EndStepFixedRoslynV1Sarif] = EndStepFixedRoslynV1Sarif.True;
+            runtime.Telemetry[TelemetryKeys.EndStepRoslynV1SarifFixed] = EndStepRoslynV1SarifFixed.True;
             return newSarifFilePath;
         }
         else
         {
             runtime.Logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
-            runtime.Telemetry[TelemetryKeys.EndStepFailedRoslynV1Sarif] = EndStepFailedRoslynV1Sarif.True;
+            runtime.Telemetry[TelemetryKeys.EndStepRoslynV1SarifFailed] = EndStepRoslynV1SarifFailed.True;
             return null;
         }
     }
