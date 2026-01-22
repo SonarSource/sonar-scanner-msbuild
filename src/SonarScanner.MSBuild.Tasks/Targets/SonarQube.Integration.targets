@@ -585,6 +585,17 @@
         AfterTargets="ResolveCodeAnalysisRuleSet"
         BeforeTargets="CoreCompile">
 
+    <ItemGroup>
+      <!-- Track when we override TreatWarningsAsErrors from true to false -->
+      <SonarProjectTelemetry Condition="'$(TreatWarningsAsErrors)' == 'true'" Include="dotnetenterprise.cnt.s4net.build.override_treat_warnings_as_errors">
+        <Value>true</Value>
+      </SonarProjectTelemetry>
+      <!-- Track when we override WarningsAsErrors from non-empty to empty -->
+      <SonarProjectTelemetry Condition="'$(WarningsAsErrors)' != ''" Include="dotnetenterprise.cnt.s4net.build.override_warnings_as_errors">
+        <Value>true</Value>
+      </SonarProjectTelemetry>
+    </ItemGroup>
+
     <PropertyGroup>
       <!-- Make sure no warnings are treated as errors -->
       <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
