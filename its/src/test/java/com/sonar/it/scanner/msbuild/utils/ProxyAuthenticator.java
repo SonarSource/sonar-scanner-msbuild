@@ -37,24 +37,19 @@
 
 package com.sonar.it.scanner.msbuild.utils;
 
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpHeader;
-import org.eclipse.jetty.security.ServerAuthException;
-import org.eclipse.jetty.security.UserAuthentication;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.security.AuthenticationState;
+import org.eclipse.jetty.security.Authenticator;
+import org.eclipse.jetty.security.UserIdentity;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
-import org.eclipse.jetty.security.authentication.DeferredAuthentication;
 import org.eclipse.jetty.security.authentication.LoginAuthenticator;
-import org.eclipse.jetty.server.Authentication;
-import org.eclipse.jetty.server.Authentication.User;
-import org.eclipse.jetty.server.UserIdentity;
-import org.eclipse.jetty.util.security.Constraint;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
 /**
  * Inspired from {@link BasicAuthenticator} but adapted for proxy auth.
@@ -65,63 +60,49 @@ public class ProxyAuthenticator extends LoginAuthenticator {
   }
 
   /* ------------------------------------------------------------ */
+
   /**
-   * @see org.eclipse.jetty.security.Authenticator#getAuthMethod()
+   * @see Authenticator#getAuthenticationType()
    */
   @Override
-  public String getAuthMethod() {
-    return Constraint.__BASIC_AUTH;
+  public String getAuthenticationType() {
+    return Authenticator.BASIC_AUTH;
   }
 
   /* ------------------------------------------------------------ */
+
   /**
-   * @see org.eclipse.jetty.security.Authenticator#validateRequest(ServletRequest, ServletResponse, boolean)
+   * @see Authenticator#validateRequest(Request, Response, Callback)
    */
   @Override
-  public Authentication validateRequest(ServletRequest req, ServletResponse res, boolean mandatory) throws ServerAuthException {
-    HttpServletRequest request = (HttpServletRequest) req;
-    HttpServletResponse response = (HttpServletResponse) res;
-    String credentials = request.getHeader(HttpHeader.PROXY_AUTHORIZATION.asString());
-
-    try {
-      if (!mandatory)
-        return new DeferredAuthentication(this);
-
-      if (credentials != null) {
-        int space = credentials.indexOf(' ');
-        if (space > 0) {
-          String method = credentials.substring(0, space);
-          if ("basic".equalsIgnoreCase(method)) {
-            credentials = credentials.substring(space + 1);
-            credentials = new String(Base64.getDecoder().decode(credentials), StandardCharsets.ISO_8859_1);
-            int i = credentials.indexOf(':');
-            if (i > 0) {
-              String username = credentials.substring(0, i);
-              String password = credentials.substring(i + 1);
-
-              UserIdentity user = login(username, password, request);
-              if (user != null) {
-                return new UserAuthentication(getAuthMethod(), user);
-              }
+  public AuthenticationState validateRequest(Request req, Response res, Callback callback)  {
+    String credentials = req.getHeaders().get(HttpHeader.PROXY_AUTHORIZATION);
+    if (credentials != null) {
+      int space = credentials.indexOf(' ');
+      if (space > 0) {
+        String method = credentials.substring(0, space);
+        if ("basic".equalsIgnoreCase(method)) {
+          credentials = credentials.substring(space + 1);
+          credentials = new String(Base64.getDecoder().decode(credentials), StandardCharsets.ISO_8859_1);
+          int i = credentials.indexOf(':');
+          if (i > 0) {
+            String username = credentials.substring(0, i);
+            String password = credentials.substring(i + 1);
+            UserIdentity user = login(username, password, req, res);
+            if (user != null) {
+              return new UserAuthenticationSucceeded(getAuthenticationType(), user);
             }
           }
         }
       }
-
-      if (DeferredAuthentication.isDeferred(response))
-        return Authentication.UNAUTHENTICATED;
-
-      response.setHeader(HttpHeader.PROXY_AUTHENTICATE.asString(), "basic realm=\"" + _loginService.getName() + '"');
-      response.sendError(HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED);
-      return Authentication.SEND_CONTINUE;
-    } catch (IOException e) {
-      throw new ServerAuthException(e);
     }
-  }
 
-  @Override
-  public boolean secureResponse(ServletRequest req, ServletResponse res, boolean mandatory, User validatedUser) throws ServerAuthException {
-    return true;
-  }
+    if (res.isCommitted()) {
+      return null;
+    }
 
+    res.getHeaders().put(HttpHeader.PROXY_AUTHENTICATE.asString(), "Basic realm=\"" + _loginService.getName() + "\"");
+    Response.writeError(req, res, callback, HttpStatus.PROXY_AUTHENTICATION_REQUIRED_407);
+    return AuthenticationState.CHALLENGE;
+  }
 }
