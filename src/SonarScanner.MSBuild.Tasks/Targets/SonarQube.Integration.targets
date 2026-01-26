@@ -162,8 +162,7 @@
     <!--We want to append any exclusions to the existing solution level telemetry file as:
         - the project level telemetry file will not be picked up as it is excluded.
         - Only the first write to '$(SonarTelemetryFilePath)'is respected due to the 'CreateNew' parameter -->
-    <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" Telemetry="@(SonarExclusionTelemetry)"/>
-
+    <WriteSonarTelemetry Condition ="$(SonarQubeExclude) != ''" Filename="$(SonarTelemetryFilePath)" Telemetry="@(SonarExclusionTelemetry)"/>
   </Target>
 
   <Target Name="SkippingSonarQubeAnalysis" BeforeTargets="Build"

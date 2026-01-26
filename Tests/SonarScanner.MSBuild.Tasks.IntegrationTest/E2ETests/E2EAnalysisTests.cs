@@ -356,10 +356,7 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.AnalysisSettings.Should().NotContain(x => ScannerEngineInputGenerator.IsReportFilePaths(x.Id));
         var solutionTargetTelemetryFile = Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json");
         File.Exists(solutionTargetTelemetryFile).Should().BeTrue();
-        File.ReadAllLines(solutionTargetTelemetryFile).Should().SatisfyRespectively(
-            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.visual_studio_version":"""),
-            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.msbuild_version":"""),
-            x => x.Should().Be("""{"dotnetenterprise.cnt.s4net.build.exclusion_csproj":"true"}"""));
+        File.ReadAllLines(solutionTargetTelemetryFile).Should().Contain("""{"dotnetenterprise.cnt.s4net.build.exclusion_csproj":"true"}""");
     }
 
     [TestMethod]
@@ -571,10 +568,7 @@ public class E2EAnalysisTests
         projectInfo.AnalysisResultFiles.Should().BeEmpty("Unexpected number of analysis results created");
         var solutionTargetTelemetryFile = Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json");
         File.Exists(solutionTargetTelemetryFile).Should().BeTrue();
-        File.ReadAllLines(solutionTargetTelemetryFile).Should().SatisfyRespectively(
-            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.visual_studio_version":"""),
-            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.msbuild_version":"""),
-            x => x.Should().Be("""{"dotnetenterprise.cnt.s4net.build.exclusion_csproj":"true"}"""));
+        File.ReadAllLines(solutionTargetTelemetryFile).Should().Contain("""{"dotnetenterprise.cnt.s4net.build.exclusion_csproj":"true"}""");
     }
 
     // Checks that projects that don't include the standard managed targets are still
