@@ -5,13 +5,4 @@
     <SonarQubeExclude>true</SonarQubeExclude>
   </PropertyGroup>
 
-  <ItemGroup>
-    <SonarQubeSetting Include="sonar.custom.setting1">
-      <Value>value1</Value>
-    </SonarQubeSetting>
-    <SonarQubeSetting Include="sonar.custom.setting2">
-      <Value>value2</Value>
-    </SonarQubeSetting>
-  </ItemGroup>
-
 </Project>
