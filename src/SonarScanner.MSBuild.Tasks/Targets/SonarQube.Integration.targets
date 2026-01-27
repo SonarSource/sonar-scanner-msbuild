@@ -377,13 +377,13 @@
       <SonarProjectTelemetry Condition="$(TargetFrameworkMoniker) != ''" Include="dotnetenterprise.s4net.build.target_framework_moniker" >
         <Value>$(TargetFrameworkMoniker)</Value>
       </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="$(UsingMicrosoftNETSdk) != ''" Include="dotnetenterprise.cnt.s4net.build.using_microsoft_net_sdk">
+      <SonarProjectTelemetry Condition="$(UsingMicrosoftNETSdk) != ''" Include="dotnetenterprise.s4net.build.using_microsoft_net_sdk.cnt">
         <Value>$(UsingMicrosoftNETSdk)</Value> <!-- new SDK style projects https://stackoverflow.com/a/53530363 -->
       </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="$(Deterministic) != ''" Include="dotnetenterprise.cnt.s4net.build.deterministic">
+      <SonarProjectTelemetry Condition="$(Deterministic) != ''" Include="dotnetenterprise.s4net.build.deterministic.cnt">
         <Value>$(Deterministic)</Value>
       </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="$(NuGetProjectStyle) != ''" Include="dotnetenterprise.cnt.s4net.build.nuget_project_style">
+      <SonarProjectTelemetry Condition="$(NuGetProjectStyle) != ''" Include="dotnetenterprise.s4net.build.nuget_project_style.cnt">
         <Value>$(NuGetProjectStyle)</Value>
       </SonarProjectTelemetry>
     </ItemGroup>
@@ -589,10 +589,10 @@
         BeforeTargets="CoreCompile">
 
     <ItemGroup>
-      <SonarProjectTelemetry Condition="'$(TreatWarningsAsErrors)' == 'true'" Include="dotnetenterprise.cnt.s4net.build.override_treat_warnings_as_errors">
+      <SonarProjectTelemetry Condition="'$(TreatWarningsAsErrors)' == 'true'" Include="dotnetenterprise.s4net.build.override_treat_warnings_as_errors.cnt">
         <Value>true</Value>
       </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="'$(WarningsAsErrors)' != ''" Include="dotnetenterprise.cnt.s4net.build.override_warnings_as_errors">
+      <SonarProjectTelemetry Condition="'$(WarningsAsErrors)' != ''" Include="dotnetenterprise.s4net.build.override_warnings_as_errors.cnt">
         <Value>true</Value>
       </SonarProjectTelemetry>
     </ItemGroup>
