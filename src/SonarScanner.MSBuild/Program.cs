@@ -46,8 +46,10 @@ public static class Program
         Utilities.LogAssemblyVersion(runtime.Logger, Resources.AssemblyDescription);
 #if NETFRAMEWORK
         runtime.LogInfo("Using the .NET Framework version of the Scanner for .NET");
+        runtime.Telemetry[TelemetryKeys.BeginRuntime] = TelemetryValues.Runtime.NetFramework;
 #else
         runtime.LogInfo("Using the .NET Core version of the Scanner for .NET");
+        runtime.Telemetry[TelemetryKeys.BeginRuntime] = TelemetryValues.Runtime.NetCore;
 #endif
 
         runtime.Logger.SuspendOutput();
