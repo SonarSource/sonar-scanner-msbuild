@@ -25,7 +25,7 @@ namespace SonarScanner.MSBuild.Common;
 public static class TelemetryUtils
 {
     // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
-    private static readonly Regex SanitizeKeyRegex = new("[^a-zA-Z0-9]", RegexOptions.Compiled, RegexConstants.DefaultTimeout);
+    private static readonly Regex SanitizeKeyRegex = new("[^a-zA-Z0-9]", RegexOptions.None, RegexConstants.DefaultTimeout);
 
     public static void AddTelemetry(ITelemetry telemetry, AggregatePropertiesProvider aggregatedProperties)
     {
@@ -130,7 +130,7 @@ public static class TelemetryUtils
     private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property) =>
         MessagePair(source, property, property.Value);
 
-    private static string ToTelemetryId(string property) =>
+    internal static string ToTelemetryId(string property) =>
         $"dotnetenterprise.s4net.params.{SanitizeKeyRegex.Replace(property, "_").ToLowerInvariant()}";
 
     private static string FileExtension(string filePath)
