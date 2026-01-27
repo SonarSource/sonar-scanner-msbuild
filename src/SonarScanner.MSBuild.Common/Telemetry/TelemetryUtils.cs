@@ -65,6 +65,9 @@ public static class TelemetryUtils
         }
     }
 
+    internal static string ToTelemetryId(string property) =>
+        $"dotnetenterprise.s4net.params.{SanitizeKeyRegex.Replace(property, "_").ToLowerInvariant()}";
+
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {
         var property = argument.Key;
@@ -129,9 +132,6 @@ public static class TelemetryUtils
 
     private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property) =>
         MessagePair(source, property, property.Value);
-
-    internal static string ToTelemetryId(string property) =>
-        $"dotnetenterprise.s4net.params.{SanitizeKeyRegex.Replace(property, "_").ToLowerInvariant()}";
 
     private static string FileExtension(string filePath)
     {
