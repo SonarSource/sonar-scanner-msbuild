@@ -811,7 +811,7 @@ public class E2EAnalysisTests
         var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
         File.Exists(projectTelemetryFile).Should().BeTrue();
         var telemetryLines = File.ReadAllLines(projectTelemetryFile);
-        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt":"true"}""");
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt":"set"}""");
     }
 
     [TestMethod]
