@@ -208,7 +208,7 @@
         - The project level telemetry file will not be picked up as it is excluded.
         - Only the first write above to '$(SonarTelemetryFilePath)' is respected due to the 'CreateNew' parameter
     -->
-    <WriteSonarTelemetry Condition ="$(SonarQubeExclude) != ''" Filename="$(SonarTelemetryFilePath)" Key="dotnetenterprise.cnt.s4net.build.exclusion_csproj" Value="$(SonarQubeExclude)" />
+    <WriteSonarTelemetry Condition ="$(SonarQubeExclude) != ''" Filename="$(SonarTelemetryFilePath)" Key="dotnetenterprise.s4net.build.exclusion_csproj.cnt" Value="$(SonarQubeExclude)" />
     <!-- Before deciding to exclude or tag as test such a project, make sure it is not a legitimate project that happens to be called something.fakes
          In this case, we require from the user to explicitely state whether the project is to be analyzed/considered a test project -->
     <PropertyGroup Condition="$(IsFakesProject) == 'true' and $(SonarQubeExclude) == ''">
