@@ -52,7 +52,7 @@ public class RoslynV1SarifFixer
         {
             if (validJson.ContainsKey(Version) && validJson.Value<string>(Version) is { } version)
             {
-                runtime.Telemetry[string.Format(TelemetryKeys.EndStepSarifVersionValid, version)] = EndStepSarifVersionValid.True;
+                runtime.Telemetry[string.Format(TelemetryKeys.EndStepSarifVersionValid, SanitizeSarifVersion(version))] = EndStepSarifVersionValid.True;
             }
             // valid input -> no fix required
             runtime.Logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
@@ -75,7 +75,7 @@ public class RoslynV1SarifFixer
             runtime.Logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
             if (fixedJson.ContainsKey(Version) && fixedJson.Value<string>(Version) is { } version)
             {
-                runtime.Telemetry[string.Format(TelemetryKeys.EndStepSarifVersionFixed, version)] = EndStepSarifVersionFixed.True;
+                runtime.Telemetry[string.Format(TelemetryKeys.EndStepSarifVersionFixed, SanitizeSarifVersion(version))] = EndStepSarifVersionFixed.True;
             }
             return newSarifFilePath;
         }
@@ -105,6 +105,15 @@ public class RoslynV1SarifFixer
         // Low risk of false positives / false negatives
         bool IsV1(string language) =>
             input.Contains($@"""toolName"": ""Microsoft (R) {language} Compiler""") && input.Contains(@"""productVersion"": ""1.0.0""");
+    }
+
+    /// <summary>
+    /// Turns "1.0.0" -> "V1_0_0_0" and "0.1" -> "V0_1_0_0".
+    /// </summary>
+    private static string SanitizeSarifVersion(string version)
+    {
+        var parts = version.Split('.');
+        return "V" + string.Join("_", Enumerable.Repeat("0", 4 - parts.Length).Concat(parts));
     }
 
     /// <summary>

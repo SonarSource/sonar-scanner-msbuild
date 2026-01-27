@@ -38,6 +38,6 @@ public static class TelemetryKeys
     // EndStep
     public const string EndstepLegacyTFS            = "dotnetenterprise.s4net.endstep.legacyTFS";
 
-    public const string EndStepSarifVersionValid = "dotnetenterprise.s4net.endstep.Sarif.Version.{0}.Valid";
-    public const string EndStepSarifVersionFixed = "dotnetenterprise.s4net.endstep.Sarif.Version.{0}.Fixed";
+    public const string EndStepSarifVersionValid = "dotnetenterprise.s4net.endstep.Sarif.{0}.Valid";
+    public const string EndStepSarifVersionFixed = "dotnetenterprise.s4net.endstep.Sarif.{0}.Fixed";
 }
