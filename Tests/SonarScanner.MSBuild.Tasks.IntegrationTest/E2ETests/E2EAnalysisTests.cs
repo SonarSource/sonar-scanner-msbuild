@@ -776,10 +776,10 @@ public class E2EAnalysisTests
         var projectTelemetryFile = Path.Combine(rootOutputFolder, "0", "Telemetry.json");
         File.Exists(projectTelemetryFile).Should().BeTrue();
         File.ReadAllLines(projectTelemetryFile).Should().SatisfyRespectively(
-            x => x.Should().Be(""""{"dotnetenterprise.cnt.s4net.build.override_warnings_as_errors":"true"}""""),
+            x => x.Should().Be(""""{"dotnetenterprise.s4net.build.override_warnings_as_errors.cnt":"true"}""""),
             x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.target_framework_moniker":"""),
-            x => x.Should().Be("""{"dotnetenterprise.cnt.s4net.build.using_microsoft_net_sdk":"true"}"""),
-            x => x.Should().Be("""{"dotnetenterprise.cnt.s4net.build.deterministic":"true"}"""));
+            x => x.Should().Be("""{"dotnetenterprise.s4net.build.using_microsoft_net_sdk.cnt":"true"}"""),
+            x => x.Should().Be("""{"dotnetenterprise.s4net.build.deterministic.cnt":"true"}"""));
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
