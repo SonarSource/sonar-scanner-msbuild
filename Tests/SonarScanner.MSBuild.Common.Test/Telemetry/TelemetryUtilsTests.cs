@@ -77,6 +77,9 @@ public class TelemetryUtilsTests
     [DataRow("sonar.cs.cobertura", "value", "dotnetenterprise.s4net.params.sonar_cs_cobertura.source=CLI")]
     [DataRow("sonar.cs.cobertura.reportPaths", "/path", "dotnetenterprise.s4net.params.sonar_cs_cobertura_reportpaths.source=CLI")]
     [DataRow("sonar.vbnet.cobertura.reportPaths", "/path", "dotnetenterprise.s4net.params.sonar_vbnet_cobertura_reportpaths.source=CLI")]
+    // Pattern-based properties (sonar.sca.*)
+    [DataRow("sonar.sca.enabled", "true", "dotnetenterprise.s4net.params.sonar_sca_enabled.source=CLI")]
+    [DataRow("sonar.sca.exclusions", "**/*.dll", "dotnetenterprise.s4net.params.sonar_sca_exclusions.source=CLI")]
     // Whitelisted properties
     [DataRow(SonarProperties.OperatingSystem, "Windows", "dotnetenterprise.s4net.params.sonar_scanner_os.source=CLI", "dotnetenterprise.s4net.params.sonar_scanner_os.value=Windows")]
     [DataRow(SonarProperties.Architecture, "x64", "dotnetenterprise.s4net.params.sonar_scanner_arch.source=CLI", "dotnetenterprise.s4net.params.sonar_scanner_arch.value=x64")]
