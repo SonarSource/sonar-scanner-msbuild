@@ -760,6 +760,11 @@ public class E2EAnalysisTests
             <ItemGroup>
               <Compile Include='{codeFilePath}' />
             </ItemGroup>
+            <ItemGroup>
+              <SonarQubeSetting Include="sonar.my.custom.setting">
+                <Value>customValue</Value>
+              </SonarQubeSetting>
+            </ItemGroup>
             """;
         var projectFilePath = context.CreateProjectFile(projectXml);
         var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
@@ -790,54 +795,8 @@ public class E2EAnalysisTests
             x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.target_framework_moniker":"""),
             x => x.Should().Be("""{"dotnetenterprise.s4net.build.using_microsoft_net_sdk.cnt":"true"}"""),
             x => x.Should().Be("""{"dotnetenterprise.s4net.build.deterministic.cnt":"true"}"""),
-            x => x.Should().Be("""{"dotnetenterprise.s4net.build.test_project_in_proj.cnt":"true"}"""));
-    }
-
-    [TestMethod]
-    public void E2E_TelemetryFiles_SonarPropertiesInProjectFile()
-    {
-        var context = CreateContext();
-        var codeFilePath = context.CreateInputFile("codeFile1.cs");
-        var projectXml = $"""
-            <ItemGroup>
-              <Compile Include='{codeFilePath}' />
-              <SonarQubeSetting Include="sonar.my.custom.setting">
-                <Value>customValue</Value>
-              </SonarQubeSetting>
-            </ItemGroup>
-            """;
-        var projectFilePath = context.CreateProjectFile(projectXml);
-
-        var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
-
-        result.BuildSucceeded.Should().BeTrue();
-
-        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
-        File.Exists(projectTelemetryFile).Should().BeTrue();
-        var telemetryLines = File.ReadAllLines(projectTelemetryFile);
-        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt":"set"}""");
-    }
-
-    [TestMethod]
-    public void E2E_TelemetryFiles_NoSonarPropertiesInProjectFile()
-    {
-        var context = CreateContext();
-        var codeFilePath = context.CreateInputFile("codeFile1.cs");
-        var projectXml = $"""
-            <ItemGroup>
-              <Compile Include='{codeFilePath}' />
-            </ItemGroup>
-            """;
-        var projectFilePath = context.CreateProjectFile(projectXml);
-
-        var result = BuildRunner.BuildTargets(TestContext, projectFilePath);
-
-        result.BuildSucceeded.Should().BeTrue();
-
-        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
-        File.Exists(projectTelemetryFile).Should().BeTrue();
-        var telemetryLines = File.ReadAllLines(projectTelemetryFile);
-        telemetryLines.Should().NotContain(x => x.Contains("sonar_properties_in_project_file"));
+            x => x.Should().Be("""{"dotnetenterprise.s4net.build.test_project_in_proj.cnt":"true"}"""),
+            x => x.Should().Be("""{"dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt":"set"}"""));
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
