@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="12345678-1234-1234-1234-123456789012" name="Test Run" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-01-28T10:00:00.0000000+00:00" queuing="2026-01-28T10:00:00.0000000+00:00" start="2026-01-28T10:00:00.0000000+00:00" finish="2026-01-28T10:00:05.0000000+00:00" />
+  <TestSettings name="Default" id="87654321-4321-4321-4321-210987654321">
+    <Execution>
+      <TestTypeSpecific />
+    </Execution>
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="11111111-1111-1111-1111-111111111111" testId="22222222-2222-2222-2222-222222222222" testName="TestMethod1" computerName="TESTMACHINE" duration="00:00:00.1234567" startTime="2026-01-28T10:00:00.0000000+00:00" endTime="2026-01-28T10:00:00.1234567+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="11111111-1111-1111-1111-111111111111" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="TestMethod1" storage="telemetry.dll" id="22222222-2222-2222-2222-222222222222">
+      <Execution id="11111111-1111-1111-1111-111111111111" />
+      <TestMethod codeBase="Telemetry.dll" adapterTypeName="executor://mstestadapter/v2" className="Telemetry.TestClass" name="TestMethod1" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="22222222-2222-2222-2222-222222222222" executionId="11111111-1111-1111-1111-111111111111" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+</TestRun>

@@ -72,7 +72,7 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.exclusion_proj.false=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.sonar_properties_in_project_file.set=1"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.plugin.coverage_reports=0"));
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.plugin.coverage_reports=2"));
   }
 
   @Test
