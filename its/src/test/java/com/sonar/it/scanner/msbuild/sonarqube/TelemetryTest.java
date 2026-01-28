@@ -42,7 +42,6 @@ class TelemetryTest {
     var result = runAnalysis("Telemetry");
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=3"),
-      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
@@ -78,7 +77,6 @@ class TelemetryTest {
     var result = runAnalysis("TelemetryVB");
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).matches("vbnet\\.vbnet\\.language_version\\.visualbasic(15|16|17_13)=3"),
-      x -> assertThat(x).isEqualTo("vbnet.vbnet.target_framework.netstandard1_6=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
@@ -110,7 +108,6 @@ class TelemetryTest {
     var result = runAnalysis("TelemetryCSVBMixed");
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).matches("vbnet\\.vbnet\\.language_version\\.visualbasic(15|16|17_13)=1"),
-      x -> assertThat(x).isEqualTo("vbnet.vbnet.target_framework.netstandard1_6=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
@@ -129,7 +126,6 @@ class TelemetryTest {
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
       x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=2"),
-      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=2"),
       // VB telemetry (1 VB project)
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=1"),
@@ -155,8 +151,6 @@ class TelemetryTest {
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp12=2"),
       x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp14=2"),
-      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net8_0=2"),
-      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net10_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
