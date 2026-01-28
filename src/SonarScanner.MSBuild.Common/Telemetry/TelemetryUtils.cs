@@ -193,55 +193,63 @@ public static class TelemetryUtils
         }
 
         // Additional known properties (string literals)
-        if (property.IsKey("sonar.ws.timeout")
-            || property.IsKey("sonar.projectDescription")
+        // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-parameters/parameters-not-settable-in-ui
+        if (property.IsKey("sonar.projectDescription")
             || property.IsKey("sonar.links.homepage")
             || property.IsKey("sonar.links.ci")
             || property.IsKey("sonar.links.issue")
             || property.IsKey("sonar.links.scm")
             || property.IsKey("sonar.externalIssuesReportPaths")
             || property.IsKey("sonar.sarifReportPaths")
-            || property.IsKey("sonar.projectDate")
-            || property.IsKey("sonar.scm.provider")
-            || property.IsKey("sonar.scm.forceReloadAll")
             || property.IsKey("sonar.scm.exclusions.disabled")
-            || property.IsKey("sonar.scm.revision")
-            || property.IsKey("sonar.scm.disabled")
-            || property.IsKey("sonar.buildString")
-            || property.IsKey("sonar.newCode.referenceBranch")
             || property.IsKey("sonar.filesize.limit")
-            || property.IsKey("sonar.scanner.dumpToFile")
+            || property.IsKey("sonar.log.level")
             || property.IsKey("sonar.scanner.metadataFilePath")
             || property.IsKey("sonar.qualitygate.wait")
             || property.IsKey("sonar.qualitygate.timeout")
-            || property.IsKey("sonar.branch.autoconfig.disabled")
             || property.IsKey("sonar.branch.name")
             || property.IsKey("sonar.pullrequest.key")
             || property.IsKey("sonar.pullrequest.branch")
+            || property.IsKey("sonar.newCode.referenceBranch")
             || property.IsKey("sonar.scanner.keepReport")
             || property.IsKey("sonar.plugins.download.timeout")
             || property.IsKey("sonar.scanner.proxyHost")
             || property.IsKey("sonar.scanner.proxyPort")
             || property.IsKey("sonar.scanner.keystorePath")
+            || property.IsKey("sonar.scm.revision")
+            || property.IsKey("sonar.buildString")
             || property.IsKey("sonar.scanner.javaOpts")
+            // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-scope/narrowing-the-focus
             || property.IsKey("sonar.exclusions")
             || property.IsKey("sonar.test.exclusions")
             || property.IsKey("sonar.global.exclusions")
             || property.IsKey("sonar.coverage.exclusions")
             || property.IsKey("sonar.cpd.exclusions")
             || property.IsKey("sonar.inclusions")
-            || property.IsKey("sonar.test.inclusions"))
+            || property.IsKey("sonar.test.inclusions")
+            // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/scm-integration
+            || property.IsKey("sonar.scm.provider")
+            || property.IsKey("sonar.scm.forceReloadAll")
+            || property.IsKey("sonar.scm.disabled")
+            // Deprecated parameters
+            || property.IsKey("sonar.ws.timeout")
+            || property.IsKey("sonar.projectDate")
+            || property.IsKey("sonar.scanner.dumpToFile")
+            // Undocumented parameters
+            || property.IsKey("sonar.branch.autoconfig.disabled"))
         {
             return true;
         }
 
         // Pattern-based properties
+        // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-parameters/parameters-not-settable-in-ui
         // sonar.analysis.* (e.g., sonar.analysis.yourKey)
         if (id.StartsWith("sonar.analysis.", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
 
+        // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-parameters/parameters-not-settable-in-ui
         // sonar.cpd.{language}.minimumTokens and sonar.cpd.{language}.minimumLines
         if (id.StartsWith("sonar.cpd.", StringComparison.OrdinalIgnoreCase)
             && (id.EndsWith(".minimumTokens", StringComparison.OrdinalIgnoreCase)
@@ -257,6 +265,7 @@ public static class TelemetryUtils
             return true;
         }
 
+        // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-parameters/parameters-not-settable-in-ui
         // SCA (Software Composition Analysis) properties (e.g., sonar.sca.enabled, sonar.sca.exclusions)
         if (id.StartsWith("sonar.sca.", StringComparison.OrdinalIgnoreCase))
         {
