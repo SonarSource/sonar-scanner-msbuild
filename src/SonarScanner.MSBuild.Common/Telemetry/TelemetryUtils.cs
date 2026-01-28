@@ -77,6 +77,9 @@ public static class TelemetryUtils
             // Further senstive parameters
             || property.IsKey(SonarProperties.Organization)
             || property.IsKey(SonarProperties.ProjectKey)
+            || property.IsKey("sonar.scanner.proxyUser")
+            || property.IsKey("sonar.scanner.proxyPassword")
+            || property.IsKey("sonar.scanner.keystorePassword")
             // Should be extracted from ServerInfo
             || property.IsKey(SonarProperties.HostUrl)
             || property.IsKey(SonarProperties.ApiBaseUrl)
@@ -211,7 +214,23 @@ public static class TelemetryUtils
             || property.IsKey("sonar.scanner.metadataFilePath")
             || property.IsKey("sonar.qualitygate.wait")
             || property.IsKey("sonar.qualitygate.timeout")
-            || property.IsKey("sonar.branch.autoconfig.disabled"))
+            || property.IsKey("sonar.branch.autoconfig.disabled")
+            || property.IsKey("sonar.branch.name")
+            || property.IsKey("sonar.pullrequest.key")
+            || property.IsKey("sonar.pullrequest.branch")
+            || property.IsKey("sonar.scanner.keepReport")
+            || property.IsKey("sonar.plugins.download.timeout")
+            || property.IsKey("sonar.scanner.proxyHost")
+            || property.IsKey("sonar.scanner.proxyPort")
+            || property.IsKey("sonar.scanner.keystorePath")
+            || property.IsKey("sonar.scanner.javaOpts")
+            || property.IsKey("sonar.exclusions")
+            || property.IsKey("sonar.test.exclusions")
+            || property.IsKey("sonar.global.exclusions")
+            || property.IsKey("sonar.coverage.exclusions")
+            || property.IsKey("sonar.cpd.exclusions")
+            || property.IsKey("sonar.inclusions")
+            || property.IsKey("sonar.test.inclusions"))
         {
             return true;
         }
@@ -234,6 +253,12 @@ public static class TelemetryUtils
         // Cobertura-related properties (e.g., sonar.cs.cobertura, sonar.cs.cobertura.reportPaths)
         if (id.EndsWith(".cobertura", StringComparison.OrdinalIgnoreCase)
             || id.IndexOf(".cobertura.", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return true;
+        }
+
+        // SCA (Software Composition Analysis) properties (e.g., sonar.sca.enabled, sonar.sca.exclusions)
+        if (id.StartsWith("sonar.sca.", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
