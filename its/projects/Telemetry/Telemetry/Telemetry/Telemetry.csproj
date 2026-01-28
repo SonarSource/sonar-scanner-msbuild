@@ -4,6 +4,7 @@
     <TargetFramework>netstandard1.6</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <SonarQubeExclude>False</SonarQubeExclude>
+    <ErrorLog>$(MSBuildProjectDirectory)\sarif-output.json</ErrorLog>
   </PropertyGroup>
 
 </Project>
