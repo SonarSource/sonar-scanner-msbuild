@@ -82,13 +82,14 @@ public class PostProcessor
         }
         else
         {
-            ProcessCoverageReport(config, settings, analysisResult);
+            var coverageConversionPerformed = ProcessCoverageReport(config, settings, analysisResult);
             var result = false;
             if (analysisResult.RanToCompletion)
             {
                 DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
                 // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
                 runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = IsTfsProcessorCalled(settings);
+                runtime.Telemetry[TelemetryKeys.CoverageConversion] = coverageConversionPerformed ? "true" : "false";
                 runtime.Telemetry.Write(settings.SonarOutputDirectory);
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
                     ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)
@@ -227,7 +228,7 @@ public class PostProcessor
 #endif
     }
 
-    private void ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, AnalysisResult analysisResult)
+    private bool ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, AnalysisResult analysisResult)
     {
 #if NETFRAMEWORK
         if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
@@ -238,15 +239,18 @@ public class PostProcessor
             WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
             analysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
             analysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
+            return additionalProperties.VsCoverageXmlReportsPaths?.Any() ?? false;
         }
         else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
         {
             runtime.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
             runtime.Logger.IncludeTimestamp = false;
-            tfsProcessor.Execute(config, ["ConvertCoverage", Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath]);
+            var result = tfsProcessor.Execute(config, ["ConvertCoverage", Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath]);
             runtime.Logger.IncludeTimestamp = true;
+            return result;
         }
 #endif
+        return false;
     }
 
 #if NETFRAMEWORK
