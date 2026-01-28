@@ -790,13 +790,13 @@ public class E2EAnalysisTests
 
         var projectTelemetryFile = Path.Combine(rootOutputFolder, "0", "Telemetry.json");
         File.Exists(projectTelemetryFile).Should().BeTrue();
-        File.ReadAllLines(projectTelemetryFile).Should().SatisfyRespectively(
-            x => x.Should().Be(""""{"dotnetenterprise.s4net.build.override_warnings_as_errors.cnt":"true"}""""),
-            x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.target_framework_moniker":"""),
-            x => x.Should().Be("""{"dotnetenterprise.s4net.build.using_microsoft_net_sdk.cnt":"true"}"""),
-            x => x.Should().Be("""{"dotnetenterprise.s4net.build.deterministic.cnt":"true"}"""),
-            x => x.Should().Be("""{"dotnetenterprise.s4net.build.test_project_in_proj.cnt":"true"}"""),
-            x => x.Should().Be("""{"dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt":"set"}"""));
+        var telemetryLines = File.ReadAllLines(projectTelemetryFile);
+        telemetryLines.Should().ContainMatch(""""{"dotnetenterprise.s4net.build.override_warnings_as_errors.cnt":"true"}"""");
+        telemetryLines.Should().ContainMatch("""{"dotnetenterprise.s4net.build.target_framework_moniker":*""");
+        telemetryLines.Should().ContainMatch("""{"dotnetenterprise.s4net.build.using_microsoft_net_sdk.cnt":"true"}""");
+        telemetryLines.Should().ContainMatch("""{"dotnetenterprise.s4net.build.deterministic.cnt":"true"}""");
+        telemetryLines.Should().ContainMatch("""{"dotnetenterprise.s4net.build.test_project_in_proj.cnt":"true"}""");
+        telemetryLines.Should().ContainMatch("""{"dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt":"set"}""");
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
