@@ -113,7 +113,7 @@ public class RoslynV1SarifFixer
     private static string SanitizeSarifVersion(string version)
     {
         var parts = version.Split('.');
-        return "V" + string.Join("_", Enumerable.Repeat("0", 4 - parts.Length).Concat(parts));
+        return "V" + string.Join("_", parts.Concat(Enumerable.Repeat("0", 4 - parts.Length)));
     }
 
     /// <summary>
