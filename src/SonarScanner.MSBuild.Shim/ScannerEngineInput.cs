@@ -96,6 +96,20 @@ public class ScannerEngineInput
     public void AddVsXmlCoverageReportPaths(string[] paths) =>
         Add(SonarProperties.VsCoverageXmlReportsPaths, paths);
 
+    public int CoverageReportCount()
+    {
+        var count = 0;
+        if (scannerProperties.TryGetValue(SonarProperties.VsTestReportsPaths, out var testPaths) && !string.IsNullOrWhiteSpace(testPaths))
+        {
+            count += testPaths.Split(',').Length;
+        }
+        if (scannerProperties.TryGetValue(SonarProperties.VsCoverageXmlReportsPaths, out var coveragePaths) && !string.IsNullOrWhiteSpace(coveragePaths))
+        {
+            count += coveragePaths.Split(',').Length;
+        }
+        return count;
+    }
+
     public void AddUserSettings(IAnalysisPropertyProvider properties)
     {
         _ = properties ?? throw new ArgumentNullException(nameof(properties));
