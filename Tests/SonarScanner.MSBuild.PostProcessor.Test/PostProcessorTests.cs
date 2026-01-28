@@ -413,6 +413,7 @@ public class PostProcessorTests
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null);
         runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.endstep.legacyTFS", "NotCalled");
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.plugin.coverage_reports", "0");
     }
 
     [TestMethod]
@@ -435,6 +436,9 @@ public class PostProcessorTests
         var reader = new ScannerEngineInputReader(scannerEngineInput.ToString());
         reader.AssertProperty("sonar.cs.vstest.reportsPaths", Path.Combine("VS", "Test", "Path"));
         reader.AssertProperty("sonar.cs.vscoveragexml.reportsPaths", Path.Combine("VS", "XML", "Coverage", "Path"));
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.plugin.coverage_reports", "2");
+#else
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.plugin.coverage_reports", "0");
 #endif
     }
 

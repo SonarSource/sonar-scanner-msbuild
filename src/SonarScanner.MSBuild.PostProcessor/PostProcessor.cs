@@ -89,6 +89,7 @@ public class PostProcessor
                 DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
                 // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
                 runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = IsTfsProcessorCalled(settings);
+                runtime.Telemetry[TelemetryKeys.PluginCoverageReports] = analysisResult.ScannerEngineInput.CoverageReportCount().ToString();
                 runtime.Telemetry.Write(settings.SonarOutputDirectory);
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
                     ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)

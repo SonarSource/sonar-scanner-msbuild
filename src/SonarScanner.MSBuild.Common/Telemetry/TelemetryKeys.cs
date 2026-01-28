@@ -37,4 +37,6 @@ public static class TelemetryKeys
     public const string ServerInfoVersion           = "dotnetenterprise.s4net.serverInfo.version";
     // EndStep
     public const string EndstepLegacyTFS            = "dotnetenterprise.s4net.endstep.legacyTFS";
+    // Plugin
+    public const string PluginCoverageReports       = "dotnetenterprise.s4net.plugin.coverage_reports";
 }
