@@ -413,6 +413,7 @@ public class PostProcessorTests
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework(false);
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null);
         runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.endstep.legacyTFS", "NotCalled");
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.end.coverage_conversion", "false");
     }
 
     [TestMethod]
@@ -435,6 +436,9 @@ public class PostProcessorTests
         var reader = new ScannerEngineInputReader(scannerEngineInput.ToString());
         reader.AssertProperty("sonar.cs.vstest.reportsPaths", Path.Combine("VS", "Test", "Path"));
         reader.AssertProperty("sonar.cs.vscoveragexml.reportsPaths", Path.Combine("VS", "XML", "Coverage", "Path"));
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.end.coverage_conversion", "true");
+#else
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.end.coverage_conversion", "false");
 #endif
     }
 
@@ -447,6 +451,11 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework();
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null);
+#if NETFRAMEWORK
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.end.coverage_conversion", "true");
+#else
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.end.coverage_conversion", "false");
+#endif
     }
 
     [TestMethod]
@@ -480,6 +489,7 @@ public class PostProcessorTests
         AssertTfsProcessorConvertCoverageCalledIfNetFramework(false);
         AssertTfsProcessorSummaryReportBuilderCalledIfNetFramework();
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null);
+        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.end.coverage_conversion", "false");
     }
 
     private bool Execute(string arg) =>
