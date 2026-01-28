@@ -152,6 +152,14 @@
     </ItemGroup>
 
     <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" CreateNew="true" Telemetry="@(SonarTelemetry)"/>
+
+    <!--
+        We want to know if users are setting SonarQubeExclude, so we get its value before we set it ourselves.
+        We need to append any project exclusions to the existing solution level telemetry file because:
+        - The project level telemetry file will not be picked up as it is excluded.
+        - Only the first write above to '$(SonarTelemetryFilePath)' is respected due to the 'CreateNew' parameter
+    -->
+    <WriteSonarTelemetry Condition ="$(SonarQubeExclude) != ''" Filename="$(SonarTelemetryFilePath)" Key="dotnetenterprise.s4net.build.exclusion_proj.cnt" Value="$(SonarQubeExclude)" />
   </Target>
 
   <Target Name="SkippingSonarQubeAnalysis" BeforeTargets="Build"

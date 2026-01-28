@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.6</TargetFramework>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <SonarQubeExclude>False</SonarQubeExclude>
   </PropertyGroup>
 
 </Project>

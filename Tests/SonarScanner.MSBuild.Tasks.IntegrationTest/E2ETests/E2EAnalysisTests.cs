@@ -326,6 +326,7 @@ public class E2EAnalysisTests
         // Project info should still be written for files with $(SonarQubeExclude) set to true
         var context = CreateContext();
         var userDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "User");
+        var rootOutputFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "Outputs");
 
         // Mix of analyzable and non-analyzable files
         var foo1 = context.CreateInputFile("foo1.txt");
@@ -353,6 +354,9 @@ public class E2EAnalysisTests
         actualStructure.AssertConfigFileDoesNotExist(ExpectedProjectConfigFileName);
         actualStructure.AssertExpectedFileList("code1.txt");
         actualStructure.ProjectInfo.AnalysisSettings.Should().NotContain(x => ScannerEngineInputGenerator.IsReportFilePaths(x.Id));
+        var solutionTargetTelemetryFile = Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json");
+        File.Exists(solutionTargetTelemetryFile).Should().BeTrue();
+        File.ReadAllLines(solutionTargetTelemetryFile).Should().Contain("""{"dotnetenterprise.s4net.build.exclusion_proj.cnt":"true"}""");
     }
 
     [TestMethod]
@@ -562,6 +566,9 @@ public class E2EAnalysisTests
         projectInfo.ProjectLanguage.Should().Be("my.language", "Unexpected project language");
         projectInfo.ProjectType.Should().Be(ProjectType.Test, "Project should be marked as a test project");
         projectInfo.AnalysisResultFiles.Should().BeEmpty("Unexpected number of analysis results created");
+        var solutionTargetTelemetryFile = Path.Combine(rootOutputFolder, "Telemetry.Targets.S4NET.json");
+        File.Exists(solutionTargetTelemetryFile).Should().BeTrue();
+        File.ReadAllLines(solutionTargetTelemetryFile).Should().Contain("""{"dotnetenterprise.s4net.build.exclusion_proj.cnt":"true"}""");
     }
 
     // Checks that projects that don't include the standard managed targets are still

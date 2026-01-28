@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.6</TargetFramework>
-    <SonarQubeExclude>False</SonarQubeExclude>
+    <SonarQubeExclude>true</SonarQubeExclude>
   </PropertyGroup>
 
 </Project>
