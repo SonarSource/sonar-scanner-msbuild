@@ -16,4 +16,13 @@
     </SonarQubeSetting>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="ExcludedFile.cs">
+      <SonarQubeExclude>true</SonarQubeExclude>
+    </Compile>
+    <Compile Update="IncludedFile.cs">
+      <SonarQubeExclude>false</SonarQubeExclude>
+    </Compile>
+  </ItemGroup>
+
 </Project>
