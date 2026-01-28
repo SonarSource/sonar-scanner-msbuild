@@ -203,13 +203,15 @@ public static class TelemetryUtils
             || property.IsKey("sonar.scm.forceReloadAll")
             || property.IsKey("sonar.scm.exclusions.disabled")
             || property.IsKey("sonar.scm.revision")
+            || property.IsKey("sonar.scm.disabled")
             || property.IsKey("sonar.buildString")
             || property.IsKey("sonar.newCode.referenceBranch")
             || property.IsKey("sonar.filesize.limit")
             || property.IsKey("sonar.scanner.dumpToFile")
             || property.IsKey("sonar.scanner.metadataFilePath")
             || property.IsKey("sonar.qualitygate.wait")
-            || property.IsKey("sonar.qualitygate.timeout"))
+            || property.IsKey("sonar.qualitygate.timeout")
+            || property.IsKey("sonar.branch.autoconfig.disabled"))
         {
             return true;
         }
