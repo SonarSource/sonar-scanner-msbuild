@@ -59,6 +59,8 @@ class TelemetryTest {
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.test_project_in_proj.false=1"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.test_project_in_proj.true=1"),
       // Telemetry/Telemetry/Telemetry.csproj has TreatWarningsAsErrors=true (1 project)
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_treat_warnings_as_errors.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_warnings_as_errors.true=3"),
