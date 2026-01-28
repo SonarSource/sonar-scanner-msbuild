@@ -132,6 +132,24 @@ public class TelemetryUtilsTests
         telemetry.Should().HaveMessage("dotnetenterprise.s4net.ci_platform", expectedPlatform);
     }
 
+    [TestMethod]
+    [DataRow("sonar.token", "dotnetenterprise.s4net.params.sonar_token")]
+    [DataRow("SONAR.TOKEN", "dotnetenterprise.s4net.params.sonar_token")]
+    [DataRow("sonar.host.url", "dotnetenterprise.s4net.params.sonar_host_url")]
+    [DataRow("sonar.projectBaseDir", "dotnetenterprise.s4net.params.sonar_projectbasedir")]
+    [DataRow("sonar.cs.vscoveragexml.reportsPaths", "dotnetenterprise.s4net.params.sonar_cs_vscoveragexml_reportspaths")]
+    [DataRow("simple", "dotnetenterprise.s4net.params.simple")]
+    [DataRow("UPPERCASE", "dotnetenterprise.s4net.params.uppercase")]
+    [DataRow("with-dash", "dotnetenterprise.s4net.params.with_dash")]
+    [DataRow("with_underscore", "dotnetenterprise.s4net.params.with_underscore")]
+    [DataRow("with.multiple...dots", "dotnetenterprise.s4net.params.with_multiple___dots")]
+    [DataRow("special!@#$%chars", "dotnetenterprise.s4net.params.special_____chars")]
+    [DataRow("123numeric", "dotnetenterprise.s4net.params.123numeric")]
+    [DataRow("mixed123AND.special-chars_here", "dotnetenterprise.s4net.params.mixed123and_special_chars_here")]
+    [DataRow("", "dotnetenterprise.s4net.params.")]
+    public void ToTelemetryId_SanitizesPropertyName(string property, string expected) =>
+        TelemetryUtils.ToTelemetryId(property).Should().Be(expected);
+
     private static void AssertTelemetry(string propertyId, string value, string[] exepectedTelemetry)
     {
         var telemetry = new TestTelemetry();

@@ -206,6 +206,11 @@
     <Message Text="Sonar: ($(MSBuildProjectFile)) Categorizing project as test or product code..." />
     <Message Condition="$(SonarQubeTestProject) != ''" Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) SonarQubeTestProject has been set explicitly to $(SonarQubeTestProject)." />
 
+    <!-- Detect explicit "SonarQubeTestProject" before auto-detection -->
+    <PropertyGroup Condition="$(SonarQubeTestProject) != ''">
+      <SonarQubeTestProjectExplicitlySetToTrue>$(SonarQubeTestProject)</SonarQubeTestProjectExplicitlySetToTrue>
+    </PropertyGroup>
+
     <!-- Fakes detection -->
     <PropertyGroup>
       <IsFakesProject Condition="$(AssemblyName.EndsWith('.fakes', System.StringComparison.OrdinalIgnoreCase))">true</IsFakesProject>
@@ -397,6 +402,8 @@
       <!-- Track if user has defined SonarQubeSetting items in their project file (before we add internal settings) -->
       <SonarProjectTelemetry Condition="@(SonarQubeSetting) != ''" Include="dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt">
         <Value>set</Value>
+      <SonarProjectTelemetry Condition="$(SonarQubeTestProjectExplicitlySetToTrue) != ''" Include="dotnetenterprise.s4net.build.test_project_in_proj.cnt">
+        <Value>$(SonarQubeTestProjectExplicitlySetToTrue)</Value>
       </SonarProjectTelemetry>
     </ItemGroup>
     <WriteSonarTelemetry Condition="$(SonarProjectTelemetryFilePath)!=''" Filename="$(SonarProjectTelemetryFilePath)" Telemetry="@(SonarProjectTelemetry)" />
