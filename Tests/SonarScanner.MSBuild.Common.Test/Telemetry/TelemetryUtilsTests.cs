@@ -73,6 +73,10 @@ public class TelemetryUtilsTests
     // Pattern-based properties (sonar.cpd.{language}.minimumTokens/minimumLines)
     [DataRow("sonar.cpd.java.minimumTokens", "100", "dotnetenterprise.s4net.params.sonar_cpd_java_minimumtokens.source=CLI")]
     [DataRow("sonar.cpd.cs.minimumLines", "10", "dotnetenterprise.s4net.params.sonar_cpd_cs_minimumlines.source=CLI")]
+    // Pattern-based properties (*.cobertura and *.cobertura.*)
+    [DataRow("sonar.cs.cobertura", "value", "dotnetenterprise.s4net.params.sonar_cs_cobertura.source=CLI")]
+    [DataRow("sonar.cs.cobertura.reportPaths", "/path", "dotnetenterprise.s4net.params.sonar_cs_cobertura_reportpaths.source=CLI")]
+    [DataRow("sonar.vbnet.cobertura.reportPaths", "/path", "dotnetenterprise.s4net.params.sonar_vbnet_cobertura_reportpaths.source=CLI")]
     // Whitelisted properties
     [DataRow(SonarProperties.OperatingSystem, "Windows", "dotnetenterprise.s4net.params.sonar_scanner_os.source=CLI", "dotnetenterprise.s4net.params.sonar_scanner_os.value=Windows")]
     [DataRow(SonarProperties.Architecture, "x64", "dotnetenterprise.s4net.params.sonar_scanner_arch.source=CLI", "dotnetenterprise.s4net.params.sonar_scanner_arch.value=x64")]

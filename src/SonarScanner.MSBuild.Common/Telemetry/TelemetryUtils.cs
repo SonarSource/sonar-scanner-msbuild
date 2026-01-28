@@ -229,6 +229,13 @@ public static class TelemetryUtils
             return true;
         }
 
+        // Cobertura-related properties (e.g., sonar.cs.cobertura, sonar.cs.cobertura.reportPaths)
+        if (id.EndsWith(".cobertura", StringComparison.OrdinalIgnoreCase)
+            || id.IndexOf(".cobertura.", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return true;
+        }
+
         return false;
     }
 }
