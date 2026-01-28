@@ -615,6 +615,10 @@
       <SonarProjectTelemetry Condition="'$(WarningsAsErrors)' != ''" Include="dotnetenterprise.s4net.build.override_warnings_as_errors.cnt">
         <Value>true</Value>
       </SonarProjectTelemetry>
+      <!-- Track if user has defined ErrorLog property (SARIF output) before we set our own value -->
+      <SonarProjectTelemetry Condition="$(ErrorLog) != ''" Include="dotnetenterprise.s4net.build.error_log_set.cnt">
+        <Value>set</Value>
+      </SonarProjectTelemetry>
     </ItemGroup>
 
     <PropertyGroup>

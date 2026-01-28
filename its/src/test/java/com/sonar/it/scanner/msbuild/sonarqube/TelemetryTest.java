@@ -63,6 +63,8 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.test_project_in_proj.true=1"),
       // Telemetry/Telemetry/Telemetry.csproj has TreatWarningsAsErrors=true (1 project)
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_treat_warnings_as_errors.true=1"),
+      // Telemetry/Telemetry/Telemetry.csproj has ErrorLog set (1 project)
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.error_log_set.set=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_warnings_as_errors.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.using_microsoft_net_sdk.true=3"),
