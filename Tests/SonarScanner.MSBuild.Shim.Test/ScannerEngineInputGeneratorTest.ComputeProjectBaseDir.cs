@@ -131,7 +131,7 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var additionalFileService = Substitute.For<AdditionalFilesService>(runtime);
         runtime.ConfigureOS(PlatformOS.Linux);
-        var sut = new ScannerEngineInputGenerator(new() { SonarOutputDir = @"C:\fallback" }, runtime, new RoslynV1SarifFixer(runtime.Logger), cmdLineArgs, additionalFileService);
+        var sut = new ScannerEngineInputGenerator(new() { SonarOutputDir = @"C:\fallback" }, runtime, new RoslynV1SarifFixer(runtime), cmdLineArgs, additionalFileService);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),
@@ -152,7 +152,7 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var additionalFileService = Substitute.For<AdditionalFilesService>(runtime);
         runtime.ConfigureOS(PlatformOS.Windows);
-        var sut = new ScannerEngineInputGenerator(new(), runtime, new RoslynV1SarifFixer(runtime.Logger), cmdLineArgs, additionalFileService);
+        var sut = new ScannerEngineInputGenerator(new(), runtime, new RoslynV1SarifFixer(runtime), cmdLineArgs, additionalFileService);
         var projectPaths = new[]
         {
             new DirectoryInfo(@"C:\Projects\Name\Lib"),

@@ -27,7 +27,7 @@ internal class MockRoslynV1SarifFixer : RoslynV1SarifFixer
     public int CallCount { get; private set; }
 
     /// <param name="returnVal">Provide null to return the original input value with ".fixed.mock.json" suffix</param>
-    public MockRoslynV1SarifFixer(string returnVal) : base(Substitute.For<ILogger>()) =>
+    public MockRoslynV1SarifFixer(string returnVal) : base(Substitute.For<IRuntime>()) =>
         ReturnVal = returnVal;
 
     public override string LoadAndFixFile(string sarifFilePath, string language)
