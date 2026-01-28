@@ -113,10 +113,16 @@ public static class TelemetryUtils
             // Whitelist of the properties that are logged with their value
             return MessagePair(provider, property);
         }
+        else if (IsSourceOnlyWhitelisted(property))
+        {
+            // Report source only, not the value
+            // See https://docs.google.com/spreadsheets/d/1L682GZWwVw5xUZPaFbYlJYN1m9whBu-uo1S-ZkpPq9A for the full list of whitelisted properties
+            return MessagePair(provider, property, null);
+        }
         else
         {
-            // Default: Write the source of the specified property but not its value
-            return MessagePair(provider, property, null);
+            // Default: Unknown properties are not reported
+            return [];
         }
     }
 
@@ -155,5 +161,74 @@ public static class TelemetryUtils
         {
             return "invalid";
         }
+    }
+
+    private static bool IsSourceOnlyWhitelisted(Property property)
+    {
+        var id = property.Id;
+        // Properties from SonarProperties class
+        if (property.IsKey(SonarProperties.CacheBaseUrl)
+            || property.IsKey(SonarProperties.SkipJreProvisioning)
+            || property.IsKey(SonarProperties.EngineJarPath)
+            || property.IsKey(SonarProperties.UseSonarScannerCLI)
+            || property.IsKey(SonarProperties.ConnectTimeout)
+            || property.IsKey(SonarProperties.SocketTimeout)
+            || property.IsKey(SonarProperties.ResponseTimeout)
+            || property.IsKey(SonarProperties.ScanAllAnalysis)
+            || property.IsKey(SonarProperties.ProjectBranch)
+            || property.IsKey(SonarProperties.ProjectName)
+            || property.IsKey(SonarProperties.ProjectVersion)
+            || property.IsKey(SonarProperties.PullRequestBase)
+            || property.IsKey(SonarProperties.Verbose)
+            || property.IsKey(SonarProperties.LogLevel)
+            || property.IsKey(SonarProperties.HttpTimeout)
+            || property.IsKey(SonarProperties.Sources)
+            || property.IsKey(SonarProperties.Tests)
+            || property.IsKey(SonarProperties.JavaxNetSslTrustStore))
+        {
+            return true;
+        }
+
+        // Additional known properties (string literals)
+        if (property.IsKey("sonar.ws.timeout")
+            || property.IsKey("sonar.projectDescription")
+            || property.IsKey("sonar.links.homepage")
+            || property.IsKey("sonar.links.ci")
+            || property.IsKey("sonar.links.issue")
+            || property.IsKey("sonar.links.scm")
+            || property.IsKey("sonar.externalIssuesReportPaths")
+            || property.IsKey("sonar.sarifReportPaths")
+            || property.IsKey("sonar.projectDate")
+            || property.IsKey("sonar.scm.provider")
+            || property.IsKey("sonar.scm.forceReloadAll")
+            || property.IsKey("sonar.scm.exclusions.disabled")
+            || property.IsKey("sonar.scm.revision")
+            || property.IsKey("sonar.buildString")
+            || property.IsKey("sonar.newCode.referenceBranch")
+            || property.IsKey("sonar.filesize.limit")
+            || property.IsKey("sonar.scanner.dumpToFile")
+            || property.IsKey("sonar.scanner.metadataFilePath")
+            || property.IsKey("sonar.qualitygate.wait")
+            || property.IsKey("sonar.qualitygate.timeout"))
+        {
+            return true;
+        }
+
+        // Pattern-based properties
+        // sonar.analysis.* (e.g., sonar.analysis.yourKey)
+        if (id.StartsWith("sonar.analysis.", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // sonar.cpd.{language}.minimumTokens and sonar.cpd.{language}.minimumLines
+        if (id.StartsWith("sonar.cpd.", StringComparison.OrdinalIgnoreCase)
+            && (id.EndsWith(".minimumTokens", StringComparison.OrdinalIgnoreCase)
+                || id.EndsWith(".minimumLines", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        return false;
     }
 }
