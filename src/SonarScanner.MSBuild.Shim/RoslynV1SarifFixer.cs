@@ -28,11 +28,11 @@ public class RoslynV1SarifFixer
     public const string CSharpLanguage = "cs";
     public const string VBNetLanguage = "vbnet";
     private const string FixedFileSuffix = "_fixed";
+    private const string Version = "version";
+    private readonly IRuntime runtime;
 
-    private readonly ILogger logger;
-
-    public RoslynV1SarifFixer(ILogger logger) =>
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    public RoslynV1SarifFixer(IRuntime runtime) =>
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
     /// <summary>
     /// Attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
@@ -42,37 +42,39 @@ public class RoslynV1SarifFixer
         if (!File.Exists(sarifFilePath))
         {
             // file cannot be found -> inherently unfixable
-            logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
+            runtime.Logger.LogInfo(Resources.MSG_SarifFileNotFound, sarifFilePath);
             return null;
         }
 
         var inputSarifFileString = File.ReadAllText(sarifFilePath);
-        if (IsValidJson(inputSarifFileString))
+        if (ValidJson(inputSarifFileString) is { } validJson)
         {
+            LogSarifVersionTelemetry(validJson, TelemetryKeys.EndStepSarifVersionValid);
             // valid input -> no fix required
-            logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
+            runtime.Logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
             return sarifFilePath;
         }
-        logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifFilePath);
+        runtime.Logger.LogDebug(Resources.MSG_SarifFileIsInvalid, sarifFilePath);
 
         if (!IsSarifFromRoslynV1(inputSarifFileString, language))
         {
             // invalid input NOT from Roslyn V1 -> unfixable
-            logger.LogWarning(Resources.WARN_SarifFixFail);
+            runtime.Logger.LogWarning(Resources.WARN_SarifFixFail);
             return null;
         }
 
         var changedSarif = ApplyFixToSarif(inputSarifFileString);
-        if (IsValidJson(changedSarif))
+        if (ValidJson(changedSarif) is { } fixedJson)
         {
             var newSarifFilePath = Path.Combine(Path.GetDirectoryName(sarifFilePath), Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath));
             File.WriteAllText(newSarifFilePath, changedSarif);
-            logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
+            runtime.Logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
+            LogSarifVersionTelemetry(fixedJson, TelemetryKeys.EndStepSarifVersionFixed);
             return newSarifFilePath;
         }
         else
         {
-            logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
+            runtime.Logger.LogWarning(Resources.WARN_SarifFixFail); // Unfixable
             return null;
         }
     }
@@ -98,19 +100,36 @@ public class RoslynV1SarifFixer
             input.Contains($@"""toolName"": ""Microsoft (R) {language} Compiler""") && input.Contains(@"""productVersion"": ""1.0.0""");
     }
 
+    private void LogSarifVersionTelemetry(JObject json, string telemetryKeyTemplate)
+    {
+        if (json.ContainsKey(Version) && json.Value<string>(Version) is { } version)
+        {
+            runtime.Telemetry[string.Format(telemetryKeyTemplate, SanitizeSarifVersion(version))] = TelemetryValues.EndStepSarifVersion.True;
+        }
+    }
+
+    /// <summary>
+    /// Turns "1.0.0" -> "V1_0_0_0" and "0.1" -> "V0_1_0_0".
+    /// </summary>
+    private static string SanitizeSarifVersion(string version)
+    {
+        var parts = version.Split('.');
+        var paddedVersion = "V" + string.Join("_", parts.Concat(Enumerable.Repeat("0", Math.Max(0, 4 - parts.Length))));
+        return TelemetryUtils.SanitizeKey(paddedVersion);
+    }
+
     /// <summary>
     /// Returns true if the input is parseable JSON. No checks are made for conformation to the SARIF specification.
     /// </summary>
-    private static bool IsValidJson(string input)
+    private static JObject ValidJson(string input)
     {
         try
         {
-            JObject.Parse(input);
-            return true;
+            return JObject.Parse(input);
         }
         catch (JsonReaderException) // we expect invalid JSON
         {
-            return false;
+            return null;
         }
     }
 

@@ -46,7 +46,7 @@ public class ScannerEngineInputGenerator
     private readonly IAnalysisPropertyProvider cmdLineArgs;
 
     public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IAnalysisPropertyProvider cmdLineArgs, IRuntime runtime)
-        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime.Logger), cmdLineArgs, new AdditionalFilesService(runtime))
+        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime), cmdLineArgs, new AdditionalFilesService(runtime))
     { }
 
     internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
