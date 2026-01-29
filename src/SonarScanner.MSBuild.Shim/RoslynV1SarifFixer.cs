@@ -20,7 +20,6 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static SonarScanner.MSBuild.Common.TelemetryValues;
 
 namespace SonarScanner.MSBuild.Shim;
 
@@ -50,10 +49,7 @@ public class RoslynV1SarifFixer
         var inputSarifFileString = File.ReadAllText(sarifFilePath);
         if (ValidJson(inputSarifFileString) is { } validJson)
         {
-            if (validJson.ContainsKey(Version) && validJson.Value<string>(Version) is { } version)
-            {
-                runtime.Telemetry[string.Format(TelemetryKeys.EndStepSarifVersion, SanitizeSarifVersion(version))] = EndStepSarifVersion.True;
-            }
+            LogSarifVersionTelemetry(validJson, TelemetryKeys.EndStepSarifVersionValid);
             // valid input -> no fix required
             runtime.Logger.LogDebug(Resources.MSG_SarifFileIsValid, sarifFilePath);
             return sarifFilePath;
@@ -73,10 +69,7 @@ public class RoslynV1SarifFixer
             var newSarifFilePath = Path.Combine(Path.GetDirectoryName(sarifFilePath), Path.GetFileNameWithoutExtension(sarifFilePath) + FixedFileSuffix + Path.GetExtension(sarifFilePath));
             File.WriteAllText(newSarifFilePath, changedSarif);
             runtime.Logger.LogInfo(Resources.MSG_SarifFixSuccess, newSarifFilePath);
-            if (fixedJson.ContainsKey(Version) && fixedJson.Value<string>(Version) is { } version)
-            {
-                runtime.Telemetry[string.Format(TelemetryKeys.EndStepSarifVersion, SanitizeSarifVersion(version))] = EndStepSarifVersion.True;
-            }
+            LogSarifVersionTelemetry(fixedJson, TelemetryKeys.EndStepSarifVersionFixed);
             return newSarifFilePath;
         }
         else
@@ -105,6 +98,14 @@ public class RoslynV1SarifFixer
         // Low risk of false positives / false negatives
         bool IsV1(string language) =>
             input.Contains($@"""toolName"": ""Microsoft (R) {language} Compiler""") && input.Contains(@"""productVersion"": ""1.0.0""");
+    }
+
+    private void LogSarifVersionTelemetry(JObject json, string telemetryKeyTemplate)
+    {
+        if (json.ContainsKey(Version) && json.Value<string>(Version) is { } version)
+        {
+            runtime.Telemetry[string.Format(telemetryKeyTemplate, SanitizeSarifVersion(version))] = TelemetryValues.EndStepSarifVersion.True;
+        }
     }
 
     /// <summary>
