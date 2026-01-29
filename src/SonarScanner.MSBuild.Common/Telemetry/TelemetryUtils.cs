@@ -219,6 +219,25 @@ public static class TelemetryUtils
             || property.IsKey("sonar.scm.revision")
             || property.IsKey("sonar.buildString")
             || property.IsKey("sonar.scanner.javaOpts")
+            // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/test-coverage/dotnet-test-coverage
+            // sonar.cs.vscoveragexml.reportsPath and sonar.cs.vstest.reportsPaths are already handled via directoryPath above
+            || property.IsKey("sonar.vbnet.vscoveragexml.reportsPath")
+            || property.IsKey("sonar.vbnet.vstest.reportsPaths")
+            || property.IsKey("sonar.cs.dotcover.reportsPaths")
+            || property.IsKey("sonar.vbnet.dotcover.reportsPaths")
+            || property.IsKey("sonar.cs.opencover.reportsPaths")
+            || property.IsKey("sonar.cs.ncover3.reportsPaths")
+            || property.IsKey("sonar.vbnet.ncover3.reportsPaths")
+            || property.IsKey("sonar.cs.nunit.reportsPaths")
+            || property.IsKey("sonar.vbnet.nunit.reportsPaths")
+            || property.IsKey("sonar.cs.xunit.reportsPaths")
+            || property.IsKey("sonar.vbnet.xunit.reportsPaths")
+            // UI settings
+            || property.IsKey("sonar.cs.analyzeGeneratedCode")
+            || property.IsKey("sonar.vbnet.analyzeGeneratedCode")
+            || property.IsKey("sonar.cs.ignoreHeaderComments")
+            || property.IsKey("sonar.vbnet.ignoreHeaderComments")
+            || property.IsKey("sonar.cs.analyzeRazorCode")
             // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-scope/narrowing-the-focus
             || property.IsKey("sonar.exclusions")
             || property.IsKey("sonar.test.exclusions")
