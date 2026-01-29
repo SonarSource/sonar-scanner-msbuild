@@ -21,6 +21,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.*;
 import com.sonar.orchestrator.build.BuildResult;
+import java.util.Arrays;
+import java.util.Collections;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.nio.file.Paths;
 import java.util.List;
+import org.sonarqube.ws.client.settings.SetRequest;
 
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
@@ -176,6 +179,39 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=4"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.using_microsoft_net_sdk.true=4"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=4"));
+  }
+
+  @Test
+  void telemetry_serverSettings()
+  {
+    var context = AnalysisContext.forServer(Paths.get("Telemetry", "Telemetry").toString());
+    context.orchestrator.getServer().provisionProject(context.projectKey, context.projectKey);
+    var client = TestUtils.newWsClient(context.orchestrator);
+    client.settings().set(new SetRequest()
+      .setComponent(context.projectKey)
+      .setKey("sonar.cs.analyzeGeneratedCode")
+      .setValue("false") // same as default, gets overridden by cli parameter
+    );
+    client.settings().set(new SetRequest()
+      .setComponent(context.projectKey)
+      .setKey("sonar.cs.analyzeRazorCode")
+      .setValue("false") // overrides default
+    );
+    client.settings().set(new SetRequest()
+      .setComponent(context.projectKey)
+      .setKey("sonar.cs.dotcover.reportsPaths") // gets overridden by cli parameter
+      .setValues(Collections.singletonList("**/*.dotcover.*.html"))
+    );
+    client.settings().set(new SetRequest()
+      .setComponent(context.projectKey)
+      .setKey("sonar.cs.opencover.reportsPaths")
+      .setValues(Arrays.asList("opencover1.xml", "opencover2.xml"))
+    );
+    context.begin
+      .setDebugLogs()
+      .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html") // overrides project setting from server
+      .setProperty("sonar.cs.analyzeGeneratedCode", "true"); // overrides project setting from server
+    var result = context.runAnalysis();
   }
 
   @NotNull
