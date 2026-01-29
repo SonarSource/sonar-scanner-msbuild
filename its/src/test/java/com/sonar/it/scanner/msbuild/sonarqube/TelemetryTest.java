@@ -46,6 +46,10 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.value=rooted"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_vstest_reportspaths.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_vstest_reportspaths.value=relative"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_vscoveragexml_reportspaths.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_vscoveragexml_reportspaths.value=relative"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scm_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_verbose.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.serverInfo.product=SQ_Server"),
@@ -72,7 +76,7 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.exclusion_proj.false=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.sonar_properties_in_project_file.set=1"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.plugin.coverage_reports=0"));
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.plugin.coverage_reports=2"));
   }
 
   @Test
@@ -186,6 +190,10 @@ class TelemetryTest {
   private static AnalysisResult runAnalysis(String telemetryProject) {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", telemetryProject).toString());
     context.begin.setDebugLogs();
+    if ("Telemetry".equals(telemetryProject)) {
+      context.begin.setProperty("sonar.cs.vscoveragexml.reportsPaths", "coverage.xml");
+      context.begin.setProperty("sonar.cs.vstest.reportsPaths", "testreport.trx");
+    }
     var result = context.runAnalysis();
     assertThat(result.isSuccess()).isTrue();
     return result;

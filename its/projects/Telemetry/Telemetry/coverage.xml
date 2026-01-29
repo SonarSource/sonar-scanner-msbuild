@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<results>
+  <modules>
+    <module id="TEST123" name="Telemetry.dll" path="Telemetry.dll" block_coverage="50.00" line_coverage="50.00" blocks_covered="1" blocks_not_covered="1" lines_covered="1" lines_partially_covered="0" lines_not_covered="1">
+      <functions>
+        <function id="1001" token="0x6000001" name="TestMethod()" namespace="Telemetry" type_name="TestClass" block_coverage="100.00" line_coverage="100.00" blocks_covered="1" blocks_not_covered="0" lines_covered="1" lines_partially_covered="0" lines_not_covered="0">
+          <ranges>
+            <range source_id="0" start_line="10" end_line="10" start_column="5" end_column="20" covered="yes" />
+          </ranges>
+        </function>
+      </functions>
+      <source_files>
+        <source_file id="0" path="C:\Test\Telemetry\TestClass.cs" checksum_type="SHA256" checksum="ABC123" />
+      </source_files>
+      <skipped_functions />
+    </module>
+  </modules>
+  <skipped_modules />
+</results>
