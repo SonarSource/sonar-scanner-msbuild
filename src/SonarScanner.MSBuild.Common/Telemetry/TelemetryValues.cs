@@ -83,4 +83,10 @@ public static class TelemetryValues
     {
         public static readonly string Default = "default";
     }
+
+    public static class Runtimes
+    {
+        public static readonly string NetFramework = "netframework";
+        public static readonly string NetCore = "netcore";
+    }
 }
