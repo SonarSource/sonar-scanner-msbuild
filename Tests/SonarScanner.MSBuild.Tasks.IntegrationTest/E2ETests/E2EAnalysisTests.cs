@@ -508,6 +508,9 @@ public class E2EAnalysisTests
         var filesToAnalyze = projectInfo.AssertAnalysisResultFileExists(nameof(AnalysisResultFileType.FilesToAnalyze));
         var actualFilesToAnalyze = File.ReadAllLines(filesToAnalyze.Location);
         actualFilesToAnalyze.Should().BeEquivalentTo([codeFile, contentFile], "Unexpected list of files to analyze");
+        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
+        File.Exists(projectTelemetryFile).Should().BeTrue();
+        File.ReadAllLines(projectTelemetryFile).Should().Contain("""{"dotnetenterprise.s4net.build.exclusion_file.cnt":"true"}""");
     }
 
     // Checks that projects that don't include the standard managed targets are still
