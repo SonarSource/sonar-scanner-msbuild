@@ -306,18 +306,16 @@
     <ItemGroup Condition="('$(SQAnalysisFileItemTypes)' != '')">
       <SonarQubeAnalysisFileItems Include="$(SQAnalysisFileItemTypes)" />
       <SonarQubeAnalysisFiles Include="@(%(SonarQubeAnalysisFileItems.Identity))" />
-
-      <!-- Capture files with SonarQubeExclude=true metadata for telemetry before removing them -->
-      <SonarQubeExcludedFiles Include="@(SonarQubeAnalysisFiles)" Condition="%(SonarQubeAnalysisFiles.SonarQubeExclude) == 'true'" />
-
-      <SonarQubeAnalysisFiles Remove="@(SonarQubeAnalysisFiles)" Condition=" %(SonarQubeAnalysisFiles.SonarQubeExclude) == 'true' OR %(SonarQubeAnalysisFiles.AutoGen) == 'true' OR %(SonarQubeAnalysisFiles.FullPath) == '$(TargetFrameworkMonikerAssemblyAttributesPath)'" />
     </ItemGroup>
 
-    <!-- Set property indicating whether any files were excluded via SonarQubeExclude metadata -->
+    <!-- Check if any files have SonarQubeExclude=true metadata BEFORE removing them -->
     <PropertyGroup>
-      <SonarQubeHasFileExclusions Condition="@(SonarQubeExcludedFiles) != ''">true</SonarQubeHasFileExclusions>
-      <SonarQubeHasFileExclusions Condition="@(SonarQubeExcludedFiles) == ''">false</SonarQubeHasFileExclusions>
+      <SonarQubeHasFileExclusions Condition="'@(SonarQubeAnalysisFiles->AnyHaveMetadataValue('SonarQubeExclude', 'true'))' == 'true'">true</SonarQubeHasFileExclusions>
     </PropertyGroup>
+
+    <ItemGroup Condition="('$(SQAnalysisFileItemTypes)' != '')">
+      <SonarQubeAnalysisFiles Remove="@(SonarQubeAnalysisFiles)" Condition=" %(SonarQubeAnalysisFiles.SonarQubeExclude) == 'true' OR %(SonarQubeAnalysisFiles.AutoGen) == 'true' OR %(SonarQubeAnalysisFiles.FullPath) == '$(TargetFrameworkMonikerAssemblyAttributesPath)'" />
+    </ItemGroup>
 
     <!-- Exclude items under the intermediate output folder e.g. XAML files that are auto-generated on build -->
     <PropertyGroup>
@@ -416,8 +414,8 @@
       <SonarProjectTelemetry Condition="$(SonarQubeTestProjectExplicitlySetToTrue) != ''" Include="dotnetenterprise.s4net.build.test_project_in_proj.cnt">
         <Value>$(SonarQubeTestProjectExplicitlySetToTrue)</Value>
       </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="$(SonarQubeHasFileExclusions) != ''" Include="dotnetenterprise.s4net.build.exclusion_file.cnt">
-        <Value>$(SonarQubeHasFileExclusions)</Value>
+      <SonarProjectTelemetry Condition="$(SonarQubeHasFileExclusions) == 'true'" Include="dotnetenterprise.s4net.build.exclusion_file.cnt">
+        <Value>true</Value>
       </SonarProjectTelemetry>
     </ItemGroup>
     <WriteSonarTelemetry Condition="$(SonarProjectTelemetryFilePath)!=''" Filename="$(SonarProjectTelemetryFilePath)" Telemetry="@(SonarProjectTelemetry)" />

@@ -796,8 +796,7 @@ public class E2EAnalysisTests
             x => x.Should().Be("""{"dotnetenterprise.s4net.build.using_microsoft_net_sdk.cnt":"true"}"""),
             x => x.Should().Be("""{"dotnetenterprise.s4net.build.deterministic.cnt":"true"}"""),
             x => x.Should().Be("""{"dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt":"set"}"""),
-            x => x.Should().Be("""{"dotnetenterprise.s4net.build.test_project_in_proj.cnt":"true"}"""),
-            x => x.Should().Be("""{"dotnetenterprise.s4net.build.exclusion_file.cnt":"false"}"""));
+            x => x.Should().Be("""{"dotnetenterprise.s4net.build.test_project_in_proj.cnt":"true"}"""));
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
