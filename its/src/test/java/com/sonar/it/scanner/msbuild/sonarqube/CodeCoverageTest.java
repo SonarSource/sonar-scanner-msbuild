@@ -79,6 +79,11 @@ class CodeCoverageTest {
       assertThat(logs).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
       assertThat(logs).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
       assertThat(logs).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");
+      // Verify telemetry for coverage conversion by reading the telemetry file directly
+      // (sonar-scanner CLI doesn't log "Adding metric" like Scanner Engine does, so we check the file)
+      // See also TelemetryTest for coverage_conversion=false scenarios
+      var telemetryFile = buildDirectory.path.resolve(".sonarqube/out/telemetry.json");
+      assertThat(telemetryFile).content().contains("\"dotnetenterprise.s4net.end.coverage_conversion\":\"true\"");
     }
   }
 
