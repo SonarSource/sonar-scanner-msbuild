@@ -40,4 +40,6 @@ public static class TelemetryKeys
 
     public const string EndStepSarifVersionValid = "dotnetenterprise.s4net.endstep.Sarif.{0}.Valid";
     public const string EndStepSarifVersionFixed = "dotnetenterprise.s4net.endstep.Sarif.{0}.Fixed";
+    // Begin
+    public const string BeginRuntime                = "dotnetenterprise.s4net.begin.runtime";
 }

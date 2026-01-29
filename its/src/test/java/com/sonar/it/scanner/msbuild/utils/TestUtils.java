@@ -60,16 +60,19 @@ public class TestUtils {
 
   public static void createVirtualDrive(String drive, Path projectDir, String subDirectory) {
     var target = projectDir.resolve(subDirectory).toAbsolutePath().toString();
-    // If SUBST fails, it's most likely flakiness from a previous canceled run that did not clean up the drive.
+    // If SUBST fails, the drive is most likely already set up by another concurrent run.
     new GeneralCommand("SUBST", projectDir)
       .addArgument(drive)
       .addArgument(target)
+      .ignoreExitCode()
       .execute();
   }
 
   public static void deleteVirtualDrive(String drive, Path projectDir) {
+    // If deletion fails, another test run is likely still using the drive.
     new GeneralCommand("SUBST", projectDir)
       .addArgument(drive).addArgument("/D")
+      .ignoreExitCode()
       .execute();
   }
 

@@ -33,6 +33,7 @@ import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 public class GeneralCommand extends BaseCommand<GeneralCommand> {
   private final String command;
   private final ArrayList<String> arguments = new ArrayList<>();
+  private boolean ignoreExitCode = false;
 
   public GeneralCommand(String command, Path workingDirectory) {
     super(workingDirectory);
@@ -49,6 +50,11 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
     return this;
   }
 
+  public GeneralCommand ignoreExitCode() {
+    ignoreExitCode = true;
+    return this;
+  }
+
   public BuildResult execute() {
     var command = Command.create(this.command).setDirectory(projectDir.toFile()).addArguments(arguments);
     command.replaceEnvironment(environment);
@@ -57,7 +63,9 @@ public class GeneralCommand extends BaseCommand<GeneralCommand> {
     var result = new BuildResult();
     var returnCode = CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout.miliseconds);
     result.addStatus(returnCode);
-    assertThat(result.isSuccess()).describedAs("Command '" + commandLine + "' failed with logs: " + result.getLogs()).isTrue();
+    if (!ignoreExitCode) {
+      assertThat(result.isSuccess()).describedAs("Command '" + commandLine + "' failed with logs: " + result.getLogs()).isTrue();
+    }
     LOG.info("Command line finish: '{}' in {}", commandLine, command.getDirectory());
     return result;
   }

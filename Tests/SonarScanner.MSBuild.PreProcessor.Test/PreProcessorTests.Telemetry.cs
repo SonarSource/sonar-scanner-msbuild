@@ -31,8 +31,8 @@ public partial class PreProcessorTests
         };
         var telemetry = await CreateTelemetry(args);
 
-        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.cmd_line1.source", "CLI")
-            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
+        // Note: cmd.line1 is an unknown property and is not reported (only whitelisted properties are reported)
+        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
@@ -49,8 +49,8 @@ public partial class PreProcessorTests
         };
         var telemetry = await CreateTelemetry(args);
 
-        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.cmd_line1.source", "CLI")
-            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
+        // Note: cmd.line1 is an unknown property and is not reported (only whitelisted properties are reported)
+        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_ANALYSIS_XML")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
@@ -62,8 +62,8 @@ public partial class PreProcessorTests
     {
         var telemetry = await CreateTelemetry(environmentVariables: new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "false"}"""));
 
-        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.cmd_line1.source", "CLI")
-            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
+        // Note: cmd.line1 is an unknown property and is not reported (only whitelisted properties are reported)
+        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_SCANNER_PARAMS")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
@@ -79,8 +79,8 @@ public partial class PreProcessorTests
         };
         var telemetry = await CreateTelemetry(args, new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "true"}"""));
 
-        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.cmd_line1.source", "CLI")
-            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
+        // Note: cmd.line1 is an unknown property and is not reported (only whitelisted properties are reported)
+        telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")

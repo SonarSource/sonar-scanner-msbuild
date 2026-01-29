@@ -55,21 +55,40 @@ public class TelemetryUtilsTests
     [DataRow(SonarProperties.UserHome, "/SomePath", "dotnetenterprise.s4net.params.sonar_userhome.source=CLI", "dotnetenterprise.s4net.params.sonar_userhome.value=rooted")]
     [DataRow(SonarProperties.WorkingDirectory, "/SomePath", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=rooted")]
     [DataRow(SonarProperties.WorkingDirectory, "SomePath", "dotnetenterprise.s4net.params.sonar_working_directory.source=CLI", "dotnetenterprise.s4net.params.sonar_working_directory.value=relative")]
-    // Some wellknown properties with confidential data
+    // Some wellknown properties with confidential data (source only)
     [DataRow(SonarProperties.ProjectBranch, "someValue", "dotnetenterprise.s4net.params.sonar_branch.source=CLI")]
     [DataRow(SonarProperties.ProjectName, "someValue", "dotnetenterprise.s4net.params.sonar_projectname.source=CLI")]
     [DataRow(SonarProperties.ProjectVersion, "someValue", "dotnetenterprise.s4net.params.sonar_projectversion.source=CLI")]
     [DataRow(SonarProperties.Sources, "someValue", "dotnetenterprise.s4net.params.sonar_sources.source=CLI")]
     [DataRow(SonarProperties.Tests, "someValue", "dotnetenterprise.s4net.params.sonar_tests.source=CLI")]
+    // Additional whitelisted properties (source only, string literals)
+    [DataRow("sonar.ws.timeout", "30", "dotnetenterprise.s4net.params.sonar_ws_timeout.source=CLI")]
+    [DataRow("sonar.projectDescription", "My Project", "dotnetenterprise.s4net.params.sonar_projectdescription.source=CLI")]
+    [DataRow("sonar.links.homepage", "https://example.com", "dotnetenterprise.s4net.params.sonar_links_homepage.source=CLI")]
+    [DataRow("sonar.scm.provider", "git", "dotnetenterprise.s4net.params.sonar_scm_provider.source=CLI")]
+    [DataRow("sonar.qualitygate.wait", "true", "dotnetenterprise.s4net.params.sonar_qualitygate_wait.source=CLI")]
+    // Pattern-based properties (sonar.analysis.*)
+    [DataRow("sonar.analysis.myKey", "myValue", "dotnetenterprise.s4net.params.sonar_analysis_mykey.source=CLI")]
+    [DataRow("sonar.analysis.buildNumber", "123", "dotnetenterprise.s4net.params.sonar_analysis_buildnumber.source=CLI")]
+    // Pattern-based properties (sonar.cpd.{language}.minimumTokens/minimumLines)
+    [DataRow("sonar.cpd.java.minimumTokens", "100", "dotnetenterprise.s4net.params.sonar_cpd_java_minimumtokens.source=CLI")]
+    [DataRow("sonar.cpd.cs.minimumLines", "10", "dotnetenterprise.s4net.params.sonar_cpd_cs_minimumlines.source=CLI")]
+    // Pattern-based properties (*.cobertura and *.cobertura.*)
+    [DataRow("sonar.cs.cobertura", "value", "dotnetenterprise.s4net.params.sonar_cs_cobertura.source=CLI")]
+    [DataRow("sonar.cs.cobertura.reportPaths", "/path", "dotnetenterprise.s4net.params.sonar_cs_cobertura_reportpaths.source=CLI")]
+    [DataRow("sonar.vbnet.cobertura.reportPaths", "/path", "dotnetenterprise.s4net.params.sonar_vbnet_cobertura_reportpaths.source=CLI")]
+    // Pattern-based properties (sonar.sca.*)
+    [DataRow("sonar.sca.enabled", "true", "dotnetenterprise.s4net.params.sonar_sca_enabled.source=CLI")]
+    [DataRow("sonar.sca.exclusions", "**/*.dll", "dotnetenterprise.s4net.params.sonar_sca_exclusions.source=CLI")]
     // Whitelisted properties
     [DataRow(SonarProperties.OperatingSystem, "Windows", "dotnetenterprise.s4net.params.sonar_scanner_os.source=CLI", "dotnetenterprise.s4net.params.sonar_scanner_os.value=Windows")]
     [DataRow(SonarProperties.Architecture, "x64", "dotnetenterprise.s4net.params.sonar_scanner_arch.source=CLI", "dotnetenterprise.s4net.params.sonar_scanner_arch.value=x64")]
     [DataRow(SonarProperties.SourceEncoding, "UTF-8", "dotnetenterprise.s4net.params.sonar_sourceencoding.source=CLI", "dotnetenterprise.s4net.params.sonar_sourceencoding.value=UTF-8")]
     [DataRow(SonarProperties.JavaxNetSslTrustStoreType, "Windows-ROOT", "dotnetenterprise.s4net.params.javax_net_ssl_truststoretype.source=CLI", "dotnetenterprise.s4net.params.javax_net_ssl_truststoretype.value=Windows-ROOT")]
-    // Unknown, pass-through properties
-    [DataRow("something", "value", "dotnetenterprise.s4net.params.something.source=CLI")]
-    [DataRow("something.other", "value", "dotnetenterprise.s4net.params.something_other.source=CLI")]
-    [DataRow("Something.Other", "value", "dotnetenterprise.s4net.params.something_other.source=CLI")]
+    // Unknown properties are not reported
+    [DataRow("something", "value")]
+    [DataRow("something.other", "value")]
+    [DataRow("Something.Other", "value")]
 #pragma warning restore S103 // Lines should not be too long
     public void LoggedTelemetryFromProperties(string propertyId, string value, params string[] exepectedTelemetry) =>
         AssertTelemetry(propertyId, value, exepectedTelemetry);

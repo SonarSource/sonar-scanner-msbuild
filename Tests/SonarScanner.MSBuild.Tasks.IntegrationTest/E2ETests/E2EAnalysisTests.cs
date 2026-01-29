@@ -754,8 +754,16 @@ public class E2EAnalysisTests
         var context = CreateContext();
         var codeFilePath = context.CreateInputFile("codeFile1.cs");
         var projectXml = $"""
+            <PropertyGroup>
+              <SonarQubeTestProject>true</SonarQubeTestProject>
+            </PropertyGroup>
             <ItemGroup>
               <Compile Include='{codeFilePath}' />
+            </ItemGroup>
+            <ItemGroup>
+              <SonarQubeSetting Include="sonar.my.custom.setting">
+                <Value>customValue</Value>
+              </SonarQubeSetting>
             </ItemGroup>
             """;
         var projectFilePath = context.CreateProjectFile(projectXml);
@@ -786,7 +794,9 @@ public class E2EAnalysisTests
             x => x.Should().Be(""""{"dotnetenterprise.s4net.build.override_warnings_as_errors.cnt":"true"}""""),
             x => x.Should().StartWith("""{"dotnetenterprise.s4net.build.target_framework_moniker":"""),
             x => x.Should().Be("""{"dotnetenterprise.s4net.build.using_microsoft_net_sdk.cnt":"true"}"""),
-            x => x.Should().Be("""{"dotnetenterprise.s4net.build.deterministic.cnt":"true"}"""));
+            x => x.Should().Be("""{"dotnetenterprise.s4net.build.deterministic.cnt":"true"}"""),
+            x => x.Should().Be("""{"dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt":"set"}"""),
+            x => x.Should().Be("""{"dotnetenterprise.s4net.build.test_project_in_proj.cnt":"true"}"""));
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)

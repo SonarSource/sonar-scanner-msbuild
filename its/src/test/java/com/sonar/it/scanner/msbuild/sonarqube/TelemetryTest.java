@@ -42,7 +42,6 @@ class TelemetryTest {
     var result = runAnalysis("Telemetry");
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=3"),
-      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
@@ -57,18 +56,24 @@ class TelemetryTest {
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.test_project_in_proj.false=1"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.test_project_in_proj.true=1"),
       // Telemetry/Telemetry/Telemetry.csproj has TreatWarningsAsErrors=true (1 project)
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_treat_warnings_as_errors.true=1"),
+      // Telemetry/Telemetry/Telemetry.csproj has ErrorLog set (1 project)
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.error_log_set.set=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_warnings_as_errors.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.using_microsoft_net_sdk.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.exclusion_proj.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.exclusion_proj.false=2"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=3"));
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=3"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.sonar_properties_in_project_file.set=1"));
   }
 
   @Test
@@ -78,7 +83,6 @@ class TelemetryTest {
     var result = runAnalysis("TelemetryVB");
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).matches("vbnet\\.vbnet\\.language_version\\.visualbasic(15|16|17_13)=3"),
-      x -> assertThat(x).isEqualTo("vbnet.vbnet.target_framework.netstandard1_6=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
@@ -93,6 +97,7 @@ class TelemetryTest {
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
@@ -110,7 +115,6 @@ class TelemetryTest {
     var result = runAnalysis("TelemetryCSVBMixed");
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).matches("vbnet\\.vbnet\\.language_version\\.visualbasic(15|16|17_13)=1"),
-      x -> assertThat(x).isEqualTo("vbnet.vbnet.target_framework.netstandard1_6=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
@@ -125,11 +129,11 @@ class TelemetryTest {
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
       x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=2"),
-      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.netstandard1_6=2"),
       // VB telemetry (1 VB project)
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=1"),
@@ -155,8 +159,6 @@ class TelemetryTest {
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp12=2"),
       x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp14=2"),
-      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net8_0=2"),
-      x -> assertThat(x).isEqualTo("csharp.cs.target_framework.net10_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
@@ -171,6 +173,7 @@ class TelemetryTest {
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
