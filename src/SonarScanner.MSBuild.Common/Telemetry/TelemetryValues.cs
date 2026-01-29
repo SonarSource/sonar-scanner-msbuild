@@ -67,6 +67,11 @@ public static class TelemetryValues
         public static readonly string NotCalled = nameof(NotCalled);
     }
 
+    public static class EndStepSarifVersion
+    {
+        public static readonly string True = nameof(True);
+    }
+
     public static class Product
     {
         public static readonly string Server = "SQ_Server";

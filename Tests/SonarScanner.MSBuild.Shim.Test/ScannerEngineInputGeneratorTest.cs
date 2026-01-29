@@ -41,7 +41,7 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var cnfg = new AnalysisConfig();
         var rntm = runtime;
-        var rvsf = new RoslynV1SarifFixer(runtime.Logger);
+        var rvsf = new RoslynV1SarifFixer(runtime);
         var cmds = new ListPropertiesProvider();
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, cmds, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");
@@ -218,7 +218,7 @@ public partial class ScannerEngineInputGeneratorTest
                                                   RoslynV1SarifFixer sarifFixer = null,
                                                   PlatformOS os = PlatformOS.Unknown)
     {
-        sarifFixer ??= new RoslynV1SarifFixer(runtime.Logger);
+        sarifFixer ??= new RoslynV1SarifFixer(runtime);
         if (os != PlatformOS.Unknown)
         {
             runtime.ConfigureOS(os);

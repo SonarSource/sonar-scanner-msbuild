@@ -27,6 +27,9 @@ public static class TelemetryUtils
     // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
     private static readonly Regex SanitizeKeyRegex = new("[^a-zA-Z0-9]", RegexOptions.None, RegexConstants.DefaultTimeout);
 
+    public static string SanitizeKey(string key) =>
+        SanitizeKeyRegex.Replace(key, "_");
+
     public static void AddTelemetry(ITelemetry telemetry, AggregatePropertiesProvider aggregatedProperties)
     {
         foreach (var kvp in aggregatedProperties.GetAllPropertiesWithProvider().SelectMany(SelectManyTelemetryProperties))
@@ -66,7 +69,7 @@ public static class TelemetryUtils
     }
 
     internal static string ToTelemetryId(string property) =>
-        $"dotnetenterprise.s4net.params.{SanitizeKeyRegex.Replace(property, "_").ToLowerInvariant()}";
+        $"dotnetenterprise.s4net.params.{SanitizeKey(property).ToLowerInvariant()}";
 
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {
