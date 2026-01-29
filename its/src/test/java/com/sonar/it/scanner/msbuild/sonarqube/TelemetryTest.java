@@ -182,27 +182,24 @@ class TelemetryTest {
   }
 
   @Test
-  void telemetry_serverSettings()
-  {
+  void telemetry_serverSettings() {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "Telemetry").toString());
     context.orchestrator.getServer().provisionProject(context.projectKey, context.projectKey);
-    var client = TestUtils.newWsClient(context.orchestrator);
-    client.settings().set(new SetRequest()
-      .setComponent(context.projectKey)
+    var settings = TestUtils.newWsClient(context.orchestrator).settings();
+    java.util.function.Supplier<SetRequest> request = () -> new SetRequest().setComponent(context.projectKey);
+    settings.set(request.get()
       .setKey("sonar.cs.analyzeGeneratedCode")
       .setValue("false") // same as default, gets overridden by cli parameter
     );
-    client.settings().set(new SetRequest()
-      .setComponent(context.projectKey)
+    settings.set(request.get()
       .setKey("sonar.cs.analyzeRazorCode")
       .setValue("false") // overrides default
     );
-    client.settings().set(new SetRequest()
-      .setComponent(context.projectKey)
+    settings.set(request.get()
       .setKey("sonar.cs.dotcover.reportsPaths") // gets overridden by cli parameter
       .setValues(Collections.singletonList("**/*.dotcover.*.html"))
     );
-    client.settings().set(new SetRequest()
+    settings.set(request.get()
       .setComponent(context.projectKey)
       .setKey("sonar.cs.opencover.reportsPaths")
       .setValues(Arrays.asList("opencover1.xml", "opencover2.xml"))
