@@ -84,7 +84,7 @@ public class RoslynV1SarifFixerTests
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().Be(testSarifPath);
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0.Valid", "True"));
+            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0", "True"));
     }
 
     [TestMethod]
@@ -241,7 +241,7 @@ public class RoslynV1SarifFixerTests
         returnedSarifPath.Should().NotBeNull();
         File.ReadAllText(returnedSarifPath).Should().Be(expectedSarif.ToEnvironmentLineEndings());
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0.Fixed", "True"));
+            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0", "True"));
     }
 
     [TestMethod]
@@ -299,7 +299,7 @@ public class RoslynV1SarifFixerTests
         returnedSarifPath.Should().NotBeNull();
         File.ReadAllText(returnedSarifPath).Should().Be(expectedSarif.ToEnvironmentLineEndings());
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0.Fixed", "True"));
+            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0", "True"));
     }
 
     [TestMethod]
@@ -379,7 +379,7 @@ public class RoslynV1SarifFixerTests
         returnedSarifPath.Should().NotBeNull();
         File.ReadAllText(returnedSarifPath).Should().Be(expectedSarif.ToEnvironmentLineEndings());
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0.Fixed", "True"));
+            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0", "True"));
     }
 
     [TestMethod]
@@ -445,7 +445,7 @@ public class RoslynV1SarifFixerTests
         returnedSarifPath.Should().NotBeNull();
         File.ReadAllText(returnedSarifPath).Should().Be(expectedSarif.ToEnvironmentLineEndings());
         runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0.Fixed", "True"));
+            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.V0_1_0_0", "True"));
     }
 
     /// <summary>
