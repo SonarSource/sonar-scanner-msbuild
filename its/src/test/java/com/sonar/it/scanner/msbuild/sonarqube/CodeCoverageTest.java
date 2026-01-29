@@ -82,8 +82,7 @@ class CodeCoverageTest {
       // Verify telemetry for coverage conversion by reading the telemetry file directly
       // (sonar-scanner CLI doesn't log "Adding metric" like Scanner Engine does, so we check the file)
       // See also TelemetryTest for coverage_conversion=false scenarios
-      var telemetryFile = buildDirectory.path.resolve(".sonarqube/out/telemetry.json");
-      assertThat(telemetryFile).content().contains("\"dotnetenterprise.s4net.end.coverage_conversion\":\"true\"");
+      assertThat(buildDirectory.path.resolve(".sonarqube/out/Telemetry.S4NET.json")).content().contains("\"dotnetenterprise.s4net.end.coverage_conversion\":\"true\"");
     }
   }
 
