@@ -306,16 +306,15 @@
     <ItemGroup Condition="('$(SQAnalysisFileItemTypes)' != '')">
       <SonarQubeAnalysisFileItems Include="$(SQAnalysisFileItemTypes)" />
       <SonarQubeAnalysisFiles Include="@(%(SonarQubeAnalysisFileItems.Identity))" />
-    </ItemGroup>
-
-    <!-- Check if any files have SonarQubeExclude=true metadata BEFORE removing them -->
-    <PropertyGroup>
-      <SonarQubeHasFileExclusions Condition="'@(SonarQubeAnalysisFiles->AnyHaveMetadataValue('SonarQubeExclude', 'true'))' == 'true'">true</SonarQubeHasFileExclusions>
-    </PropertyGroup>
-
-    <ItemGroup Condition="('$(SQAnalysisFileItemTypes)' != '')">
+      <!-- Capture files with SonarQubeExclude=true metadata for telemetry before removing them -->
+      <SonarQubeExcludedFiles Include="@(SonarQubeAnalysisFiles)" Condition="%(SonarQubeAnalysisFiles.SonarQubeExclude) == 'true'" />
       <SonarQubeAnalysisFiles Remove="@(SonarQubeAnalysisFiles)" Condition=" %(SonarQubeAnalysisFiles.SonarQubeExclude) == 'true' OR %(SonarQubeAnalysisFiles.AutoGen) == 'true' OR %(SonarQubeAnalysisFiles.FullPath) == '$(TargetFrameworkMonikerAssemblyAttributesPath)'" />
     </ItemGroup>
+
+    <!-- Set property indicating whether any files were excluded via SonarQubeExclude metadata -->
+    <PropertyGroup>
+      <SonarQubeHasFileExclusions Condition="@(SonarQubeExcludedFiles) != ''">true</SonarQubeHasFileExclusions>
+    </PropertyGroup>
 
     <!-- Exclude items under the intermediate output folder e.g. XAML files that are auto-generated on build -->
     <PropertyGroup>
