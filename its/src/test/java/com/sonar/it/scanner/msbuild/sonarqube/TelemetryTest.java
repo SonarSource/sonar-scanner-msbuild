@@ -92,7 +92,13 @@ class TelemetryTest {
       // Server settings: only non-default values are reported
       // Note: Properties with default values (ignoreHeaderComments=true, analyzeGeneratedCode=false) are filtered out
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_opencover_reportspaths.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
+      // CLI properties (override server settings or add new ones)
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_dotcover_reportspaths.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.begin.runtime=netcore"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -112,13 +118,6 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.exclusion_file.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.sonar_properties_in_project_file.set=1"));
-
-    // Additional assertions for custom server settings and CLI overrides
-    assertThatEndLogMetrics(result.end())
-      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"))
-      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_opencover_reportspaths.source=SQ_SERVER_SETTINGS"))
-      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=CLI"))
-      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_dotcover_reportspaths.source=CLI"));
   }
 
   @Test
