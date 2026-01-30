@@ -37,7 +37,7 @@ public static class TelemetryKeys
     public const string ServerInfoVersion           = "dotnetenterprise.s4net.serverInfo.version";
     // EndStep
     public const string EndstepLegacyTFS            = "dotnetenterprise.s4net.endstep.legacyTFS";
-
+    public const string EndstepCoverageConversion   = "dotnetenterprise.s4net.endstep.coverage_conversion";
     public const string EndStepSarifVersionValid = "dotnetenterprise.s4net.endstep.Sarif.{0}.Valid";
     public const string EndStepSarifVersionFixed = "dotnetenterprise.s4net.endstep.Sarif.{0}.Fixed";
     // Begin

@@ -56,6 +56,8 @@ class TelemetryTest {
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
+      // coverage_conversion=true is tested in CodeCoverageTest.whenRunningOnAzureDevops_coverageIsImported
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -98,6 +100,7 @@ class TelemetryTest {
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -130,6 +133,7 @@ class TelemetryTest {
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -174,6 +178,7 @@ class TelemetryTest {
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -202,4 +207,3 @@ class TelemetryTest {
     return assertThat(endLogs).map(x -> x.replaceFirst(metricLog, ""));
   }
 }
-
