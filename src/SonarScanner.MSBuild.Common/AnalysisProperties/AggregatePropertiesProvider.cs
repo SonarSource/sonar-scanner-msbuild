@@ -80,7 +80,6 @@ public class AggregatePropertiesProvider : IAnalysisPropertyProvider
         return false;
     }
 
-    /// <summary>Only call this, if you are sure it contains the key, otherwise it will crash.</summary>
     private static IAnalysisPropertyProvider UnwrapNestedProvider(IAnalysisPropertyProvider provider, string key) =>
         provider is AggregatePropertiesProvider aggregate
             ? UnwrapNestedProvider(aggregate.providers.First(x => x.HasProperty(key)), key)

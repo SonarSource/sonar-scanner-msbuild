@@ -27,9 +27,9 @@ public static class TelemetryUtils
     // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
     private static readonly Regex SanitizeKeyRegex = new("[^a-zA-Z0-9]", RegexOptions.None, RegexConstants.DefaultTimeout);
 
-    // Source: sonar-dotnet-enterprise repository
-    // - CSharpPropertyDefinitions.java: sonar.cs.analyzeRazorCode=true
-    // - AbstractPropertyDefinitions.java: ignoreHeaderComments=true, analyzeGeneratedCode=false
+    // Sources:
+    // - https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-csharp-core/src/main/java/org/sonarsource/csharp/core/CSharpPropertyDefinitions.java:
+    // - https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/AbstractPropertyDefinitions.java
     private static readonly Dictionary<string, string> ServerPropertyDefaults = new(StringComparer.OrdinalIgnoreCase)
     {
         // C# analyzer properties
