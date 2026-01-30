@@ -42,39 +42,35 @@ class TelemetryTest {
   @MSBuildMinVersion(16)
   @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CS() {
-    // Setup context with custom server settings to test server settings telemetry
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "Telemetry").toString());
     context.orchestrator.getServer().provisionProject(context.projectKey, context.projectKey);
     var settings = TestUtils.newWsClient(context.orchestrator).settings();
     java.util.function.Supplier<SetRequest> request = () -> new SetRequest().setComponent(context.projectKey);
-
     // Configure custom server settings
     settings.set(request.get()
       .setKey("sonar.cs.analyzeGeneratedCode")
-      .setValue("false") // same as default, gets overridden by cli parameter
+      .setValue("false")                                                    // same as default, gets overridden by cli parameter
     );
     settings.set(request.get()
       .setKey("sonar.cs.analyzeRazorCode")
-      .setValue("false") // overrides default
+    .setValue("false")                                                      // overrides default
     );
     settings.set(request.get()
-      .setKey("sonar.cs.dotcover.reportsPaths") // gets overridden by cli parameter
+      .setKey("sonar.cs.dotcover.reportsPaths")                             // gets overridden by cli parameter
       .setValues(Collections.singletonList("**/*.dotcover.*.html"))
     );
     settings.set(request.get()
       .setKey("sonar.cs.opencover.reportsPaths")
       .setValues(Arrays.asList("opencover1.xml", "opencover2.xml"))
     );
-
-    // Configure CLI properties (some override server settings)
+    // Configure CLI properties
     context.begin
       .setDebugLogs()
-      .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html") // overrides server setting
-      .setProperty("sonar.cs.analyzeGeneratedCode", "true"); // overrides server setting
+      .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html")  // overrides server setting
+      .setProperty("sonar.cs.analyzeGeneratedCode", "true");                  // overrides server setting
 
     var result = context.runAnalysis();
     assertThat(result.isSuccess()).isTrue();
-
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
