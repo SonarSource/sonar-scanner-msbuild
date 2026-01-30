@@ -30,6 +30,7 @@ public static class TelemetryUtils
     // Sources:
     // - https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-csharp-core/src/main/java/org/sonarsource/csharp/core/CSharpPropertyDefinitions.java:
     // - https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/AbstractPropertyDefinitions.java
+    // - https://docs.sonarsource.com/sonarqube-server/10.8/analyzing-source-code/analysis-parameters#analysis-scope
     private static readonly Dictionary<string, string> ServerPropertyDefaults = new(StringComparer.OrdinalIgnoreCase)
     {
         // C# analyzer properties
@@ -39,7 +40,10 @@ public static class TelemetryUtils
 
         // VB.NET analyzer properties
         { "sonar.vbnet.ignoreHeaderComments", "true" },
-        { "sonar.vbnet.analyzeGeneratedCode", "false" }
+        { "sonar.vbnet.analyzeGeneratedCode", "false" },
+
+        // Common properties
+        { "sonar.filesize.limit", "20" }
     };
 
     public static string SanitizeKey(string key) =>
