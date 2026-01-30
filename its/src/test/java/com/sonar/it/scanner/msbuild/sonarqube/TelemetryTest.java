@@ -57,6 +57,13 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      // Server settings from SonarQube defaults
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -73,6 +80,7 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.using_microsoft_net_sdk.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.exclusion_proj.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.exclusion_proj.false=2"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.exclusion_file.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.sonar_properties_in_project_file.set=1"));
   }
@@ -96,6 +104,13 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      // Server settings from SonarQube defaults
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -126,6 +141,13 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      // Server settings from SonarQube defaults
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -168,6 +190,13 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      // Server settings from SonarQube defaults
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -182,6 +211,8 @@ class TelemetryTest {
   }
 
   @Test
+  @MSBuildMinVersion(16)
+  @ServerMinVersion("2025.3")
   void telemetry_serverSettings() {
     var context = AnalysisContext.forServer(Paths.get("Telemetry", "Telemetry").toString());
     context.orchestrator.getServer().provisionProject(context.projectKey, context.projectKey);
@@ -209,6 +240,15 @@ class TelemetryTest {
       .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html") // overrides project setting from server
       .setProperty("sonar.cs.analyzeGeneratedCode", "true"); // overrides project setting from server
     var result = context.runAnalysis();
+    assertThat(result.isSuccess()).isTrue();
+
+    // Properties set only on server should have SQ_SERVER_SETTINGS source
+    assertThatEndLogMetrics(result.end())
+      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"))
+      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_opencover_reportspaths.source=SQ_SERVER_SETTINGS"))
+      // Properties overridden by CLI should have CLI source (CLI wins over server)
+      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=CLI"))
+      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_dotcover_reportspaths.source=CLI"));
   }
 
   @NotNull

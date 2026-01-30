@@ -87,6 +87,62 @@ public partial class PreProcessorTests
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
     }
 
+    [TestMethod]
+    public async Task Execute_WritesTelemetry_ServerSettings()
+    {
+        using var context = new Context(TestContext);
+        using var env = new EnvironmentVariableScope();
+        // Set up server to return specific properties
+        context.Factory.Server.DownloadProperties(null, null).ReturnsForAnyArgs(new Dictionary<string, string>
+        {
+            { "server.key", "server value 1" },  // This is already in MockObjectFactory default
+            { "sonar.cs.analyzeGeneratedCode", "true" },  // Whitelisted property from server
+            { "sonar.exclusions", "**/*.generated.cs" }   // Another whitelisted property
+        });
+
+        // CLI property that should override server property if both set
+        var args = new List<string>(CreateArgs())
+        {
+            "/d:sonar.cs.analyzeRazorCode=false"  // CLI property, not on server
+        };
+
+        (await context.Execute(args)).Should().BeTrue();
+        var telemetry = context.Factory.Runtime.Telemetry;
+
+        // Server settings should appear with SQ_SERVER_SETTINGS source
+        telemetry.Should()
+            .HaveMessage("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source", "SQ_SERVER_SETTINGS")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_exclusions.source", "SQ_SERVER_SETTINGS")
+            // CLI settings should appear with CLI source
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source", "CLI");
+    }
+
+    [TestMethod]
+    public async Task Execute_WritesTelemetry_CLIOverridesServerSettings()
+    {
+        using var context = new Context(TestContext);
+        using var env = new EnvironmentVariableScope();
+        // Set up server to return a property
+        context.Factory.Server.DownloadProperties(null, null).ReturnsForAnyArgs(new Dictionary<string, string>
+        {
+            { "server.key", "server value 1" },
+            { "sonar.cs.analyzeGeneratedCode", "false" }  // Server setting
+        });
+
+        // CLI property that overrides the server setting
+        var args = new List<string>(CreateArgs())
+        {
+            "/d:sonar.cs.analyzeGeneratedCode=true"  // CLI overrides server
+        };
+
+        (await context.Execute(args)).Should().BeTrue();
+        var telemetry = context.Factory.Runtime.Telemetry;
+
+        // CLI should win, so source should be CLI, not SQ_SERVER_SETTINGS
+        telemetry.Should()
+            .HaveMessage("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source", "CLI");
+    }
+
     private static string CreateAnalysisXml(string parentDir, Dictionary<string, string> properties = null)
     {
         Directory.Exists(parentDir).Should().BeTrue("Test setup error: expecting the parent directory to exist: {0}", parentDir);

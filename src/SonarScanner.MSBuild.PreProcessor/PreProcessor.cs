@@ -155,6 +155,12 @@ public class PreProcessor
 
             args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
             argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
+
+            // Add server settings to telemetry, combining with local settings (local takes precedence)
+            var serverPropertiesForTelemetry = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings, PropertyProviderKind.SQ_SERVER_SETTINGS);
+            var allPropertiesForTelemetry = new AggregatePropertiesProvider(args.AggregateProperties, serverPropertiesForTelemetry);
+            TelemetryUtils.AddTelemetry(runtime.Telemetry, allPropertiesForTelemetry);
+
             var availableLanguages = await server.DownloadAllLanguages();
             var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
             if (knownLanguages.Count == 0)

@@ -72,12 +72,32 @@ public class AggregatePropertiesProvider : IAnalysisPropertyProvider
         {
             if (current.TryGetProperty(key, out property))
             {
-                provider = current;
+                provider = UnwrapNestedProvider(current, key);
                 return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Recursively unwraps nested AggregatePropertiesProviders to find the actual leaf provider
+    /// that contains the property with the given key.
+    /// </summary>
+    private static IAnalysisPropertyProvider UnwrapNestedProvider(IAnalysisPropertyProvider provider, string key)
+    {
+        if (provider is AggregatePropertiesProvider aggregate)
+        {
+            // Recursively find the leaf provider within the nested aggregate
+            foreach (var child in aggregate.providers)
+            {
+                if (child.TryGetProperty(key, out _))
+                {
+                    return UnwrapNestedProvider(child, key);
+                }
+            }
+        }
+        return provider;
     }
 
     #endregion IAnalysisPropertyProvider interface
