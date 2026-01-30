@@ -89,13 +89,10 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
-      // Server settings from SonarQube defaults
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      // Server settings: only non-default values are reported
+      // Note: Properties with default values (ignoreHeaderComments=true, analyzeGeneratedCode=false) are filtered out
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -143,13 +140,10 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
-      // Server settings from SonarQube defaults
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      // Server settings: only non-default values are reported
+      // Note: Properties with default values (ignoreHeaderComments=true, analyzeGeneratedCode=false) are filtered out
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -180,13 +174,10 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
-      // Server settings from SonarQube defaults
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      // Server settings: only non-default values are reported
+      // Note: Properties with default values (ignoreHeaderComments=true, analyzeGeneratedCode=false) are filtered out
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
@@ -229,13 +220,10 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
-      // Server settings from SonarQube defaults
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source=SQ_SERVER_SETTINGS"),
+      // Server settings: only non-default values are reported
+      // Note: Properties with default values (ignoreHeaderComments=true, analyzeGeneratedCode=false) are filtered out
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
-      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
