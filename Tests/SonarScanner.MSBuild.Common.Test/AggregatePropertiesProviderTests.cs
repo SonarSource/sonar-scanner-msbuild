@@ -133,5 +133,14 @@ public class AggregatePropertiesProviderTests
             });
     }
 
+    [TestMethod]
+    public void AggProperties_NestedAggregate_ReturnsLeafProvider()
+    {
+        new AggregatePropertiesProvider(new ListPropertiesProvider(), new AggregatePropertiesProvider(new ListPropertiesProvider([new("key", "value")])))
+            .TryGetProperty("key", out _, out var provider)
+            .Should().BeTrue();
+        provider.Should().BeOfType<ListPropertiesProvider>().Which.HasProperty("key");
+    }
+
     #endregion Tests
 }

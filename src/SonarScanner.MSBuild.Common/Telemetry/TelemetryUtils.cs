@@ -27,6 +27,25 @@ public static class TelemetryUtils
     // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
     private static readonly Regex SanitizeKeyRegex = new("[^a-zA-Z0-9]", RegexOptions.None, RegexConstants.DefaultTimeout);
 
+    // Sources:
+    // - https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-csharp-core/src/main/java/org/sonarsource/csharp/core/CSharpPropertyDefinitions.java:
+    // - https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/AbstractPropertyDefinitions.java
+    // - https://docs.sonarsource.com/sonarqube-server/10.8/analyzing-source-code/analysis-parameters#analysis-scope
+    private static readonly Dictionary<string, string> ServerPropertyDefaults = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // C# analyzer properties
+        { "sonar.cs.analyzeRazorCode", "true" },
+        { "sonar.cs.ignoreHeaderComments", "true" },
+        { "sonar.cs.analyzeGeneratedCode", "false" },
+
+        // VB.NET analyzer properties
+        { "sonar.vbnet.ignoreHeaderComments", "true" },
+        { "sonar.vbnet.analyzeGeneratedCode", "false" },
+
+        // Common properties
+        { "sonar.filesize.limit", "20" }
+    };
+
     public static string SanitizeKey(string key) =>
         SanitizeKeyRegex.Replace(key, "_");
 
@@ -121,6 +140,14 @@ public static class TelemetryUtils
         }
         else if (IsSourceOnlyWhitelisted(property))
         {
+            // Skip server settings that match their default values - they don't provide useful telemetry
+            if (provider.ProviderType == PropertyProviderKind.SQ_SERVER_SETTINGS
+                && ServerPropertyDefaults.TryGetValue(property.Id, out var defaultValue)
+                && string.Equals(value, defaultValue, StringComparison.OrdinalIgnoreCase))
+            {
+                return [];
+            }
+
             // Report source only, not the value
             // See https://docs.google.com/spreadsheets/d/1L682GZWwVw5xUZPaFbYlJYN1m9whBu-uo1S-ZkpPq9A for the full list of whitelisted properties
             return MessagePair(provider, property, null);
@@ -222,6 +249,25 @@ public static class TelemetryUtils
             || property.IsKey("sonar.scm.revision")
             || property.IsKey("sonar.buildString")
             || property.IsKey("sonar.scanner.javaOpts")
+            // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/test-coverage/dotnet-test-coverage
+            // sonar.cs.vscoveragexml.reportsPath and sonar.cs.vstest.reportsPaths are already handled via directoryPath above
+            || property.IsKey("sonar.vbnet.vscoveragexml.reportsPath")
+            || property.IsKey("sonar.vbnet.vstest.reportsPaths")
+            || property.IsKey("sonar.cs.dotcover.reportsPaths")
+            || property.IsKey("sonar.vbnet.dotcover.reportsPaths")
+            || property.IsKey("sonar.cs.opencover.reportsPaths")
+            || property.IsKey("sonar.cs.ncover3.reportsPaths")
+            || property.IsKey("sonar.vbnet.ncover3.reportsPaths")
+            || property.IsKey("sonar.cs.nunit.reportsPaths")
+            || property.IsKey("sonar.vbnet.nunit.reportsPaths")
+            || property.IsKey("sonar.cs.xunit.reportsPaths")
+            || property.IsKey("sonar.vbnet.xunit.reportsPaths")
+            // UI settings
+            || property.IsKey("sonar.cs.analyzeGeneratedCode")
+            || property.IsKey("sonar.vbnet.analyzeGeneratedCode")
+            || property.IsKey("sonar.cs.ignoreHeaderComments")
+            || property.IsKey("sonar.vbnet.ignoreHeaderComments")
+            || property.IsKey("sonar.cs.analyzeRazorCode")
             // https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-scope/narrowing-the-focus
             || property.IsKey("sonar.exclusions")
             || property.IsKey("sonar.test.exclusions")

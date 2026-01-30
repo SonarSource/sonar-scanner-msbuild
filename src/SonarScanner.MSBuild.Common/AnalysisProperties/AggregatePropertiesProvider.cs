@@ -72,13 +72,18 @@ public class AggregatePropertiesProvider : IAnalysisPropertyProvider
         {
             if (current.TryGetProperty(key, out property))
             {
-                provider = current;
+                provider = UnwrapNestedProvider(current, key);
                 return true;
             }
         }
 
         return false;
     }
+
+    private static IAnalysisPropertyProvider UnwrapNestedProvider(IAnalysisPropertyProvider provider, string key) =>
+        provider is AggregatePropertiesProvider aggregate
+            ? UnwrapNestedProvider(aggregate.providers.First(x => x.HasProperty(key)), key)
+            : provider;
 
     #endregion IAnalysisPropertyProvider interface
 }

@@ -160,6 +160,13 @@ public class PreProcessor
 
             args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
             argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
+
+            // Use the aggregate of local and server properties when generating the analyzer configuration
+            // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
+            var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings, PropertyProviderKind.SQ_SERVER_SETTINGS);
+            var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
+            TelemetryUtils.AddTelemetry(runtime.Telemetry, allProperties);
+
             var availableLanguages = await server.DownloadAllLanguages();
             var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
             if (knownLanguages.Count == 0)
@@ -187,11 +194,6 @@ public class PreProcessor
                 // Generate Roslyn analyzers settings and rulesets
                 // It is null if the processing of server settings and active rules resulted in an empty ruleset
                 var localCacheTempPath = args.SettingOrDefault(SonarProperties.PluginCacheDirectory, string.Empty);
-
-                // Use the aggregate of local and server properties when generating the analyzer configuration
-                // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
-                var serverProperties = new ListPropertiesProvider(argumentsAndRuleSets.ServerSettings);
-                var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
 
                 var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath, settings, allProperties, rules, language);
                 if (analyzerProvider.SetupAnalyzer() is { } analyzerSettings)

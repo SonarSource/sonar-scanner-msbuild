@@ -77,7 +77,7 @@ public partial class PreProcessorTests
         {
             "/d:sonar.scanner.scanAll=false"
         };
-        var telemetry = await CreateTelemetry(args, new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "true"}"""));
+        var telemetry = await CreateTelemetry(args, null, new KeyValuePair<string, string>("SONARQUBE_SCANNER_PARAMS", """{"sonar.scanner.scanAll": "true"}"""));
 
         // Note: cmd.line1 is an unknown property and is not reported (only whitelisted properties are reported)
         telemetry.Should().HaveMessage("dotnetenterprise.s4net.params.sonar_log_level.source", "CLI")
@@ -85,6 +85,37 @@ public partial class PreProcessorTests
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
+    }
+
+    [TestMethod]
+    public async Task Execute_WritesTelemetry_ServerSettings()
+    {
+        var serverProperties = new Dictionary<string, string>
+        {
+            { "sonar.cs.ignoreHeaderComments", "true" },            // default value
+            { "sonar.cs.analyzeGeneratedCode", "false" },           // default value
+            { "sonar.vbnet.ignoreHeaderComments", "false" },        // not default value
+            { "sonar.vbnet.analyzeGeneratedCode", "true" },         // not default value
+            { "sonar.cs.opencover.reportsPaths", "report.xml" },    // has no default
+            { "sonar.exclusions", "**/*.generated.cs" },            // has no default
+            { "not whitelisted", "value" }
+        };
+        var args = new List<string>(CreateArgs())
+        {
+            "/d:sonar.cs.analyzeGeneratedCode=false",
+            "/d:sonar.vbnet.analyzeGeneratedCode=false",
+            "/d:sonar.exclusions=**/*.generated.cs",
+        };
+        var telemetry = await CreateTelemetry(args, serverProperties);
+
+        telemetry.Should()
+            .HaveMessage("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source", "SQ_SERVER_SETTINGS")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_cs_opencover_reportspaths.source", "SQ_SERVER_SETTINGS")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_exclusions.source", "CLI")
+            .And.NotHaveKey("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source")
+            .And.NotHaveKey("not whitelisted");
     }
 
     private static string CreateAnalysisXml(string parentDir, Dictionary<string, string> properties = null)
@@ -110,9 +141,13 @@ public partial class PreProcessorTests
         return fullPath;
     }
 
-    private async Task<TestTelemetry> CreateTelemetry(IEnumerable<string> args = null, params KeyValuePair<string, string>[] environmentVariables)
+    private async Task<TestTelemetry> CreateTelemetry(IEnumerable<string> args = null, Dictionary<string, string> serverProperties = null, params KeyValuePair<string, string>[] environmentVariables)
     {
         using var context = new Context(TestContext);
+        if (serverProperties is not null)
+        {
+            context.Factory.Server.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
+        }
         using var env = new EnvironmentVariableScope();
         foreach (var envVariable in environmentVariables)
         {

@@ -21,6 +21,8 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.*;
 import com.sonar.orchestrator.build.BuildResult;
+import java.util.Arrays;
+import java.util.Collections;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +31,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.nio.file.Paths;
 import java.util.List;
+import org.sonarqube.ws.client.settings.SetRequest;
 
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
@@ -39,7 +42,35 @@ class TelemetryTest {
   @MSBuildMinVersion(16)
   @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CS() {
-    var result = runAnalysis("Telemetry");
+    var context = AnalysisContext.forServer(Paths.get("Telemetry", "Telemetry").toString());
+    context.orchestrator.getServer().provisionProject(context.projectKey, context.projectKey);
+    var settings = TestUtils.newWsClient(context.orchestrator).settings();
+    java.util.function.Supplier<SetRequest> request = () -> new SetRequest().setComponent(context.projectKey);
+    // Configure custom server settings
+    settings.set(request.get()
+      .setKey("sonar.cs.analyzeGeneratedCode")
+      .setValue("false")                                                    // same as default, gets overridden by cli parameter
+    );
+    settings.set(request.get()
+      .setKey("sonar.cs.analyzeRazorCode")
+    .setValue("false")                                                      // overrides default
+    );
+    settings.set(request.get()
+      .setKey("sonar.cs.dotcover.reportsPaths")                             // gets overridden by cli parameter
+      .setValues(Collections.singletonList("**/*.dotcover.*.html"))
+    );
+    settings.set(request.get()
+      .setKey("sonar.cs.opencover.reportsPaths")
+      .setValues(Arrays.asList("opencover1.xml", "opencover2.xml"))
+    );
+    // Configure CLI properties
+    context.begin
+      .setDebugLogs()
+      .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html")  // overrides server setting
+      .setProperty("sonar.cs.analyzeGeneratedCode", "true");                  // overrides server setting
+
+    var result = context.runAnalysis();
+    assertThat(result.isSuccess()).isTrue();
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
@@ -54,11 +85,15 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_opencover_reportspaths.source=SQ_SERVER_SETTINGS"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=CLI"),
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_dotcover_reportspaths.source=CLI"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
       // coverage_conversion=true is tested in CodeCoverageTest.whenRunningOnAzureDevops_coverageIsImported
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
-      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
@@ -98,10 +133,10 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
-      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
@@ -131,10 +166,10 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
-      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
@@ -176,10 +211,10 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.Sarif.V1_0_0_0.Valid=True"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
-      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.begin\\.runtime=(netframework|netcore)"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
