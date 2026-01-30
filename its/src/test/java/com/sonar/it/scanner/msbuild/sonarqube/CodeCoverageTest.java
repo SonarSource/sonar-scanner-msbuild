@@ -79,6 +79,9 @@ class CodeCoverageTest {
       assertThat(logs).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
       assertThat(logs).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
       assertThat(logs).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");
+      if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(2025, 3)) {
+        assertThat(logs).containsPattern("Adding metric: dotnetenterprise\\.s4net\\.endstep\\.coverage_conversion=true");
+      }
     }
   }
 

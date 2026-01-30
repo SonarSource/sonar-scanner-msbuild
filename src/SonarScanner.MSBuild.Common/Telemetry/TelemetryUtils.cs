@@ -42,6 +42,9 @@ public static class TelemetryUtils
         { "sonar.vbnet.analyzeGeneratedCode", "false" }
     };
 
+    public static string SanitizeKey(string key) =>
+        SanitizeKeyRegex.Replace(key, "_");
+
     public static void AddTelemetry(ITelemetry telemetry, AggregatePropertiesProvider aggregatedProperties)
     {
         foreach (var kvp in aggregatedProperties.GetAllPropertiesWithProvider().SelectMany(SelectManyTelemetryProperties))
@@ -81,7 +84,7 @@ public static class TelemetryUtils
     }
 
     internal static string ToTelemetryId(string property) =>
-        $"dotnetenterprise.s4net.params.{SanitizeKeyRegex.Replace(property, "_").ToLowerInvariant()}";
+        $"dotnetenterprise.s4net.params.{SanitizeKey(property).ToLowerInvariant()}";
 
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {

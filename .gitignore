@@ -179,3 +179,7 @@ DeploymentArtifacts/
 
 # Maven
 target/
+
+# Claude Code
+.claude
+CLAUDE.md
