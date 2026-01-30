@@ -42,7 +42,39 @@ class TelemetryTest {
   @MSBuildMinVersion(16)
   @ServerMinVersion("2025.3")
   void telemetry_telemetryFiles_areCorrect_CS() {
-    var result = runAnalysis("Telemetry");
+    // Setup context with custom server settings to test server settings telemetry
+    var context = AnalysisContext.forServer(Paths.get("Telemetry", "Telemetry").toString());
+    context.orchestrator.getServer().provisionProject(context.projectKey, context.projectKey);
+    var settings = TestUtils.newWsClient(context.orchestrator).settings();
+    java.util.function.Supplier<SetRequest> request = () -> new SetRequest().setComponent(context.projectKey);
+
+    // Configure custom server settings
+    settings.set(request.get()
+      .setKey("sonar.cs.analyzeGeneratedCode")
+      .setValue("false") // same as default, gets overridden by cli parameter
+    );
+    settings.set(request.get()
+      .setKey("sonar.cs.analyzeRazorCode")
+      .setValue("false") // overrides default
+    );
+    settings.set(request.get()
+      .setKey("sonar.cs.dotcover.reportsPaths") // gets overridden by cli parameter
+      .setValues(Collections.singletonList("**/*.dotcover.*.html"))
+    );
+    settings.set(request.get()
+      .setKey("sonar.cs.opencover.reportsPaths")
+      .setValues(Arrays.asList("opencover1.xml", "opencover2.xml"))
+    );
+
+    // Configure CLI properties (some override server settings)
+    context.begin
+      .setDebugLogs()
+      .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html") // overrides server setting
+      .setProperty("sonar.cs.analyzeGeneratedCode", "true"); // overrides server setting
+
+    var result = context.runAnalysis();
+    assertThat(result.isSuccess()).isTrue();
+
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
@@ -83,6 +115,13 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.exclusion_file.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.sonar_properties_in_project_file.set=1"));
+
+    // Additional assertions for custom server settings and CLI overrides
+    assertThatEndLogMetrics(result.end())
+      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"))
+      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_opencover_reportspaths.source=SQ_SERVER_SETTINGS"))
+      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=CLI"))
+      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_dotcover_reportspaths.source=CLI"));
   }
 
   @Test
@@ -208,47 +247,6 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=4"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.using_microsoft_net_sdk.true=4"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=4"));
-  }
-
-  @Test
-  @MSBuildMinVersion(16)
-  @ServerMinVersion("2025.3")
-  void telemetry_serverSettings() {
-    var context = AnalysisContext.forServer(Paths.get("Telemetry", "Telemetry").toString());
-    context.orchestrator.getServer().provisionProject(context.projectKey, context.projectKey);
-    var settings = TestUtils.newWsClient(context.orchestrator).settings();
-    java.util.function.Supplier<SetRequest> request = () -> new SetRequest().setComponent(context.projectKey);
-    settings.set(request.get()
-      .setKey("sonar.cs.analyzeGeneratedCode")
-      .setValue("false") // same as default, gets overridden by cli parameter
-    );
-    settings.set(request.get()
-      .setKey("sonar.cs.analyzeRazorCode")
-      .setValue("false") // overrides default
-    );
-    settings.set(request.get()
-      .setKey("sonar.cs.dotcover.reportsPaths") // gets overridden by cli parameter
-      .setValues(Collections.singletonList("**/*.dotcover.*.html"))
-    );
-    settings.set(request.get()
-      .setComponent(context.projectKey)
-      .setKey("sonar.cs.opencover.reportsPaths")
-      .setValues(Arrays.asList("opencover1.xml", "opencover2.xml"))
-    );
-    context.begin
-      .setDebugLogs()
-      .setProperty("sonar.cs.dotcover.reportsPaths", "dotCover.Output.html") // overrides project setting from server
-      .setProperty("sonar.cs.analyzeGeneratedCode", "true"); // overrides project setting from server
-    var result = context.runAnalysis();
-    assertThat(result.isSuccess()).isTrue();
-
-    // Properties set only on server should have SQ_SERVER_SETTINGS source
-    assertThatEndLogMetrics(result.end())
-      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"))
-      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_opencover_reportspaths.source=SQ_SERVER_SETTINGS"))
-      // Properties overridden by CLI should have CLI source (CLI wins over server)
-      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=CLI"))
-      .anyMatch(x -> x.equals("dotnetenterprise.s4net.params.sonar_cs_dotcover_reportspaths.source=CLI"));
   }
 
   @NotNull

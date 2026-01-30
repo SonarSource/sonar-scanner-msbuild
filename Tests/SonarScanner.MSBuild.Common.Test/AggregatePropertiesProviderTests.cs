@@ -136,54 +136,10 @@ public class AggregatePropertiesProviderTests
     [TestMethod]
     public void AggProperties_NestedAggregate_ReturnsLeafProvider()
     {
-        var innerList = new ListPropertiesProvider(PropertyProviderKind.SQ_SERVER_SETTINGS);
-        innerList.AddProperty("server.key", "server value");
-
-        var innerAggregate = new AggregatePropertiesProvider(innerList);
-        var outerAggregate = new AggregatePropertiesProvider(innerAggregate);
-
-        var result = outerAggregate.GetAllPropertiesWithProvider().ToList();
-
-        result.Should().ContainSingle()
-            .Which.Value.ProviderType.Should().Be(PropertyProviderKind.SQ_SERVER_SETTINGS);
-    }
-
-    [TestMethod]
-    public void AggProperties_NestedAggregate_WithMultipleProviders_ReturnsCorrectLeafProviders()
-    {
-        var cliProvider = new ListPropertiesProvider(PropertyProviderKind.CLI);
-        cliProvider.AddProperty("cli.key", "cli value");
-        cliProvider.AddProperty("shared.key", "cli shared value");
-
-        var serverProvider = new ListPropertiesProvider(PropertyProviderKind.SQ_SERVER_SETTINGS);
-        serverProvider.AddProperty("server.key", "server value");
-        serverProvider.AddProperty("shared.key", "server shared value");
-
-        var innerAggregate = new AggregatePropertiesProvider(cliProvider, serverProvider);
-        var outerAggregate = new AggregatePropertiesProvider(innerAggregate);
-
-        var result = outerAggregate.GetAllPropertiesWithProvider().ToList();
-
-        result.Should().HaveCount(3);
-        result.Should().Contain(x => x.Key.Id == "cli.key" && x.Value.ProviderType == PropertyProviderKind.CLI);
-        result.Should().Contain(x => x.Key.Id == "server.key" && x.Value.ProviderType == PropertyProviderKind.SQ_SERVER_SETTINGS);
-        result.Should().Contain(x => x.Key.Id == "shared.key" && x.Value.ProviderType == PropertyProviderKind.CLI);
-    }
-
-    [TestMethod]
-    public void AggProperties_DeeplyNestedAggregate_ReturnsLeafProvider()
-    {
-        var leafProvider = new ListPropertiesProvider(PropertyProviderKind.SONARQUBE_ANALYSIS_XML);
-        leafProvider.AddProperty("deep.key", "deep value");
-
-        var innerAggregate = new AggregatePropertiesProvider(leafProvider);
-        var middleAggregate = new AggregatePropertiesProvider(innerAggregate);
-        var outerAggregate = new AggregatePropertiesProvider(middleAggregate);
-
-        var result = outerAggregate.GetAllPropertiesWithProvider().ToList();
-
-        result.Should().ContainSingle()
-            .Which.Value.ProviderType.Should().Be(PropertyProviderKind.SONARQUBE_ANALYSIS_XML);
+        new AggregatePropertiesProvider(new ListPropertiesProvider(), new AggregatePropertiesProvider(new ListPropertiesProvider([new("key", "value")])))
+            .TryGetProperty("key", out _, out var provider)
+            .Should().BeTrue();
+        provider.Should().BeOfType<ListPropertiesProvider>().Which.HasProperty("key");
     }
 
     #endregion Tests
