@@ -79,14 +79,9 @@ class CodeCoverageTest {
       assertThat(logs).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
       assertThat(logs).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
       assertThat(logs).contains("Coverage Report Statistics: 2 files, 1 main files, 1 main files with coverage, 1 test files, 0 project excluded files, 0 other language files.");
-      // Verify telemetry for coverage conversion (coverage_conversion=false is tested in TelemetryTest)
-      // .sonarqube is in buildDirectory because we set AGENT_BUILDDIRECTORY; Scanner Engine renames to Processed.* but Scanner CLI doesn't
-      var outDir = buildDirectory.path.resolve(".sonarqube/out");
-      var telemetryPath = outDir.resolve("Processed.Telemetry.S4NET.json");
-      if (!telemetryPath.toFile().exists()) {
-        telemetryPath = outDir.resolve("Telemetry.S4NET.json");
+      if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(2025, 3)) {
+        assertThat(logs).containsPattern("Adding metric: dotnetenterprise\\.s4net\\.endstep\\.coverage_conversion=true");
       }
-      assertThat(telemetryPath).content().contains("\"dotnetenterprise.s4net.endstep.coverage_conversion\":\"true\"");
     }
   }
 
