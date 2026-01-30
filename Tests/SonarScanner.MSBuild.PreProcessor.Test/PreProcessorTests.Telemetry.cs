@@ -92,27 +92,28 @@ public partial class PreProcessorTests
     {
         var serverProperties = new Dictionary<string, string>
         {
-            { "sonar.cs.analyzeGeneratedCode", "false" },      // matches default → should NOT appear
-            { "sonar.cs.analyzeRazorCode", "false" },          // differs from default "true" → should appear
-            { "sonar.cs.ignoreHeaderComments", "true" },       // matches default → should NOT appear
-            { "sonar.cs.opencover.reportsPaths", "report.xml" }, // no default → should appear
-            { "sonar.exclusions", "**/*.generated.cs" },       // no default → should appear
+            { "sonar.cs.ignoreHeaderComments", "true" },            // default value
+            { "sonar.cs.analyzeGeneratedCode", "false" },           // default value
+            { "sonar.vbnet.ignoreHeaderComments", "false" },        // not default value
+            { "sonar.vbnet.analyzeGeneratedCode", "true" },         // not default value
+            { "sonar.cs.opencover.reportsPaths", "report.xml" },    // has no default
+            { "sonar.exclusions", "**/*.generated.cs" },            // has no default
             { "not whitelisted", "value" }
         };
         var args = new List<string>(CreateArgs())
         {
-            "/d:sonar.cs.analyzeGeneratedCode=true"   // overrides server setting (server has default, CLI overrides)
+            "/d:sonar.cs.analyzeGeneratedCode=false",
+            "/d:sonar.vbnet.analyzeGeneratedCode=false",
+            "/d:sonar.exclusions=**/*.generated.cs",
         };
         var telemetry = await CreateTelemetry(args, serverProperties);
 
         telemetry.Should()
-            // Properties with non-default values from server should appear
-            .HaveMessage("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source", "SQ_SERVER_SETTINGS")
+            .HaveMessage("dotnetenterprise.s4net.params.sonar_vbnet_ignoreheadercomments.source", "SQ_SERVER_SETTINGS")
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_cs_opencover_reportspaths.source", "SQ_SERVER_SETTINGS")
-            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_exclusions.source", "SQ_SERVER_SETTINGS")
-            // CLI override should appear (even though the server value matched default, CLI takes precedence)
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source", "CLI")
-            // Properties with default values from server should NOT appear (THIS WILL FAIL - confirming RED state)
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_vbnet_analyzegeneratedcode.source", "CLI")
+            .And.HaveMessage("dotnetenterprise.s4net.params.sonar_exclusions.source", "CLI")
             .And.NotHaveKey("dotnetenterprise.s4net.params.sonar_cs_ignoreheadercomments.source")
             .And.NotHaveKey("not whitelisted");
     }

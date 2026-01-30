@@ -27,12 +27,9 @@ public static class TelemetryUtils
     // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
     private static readonly Regex SanitizeKeyRegex = new("[^a-zA-Z0-9]", RegexOptions.None, RegexConstants.DefaultTimeout);
 
-    /// <summary>
-    /// Default values for server properties that can be configured in SonarQube.
-    /// Source: sonar-dotnet-enterprise repository
-    /// - CSharpPropertyDefinitions.java: sonar.cs.analyzeRazorCode=true
-    /// - AbstractPropertyDefinitions.java: ignoreHeaderComments=true, analyzeGeneratedCode=false
-    /// </summary>
+    // Source: sonar-dotnet-enterprise repository
+    // - CSharpPropertyDefinitions.java: sonar.cs.analyzeRazorCode=true
+    // - AbstractPropertyDefinitions.java: ignoreHeaderComments=true, analyzeGeneratedCode=false
     private static readonly Dictionary<string, string> ServerPropertyDefaults = new(StringComparer.OrdinalIgnoreCase)
     {
         // C# analyzer properties
@@ -43,8 +40,6 @@ public static class TelemetryUtils
         // VB.NET analyzer properties
         { "sonar.vbnet.ignoreHeaderComments", "true" },
         { "sonar.vbnet.analyzeGeneratedCode", "false" }
-
-        // Note: sonar.filesize.limit default not confirmed, not included
     };
 
     public static void AddTelemetry(ITelemetry telemetry, AggregatePropertiesProvider aggregatedProperties)

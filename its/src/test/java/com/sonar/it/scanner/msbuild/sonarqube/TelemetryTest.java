@@ -89,12 +89,9 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
-      // Server settings: only non-default values are reported
-      // Note: Properties with default values (ignoreHeaderComments=true, analyzeGeneratedCode=false) are filtered out
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_opencover_reportspaths.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
-      // CLI properties (override server settings or add new ones)
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzegeneratedcode.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_dotcover_reportspaths.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.begin.runtime=netcore"),
@@ -139,8 +136,6 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
-      // Server settings: only non-default values are reported
-      // Note: Properties with default values (ignoreHeaderComments=true, analyzeGeneratedCode=false) are filtered out
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
@@ -173,8 +168,6 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
-      // Server settings: only non-default values are reported
-      // Note: Properties with default values (ignoreHeaderComments=true, analyzeGeneratedCode=false) are filtered out
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
@@ -219,8 +212,6 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.jre.bootstrapping=Disabled"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.scannerEngine.bootstrapping=Enabled"),
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.scannerEngine\\.download=CacheHit"),
-      // Server settings: only non-default values are reported
-      // Note: Properties with default values (ignoreHeaderComments=true, analyzeGeneratedCode=false) are filtered out
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_cs_analyzerazorcode.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_filesize_limit.source=SQ_SERVER_SETTINGS"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.legacyTFS=NotCalled"),
