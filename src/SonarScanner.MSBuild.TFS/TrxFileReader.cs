@@ -157,6 +157,11 @@ public class TrxFileReader
         var nsmgr = new XmlNamespaceManager(doc.NameTable);
         nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
 
+        // when i generate .trx file after switching to Microsoft.Test.Platform under .NET 10 the entry looks like
+        // <Collector agentName="WORKSPA-NBFDOTR" uri="datacollector://TestingPlatformCoverageDynamicTestSessionLifetimeHandler/1.0.0" collectorDisplayName="Code Coverage Process Monitor">
+        // instead of
+        // <Collector agentName="WORKSPA-NBFDOTR" uri="datacollector://microsoft/CodeCoverage/2.0" collectorDisplayName="Code Coverage">
+        // so i think this should handle either style
         var attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
         // The deployment root is used in the path for the attachments. It is read by Microsoft's implementation here:
         // https://github.com/microsoft/testfx/blob/718e38b4558d39afde8bd4a9e6b3566336867c67/src/Platform/Microsoft.Testing.Extensions.TrxReport/TrxReportEngine.cs#L241-L250
