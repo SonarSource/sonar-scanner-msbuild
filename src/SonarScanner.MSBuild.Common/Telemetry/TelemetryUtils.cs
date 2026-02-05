@@ -27,23 +27,23 @@ public static class TelemetryUtils
     // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
     private static readonly Regex SanitizeKeyRegex = new("[^a-zA-Z0-9]", RegexOptions.None, RegexConstants.DefaultTimeout);
 
-    // Sources:
-    // - https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-csharp-core/src/main/java/org/sonarsource/csharp/core/CSharpPropertyDefinitions.java:
-    // - https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/AbstractPropertyDefinitions.java
-    // - https://docs.sonarsource.com/sonarqube-server/10.8/analyzing-source-code/analysis-parameters#analysis-scope
     private static readonly Dictionary<string, string> ServerPropertyDefaults = new(StringComparer.OrdinalIgnoreCase)
     {
-        // C# analyzer properties
-        { "sonar.cs.analyzeRazorCode", "true" },
+        // https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/AbstractPropertyDefinitions.java
         { "sonar.cs.ignoreHeaderComments", "true" },
         { "sonar.cs.analyzeGeneratedCode", "false" },
-
-        // VB.NET analyzer properties
         { "sonar.vbnet.ignoreHeaderComments", "true" },
         { "sonar.vbnet.analyzeGeneratedCode", "false" },
-
-        // Common properties
-        { "sonar.filesize.limit", "20" }
+        // https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-csharp-core/src/main/java/org/sonarsource/csharp/core/CSharpPropertyDefinitions.java
+        { "sonar.cs.analyzeRazorCode", "true" },
+        // https://docs.sonarsource.com/sonarqube-server/10.8/analyzing-source-code/analysis-parameters#analysis-scope
+        { "sonar.filesize.limit", "20" },
+        // https://docs.sonarsource.com/sonarqube-server/advanced-security/analyzing-projects-for-dependencies#customizing-the-dependency-analysis
+        { "sonar.sca.enabled", "true" },
+        // https://github.com/SonarSource/sonarcloud-webapp/blob/fe07e6e11bf99c7480cd05ec13589e8271b26abd/private/libs/feature-sca/src/api/mocks/SettingsServiceMock.ts#L19-L24
+        { "sonar.sca.rescan_frequency", "Daily" },
+        // https://github.com/SonarSource/sonar-sca/blob/21a9754a494ce7913fd28f13c855389d09a0f734/sca-service/sca-cloud-app/container/src/main/java/com/sonar/sca/container/RescanBranchType.java#L30-L32
+        { "sonar.sca.rescan_branch_type", "Kept branches only" }
     };
 
     public static string SanitizeKey(string key) =>
