@@ -205,6 +205,10 @@ stages:
 
           - task: Maven@4
             displayName: Promote new version in pom
+            env:
+              ARTIFACTORY_PRIVATE_READER_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+              ARTIFACTORY_PRIVATE_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
+              ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
             inputs:
               mavenPomFile: 'pom.xml'
               goals: 'org.codehaus.mojo:versions-maven-plugin:2.2:set'
@@ -212,6 +216,7 @@ stages:
                 $(commonMavenArguments)
                 -DnewVersion=$(SONAR_PROJECT_VERSION).$(Build.BuildId)
                 --settings $(mavenSettings.secureFilePath)
+                -Denable-repo=private
                 -DgenerateBackupPoms=false -e
               javaHomeOption: 'JDKVersion'
               mavenVersionOption: 'Default'
@@ -227,8 +232,8 @@ stages:
           - task: Maven@4
             displayName: 'Stage to repox'
             env:
-              ARTIFACTORY_USER: $(ARTIFACTORY_QA_DEPLOYER_USERNAME)
-              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
+              ARTIFACTORY_PRIVATE_READER_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
+              ARTIFACTORY_PRIVATE_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
               PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
               BUILD_ID: $(Build.BuildId)
               ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
@@ -239,6 +244,7 @@ stages:
               options: >-
                 $(commonMavenArguments)
                 --settings $(mavenSettings.secureFilePath)
+                -Denable-repo=private
                 -Pdeploy-sonarsource,sign -e -V
               publishJUnitResults: false
               javaHomeOption: 'JDKVersion'
