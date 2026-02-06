@@ -227,6 +227,8 @@ stages:
           - task: Maven@4
             displayName: 'Stage to repox'
             env:
+              ARTIFACTORY_USER: $(ARTIFACTORY_QA_DEPLOYER_USERNAME)
+              ARTIFACTORY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
               PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
               BUILD_ID: $(Build.BuildId)
               ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
