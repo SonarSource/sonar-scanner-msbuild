@@ -23,7 +23,6 @@ namespace SonarScanner.MSBuild.Common.Test;
 [TestClass]
 public class VerbosityCalculatorTests
 {
-
     // Looks at how verbosity is computed when various combinations of <<verbose>> and <<log.level>> values are passed in.
     // <<verbose>> takes precedence over <<log.level>>.
     // verbose valid values are (case-insesitive) 'true' and 'false' and log.level can be (case-insesitive) 'DEBUG' or a combination of values separtated by '|'")]

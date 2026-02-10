@@ -67,7 +67,7 @@ public static class VerbosityCalculator
         {
             properties.TryGetProperty(SonarProperties.Verbose, out var property);
             // The scanner engine requires that the verbose value be lowercase.
-            property.Value = sonarVerboseValue.ToLowerInvariant();
+            property.Value = sonarVerboseValue.ToLower();
         }
 
         properties.TryGetValue(SonarProperties.LogLevel, out var sonarLogLevelValue);
@@ -91,7 +91,7 @@ public static class VerbosityCalculator
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(sonarLogValue) && sonarLogValue.ToLowerInvariant().Split('|').Any(x => x.Equals(SonarLogDebugValue, StringComparison.OrdinalIgnoreCase)))
+        if (!string.IsNullOrWhiteSpace(sonarLogValue) && sonarLogValue.Split('|').Any(x => x.Equals(SonarLogDebugValue, StringComparison.OrdinalIgnoreCase)))
         {
             logger.LogDebug(Resources.MSG_SonarLogLevelWasSpecified, sonarLogValue);
             return LoggerVerbosity.Debug;
