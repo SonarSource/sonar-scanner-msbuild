@@ -31,6 +31,8 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
@@ -124,6 +126,23 @@ class ParameterTest {
 
     assertThat(result.getLogs()).contains("Downloading from http://");
     assertThat(result.getLogs()).contains("sonar.verbose=true was specified - setting the log verbosity to 'Debug'");
+  }
+
+  @ParameterizedTest
+  @CsvSource({
+    "true",
+    "TRUE",
+    "True"
+  })
+  void verboseLog_CaseInsensitive(String inputValue) {
+    var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
+    context.begin.setProperty("sonar.verbose", inputValue);
+    var result = context.runAnalysis();
+
+    assertThat(result.isSuccess()).isTrue();
+
+    // We assert the debug exists in the end step from within the scanner engine to make sure it is passed properly.
+    assertThat(result.end().getLogs()).contains("DEBUG: JVM max available memory");
   }
 
   @Test
