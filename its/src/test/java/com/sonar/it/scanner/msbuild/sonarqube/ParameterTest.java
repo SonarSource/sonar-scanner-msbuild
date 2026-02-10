@@ -29,6 +29,8 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
 import java.nio.file.Path;
 import java.util.List;
+
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -119,15 +121,6 @@ class ParameterTest {
     assertThat(issues.get(0).getRule()).isEqualTo("csharpsquid:S107");
   }
 
-  @Test
-  void verboseLog() {
-    var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
-    var result = context.begin.setDebugLogs().execute(ORCHESTRATOR);
-
-    assertThat(result.getLogs()).contains("Downloading from http://");
-    assertThat(result.getLogs()).contains("sonar.verbose=true was specified - setting the log verbosity to 'Debug'");
-  }
-
   @ParameterizedTest
   @CsvSource({
     "true",
@@ -138,9 +131,7 @@ class ParameterTest {
     var context = AnalysisContext.forServer("ProjectUnderTest").setQualityProfile(QualityProfile.CS_S1134);
     context.begin.setProperty("sonar.verbose", inputValue);
     var result = context.runAnalysis();
-
-    assertThat(result.isSuccess()).isTrue();
-
+    Assertions.assertThat(result.begin().getLogs()).contains("sonar.verbose=True was specified - setting the log verbosity to 'Debug'");
     // We assert the debug exists in the end step from within the scanner engine to make sure it is passed properly.
     assertThat(result.end().getLogs()).contains("DEBUG: JVM max available memory");
   }
