@@ -5,6 +5,7 @@
   ],
   "rebaseWhen": "auto",
   "minimumReleaseAge": "3 days",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
   "enabledManagers": [
     "nuget",
     "maven",
