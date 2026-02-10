@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -32,7 +29,7 @@ namespace SonarScanner.MSBuild.Common;
 public static class VerbosityCalculator
 {
     /// <summary>
-    /// The initial verbosity of loggers
+    /// The initial verbosity of loggers.
     /// </summary>
     /// <remarks>
     /// Each of the executables (bootstrapper, pre/post processor) have to parse their command line and config files before
@@ -42,7 +39,7 @@ public static class VerbosityCalculator
     public const LoggerVerbosity InitialLoggingVerbosity = LoggerVerbosity.Debug;
 
     /// <summary>
-    /// The verbosity of loggers if no settings have been specified
+    /// The verbosity of loggers if no settings have been specified.
     /// </summary>
     public const LoggerVerbosity DefaultLoggingVerbosity = LoggerVerbosity.Info;
 
@@ -51,20 +48,27 @@ public static class VerbosityCalculator
     /// <summary>
     /// Computes verbosity based on the available properties.
     /// </summary>
-    /// <remarks>If no verbosity setting is present, the default verbosity (info) is used</remarks>
+    /// <remarks>If no verbosity setting is present, the default verbosity (info) is used.</remarks>
     public static LoggerVerbosity ComputeVerbosity(IAnalysisPropertyProvider properties, ILogger logger)
     {
-        if (properties == null)
+        if (properties is null)
         {
             throw new ArgumentNullException(nameof(properties));
         }
 
-        if (logger == null)
+        if (logger is null)
         {
             throw new ArgumentNullException(nameof(logger));
         }
 
         properties.TryGetValue(SonarProperties.Verbose, out var sonarVerboseValue);
+
+        if (!string.IsNullOrWhiteSpace(sonarVerboseValue))
+        {
+            properties.TryGetProperty(SonarProperties.Verbose, out var property);
+            // The scanner engine requires that the verbose value be lowercase.
+            property.Value = sonarVerboseValue.ToLowerInvariant();
+        }
 
         properties.TryGetValue(SonarProperties.LogLevel, out var sonarLogLevelValue);
 
@@ -75,15 +79,11 @@ public static class VerbosityCalculator
     {
         if (!string.IsNullOrWhiteSpace(sonarVerboseValue))
         {
-            if (sonarVerboseValue.Equals("true", StringComparison.Ordinal))
+            if (bool.TryParse(sonarVerboseValue, out var isVerbose))
             {
-                logger.LogDebug(Resources.MSG_SonarVerboseWasSpecified, sonarVerboseValue, LoggerVerbosity.Debug);
-                return LoggerVerbosity.Debug;
-            }
-            else if (sonarVerboseValue.Equals("false", StringComparison.Ordinal))
-            {
-                logger.LogDebug(Resources.MSG_SonarVerboseWasSpecified, sonarVerboseValue, LoggerVerbosity.Info);
-                return LoggerVerbosity.Info;
+                var logLevel = isVerbose ? LoggerVerbosity.Debug : LoggerVerbosity.Info;
+                logger.LogDebug(Resources.MSG_SonarVerboseWasSpecified, isVerbose, logLevel);
+                return logLevel;
             }
             else
             {
@@ -91,7 +91,7 @@ public static class VerbosityCalculator
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(sonarLogValue) && sonarLogValue.Split('|').Any(s => s.Equals(SonarLogDebugValue, StringComparison.Ordinal)))
+        if (!string.IsNullOrWhiteSpace(sonarLogValue) && sonarLogValue.ToLowerInvariant().Split('|').Any(x => x.Equals(SonarLogDebugValue, StringComparison.OrdinalIgnoreCase)))
         {
             logger.LogDebug(Resources.MSG_SonarLogLevelWasSpecified, sonarLogValue);
             return LoggerVerbosity.Debug;
