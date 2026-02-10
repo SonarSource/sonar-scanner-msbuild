@@ -61,13 +61,14 @@ public static class VerbosityCalculator
             throw new ArgumentNullException(nameof(logger));
         }
 
-        properties.TryGetValue(SonarProperties.Verbose, out var sonarVerboseValue);
+        properties.TryGetProperty(SonarProperties.Verbose, out var property);
 
-        if (!string.IsNullOrWhiteSpace(sonarVerboseValue))
+        string sonarVerboseValue = null;
+        if (property is not null)
         {
-            properties.TryGetProperty(SonarProperties.Verbose, out var property);
+            sonarVerboseValue = property.Value;
             // The scanner engine requires that the verbose value be lowercase.
-            property.Value = sonarVerboseValue.ToLower();
+            property.Value = property.Value.ToLower();
         }
 
         properties.TryGetValue(SonarProperties.LogLevel, out var sonarLogLevelValue);

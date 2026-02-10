@@ -31,24 +31,31 @@ public class VerbosityCalculatorTests
     {
         CheckVerbosity(VerbosityCalculator.DefaultLoggingVerbosity);
         CheckVerbosity(VerbosityCalculator.DefaultLoggingVerbosity, null, "trace");
-        CheckVerbosity(LoggerVerbosity.Debug, null, "debug");
-        CheckVerbosity(LoggerVerbosity.Debug, null, "info|debug");
-        CheckVerbosity(LoggerVerbosity.Debug, "TRUE");
-        CheckVerbosity(LoggerVerbosity.Debug, "True");
+        CheckVerbosity(LoggerVerbosity.Debug, null, "debug", "sonar.log.level=debug was specified - setting the log verbosity to 'DEBUG'");
+        CheckVerbosity(LoggerVerbosity.Debug, null, "info|debug", "sonar.log.level=info|debug was specified - setting the log verbosity to 'DEBUG'");
+        CheckVerbosity(LoggerVerbosity.Debug, "TRUE", null, "sonar.verbose=True was specified - setting the log verbosity to 'Debug'");
+        CheckVerbosity(LoggerVerbosity.Debug, "True", null, "sonar.verbose=True was specified - setting the log verbosity to 'Debug'");
         CheckVerbosity(VerbosityCalculator.DefaultLoggingVerbosity, null, "***DEBUG***");
         CheckVerbosity(VerbosityCalculator.DefaultLoggingVerbosity, null, "|DEBUG***");
         CheckVerbosity(VerbosityCalculator.DefaultLoggingVerbosity, null, "||");
 
-        CheckVerbosity(LoggerVerbosity.Debug, "true");
-        CheckVerbosity(LoggerVerbosity.Info, "false");
-        CheckVerbosity(LoggerVerbosity.Debug, null, "DEBUG");
-        CheckVerbosity(LoggerVerbosity.Debug, null, "INFO|DEBUG|TRACE");
+        CheckVerbosity(LoggerVerbosity.Debug, "true", null, "sonar.verbose=True was specified - setting the log verbosity to 'Debug'");
+        CheckVerbosity(LoggerVerbosity.Info, "false", null, "sonar.verbose=False was specified - setting the log verbosity to 'Info'");
+        CheckVerbosity(LoggerVerbosity.Debug, null, "DEBUG", "sonar.log.level=DEBUG was specified - setting the log verbosity to 'DEBUG'");
+        CheckVerbosity(LoggerVerbosity.Debug, null, "INFO|DEBUG|TRACE", "sonar.log.level=INFO|DEBUG|TRACE was specified - setting the log verbosity to 'DEBUG'");
 
-        CheckVerbosity(LoggerVerbosity.Debug, "true", "INFO");
-        CheckVerbosity(LoggerVerbosity.Info, "false", "DEBUG");
+        CheckVerbosity(LoggerVerbosity.Debug, "true", "INFO", "sonar.verbose=True was specified - setting the log verbosity to 'Debug'");
+        CheckVerbosity(LoggerVerbosity.Info, "false", "DEBUG", "sonar.verbose=False was specified - setting the log verbosity to 'Info'");
+
+        CheckVerbosity(LoggerVerbosity.Info, "SomeWrongVerbosity", null, null, "Expecting the sonar.verbose property to be set to either 'true' or 'false' but it was set to 'SomeWrongVerbosity'.");
+        CheckVerbosity(
+            LoggerVerbosity.Debug,
+            "true",
+            "DEBUG",
+            "sonar.verbose=True was specified - setting the log verbosity to 'Debug'");
     }
 
-    private static void CheckVerbosity(LoggerVerbosity expectedVerbosity, string verbosity = null, string logLevel = null, int expectedNumberOfWarnings = 0)
+    private static void CheckVerbosity(LoggerVerbosity expectedVerbosity, string verbosity = null, string logLevel = null, string expectedDebug = null, string expectedWarning = null)
     {
         var provider = CreatePropertiesProvider(verbosity, logLevel);
         var logger = new TestLogger();
@@ -58,7 +65,23 @@ public class VerbosityCalculatorTests
         actualVerbosity.Should().Be(expectedVerbosity);
 
         logger.Should().HaveNoErrors();
-        logger.Should().HaveWarnings(expectedNumberOfWarnings);
+
+        if (expectedDebug is null)
+        {
+            logger.Should().HaveNoDebugs();
+        }
+        else
+        {
+            logger.Should().HaveDebugOnce(expectedDebug);
+        }
+        if (expectedWarning is null)
+        {
+            logger.Should().HaveNoWarnings();
+        }
+        else
+        {
+            logger.Should().HaveWarningOnce(expectedWarning);
+        }
     }
 
     private static ListPropertiesProvider CreatePropertiesProvider(string verbosity, string logLevel)

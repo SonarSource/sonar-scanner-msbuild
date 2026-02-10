@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.Common {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -579,7 +579,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expecting the sonar.verbose property to be set to either &apos;true&apos; or &apos;false&apos; (case-sensitive) but it was set to &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Expecting the sonar.verbose property to be set to either &apos;true&apos; or &apos;false&apos; but it was set to &apos;{0}&apos;..
         /// </summary>
         internal static string WARN_SonarVerboseNotBool {
             get {
