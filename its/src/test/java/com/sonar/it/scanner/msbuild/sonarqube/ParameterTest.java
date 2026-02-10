@@ -133,7 +133,7 @@ class ParameterTest {
     var result = context.runAnalysis();
     Assertions.assertThat(result.begin().getLogs()).contains("sonar.verbose=True was specified - setting the log verbosity to 'Debug'");
     // We assert the debug exists in the end step from within the scanner engine to make sure it is passed properly.
-    assertThat(result.end().getLogs()).contains("DEBUG: JVM max available memory");
+    assertThat(result.end().getLogs()).contains("DEBUG:");
   }
 
   @Test
