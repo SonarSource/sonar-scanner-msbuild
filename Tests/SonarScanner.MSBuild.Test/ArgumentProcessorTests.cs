@@ -260,7 +260,7 @@ public class ArgumentProcessorTests
         settings.LoggingVerbosity.Should().Be(VerbosityCalculator.DefaultLoggingVerbosity, "Only expecting true or false");
 
         runtime.Logger.Should().HaveNoErrors()
-            .And.HaveWarningOnce("Expecting the sonar.verbose property to be set to either 'true' or 'false' (case-sensitive) but it was set to 'yes'.");
+            .And.HaveWarningOnce("Expecting the sonar.verbose property to be set to either 'true' or 'false' but it was set to 'yes'.");
     }
 
     [TestMethod]
