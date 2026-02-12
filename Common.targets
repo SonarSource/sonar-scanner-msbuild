@@ -18,6 +18,13 @@
          Without this, .NET 10 SDK prunes platform-specific dependencies, causing NU1004 errors when
          lock files generated on Linux are restored on Windows. See sonar-dotnet-enterprise#1677. -->
     <RestoreEnablePackagePruning>false</RestoreEnablePackagePruning>
+    <!-- Disable automatic RuntimeIdentifier inference to ensure lock files are consistent across platforms.
+         Without this, the SDK infers platform-specific RIDs (e.g., win-x86) on Windows but not on Linux,
+         causing NU1004 errors when lock files generated on Linux are restored on Windows.
+         See: https://github.com/NuGet/Home/issues/12711 -->
+    <UseCurrentRuntimeIdentifier>false</UseCurrentRuntimeIdentifier>
+    <RuntimeIdentifier></RuntimeIdentifier>
+    <RuntimeIdentifiers></RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
