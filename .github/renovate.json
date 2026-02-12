@@ -41,6 +41,11 @@
       "groupName": "Coverlet"
     },
     {
+      "description": "Group protobuf packages together - Grpc.Tools bundles protoc which must be compatible with the Google.Protobuf runtime",
+      "matchPackageNames": [ "Google.Protobuf", "Grpc.Tools" ],
+      "groupName": "protobuf"
+    },
+    {
       "description": "Do not update Build dependency. It provides backward compatibility with MsBuild 14+",
       "matchPackageNames": [ "Microsoft.Build**" ],
       "enabled": false
