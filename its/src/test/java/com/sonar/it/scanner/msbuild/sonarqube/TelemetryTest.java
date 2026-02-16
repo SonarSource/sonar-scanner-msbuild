@@ -96,7 +96,7 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
-      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.build\\.netcore_sdk_version\\..*=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.test_project_in_proj.false=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.test_project_in_proj.true=1"),
@@ -139,7 +139,7 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
-      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.build\\.netcore_sdk_version\\..*=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_warnings_as_errors.true=3"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=3"),
@@ -172,17 +172,18 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
-      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
       x -> assertThat(x).matches("csharp\\.cs\\.language_version\\.csharp7(_3)?=2"),
       // VB telemetry (1 VB project)
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=1"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.build\\.netcore_sdk_version\\..*=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.using_microsoft_net_sdk.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_warnings_as_errors.true=1"),
       // CS telemetry (2 CS projects)
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netstandard_version_v1_6=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=2"),
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.build\\.netcore_sdk_version\\..*=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.using_microsoft_net_sdk.true=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.deterministic.true=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_warnings_as_errors.true=2"));
@@ -199,6 +200,7 @@ class TelemetryTest {
     assertThatEndLogMetrics(result.end()).satisfiesExactlyInAnyOrder(
       x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp12=2"),
       x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp14=2"),
+      x -> assertThat(x).isEqualTo("csharp.cs.language_version.csharp7_3=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_scanner_skipjreprovisioning.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_branch_autoconfig_disabled.source=CLI"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.params.sonar_projectbasedir.source=CLI"),
@@ -217,10 +219,12 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
-      x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.netcore_sdk_version="),
+      // 2 SDK projects x 2 targets = 4 SDK builds emit netcore_sdk_version; old-style project does not
+      x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.build\\.netcore_sdk_version\\..*=4"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v8_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v10_0=2"),
-      // 2 projects x 2 targets = 4 builds
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netframework_version_v4_8=1"),
+      // 2 SDK projects x 2 targets = 4 SDK builds + 1 old-style project = 5 total builds
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.override_warnings_as_errors.true=4"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.nuget_project_style.packagereference=4"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.using_microsoft_net_sdk.true=4"),

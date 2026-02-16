@@ -146,9 +146,6 @@
       <SonarTelemetry Condition="$(MSBuildVersion) != ''" Include="dotnetenterprise.s4net.build.msbuild_version">
         <Value>$(MSBuildVersion)</Value>
       </SonarTelemetry>
-      <SonarTelemetry Condition="$(NETCoreSdkVersion) != ''" Include="dotnetenterprise.s4net.build.netcore_sdk_version">
-        <Value>$(NETCoreSdkVersion)</Value>
-      </SonarTelemetry>
     </ItemGroup>
 
     <WriteSonarTelemetry Filename="$(SonarTelemetryFilePath)" CreateNew="true" Telemetry="@(SonarTelemetry)"/>
@@ -405,6 +402,9 @@
       </SonarProjectTelemetry>
       <SonarProjectTelemetry Condition="$(NuGetProjectStyle) != ''" Include="dotnetenterprise.s4net.build.nuget_project_style.cnt">
         <Value>$(NuGetProjectStyle)</Value>
+      </SonarProjectTelemetry>
+      <SonarProjectTelemetry Condition="$(NETCoreSdkVersion) != ''" Include="dotnetenterprise.s4net.build.netcore_sdk_version.cnt">
+        <Value>$(NETCoreSdkVersion)</Value>
       </SonarProjectTelemetry>
       <!-- Track if user has defined SonarQubeSetting items in their project file (before we add internal settings) -->
       <SonarProjectTelemetry Condition="@(SonarQubeSetting) != ''" Include="dotnetenterprise.s4net.build.sonar_properties_in_project_file.cnt">

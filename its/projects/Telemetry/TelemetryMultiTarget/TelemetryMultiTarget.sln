@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryMultiTarget", "Tel
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelemetryUtilsMultiTarget", "TelemetryUtilsMultiTarget\TelemetryUtilsMultiTarget.csproj", "{847A98CA-174B-4F21-A33A-605F3D9462A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassicFrameworkLib", "ClassicFrameworkLib\ClassicFrameworkLib.csproj", "{B4A3C7D2-8E5F-4A91-BC6D-1F2E3A4B5C6D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{847A98CA-174B-4F21-A33A-605F3D9462A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{847A98CA-174B-4F21-A33A-605F3D9462A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{847A98CA-174B-4F21-A33A-605F3D9462A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4A3C7D2-8E5F-4A91-BC6D-1F2E3A4B5C6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4A3C7D2-8E5F-4A91-BC6D-1F2E3A4B5C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4A3C7D2-8E5F-4A91-BC6D-1F2E3A4B5C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4A3C7D2-8E5F-4A91-BC6D-1F2E3A4B5C6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
