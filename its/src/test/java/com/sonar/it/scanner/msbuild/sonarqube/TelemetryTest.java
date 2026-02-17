@@ -219,8 +219,10 @@ class TelemetryTest {
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.endstep.coverage_conversion=false"),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.visual_studio_version="),
       x -> assertThat(x).startsWith("dotnetenterprise.s4net.build.msbuild_version="),
-      // 2 SDK projects x 2 targets = 4 SDK builds emit netcore_sdk_version; old-style project does not
+      // 2 SDK projects x 2 targets = 4 SDK builds emit netcore_sdk_version
       x -> assertThat(x).matches("dotnetenterprise\\.s4net\\.build\\.netcore_sdk_version\\..*=4"),
+      // 1 old-style Framework project emits netcore_sdk_version=NotSet
+      x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.netcore_sdk_version.notset=1"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v8_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netcoreapp_version_v10_0=2"),
       x -> assertThat(x).isEqualTo("dotnetenterprise.s4net.build.target_framework_moniker._netframework_version_v4_8=1"),
