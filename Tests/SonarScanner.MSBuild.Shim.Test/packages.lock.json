@@ -80,9 +80,9 @@
       },
       "SonarAnalyzer.CSharp.Styling": {
         "type": "Direct",
-        "requested": "[10.15.0.120848, )",
-        "resolved": "10.15.0.120848",
-        "contentHash": "cm6MjXNnaVfhcC8oC34aEj0JdWreWz4YQlfgch2kmg/VkWtUnZTOlc0s/No8q0grt0wxkC8bTNA/fT9Ev7zdEA=="
+        "requested": "[10.19.0.132793, )",
+        "resolved": "10.19.0.132793",
+        "contentHash": "FlW5YGaCinADnYBMV5Z2jtXEgirX/dcrA6XoM02D4x2W6hD+D1iC15N/DSCfWoZSDdTdoRvVN0T9YXW3OJ9O9Q=="
       },
       "StyleCop.Analyzers": {
         "type": "Direct",
@@ -1811,9 +1811,9 @@
       },
       "SonarAnalyzer.CSharp.Styling": {
         "type": "Direct",
-        "requested": "[10.15.0.120848, )",
-        "resolved": "10.15.0.120848",
-        "contentHash": "cm6MjXNnaVfhcC8oC34aEj0JdWreWz4YQlfgch2kmg/VkWtUnZTOlc0s/No8q0grt0wxkC8bTNA/fT9Ev7zdEA=="
+        "requested": "[10.19.0.132793, )",
+        "resolved": "10.19.0.132793",
+        "contentHash": "FlW5YGaCinADnYBMV5Z2jtXEgirX/dcrA6XoM02D4x2W6hD+D1iC15N/DSCfWoZSDdTdoRvVN0T9YXW3OJ9O9Q=="
       },
       "StyleCop.Analyzers": {
         "type": "Direct",
