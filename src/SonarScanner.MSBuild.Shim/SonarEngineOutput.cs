@@ -44,6 +44,10 @@ public class SonarEngineOutput
             try
             {
                 var engineOutput = JsonConvert.DeserializeObject<EngineOutput>(outputLine);
+                if (engineOutput is null)
+                {
+                    return new(LogLevel.Info, outputLine);
+                }
                 var logLevel = engineOutput.Level switch
                 {
                     EngineLevel.WARN => LogLevel.Warning,
