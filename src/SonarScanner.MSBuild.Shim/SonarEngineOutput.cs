@@ -35,6 +35,7 @@ public class SonarEngineOutput
 
     public static LogMessage? OutputToLogMessage(bool stdOut, string outputLine)
     {
+        Console.WriteLine($"[DIAG] OutputToLogMessage: stdOut={stdOut}, outputLine={(outputLine is null ? "<null>" : $"'{outputLine}' (len={outputLine.Length})")}");
         if (outputLine is null)
         {
             return null;
