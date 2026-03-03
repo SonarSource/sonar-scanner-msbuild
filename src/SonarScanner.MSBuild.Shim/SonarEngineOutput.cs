@@ -62,7 +62,10 @@ public class SonarEngineOutput
                 return new(logLevel, message);
             }
         }
-        catch (JsonException) { /* Output the message directly as it is not valid JSON. */ }
+        catch (JsonException)
+        {
+            // Output the message directly as it is not valid JSON.
+        }
         return new(LogLevel.Info, outputLine);
     }
 
