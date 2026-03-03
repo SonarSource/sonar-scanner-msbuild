@@ -35,7 +35,6 @@ public class SonarEngineOutput
 
     public static LogMessage? OutputToLogMessage(bool stdOut, string outputLine)
     {
-        Console.WriteLine($"[DIAG] OutputToLogMessage: stdOut={stdOut}, outputLine={(outputLine is null ? "<null>" : $"'{outputLine}' (len={outputLine.Length})")}");
         if (outputLine is null)
         {
             return null;
@@ -45,6 +44,10 @@ public class SonarEngineOutput
             try
             {
                 var engineOutput = JsonConvert.DeserializeObject<EngineOutput>(outputLine);
+                if (engineOutput is null)
+                {
+                    return new(LogLevel.Info, outputLine);
+                }
                 var logLevel = engineOutput.Level switch
                 {
                     EngineLevel.WARN => LogLevel.Warning,
