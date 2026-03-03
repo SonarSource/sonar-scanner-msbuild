@@ -35,6 +35,10 @@ public class SonarEngineOutput
 
     public static LogMessage? OutputToLogMessage(bool stdOut, string outputLine)
     {
+        if (outputLine is null)
+        {
+            return null;
+        }
         if (stdOut)
         {
             try
