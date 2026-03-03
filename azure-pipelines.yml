@@ -394,7 +394,7 @@ stages:
               XML_VERSION: "2.7.0.3820"          # Bundled version with SQ 9.9
             LTA-2025:
               PRODUCT: "SonarQube"
-              SQ_VERSION: "LATEST_RELEASE[2025.1]"
+              SQ_VERSION: "2025.1.6.120460" # IMPORTANT: for testing only. Needs to be reverted to LATEST_RELEASE[2025.1] before merge to master
               MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "6.62.0.78645"         # Bundled version with SQ 2025.1
