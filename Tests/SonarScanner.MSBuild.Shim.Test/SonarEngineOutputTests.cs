@@ -96,6 +96,7 @@ public class SonarEngineOutputTests
     // JsonConvert.DeserializeObject<T>("") and DeserializeObject<T>("null") return null instead of throwing JsonException.
     // This happens e.g. when the scanner jar emits an empty line (observed with logback StatusPrinter output).
     [DataRow("")]
+    [DataRow("   ")]
     [DataRow("null")]
     public void OutputToLogMessage_DeserializesToNull_ReturnsInfo(string outputLine)
     {
