@@ -80,4 +80,15 @@ public class SonarEngineOutputTests
         logMessage.Level.Should().Be(LogLevel.Error);
         logMessage.Message.Should().Be(line);
     }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void OutputToLogMessage_NullOutputLine_ReturnsNull(bool stdOut)
+    {
+        // null is delivered by DataReceivedEventArgs.Data when the process stream closes (EOF signal)
+        var result = SonarEngineOutput.OutputToLogMessage(stdOut, null);
+
+        result.Should().BeNull();
+    }
 }
