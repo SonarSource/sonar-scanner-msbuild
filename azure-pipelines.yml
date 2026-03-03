@@ -413,7 +413,7 @@ stages:
               XML_VERSION: "2.12.0.5749"              # Bundled version with SQ 2025.1
             DEV-2025-1:
               PRODUCT: "SonarQube"
-              SQ_VERSION: "DEV[2025.1]"
+              SQ_VERSION: "2025.1.6.120505"
               MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "6.62.0.78645"         # Bundled version with SQ 2025.1
