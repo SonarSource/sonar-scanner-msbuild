@@ -216,6 +216,32 @@ public class TrxFileReaderTests
             + $"Trx file: {Path.Combine(resultsDir, "single_attachment.trx")}");
     }
 
+    [TestMethod]
+    [Description("Tests that Microsoft.Testing.Platform (MTP) collector URI is recognized in addition to the classic VSTest URI")]
+    public void TrxReader_MicrosoftTestingPlatform_SingleAttachment()
+    {
+        var relativeCoveragePath = @"MACHINENAME\LOCAL SERVICE_MACHINENAME 2015-05-06 08_38_35.coverage";
+        var trxContent = $"""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <TestRun id="eb906034-f363-4bf0-ac6a-29fa47645f67"
+                name="LOCAL SERVICE@MACHINENAME 2015-05-06 08:38:39" runUser="NT AUTHORITY\LOCAL SERVICE"
+                xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+                <ResultSummary outcome="Completed">
+                    <CollectorDataEntries>
+                        {FormatMtpCollectorElement(relativeCoveragePath)}
+                    </CollectorDataEntries>
+                </ResultSummary>
+            </TestRun>
+            """;
+        var resultsDir = CreateDirectory(RootDirectory, "single_attachment.trx", trxContent);
+        var fullCoveragePath = Path.Combine(resultsDir, "single_attachment", "In", relativeCoveragePath);
+        CreateFile(Path.GetDirectoryName(fullCoveragePath), Path.GetFileName(fullCoveragePath));
+
+        var trxFiles = trxReader.FindTrxFiles(RootDirectory);
+        trxReader.FindCodeCoverageFiles(trxFiles).Should().BeEquivalentTo(fullCoveragePath);
+        runtime.Logger.Should().HaveDebugs("Absolute path to coverage file: " + fullCoveragePath);
+    }
+
     private string CreateDirectory(string path, string fileName = null, string fileContent = "")
     {
         var subdir = Path.Combine(path, "TestResults");
@@ -279,6 +305,18 @@ public class TrxFileReaderTests
     private static string FormatCollectorElement(string uri) =>
         $"""
         <Collector agentName="MACHINENAME" uri="datacollector://microsoft/CodeCoverage/2.0" collectorDisplayName="Code Coverage">
+            <UriAttachments>
+                <UriAttachment>
+                    <A href="{uri}">
+                    </A>
+                </UriAttachment>
+            </UriAttachments>
+        </Collector>
+        """;
+
+    private static string FormatMtpCollectorElement(string uri) =>
+        $"""
+        <Collector agentName="MACHINENAME" uri="datacollector://TestingPlatformCoverageDynamicTestSessionLifetimeHandler/1.0.0" collectorDisplayName="Code Coverage">
             <UriAttachments>
                 <UriAttachment>
                     <A href="{uri}">
