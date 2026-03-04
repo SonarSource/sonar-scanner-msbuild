@@ -419,7 +419,7 @@ stages:
               JDKVERSION: "1.21"
               CFAMILY_VERSION: "6.70.1.93088"         # Bundled version with SQ 2025.4
               CSS_VERSION: "NONE"                     # No official release in SQ 2025.4, the plug-in should not be loaded. Rules are in the JS plugin
-              DOTNET_VERSION: "10.15.0.120848"        # Bundled version with SQ 2025.4
+              DOTNET_VERSION: "10.21.0.135332"        # Minimum version supporting new telemetry convention (bundled was 10.15.0)
               GO_VERSION: "1.26.0.3421"               # Bundled version with SQ 2025.4
               GO_GROUP_ID: "org.sonarsource.go"
               IAC_VERSION: "1.48.1.18410"             # Bundled version with SQ 2025.4
@@ -439,11 +439,11 @@ stages:
               JDKVERSION: "1.21"
               CFAMILY_VERSION: "6.77.0.95488"         # Bundled version with SQ 2026.1
               CSS_VERSION: "NONE"                     # No official release in SQ 2026.1, the plug-in should not be loaded. Rules are in the JS plugin
-              DOTNET_VERSION: "10.18.0.131500"        # Bundled version with SQ 2026.1
+              DOTNET_VERSION: "10.21.0.135332"        # Minimum version supporting new telemetry convention (bundled was 10.18.0)
               GO_VERSION: "1.31.0.4938"               # Bundled version with SQ 2026.1
               GO_GROUP_ID: "org.sonarsource.go"
               IAC_VERSION: "2.5.0.18803"              # Bundled version with SQ 2026.1
-              IAC_ENTERPRISE_VERSION: "2.5.0.18803"   # Bundled version with SQ 2026.1
+              IAC_ENTERPRISE_VERSION: "2.6.1.19203"   # Minimum version supporting githubactions rules (bundled was 2.5.0)
               JAVA_VERSION: "8.22.0.41895"            # Bundled version with SQ 2026.1, required by sonar-text to analyse .properties files
               JAVASCRIPT_VERSION: "11.8.0.37897"      # Bundled version with SQ 2026.1
               PHP_VERSION: "3.54.0.15452"             # Bundled version with SQ 2026.1
