@@ -442,7 +442,7 @@ stages:
               DOTNET_VERSION: "10.21.0.135332"        # Minimum version supporting new telemetry convention (bundled was 10.18.0)
               GO_VERSION: "1.31.0.4938"               # Bundled version with SQ 2026.1
               GO_GROUP_ID: "org.sonarsource.go"
-              IAC_VERSION: "2.6.1.19203"              # Minimum version supporting githubactions rules (bundled was 2.5.0)
+              IAC_VERSION: "NONE"                     # Enterprise plugin is a superset; installing both causes conflicts for githubactions
               IAC_ENTERPRISE_VERSION: "2.6.1.19203"   # Minimum version supporting githubactions rules (bundled was 2.5.0)
               JAVA_VERSION: "8.22.0.41895"            # Bundled version with SQ 2026.1, required by sonar-text to analyse .properties files
               JAVASCRIPT_VERSION: "11.8.0.37897"      # Bundled version with SQ 2026.1
