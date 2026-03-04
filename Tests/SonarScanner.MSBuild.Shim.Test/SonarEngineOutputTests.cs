@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
-
 namespace SonarScanner.MSBuild.Shim.Test;
 
 [TestClass]
@@ -112,30 +110,30 @@ public class SonarEngineOutputTests
     }
 
     [TestMethod]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     public void ProcRunner_SonarEngineOutputDelegate_MixedOutput_HandledGracefully()
     {
         // Verifies that non-JSON and empty lines mixed in with valid JSON log output are all handled
         // gracefully end-to-end: ProcessRunner → SonarEngineOutput.OutputToLogMessage → logged without crashing.
-        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-        string Echo(string line) => isWindows ? $"@echo {line}" : $"echo '{line}'";
         var missingBrace = @"{""message"":""Missing brace"",""level"":""INFO""";
         var missingProperty = """{"level":"INFO"}""";
         var script = $"""
-            {(isWindows ? "@echo off" : "#!/bin/sh")}
-            {Echo("""{"message":"First message","level":"INFO"}""")}
-            {(isWindows ? "@echo." : "echo \"\"")}
-            {Echo(missingBrace)}
-            {(isWindows ? "@echo(   " : "echo '   '")}
-            {Echo(missingProperty)}
-            {Echo("null")}
-            {Echo("""{"message":"Last message","level":"WARN"}""")}
+            @echo off
+            @echo {"""{"message":"First message","level":"INFO"}"""}
+            @echo.
+            @echo {missingBrace}
+            @echo(
+            @echo {missingProperty}
+            @echo null
+            @echo {"""{"message":"Last message","level":"WARN"}"""}
             """;
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var exePath = TestUtils.WriteExecutableScriptForTest(TestContext, script);
         var runtime = new TestRuntime();
         runtime.File.ShortName(Arg.Any<PlatformOS>(), Arg.Any<string>()).Returns(x => x[1]);
         var runner = new ProcessRunner(runtime);
-        var processArgs = new ProcessRunnerArguments(exePath, isWindows)
+        var processArgs = new ProcessRunnerArguments(exePath, isBatchScript: true)
         {
             WorkingDirectory = testDir,
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage
