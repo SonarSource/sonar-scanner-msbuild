@@ -18,11 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Runtime.InteropServices;
+
 namespace SonarScanner.MSBuild.Shim.Test;
 
 [TestClass]
 public class SonarEngineOutputTests
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     [DataRow("""{"message":"A trace","level":"TRACE"}""", LogLevel.Info, "TRACE: A trace")]
     [DataRow("""{"message":"A debug","level":"DEBUG"}""", LogLevel.Info, "DEBUG: A debug")]
@@ -105,5 +109,33 @@ public class SonarEngineOutputTests
         var logMessage = result.Should().NotBeNull().And.BeAssignableTo<LogMessage>().Which;
         logMessage.Level.Should().Be(LogLevel.Info);
         logMessage.Message.Should().Be(outputLine);
+    }
+
+    [TestMethod]
+    public void ProcRunner_SonarEngineOutputDelegate_EmptyLine_LoggedAsInfo()
+    {
+        // Verifies that an empty line emitted by the scanner jar (e.g. logback StatusPrinter trailing line)
+        // is handled gracefully end-to-end: ProcessRunner → SonarEngineOutput.OutputToLogMessage → logged as Info.
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        var scriptInit = isWindows ? "@echo off" : "#!/bin/sh";
+        var echoEmptyLine = isWindows ? "@echo." : "echo \"\"";
+        var script = $"""
+            {scriptInit}
+            {echoEmptyLine}
+            """;
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var exePath = TestUtils.WriteExecutableScriptForTest(TestContext, script);
+        var runtime = new TestRuntime();
+        runtime.File.ShortName(Arg.Any<PlatformOS>(), Arg.Any<string>()).Returns(x => x[1]);
+        var runner = new ProcessRunner(runtime);
+        var processArgs = new ProcessRunnerArguments(exePath, isWindows)
+        {
+            WorkingDirectory = testDir,
+            OutputToLogMessage = SonarEngineOutput.OutputToLogMessage
+        };
+
+        runner.Execute(processArgs);
+
+        runtime.Logger.InfoMessages.Should().Contain(string.Empty);
     }
 }
