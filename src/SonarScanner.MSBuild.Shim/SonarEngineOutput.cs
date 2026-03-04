@@ -46,7 +46,7 @@ public class SonarEngineOutput
         var engineOutput = TryDeserialize(outputLine);
         if (engineOutput is null)
         {
-            return new(LogLevel.Info, outputLine); // Output the message directly as Info, as it is not valid JSON.
+            return new(LogLevel.Info, outputLine); // Output the message directly as Info, as it is not valid JSON or an empty string.
         }
         var logLevel = engineOutput.Level switch
         {
