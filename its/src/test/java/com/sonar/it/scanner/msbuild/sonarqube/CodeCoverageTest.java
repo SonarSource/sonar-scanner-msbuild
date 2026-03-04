@@ -94,6 +94,7 @@ class CodeCoverageTest {
       var context = AnalysisContext.forServer("CodeCoverage.MicrosoftTestingPlatform", ScannerClassifier.NET_FRAMEWORK);
       context.begin.setDebugLogs();
       context.build.useDotNet("test")
+        .skipExtraArgs() // MTP forwards unrecognized args to the test executable, which rejects --warnaserror and --disable-build-servers
         .setTimeout(Timeout.TWO_MINUTES)
         .addArgument("--report-trx", "--results-directory", buildDirectory.path.resolve("TestResults").toString(), "--coverage");
       var logs = context
