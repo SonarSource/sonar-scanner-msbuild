@@ -157,6 +157,7 @@ public class TrxFileReader
         var nsmgr = new XmlNamespaceManager(doc.NameTable);
         nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
 
+        // TRX schema: %VSINSTALLDIR%\Xml\Schemas\vstst.xsd
         // Microsoft.Testing.Platform (MTP) uses a different collector URI than the classic VSTest runner.
         var attachmentNodes = doc.SelectNodes(
             "/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector["
