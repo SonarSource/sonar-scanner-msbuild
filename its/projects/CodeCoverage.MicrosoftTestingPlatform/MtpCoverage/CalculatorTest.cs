@@ -1,4 +1,4 @@
-namespace CodeCoverage.MicrosoftTestingPlatform;
+namespace MtpCoverage;
 
 [TestClass]
 public class CalculatorTest

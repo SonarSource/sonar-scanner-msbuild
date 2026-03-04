@@ -87,7 +87,7 @@ class CodeCoverageTest {
 
   @Test
   @EnabledOnOs(OS.WINDOWS)
-  void whenRunningMicrosoftTestingPlatformOnAzureDevops_coverageIsImported() {
+  void whenRunningWithMtpOnAzureDevops_coverageIsImported() {
     // MTP uses --report-trx and --coverage instead of --collect "Code Coverage" --logger trx.
     // The resulting TRX contains a different collector URI that TrxFileReader must also recognize.
     try (var buildDirectory = new TempDirectory("junit-CodeCoverage.BuildDirectory.MTP-")) {
