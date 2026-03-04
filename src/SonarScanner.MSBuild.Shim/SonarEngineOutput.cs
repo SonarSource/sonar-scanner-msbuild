@@ -43,28 +43,29 @@ public class SonarEngineOutput
         {
             return new(LogLevel.Error, outputLine);
         }
+        EngineOutput? engineOutput = null;
         try
         {
-            var engineOutput = JsonConvert.DeserializeObject<EngineOutput>(outputLine);
-            if (engineOutput is not null)
-            {
-                var logLevel = engineOutput.Level switch
-                {
-                    EngineLevel.WARN => LogLevel.Warning,
-                    EngineLevel.ERROR => LogLevel.Error,
-                    _ => LogLevel.Info
-                };
-                var message = $"{engineOutput.Level}: {engineOutput.Message}";
-                if (!string.IsNullOrWhiteSpace(engineOutput.Stacktrace))
-                {
-                    message += Environment.NewLine + engineOutput.Stacktrace;
-                }
-                return new(logLevel, message);
-            }
+            engineOutput = JsonConvert.DeserializeObject<EngineOutput>(outputLine);
         }
         catch (JsonException)
         {
             // Output the message directly as it is not valid JSON.
+        }
+        if (engineOutput is not null)
+        {
+            var logLevel = engineOutput.Level switch
+            {
+                EngineLevel.WARN => LogLevel.Warning,
+                EngineLevel.ERROR => LogLevel.Error,
+                _ => LogLevel.Info
+            };
+            var message = $"{engineOutput.Level}: {engineOutput.Message}";
+            if (!string.IsNullOrWhiteSpace(engineOutput.Stacktrace))
+            {
+                message += Environment.NewLine + engineOutput.Stacktrace;
+            }
+            return new(logLevel, message);
         }
         return new(LogLevel.Info, outputLine);
     }
