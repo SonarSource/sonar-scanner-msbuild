@@ -43,23 +43,25 @@ public class SonarEngineOutput
         {
             return new(LogLevel.Error, outputLine); // Any output written to stderr is forwarded unprocessed.
         }
-        var engineOutput = TryDeserialize(outputLine);
-        if (engineOutput is null)
+        if (TryDeserialize(outputLine) is { } engineOutput)
+        {
+            var logLevel = engineOutput.Level switch
+            {
+                EngineLevel.WARN => LogLevel.Warning,
+                EngineLevel.ERROR => LogLevel.Error,
+                _ => LogLevel.Info
+            };
+            var message = $"{engineOutput.Level}: {engineOutput.Message}";
+            if (!string.IsNullOrWhiteSpace(engineOutput.Stacktrace))
+            {
+                message += Environment.NewLine + engineOutput.Stacktrace;
+            }
+            return new(logLevel, message);
+        }
+        else
         {
             return new(LogLevel.Info, outputLine); // Output the message directly as Info, as it is not valid JSON or an empty string.
         }
-        var logLevel = engineOutput.Level switch
-        {
-            EngineLevel.WARN => LogLevel.Warning,
-            EngineLevel.ERROR => LogLevel.Error,
-            _ => LogLevel.Info
-        };
-        var message = $"{engineOutput.Level}: {engineOutput.Message}";
-        if (!string.IsNullOrWhiteSpace(engineOutput.Stacktrace))
-        {
-            message += Environment.NewLine + engineOutput.Stacktrace;
-        }
-        return new(logLevel, message);
     }
 
     private static EngineOutput TryDeserialize(string outputLine)
