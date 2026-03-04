@@ -116,17 +116,19 @@ public class SonarEngineOutputTests
     {
         // Verifies that non-JSON and empty lines mixed in with valid JSON log output are all handled
         // gracefully end-to-end: ProcessRunner → SonarEngineOutput.OutputToLogMessage → logged without crashing.
+        var firstMessage = """{"message":"First message","level":"INFO"}""";
         var missingBrace = @"{""message"":""Missing brace"",""level"":""INFO""";
         var missingProperty = """{"level":"INFO"}""";
+        var lastMessage = """{"message":"Last message","level":"WARN"}""";
         var script = $"""
             @echo off
-            @echo {{"message":"First message","level":"INFO"}}
+            @echo {firstMessage}
             @echo.
             @echo {missingBrace}
             @echo(
             @echo {missingProperty}
             @echo null
-            @echo {{"message":"Last message","level":"WARN"}}
+            @echo {lastMessage}
             """;
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var exePath = TestUtils.WriteExecutableScriptForTest(TestContext, script);
