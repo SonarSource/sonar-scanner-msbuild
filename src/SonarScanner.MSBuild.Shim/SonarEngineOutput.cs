@@ -44,22 +44,22 @@ public class SonarEngineOutput
             return new(LogLevel.Error, outputLine);
         }
         var engineOutput = TryDeserialize(outputLine);
-        if (engineOutput is not null)
+        if (engineOutput is null)
         {
-            var logLevel = engineOutput.Level switch
-            {
-                EngineLevel.WARN => LogLevel.Warning,
-                EngineLevel.ERROR => LogLevel.Error,
-                _ => LogLevel.Info
-            };
-            var message = $"{engineOutput.Level}: {engineOutput.Message}";
-            if (!string.IsNullOrWhiteSpace(engineOutput.Stacktrace))
-            {
-                message += Environment.NewLine + engineOutput.Stacktrace;
-            }
-            return new(logLevel, message);
+            return new(LogLevel.Info, outputLine);
         }
-        return new(LogLevel.Info, outputLine);
+        var logLevel = engineOutput.Level switch
+        {
+            EngineLevel.WARN => LogLevel.Warning,
+            EngineLevel.ERROR => LogLevel.Error,
+            _ => LogLevel.Info
+        };
+        var message = $"{engineOutput.Level}: {engineOutput.Message}";
+        if (!string.IsNullOrWhiteSpace(engineOutput.Stacktrace))
+        {
+            message += Environment.NewLine + engineOutput.Stacktrace;
+        }
+        return new(logLevel, message);
     }
 
     private static EngineOutput TryDeserialize(string outputLine)
