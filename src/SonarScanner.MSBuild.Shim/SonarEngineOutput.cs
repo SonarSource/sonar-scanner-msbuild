@@ -43,15 +43,7 @@ public class SonarEngineOutput
         {
             return new(LogLevel.Error, outputLine);
         }
-        EngineOutput? engineOutput = null;
-        try
-        {
-            engineOutput = JsonConvert.DeserializeObject<EngineOutput>(outputLine);
-        }
-        catch (JsonException)
-        {
-            // Output the message directly as it is not valid JSON.
-        }
+        var engineOutput = TryDeserialize(outputLine);
         if (engineOutput is not null)
         {
             var logLevel = engineOutput.Level switch
@@ -68,6 +60,18 @@ public class SonarEngineOutput
             return new(logLevel, message);
         }
         return new(LogLevel.Info, outputLine);
+    }
+
+    private static EngineOutput TryDeserialize(string outputLine)
+    {
+        try
+        {
+            return JsonConvert.DeserializeObject<EngineOutput>(outputLine);
+        }
+        catch (JsonException)
+        {
+            return null; // Output the message directly as it is not valid JSON.
+        }
     }
 
     // https://xtranet-sonarsource.atlassian.net/wiki/spaces/CodeOrches/pages/3155001372/Scanner+Bootstrapping#Scanner-Engine-contract
