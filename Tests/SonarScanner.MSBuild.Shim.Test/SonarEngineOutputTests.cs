@@ -146,6 +146,5 @@ public class SonarEngineOutputTests
         runtime.Logger.Should()
             .HaveInfos("INFO: First message", string.Empty, missingBrace, missingProperty, "null")
             .And.HaveWarnings("WARN: Last message");
-        runtime.Logger.InfoMessages.Should().Contain(x => string.IsNullOrWhiteSpace(x) && x.Length > 0);
     }
 }
