@@ -178,7 +178,7 @@ class MultiLanguageTest {
         tuple("plsql:S1134", context.projectKey + ":frontend/PageOne.Query.sql"),
         tuple("python:S1134", context.projectKey + ":frontend/PageOne.Script.py")));
 
-      if (version.isGreaterThan(8, 9) && !version.isGreaterThanOrEquals(2025, 1)) {
+      if (version.isGreaterThan(8, 9) && !version.isGreaterThan(2025, 1)) {
         expectedIssues.add(tuple("php:S4833", context.projectKey + ":src/MultiLanguageSupport/Php/Composer/test.php"));
       }
       if (version.isGreaterThan(8, 9)) {
