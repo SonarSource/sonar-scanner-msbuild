@@ -112,16 +112,23 @@ public class SonarEngineOutputTests
     }
 
     [TestMethod]
-    public void ProcRunner_SonarEngineOutputDelegate_EmptyLine_LoggedAsInfo()
+    public void ProcRunner_SonarEngineOutputDelegate_MixedOutput_HandledGracefully()
     {
-        // Verifies that an empty line emitted by the scanner jar (e.g. logback StatusPrinter trailing line)
-        // is handled gracefully end-to-end: ProcessRunner → SonarEngineOutput.OutputToLogMessage → logged as Info.
+        // Verifies that non-JSON and empty lines mixed in with valid JSON log output are all handled
+        // gracefully end-to-end: ProcessRunner → SonarEngineOutput.OutputToLogMessage → logged without crashing.
         var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-        var scriptInit = isWindows ? "@echo off" : "#!/bin/sh";
-        var echoEmptyLine = isWindows ? "@echo." : "echo \"\"";
+        string Echo(string line) => isWindows ? $"@echo {line}" : $"echo '{line}'";
+        var missingBrace = @"{""message"":""Missing brace"",""level"":""INFO""";
+        var missingProperty = """{"level":"INFO"}""";
         var script = $"""
-            {scriptInit}
-            {echoEmptyLine}
+            {(isWindows ? "@echo off" : "#!/bin/sh")}
+            {Echo("""{"message":"First message","level":"INFO"}""")}
+            {(isWindows ? "@echo." : "echo \"\"")}
+            {Echo(missingBrace)}
+            {(isWindows ? "@echo(   " : "echo '   '")}
+            {Echo(missingProperty)}
+            {Echo("null")}
+            {Echo("""{"message":"Last message","level":"WARN"}""")}
             """;
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var exePath = TestUtils.WriteExecutableScriptForTest(TestContext, script);
@@ -136,6 +143,9 @@ public class SonarEngineOutputTests
 
         runner.Execute(processArgs);
 
-        runtime.Logger.InfoMessages.Should().Contain(string.Empty);
+        runtime.Logger.Should()
+            .HaveInfos("INFO: First message", string.Empty, missingBrace, missingProperty, "null")
+            .And.HaveWarnings("WARN: Last message");
+        runtime.Logger.InfoMessages.Should().Contain(x => string.IsNullOrWhiteSpace(x) && x.Length > 0);
     }
 }
