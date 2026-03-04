@@ -120,13 +120,13 @@ public class SonarEngineOutputTests
         var missingProperty = """{"level":"INFO"}""";
         var script = $"""
             @echo off
-            @echo {"""{"message":"First message","level":"INFO"}"""}
+            @echo {{"message":"First message","level":"INFO"}}
             @echo.
             @echo {missingBrace}
             @echo(
             @echo {missingProperty}
             @echo null
-            @echo {"""{"message":"Last message","level":"WARN"}"""}
+            @echo {{"message":"Last message","level":"WARN"}}
             """;
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var exePath = TestUtils.WriteExecutableScriptForTest(TestContext, script);
