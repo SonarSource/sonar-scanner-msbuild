@@ -41,7 +41,7 @@ public class SonarEngineOutput
         }
         if (!stdOut)
         {
-            return new(LogLevel.Error, outputLine);
+            return new(LogLevel.Error, outputLine); // Any output written to stderr is forwarded unprocessed.
         }
         var engineOutput = TryDeserialize(outputLine);
         if (engineOutput is null)
