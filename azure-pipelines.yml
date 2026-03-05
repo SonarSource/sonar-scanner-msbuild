@@ -463,12 +463,10 @@ stages:
               MSBUILD_PATH: ""
               TEST_INCLUDE: "**/others/*"
 
-  # TODO: SCAN4NET-1004 re-enable when MacOS and Linux agents have .net 10 installed
-
-  # - template: templates/unix-qa-stage.yml
-  #   parameters:
-  #     vmImage: "ubuntu-22.04"
-  #     name: "Linux"
+  - template: templates/unix-qa-stage.yml
+    parameters:
+      vmImage: "ubuntu-22.04"
+      name: "Linux"
 
   # - template: templates/unix-qa-stage.yml
   #   parameters:
@@ -480,7 +478,7 @@ stages:
     dependsOn:
     - build
     - qa_windows
-  #  - qa_linux
+    - qa_linux
   #  - qa_macos
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
     jobs:
