@@ -451,12 +451,6 @@ stages:
               PYTHON_VERSION: "5.14.2.29072"          # Bundled version with SQ 2026.1
               TEXT_VERSION: "2.38.0.10279"            # Bundled version with SQ 2026.1
               XML_VERSION: "2.15.0.7513"              # Bundled version with SQ 2026.1
-            DEV-2026-1:
-              PRODUCT: "SonarQube"
-              SQ_VERSION: "DEV[2026.1]"
-              MSBUILD_PATH: $(MSBUILD_18_PATH)
-              TEST_INCLUDE: "**/sonarqube/*"
-              JDKVERSION: "1.21"
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
