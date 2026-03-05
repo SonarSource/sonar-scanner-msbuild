@@ -111,9 +111,8 @@ class MultiLanguageTest {
       tuple("python:S5754", context.projectKey + ":node_modules/flatted/python/flatted.py"),
       tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py"),
       tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py")));
-    if(version.isGreaterThanOrEquals(2025,4)){
-      // SonarJs 11.4 targets 2025.5 but since we are currently using the latest analyzer versions we need to check for 2025.4.
-      // This will break when we add tests for 2025.4. (it's not an LTA but is supported like one). When that happens, change condition to 2025.5 and remove this comment.
+    if (version.isGreaterThanOrEquals(2025, 5)) {
+      // SonarJs 11.4 targets SQ 2025.5
       expectedIssues.addAll(List.of(
         tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
         tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
@@ -178,7 +177,11 @@ class MultiLanguageTest {
         tuple("plsql:S1134", context.projectKey + ":frontend/PageOne.Query.sql"),
         tuple("python:S1134", context.projectKey + ":frontend/PageOne.Script.py")));
 
-      if (version.isGreaterThan(8, 9) && !version.isGreaterThan(2025, 1)) {
+      var phpPluginVersion = System.getProperty("sonar.phpplugin.version", "LATEST_RELEASE");
+      if (version.isGreaterThan(8, 9) && !"LATEST_RELEASE".equals(phpPluginVersion)) {
+        // php:S4833 is removed in the latest PHP plugin, but older LTA bundled versions still have it.
+        // We check the PHP plugin version rather than the SQ server version, since both LATEST_RELEASE
+        // and LTA builds may run against the same SQ server version but with different PHP plugin versions.
         expectedIssues.add(tuple("php:S4833", context.projectKey + ":src/MultiLanguageSupport/Php/Composer/test.php"));
       }
       if (version.isGreaterThan(8, 9)) {
@@ -300,15 +303,12 @@ class MultiLanguageTest {
     if (version.isGreaterThanOrEquals(2025, 1)) {
       expectedIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
     }
-    if (version.isGreaterThanOrEquals(2025, 4)) {
-      // githubactions was released in sonar-iac 1.49 which targets 2025.5 but since we are currently using the latest analyzer versions we need to check for 2025.4.
-      // This will break when we add tests for 2025.4. (it's not an LTA but is supported like one). When that happens, change condition to 2025.5 and remove this comment.
+    if (version.isGreaterThanOrEquals(2025, 5)) {
+      // githubactions (sonar-iac-enterprise 2.6.x) and SonarJs 11.4 rules target SQ 2025.5
       expectedIssues.addAll(List.of(
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml")));
-      // SonarJs 11.4 same as above
-      expectedIssues.addAll(List.of(
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
