@@ -177,7 +177,11 @@ class MultiLanguageTest {
         tuple("plsql:S1134", context.projectKey + ":frontend/PageOne.Query.sql"),
         tuple("python:S1134", context.projectKey + ":frontend/PageOne.Script.py")));
 
-      if (version.isGreaterThan(8, 9) && !version.isGreaterThan(2025, 1)) {
+      var phpPluginVersion = System.getProperty("sonar.phpplugin.version", "LATEST_RELEASE");
+      if (version.isGreaterThan(8, 9) && !"LATEST_RELEASE".equals(phpPluginVersion)) {
+        // php:S4833 is removed in the latest PHP plugin, but older LTA bundled versions still have it.
+        // We check the PHP plugin version rather than the SQ server version, since both LATEST_RELEASE
+        // and LTA builds may run against the same SQ server version but with different PHP plugin versions.
         expectedIssues.add(tuple("php:S4833", context.projectKey + ":src/MultiLanguageSupport/Php/Composer/test.php"));
       }
       if (version.isGreaterThan(8, 9)) {
