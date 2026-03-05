@@ -61,11 +61,14 @@ stages:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
               TEST_INCLUDE: "**/sonarcloud/*"
+              JDKVERSION: "1.21"
             Others:
               PRODUCT: "others"
               SQ_VERSION: ""
               TEST_INCLUDE: "**/others/*"
+              JDKVERSION: "1.21"
