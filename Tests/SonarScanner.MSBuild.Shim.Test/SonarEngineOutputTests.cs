@@ -23,6 +23,8 @@ namespace SonarScanner.MSBuild.Shim.Test;
 [TestClass]
 public class SonarEngineOutputTests
 {
+    public TestContext TestContext { get; set; }
+
     [TestMethod]
     [DataRow("""{"message":"A trace","level":"TRACE"}""", LogLevel.Info, "TRACE: A trace")]
     [DataRow("""{"message":"A debug","level":"DEBUG"}""", LogLevel.Info, "DEBUG: A debug")]
@@ -79,5 +81,70 @@ public class SonarEngineOutputTests
         var logMessage = result.Should().NotBeNull().And.BeAssignableTo<LogMessage>().Which;
         logMessage.Level.Should().Be(LogLevel.Error);
         logMessage.Message.Should().Be(line);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void OutputToLogMessage_NullOutputLine_ReturnsNull(bool stdOut)
+    {
+        // null is delivered by DataReceivedEventArgs.Data when the process stream closes (EOF signal)
+        var result = SonarEngineOutput.OutputToLogMessage(stdOut, null);
+
+        result.Should().BeNull();
+    }
+
+    [TestMethod]
+    // JsonConvert.DeserializeObject<T>("") and DeserializeObject<T>("null") return null instead of throwing JsonException.
+    // This happens e.g. when the scanner jar emits an empty line (observed with logback StatusPrinter output).
+    [DataRow("")]
+    [DataRow("   ")]
+    [DataRow("null")]
+    public void OutputToLogMessage_DeserializesToNull_ReturnsInfo(string outputLine)
+    {
+        var result = SonarEngineOutput.OutputToLogMessage(true, outputLine);
+
+        var logMessage = result.Should().NotBeNull().And.BeAssignableTo<LogMessage>().Which;
+        logMessage.Level.Should().Be(LogLevel.Info);
+        logMessage.Message.Should().Be(outputLine);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void ProcRunner_SonarEngineOutputDelegate_MixedOutput_HandledGracefully()
+    {
+        // Verifies that non-JSON and empty lines mixed in with valid JSON log output are all handled
+        // gracefully end-to-end: ProcessRunner → SonarEngineOutput.OutputToLogMessage → logged without crashing.
+        var firstMessage = """{"message":"First message","level":"INFO"}""";
+        var missingBrace = @"{""message"":""Missing brace"",""level"":""INFO""";
+        var missingProperty = """{"level":"INFO"}""";
+        var lastMessage = """{"message":"Last message","level":"WARN"}""";
+        var script = $"""
+            @echo off
+            @echo {firstMessage}
+            @echo.
+            @echo {missingBrace}
+            @echo(
+            @echo {missingProperty}
+            @echo null
+            @echo {lastMessage}
+            """;
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var exePath = TestUtils.WriteExecutableScriptForTest(TestContext, script);
+        var runtime = new TestRuntime();
+        runtime.File.ShortName(Arg.Any<PlatformOS>(), Arg.Any<string>()).Returns(x => x[1]);
+        var runner = new ProcessRunner(runtime);
+        var processArgs = new ProcessRunnerArguments(exePath, isBatchScript: true)
+        {
+            WorkingDirectory = testDir,
+            OutputToLogMessage = SonarEngineOutput.OutputToLogMessage
+        };
+
+        runner.Execute(processArgs);
+
+        runtime.Logger.Should()
+            .HaveInfos("INFO: First message", string.Empty, missingBrace, missingProperty, "null")
+            .And.HaveWarnings("WARN: Last message");
     }
 }

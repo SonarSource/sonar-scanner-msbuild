@@ -35,30 +35,45 @@ public class SonarEngineOutput
 
     public static LogMessage? OutputToLogMessage(bool stdOut, string outputLine)
     {
-        if (stdOut)
+        if (outputLine is null)
         {
-            try
-            {
-                var engineOutput = JsonConvert.DeserializeObject<EngineOutput>(outputLine);
-                var logLevel = engineOutput.Level switch
-                {
-                    EngineLevel.WARN => LogLevel.Warning,
-                    EngineLevel.ERROR => LogLevel.Error,
-                    _ => LogLevel.Info
-                };
-                var message = $"{engineOutput.Level}: {engineOutput.Message}";
-                if (!string.IsNullOrWhiteSpace(engineOutput.Stacktrace))
-                {
-                    message += Environment.NewLine + engineOutput.Stacktrace;
-                }
-                return new(logLevel, message);
-            }
-            catch (JsonException)
-            {
-                return new(LogLevel.Info, outputLine);
-            }
+            return null;
         }
-        return new(LogLevel.Error, outputLine);
+        if (!stdOut)
+        {
+            return new(LogLevel.Error, outputLine); // Any output written to stderr is forwarded unprocessed.
+        }
+        if (TryDeserialize(outputLine) is { } engineOutput)
+        {
+            var logLevel = engineOutput.Level switch
+            {
+                EngineLevel.WARN => LogLevel.Warning,
+                EngineLevel.ERROR => LogLevel.Error,
+                _ => LogLevel.Info
+            };
+            var message = $"{engineOutput.Level}: {engineOutput.Message}";
+            if (!string.IsNullOrWhiteSpace(engineOutput.Stacktrace))
+            {
+                message += Environment.NewLine + engineOutput.Stacktrace;
+            }
+            return new(logLevel, message);
+        }
+        else
+        {
+            return new(LogLevel.Info, outputLine); // Output the message directly as Info, as it is not valid JSON or an empty string.
+        }
+    }
+
+    private static EngineOutput TryDeserialize(string outputLine)
+    {
+        try
+        {
+            return JsonConvert.DeserializeObject<EngineOutput>(outputLine);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     // https://xtranet-sonarsource.atlassian.net/wiki/spaces/CodeOrches/pages/3155001372/Scanner+Bootstrapping#Scanner-Engine-contract
