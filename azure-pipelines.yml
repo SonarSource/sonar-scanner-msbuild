@@ -473,7 +473,7 @@ stages:
     parameters:
       vmImage: "macOS-14"
       name: "MacOS"
-      rid: "osx-arm64"
+      rid: "osx-x64"
 
   - stage: artifacts
     displayName: 'Promote Artifacts:'

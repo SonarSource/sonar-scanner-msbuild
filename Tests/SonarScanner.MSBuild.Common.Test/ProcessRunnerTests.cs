@@ -647,7 +647,7 @@ public class ProcessRunnerTests
         }
         else // MacOs
         {
-            return Path.Combine(basePath.Replace("Debug", "Release"), "osx-arm64", "LogArgs");
+            return Path.Combine(basePath.Replace("Debug", "Release"), "osx-x64", "LogArgs");
         }
     }
 
