@@ -27,6 +27,8 @@ import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.nio.file.Paths;
@@ -190,6 +192,7 @@ class TelemetryTest {
   }
 
   @Test
+  @EnabledOnOs(OS.WINDOWS) // Requires .NET Framework 4.8 reference assemblies, only available on Windows
   @MSBuildMinVersion(18)
   @ServerMinVersion("2025.3")
   void telemetry_multiTargetFramework_tfmsAreCorrectlyRecorded() {
