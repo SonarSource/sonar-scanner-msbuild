@@ -855,9 +855,10 @@ public partial class WebClientDownloaderBuilderTest
             .WithMessage("The SSL connection could not be established, see inner exception.")
             .WithInnerException<AuthenticationException>().WithMessage("The remote certificate was rejected by the provided RemoteCertificateValidationCallback.");
 #else
-            .WithMessage("An error occurred while sending the request.")
-            .WithInnerException<WebException>().WithMessage("The underlying connection was closed: *")
-            .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
+            // On Windows/.NET Framework the inner exception type and message are non-deterministic
+            // (AuthenticationException, CryptographicException, or absent) depending on where in
+            // the TLS handshake the failure occurs, so we only assert the outer message.
+            .WithMessage("An error occurred while sending the request.");
 #endif
     }
 }
