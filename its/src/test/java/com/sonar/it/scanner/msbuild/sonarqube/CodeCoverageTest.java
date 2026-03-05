@@ -86,6 +86,33 @@ class CodeCoverageTest {
   }
 
   @Test
+  @EnabledOnOs(OS.WINDOWS)
+  void whenRunningWithMtpOnAzureDevops_coverageIsImported() {
+    // MTP uses --report-trx and --coverage instead of --collect "Code Coverage" --logger trx.
+    // The resulting TRX contains a different collector URI that TrxFileReader must also recognize.
+    try (var buildDirectory = new TempDirectory("junit-CodeCoverage.BuildDirectory.MTP-")) {
+      var context = AnalysisContext.forServer("CodeCoverage.MicrosoftTestingPlatform", ScannerClassifier.NET_FRAMEWORK);
+      context.begin.setDebugLogs();
+      context.build.useDotNet("test")
+        .skipExtraArgs() // MTP forwards unrecognized args to the test executable, which rejects --warnaserror and --disable-build-servers
+        .setTimeout(Timeout.TWO_MINUTES)
+        .addArgument("--report-trx", "--results-directory", buildDirectory.path.resolve("TestResults").toString(), "--coverage");
+      var logs = context
+        .setEnvironmentVariable(AzureDevOps.TF_BUILD, "true")
+        .setEnvironmentVariable(AzureDevOps.BUILD_BUILDURI, "fake-uri")
+        .setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, buildDirectory.toString())
+        .setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, context.projectDir.toString())
+        .runAnalysis()
+        .end()
+        .getLogs();
+
+      assertThat(logs).contains("Converting coverage reports.");
+      assertThat(logs).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
+      assertThat(logs).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
+    }
+  }
+
+  @Test
   void dotCover_CoverageDirectoryIsNotImported() {
     var context = AnalysisContext.forServer("DotCoverExcludedCoverage");
     context.begin

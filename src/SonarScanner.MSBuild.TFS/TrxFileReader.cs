@@ -157,7 +157,14 @@ public class TrxFileReader
         var nsmgr = new XmlNamespaceManager(doc.NameTable);
         nsmgr.AddNamespace("x", CodeCoverageXmlNamespace);
 
-        var attachmentNodes = doc.SelectNodes("/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector[@uri='datacollector://microsoft/CodeCoverage/2.0']/x:UriAttachments/x:UriAttachment/x:A", nsmgr);
+        // TRX schema: %VSINSTALLDIR%\Xml\Schemas\vstst.xsd
+        // Microsoft.Testing.Platform (MTP) uses a different collector URI than the classic VSTest runner.
+        var attachmentNodes = doc.SelectNodes(
+            "/x:TestRun/x:ResultSummary/x:CollectorDataEntries/x:Collector["
+            + "@uri='datacollector://microsoft/CodeCoverage/2.0' or "
+            + "@uri='datacollector://TestingPlatformCoverageDynamicTestSessionLifetimeHandler/1.0.0'"
+            + "]/x:UriAttachments/x:UriAttachment/x:A",
+            nsmgr);
         // The deployment root is used in the path for the attachments. It is read by Microsoft's implementation here:
         // https://github.com/microsoft/testfx/blob/718e38b4558d39afde8bd4a9e6b3566336867c67/src/Platform/Microsoft.Testing.Extensions.TrxReport/TrxReportEngine.cs#L241-L250
         var deploymentRoot = doc.SelectSingleNode("/x:TestRun/x:TestSettings/x:Deployment", nsmgr) is { } runDeploymentRootNode

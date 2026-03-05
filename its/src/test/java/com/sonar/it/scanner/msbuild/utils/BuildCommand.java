@@ -42,6 +42,7 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   private final ArrayList<String> arguments = new ArrayList<>();
   private String dotnetCommand;
   private boolean shouldInvokeNugetRestore;
+  private boolean skipExtraArgs;
 
   public BuildCommand(Path projectDir) {
     super(projectDir);
@@ -53,6 +54,16 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
 
   public BuildCommand useDotNet(String dotnetCommand) {
     this.dotnetCommand = dotnetCommand;
+    return this;
+  }
+
+  /**
+   * Skip the extra arguments (-warnaserror:AD0001, --disable-build-servers) that are normally appended to dotnet commands.
+   * Required for Microsoft.Testing.Platform (MTP) projects, where dotnet test forwards all unrecognized arguments
+   * to the test executable, which rejects them as unknown options.
+   */
+  public BuildCommand skipExtraArgs() {
+    this.skipExtraArgs = true;
     return this;
   }
 
@@ -101,9 +112,12 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
         .addArgument("-nodeReuse:false"); // Equivalent of dotnet --disable-build-servers
     } else {
       command = Command.create("dotnet")
-        .addArgument(dotnetCommand)
-        .addArgument("-warnaserror:AD0001")
-        .addArgument("--disable-build-servers");
+        .addArgument(dotnetCommand);
+      if (!skipExtraArgs) {
+        command
+          .addArgument("-warnaserror:AD0001")
+          .addArgument("--disable-build-servers");
+      }
     }
     arguments.forEach(command::addArgument);
     command.replaceEnvironment(environment);
