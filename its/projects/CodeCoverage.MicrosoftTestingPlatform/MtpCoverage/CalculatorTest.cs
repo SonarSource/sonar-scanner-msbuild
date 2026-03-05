@@ -1,3 +1,5 @@
+[assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
+
 namespace MtpCoverage;
 
 [TestClass]
