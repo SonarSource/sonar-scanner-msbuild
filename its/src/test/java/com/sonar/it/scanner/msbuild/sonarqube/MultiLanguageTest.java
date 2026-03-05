@@ -178,10 +178,12 @@ class MultiLanguageTest {
         tuple("plsql:S1134", context.projectKey + ":frontend/PageOne.Query.sql"),
         tuple("python:S1134", context.projectKey + ":frontend/PageOne.Script.py")));
 
+      if (version.isGreaterThan(8, 9) && !version.isGreaterThan(2025, 1)) {
+        expectedIssues.add(tuple("php:S4833", context.projectKey + ":src/MultiLanguageSupport/Php/Composer/test.php"));
+      }
       if (version.isGreaterThan(8, 9)) {
         expectedIssues.addAll(List.of(
           tuple("javascript:S2699", context.projectKey + ":frontend/PageOne.test.js"),
-          tuple("php:S4833", context.projectKey + ":src/MultiLanguageSupport/Php/Composer/test.php"),
           tuple("php:S113", context.projectKey + ":src/MultiLanguageSupport/Php/Commons.inc"),
           tuple("php:S113", context.projectKey + ":src/MultiLanguageSupport/Php/PageOne.php"),
           tuple("php:S113", context.projectKey + ":src/MultiLanguageSupport/Php/PageOne.php3"),
