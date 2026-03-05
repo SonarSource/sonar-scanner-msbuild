@@ -509,10 +509,11 @@ stages:
       name: "Linux"
       rid: "linux-x64"
 
-  # - template: templates/unix-qa-stage.yml
-  #   parameters:
-  #     vmImage: "macOS-14"
-  #     name: "MacOS"
+  - template: templates/unix-qa-stage.yml
+    parameters:
+      vmImage: "macOS-14"
+      name: "MacOS"
+      rid: "osx-x64"
 
   - stage: artifacts
     displayName: 'Promote Artifacts:'
@@ -520,7 +521,7 @@ stages:
     - build
     - qa_windows
     - qa_linux
-  #  - qa_macos
+    - qa_macos
     condition: and(succeeded(), or(eq(variables['Build.Reason'], 'PullRequest'), in(variables['Build.SourceBranchName'], 'main', 'master'), startsWith(replace(variables['Build.SourceBranch'], 'refs/heads/', ''), 'branch')))
     jobs:
     - job: promoteRepox
