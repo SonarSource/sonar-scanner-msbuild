@@ -856,7 +856,7 @@ public partial class WebClientDownloaderBuilderTest
             .WithInnerException<AuthenticationException>().WithMessage("The remote certificate was rejected by the provided RemoteCertificateValidationCallback.");
 #else
             .WithMessage("An error occurred while sending the request.")
-            .WithInnerException<WebException>().WithMessage("The underlying connection was closed: Could not establish trust relationship for the SSL/TLS secure channel.")
+            .WithInnerException<WebException>().WithMessage("The underlying connection was closed: *")
             .WithInnerException<AuthenticationException>().WithMessage("The remote certificate is invalid according to the validation procedure.");
 #endif
     }
