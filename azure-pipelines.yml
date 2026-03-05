@@ -467,6 +467,7 @@ stages:
     parameters:
       vmImage: "ubuntu-22.04"
       name: "Linux"
+      rid: "linux-x64"
 
   # - template: templates/unix-qa-stage.yml
   #   parameters:
