@@ -1,6 +1,6 @@
 [assembly: Parallelize(Scope = ExecutionScope.MethodLevel)]
 
-namespace MtpCoverage;
+namespace Tests;
 
 [TestClass]
 public class CalculatorTest
