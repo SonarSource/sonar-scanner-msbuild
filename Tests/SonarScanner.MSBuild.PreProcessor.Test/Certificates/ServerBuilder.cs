@@ -33,7 +33,10 @@ namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
 internal static class ServerBuilder
 {
-    private const string FriendlyNameIdentifier = "S4NET WireMockServer certificate";
+    // Used as a prefix in the FriendlyName to make test certificates identifiable in the store (e.g. via mmc.exe).
+    // Each server instance appends a unique Guid to avoid cross-process interference when multiple test runner
+    // processes share the same Windows user certificate store.
+    private const string FriendlyNamePrefix = "S4NET WireMockServer certificate";
 
     /// <summary>
     /// Runs an SSL mock server on the next available port with the given webserver certificate.
@@ -50,7 +53,8 @@ internal static class ServerBuilder
     {
         // The certificates need to be stored in the certificate store because we need the mock server to return
         // the intermediate certificates along with the server certificate when the client initiates the SSL handshake.
-        var newCertificates = AddCertificatesToStore(certificates);
+        var instanceId = $"{FriendlyNamePrefix} {Guid.NewGuid()}";
+        var newCertificates = AddCertificatesToStore(certificates, instanceId);
         var port = GetNextAvailablePort();
         var settings = new WireMockServerSettings
         {
@@ -65,12 +69,11 @@ internal static class ServerBuilder
                 X509StoreThumbprintOrSubjectName = newCertificates[0].Thumbprint,
             }
         };
-        return new CertificateMockServer(settings);
+        return new CertificateMockServer(settings, instanceId);
     }
 
-    private static X509Certificate2Collection AddCertificatesToStore(X509Certificate2Collection certificates)
+    private static X509Certificate2Collection AddCertificatesToStore(X509Certificate2Collection certificates, string instanceId)
     {
-        RemoveTestCertificatesFromStores();
         var certificatesBytes = certificates.Export(X509ContentType.Pfx);
         // Flags are needed because of occasional 0x8009030d errors https://stackoverflow.com/a/46091100
         var storageFlags = X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.UserKeySet | X509KeyStorageFlags.Exportable;
@@ -85,7 +88,7 @@ internal static class ServerBuilder
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                newCertificate.FriendlyName = FriendlyNameIdentifier; // This is used to identify the certificate later so we can remove it
+                newCertificate.FriendlyName = instanceId; // Unique per server instance; used to remove only this instance's certs on Dispose
             }
             var isCA = newCertificate.Extensions.OfType<X509BasicConstraintsExtension>().Any(x => x.CertificateAuthority);
             if (isCA)
@@ -111,14 +114,14 @@ internal static class ServerBuilder
         store.Close();
     }
 
-    private static void RemoveTestCertificatesFromStores()
+    private static void RemoveCertificatesFromStores(string instanceId)
     {
         var storeNames = new[] { StoreName.CertificateAuthority, StoreName.My }; // Remove from the intermediate CA store and from the personal store
         foreach (var storeName in storeNames)
         {
             using var store = new X509Store(storeName, StoreLocation.CurrentUser);
             store.Open(OpenFlags.ReadWrite);
-            var existingCertificates = new X509Certificate2Collection(store.Certificates.Cast<X509Certificate2>().Where(x => x.FriendlyName == FriendlyNameIdentifier).ToArray());
+            var existingCertificates = new X509Certificate2Collection(store.Certificates.Cast<X509Certificate2>().Where(x => x.FriendlyName == instanceId).ToArray());
             try
             {
                 store.RemoveRange(existingCertificates);
@@ -146,11 +149,14 @@ internal static class ServerBuilder
 
     private class CertificateMockServer : WireMockServer
     {
-        public CertificateMockServer(WireMockServerSettings settings) : base(settings) { }
+        private readonly string _instanceId;
+
+        public CertificateMockServer(WireMockServerSettings settings, string instanceId) : base(settings) =>
+            _instanceId = instanceId;
 
         protected override void Dispose(bool disposing)
         {
-            RemoveTestCertificatesFromStores();
+            RemoveCertificatesFromStores(_instanceId);
             base.Dispose(disposing);
         }
     }
