@@ -108,6 +108,7 @@ class CodeCoverageTest {
 
       assertThat(logs).contains("Converting coverage reports.");
       assertThat(logs).containsPattern("Converting coverage file '.*.coverage' to '.*.coveragexml'.");
+      assertThat(logs).containsPattern("Parsing the Visual Studio coverage XML report .*coveragexml");
     }
   }
 
