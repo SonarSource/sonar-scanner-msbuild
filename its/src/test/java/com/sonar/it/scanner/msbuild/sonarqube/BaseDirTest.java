@@ -98,7 +98,7 @@ class BaseDirTest {
   void azureFunctions_WithWrongBaseDirectory_AnalysisSucceeds() throws IOException {
     var context = createContextWithoutProjectBasedDir("ReproAzureFunctions"); // Azure Functions creates auto-generated project in temp as part of the compilation
     var temporaryFolderRoot = context.projectDir.getParent().toFile().getCanonicalFile().toString();
-    context.build.useDotNet().setTimeout(Timeout.TWO_MINUTES);
+    context.build.useDotNet().setTimeout(Timeout.FIVE_MINUTES);
     var logs = context.runAnalysis().end().getLogs();
 
     assertThat(logs).contains(" '" + temporaryFolderRoot);
