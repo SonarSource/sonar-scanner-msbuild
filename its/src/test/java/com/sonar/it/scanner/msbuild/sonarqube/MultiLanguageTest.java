@@ -247,8 +247,8 @@ class MultiLanguageTest {
   void react() {
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.begin.CreateAndSetUserHomeFolder("junit-react-");
-    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
-    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
+    context.build.setTimeout(Timeout.TEN_MINUTES);  // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.TEN_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -277,8 +277,8 @@ class MultiLanguageTest {
   void angular() {
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.begin.CreateAndSetUserHomeFolder("junit-angular-");
-    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
-    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
+    context.build.setTimeout(Timeout.TEN_MINUTES);  // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.TEN_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
