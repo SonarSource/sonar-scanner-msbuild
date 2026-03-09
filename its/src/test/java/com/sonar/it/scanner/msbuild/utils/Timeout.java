@@ -23,7 +23,7 @@ public enum Timeout {
   ONE_MINUTE(1),
   TWO_MINUTES(2),
   FIVE_MINUTES(5),
-  TEN_MINUTES(10);
+  TEN_MINUTES(10); // https://dev.azure.com/sonarsource/399fb241-ecc7-4802-8697-dcdd01fbb832/_build/results?buildId=135493&view=logs&jobId=55d7b6d8-8660-5e3b-2c0a-f098d2482921
 
   public final long miliseconds;
 
