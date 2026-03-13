@@ -152,7 +152,7 @@ public class ConsoleLogger : ILogger
         var formatted = FormatMessage(message, args);
         if (IncludeTimestamp)
         {
-            formatted = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", DateTime.Now.ToString("HH:mm:ss.FFF", CultureInfo.InvariantCulture), formatted);
+            formatted = string.Format(CultureInfo.CurrentCulture, "{0}  {1}", DateTime.Now.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture), formatted);
         }
         return formatted;
     }
