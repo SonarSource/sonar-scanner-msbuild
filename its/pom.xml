@@ -18,7 +18,7 @@
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
     <junit.version>6.0.3</junit.version>
-    <jetty.version>12.1.6</jetty.version>
+    <jetty.version>12.1.7</jetty.version>
     <testInclude>**/*</testInclude>
     <failIfNoTests>true</failIfNoTests>
   </properties>
@@ -51,7 +51,7 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>26.2.0.119303</version>
+      <version>26.3.0.120487</version>
       <scope>test</scope>
     </dependency>
     <dependency>
