@@ -9,7 +9,7 @@
   <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
     <PackageReference Include="Combinatorial.MSTest" Version="2.0.0" />
     <PackageReference Include="altcover" Version="9.0.102" />
-    <PackageReference Include="FluentAssertions" Version="7.2.0" />
+    <PackageReference Include="FluentAssertions" Version="7.2.1" />
     <PackageReference Include="FluentAssertions.Analyzers" Version="0.34.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

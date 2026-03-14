@@ -1715,14 +1715,6 @@
           "System.Runtime.InteropServices.RuntimeInformation": "[4.3.0, )"
         }
       },
-      "sonarscanner.msbuild.postprocessor": {
-        "type": "Project",
-        "dependencies": {
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )",
-          "SonarScanner.MSBuild.TFS": "[1.0.0, )"
-        }
-      },
       "sonarscanner.msbuild.shim": {
         "type": "Project",
         "dependencies": {
@@ -1737,6 +1729,14 @@
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
           "SonarScanner.MSBuild.Shim": "[1.0.0, )"
+        }
+      },
+      "SonarScanner.MSBuild.TFSProcessor": {
+        "type": "Project",
+        "dependencies": {
+          "Newtonsoft.Json": "[13.0.4, )",
+          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.TFS": "[1.0.0, )"
         }
       },
       "testutilities": {
@@ -4075,14 +4075,6 @@
           "System.Runtime.InteropServices.RuntimeInformation": "[4.3.0, )"
         }
       },
-      "sonarscanner.msbuild.postprocessor": {
-        "type": "Project",
-        "dependencies": {
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )",
-          "SonarScanner.MSBuild.TFS": "[1.0.0, )"
-        }
-      },
       "sonarscanner.msbuild.shim": {
         "type": "Project",
         "dependencies": {
@@ -4097,6 +4089,14 @@
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
           "SonarScanner.MSBuild.Common": "[1.0.0, )",
           "SonarScanner.MSBuild.Shim": "[1.0.0, )"
+        }
+      },
+      "SonarScanner.MSBuild.TFSProcessor": {
+        "type": "Project",
+        "dependencies": {
+          "Newtonsoft.Json": "[13.0.4, )",
+          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.TFS": "[1.0.0, )"
         }
       },
       "testutilities": {
