@@ -45,12 +45,21 @@ public static class TelemetryUtils
 
     public static string SanitizeKey(string key)
     {
-        var sb = new StringBuilder(key.Length);
-        foreach (var c in key)
+        StringBuilder sb = null;
+        for (var i = 0; i < key.Length; i++)
         {
-            sb.Append(char.IsLetterOrDigit(c) ? c : '_');
+            var c = key[i];
+            if (char.IsLetterOrDigit(c))
+            {
+                sb?.Append(c);
+            }
+            else
+            {
+                sb ??= new StringBuilder(key.Length).Append(key, 0, i);
+                sb.Append('_');
+            }
         }
-        return sb.ToString();
+        return sb?.ToString() ?? key;
     }
 
     public static void AddTelemetry(ITelemetry telemetry, AggregatePropertiesProvider aggregatedProperties)
