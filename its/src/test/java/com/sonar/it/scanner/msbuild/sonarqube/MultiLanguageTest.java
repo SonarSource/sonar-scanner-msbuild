@@ -268,6 +268,7 @@ class MultiLanguageTest {
   }
 
   @Test
+  @EnabledOnOs({OS.WINDOWS, OS.LINUX}) // macOS fails with ERR_SSL_CIPHER_OPERATION_FAILED during npm install - see SCAN4NET-1142
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   @DisableOnEdition(Edition.COMMUNITY)
