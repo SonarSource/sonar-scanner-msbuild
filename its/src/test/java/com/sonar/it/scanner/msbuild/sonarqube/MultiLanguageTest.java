@@ -245,7 +245,7 @@ class MultiLanguageTest {
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.begin.CreateAndSetUserHomeFolder("junit-react-");
     context.build.setTimeout(Timeout.TEN_MINUTES);   // Longer timeout because of npm install
-    context.end.setTimeout(Timeout.TWENTY_MINUTES);  // End step was timing out on macOS, JS analysis is slow
+    context.end.setTimeout(Timeout.TWENTY_MINUTES);  // End step is timing out on macOS, JS analysis is slow - see SCAN4NET-1144
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
