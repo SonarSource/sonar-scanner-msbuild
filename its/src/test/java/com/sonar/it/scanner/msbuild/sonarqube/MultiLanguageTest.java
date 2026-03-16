@@ -74,6 +74,7 @@ class MultiLanguageTest {
   }
 
   @Test
+  @EnabledOnOs({OS.WINDOWS, OS.LINUX}) // macOS fails with ERR_SSL_CIPHER_OPERATION_FAILED during npm install - see SCAN4NET-1142
   // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
   @ServerMinVersion("10.8")
   // This test is not supported on versions older than Visual Studio 2026
