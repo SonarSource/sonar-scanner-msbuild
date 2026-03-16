@@ -69,9 +69,9 @@ jobs:
           - ${{ step }}
 
       - powershell: |
-          npm config set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
+          npm config --global set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          npm config set //repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$env:ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN
+          npm config --global set //repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$env:ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm config list
         env:
