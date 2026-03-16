@@ -23,7 +23,6 @@ namespace SonarScanner.MSBuild.Common;
 public static class TelemetryUtils
 {
     // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
-
     private static readonly Dictionary<string, string> ServerPropertyDefaults = new(StringComparer.OrdinalIgnoreCase)
     {
         // https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/AbstractPropertyDefinitions.java
