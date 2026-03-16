@@ -74,7 +74,6 @@ class MultiLanguageTest {
   }
 
   @Test
-  @EnabledOnOs(OS.WINDOWS) // The .esproj SDK runs npm install, which requires npm registry authentication not available on Linux agents
   // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
   @ServerMinVersion("10.8")
   // This test is not supported on versions older than Visual Studio 2026
