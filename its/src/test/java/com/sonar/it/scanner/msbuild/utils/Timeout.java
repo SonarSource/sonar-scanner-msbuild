@@ -23,7 +23,8 @@ public enum Timeout {
   ONE_MINUTE(1),
   TWO_MINUTES(2),
   FIVE_MINUTES(5),
-  TEN_MINUTES(10);
+  TEN_MINUTES(10),
+  TWENTY_MINUTES(20);
 
   public final long miliseconds;
 
