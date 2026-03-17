@@ -42,6 +42,7 @@ public static class TelemetryUtils
     };
 
     // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
+    // See https://xtranet-sonarsource.atlassian.net/wiki/spaces/DP/pages/3912630334/SonarSource+Telemetry+System+Sending+and+Using+Measures#Naming-conventions
     public static string SanitizeKey(string key)
     {
         var sb = new StringBuilder(key.Length);
