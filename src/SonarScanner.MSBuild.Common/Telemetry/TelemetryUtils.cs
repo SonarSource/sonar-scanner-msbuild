@@ -47,7 +47,7 @@ public static class TelemetryUtils
         var sb = new StringBuilder(key.Length);
         foreach (var c in key)
         {
-            sb.Append(IsAsciiLetterOrDigit(c) ? c : '_');
+            sb.Append(c < 128 && char.IsLetterOrDigit(c) ? c : '_');
         }
         return sb.ToString();
     }
@@ -327,7 +327,4 @@ public static class TelemetryUtils
         return false;
     }
 
-    // Polyfill for char.IsAsciiLetterOrDigit, available natively from .NET 7
-    private static bool IsAsciiLetterOrDigit(char c) =>
-        c < 128 && char.IsLetterOrDigit(c);
 }
