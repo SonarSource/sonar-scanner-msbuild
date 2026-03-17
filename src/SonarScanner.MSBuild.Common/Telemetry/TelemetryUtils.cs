@@ -47,7 +47,7 @@ public static class TelemetryUtils
         var sb = new StringBuilder(key.Length);
         foreach (var c in key)
         {
-            sb.Append(char.IsLetterOrDigit(c) ? c : '_');
+            sb.Append(char.IsAsciiLetterOrDigit(c) ? c : '_');
         }
         return sb.ToString();
     }
