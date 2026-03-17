@@ -315,8 +315,12 @@ class MultiLanguageTest {
         tuple("javascript:S7750", context.projectKey + ":ClientApp/aspnetcore-https.js"),
         tuple("javascript:S7726", context.projectKey + ":ClientApp/karma.conf.js"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/karma.conf.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js"),
-        tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts")));
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js")));
+      if (!version.isGreaterThanOrEquals(2026, 1)) {
+        // typescript:S7785 was removed in sonar-javascript 12.1.0; SQ 2026.1 bundles 11.8.0 (which raises it),
+        // but the IT is forward-pinned to 12.1.0 for SQ >= 2026.1
+        expectedIssues.add(tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts"));
+      }
     }
     assertThat(issues)
       .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
