@@ -184,8 +184,10 @@ stages:
               script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
           - powershell: |
-              Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
+              Add-Content build/version.txt $env:SONAR_PROJECT_VERSION
             displayName: 'Write project version in file'
+            env:
+              SONAR_PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
 
           - task: DownloadSecureFile@1
             displayName: 'Download Maven settings'
@@ -245,9 +247,11 @@ stages:
 
           - powershell: |
               $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
-              Rename-Item -Path "$artifactsFolder\\sonarscanner-net-framework.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net-framework.zip
-              Rename-Item -Path "$artifactsFolder\\sonarscanner-net.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net.zip
+              Rename-Item -Path "$artifactsFolder\\sonarscanner-net-framework.zip" -NewName sonar-scanner-$env:SONAR_PROJECT_VERSION.$env:BUILD_BUILDID-net-framework.zip
+              Rename-Item -Path "$artifactsFolder\\sonarscanner-net.zip" -NewName sonar-scanner-$env:SONAR_PROJECT_VERSION.$env:BUILD_BUILDID-net.zip
             displayName: "Rename artifacts for GitHub Release"
+            env:
+              SONAR_PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish packages as artifacts'
@@ -289,7 +293,7 @@ stages:
               targetType: 'inline'
               script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
 
-          - task: SonarCloudPrepare@3
+          - task: SonarCloudPrepare@3.4.3
             displayName: 'Code Analysis - Begin'
             inputs:
               SonarCloud: 'SonarCloud'
@@ -310,9 +314,10 @@ stages:
               configuration: '$(BUILD_CONFIGURATION)'
               msbuildArgs: '/p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true'
 
-          - powershell: .\scripts\run-unit-tests.ps1 -SourcesDirectory "$(Build.SourcesDirectory)" -BuildConfiguration "$(BUILD_CONFIGURATION)"
+          - powershell: .\scripts\run-unit-tests.ps1 -SourcesDirectory "$env:BUILD_SOURCESDIRECTORY" -BuildConfiguration "$env:BUILD_CONFIGURATION"
             displayName: 'Run UTs and compute coverage'
             env:
+              BUILD_CONFIGURATION: $(BUILD_CONFIGURATION)
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
 
@@ -335,10 +340,10 @@ stages:
               script: |
                 Get-ChildItem $(Agent.TempDirectory) -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
 
-          - task: SonarCloudAnalyze@3
+          - task: SonarCloudAnalyze@3.4.3
             displayName: 'Code Analysis - End'
 
-          - task: SonarCloudPublish@3
+          - task: SonarCloudPublish@3.4.3
             displayName: 'Code Analysis - Publish QG'
             inputs:
               pollingTimeoutSec: '300'
