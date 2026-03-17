@@ -315,8 +315,7 @@ class MultiLanguageTest {
         tuple("javascript:S7750", context.projectKey + ":ClientApp/aspnetcore-https.js"),
         tuple("javascript:S7726", context.projectKey + ":ClientApp/karma.conf.js"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/karma.conf.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js"),
-        tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts")));
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js")));
     }
     assertThat(issues)
       .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
