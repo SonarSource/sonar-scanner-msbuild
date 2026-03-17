@@ -48,7 +48,7 @@ public static class TelemetryUtils
         var sb = new StringBuilder(key.Length);
         foreach (var c in key)
         {
-            sb.Append(c < 128 && char.IsLetterOrDigit(c) ? c : '_');
+            sb.Append(c < 128 && char.IsLetterOrDigit(c) ? char.ToLowerInvariant(c) : '_');
         }
         return sb.ToString();
     }
@@ -92,7 +92,7 @@ public static class TelemetryUtils
     }
 
     internal static string ToTelemetryId(string property) =>
-        $"dotnetenterprise.s4net.params.{SanitizeKey(property).ToLowerInvariant()}";
+        $"dotnetenterprise.s4net.params.{SanitizeKey(property)}";
 
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {
