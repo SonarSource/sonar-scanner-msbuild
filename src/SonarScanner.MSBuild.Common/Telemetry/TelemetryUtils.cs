@@ -326,5 +326,4 @@ public static class TelemetryUtils
 
         return false;
     }
-
 }
