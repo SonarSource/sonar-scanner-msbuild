@@ -316,6 +316,10 @@ class MultiLanguageTest {
         tuple("javascript:S7726", context.projectKey + ":ClientApp/karma.conf.js"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/karma.conf.js"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js")));
+      if (!version.isGreaterThan(2026, 1)) {
+        // typescript:S7785 raised by sonar-javascript 11.x (bundled with SQ <= 2026.1); removed in 12.1.0
+        expectedIssues.add(tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts"));
+      }
     }
     assertThat(issues)
       .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
