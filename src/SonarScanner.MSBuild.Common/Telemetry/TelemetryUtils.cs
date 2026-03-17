@@ -48,7 +48,7 @@ public static class TelemetryUtils
         var sb = new StringBuilder(key.Length);
         foreach (var c in key)
         {
-            sb.Append(c < 128 && char.IsLetterOrDigit(c) ? char.ToLowerInvariant(c) : '_');
+            sb.Append(c < 128 && char.IsLetterOrDigit(c) ? char.ToLowerInvariant(c) : '_'); // NOSONAR: lowercase is required to match Java's Character.toLowerCase behavior
         }
         return sb.ToString();
     }
