@@ -18,15 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Text.RegularExpressions;
-
 namespace SonarScanner.MSBuild.Common;
 
 public static class TelemetryUtils
 {
-    // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
-    private static readonly Regex SanitizeKeyRegex = new("[^a-zA-Z0-9]", RegexOptions.None, RegexConstants.DefaultTimeout);
-
     private static readonly Dictionary<string, string> ServerPropertyDefaults = new(StringComparer.OrdinalIgnoreCase)
     {
         // https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/AbstractPropertyDefinitions.java
@@ -46,8 +41,17 @@ public static class TelemetryUtils
         { "sonar.sca.rescan_branch_type", "Kept branches only" }
     };
 
-    public static string SanitizeKey(string key) =>
-        SanitizeKeyRegex.Replace(key, "_");
+    // See https://github.com/SonarSource/sonar-dotnet-enterprise/blob/master/sonar-dotnet-core/src/main/java/org/sonarsource/dotnet/shared/plugins/telemetryjson/TelemetryUtils.java
+    // See https://xtranet-sonarsource.atlassian.net/wiki/spaces/DP/pages/3912630334/SonarSource+Telemetry+System+Sending+and+Using+Measures#Naming-conventions
+    public static string SanitizeKey(string key)
+    {
+        var sb = new StringBuilder(key.Length);
+        foreach (var c in key)
+        {
+            sb.Append(c < 128 && char.IsLetterOrDigit(c) ? c : '_');
+        }
+        return sb.ToString();
+    }
 
     public static void AddTelemetry(ITelemetry telemetry, AggregatePropertiesProvider aggregatedProperties)
     {
