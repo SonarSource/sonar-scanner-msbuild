@@ -3,6 +3,9 @@ parameters:
     type: string
   - name: name
     type: string
+    values:
+      - Linux
+      - MacOS
 
 stages:
   - stage: qa_${{ lower(parameters.name) }}
