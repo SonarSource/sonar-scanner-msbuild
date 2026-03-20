@@ -546,7 +546,9 @@ public class RoslynTargetsTests
     {
         actualResult.AssertPropertyValue(TargetProperties.TreatWarningsAsErrors, "false");
         actualResult.AssertPropertyValue(TargetProperties.WarningsAsErrors, string.Empty);
-        actualResult.AssertPropertyValue(TargetProperties.WarningLevel, "4");
+        // The scanner sets WarningLevel to at least 4, but won't override a higher SDK default (e.g. 9 on .NET SDK 9+)
+        int.TryParse(actualResult.GetPropertyValue(TargetProperties.WarningLevel), out var warningLevel).Should().BeTrue("WarningLevel should be a valid integer");
+        warningLevel.Should().BeGreaterThanOrEqualTo(4, "WarningLevel should be at least 4 to ensure warnings are not ignored");
     }
 
     /// <summary>
