@@ -18,14 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Xml.Serialization;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
 /// Data class to describe a single project configuration for our analyzers.
 /// </summary>
-/// <remarks>The class is XML-serializable. Each change in this class has to be propageted to it's counterpart in sonar-dotnet analyzers.</remarks>
+/// <remarks>The class is XML-serializable. Each change in this class has to be propagated to it's counterpart in sonar-dotnet analyzers, A3S, and other frontends.</remarks>
 [XmlRoot(ElementName = "SonarProjectConfig", Namespace = "http://www.sonarsource.com/msbuild/analyzer/2021/1")]
 public class ProjectConfig
 {
@@ -40,7 +38,7 @@ public class ProjectConfig
     public string ProjectPath { get; set; }
 
     /// <summary>
-    ///The full name and path of the text file containing all files to analyze.
+    /// The full name and path of the text file containing all files to analyze.
     /// </summary>
     public string FilesToAnalyzePath { get; set; }
 
@@ -66,7 +64,7 @@ public class ProjectConfig
         Serializer.SaveModel(this, fileName);
 
     /// <summary>
-    /// Loads and returns project config from the specified XML file
+    /// Loads and returns project config from the specified XML file.
     /// </summary>
     public static ProjectConfig Load(string fileName) =>
         Serializer.LoadModel<ProjectConfig>(fileName);
