@@ -74,6 +74,7 @@ class MultiLanguageTest {
   }
 
   @Test
+  @EnabledOnOs({OS.WINDOWS, OS.LINUX}) // macOS fails with ERR_SSL_CIPHER_OPERATION_FAILED during npm install - see SCAN4NET-1142
   // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
   @ServerMinVersion("10.8")
   // This test is not supported on versions older than Visual Studio 2026
@@ -246,8 +247,8 @@ class MultiLanguageTest {
   void react() {
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.begin.CreateAndSetUserHomeFolder("junit-react-");
-    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
-    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
+    context.build.setTimeout(Timeout.TEN_MINUTES);   // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.TWENTY_MINUTES);  // End step is timing out on macOS, JS analysis is slow - see SCAN4NET-1144
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
@@ -270,14 +271,15 @@ class MultiLanguageTest {
   }
 
   @Test
+  @EnabledOnOs({OS.WINDOWS, OS.LINUX}) // macOS fails with ERR_SSL_CIPHER_OPERATION_FAILED during npm install - see SCAN4NET-1142
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   @DisableOnEdition(Edition.COMMUNITY)
   void angular() {
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.begin.CreateAndSetUserHomeFolder("junit-angular-");
-    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
-    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
+    context.build.setTimeout(Timeout.TEN_MINUTES);  // Longer timeout because of npm install
+    context.end.setTimeout(Timeout.TEN_MINUTES);    // End step was timing out, JS is slow
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);

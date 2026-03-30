@@ -3,6 +3,8 @@ parameters:
     type: string
   - name: name
     type: string
+  - name: rid
+    type: string
 
 stages:
   - stage: qa_${{ lower(parameters.name) }}
@@ -23,7 +25,7 @@ stages:
               projects: './Tests/LogArgs/LogArgs.csproj'
               publishWebProjects: false
               zipAfterPublish: false
-              arguments: '--framework net9.0 --self-contained'
+              arguments: '--framework net9.0 --self-contained -r ${{ parameters.rid }}'
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
@@ -59,11 +61,14 @@ stages:
               PRODUCT: "SonarQube"
               SQ_VERSION: "LATEST_RELEASE"
               TEST_INCLUDE: "**/sonarqube/*"
+              JDKVERSION: "1.21"
             Cloud:
               PRODUCT: "SonarCloud"
               SQ_VERSION: ""
               TEST_INCLUDE: "**/sonarcloud/*"
+              JDKVERSION: "1.21"
             Others:
               PRODUCT: "others"
               SQ_VERSION: ""
               TEST_INCLUDE: "**/others/*"
+              JDKVERSION: "1.21"
