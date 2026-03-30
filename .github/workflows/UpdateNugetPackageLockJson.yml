@@ -1,0 +1,24 @@
+name: '[renovate] Update NuGet Package Lock JSON'
+
+on:
+  push:
+    branches:
+      - 'renovate/**'
+  workflow_dispatch:
+    inputs:
+      prNumber:
+        description: 'PR number to update lock files for'
+        required: true
+        type: number
+
+jobs:
+  update-lock-files:
+    name: Update NuGet Package Lock Files
+    permissions:
+      id-token: write
+      pull-requests: read
+    uses: SonarSource/dotnet-tooling/.github/workflows/UpdateNugetPackageLockJson.ReusableWorkflow.yml@master
+    with:
+      projects: |
+        SonarScanner.MSBuild.sln
+      prNumber: ${{ fromJSON(inputs.prNumber || '0') }}
