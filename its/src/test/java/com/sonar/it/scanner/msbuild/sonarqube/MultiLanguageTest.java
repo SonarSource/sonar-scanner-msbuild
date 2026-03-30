@@ -147,7 +147,7 @@ class MultiLanguageTest {
     // Begin step runs in MultiLanguageSupport
     // Build step runs in MultiLanguageSupport/src
     context.build.addArgument("src/MultiLanguageSupport.sln");
-    context.end.setTimeout(Timeout.TWO_MINUTES);
+    context.end.setTimeout(Timeout.FIVE_MINUTES);  // End step was timing out, multi-language analysis is slow
     // The project needs to be inside a git repository to be able to pick up files for the sonar-text-plugin analysis
     // Otherwise the files will be ignored as not part of a scm repository
     try (var git = new CreateGitFolder(context.projectDir)) {
