@@ -80,7 +80,7 @@ public class Telemetry : ITelemetry
                 throw new NotSupportedException($"Unsupported telemetry message value type: {message.Value.GetType()}");
             }
             entry[message.Key] = value;
-            return entry.ToString(Formatting.None);
+            return entry.ToString(Formatting.None, []);
         }
     }
 }
