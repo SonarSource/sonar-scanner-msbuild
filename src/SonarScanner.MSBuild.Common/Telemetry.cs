@@ -80,6 +80,10 @@ public class Telemetry : ITelemetry
                 throw new NotSupportedException($"Unsupported telemetry message value type: {message.Value.GetType()}");
             }
             entry[message.Key] = value;
+            // Do not simplify to ToString(Formatting.None) — that overload was added in Newtonsoft.Json 13.0.4
+            // and does not exist in 13.0.3. On .NET Framework, the GAC may serve 13.0.3 (AssemblyVersion 13.0.0.0)
+            // instead of the bundled 13.0.4, causing a MissingMethodException on self-hosted agents.
+            // See https://sonarsource.atlassian.net/browse/SCAN4NET-1162
             return entry.ToString(Formatting.None, []);
         }
     }
