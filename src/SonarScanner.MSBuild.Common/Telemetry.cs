@@ -81,8 +81,8 @@ public class Telemetry : ITelemetry
             }
             entry[message.Key] = value;
             // Do not simplify to ToString(Formatting.None) — that overload was added in Newtonsoft.Json 13.0.4
-            // and does not exist in 13.0.3. Both versions share AssemblyVersion 13.0.0.0, so the GAC may serve
-            // 13.0.3 instead of the bundled 13.0.4, causing a MissingMethodException.
+            // and does not exist in 13.0.3 and below. All 13.x versions share AssemblyVersion 13.0.0.0, so the GAC may serve
+            // an older version instead of the bundled 13.0.4, causing a MissingMethodException.
             // See https://sonarsource.atlassian.net/browse/SCAN4NET-1162
             return entry.ToString(Formatting.None, []);
         }
