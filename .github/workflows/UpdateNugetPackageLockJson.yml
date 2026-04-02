@@ -17,7 +17,7 @@ jobs:
     permissions:
       id-token: write
       pull-requests: read
-    uses: SonarSource/dotnet-tooling/.github/workflows/UpdateNugetPackageLockJson.ReusableWorkflow.yml@master
+    uses: SonarSource/dotnet-tooling-public/.github/workflows/UpdateNugetPackageLockJson.ReusableWorkflow.yml@master
     with:
       projects: |
         SonarScanner.MSBuild.sln
