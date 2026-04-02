@@ -34,7 +34,7 @@ function Set-VersionForDotNet() {
         }
 
         $xml.Save($versionPropsFile)
-        & $env:MSBUILD_PATH "ChangeVersion.proj"
+        msbuild "ChangeVersion.proj"
         Test-ExitCode "ERROR: Change version FAILED."
     }
 }
