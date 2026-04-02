@@ -1,12 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net48;net9.0</TargetFrameworks>
-    <!--
-      SCAN4NET-968 Cross-framework references are confusing dotnet restore. This should be solved once we remove SonarScanner.MSBuild.TFS.Classic.
-      It needs to be in Common.targets to prevent packages.lock.json form being created by VS.
-      It needs to be in SonarScanner.MSBuild.TFS.Test.csproj for the actual builds.
-    -->
-    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <!-- SCAN4NET-968 TFS.Classic only targets net462, so it cannot be referenced from net9.0.
+         Conditionalize the reference so net9.0 restore works and a lock file can be generated. -->
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\Expected.xmlcoverage" />
@@ -20,10 +16,17 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net48'">
+    <Compile Remove="Classic\**" />
+    <Compile Remove="Infrastructure\MockReportDownloader.cs" />
+    <Compile Remove="ProgramTests.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
-    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj" />
+    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj"
+                      Condition="'$(TargetFramework)' == 'net48'" />
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
