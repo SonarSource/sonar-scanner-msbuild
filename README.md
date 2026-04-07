@@ -1,4 +1,4 @@
-# Sonar Scanner for .NET
+﻿# Sonar Scanner for .NET
 
 [![Build Status](https://dev.azure.com/sonarsource/DotNetTeam%20Project/_apis/build/status/SonarScanner%20for%20MSBuild?branchName=master)](https://dev.azure.com/sonarsource/DotNetTeam%20Project/_build/latest?definitionId=64&branchName=master)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=alert_status)](https://sonarcloud.io/dashboard?id=sonarscanner-msbuild)
@@ -36,6 +36,6 @@ If you believe you have discovered a security vulnerability in Sonar's products,
 
 ## License
 
-Copyright 2016-2025 SonarSource.
+Copyright (C) SonarSource Sàrl.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
