@@ -309,6 +309,7 @@ stages:
               extraProperties: |
                 sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/Coverage/**.xml"
                 sonar.cs.vstest.reportsPaths="$(Build.SourcesDirectory)/TestResults/*.trx"
+                sonar.sca.exclusions=its/projects/**
 
           - task: VSBuild@1
             displayName: "Build and analyze project"
