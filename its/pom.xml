@@ -51,7 +51,7 @@
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>26.3.0.120487</version>
+      <version>26.4.0.121862</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -100,7 +100,7 @@
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk18on</artifactId>
-      <version>1.83</version>
+      <version>1.84</version>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
