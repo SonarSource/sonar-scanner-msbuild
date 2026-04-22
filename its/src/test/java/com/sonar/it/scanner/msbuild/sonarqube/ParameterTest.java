@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
@@ -171,6 +172,23 @@ class ParameterTest {
       assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).hasSize(3);
     }
   }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void sourcesAndTests_ViaEnvironmentVariable_AreNotIgnored_AnalysisFails(boolean useSonarScannerCLI) {
+    // Repro for https://sonarsource.atlassian.net/browse/SCAN4NET-1180
+    var context = AnalysisContext.forServer("SourcesTestsIgnored")
+      .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", Json.object()
+        .add("sonar.sources", "Program.cs")
+        .add("sonar.tests", "Program.cs")
+        .toString());
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", String.valueOf(useSonarScannerCLI));
+    context.build.useDotNet();
+
+    var logs = context.runFailedAnalysis().end().getLogs();
+      assertThat(logs).contains("ERROR: File Program.cs can't be indexed twice. Please check that inclusion/exclusion patterns produce disjoint sets for main and test files");
+  }
+
 
   private void validate(AnalysisContext context, int expectedTestProjectIssues) {
     context.setQualityProfile(QualityProfile.CS_S1134_S2699);
