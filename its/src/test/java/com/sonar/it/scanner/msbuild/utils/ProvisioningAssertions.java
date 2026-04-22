@@ -48,7 +48,7 @@ public final class ProvisioningAssertions {
     String engineUrlPattern;
     if (isCloud) {
       jreUrlPattern = "https://[^\s]+/jres/[^\s]+\\.(?:zip|tar\\.gz)";
-      engineUrlPattern = "https://[^\s]+/engines/sonarcloud-scanner-engine-.+\\.jar";
+      engineUrlPattern = "https://[^\s]+/engines/[^\s]*scanner[^\s]*\\.jar"; // flexible assertion to avoid breaking on file name changes
     } else {
       jreUrlPattern = "analysis/jres/[^\s]+";
       engineUrlPattern = "analysis/engine";
@@ -72,14 +72,13 @@ public final class ProvisioningAssertions {
         "Response received from " + sqApiUrl + "/analysis/engine...",
         "Cache miss. Could not find '");  // + file path to scanner engine
       TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
-      TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern +
-        "((scanner-developer)|(sonarcloud-scanner-engine)|(sonar-scanner-engine-shaded)).+\\.jar'");
+      TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern + "scanner.+\\.jar'"); // flexible assertion to avoid breaking on file name changes
     }
   }
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {
     var javaPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+_extracted.+java(?:\\.exe)?";
-    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+((scanner-developer)|(sonarcloud-scanner-engine)|(sonar-scanner-engine-shaded)).+\\.jar";
+    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+scanner.+\\.jar"; // flexible assertion to avoid breaking on file name changes
     assertThat(secondBegin.isSuccess()).isTrue();
     TestUtils.matchesSingleLine(secondBegin.getLogs(),
       "JreResolver: Cache hit '" + javaPattern + "'");
