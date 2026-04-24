@@ -173,6 +173,9 @@ class MultiLanguageTest {
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     var version = ORCHESTRATOR.getServer().version();
     var expectedCSIssues = new ArrayList<>(List.of(
+      tuple("csharpsquid:S3903", context.projectKey + ":Controllers/WeatherForecastController.cs"),
+      tuple("csharpsquid:S3903", context.projectKey + ":Pages/Error.cshtml.cs"),
+      tuple("csharpsquid:S3903", context.projectKey + ":WeatherForecast.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":Pages/Error.cshtml.cs")));
     if (version.isGreaterThanOrEquals(2025, 1)) {
