@@ -362,12 +362,6 @@ class MultiLanguageTest {
         expectedIssues.add(tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts"));
       }
     }
-    if (version.isGreaterThanOrEquals(2026, 2)) {
-      // Additional githubactions rules raised by IAC enterprise bundled with SQ 2026.2+
-      expectedIssues.addAll(List.of(
-        // TODO: fill in from LATEST_RELEASE / DEV failure logs
-      ));
-    }
     assertThat(issues)
       .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
       .extracting(Issue::getRule, Issue::getComponent)
