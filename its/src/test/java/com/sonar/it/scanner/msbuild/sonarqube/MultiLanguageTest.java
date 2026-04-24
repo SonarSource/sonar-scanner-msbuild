@@ -120,15 +120,9 @@ class MultiLanguageTest {
         tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
         tuple("javascript:S7772", context.projectKey + ":vite.config.js")));
     }
-    if (version.isGreaterThanOrEquals(2026, 2)) {
-      // Additional githubactions rules from IAC enterprise bundled with SQ 2026.2+
-      expectedIssues.addAll(List.of(
-        tuple("githubactions:S8543", context.projectKey + ":node_modules/rfdc/.github/workflows/ci.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":node_modules/rfdc/.github/workflows/ci.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":node_modules/rfdc/.github/workflows/ci.yml")));
-    }
     if (version.isGreaterThanOrEquals(2025, 1)) {
       assertThat(issues)
+        .filteredOn(x -> !x.getRule().startsWith("githubactions"))
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
     } else {
@@ -136,6 +130,12 @@ class MultiLanguageTest {
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
         .contains(expectedIssues.toArray(new Tuple[]{}));
+    }
+    if (version.isGreaterThanOrEquals(2026, 2)) {
+      // Only verify githubactions analyzer is active — exact counts change with each IAC release
+      assertThat(issues)
+        .filteredOn(x -> x.getRule().startsWith("githubactions"))
+        .isNotEmpty();
     }
     // Different expected values are for different SQ and MsBuild versions and local run
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", ORCHESTRATOR)).isGreaterThan(300);
@@ -313,11 +313,8 @@ class MultiLanguageTest {
       expectedIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
     }
     if (version.isGreaterThanOrEquals(2025, 5)) {
-      // githubactions (sonar-iac-enterprise 2.6.x) and SonarJs 11.4 rules target SQ 2025.5
+      // SonarJs 11.4 rules target SQ 2025.5
       expectedIssues.addAll(List.of(
-        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
         tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
@@ -331,50 +328,16 @@ class MultiLanguageTest {
         expectedIssues.add(tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts"));
       }
     }
-    if (version.isGreaterThanOrEquals(2026, 2)) {
-      // Additional githubactions rules from newer IAC enterprise bundled with SQ 2026.2+
-      // (not raised by the pinned IAC 2.6.1 used in LTA-2026-1)
-      expectedIssues.addAll(List.of(
-        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/build.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/build.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/publish.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/publish.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/needle/.github/workflows/nodejs.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/needle/.github/workflows/nodejs.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/visual-studio.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/visual-studio.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/visual-studio.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/visual-studio.yml"),
-        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/node-gyp.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/node-gyp.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/rfdc/.github/workflows/ci.yml"),
-        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/rfdc/.github/workflows/ci.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/rfdc/.github/workflows/ci.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/wildcard/.github/workflows/build.yml")));
-    }
     assertThat(issues)
-      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
+      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php") || x.getRule().startsWith("githubactions")))
       .extracting(Issue::getRule, Issue::getComponent)
       .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
+    if (version.isGreaterThanOrEquals(2025, 5)) {
+      // Only verify githubactions analyzer is active — exact counts change with each IAC release
+      assertThat(issues)
+        .filteredOn(x -> x.getRule().startsWith("githubactions"))
+        .isNotEmpty();
+    }
 
     assertThat(issues)
       .filteredOn(x -> x.getRule().startsWith("python"))
