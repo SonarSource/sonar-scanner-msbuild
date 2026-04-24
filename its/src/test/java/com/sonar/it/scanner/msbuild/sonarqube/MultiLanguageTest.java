@@ -113,12 +113,15 @@ class MultiLanguageTest {
       tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py"),
       tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py")));
     if (version.isGreaterThanOrEquals(2025, 5)) {
-      // SonarJs 11.4 targets SQ 2025.5
+      // SonarJs 11.4 and githubactions (sonar-iac-enterprise 2.6.x) rules target SQ 2025.5
       expectedIssues.addAll(List.of(
         tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
         tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
         tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
-        tuple("javascript:S7772", context.projectKey + ":vite.config.js")));
+        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
+        tuple("githubactions:S8543", context.projectKey + ":node_modules/rfdc/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":node_modules/rfdc/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":node_modules/rfdc/.github/workflows/ci.yml")));
     }
     if (version.isGreaterThanOrEquals(2025, 1)) {
       assertThat(issues)
@@ -309,6 +312,28 @@ class MultiLanguageTest {
       // githubactions (sonar-iac-enterprise 2.6.x) and SonarJs 11.4 rules target SQ 2025.5
       expectedIssues.addAll(List.of(
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/build.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/build.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/publish.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/publish.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/needle/.github/workflows/nodejs.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/needle/.github/workflows/nodejs.yml"),
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
         tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
