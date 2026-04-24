@@ -316,24 +316,6 @@ class MultiLanguageTest {
       // githubactions (sonar-iac-enterprise 2.6.x) and SonarJs 11.4 rules target SQ 2025.5
       expectedIssues.addAll(List.of(
         tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
-        tuple("javascript:S7750", context.projectKey + ":ClientApp/aspnetcore-https.js"),
-        tuple("javascript:S7726", context.projectKey + ":ClientApp/karma.conf.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/karma.conf.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js")));
-      if (!version.isGreaterThanOrEquals(2026, 1)) {
-        // typescript:S7785 was removed in sonar-javascript 12.1.0; SQ 2026.1 bundles 11.8.0 (which raises it),
-        // but the IT is forward-pinned to 12.1.0 for SQ >= 2026.1
-        expectedIssues.add(tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts"));
-      }
-    }
-    if (version.isGreaterThanOrEquals(2026, 2)) {
-      // Additional githubactions rules from IAC enterprise bundled with SQ 2026.2+
-      expectedIssues.addAll(List.of(
         tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
         tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
         tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
@@ -356,15 +338,33 @@ class MultiLanguageTest {
         tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/publish.yml"),
         tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/needle/.github/workflows/nodejs.yml"),
         tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/needle/.github/workflows/nodejs.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/visual-studio.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/visual-studio.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/visual-studio.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/visual-studio.yml"),
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
+        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
+        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
         tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
         tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
         tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/node-gyp.yml"),
         tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/node-gyp.yml"),
         tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/rfdc/.github/workflows/ci.yml"),
         tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/rfdc/.github/workflows/ci.yml"),
         tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/rfdc/.github/workflows/ci.yml"),
-        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/wildcard/.github/workflows/build.yml")));
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/wildcard/.github/workflows/build.yml"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7750", context.projectKey + ":ClientApp/aspnetcore-https.js"),
+        tuple("javascript:S7726", context.projectKey + ":ClientApp/karma.conf.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/karma.conf.js"),
+        tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js")));
+      if (!version.isGreaterThanOrEquals(2026, 1)) {
+        // typescript:S7785 was removed in sonar-javascript 12.1.0; SQ 2026.1 bundles 11.8.0 (which raises it),
+        // but the IT is forward-pinned to 12.1.0 for SQ >= 2026.1
+        expectedIssues.add(tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts"));
+      }
     }
     assertThat(issues)
       .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
