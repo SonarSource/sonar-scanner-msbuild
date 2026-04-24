@@ -163,6 +163,7 @@ class MultiLanguageTest {
   @Test
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
+  @DisableOnEdition(Edition.COMMUNITY)
   void react() {
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.begin.CreateAndSetUserHomeFolder("junit-react-");
@@ -178,7 +179,7 @@ class MultiLanguageTest {
       tuple("csharpsquid:S3903", context.projectKey + ":WeatherForecast.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":Pages/Error.cshtml.cs")));
-    if (version.isGreaterThanOrEquals(2025, 1)) {
+    if (version.isGreaterThan(9, 9)) {
       expectedCSIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
     }
     assertThat(issues)
