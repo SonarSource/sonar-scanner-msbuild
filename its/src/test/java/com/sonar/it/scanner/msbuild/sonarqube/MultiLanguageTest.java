@@ -120,6 +120,13 @@ class MultiLanguageTest {
         tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
         tuple("javascript:S7772", context.projectKey + ":vite.config.js")));
     }
+    if (version.isGreaterThanOrEquals(2026, 2)) {
+      // Additional githubactions rules from IAC enterprise bundled with SQ 2026.2+
+      expectedIssues.addAll(List.of(
+        tuple("githubactions:S8543", context.projectKey + ":node_modules/rfdc/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":node_modules/rfdc/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":node_modules/rfdc/.github/workflows/ci.yml")));
+    }
     if (version.isGreaterThanOrEquals(2025, 1)) {
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
@@ -323,6 +330,41 @@ class MultiLanguageTest {
         // but the IT is forward-pinned to 12.1.0 for SQ >= 2026.1
         expectedIssues.add(tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts"));
       }
+    }
+    if (version.isGreaterThanOrEquals(2026, 2)) {
+      // Additional githubactions rules from IAC enterprise bundled with SQ 2026.2+
+      expectedIssues.addAll(List.of(
+        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/fastq/.github/workflows/ci.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/build.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/build.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/publish.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/json-schema-traverse/.github/workflows/publish.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/needle/.github/workflows/nodejs.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/needle/.github/workflows/nodejs.yml"),
+        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
+        tuple("githubactions:S8541", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
+        tuple("githubactions:S8544", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/node-gyp.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/node-gyp.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/rfdc/.github/workflows/ci.yml"),
+        tuple("githubactions:S8543", context.projectKey + ":ClientApp/node_modules/rfdc/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/rfdc/.github/workflows/ci.yml"),
+        tuple("githubactions:S6505", context.projectKey + ":ClientApp/node_modules/wildcard/.github/workflows/build.yml")));
     }
     assertThat(issues)
       .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
