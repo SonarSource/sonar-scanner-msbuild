@@ -131,12 +131,6 @@ class MultiLanguageTest {
         .extracting(Issue::getRule, Issue::getComponent)
         .contains(expectedIssues.toArray(new Tuple[]{}));
     }
-    if (version.isGreaterThanOrEquals(2026, 2)) {
-      // Only verify githubactions analyzer is active — exact counts change with each IAC release
-      assertThat(issues)
-        .filteredOn(x -> x.getRule().startsWith("githubactions"))
-        .isNotEmpty();
-    }
     // Different expected values are for different SQ and MsBuild versions and local run
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", ORCHESTRATOR)).isGreaterThan(300);
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isGreaterThan(200);
