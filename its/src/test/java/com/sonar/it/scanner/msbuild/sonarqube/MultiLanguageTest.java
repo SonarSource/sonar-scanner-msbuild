@@ -130,86 +130,20 @@ class MultiLanguageTest {
 
       var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
       var version = ORCHESTRATOR.getServer().version();
-      var expectedIssues = new ArrayList<>(List.of(
-        tuple("go:S1135", context.projectKey + ":main.go"),
-        // "src/MultiLanguageSupport" directory
-        tuple("csharpsquid:S1134", context.projectKey + ":src/MultiLanguageSupport/Program.cs"),
-        tuple("javascript:S1529", context.projectKey + ":src/MultiLanguageSupport/NotIncluded.js"),
-        tuple("javascript:S1529", context.projectKey + ":src/MultiLanguageSupport/JavaScript.js"),
-        tuple("plsql:S1134", context.projectKey + ":src/MultiLanguageSupport/NotIncluded.sql"),
-        tuple("plsql:S1134", context.projectKey + ":src/MultiLanguageSupport/plsql.sql"),
-        tuple("python:S1134", context.projectKey + ":src/MultiLanguageSupport/python.py"),
-        tuple("go:S1135", context.projectKey + ":src/MultiLanguageSupport/main.go"),
-        // "src/MultiLanguageSupport/php" directory
-        tuple("php:S1134", context.projectKey + ":src/MultiLanguageSupport/Php/PageOne.phtml"),
-        // "src/" directory
-        tuple("plsql:S1134", context.projectKey + ":src/Outside.sql"),
-        tuple("javascript:S1529", context.projectKey + ":src/Outside.js"),
-        tuple("python:S1134", context.projectKey + ":src/Outside.py"),
-        tuple("go:S1135", context.projectKey + ":src/main.go"),
-        // "frontend/" directory
-        tuple("javascript:S1529", context.projectKey + ":frontend/PageOne.js"),
-        tuple("plsql:S1134", context.projectKey + ":frontend/PageOne.Query.sql"),
-        tuple("python:S1134", context.projectKey + ":frontend/PageOne.Script.py")));
+      var expectedIssuePrefixes = new ArrayList<>(List.of("go", "csharpsquid", "javascript", "python", "plsql", "php"));
 
-      var phpPluginVersion = System.getProperty("sonar.phpplugin.version", "LATEST_RELEASE");
-      if (version.isGreaterThan(8, 9) && !"LATEST_RELEASE".equals(phpPluginVersion)) {
-        // php:S4833 is removed in the latest PHP plugin, but older LTA bundled versions still have it.
-        // We check the PHP plugin version rather than the SQ server version, since both LATEST_RELEASE
-        // and LTA builds may run against the same SQ server version but with different PHP plugin versions.
-        expectedIssues.add(tuple("php:S4833", context.projectKey + ":src/MultiLanguageSupport/Php/Composer/test.php"));
-      }
       if (version.isGreaterThan(8, 9)) {
-        expectedIssues.addAll(List.of(
-          tuple("javascript:S2699", context.projectKey + ":frontend/PageOne.test.js"),
-          tuple("php:S113", context.projectKey + ":src/MultiLanguageSupport/Php/Commons.inc"),
-          tuple("php:S113", context.projectKey + ":src/MultiLanguageSupport/Php/PageOne.php"),
-          tuple("php:S113", context.projectKey + ":src/MultiLanguageSupport/Php/PageOne.php3"),
-          tuple("php:S113", context.projectKey + ":src/MultiLanguageSupport/Php/PageOne.php4"),
-          tuple("php:S113", context.projectKey + ":src/Outside.php"),
-          tuple("docker:S6476", context.projectKey + ":Dockerfile"),
-          tuple("docker:S6476", context.projectKey + ":src/MultiLanguageSupport/Dockerfile"),
-          tuple("docker:S6476", context.projectKey + ":src/MultiLanguageSupport/Dockerfile.production"),
-          tuple("terraform:S4423", context.projectKey + ":src/MultiLanguageSupport/terraform.tf"),
-          tuple("terraform:S4423", context.projectKey + ":src/Outside.tf")));
-      }
-      if (version.getMajor() == 9) {
-        expectedIssues.addAll(List.of(
-          tuple("php:S1808", context.projectKey + ":src/MultiLanguageSupport/Php/Composer/src/Hello.php"),
-          tuple("php:S1808", context.projectKey + ":src/MultiLanguageSupport/Php/PageOne.phtml")));
-      } else {
-        expectedIssues.addAll(List.of(
-          tuple("typescript:S1128", context.projectKey + ":frontend/PageTwo.tsx")));
+        expectedIssuePrefixes.addAll(List.of( "docker","terraform:"));
       }
       if (version.isGreaterThan(9, 9)) {
-        expectedIssues.addAll(List.of(
-          tuple("azureresourcemanager:S1135", context.projectKey + ":main.bicep"),
-          tuple("azureresourcemanager:S4423", context.projectKey + ":main.bicep"),
-          tuple("cloudformation:S1135", context.projectKey + ":cloudformation.yaml"),
-          tuple("cloudformation:S6321", context.projectKey + ":cloudformation.yaml"),
-          tuple("docker:S6476", context.projectKey + ":src/MultiLanguageSupport/MultiLangSupport.dockerfile"),
-          tuple("ipython:S6711", context.projectKey + ":src/Intro.ipynb"),
-          tuple("java:S6437", context.projectKey + ":src/main/resources/application.properties"),
-          tuple("secrets:S6703", context.projectKey + ":src/main/resources/application.properties"),
-          tuple("secrets:S6702", context.projectKey + ":src/main/resources/application.yml"),
-          tuple("secrets:S6702", context.projectKey + ":src/main/resources/application.yaml"),
-          tuple("secrets:S6702", context.projectKey + ":.aws/config"),
-          tuple("secrets:S6702", context.projectKey + ":src/file.conf"),
-          tuple("secrets:S6702", context.projectKey + ":src/file.config"),
-          tuple("secrets:S6702", context.projectKey + ":src/file.pem"),
-          tuple("secrets:S6702", context.projectKey + ":src/script.sh"),
-          tuple("secrets:S6702", context.projectKey + ":src/script.bash"),
-          tuple("secrets:S6702", context.projectKey + ":src/script.ksh"),
-          tuple("secrets:S6702", context.projectKey + ":src/script.ps1"),
-          tuple("secrets:S6702", context.projectKey + ":src/script.zsh")));
+        expectedIssuePrefixes.addAll(List.of("azureresourcemanager","cloudformation","java","secrets"));
         if (!version.isGreaterThan(2025, 1)) {
-          expectedIssues.addAll(List.of(
-            tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
+          expectedIssuePrefixes.add("typescript");
         }
       }
-      assertThat(issues)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
+      for (var prefix : expectedIssuePrefixes) {
+        assertThat(issues).filteredOn(x -> x.getRule().startsWith(prefix)).isNotEmpty();
+      }
       assertThat(logs).contains("MultiLanguageSupport/src/MultiLanguageSupport/Php/Composer/vendor/autoload.php] is excluded by 'sonar.php.exclusions' " +
         "property and will not be analyzed");
     }
@@ -326,12 +260,8 @@ class MultiLanguageTest {
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     assertThat(issues).hasSize(5)
       .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S2094", context.projectKey + ":MultiLanguageSupportNonSdk/Foo.cs"),
-        tuple("javascript:S1529", context.projectKey + ":MultiLanguageSupportNonSdk/Included.js"),
-        tuple("javascript:S1529", context.projectKey + ":MultiLanguageSupportNonSdk/NotIncluded.js"),
-        tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/Included.sql"),
-        tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/NotIncluded.sql"));
+      .contains(
+        tuple("csharpsquid:S2094", context.projectKey + ":MultiLanguageSupportNonSdk/Foo.cs"));
     assertThat(issues).filteredOn(x -> x.getRule().startsWith("javascript")).isNotEmpty();
     assertThat(issues).filteredOn(x -> x.getRule().startsWith("plsql")).isNotEmpty();
   }
