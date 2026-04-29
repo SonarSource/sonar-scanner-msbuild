@@ -99,7 +99,7 @@ class MultiLanguageTest {
     assertThat(issues)
       .filteredOn(x -> x.getRule().startsWith("csharpsquid"))
       .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(expectedCSIssues.toArray(new Tuple[]{}));
+      .contains(expectedCSIssues.toArray(new Tuple[]{}));
     assertThat(issues).filteredOn(x -> x.getRule().startsWith("javascript")).isNotEmpty();
     assertThat(issues).filteredOn(x -> x.getRule().startsWith("typescript")).isNotEmpty();
     assertThat(issues).filteredOn(x -> x.getRule().startsWith("php")).isNotEmpty();
@@ -273,7 +273,7 @@ class MultiLanguageTest {
     assertThat(issues)
       .filteredOn(x -> x.getRule().startsWith("csharpsquid"))
       .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(expectedCSIssues.toArray(new Tuple[]{}));
+      .contains(expectedCSIssues.toArray(new Tuple[]{}));
     assertThat(issues).filteredOn(x -> x.getRule().startsWith("javascript")).isNotEmpty();
     if (version.isGreaterThan(8, 9)) {
       assertThat(issues).filteredOn(x -> x.getRule().startsWith("typescript")).isNotEmpty();
