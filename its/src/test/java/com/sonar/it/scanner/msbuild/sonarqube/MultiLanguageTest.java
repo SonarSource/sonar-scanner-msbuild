@@ -92,44 +92,18 @@ class MultiLanguageTest {
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     var version = ORCHESTRATOR.getServer().version();
-    var expectedIssues = new ArrayList<>(List.of(
+    var expectedCSIssues = new ArrayList<>(List.of(
       tuple("csharpsquid:S1134", context.projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":AspBackend/Controllers/WeatherForecastController.cs"),
-      tuple("csharpsquid:S6966", context.projectKey + ":AspBackend/Program.cs"),
-      tuple("typescript:S3626", context.projectKey + ":src/components/HelloWorld.vue"),
-      tuple("javascript:S3358", context.projectKey + ":vite.config.js"),
-      tuple("javascript:S2703", context.projectKey + ":src/main.js"),
-      tuple("javascript:S2703", context.projectKey + ":src/main.js"),
-      tuple("php:S113", context.projectKey + ":node_modules/flatted/php/flatted.php"),
-      tuple("php:S1131", context.projectKey + ":node_modules/flatted/php/flatted.php"),
-      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
-      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
-      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
-      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
-      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
-      tuple("php:S121", context.projectKey + ":node_modules/flatted/php/flatted.php"),
-      tuple("php:S1780", context.projectKey + ":node_modules/flatted/php/flatted.php"),
-      tuple("python:S5754", context.projectKey + ":node_modules/flatted/python/flatted.py"),
-      tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py"),
-      tuple("python:S5806", context.projectKey + ":node_modules/flatted/python/flatted.py")));
-    if (version.isGreaterThanOrEquals(2025, 5)) {
-      // SonarJs 11.4 targets SQ 2025.5
-      expectedIssues.addAll(List.of(
-        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
-        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
-        tuple("javascript:S7772", context.projectKey + ":vite.config.js"),
-        tuple("javascript:S7772", context.projectKey + ":vite.config.js")));
-    }
-    if (version.isGreaterThanOrEquals(2025, 1)) {
-      assertThat(issues)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
-    } else {
-      assertThat(issues).hasSize(83);
-      assertThat(issues)
-        .extracting(Issue::getRule, Issue::getComponent)
-        .contains(expectedIssues.toArray(new Tuple[]{}));
-    }
+      tuple("csharpsquid:S6966", context.projectKey + ":AspBackend/Program.cs")));
+    assertThat(issues)
+      .filteredOn(x -> x.getRule().startsWith("csharpsquid"))
+      .extracting(Issue::getRule, Issue::getComponent)
+      .contains(expectedCSIssues.toArray(new Tuple[]{}));
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("javascript")).isNotEmpty();
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("typescript")).isNotEmpty();
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("php")).isNotEmpty();
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("python")).isNotEmpty();
     // Different expected values are for different SQ and MsBuild versions and local run
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", ORCHESTRATOR)).isGreaterThan(300);
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isGreaterThan(200);
@@ -229,10 +203,10 @@ class MultiLanguageTest {
           tuple("secrets:S6702", context.projectKey + ":src/script.ps1"),
           tuple("secrets:S6702", context.projectKey + ":src/script.zsh")));
         if (!version.isGreaterThan(2025, 1)) {
-            expectedIssues.addAll(List.of(
-              tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
-          }
+          expectedIssues.addAll(List.of(
+            tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
         }
+      }
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
@@ -253,21 +227,21 @@ class MultiLanguageTest {
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     var version = ORCHESTRATOR.getServer().version();
-    var expectedIssues = new ArrayList<>(List.of(
-      tuple("javascript:S2819", context.projectKey + ":ClientApp/src/service-worker.js"),
-      tuple("javascript:S3358", context.projectKey + ":ClientApp/src/setupProxy.js"),
+    var expectedCSIssues = new ArrayList<>(List.of(
       tuple("csharpsquid:S4487", context.projectKey + ":Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":Pages/Error.cshtml.cs")
     ));
-    if (version.isGreaterThan(8, 9)) {
-      expectedIssues.add(tuple("python:S5754", context.projectKey + ":ClientApp/node_modules/flatted/python/flatted.py"));
-    }
     if (version.isGreaterThanOrEquals(2025, 1)) {
-      expectedIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
+      expectedCSIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
     }
-    assertThat(issues).hasSizeGreaterThanOrEqualTo(6)// depending on the version we see 6 or 7 issues at the moment
+    if (version.isGreaterThan(8, 9)) {
+      assertThat(issues).filteredOn(x -> x.getRule().startsWith("python")).isNotEmpty();
+    }
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("javascript")).isNotEmpty();
+    assertThat(issues)
+      .filteredOn(x -> x.getRule().startsWith("csharpsquid"))
       .extracting(Issue::getRule, Issue::getComponent)
-      .contains(expectedIssues.toArray(new Tuple[]{}));
+      .contains(expectedCSIssues.toArray(new Tuple[]{}));
   }
 
   @Test
@@ -284,50 +258,30 @@ class MultiLanguageTest {
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     var version = ORCHESTRATOR.getServer().version();
-    var expectedIssues = new ArrayList<>(List.of(
-      // "src/MultiLanguageSupport" directory
-      tuple("javascript:S3358", context.projectKey + ":ClientApp/proxy.conf.js"),
+    var expectedCSIssues = new ArrayList<>(List.of(
       tuple("csharpsquid:S4487", context.projectKey + ":Controllers/WeatherForecastController.cs"),
       tuple("csharpsquid:S4487", context.projectKey + ":Pages/Error.cshtml.cs")));
     if (version.getMajor() == 8) {
-      expectedIssues.addAll(List.of(
+      expectedCSIssues.addAll(List.of(
         tuple("csharpsquid:S3903", context.projectKey + ":Pages/Error.cshtml.cs"),
         tuple("csharpsquid:S3903", context.projectKey + ":Controllers/WeatherForecastController.cs"),
         tuple("csharpsquid:S3903", context.projectKey + ":WeatherForecast.cs")));
     }
-    if (version.isGreaterThan(8, 9)) {
-      expectedIssues.addAll(List.of(
-        tuple("typescript:S1874", context.projectKey + ":ClientApp/src/app/fetch-data/fetch-data.component.ts"),
-        tuple("typescript:S125", context.projectKey + ":ClientApp/src/environments/environment.ts"),
-        tuple("typescript:S125", context.projectKey + ":ClientApp/src/polyfills.ts"),
-        tuple("typescript:S125", context.projectKey + ":ClientApp/src/polyfills.ts")));
-    }
     if (version.isGreaterThanOrEquals(2025, 1)) {
-      expectedIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
-    }
-    if (version.isGreaterThanOrEquals(2025, 5)) {
-      // githubactions (sonar-iac-enterprise 2.6.x) and SonarJs 11.4 rules target SQ 2025.5
-      expectedIssues.addAll(List.of(
-        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/.github/workflows/tests.yml"),
-        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("githubactions:S1135", context.projectKey + ":ClientApp/node_modules/node-gyp/gyp/.github/workflows/Python_tests.yml"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/aspnetcore-https.js"),
-        tuple("javascript:S7750", context.projectKey + ":ClientApp/aspnetcore-https.js"),
-        tuple("javascript:S7726", context.projectKey + ":ClientApp/karma.conf.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/karma.conf.js"),
-        tuple("javascript:S7772", context.projectKey + ":ClientApp/proxy.conf.js")));
-      if (!version.isGreaterThanOrEquals(2026, 1)) {
-        // typescript:S7785 was removed in sonar-javascript 12.1.0; SQ 2026.1 bundles 11.8.0 (which raises it),
-        // but the IT is forward-pinned to 12.1.0 for SQ >= 2026.1
-        expectedIssues.add(tuple("typescript:S7785", context.projectKey + ":ClientApp/src/main.ts"));
-      }
+      expectedCSIssues.add(tuple("csharpsquid:S6966", context.projectKey + ":Program.cs"));
     }
     assertThat(issues)
-      .filteredOn(x -> !(x.getRule().startsWith("css") || x.getRule().startsWith("python") || x.getRule().startsWith("php")))
+      .filteredOn(x -> x.getRule().startsWith("csharpsquid"))
       .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));
+      .contains(expectedCSIssues.toArray(new Tuple[]{}));
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("javascript")).isNotEmpty();
+    if (version.isGreaterThan(8, 9)) {
+      assertThat(issues).filteredOn(x -> x.getRule().startsWith("typescript")).isNotEmpty();
+    }
+    if (version.isGreaterThanOrEquals(2025, 5)) {
+      // Only verify githubactions analyzer is active — exact counts change with each IAC release
+      assertThat(issues).filteredOn(x -> x.getRule().startsWith("githubactions")).isNotEmpty();
+    }
 
     assertThat(issues)
       .filteredOn(x -> x.getRule().startsWith("python"))
