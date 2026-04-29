@@ -109,14 +109,18 @@ stages:
               solution: 'scripts\version\ChangeVersion.proj'
               msbuildArgs: '/p:Sha1=$(Build.SourceVersion) /p:BranchName=$(Build.SourceBranchName) /p:BuildNumber=$(Build.BuildId)  /p:BuildConfiguration=$(BUILD_CONFIGURATION)'
 
-          - task: PowerShell@2
+          - task: DotNetCoreCLI@2
             displayName: Dotnet restore $(SOLUTION)
             env:
               ARTIFACTORY_USER: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
             inputs:
-              targetType: inline
-              script: nuget locals all -clear; dotnet restore $(SOLUTION) --locked-mode --verbosity normal
+              command: 'restore'
+              projects: '$(SOLUTION)'
+              feedsToUse: 'config'
+              restoreArguments: --locked-mode
+              nugetConfigPath: 'NuGet.Config'
+              verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
           - task: DotNetCoreCLI@2
             displayName: Dotnet generate SBOM
@@ -293,7 +297,7 @@ stages:
               ARTIFACTORY_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
             inputs:
               targetType: 'inline'
-              script: nuget restore -LockedMode $(SOLUTION)
+              script: nuget restore -LockedMode -ConfigFile "NuGet.Config" $(SOLUTION)
 
           - task: SonarCloudPrepare@3
             displayName: 'Code Analysis - Begin'
