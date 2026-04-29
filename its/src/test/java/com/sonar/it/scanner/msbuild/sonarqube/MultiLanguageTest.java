@@ -332,8 +332,6 @@ class MultiLanguageTest {
         tuple("javascript:S1529", context.projectKey + ":MultiLanguageSupportNonSdk/NotIncluded.js"),
         tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/Included.sql"),
         tuple("plsql:S1134", context.projectKey + ":MultiLanguageSupportNonSdk/NotIncluded.sql"));
-    assertThat(issues).filteredOn(x -> x.getRule().startsWith("javascript")).isNotEmpty();
-    assertThat(issues).filteredOn(x -> x.getRule().startsWith("plsql")).isNotEmpty();
   }
 
 
