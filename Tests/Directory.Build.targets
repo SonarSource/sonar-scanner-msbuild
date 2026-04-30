@@ -34,5 +34,4 @@
     <Using Include="TestUtilities.Assertions" />
   </ItemGroup>
 
-
 </Project>

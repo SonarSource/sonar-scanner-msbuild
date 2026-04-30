@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <!-- Only this one has to be in props, because it's used by PropertyGroup in csproj files. The rest of the config is in .targets files -->
-  <Import Project="$(MSBuildThisFileDirectory)\DotnetVersions.props" />
+  <PropertyGroup>
+    <!-- Only these have to be in props, because it's used by PropertyGroup in csproj files. The rest of the config is in .targets files -->
+    <ScannerNetStandardVersion>netstandard2.0</ScannerNetStandardVersion>
+    <ScannerNetFxVersion>net462</ScannerNetFxVersion>
+    <ScannerNetVersion>netcoreapp3.1</ScannerNetVersion>
+  </PropertyGroup>
 </Project>
