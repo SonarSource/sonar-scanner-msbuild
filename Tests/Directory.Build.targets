@@ -2,10 +2,6 @@
 <Project>
   <Import Project="$(MSBuildThisFileDirectory)\..\Common.targets" />
 
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
-
   <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
     <PackageReference Include="Combinatorial.MSTest" Version="2.0.0" />
     <PackageReference Include="altcover" Version="9.0.102" />
@@ -36,12 +32,6 @@
     <Using Include="System.Threading.Tasks" />
     <Using Include="TestUtilities" />
     <Using Include="TestUtilities.Assertions" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)\..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
   </ItemGroup>
 
 </Project>

@@ -1,26 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-
   <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- Only these have to be in props, because it's used by PropertyGroup in csproj files. The rest of the config is in .targets files -->
+    <ScannerNetStandardVersion>netstandard2.0</ScannerNetStandardVersion>
+    <ScannerNetFxVersion>net462</ScannerNetFxVersion>
+    <ScannerNetVersion>netcoreapp3.1</ScannerNetVersion>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <Import Project="$(MSBuildThisFileDirectory)\DotnetVersions.props" />
-
 </Project>
