@@ -1,26 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-
-  <PropertyGroup>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Include="..\..\AssemblyInfo.Shared.cs">
-      <Link>Properties\AssemblyInfo.Shared.cs</Link>
-    </Compile>
-  </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
+  <!-- Only this one has to be in props, because it's used by PropertyGroup in csproj files. The rest of the config is in .targets files -->
   <Import Project="$(MSBuildThisFileDirectory)\DotnetVersions.props" />
-
 </Project>

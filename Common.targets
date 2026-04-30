@@ -9,6 +9,7 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <AutomaticallyUseReferenceAssemblyPackages>false</AutomaticallyUseReferenceAssemblyPackages>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <!-- Disable package pruning to ensure lock files are consistent across platforms (Linux/Windows).
          Without this, .NET 10 SDK prunes platform-specific dependencies, causing NU1004 errors when
          lock files generated on Linux are restored on Windows. See sonar-dotnet-enterprise#1677. -->
@@ -36,6 +37,12 @@
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
+
+    <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)\AssemblyInfo.Shared.cs">
+      <Link>Properties\AssemblyInfo.Shared.cs</Link>
+    </Compile>
+  </ItemGroup>
 
   <!-- Explicit reference to ensure consistent lock files across platforms (Linux/Windows).
        On Linux, this package is implicitly added for .NET Framework targets, but not on Windows.
