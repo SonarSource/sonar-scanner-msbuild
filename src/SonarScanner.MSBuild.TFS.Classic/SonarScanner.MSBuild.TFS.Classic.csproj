@@ -63,4 +63,14 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <Target Name="CopyBinaries" AfterTargets="Build">
+    <ItemGroup>
+      <!-- We do not ship Microsoft.TeamFoundation.*.dll, see note above -->
+      <BinariesToCopy Include="$(OutputPath)SonarScanner.MSBuild.TFSProcessor.exe" />
+      <BinariesToCopy Include="$(OutputPath)SonarScanner.MSBuild.TFSProcessor.exe.config" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BinariesToCopy)" DestinationFolder="$(BinariesFolder)" />
+  </Target>
+
 </Project>

@@ -2,6 +2,14 @@
 <Project>
   <Import Project="$(MSBuildThisFileDirectory)\..\Common.targets" />
 
+  <PropertyGroup>
+    <!-- Binary files folder used by ITs, NuGet and java deployment. -->
+    <BinariesFolder Condition="'$(TargetFramework)'=='$(ScannerNetVersion)'">$(MSBuildThisFileDirectory)..\Packaging\Binaries\net\</BinariesFolder>
+    <BinariesFolder Condition="'$(TargetFramework)'=='$(ScannerNetFxVersion)'">$(MSBuildThisFileDirectory)..\Packaging\Binaries\net-framework\</BinariesFolder>
+    <!-- SonarScanner.MsBuild.Tasks targets .NET Standard & .NET Framework -->
+    <BinariesFolder Condition="'$(TargetFramework)'=='$(ScannerNetStandardVersion)'">$(MSBuildThisFileDirectory)..\Packaging\Binaries\net\</BinariesFolder>
+  </PropertyGroup>
+
   <ItemGroup>
     <Using Include="SonarScanner.MSBuild.Common" />
     <Using Include="System.Xml.Serialization" />
