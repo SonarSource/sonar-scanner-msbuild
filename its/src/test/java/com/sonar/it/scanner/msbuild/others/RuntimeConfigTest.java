@@ -33,7 +33,7 @@ class RuntimeConfigTest {
   @Test
   void TestRuntimeConfig() throws IOException {
     Gson gson = new Gson();
-    Path runtimeConfigPath = Paths.get("..", "build", "sonarscanner-net", "SonarScanner.MSBuild.runtimeconfig.json");
+    Path runtimeConfigPath = Paths.get("..", "Packaging", "Binaries", "Net", "SonarScanner.MSBuild.runtimeconfig.json");
     assertThat(runtimeConfigPath.toAbsolutePath()).exists();
 
     try (var reader = Files.newBufferedReader(runtimeConfigPath)) {
