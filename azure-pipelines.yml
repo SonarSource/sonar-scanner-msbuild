@@ -184,7 +184,7 @@ stages:
               script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
           - powershell: |
-              Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
+              Add-Content Packaging/Version.txt $(SONAR_PROJECT_VERSION)
             displayName: 'Write project version in file'
 
           - task: DownloadSecureFile@1
@@ -285,7 +285,7 @@ stages:
               artifactName: Packaging
 
           - powershell: |
-              $projectVersion = Get-Content "$(Build.SourcesDirectory)/build/version.txt"
+              $projectVersion = Get-Content "$(Build.SourcesDirectory)/Packaging/Version.txt"
               Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
             displayName: 'Set SONAR_PROJECT_VERSION variable for this job'
 
