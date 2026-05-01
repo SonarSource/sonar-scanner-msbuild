@@ -161,8 +161,6 @@ stages:
                 . (Join-Path "scripts" "package-artifacts.ps1")
                 . (Join-Path "scripts" "variables.ps1")
 
-                Download-ScannerCli
-
                 $signAssemblies = [System.Convert]::ToBoolean("$(IS_RELEASE_BRANCH)") # the variable is a string, we need a boolean
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies

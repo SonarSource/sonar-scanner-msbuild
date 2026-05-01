@@ -23,7 +23,6 @@ try {
 
     CleanAndRecreate-BuildDirectories "net-framework"
     CleanAndRecreate-BuildDirectories "net"
-    Download-ScannerCli
 
     Build-Scanner
 
