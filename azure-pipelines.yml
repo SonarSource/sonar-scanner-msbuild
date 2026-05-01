@@ -182,7 +182,7 @@ stages:
               script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
           - powershell: |
-              Add-Content build/version.txt $(SONAR_PROJECT_VERSION)
+              Add-Content Packaging/Version.txt $(SONAR_PROJECT_VERSION)
             displayName: 'Write project version in file'
 
           - task: DownloadSecureFile@1
@@ -256,10 +256,10 @@ stages:
             displayName: "Rename artifacts for GitHub Release"
 
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish packages as artifacts'
+            displayName: 'Publish Packaging artifact'
             inputs:
-              targetPath: 'build'
-              artifact: 'build'
+              targetPath: 'Packaging'
+              artifact: 'Packaging'
 
           - task: CmdLine@2
             displayName: Revert changes made to pom.xml to not break cache feature
@@ -276,13 +276,14 @@ stages:
           clean: all
         steps:
           - task: DownloadPipelineArtifact@2
+            displayName: 'Download Packaging artifact'
             inputs:
               buildType: 'current'
-              targetPath: '$(Build.SourcesDirectory)/build'
-              artifactName: build
+              targetPath: '$(Build.SourcesDirectory)/Packaging'
+              artifactName: Packaging
 
           - powershell: |
-              $projectVersion = Get-Content "$(Build.SourcesDirectory)/build/version.txt"
+              $projectVersion = Get-Content "$(Build.SourcesDirectory)/Packaging/Version.txt"
               Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
             displayName: 'Set SONAR_PROJECT_VERSION variable for this job'
 

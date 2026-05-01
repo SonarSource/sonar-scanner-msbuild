@@ -23,8 +23,8 @@ import com.sonar.orchestrator.util.command.Command;
 import java.nio.file.Path;
 
 public enum ScannerClassifier {
-  NET("net", "dotnet", Path.of("../build/sonarscanner-net/SonarScanner.MSBuild.dll").toAbsolutePath().toString()),
-  NET_FRAMEWORK("net-framework", Path.of("../build/sonarscanner-net-framework/SonarScanner.MSBuild.exe").toAbsolutePath().toString(), null);
+  NET("net", "dotnet", Path.of("../Packaging/Binaries/Net/SonarScanner.MSBuild.dll").toAbsolutePath().toString()),
+  NET_FRAMEWORK("net-framework", Path.of("../Packaging/Binaries/Net-Framework/SonarScanner.MSBuild.exe").toAbsolutePath().toString(), null);
 
   private final String classifier;
   private final String executable;
