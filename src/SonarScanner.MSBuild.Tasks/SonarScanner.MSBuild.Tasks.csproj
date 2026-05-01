@@ -48,7 +48,7 @@
     <ItemGroup>
       <!-- We don't ship Microsoft.Build*.dll files, they should be on the Task runtime -->
       <BinariesToCopy Include="$(OutputPath)SonarScanner.MSBuild.Tasks.dll" />
-      <TargetsToCopy Include="$(OutputPath)Targets\*.Targets" />
+      <TargetsToCopy Include="$(OutputPath)Targets\*.targets" />
     </ItemGroup>
     <Copy SourceFiles="@(BinariesToCopy)" DestinationFolder="$(BinariesFolder)" />
     <Copy SourceFiles="@(TargetsToCopy)" DestinationFolder="$(BinariesFolder)Targets\" />

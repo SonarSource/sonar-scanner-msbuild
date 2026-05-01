@@ -59,7 +59,7 @@
       <ThirdPartyLicenseFiles Include="$(MSBuildThisFileDirectory)\..\..\Licenses\THIRD_PARTY_LICENSES\SharpZipLib-LICENSE.txt" Condition="'$(TargetFramework)'=='$(ScannerNetVersion)'"  />
     </ItemGroup>
     <Copy SourceFiles="@(BinariesToCopy)" DestinationFolder="$(BinariesFolder)" />
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)\..\..\License.txt" DestinationFiles="$(BinariesFolder)Licenses\LICENSE.txt" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)\..\..\LICENSE.txt" DestinationFiles="$(BinariesFolder)Licenses\LICENSE.txt" />
     <Copy SourceFiles="@(ThirdPartyLicenseFiles)" DestinationFolder="$(BinariesFolder)Licenses\THIRD_PARTY_LICENSES" />
   </Target>
 
