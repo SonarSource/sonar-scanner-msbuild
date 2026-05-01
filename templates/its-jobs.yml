@@ -57,13 +57,6 @@ jobs:
           secureFile: 'maven-settings.xml'
 
       - task: DownloadPipelineArtifact@2
-        displayName: 'Download build artifact'
-        inputs:
-          buildType: 'current'
-          targetPath: '$(Build.SourcesDirectory)/build'
-          artifactName: build
-
-      - task: DownloadPipelineArtifact@2
         displayName: 'Download Packaging artifact'
         inputs:
           buildType: 'current'

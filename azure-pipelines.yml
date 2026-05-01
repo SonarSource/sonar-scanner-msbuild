@@ -258,12 +258,6 @@ stages:
             displayName: "Rename artifacts for GitHub Release"
 
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish build artifact'
-            inputs:
-              targetPath: 'build'
-              artifact: 'build'
-
-          - task: PublishPipelineArtifact@1
             displayName: 'Publish Packaging artifact'
             inputs:
               targetPath: 'Packaging'
@@ -283,13 +277,6 @@ stages:
         workspace:
           clean: all
         steps:
-          - task: DownloadPipelineArtifact@2
-            displayName: 'Download build artifact'
-            inputs:
-              buildType: 'current'
-              targetPath: '$(Build.SourcesDirectory)/build'
-              artifactName: build
-
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Packaging artifact'
             inputs:
