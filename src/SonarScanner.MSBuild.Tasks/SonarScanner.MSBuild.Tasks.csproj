@@ -3,9 +3,11 @@
     <TargetFrameworks>$(ScannerNetStandardVersion);$(ScannerNetFxVersion)</TargetFrameworks>
     <AssemblyName>SonarScanner.MSBuild.Tasks</AssemblyName>
   </PropertyGroup>
+
   <ItemGroup>
     <None Include="Docs\IntegrationTargetDependencies.dgml" />
   </ItemGroup>
+
   <ItemGroup>
     <None Include="Targets\SonarQube.Integration.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -14,15 +16,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
   <ItemGroup>
     <!-- Runtime dependencies used by tasks need to be copied by SonarScanner.MSBuild.BootstrapperClass.CopyDlls() -->
     <PackageReference Include="Microsoft.Build" Version="15.9.20" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.9.20" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -30,10 +35,23 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
+
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <!-- This Build triggers three times - one for each TFM, and once with empty TFM as a solution-level build.  -->
+  <Target Name="CopyBinaries" AfterTargets="Build" Condition="'$(BinariesFolder)' != ''">
+    <ItemGroup>
+      <!-- We don't ship Microsoft.Build*.dll files, they should be on the Task runtime -->
+      <BinariesToCopy Include="$(OutputPath)SonarScanner.MSBuild.Tasks.dll" />
+      <TargetsToCopy Include="$(OutputPath)Targets\*.targets" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BinariesToCopy)" DestinationFolder="$(BinariesFolder)" />
+    <Copy SourceFiles="@(TargetsToCopy)" DestinationFolder="$(BinariesFolder)Targets\" />
+  </Target>
+
 </Project>

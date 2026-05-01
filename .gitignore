@@ -183,3 +183,6 @@ target/
 # Claude Code
 .claude
 CLAUDE.md
+
+
+Packaging/Binaries/
