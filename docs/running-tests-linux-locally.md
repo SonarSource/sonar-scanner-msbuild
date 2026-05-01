@@ -19,11 +19,6 @@ For Docker:
 scripts/run-test-docker.ps1 -Its
 ```
 
-## Preparing for Integration Tests
-
-Before running integration tests using either method, ensure the scanner is built and packaged.
-You can accomplish this by using the `scripts/its-build.ps1` script.
-
 ## Running Tests with WSL
 
 ### Prerequisites
