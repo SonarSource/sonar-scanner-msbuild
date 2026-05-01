@@ -57,10 +57,18 @@ jobs:
           secureFile: 'maven-settings.xml'
 
       - task: DownloadPipelineArtifact@2
+        displayName: 'Download build artifact'
         inputs:
           buildType: 'current'
           targetPath: '$(Build.SourcesDirectory)/build'
           artifactName: build
+
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Download Packaging artifact'
+        inputs:
+          buildType: 'current'
+          targetPath: '$(Build.SourcesDirectory)/Packaging'
+          artifactName: Packaging
 
       # Init steps should be run after the checkout, cache and download tasks so:
       #  - they can create files in the workspace without being overwritten (e.g.: generating a self-signed certificate)
@@ -77,7 +85,7 @@ jobs:
         env:
           ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
         displayName: Set npm registry to repox
-        
+
       - task: Maven@4
         displayName: 'Run Maven ITs for $(PRODUCT) $(SQ_VERSION)'
         env:
