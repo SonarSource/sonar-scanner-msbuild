@@ -47,9 +47,6 @@ You can run the Unit Tests via the Test Explorer of Visual Studio.
 
 ### Integration Tests
 
-1. Go to `PATH_TO_CLONED_REPOSITORY`
-1. Run `powershell`
-1. Run `.\scripts\its-build.ps1`
 1. Open the `PATH_TO_CLONED_REPOSITORY\its` directory using your favorite IDE for Java (e.g. IntelliJ IDEA Community Edition)
 1. Run the ITs
 

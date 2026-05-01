@@ -3,8 +3,8 @@
 # - Install chocolatey: https://docs.chocolatey.org/en-us/choco/setup/#install-with-powershellexe
 # - Install Pester: Install-Module -Name Pester -Force -SkipPublisherCheck (https://pester.dev/docs/introduction/installation#windows)
 # Running:
+# - Rebuild SonarScanner.MSBuild.sln
 # - Open a PowerShell terminal.
-# - Generate binaries: .\scripts\its-build.ps1
 # - Package the scanner: nuget pack nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec
 # - Run the tests: Invoke-Pester -Output Detailed .\scripts\generate-packages.tests.ps1
 
