@@ -30,10 +30,6 @@
     Copy-Item -Path "$PSScriptRoot\..\LICENSE.txt" -Destination $DestinationLicenses
     Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\*" -Destination $DestinationThirdPartyLicenses
 
-    if ($scannerCliEmbed) {
-        Expand-Archive -Path "$scannerCliDownloadDir\$scannerCliArtifact" -DestinationPath $Destination -Force
-    }
-
     if ($SignAssemblies) {
         Sign-Assemblies -Pattern "$Destination\Sonar*" -TargetName ".NET Framework assemblies"
     }
@@ -77,10 +73,6 @@ function Package-NetScanner {
     Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\Newtonsoft.Json-LICENSE.txt" -Destination $DestinationThirdPartyLicenses
     Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\SharpZipLib-LICENSE.txt" -Destination $DestinationThirdPartyLicenses
 
-    if ($scannerCliEmbed) {
-        Expand-Archive -Path "$scannerCliDownloadDir\$scannerCliArtifact" -DestinationPath $Destination -Force
-    }
-
     if ($SignAssemblies) {
         Sign-Assemblies -Pattern "$Destination\Sonar*" -TargetName ".NET assemblies"
     }
@@ -101,22 +93,4 @@ function Sign-Assemblies {
             & signtool sign /du https://www.sonarsource.com/ /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /csp "DigiCert Signing Manager KSP" /kc "$env:SM_KP" /f "$env:SM_CLIENT_CRT_FILE" $_.FullName
         }
     Write-Host "[Completed] Signing $TargetName"
-}
-
-function Download-ScannerCli {
-    $ArtifactoryUrlEnv = "ARTIFACTORY_URL"
-
-    $ArtifactoryUrl = [environment]::GetEnvironmentVariable($ArtifactoryUrlEnv, "Process")
-    if (!$ArtifactoryUrl) {
-        Write-Host "Could not find ARTIFACTORY_URL variable, defaulting to repox URL.";
-        $ArtifactoryUrl = "https://repox.jfrog.io/repox";
-    }
-
-    if (!(Test-Path -LiteralPath $scannerCliDownloadDir)) {
-        New-Item -Path $scannerCliDownloadDir -ItemType Directory -ErrorAction Stop -Force
-    }
-
-    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:get -DremoteRepositories=$ArtifactoryUrl -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip" -Dtransitive=false
-
-    mvn org.apache.maven.plugins:maven-dependency-plugin:3.2.0:copy -Dartifact="org.sonarsource.scanner.cli:sonar-scanner-cli:${scannerCliVersion}:zip" -DoutputDirectory="${scannerCliDownloadDir}"
 }
