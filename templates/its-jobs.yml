@@ -24,6 +24,7 @@ jobs:
       SQ_EDITION: "DEVELOPER"
       CSS_VERSION: "NONE" # No official release since 8.9, the plug-in should not be loaded. Rules are in the JS plugin
       DOTNET_VERSION: "DEV"
+      DRE_VERSION: "LATEST_RELEASE"
       GO_VERSION: "LATEST_RELEASE"
       GO_GROUP_ID: "org.sonarsource.go"
       IAC_VERSION: "NONE" # Merged into sonar-iac-enterprise in 2025.5
@@ -103,6 +104,7 @@ jobs:
             -Dtest=$(TEST_INCLUDE)
             -Dsonar.csharpplugin.version=$(DOTNET_VERSION)
             -Dsonar.vbnetplugin.version=$(DOTNET_VERSION)
+            -Dsonar.dreplugin.version=$(DRE_VERSION)
             -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION)
             -Dsonar.xmlplugin.version=$(XML_VERSION)
             -Dsonar.css.version=$(CSS_VERSION)
