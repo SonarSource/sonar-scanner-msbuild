@@ -18,17 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
-using System.Resources;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyVersion("11.3.0")]
-[assembly: AssemblyFileVersion("11.3.0.0")]
-[assembly: AssemblyInformationalVersion("Version:11.3.0.0 Branch:not-set Sha1:not-set")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("SonarSource")]
-[assembly: AssemblyCopyright("Copyright © SonarSource Sàrl")]
-[assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
-[assembly: NeutralResourcesLanguage("en")]
