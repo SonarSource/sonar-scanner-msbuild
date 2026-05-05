@@ -3,7 +3,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>sonarscanner-net</id>
-    <version>1.0.0</version>
+    <version>$Version$</version>
     <title>SonarScanner for .NET</title>
     <authors>SonarSource</authors>
     <owners>SonarSource</owners>
