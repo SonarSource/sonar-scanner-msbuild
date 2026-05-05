@@ -63,11 +63,14 @@ public class AdditionalFilesService
         "sonar.azureresourcemanager.file.suffixes",
         "sonar.terraform.file.suffixes",
         "sonar.go.file.suffixes",
+        "sonar.groovy.file.suffixes",
+        "sonar.powershell.file.suffixes",
     ];
 
     private static readonly IReadOnlyList<string> GlobingExpressions =
     [
         "sonar.docker.file.patterns",
+        "sonar.groovy.file.patterns",
         "sonar.java.jvmframeworkconfig.file.patterns",
         "sonar.text.inclusions"
     ];
