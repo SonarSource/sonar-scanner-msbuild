@@ -1941,7 +1941,7 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "System.ValueTuple": "[4.6.2, )"
         }
       },
@@ -1949,16 +1949,16 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )"
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
+          "SonarScanner.MSBuild.Shim": "[11.3.0, )"
         }
       },
       "SonarScanner.MSBuild.TFSProcessor": {
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.TFS": "[1.0.0, )"
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
+          "SonarScanner.MSBuild.TFS": "[11.3.0, )"
         }
       },
       "testutilities": {
@@ -1970,7 +1970,7 @@
           "MSTest.TestFramework": "[4.2.1, )",
           "Microsoft.NET.Test.Sdk": "[18.4.0, )",
           "NSubstitute": "[5.3.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "WireMock.Net": "[2.3.0, )",
           "altcover": "[9.0.102, )"
         }
@@ -3730,7 +3730,7 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "System.ValueTuple": "[4.6.2, )"
         }
       },
@@ -3738,8 +3738,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )"
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
+          "SonarScanner.MSBuild.Shim": "[11.3.0, )"
         }
       },
       "testutilities": {
@@ -3751,7 +3751,7 @@
           "MSTest.TestFramework": "[4.2.1, )",
           "Microsoft.NET.Test.Sdk": "[18.4.0, )",
           "NSubstitute": "[5.3.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "WireMock.Net": "[2.3.0, )",
           "altcover": "[9.0.102, )"
         }

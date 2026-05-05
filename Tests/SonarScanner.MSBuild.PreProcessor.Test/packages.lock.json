@@ -1980,7 +1980,7 @@
           "Google.Protobuf": "[3.34.1, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "SharpZipLib": "[1.4.2, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "System.Net.Http": "[4.3.4, )"
         }
       },
@@ -1993,7 +1993,7 @@
           "MSTest.TestFramework": "[4.2.1, )",
           "Microsoft.NET.Test.Sdk": "[18.4.0, )",
           "NSubstitute": "[5.3.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "WireMock.Net": "[2.3.0, )",
           "altcover": "[9.0.102, )"
         }
@@ -4126,7 +4126,7 @@
           "Google.Protobuf": "[3.34.1, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "SharpZipLib": "[1.4.2, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "System.Net.Http": "[4.3.4, )"
         }
       },
@@ -4139,7 +4139,7 @@
           "MSTest.TestFramework": "[4.2.1, )",
           "Microsoft.NET.Test.Sdk": "[18.4.0, )",
           "NSubstitute": "[5.3.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "WireMock.Net": "[2.3.0, )",
           "altcover": "[9.0.102, )"
         }
