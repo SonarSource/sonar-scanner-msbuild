@@ -25,7 +25,7 @@ jobs:
       CSS_VERSION: "NONE" # No official release since 8.9, the plug-in should not be loaded. Rules are in the JS plugin
       DOTNET_VERSION: "DEV"
       DRE_VERSION: "LATEST_RELEASE"
-      GO_VERSION: "LATEST_RELEASE"
+      GO_VERSION: "NONE" # In favor of go-enterprise, which is required for the DRE plugin
       GO_ENTERPRISE_VERSION: "LATEST_RELEASE"
       GO_GROUP_ID: "org.sonarsource.go"
       IAC_VERSION: "NONE" # Merged into sonar-iac-enterprise in 2025.5
