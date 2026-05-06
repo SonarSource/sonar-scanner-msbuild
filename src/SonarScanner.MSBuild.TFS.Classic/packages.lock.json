@@ -68,7 +68,7 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[40.50.2, )",
+          "SonarScanner.MSBuild.Common": "[50.60.60, )",
           "System.ValueTuple": "[4.6.2, )"
         }
       },
@@ -76,8 +76,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
-          "SonarScanner.MSBuild.Common": "[40.50.2, )",
-          "SonarScanner.MSBuild.Shim": "[40.50.2, )"
+          "SonarScanner.MSBuild.Common": "[50.60.60, )",
+          "SonarScanner.MSBuild.Shim": "[50.60.60, )"
         }
       }
     }
