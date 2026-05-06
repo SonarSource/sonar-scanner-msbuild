@@ -88,7 +88,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     if (!System.getProperty("sonar.dreplugin.version", "LATEST_RELEASE").equals("NONE")) {
       // Required dependencies for the SonarDRE plugin
       addPlugin(orchestrator, "org.sonarsource.slang", "sonar-ruby-plugin", "sonar.rubyplugin.version");
-      addPlugin(orchestrator, "com.sonarsource.go", "sonar-go-enterprise-plugin", "sonar.goplugin.version");
+      addPlugin(orchestrator, "com.sonarsource.go", "sonar-go-enterprise-plugin", "sonar.goplugin-enterprise.version");
     } else {
       // Loading both the OSS and enterprise Go can lead to issues, so we only load the OSS one if the DRE plugin is not loaded.
       addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version");
