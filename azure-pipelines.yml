@@ -444,7 +444,7 @@ stages:
               CFAMILY_VERSION: "6.77.0.95488"         # Bundled version with SQ 2026.1
               CSS_VERSION: "NONE"                     # No official release in SQ 2026.1, the plug-in should not be loaded. Rules are in the JS plugin
               DOTNET_VERSION: "10.21.0.135332"        # Minimum version supporting new telemetry convention (bundled was 10.18.0)
-              DRE_VERSION: "1.0.0.5029"               # Bundled version with SQ 2026.1
+              DRE_VERSION: "NONE"                     # The DRE plugin is not required for the tests for this version
               GO_VERSION: "1.31.0.4938"               # Bundled version with SQ 2026.1
               GO_GROUP_ID: "org.sonarsource.go"
               IAC_VERSION: "NONE"                     # Enterprise plugin is a superset; installing both causes conflicts for githubactions
