@@ -649,9 +649,9 @@
       "sonarscanner.msbuild.postprocessor": {
         "type": "Project",
         "dependencies": {
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )",
-          "SonarScanner.MSBuild.TFS": "[1.0.0, )"
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
+          "SonarScanner.MSBuild.Shim": "[40.50.2, )",
+          "SonarScanner.MSBuild.TFS": "[40.50.2, )"
         }
       },
       "sonarscanner.msbuild.preprocessor": {
@@ -660,7 +660,7 @@
           "Google.Protobuf": "[3.34.1, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "SharpZipLib": "[1.4.2, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
           "System.Net.Http": "[4.3.4, )"
         }
       },
@@ -668,7 +668,7 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
           "System.ValueTuple": "[4.6.2, )"
         }
       },
@@ -676,8 +676,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )"
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
+          "SonarScanner.MSBuild.Shim": "[40.50.2, )"
         }
       }
     },
@@ -832,9 +832,9 @@
       "sonarscanner.msbuild.postprocessor": {
         "type": "Project",
         "dependencies": {
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )",
-          "SonarScanner.MSBuild.TFS": "[1.0.0, )"
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
+          "SonarScanner.MSBuild.Shim": "[40.50.2, )",
+          "SonarScanner.MSBuild.TFS": "[40.50.2, )"
         }
       },
       "sonarscanner.msbuild.preprocessor": {
@@ -843,7 +843,7 @@
           "Google.Protobuf": "[3.34.1, )",
           "Newtonsoft.Json": "[13.0.4, )",
           "SharpZipLib": "[1.4.2, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
           "System.Net.Http": "[4.3.4, )"
         }
       },
@@ -851,7 +851,7 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
           "System.ValueTuple": "[4.6.2, )"
         }
       },
@@ -859,8 +859,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )"
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
+          "SonarScanner.MSBuild.Shim": "[40.50.2, )"
         }
       }
     }

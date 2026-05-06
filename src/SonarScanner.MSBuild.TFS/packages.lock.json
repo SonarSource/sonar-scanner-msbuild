@@ -68,7 +68,7 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
           "System.ValueTuple": "[4.6.2, )"
         }
       }
@@ -291,7 +291,7 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[40.50.2, )",
           "System.ValueTuple": "[4.6.2, )"
         }
       }
