@@ -35,26 +35,9 @@ function Update-Choco-Package([string] $scannerZipFileName, [string] $runtimeSuf
   choco pack "nuspec/chocolatey/sonarscanner-$runtimeSuffix.nuspec" --outputdirectory $artifactsFolder --version $env:PATCH_VERSION
 }
 
-function Update-Pom-File() {
-  Write-Host 'Update artifacts locations in pom.xml'
-  $sbomJsonPath = Get-Item "$sourcesDirectory/build/bom.json"
-  $netScannerGlobalToolPath = Get-Item "$artifactsFolder/dotnet-sonarscanner.$env:PATCH_VERSION.nupkg"  # dotnet-sonarscanner.9.0-rc.nupkg or dotnet-sonarscanner.9.0.nupkg
-  $pomFile = './pom.xml'
-  (Get-Content $pomFile) `
-    -Replace 'netFrameworkScannerZipPath', "$netFrameworkScannerZipPath" `
-    -Replace 'netScannerZipPath', "$netScannerZipPath" `
-    -Replace 'netScannerGlobalToolPath', "$netScannerGlobalToolPath" `
-    -Replace 'netFrameworkScannerChocoPath', "$artifactsFolder/sonarscanner-net-framework.$env:PATCH_VERSION.nupkg" `
-    -Replace 'netScannerChocoPath', "$artifactsFolder/sonarscanner-net.$env:PATCH_VERSION.nupkg" `
-    -Replace 'sbomPath', "$sbomJsonPath" `
-  | Set-Content $pomFile
-}
-
-# Read the version from the Version.props file and initialize the global variables.
 $artifactsFolder = "$sourcesDirectory/build"
 $netFrameworkScannerZipPath = Get-Item "$artifactsFolder/sonarscanner-net-framework.zip"
 $netScannerZipPath = Get-Item "$artifactsFolder/sonarscanner-net.zip"
 
 Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
 Update-Choco-Package $netScannerZipPath 'net'
-Update-Pom-File
