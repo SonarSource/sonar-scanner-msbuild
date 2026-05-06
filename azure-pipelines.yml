@@ -39,6 +39,13 @@ variables:
   - name: SOLUTION
     value: "SonarScanner.MSBuild.sln"
 
+resources:
+  repositories:
+    - repository: pipelines-yaml-templates
+      type: git
+      name: DotNetTeam Project/pipelines-yaml-templates
+      ref:  refs/tags/v3.0.0
+
 stages:
   - stage: build
     displayName: 'Build:'
@@ -98,14 +105,17 @@ stages:
               SM_API_KEY: $(SM_API_KEY)
               SM_CERT: $(SM_CERT)
 
-          - powershell: .\scripts\promote-project-version.ps1
-            displayName: 'Promote project version'
+          - powershell: .\scripts\store-azp-variables.ps1
+            displayName: "Store AZP Variables"
 
-          - task: VSBuild@1
-            displayName: 'Set BranchName, Sha1 and BuildNumber properties from Azdo pipeline variables'
-            inputs:
-              solution: 'scripts\version\ChangeVersion.proj'
-              msbuildArgs: '/p:Sha1=$(Build.SourceVersion) /p:BranchName=$(Build.SourceBranchName) /p:BuildNumber=$(Build.BuildId)  /p:BuildConfiguration=$(BUILD_CONFIGURATION)'
+          - publish: $(Agent.BuildDirectory)/Azp-Variables
+            artifact: Azp-Variables
+            displayName: "Publish AZP Variables as pipeline artifact"
+
+          - template: set-azp-variables-steps.yml@pipelines-yaml-templates
+
+          - powershell: .\scripts\set-version-ci.ps1
+            displayName: "Set Version"
 
           - task: DotNetCoreCLI@2
             displayName: Dotnet restore $(SOLUTION)
@@ -165,7 +175,7 @@ stages:
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
 
-          - script: nuget pack nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec -OutputDirectory build
+          - script: nuget pack nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec -Version $(PATCH_VERSION) -OutputDirectory build
             displayName: 'Package dotnet global tool'
 
           - task: PowerShell@2
@@ -181,10 +191,6 @@ stages:
               targetType: 'inline'
               script: nuget sign "$env:PACKAGES_PATH" -Overwrite -HashAlgorithm SHA256 -CertificateFingerprint $(SM_CERT_FP) -Timestamper http://timestamp.digicert.com -TimestampHashAlgorithm SHA256
 
-          - powershell: |
-              Add-Content Packaging/Version.txt $(SONAR_PROJECT_VERSION)
-            displayName: 'Write project version in file'
-
           - task: DownloadSecureFile@1
             displayName: 'Download Maven settings'
             name: mavenSettings
@@ -192,13 +198,7 @@ stages:
               secureFile: 'maven-settings.xml'
 
           - powershell: |
-              Install-Module -Name Pester -Force -SkipPublisherCheck # https://pester.dev/docs/introduction/installation#windows
-              Invoke-Pester -Output Detailed -CI -Script .\scripts\generate-packages.tests.ps1
-            displayName: 'Test package generation script'
-
-          - powershell: |
               . .\scripts\generate-packages.ps1
-              Run
             displayName: 'Generate packages'
 
           - task: Maven@4
@@ -212,7 +212,7 @@ stages:
               goals: 'org.codehaus.mojo:versions-maven-plugin:2.2:set'
               options: >-
                 $(commonMavenArguments)
-                -DnewVersion=$(SONAR_PROJECT_VERSION).$(Build.BuildId)
+                -DnewVersion=$(FULL_VERSION)
                 --settings $(mavenSettings.secureFilePath)
                 -Denable-repo=private
                 -DgenerateBackupPoms=false -e
@@ -232,7 +232,6 @@ stages:
             env:
               ARTIFACTORY_PRIVATE_READER_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PRIVATE_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-              PROJECT_VERSION: $(SONAR_PROJECT_VERSION)
               BUILD_ID: $(Build.BuildId)
               ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
               PGP_SIGN_KEY_PATH: $(signKey.secureFilePath)
@@ -251,8 +250,8 @@ stages:
 
           - powershell: |
               $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
-              Rename-Item -Path "$artifactsFolder\\sonarscanner-net-framework.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net-framework.zip
-              Rename-Item -Path "$artifactsFolder\\sonarscanner-net.zip" -NewName sonar-scanner-$(SONAR_PROJECT_VERSION).$(Build.BuildId)-net.zip
+              Rename-Item -Path "$artifactsFolder\\sonarscanner-net-framework.zip" -NewName sonar-scanner-$(FULL_VERSION)-net-framework.zip
+              Rename-Item -Path "$artifactsFolder\\sonarscanner-net.zip" -NewName sonar-scanner-$(FULL_VERSION)-net.zip
             displayName: "Rename artifacts for GitHub Release"
 
           - task: PublishPipelineArtifact@1
@@ -275,17 +274,17 @@ stages:
         workspace:
           clean: all
         steps:
+          - template: set-azp-variables-steps.yml@pipelines-yaml-templates
+
+          - powershell: .\scripts\set-version-ci.ps1
+            displayName: "Set Version"
+
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Packaging artifact'
             inputs:
               buildType: 'current'
               targetPath: '$(Build.SourcesDirectory)/Packaging'
               artifactName: Packaging
-
-          - powershell: |
-              $projectVersion = Get-Content "$(Build.SourcesDirectory)/Packaging/Version.txt"
-              Write-Host "##vso[task.setvariable variable=SONAR_PROJECT_VERSION]$projectVersion"
-            displayName: 'Set SONAR_PROJECT_VERSION variable for this job'
 
           - task: PowerShell@2
             displayName: "NuGet Restore"
@@ -303,7 +302,7 @@ stages:
               organization: 'sonarsource'
               projectKey: 'sonarscanner-msbuild'
               projectName: 'SonarScanner for .NET'
-              projectVersion: '$(SONAR_PROJECT_VERSION)'
+              projectVersion: '$(SHORT_VERSION)'
               scannerMode: 'dotnet'
               extraProperties: |
                 sonar.cs.opencover.reportsPaths="$(Build.SourcesDirectory)/Coverage/**.xml"
