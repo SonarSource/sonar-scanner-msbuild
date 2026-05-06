@@ -4,6 +4,7 @@
     )
 
     $Destination = "$FullBuildOutputDir\sonarscanner-net-framework"
+    $DestinationZip = "$FullBuildOutputDir\sonar-scanner-$env:FULL_VERSION-net-framework.zip"
     $DestinationTargets = "$Destination\Targets"
     $DestinationLicenses = "$Destination\licenses"
     $DestinationThirdPartyLicenses = "$DestinationLicenses\THIRD_PARTY_LICENSES"
@@ -36,7 +37,7 @@
 
     # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
     # This is propably fixed in Powershell 7
-    tar -c -a -C "$Destination" --options "zip:compression-level=9" -f "$Destination.zip" *
+    tar -c -a -C "$Destination" --options "zip:compression-level=9" -f "$DestinationZip" *
 }
 
 function Package-NetScanner {
@@ -46,6 +47,7 @@ function Package-NetScanner {
 
     $SourceRoot = "$PSScriptRoot\..\src\SonarScanner.MSBuild\bin\Release\netcoreapp3.1"
     $Destination = "$FullBuildOutputDir\sonarscanner-net"
+    $DestinationZip = "$FullBuildOutputDir\sonar-scanner-$env:FULL_VERSION-net.zip"
     $DestinationTargets = "$Destination\Targets"
     $DestinationLicenses = "$Destination\licenses"
     $DestinationThirdPartyLicenses = "$DestinationLicenses\THIRD_PARTY_LICENSES"
@@ -79,7 +81,7 @@ function Package-NetScanner {
 
     # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
     # This is propably fixed in Powershell 7
-    tar -c -a -C "$Destination" --options "zip:compression-level=9" -f "$Destination.zip" *
+    tar -c -a -C "$Destination" --options "zip:compression-level=9" -f "$DestinationZip" *
 }
 
 function Sign-Assemblies {

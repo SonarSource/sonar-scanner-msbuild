@@ -36,8 +36,8 @@ function Update-Choco-Package([string] $scannerZipFileName, [string] $runtimeSuf
 }
 
 $artifactsFolder = "$sourcesDirectory/build"
-$netFrameworkScannerZipPath = Get-Item "$artifactsFolder/sonarscanner-net-framework.zip"
-$netScannerZipPath = Get-Item "$artifactsFolder/sonarscanner-net.zip"
+$netFrameworkScannerZipPath = Get-Item "$artifactsFolder/sonar-scanner-$env:FULL_VERSION-net-framework.zip"
+$netScannerZipPath = Get-Item "$artifactsFolder/sonar-scanner-$env:FULL_VERSION-net.zip"
 
 Update-Choco-Package $netFrameworkScannerZipPath 'net-framework'
 Update-Choco-Package $netScannerZipPath 'net'
