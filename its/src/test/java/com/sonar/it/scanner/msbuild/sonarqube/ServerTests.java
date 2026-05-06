@@ -85,8 +85,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version");
     addPlugin(orchestrator, "com.sonarsource.dre", "sonar-dre-plugin", "sonar.dreplugin.version");
 
-    var sonarDreVersion = System.getProperty("sonar.dreplugin.version", "LATEST_RELEASE");
-    if (!sonarDreVersion.equals("NONE")) {
+    if (!System.getProperty("sonar.dreplugin.version", "LATEST_RELEASE").equals("NONE")) {
       // Required dependencies for the SonarDRE plugin
       addPlugin(orchestrator, "org.sonarsource.slang", "sonar-ruby-plugin", "sonar.rubyplugin.version");
       addPlugin(orchestrator, "com.sonarsource.go", "sonar-go-enterprise-plugin", "sonar.goplugin.version");
