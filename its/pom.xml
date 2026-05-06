@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.sonarsource.scanner.msbuild</groupId>
     <artifactId>sonar-scanner</artifactId>
-    <version>50.60.60-SNAPSHOT</version>
+    <version>10.20.30-SNAPSHOT</version>
   </parent>
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>

@@ -10,7 +10,7 @@
 
   <groupId>org.sonarsource.scanner.msbuild</groupId>
   <artifactId>sonar-scanner</artifactId>
-  <version>50.60.60-SNAPSHOT</version>
+  <version>10.20.30-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>SonarScanner.MSBuild</name>
   <url>http://redirect.sonarsource.com/doc/msbuild-sq-runner.html</url>
