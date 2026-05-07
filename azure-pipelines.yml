@@ -191,8 +191,8 @@ stages:
             inputs:
               secureFile: 'maven-settings.xml'
 
-          - powershell: . .\scripts\generate-packages.ps1
-            displayName: 'Generate packages'
+          - powershell: . .\scripts\create-choco-packages.ps1
+            displayName: 'Generate Choco Packages'
 
           - task: DownloadSecureFile@1
             displayName: 'Download the sign key'
