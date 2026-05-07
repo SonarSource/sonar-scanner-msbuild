@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as Greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>sonarscanner-net</id>
@@ -9,22 +9,20 @@
     <owners>SonarSource</owners>
     <projectUrl>https://redirect.sonarsource.com/doc/msbuild-sq-runner.html</projectUrl>
     <projectSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild</projectSourceUrl>
-    <packageSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild/tree/master/nuspec/chocolatey</packageSourceUrl>
+    <packageSourceUrl>https://github.com/SonarSource/sonar-scanner-msbuild/tree/master/Packaging/Chocolatey</packageSourceUrl>
     <iconUrl>https://cdn.rawgit.com/SonarSource/sonar-scanner-msbuild/cdd1f588/icon.png</iconUrl>
     <licenseUrl>https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/LICENSE.txt</licenseUrl>
     <docsUrl>https://redirect.sonarsource.com/doc/install-configure-scanner-msbuild.html</docsUrl>
     <mailingListUrl>https://community.sonarsource.com/</mailingListUrl>
-    <bugTrackerUrl>https://github.com/SonarSource/sonar-scanner-msbuild/issues</bugTrackerUrl>
+    <bugTrackerUrl>https://sonarsource.atlassian.net/jira/software/c/projects/SCAN4NET/issues</bugTrackerUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <summary>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
-    <description>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
+    <summary>The SonarScanner for .NET allows easy analysis of any .NET project with SonarQube Server and Cloud.</summary>
+    <description>The SonarScanner for .NET allows easy analysis of any .NET project with SonarQube Server and Cloud.</description>
     <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
     <copyright>SonarSource Sàrl</copyright>
-    <releaseNotes>
-All release notes for SonarScanner .Net can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases
-    </releaseNotes>
+    <releaseNotes>All release notes for SonarScanner for .NET can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases</releaseNotes>
   </metadata>
   <files>
-    <file src="chocolateyInstall-net.ps1" target="tools\chocolateyInstall.ps1" />
+    <file src="..\Binaries\chocolateyInstall-net.ps1" target="tools\chocolateyInstall.ps1" />
   </files>
 </package>
