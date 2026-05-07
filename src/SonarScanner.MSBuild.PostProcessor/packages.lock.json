@@ -67,7 +67,7 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "System.ValueTuple": "[4.6.2, )"
         }
       },
@@ -75,8 +75,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )"
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
+          "SonarScanner.MSBuild.Shim": "[11.3.0, )"
         }
       }
     },
@@ -297,7 +297,7 @@
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
           "System.ValueTuple": "[4.6.2, )"
         }
       },
@@ -305,8 +305,8 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
-          "SonarScanner.MSBuild.Common": "[1.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[1.0.0, )"
+          "SonarScanner.MSBuild.Common": "[11.3.0, )",
+          "SonarScanner.MSBuild.Shim": "[11.3.0, )"
         }
       }
     }

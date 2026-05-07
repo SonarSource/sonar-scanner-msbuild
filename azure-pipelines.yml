@@ -61,12 +61,6 @@ stages:
         steps:
           - checkout: self
 
-          - task: Cache@2
-            displayName: Cache Maven local repo
-            inputs:
-              key: maven | pom.xml
-              path: $(MAVEN_CACHE_FOLDER)
-
           - task: DownloadSecureFile@1
             name: snk
             inputs:
@@ -197,29 +191,8 @@ stages:
             inputs:
               secureFile: 'maven-settings.xml'
 
-          - powershell: |
-              . .\scripts\generate-packages.ps1
+          - powershell: . .\scripts\generate-packages.ps1
             displayName: 'Generate packages'
-
-          - task: Maven@4
-            displayName: Promote new version in pom
-            env:
-              ARTIFACTORY_PRIVATE_READER_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
-              ARTIFACTORY_PRIVATE_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
-              ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
-            inputs:
-              mavenPomFile: 'pom.xml'
-              goals: 'org.codehaus.mojo:versions-maven-plugin:2.2:set'
-              options: >-
-                $(commonMavenArguments)
-                -DnewVersion=$(FULL_VERSION)
-                --settings $(mavenSettings.secureFilePath)
-                -Denable-repo=private
-                -DgenerateBackupPoms=false -e
-              javaHomeOption: 'JDKVersion'
-              mavenVersionOption: 'Default'
-              jdkVersionOption: '1.21'
-              mavenOptions: $(MAVEN_OPTS)
 
           - task: DownloadSecureFile@1
             displayName: 'Download the sign key'
@@ -259,11 +232,6 @@ stages:
             inputs:
               targetPath: 'Packaging'
               artifact: 'Packaging'
-
-          - task: CmdLine@2
-            displayName: Revert changes made to pom.xml to not break cache feature
-            inputs:
-              script: 'git checkout .'
 
   - stage: qa_windows
     displayName: 'QA - Windows:'
