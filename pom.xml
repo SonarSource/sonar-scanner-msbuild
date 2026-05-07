@@ -59,6 +59,7 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <version>3.6.1</version>
+        <inherited>false</inherited>
         <executions>
           <execution>
             <id>attach-artifacts</id>
@@ -69,31 +70,31 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>netFrameworkScannerZipPath</file>
+                  <file>build/sonarscanner-net-framework.zip</file>
                   <type>zip</type>
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>netFrameworkScannerChocoPath</file>
+                  <file>build/sonarscanner-net-framework.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>netScannerZipPath</file>
+                  <file>build/sonarscanner-net.zip</file>
                   <type>zip</type>
                   <classifier>net</classifier>
                 </artifact>
                 <artifact>
-                  <file>netScannerChocoPath</file>
+                  <file>build/sonarscanner-net.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                   <classifier>net</classifier>
                 </artifact>
                 <artifact>
-                  <file>netScannerGlobalToolPath</file>
+                  <file>build/dotnet-sonarscanner.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                 </artifact>
                 <artifact>
-                  <file>sbomPath</file>
+                  <file>build/bom.json</file>
                   <type>json</type>
                   <classifier>cyclonedx</classifier>
                 </artifact>
@@ -106,6 +107,7 @@
         <groupId>org.simplify4u.plugins</groupId>
         <artifactId>sign-maven-plugin</artifactId>
         <version>1.1.0</version>
+        <inherited>false</inherited>
         <executions>
           <execution>
             <goals>
