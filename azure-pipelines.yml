@@ -503,8 +503,11 @@ stages:
               MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "NONE"         # Commercial plugin
+              DRE_VERSION: "NONE"             # Commercial plugin
               GO_VERSION: "NONE"              # Commercial plugin
+              GO_ENTERPRISE_VERSION: "NONE"   # Commercial plugin & DRE Dependency
               IAC_ENTERPRISE_VERSION: "NONE"  # Commercial plugin
+              RUBY_VERSION: "NONE"            # Not-Commercial, but only required when the DRE plugin is installed
               PLSQL_VERSION: "NONE"           # Commercial plugin
               JDKVERSION: "1.21"
             Cloud:
