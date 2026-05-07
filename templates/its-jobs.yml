@@ -24,7 +24,9 @@ jobs:
       SQ_EDITION: "DEVELOPER"
       CSS_VERSION: "NONE" # No official release since 8.9, the plug-in should not be loaded. Rules are in the JS plugin
       DOTNET_VERSION: "DEV"
-      GO_VERSION: "LATEST_RELEASE"
+      DRE_VERSION: "LATEST_RELEASE"
+      GO_VERSION: "NONE" # In favor of go-enterprise, which is required for the DRE plugin
+      GO_ENTERPRISE_VERSION: "LATEST_RELEASE"
       GO_GROUP_ID: "org.sonarsource.go"
       IAC_VERSION: "NONE" # Merged into sonar-iac-enterprise in 2025.5
       IAC_ENTERPRISE_VERSION: "LATEST_RELEASE"
@@ -33,6 +35,7 @@ jobs:
       PHP_VERSION: "LATEST_RELEASE"
       PLSQL_VERSION: "LATEST_RELEASE"
       PYTHON_VERSION: "LATEST_RELEASE"
+      RUBY_VERSION: "LATEST_RELEASE"
       TEXT_VERSION: "LATEST_RELEASE"
       XML_VERSION: "LATEST_RELEASE"
       JDKVERSION: "1.17"
@@ -103,6 +106,7 @@ jobs:
             -Dtest=$(TEST_INCLUDE)
             -Dsonar.csharpplugin.version=$(DOTNET_VERSION)
             -Dsonar.vbnetplugin.version=$(DOTNET_VERSION)
+            -Dsonar.dreplugin.version=$(DRE_VERSION)
             -Dsonar.cfamilyplugin.version=$(CFAMILY_VERSION)
             -Dsonar.xmlplugin.version=$(XML_VERSION)
             -Dsonar.css.version=$(CSS_VERSION)
@@ -114,7 +118,9 @@ jobs:
             -Dsonar.iacplugin-enterprise.version=$(IAC_ENTERPRISE_VERSION)
             -Dsonar.javaplugin.version=$(JAVA_VERSION)
             -Dsonar.textplugin.version=$(TEXT_VERSION)
+            -Dsonar.rubyplugin.version=$(RUBY_VERSION)
             -Dsonar.goplugin.version=$(GO_VERSION)
+            -Dsonar.goplugin-enterprise.version=$(GO_ENTERPRISE_VERSION)
             -Dgo.groupid=$(GO_GROUP_ID)
             -Dsonar.runtimeVersion=$(SQ_VERSION)
             -Dsonar.sonarQubeEdition=$(SQ_EDITION)

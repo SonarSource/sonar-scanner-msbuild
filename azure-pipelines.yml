@@ -330,7 +330,9 @@ stages:
               CFAMILY_VERSION: "6.20.5.49286"   # Bundled version with SQ 8.9
               CSS_VERSION: "1.4.2.2002"         # Bundled version with SQ 8.9
               DOTNET_VERSION: "8.22.0.31243"    # Bundled version with SQ 8.9
+              DRE_VERSION: "NONE"               # No release before 2026.1
               GO_VERSION: "1.8.3.2219"          # Bundled version with SQ 8.9
+              GO_ENTERPRISE_VERSION: "NONE"     # DRE Dependency
               GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "NONE"               # No release brefore SQ 9.9, the plug-in should not be loaded
               IAC_ENTERPRISE_VERSION: "NONE"    # Not present until LTA-2025
@@ -339,6 +341,7 @@ stages:
               PHP_VERSION: "3.17.0.7439"        # Bundled version with SQ 8.9
               PLSQL_VERSION: "3.6.1.3873"       # Bundled version with SQ 8.9
               PYTHON_VERSION: "3.4.1.8066"      # Bundled version with SQ 8.9
+              RUBY_VERSION: "NONE"              # DRE Dependency
               TEXT_VERSION: "NONE"              # Not release brefore SQ 9.9, the plug-in should not be loaded
               XML_VERSION: "2.2.0.2973"         # Bundled version with SQ 8.9
             LTA-99:
@@ -349,7 +352,9 @@ stages:
               CFAMILY_VERSION: "6.41.0.60884"    # Bundled version with SQ 9.9
               CSS_VERSION: "NONE"                # No official release in SQ 9.9, the plug-in should not be loaded. Rules are in the JS plugin
               DOTNET_VERSION: "8.51.0.59060"     # Bundled version with SQ 9.9
+              DRE_VERSION: "NONE"                # No release before 2026.1
               GO_VERSION: "1.11.0.3905"          # Bundled version with SQ 9.9
+              GO_ENTERPRISE_VERSION: "NONE"      # DRE Dependency
               GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "1.11.0.2847"         # Bundled version with SQ 9.9
               IAC_ENTERPRISE_VERSION: "NONE"     # Not present until LTA-2025
@@ -358,6 +363,7 @@ stages:
               PHP_VERSION: "3.27.1.9352"         # Bundled version with SQ 9.9
               PLSQL_VERSION: "3.8.0.4948"        # Bundled version with SQ 9.9
               PYTHON_VERSION: "3.24.0.10784"     # Bundled version with SQ 9.9
+              RUBY_VERSION: "NONE"               # DRE Dependency
               TEXT_VERSION: "NONE"               # Not required in our ITs for SQ 9.9
               XML_VERSION: "2.7.0.3820"          # Bundled version with SQ 9.9
             LTA-2025-1:
@@ -368,7 +374,9 @@ stages:
               CFAMILY_VERSION: "6.62.0.78645"         # Bundled version with SQ 2025.1
               CSS_VERSION: "NONE"                     # No official release in SQ 2025.1, the plug-in should not be loaded. Rules are in the JS plugin
               DOTNET_VERSION: "10.4.0.108396"         # Bundled version with SQ 2025.1
+              DRE_VERSION: "NONE"                     # No release before 2026.1
               GO_VERSION: "1.18.0.240"                # Bundled version with SQ 2025.1
+              GO_ENTERPRISE_VERSION: "NONE"           # DRE Dependency
               GO_GROUP_ID: "org.sonarsource.slang"
               IAC_VERSION: "1.41.0.14206"             # Bundled version with SQ 2025.1
               IAC_ENTERPRISE_VERSION: "1.41.0.14206"  # Bundled version with SQ 2025.1
@@ -377,6 +385,7 @@ stages:
               PHP_VERSION: "3.42.0.12795"             # Bundled version with SQ 2025.1
               PLSQL_VERSION: "3.15.0.7123"            # Bundled version with SQ 2025.1
               PYTHON_VERSION: "4.26.0.19456"          # Bundled version with SQ 2025.1
+              RUBY_VERSION: "NONE"                    # DRE Dependency
               TEXT_VERSION: "2.20.0.5038"             # Bundled version with SQ 2025.1
               XML_VERSION: "2.12.0.5749"              # Bundled version with SQ 2025.1
             LTA-2025-4:
@@ -388,6 +397,8 @@ stages:
               CFAMILY_VERSION: "6.70.1.93088"         # Bundled version with SQ 2025.4
               CSS_VERSION: "NONE"                     # No official release in SQ 2025.4, the plug-in should not be loaded. Rules are in the JS plugin
               DOTNET_VERSION: "10.21.0.135332"        # Minimum version supporting new telemetry convention (bundled was 10.15.0)
+              DRE_VERSION: "NONE"                     # No release before 2026.1
+              GO_ENTERPRISE_VERSION: "NONE"           # DRE Dependency
               GO_VERSION: "1.26.0.3421"               # Bundled version with SQ 2025.4
               GO_GROUP_ID: "org.sonarsource.go"
               IAC_VERSION: "1.48.1.18410"             # Bundled version with SQ 2025.4
@@ -397,6 +408,7 @@ stages:
               PHP_VERSION: "3.46.1.15272"             # Bundled version with SQ 2025.4
               PLSQL_VERSION: "3.17.1.7623"            # Bundled version with SQ 2025.4
               PYTHON_VERSION: "5.7.1.26730"           # Bundled version with SQ 2025.4
+              RUBY_VERSION: "NONE"                    # DRE Dependency
               TEXT_VERSION: "2.26.1.9976"             # Bundled version with SQ 2025.4
               XML_VERSION: "2.13.1.6351"              # Bundled version with SQ 2025.4
             LTA-2026-1:
@@ -408,7 +420,9 @@ stages:
               CFAMILY_VERSION: "6.77.0.95488"         # Bundled version with SQ 2026.1
               CSS_VERSION: "NONE"                     # No official release in SQ 2026.1, the plug-in should not be loaded. Rules are in the JS plugin
               DOTNET_VERSION: "10.21.0.135332"        # Minimum version supporting new telemetry convention (bundled was 10.18.0)
+              DRE_VERSION: "NONE"                     # The DRE plugin is not required for the tests for this version
               GO_VERSION: "1.31.0.4938"               # Bundled version with SQ 2026.1
+              GO_ENTERPRISE_VERSION: "NONE"           # DRE Dependency
               GO_GROUP_ID: "org.sonarsource.go"
               IAC_VERSION: "NONE"                     # Enterprise plugin is a superset; installing both causes conflicts for githubactions
               IAC_ENTERPRISE_VERSION: "2.6.1.19203"   # Minimum version supporting githubactions rules (bundled was 2.5.0)
@@ -417,6 +431,7 @@ stages:
               PHP_VERSION: "3.54.0.15452"             # Bundled version with SQ 2026.1
               PLSQL_VERSION: "3.18.1.230"             # Bundled version with SQ 2026.1
               PYTHON_VERSION: "5.14.2.29072"          # Bundled version with SQ 2026.1
+              RUBY_VERSION: "NONE"                    # DRE Dependency
               TEXT_VERSION: "2.38.0.10279"            # Bundled version with SQ 2026.1
               XML_VERSION: "2.15.0.7513"              # Bundled version with SQ 2026.1
             LATEST_RELEASE:
@@ -456,8 +471,11 @@ stages:
               MSBUILD_PATH: $(MSBUILD_18_PATH)
               TEST_INCLUDE: "**/sonarqube/*"
               CFAMILY_VERSION: "NONE"         # Commercial plugin
+              DRE_VERSION: "NONE"             # Commercial plugin
               GO_VERSION: "NONE"              # Commercial plugin
+              GO_ENTERPRISE_VERSION: "NONE"   # Commercial plugin & DRE Dependency
               IAC_ENTERPRISE_VERSION: "NONE"  # Commercial plugin
+              RUBY_VERSION: "NONE"            # Not-Commercial, but only required when the DRE plugin is installed
               PLSQL_VERSION: "NONE"           # Commercial plugin
               JDKVERSION: "1.21"
             Cloud:

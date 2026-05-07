@@ -207,6 +207,17 @@ class MultiLanguageTest {
             tuple("typescript:S6481", context.projectKey + ":frontend/PageTwo.tsx")));
         }
       }
+      if (version.isGreaterThan(2026, 1)) {
+        expectedIssues.addAll(List.of(
+          tuple("groovydre:S1135", context.projectKey + ":Jenkinsfile"),
+          tuple("groovydre:S1135", context.projectKey + ":todo.groovy"),
+          tuple("groovydre:S1135", context.projectKey + ":todo.gvy"),
+          tuple("groovydre:S1135", context.projectKey + ":todo.gy"),
+          tuple("groovydre:S1135", context.projectKey + ":todo.gsh"),
+          tuple("powershelldre:S1135", context.projectKey + ":src/script.ps1"),
+          tuple("powershelldre:S1135", context.projectKey + ":todo.psm1"),
+          tuple("powershelldre:S1135", context.projectKey + ":todo.psd1")));
+      }
       assertThat(issues)
         .extracting(Issue::getRule, Issue::getComponent)
         .containsExactlyInAnyOrder(expectedIssues.toArray(new Tuple[]{}));

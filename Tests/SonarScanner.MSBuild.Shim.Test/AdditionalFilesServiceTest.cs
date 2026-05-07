@@ -234,6 +234,8 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.azureresourcemanager.file.suffixes")]
     [DataRow("sonar.terraform.file.suffixes")]
     [DataRow("sonar.go.file.suffixes")]
+    [DataRow("sonar.groovy.file.suffixes")]
+    [DataRow("sonar.powershell.file.suffixes")]
     public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
     {
         runtime.Directory
@@ -495,6 +497,7 @@ public class AdditionalFilesServiceTest
 
     [TestMethod]
     [DataRow("sonar.docker.file.patterns")]
+    [DataRow("sonar.groovy.file.patterns")]
     [DataRow("sonar.java.jvmframeworkconfig.file.patterns")]
     [DataRow("sonar.text.inclusions")]
     public void AdditionalFiles_WildcardPattern_RelativePattern(string property)
