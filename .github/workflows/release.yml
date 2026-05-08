@@ -3,6 +3,20 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: Version
+        required: true
+      releaseId:
+        type: string
+        description: Release ID
+        required: true
+      dryRun:
+        type: boolean
+        description: Flag to enable the dry-run execution
+        default: false
 
 jobs:
   release:
@@ -17,9 +31,10 @@ jobs:
       - name: Get the version
         id: get_version
         run: |
-          IFS=. read major minor patch build <<< "${{ github.event.release.tag_name }}"
+          IFS=. read major minor patch build <<< "${{ inputs.version || github.event.release.tag_name }}"
           echo "build=${build}" >> $GITHUB_OUTPUT
       - name: Promote Artifact
+        if: ${{ inputs.dryRun != true }}
         id: jfrog
         run: |
           jfrog rt bpr --status released sonar-scanner-msbuild ${{ steps.get_version.outputs.build }} sonarsource-public-releases
