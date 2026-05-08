@@ -70,7 +70,7 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>build/sonarscanner-net-framework.zip</file>
+                  <file>build/sonar-scanner-${env.FULL_VERSION}-net-framework.zip</file>
                   <type>zip</type>
                   <classifier>net-framework</classifier>
                 </artifact>
@@ -80,7 +80,7 @@
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>build/sonarscanner-net.zip</file>
+                  <file>build/sonar-scanner-${env.FULL_VERSION}-net.zip</file>
                   <type>zip</type>
                   <classifier>net</classifier>
                 </artifact>

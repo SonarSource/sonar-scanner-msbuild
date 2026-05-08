@@ -206,6 +206,8 @@ stages:
               ARTIFACTORY_PRIVATE_READER_USERNAME: $(ARTIFACTORY_PRIVATE_READER_USERNAME)
               ARTIFACTORY_PRIVATE_READER_PASSWORD: $(ARTIFACTORY_PRIVATE_READER_ACCESS_TOKEN)
               BUILD_ID: $(Build.BuildId)
+              PROJECT_VERSION: $(FULL_VERSION)  # Stored in JFrog, used for release action
+              FULL_VERSION: $(FULL_VERSION)
               PATCH_VERSION: $(PATCH_VERSION)
               ARTIFACTORY_DEPLOY_PASSWORD: $(ARTIFACTORY_QA_DEPLOYER_ACCESS_TOKEN)
               PGP_SIGN_KEY_PATH: $(signKey.secureFilePath)
@@ -221,12 +223,6 @@ stages:
               javaHomeOption: 'JDKVersion'
               jdkVersionOption: '1.21'
               mavenOptions: $(MAVEN_OPTS)
-
-          - powershell: |
-              $artifactsFolder = "$env:BUILD_SOURCESDIRECTORY\\build"
-              Rename-Item -Path "$artifactsFolder\\sonarscanner-net-framework.zip" -NewName sonar-scanner-$(FULL_VERSION)-net-framework.zip
-              Rename-Item -Path "$artifactsFolder\\sonarscanner-net.zip" -NewName sonar-scanner-$(FULL_VERSION)-net.zip
-            displayName: "Rename artifacts for GitHub Release"
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Packaging artifact'
