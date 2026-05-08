@@ -169,7 +169,7 @@ stages:
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
 
-          - script: nuget pack nuspec\netcoreglobaltool\dotnet-sonarscanner.nuspec -Version $(PATCH_VERSION) -OutputDirectory build
+          - script: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $(PATCH_VERSION) -OutputDirectory Packaging\Binaries
             displayName: 'Package dotnet global tool'
 
           - task: PowerShell@2

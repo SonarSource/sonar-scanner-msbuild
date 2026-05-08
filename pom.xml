@@ -90,7 +90,7 @@
                   <classifier>net</classifier>
                 </artifact>
                 <artifact>
-                  <file>build/dotnet-sonarscanner.${env.PATCH_VERSION}.nupkg</file>
+                  <file>Packaging/Binaries/dotnet-sonarscanner.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                 </artifact>
                 <artifact>

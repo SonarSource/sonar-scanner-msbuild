@@ -9,14 +9,12 @@
     <iconUrl>https://cdn.rawgit.com/SonarSource/sonar-scanner-msbuild/cdd1f588/icon.png</iconUrl>
     <license type="file">licenses/LICENSE.txt</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <summary>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</summary>
-    <description>The SonarScanner for .NET allows easy analysis of any .NET project with SonarCloud/SonarQube.</description>
+    <summary>The SonarScanner for .NET allows easy analysis of any .NET project with SonarQube Server and Cloud.</summary>
+    <description>The SonarScanner for .NET allows easy analysis of any .NET project with SonarQube Server and Cloud.</description>
     <readme>docs\README.md</readme>
     <tags>sonarqube sonarcloud msbuild scanner sonarsource sonar sonar-scanner sonarscanner</tags>
     <copyright>SonarSource Sàrl</copyright>
-    <releaseNotes>
-All release notes for SonarScanner .NET can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases
-    </releaseNotes>
+    <releaseNotes>All release notes for SonarScanner .NET can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases</releaseNotes>
     <packageTypes>
       <packageType name="DotnetTool" />
     </packageTypes>
@@ -25,12 +23,10 @@ All release notes for SonarScanner .NET can be found on the GitHub site - https:
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\build\sonarscanner-net\" target="tools\netcoreapp3.1\any" />
+    <file src="..\Binaries\Net\*.*" target="tools\netcoreapp3.1\any\" />
+    <file src="..\Binaries\Net\Targets\*" target="tools\netcoreapp3.1\any\Targets\" />
+    <file src="..\Binaries\Net\Licenses\" target="licenses\" />
     <file src="DotnetToolSettings.xml" target="tools\netcoreapp3.1\any\DotnetToolSettings.xml" />
-    <file src="..\..\LICENSE.txt" target="licenses/LICENSE.txt" />
-    <file src="..\..\licenses\THIRD_PARTY_LICENSES\Google.Protobuf-LICENSE.txt" target="licenses\THIRD_PARTY_LICENSES" />
-    <file src="..\..\licenses\THIRD_PARTY_LICENSES\Newtonsoft.Json-LICENSE.txt" target="licenses\THIRD_PARTY_LICENSES" />
-    <file src="..\..\licenses\THIRD_PARTY_LICENSES\SharpZipLib-LICENSE.txt" target="licenses\THIRD_PARTY_LICENSES" />
-    <file src="..\..\readme.md" target="docs\" />
+    <file src="..\..\README.md" target="docs\" />
   </files>
 </package>
