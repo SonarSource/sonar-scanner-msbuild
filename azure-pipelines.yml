@@ -180,15 +180,20 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                . (Join-Path "scripts" "package-artifacts.ps1")
-                . (Join-Path "scripts" "variables.ps1")
+                function Zip-Assemblies([string]$Source, [string]$Destination) {
+                    Write-Host "Zipping $Source to $Destination"
+                    # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
+                    tar -c -a -C "$Source" --options "zip:compression-level=9" -f "$Destination" *
+                }
 
-                $signAssemblies = [System.Convert]::ToBoolean("$(IS_RELEASE_BRANCH)") # the variable is a string, we need a boolean
-                Package-NetFrameworkScanner -SignAssemblies $signAssemblies
-                Package-NetScanner -SignAssemblies $signAssemblies
+                Zip-Assemblies "Packaging/Binaries/Net" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net.zip"
+                Zip-Assemblies "Packaging/Binaries/Net-Framework" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net-framework.zip"
 
           - script: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $(PATCH_VERSION) -OutputDirectory Packaging\Binaries\NuGet
             displayName: 'Package dotnet global tool'
+
+          - powershell: . .\scripts\create-choco-packages.ps1
+            displayName: 'Generate Choco Packages'
 
           - task: PowerShell@2
             displayName: "Sign NuGet packages"
@@ -208,9 +213,6 @@ stages:
             name: mavenSettings
             inputs:
               secureFile: 'maven-settings.xml'
-
-          - powershell: . .\scripts\create-choco-packages.ps1
-            displayName: 'Generate Choco Packages'
 
           - task: DownloadSecureFile@1
             displayName: 'Download the sign key'
