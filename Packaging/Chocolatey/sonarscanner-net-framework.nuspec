@@ -23,6 +23,6 @@
     <releaseNotes>All release notes for SonarScanner for .NET can be found on the GitHub site - https://github.com/SonarSource/sonar-scanner-msbuild/releases</releaseNotes>
   </metadata>
   <files>
-    <file src="..\Binaries\chocolateyInstall-net-framework.ps1" target="tools\chocolateyInstall.ps1" />
+    <file src="..\Binaries\Chocolatey\chocolateyInstall-net-framework.ps1" target="tools\chocolateyInstall.ps1" />
   </files>
 </package>
