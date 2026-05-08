@@ -152,13 +152,31 @@ stages:
               arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BUILD_CONFIGURATION) /p:platform="$(BUILD_PLATFORM)"'
 
           - task: PowerShell@2
-            displayName: 'Sign and package scanner files'
+            displayName: 'Sign .NET Assemblies'
             env:
               SM_CLIENT_CRT_FILE: $(SM_CLIENT_CRT.secureFilePath)
               SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
               SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
               SM_API_KEY: $(SM_API_KEY)
               SM_CERT: $(SM_CERT)
+            condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
+            inputs:
+              targetType: 'inline'
+              script: |
+                function Sign-Assemblies([string]$FolderPath) {
+                    Write-Host "Signing $FolderPath"
+                    Get-ChildItem -Path $FolderPath -Recurse -Include @("Sonar*.dll", "Sonar*.exe") |
+                        Foreach-Object {
+                            Write-Host "Signing $($_.FullName)"
+                            & signtool sign /du https://www.sonarsource.com/ /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /csp "DigiCert Signing Manager KSP" /kc "$env:SM_KP" /f "$env:SM_CLIENT_CRT_FILE" $_.FullName
+                        }
+                }
+
+                Sign-Assemblies "Packaging/Binaries/Net"
+                Sign-Assemblies "Packaging/Binaries/Net-Framework"
+
+          - task: PowerShell@2
+            displayName: 'Zip .NET Packages'
             inputs:
               targetType: 'inline'
               script: |
