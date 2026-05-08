@@ -534,9 +534,7 @@ stages:
 
       - task: PowerShell@2
         displayName: 'Set GitHub commit status for release automation'
-        # TODO: Restore release branch guard before merging
-        # condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
-        condition: succeeded() # Temporarily disabled for testing on non-release branch
+        condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
         env:
           GITHUB_TOKEN: $(GITHUB_TOKEN)
           BRANCH_NAME: $(Build.SourceBranchName)
