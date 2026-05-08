@@ -11,7 +11,7 @@ function Create-Choco-Package([string] $runtime) {
         -ChecksumType ""sha256"" ``
         -Checksum ""$Hash""
     "
-    New-Item -ItemType Directory -Path "$Packaging\Binaries\Chocolatey\"
+    New-Item -ItemType Directory -Path "$Packaging\Binaries\Chocolatey\" -Force | Out-Null
     Set-Content -Path "$Packaging\Binaries\Chocolatey\chocolateyInstall-$runtime.ps1" -Value $Content
     choco pack "$Packaging\Chocolatey\sonarscanner-$runtime.nuspec" --outputdirectory "$Packaging\Binaries\Chocolatey" --version $env:PATCH_VERSION
 }
