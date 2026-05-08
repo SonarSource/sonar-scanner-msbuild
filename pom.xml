@@ -94,7 +94,7 @@
                   <type>nupkg</type>
                 </artifact>
                 <artifact>
-                  <file>build/bom.json</file>
+                  <file>Packaging/Binaries/bom.json</file>
                   <type>json</type>
                   <classifier>cyclonedx</classifier>
                 </artifact>
