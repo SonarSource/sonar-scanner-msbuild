@@ -1,1 +1,0 @@
-﻿$fullBuildOutputDir = "$PSScriptRoot\..\build"
