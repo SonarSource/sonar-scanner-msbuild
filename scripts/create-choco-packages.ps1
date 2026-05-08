@@ -12,7 +12,7 @@ function Create-Choco-Package([string] $runtime) {
         -Checksum ""$Hash""
     "
     $Content | Set-Content "$Packaging\Binaries\chocolateyInstall-$runtime.ps1"
-    choco pack "$Packaging\Chocolatey\sonarscanner-$runtime.nuspec" --outputdirectory "$Packaging\Binaries" --version $env:PATCH_VERSION
+    choco pack "$Packaging\Chocolatey\sonarscanner-$runtime.nuspec" --outputdirectory "$Packaging\Binaries\Chocolatey" --version $env:PATCH_VERSION
 }
 
 Create-Choco-Package "net-framework"

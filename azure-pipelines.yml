@@ -31,7 +31,9 @@ variables:
     value: $[variables.ARTIFACTORY_PRIVATE_READER_USERNAME]
   # pipelines-yaml-templates/promote-stage.yml line 56
   - name: IS_RELEASE_BRANCH
-    value: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/branch-')) }}
+    #FIXME: Remove before approval
+    value: true
+    #value: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/branch-')) }}
   - name: BUILD_CONFIGURATION
     value: "Release"
   - name: BUILD_PLATFORM
@@ -169,14 +171,14 @@ stages:
                 Package-NetFrameworkScanner -SignAssemblies $signAssemblies
                 Package-NetScanner -SignAssemblies $signAssemblies
 
-          - script: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $(PATCH_VERSION) -OutputDirectory Packaging\Binaries
+          - script: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $(PATCH_VERSION) -OutputDirectory Packaging\Binaries\NuGet
             displayName: 'Package dotnet global tool'
 
           - task: PowerShell@2
             displayName: "Sign NuGet packages"
             condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
             env:
-              PACKAGES_PATH: '$(Build.SourcesDirectory)\Packaging\Binaries\dotnet-sonarscanner*.nupkg'
+              PACKAGES_PATH: '$(Build.SourcesDirectory)\Packaging\Binaries\NuGet\dotnet-sonarscanner*.nupkg'
               SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
               SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
               SM_API_KEY: $(SM_API_KEY)

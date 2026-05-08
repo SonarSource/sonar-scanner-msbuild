@@ -75,7 +75,7 @@
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>Packaging/Binaries/sonarscanner-net-framework.${env.PATCH_VERSION}.nupkg</file>
+                  <file>Packaging/Binaries/Chocolatey/sonarscanner-net-framework.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                   <classifier>net-framework</classifier>
                 </artifact>
@@ -85,12 +85,12 @@
                   <classifier>net</classifier>
                 </artifact>
                 <artifact>
-                  <file>Packaging/Binaries/sonarscanner-net.${env.PATCH_VERSION}.nupkg</file>
+                  <file>Packaging/Binaries/Chocolatey/sonarscanner-net.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                   <classifier>net</classifier>
                 </artifact>
                 <artifact>
-                  <file>Packaging/Binaries/dotnet-sonarscanner.${env.PATCH_VERSION}.nupkg</file>
+                  <file>Packaging/Binaries/NuGet/dotnet-sonarscanner.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                 </artifact>
                 <artifact>
