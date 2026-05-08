@@ -176,7 +176,7 @@ stages:
             displayName: "Sign NuGet packages"
             condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
             env:
-              PACKAGES_PATH: '$(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg'
+              PACKAGES_PATH: '$(Build.SourcesDirectory)\Packaging\Binaries\dotnet-sonarscanner*.nupkg'
               SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
               SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
               SM_API_KEY: $(SM_API_KEY)
