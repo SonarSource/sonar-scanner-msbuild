@@ -529,3 +529,40 @@ stages:
           ${{ else }}:
             targetRepo: 'sonarsource-public-builds'
             status: 'it-passed'
+
+      - template: set-azp-variables-steps.yml@pipelines-yaml-templates
+
+      - task: PowerShell@2
+        displayName: 'Set GitHub commit status for release automation'
+        # TODO: Restore release branch guard before merging
+        # condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
+        condition: succeeded() # Temporarily disabled for testing on non-release branch
+        env:
+          GITHUB_TOKEN: $(GITHUB_TOKEN)
+          BRANCH_NAME: $(Build.SourceBranchName)
+          FULL_VERSION: $(FULL_VERSION)
+          COMMIT_SHA: $(Build.SourceVersion)
+        inputs:
+          targetType: 'inline'
+          script: |
+            try {
+                Invoke-RestMethod `
+                  -Uri "https://api.github.com/repos/SonarSource/sonar-scanner-msbuild/statuses/$env:COMMIT_SHA" `
+                  -Method Post `
+                  -Headers @{
+                      Authorization = "Bearer $env:GITHUB_TOKEN"
+                      Accept = "application/vnd.github.v3+json"
+                      "X-GitHub-Api-Version" = "2022-11-28"
+                  } `
+                  -Body (@{
+                      state = "success"
+                      context = "repox-$env:BRANCH_NAME"
+                      description = "Promoted build '$env:FULL_VERSION'"
+                  } | ConvertTo-Json -Compress) `
+                  -ContentType "application/json" `
+                  -ErrorAction Stop
+            } catch {
+                Write-Host "##vso[task.logissue type=error]Failed to update GitHub commit status."
+                Write-Host $_.Exception.Message
+                exit 1
+            }
