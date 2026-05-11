@@ -50,13 +50,13 @@ jobs:
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         shell: bash
         run: |
-          mkdir -p "$RUNNER_TEMP/artifacts"
+          mkdir -p "$RUNNER_TEMP/packages"
           gh release download "$RELEASE_VERSION" \
             --repo "${{ github.repository }}" \
             --pattern "$PACKAGE_NAME" \
-            --dir "$RUNNER_TEMP/artifacts"
+            --dir "$RUNNER_TEMP/packages"
 
-          if [ ! -f "$RUNNER_TEMP/artifacts/$PACKAGE_NAME" ]; then
+          if [ ! -f "$RUNNER_TEMP/packages/$PACKAGE_NAME" ]; then
             echo "::error::Package $PACKAGE_NAME not found in release $RELEASE_VERSION"
             exit 1
           fi
@@ -69,10 +69,10 @@ jobs:
         env:
           NUGET_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).NUGET_API_KEY }}
           PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
-          ARTIFACTS_DIR: ${{ runner.temp }}/artifacts
+          PACKAGES_DIR: ${{ runner.temp }}/packages
         run: |
           echo "Publishing $PACKAGE_NAME to NuGet..."
-          dotnet nuget push "${ARTIFACTS_DIR}/${PACKAGE_NAME}" \
+          dotnet nuget push "${PACKAGES_DIR}/${PACKAGE_NAME}" \
             --api-key "$NUGET_API_KEY" \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
