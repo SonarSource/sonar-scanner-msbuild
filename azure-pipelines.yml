@@ -125,13 +125,13 @@ stages:
               verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
           - task: DotNetCoreCLI@2
-            displayName: Dotnet generate SBOM
+            displayName: Generate SBOM
             # https://sonarsource.atlassian.net/browse/BUILD-1303
             inputs:
               command: custom
               custom: CycloneDX
               projects: '$(SOLUTION)'
-              arguments: '-t --json -o build'
+              arguments: '-t --json -o Packaging\Binaries'
 
           - task: DotNetCoreCLI@2
             env:
