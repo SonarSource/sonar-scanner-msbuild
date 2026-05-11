@@ -49,3 +49,50 @@ jobs:
       verbose: ${{ inputs.verbose }}
       use-jira-sandbox: ${{ inputs.dry-run }}
       is-draft-release: ${{ inputs.dry-run }}
+
+  bump-version:
+    needs: [release]
+    runs-on: sonar-s
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Install tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+        with:
+          cache: true
+          tool_versions: |
+            powershell-core 7.6.1
+            dotnet 10
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Normalize version to X.Y.Z
+        id: normalize
+        shell: pwsh
+        env:
+          NEW_VERSION: ${{ needs.release.outputs.new-version }}
+        run: |
+          $v = $env:NEW_VERSION
+          if ($v -match '^\d+\.\d+$') { $v = "$v.0" }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Run version bump script
+        shell: pwsh
+        env:
+          NEW_VERSION: ${{ steps.normalize.outputs.version }}
+        run: ./scripts/set-version.ps1 -Version $env:NEW_VERSION -NoGit
+
+      - name: Update lock files
+        shell: pwsh
+        run: dotnet restore SonarScanner.MSBuild.sln --force-evaluate
+
+      - name: Create Pull Request
+        uses: SonarSource/release-github-actions/create-pull-request@v1
+        with:
+          branch: bump/${{ steps.normalize.outputs.version }}
+          base: master
+          title: "Bump version to ${{ steps.normalize.outputs.version }}"
+          commit-message: "Bump version to ${{ steps.normalize.outputs.version }}"
+          reviewers: ${{ github.actor }}

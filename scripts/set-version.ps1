@@ -5,7 +5,8 @@ Param(
     [String]$Version,
     [Int]$BuildNumber=0,
     [String]$Branch,
-    [string]$Sha1
+    [string]$Sha1,
+    [Switch]$NoGit
 )
 
 Set-StrictMode -version 2.0
@@ -53,7 +54,7 @@ try {
     UpdateDotNet
     UpdateJava
 
-    If ($BuildNumber -eq 0) {
+    If ($BuildNumber -eq 0 -and -not $NoGit) {
         Write-Host "Checking out branch version-bump/$ShortVersion"
         git checkout -b "version-bump/$ShortVersion"
 
@@ -66,7 +67,7 @@ try {
 
         Write-Host "Pushing branch and creating PR"
         git push -u origin "version-bump/$ShortVersion"
-        gh pr create --title "Bump version to $ShortVersion" --web --base master --head "version-bump/$ShortVersion"
+        gh pr create --title "Bump version to $ShortVersion" --base master --head "version-bump/$ShortVersion"
     }
 
     exit 0
