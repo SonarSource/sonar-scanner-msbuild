@@ -17,18 +17,18 @@ function UpdatePom($Path, $Version) {
     # This is done manually, because mvn tries to resolve parent poms from jfrog and that requires heavy orchestration
     $Pattern = "<version>.*?-SNAPSHOT</version>"
     $Content = Get-Content $Path
-    If ($Content -match $Pattern) {
+    if ($Content -match $Pattern) {
         $Content = $Content -replace $Pattern, "<version>$Version</version>"
         Set-Content $Path $Content
     }
-    Else {
+    else {
         throw "Could not find $Pattern in $Path. This script is not supposed to be run multiple times. Revert your git changes first."
     }
 }
 
 function UpdateJava() {
     Write-Host "Updating version in Java files"
-    $MavenVersion = If ($BuildNumber -eq 0) { "$ShortVersion-SNAPSHOT" } else { "${PatchVersion}.${BuildNumber}" }
+    $MavenVersion = if ($BuildNumber -eq 0) { "$ShortVersion-SNAPSHOT" } else { "${PatchVersion}.${BuildNumber}" }
     $Files = Get-ChildItem -Path . -Filter "pom.xml" -Recurse
     foreach ($File in $Files) {
         UpdatePom $File.FullName $MavenVersion
@@ -48,13 +48,13 @@ function UpdateDotNet() {
 
 Push-Location "${PSScriptRoot}\.."  # Run everything from the root of the repository
 try {
-    $ShortVersion = If ($Version.EndsWith(".0") -and $Version.IndexOf(".") -ne $Version.LastIndexOf(".")) { $Version.Substring(0, $Version.Length - 2) } else { $Version }  # x.y   or x.y.z
-    $PatchVersion = If ($ShortVersion.IndexOf(".") -eq $ShortVersion.LastIndexOf(".")) { "$ShortVersion.0" } else { $ShortVersion }                                         # x.y.0 or x.y.z
+    $ShortVersion = if ($Version.EndsWith(".0") -and $Version.IndexOf(".") -ne $Version.LastIndexOf(".")) { $Version.Substring(0, $Version.Length - 2) } else { $Version }  # x.y   or x.y.z
+    $PatchVersion = if ($ShortVersion.IndexOf(".") -eq $ShortVersion.LastIndexOf(".")) { "$ShortVersion.0" } else { $ShortVersion }                                         # x.y.0 or x.y.z
 
     UpdateDotNet
     UpdateJava
 
-    If ($BuildNumber -eq 0 -and -not $NoGit) {
+    if ($BuildNumber -eq 0 -and -not $NoGit) {
         Write-Host "Checking out branch version-bump/$ShortVersion"
         git checkout -b "version-bump/$ShortVersion"
 
