@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.2.11408.102 d18.0
+VisualStudioVersion = 18.2.11408.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarScanner.MSBuild.Tasks", "src\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj", "{AB14D4F9-F7B9-4CAB-A0DD-54068B236A6D}"
 EndProject
@@ -56,6 +56,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.TFS", "src\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj", "{5114A25B-9439-48B7-9B5E-124F307EBE22}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.TFS.Classic", "src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj", "{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.PackagingTest", "Tests\SonarScanner.MSBuild.PackagingTest\SonarScanner.MSBuild.PackagingTest.csproj", "{66E29A28-708A-65C4-3B63-72A293705171}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -261,6 +263,18 @@ Global
 		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Release|x86.ActiveCfg = Release|Any CPU
 		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Release|x86.Build.0 = Release|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Debug|x86.Build.0 = Debug|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Release|x86.ActiveCfg = Release|Any CPU
+		{66E29A28-708A-65C4-3B63-72A293705171}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -277,6 +291,7 @@ Global
 		{25334485-0BF1-4A3D-A1B6-E646D89D15DB} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 		{9D53BB4D-5EAF-4CC1-AFBC-3AF1E004BB8B} = {950DD8E7-A950-4598-82E0-932E31075F68}
 		{F38DFB4D-B9FE-47A8-8F54-E0824774762F} = {E04A4D31-AC10-4F56-9678-5D538932578C}
+		{66E29A28-708A-65C4-3B63-72A293705171} = {E04A4D31-AC10-4F56-9678-5D538932578C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F1322FF5-8DA8-4714-ABD1-B289A655E630}
