@@ -243,10 +243,10 @@ stages:
               mavenOptions: $(MAVEN_OPTS)
 
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish Packaging artifact'
+            displayName: 'Publish Binaries artifact'
             inputs:
-              targetPath: 'Packaging'
-              artifact: 'Packaging'
+              targetPath: 'Packaging/Binaries'
+              artifact: 'Binaries'
 
   - stage: qa_windows
     displayName: 'QA - Windows:'
@@ -263,11 +263,11 @@ stages:
             displayName: "Set Version"
 
           - task: DownloadPipelineArtifact@2
-            displayName: 'Download Packaging artifact'
+            displayName: 'Download Binaries artifact'
             inputs:
               buildType: 'current'
-              targetPath: '$(Build.SourcesDirectory)/Packaging'
-              artifactName: Packaging
+              targetPath: '$(Build.SourcesDirectory)/Packaging/Binaries'
+              artifactName: Binaries
 
           - task: PowerShell@2
             displayName: "NuGet Restore"
