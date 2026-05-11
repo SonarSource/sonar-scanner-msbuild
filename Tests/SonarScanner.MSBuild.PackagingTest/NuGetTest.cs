@@ -28,10 +28,8 @@ public class NuGetTest
         TestOrchestration.InitializeTestClass();
 
     [TestMethod]
-    public void ValidateFileList()
-    {
-        using var archive = Verifier.UnzipFile("NuGet", "dotnet-sonarscanner.*.nupkg");
-        archive.Entries.Select(x => x.FullName).Where(x => !x.StartsWith("package/services/metadata/core-properties/")).Should().BeEquivalentTo(
+    public void ValidateFileList() =>
+        Verifier.UnzippedFileList("NuGet", "dotnet-sonarscanner.*.nupkg").Where(x => !x.StartsWith("package/services/metadata/core-properties/")).Should().BeEquivalentTo(
             NuGetSignatureFiles().Concat([
                 "dotnet-sonarscanner.nuspec",
                 "[Content_Types].xml",
@@ -58,15 +56,14 @@ public class NuGetTest
                 "tools/netcoreapp3.1/any/SonarScanner.MSBuild.runtimeconfig.json",
                 "tools/netcoreapp3.1/any/Targets/SonarQube.Integration.ImportBefore.targets",
                 "tools/netcoreapp3.1/any/Targets/SonarQube.Integration.targets",
-             ]));
-    }
+            ]));
 
     [TestMethod]
     public void ValidateSignatures()
     {
         TestOrchestration.RunOnlyOnReleaseBranch();
         using var archive = Verifier.UnzipFile("NuGet", "dotnet-sonarscanner.*.nupkg");
-        var dlls = archive.Entries.Where(x => x.Name.StartsWith("Sonar", StringComparison.OrdinalIgnoreCase) && x.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)).ToArray();
+        var dlls = archive.Entries.Where(Verifier.IsSonarBinary).ToArray();
         dlls.Should().HaveCount(7);
         foreach (var dll in dlls)
         {

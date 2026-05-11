@@ -30,9 +30,20 @@ public static class Verifier
 
     public static ZipArchive UnzipFile(string directoryName, string pattern)
     {
-        var file = Directory.GetFiles(Path.Combine(Paths.BinariesRoot, directoryName), pattern).Should().ContainSingle().Subject;
+        var path = directoryName is null ? Paths.BinariesRoot : Path.Combine(Paths.BinariesRoot, directoryName);
+        var file = Directory.GetFiles(path, pattern).Should().ContainSingle().Subject;
         return new(File.OpenRead(file), ZipArchiveMode.Read);
     }
+
+    public static string[] UnzippedFileList(string directoryName, string pattern)
+    {
+        using var archive = Verifier.UnzipFile(directoryName, pattern);
+        return archive.Entries.Select(x => x.FullName).ToArray();
+    }
+
+    public static bool IsSonarBinary(ZipArchiveEntry entry) =>
+        entry.Name.StartsWith("Sonar", StringComparison.OrdinalIgnoreCase)
+        && (entry.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || entry.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
 
     public static void ValidateSignature(ZipArchiveEntry entry)
     {
