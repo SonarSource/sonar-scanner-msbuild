@@ -31,10 +31,6 @@
     Copy-Item -Path "$PSScriptRoot\..\LICENSE.txt" -Destination $DestinationLicenses
     Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\*" -Destination $DestinationThirdPartyLicenses
 
-    if ($SignAssemblies) {
-        Sign-Assemblies -Pattern "$Destination\Sonar*" -TargetName ".NET Framework assemblies"
-    }
-
     # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
     # This is propably fixed in Powershell 7
     tar -c -a -C "$Destination" --options "zip:compression-level=9" -f "$DestinationZip" *
@@ -75,24 +71,8 @@ function Package-NetScanner {
     Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\Newtonsoft.Json-LICENSE.txt" -Destination $DestinationThirdPartyLicenses
     Copy-Item -Path "$PSScriptRoot\..\Licenses\THIRD_PARTY_LICENSES\SharpZipLib-LICENSE.txt" -Destination $DestinationThirdPartyLicenses
 
-    if ($SignAssemblies) {
-        Sign-Assemblies -Pattern "$Destination\Sonar*" -TargetName ".NET assemblies"
-    }
-
     # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
     # This is propably fixed in Powershell 7
     tar -c -a -C "$Destination" --options "zip:compression-level=9" -f "$DestinationZip" *
 }
 
-function Sign-Assemblies {
-    param (
-        [string]$Pattern,
-        [string]$TargetName
-    )
-    Write-Host "Signing $TargetName"
-    Get-ChildItem -Path $Pattern -Include @("*.dll","*.exe") |
-        Foreach-Object {
-            & signtool sign /du https://www.sonarsource.com/ /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /csp "DigiCert Signing Manager KSP" /kc "$env:SM_KP" /f "$env:SM_CLIENT_CRT_FILE" $_.FullName
-        }
-    Write-Host "[Completed] Signing $TargetName"
-}
