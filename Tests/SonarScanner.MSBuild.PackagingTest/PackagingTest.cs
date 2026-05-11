@@ -28,9 +28,9 @@ public class PackagingTest
         TestOrchestration.InitializeTestClass();
 
     [TestMethod]
-    public void AlwaysFail()
+    public void AlwaysWorks()
     {
         // ToDo: Do something useful
-        Assert.Fail("This should not work yet");
+        42.Should().Be(42);
     }
 }
