@@ -18,6 +18,12 @@ stages:
           clean: all
         displayName: "Run UTs"
         steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Binaries artifact'
+            inputs:
+              buildType: 'current'
+              targetPath: '$(Build.SourcesDirectory)/Packaging/Binaries'
+              artifactName: Binaries
           - task: DotNetCoreCLI@2
             displayName: 'Build test pre-requisites' # Required in ProcessRunnerTests
             inputs:

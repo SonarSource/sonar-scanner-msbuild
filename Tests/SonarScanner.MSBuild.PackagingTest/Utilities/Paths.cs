@@ -20,25 +20,33 @@
 
 namespace SonarScanner.MSBuild.PackagingTest.Utilities;
 
-public static class TestOrchestration
+public static class Paths
 {
-    public static bool IsReleaseBranch => bool.TryParse(Environment.GetEnvironmentVariable("IS_RELEASE_BRANCH"), out var value) && value;
+    public static string ProjectRoot { get; }
+    public static string BinariesRoot { get; }
 
-    private static bool IsAzureDevOpsContext => Environment.GetEnvironmentVariable("BUILD_REASON") is not null;
-
-    public static void InitializeTestClass()
+    static Paths()
     {
-        if (!IsAzureDevOpsContext)
-        {
-            Assert.Inconclusive("This test must run on the CI environment, after the signing.");
-        }
+        ProjectRoot = FindRoot(".github");
+        BinariesRoot = Path.Combine(ProjectRoot, "Packaging", "Binaries");
+        Console.WriteLine("Project root: " + ProjectRoot);
     }
 
-    public static void RunOnlyOnReleaseBranch()
+    private static string FindRoot(string expectedSubdirectory)
     {
-        if (!IsReleaseBranch)
+        var current = Path.GetFullPath(".");
+        var root = Path.GetPathRoot(current);
+        while (current != root)
         {
-            Assert.Inconclusive("This test runs only on a release branch with signing.");
+            if (Directory.Exists(Path.Combine(current, expectedSubdirectory)))
+            {
+                return current;
+            }
+            else
+            {
+                current = Path.GetDirectoryName(current);
+            }
         }
+        throw new InvalidOperationException($"Could not find root directory for '{expectedSubdirectory}' from current path: ${Path.GetFullPath(".")}");
     }
 }
