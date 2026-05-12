@@ -1,25 +1,30 @@
-name: release
+name: sonar-release
 on:
-  release:
-    types:
-      - published
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        type: string
+      releaseId:
+        description: 'GitHub Release ID'
+        required: true
+        type: string
+      dryRun:
+        description: 'Dry run mode (draft release)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   release:
-    runs-on: github-ubuntu-latest-s
     permissions:
       id-token: write
-    steps:
-      - name: Setup JFrog
-        uses: SonarSource/jfrog-setup-wrapper@3.0.0-1
-        with:
-          artifactoryRoleSuffix: promoter
-      - name: Get the version
-        id: get_version
-        run: |
-          IFS=. read major minor patch build <<< "${{ github.event.release.tag_name }}"
-          echo "build=${build}" >> $GITHUB_OUTPUT
-      - name: Promote Artifact
-        id: jfrog
-        run: |
-          jfrog rt bpr --status released sonar-scanner-msbuild ${{ steps.get_version.outputs.build }} sonarsource-public-releases
+      contents: write
+    uses: SonarSource/gh-action_release/.github/workflows/main.yaml@v7
+    with:
+      publishToBinaries: true
+      slackChannel: squad-dotnet-s4net
+      version: ${{ inputs.version }}
+      releaseId: ${{ inputs.releaseId }}
+      dryRun: ${{ inputs.dryRun }}
