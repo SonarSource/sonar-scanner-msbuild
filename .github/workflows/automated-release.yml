@@ -2,6 +2,10 @@ name: Automated Release
 on:
   workflow_dispatch:
     inputs:
+      pm-email:
+        description: "Product manager email"
+        required: true
+        type: string
       short-description:
         description: "Short description for the REL ticket"
         required: true
@@ -38,11 +42,11 @@ jobs:
       project-name: "SonarScanner for .NET"
       plugin-name: "scanner-msbuild" # irrelevant for Scanner MSBuild but required
       jira-project-key: "SCAN4NET"
-      pm-email: "denis.troller@sonarsource.com"
       slack-channel: "squad-dotnet-s4net"
       rule-props-changed: false
       sqc-integration: false
       sqs-integration: false
+      pm-email: ${{ inputs.pm-email }}
       short-description: ${{ inputs.short-description }}
       branch: ${{ inputs.branch }}
       new-version: ${{ inputs.new-version }}
