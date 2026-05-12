@@ -23,6 +23,7 @@ namespace SonarScanner.MSBuild.PackagingTest.Utilities;
 public static class TestOrchestration
 {
     public static bool IsReleaseBranch => bool.TryParse(Environment.GetEnvironmentVariable("IS_RELEASE_BRANCH"), out var value) && value;
+    public static string FullVersion => typeof(TestOrchestration).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
 
     private static bool IsAzureDevOpsContext => Environment.GetEnvironmentVariable("BUILD_REASON") is not null;
 

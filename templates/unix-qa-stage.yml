@@ -18,6 +18,9 @@ stages:
           clean: all
         displayName: "Run UTs"
         steps:
+          - template: set-azp-variables-steps.yml@pipelines-yaml-templates
+          - powershell: .\scripts\set-version-ci.ps1
+            displayName: "Set Version"
           - task: DownloadPipelineArtifact@2
             displayName: 'Download Binaries artifact'
             inputs:
