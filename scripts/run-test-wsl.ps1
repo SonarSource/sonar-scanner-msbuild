@@ -6,9 +6,9 @@ param (
 )
 
 # Check if running in WSL
-if (-Not $env:WSL_DISTRO_NAME) {
+if (-not $env:WSL_DISTRO_NAME) {
     # Check if wsl is installed
-    if (-Not (Get-Command wsl -ErrorAction SilentlyContinue)) {
+    if (-not (Get-Command wsl -ErrorAction SilentlyContinue)) {
         Write-Host "ERROR: WSL is not installed. Please install WSL to run this script."
         exit 1
     }
@@ -47,16 +47,16 @@ if (-Not $env:WSL_DISTRO_NAME) {
 }
 
 $MissingDeps = @()
-if (-Not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
     $MissingDeps += "dotnet"
 }
-if (-Not (Get-Command mvn -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command mvn -ErrorAction SilentlyContinue)) {
     $MissingDeps += "mvn"
 }
-if (-Not (Get-Command unzip -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command unzip -ErrorAction SilentlyContinue)) {
     $MissingDeps += "unzip"
 }
-if (-Not (Get-Command java -ErrorAction SilentlyContinue)) {
+if (-not (Get-Command java -ErrorAction SilentlyContinue)) {
     $MissingDeps += "java"
 }
 

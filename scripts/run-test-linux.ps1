@@ -10,17 +10,17 @@ if ($TestToRun -eq "IT") {
     Set-Location -Path "$PSScriptRoot/../its"
     # Run Maven with the specified test include pattern
     $testIncludes = @(
-        "**/sonarqube/ScannerTest*", 
+        "**/sonarqube/ScannerTest*",
         "**/sonarqube/SslTest*",
         "**/sonarqube/JreProvisioningTest*",
         "**/sonarcloud/*"
     )
     $testIncludeParam = $testIncludes -join ','
 
-    if (![string]::IsNullOrWhiteSpace($TestFilter)) {
+    if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
         $testIncludeParam = $TestFilter
     }
-    
+
     # Run Maven with the specified test include pattern
     mvn verify -Dtest="$testIncludeParam"
 } else {
@@ -28,7 +28,7 @@ if ($TestToRun -eq "IT") {
     Set-Location -Path "$PSScriptRoot/.."
 
 
-    if (![string]::IsNullOrWhiteSpace($TestFilter)) {
+    if (-not [string]::IsNullOrWhiteSpace($TestFilter)) {
         $TestFilter = "Testcategory!=NoUnixNeedsReview & Testcategory!=NoLinux & $TestFilter"
     } else {
         $TestFilter = "Testcategory!=NoUnixNeedsReview & Testcategory!=NoLinux"
@@ -36,15 +36,17 @@ if ($TestToRun -eq "IT") {
 
     $solutionFile = "$PSScriptRoot/../SonarScanner.MSBuild.sln"
     # Parse the .sln file to extract project paths
-    $testProjects = Select-String -Path $solutionFile -Pattern "Project.*=.*" | ForEach-Object {
-        # Extract the project path from the line
-        if ($_ -match '.*"([^"]+\.csproj)"') {
-            $matches[1]
-        }
-    } | Where-Object { $_ -like "Tests/*" -or $_ -like "Tests\*" }
+    $testProjects = Select-String -Path $solutionFile -Pattern "Project.*=.*" | 
+        ForEach-Object {
+            # Extract the project path from the line
+            if ($_ -match '.*"([^"]+\.csproj)"') {
+                $matches[1]
+            }
+        } | 
+        Where-Object { $_ -like "Tests/*" -or $_ -like "Tests\*" }
 
     # Ensure test projects were found
-    if (-Not $testProjects) {
+    if (-not $testProjects) {
         Write-Host "No test projects found in the solution file under the 'Tests' folder." -ForegroundColor Yellow
         exit 0
     }
