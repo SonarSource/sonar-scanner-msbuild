@@ -24,10 +24,8 @@ jobs:
         env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
-          # Strip build number: 10.1.0.12345 -> 10.1.0
-          PACKAGE_VERSION=$(echo "$RELEASE_VERSION" | sed 's/\.[^.]*$//')
-          echo "FRAMEWORK_PACKAGE=sonarscanner-net-framework.${PACKAGE_VERSION}.nupkg" >> "$GITHUB_ENV"
-          echo "NET_PACKAGE=sonarscanner-net.${PACKAGE_VERSION}.nupkg" >> "$GITHUB_ENV"
+          echo "FRAMEWORK_PACKAGE=sonar-scanner-${RELEASE_VERSION}-net-framework.nupkg" >> "$GITHUB_ENV"
+          echo "NET_PACKAGE=sonar-scanner-${RELEASE_VERSION}-net.nupkg" >> "$GITHUB_ENV"
 
       - name: Install tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
