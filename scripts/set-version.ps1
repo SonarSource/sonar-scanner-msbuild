@@ -12,7 +12,7 @@ Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
 function UpdatePom($Path, $Version) {
-    Write-Verbose "Updating version to $Version in $Path"
+    Write-Output "Updating version to $Version in $Path"
     # This is done manually, because mvn tries to resolve parent poms from jfrog and that requires heavy orchestration
     $Pattern = "<version>.*?-SNAPSHOT</version>"
     $Content = Get-Content $Path
@@ -26,7 +26,7 @@ function UpdatePom($Path, $Version) {
 }
 
 function UpdateJava() {
-    Write-Verbose "Updating version in Java files"
+    Write-Output "Updating version in Java files"
     $MavenVersion = if ($BuildNumber -eq 0) { "$ShortVersion-SNAPSHOT" } else { "${PatchVersion}.${BuildNumber}" }
     $Files = Get-ChildItem -Path . -Filter "pom.xml" -Recurse
     foreach ($File in $Files) {
@@ -36,7 +36,7 @@ function UpdateJava() {
 
 function UpdateDotNet() {
     $Path = Resolve-Path ".\Version.targets"
-    Write-Verbose "Updating $Path to ShortVersion=$ShortVersion, BuildNumber=$BuildNumber, Branch=$Branch, Sha1=$Sha1"
+    Write-Output "Updating $Path to ShortVersion=$ShortVersion, BuildNumber=$BuildNumber, Branch=$Branch, Sha1=$Sha1"
     $Xml = [xml](Get-Content $Path)
     $Xml.Project.PropertyGroup.ShortVersion = $ShortVersion
     $Xml.Project.PropertyGroup.BuildNumber = $BuildNumber.ToString()

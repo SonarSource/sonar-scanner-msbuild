@@ -3,7 +3,7 @@
 function Create-Choco-Package([string] $runtime) {
     $Packaging = "$PSScriptRoot\..\Packaging"
     $Zip = "$Packaging\Binaries\sonar-scanner-$env:FULL_VERSION-$runtime.zip"
-    Write-Verbose "Generating the '$runtime' chocolatey package for $Zip"
+    Write-Output "Generating the '$runtime' chocolatey package for $Zip"
     $Hash = (Get-FileHash $Zip -Algorithm SHA256).Hash
     $Content = "Install-ChocolateyZipPackage ""sonarscanner-$runtime"" ``
         -Url ""https://github.com/SonarSource/sonar-scanner-msbuild/releases/download/$env:FULL_VERSION/sonar-scanner-$env:FULL_VERSION-$runtime.zip"" ``
