@@ -36,13 +36,13 @@ if ($TestToRun -eq "IT") {
 
     $solutionFile = "$PSScriptRoot/../SonarScanner.MSBuild.sln"
     # Parse the .sln file to extract project paths
-    $testProjects = Select-String -Path $solutionFile -Pattern "Project.*=.*" | 
+    $testProjects = Select-String -Path $solutionFile -Pattern "Project.*=.*" |
         ForEach-Object {
             # Extract the project path from the line
             if ($_ -match '.*"([^"]+\.csproj)"') {
                 $matches[1]
             }
-        } | 
+        } |
         Where-Object { $_ -like "Tests/*" -or $_ -like "Tests\*" }
 
     # Ensure test projects were found
