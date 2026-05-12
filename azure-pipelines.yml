@@ -214,6 +214,9 @@ stages:
             inputs:
               secureFile: 'maven-settings.xml'
 
+          - powershell: dotnet test Tests\SonarScanner.MSBuild.PackagingTest\SonarScanner.MSBuild.PackagingTest.csproj --configuration $(BUILD_CONFIGURATION) --no-build --no-restore
+            displayName: 'Run Packaging tests'
+
           - task: DownloadSecureFile@1
             displayName: 'Download the sign key'
             name: signKey
