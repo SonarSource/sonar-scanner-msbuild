@@ -46,6 +46,8 @@ jobs:
       rule-props-changed: false
       sqc-integration: false
       sqs-integration: false
+      bump-version: false
+      freeze-branch: true
       pm-email: ${{ inputs.pm-email }}
       short-description: ${{ inputs.short-description }}
       branch: ${{ inputs.branch }}
