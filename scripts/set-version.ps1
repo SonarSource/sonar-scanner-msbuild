@@ -5,8 +5,7 @@ param(
     [String]$Version,
     [Int]$BuildNumber=0,
     [String]$Branch,
-    [string]$Sha1,
-    [Switch]$NoGit
+    [string]$Sha1
 )
 
 Set-StrictMode -version 2.0
@@ -67,7 +66,7 @@ try {
 
         Write-Host "Pushing branch and creating PR"
         git push -u origin "version-bump/$ShortVersion"
-        gh pr create --title "Bump version to $ShortVersion" --base master --head "version-bump/$ShortVersion"
+        gh pr create --title "Bump version to $ShortVersion" --web --base master --head "version-bump/$ShortVersion"
     }
 
     exit 0
