@@ -1,6 +1,6 @@
 name: Publish NuGet
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
         description: "Release version (e.g. 10.1.0.12345)"
@@ -18,16 +18,9 @@ jobs:
     permissions:
       id-token: write
       contents: write
+    env:
+      PACKAGE_NAME: sonar-scanner-${{ inputs.version }}.nupkg
     steps:
-      - name: Resolve package name
-        shell: bash
-        env:
-          RELEASE_VERSION: ${{ inputs.version }}
-        run: |
-          # Strip build number: 10.1.0.12345 -> 10.1.0
-          NUGET_VERSION=$(echo "$RELEASE_VERSION" | sed 's/\.[^.]*$//')
-          echo "PACKAGE_NAME=dotnet-sonarscanner.${NUGET_VERSION}.nupkg" >> "$GITHUB_ENV"
-
       - name: Install tools
         uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
         with:
@@ -47,7 +40,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ inputs.version }}
-          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/packages"
@@ -68,20 +60,16 @@ jobs:
         shell: bash
         env:
           NUGET_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).NUGET_API_KEY }}
-          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
           PACKAGES_DIR: ${{ runner.temp }}/packages
         run: |
           echo "Publishing $PACKAGE_NAME to NuGet..."
           dotnet nuget push "${PACKAGES_DIR}/${PACKAGE_NAME}" \
             --api-key "$NUGET_API_KEY" \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
+            --source https://api.nuget.org/v3/index.json
 
       - name: Summary
         if: ${{ inputs.dry-run }}
         shell: bash
-        env:
-          PACKAGE_NAME: ${{ env.PACKAGE_NAME }}
         run: |
           echo "## Dry Run Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"

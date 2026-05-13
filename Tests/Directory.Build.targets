@@ -21,7 +21,7 @@
     <PackageReference Include="WireMock.Net" Version="2.3.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(ProjectName)' != 'LogArgs'">
+  <ItemGroup Condition="'$(ProjectName)' != 'LogArgs' And '$(ProjectName)' != 'SonarScanner.MSBuild.PackagingTest'">
     <Using Include="Combinatorial.MSTest" />
     <Using Include="FluentAssertions" />
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
