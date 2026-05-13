@@ -6,7 +6,7 @@ New-Item -ItemType Directory -Path $Dir -Force | Out-Null
 
 function WriteVariable($Name, $Value) {
     $Path = "${Dir}\${Name}"
-    Write-Output "Writing '${Value}' to ${Path}"
+    Write-Host "Writing '${Value}' to ${Path}"
     Set-Content -Path $Path -Value $Value
 }
 
