@@ -17,63 +17,47 @@ jobs:
     runs-on: sonar-xs
     permissions:
       id-token: write
-      contents: write
+    env:
+      FRAMEWORK_PACKAGE: sonar-scanner-${{ inputs.version }}-net-framework.nupkg
+      NET_PACKAGE: sonar-scanner-${{ inputs.version }}-net.nupkg
     steps:
-      - name: Resolve package names
-        shell: bash
-        env:
-          RELEASE_VERSION: ${{ inputs.version }}
-        run: |
-          echo "FRAMEWORK_PACKAGE=sonar-scanner-${RELEASE_VERSION}-net-framework.nupkg" >> "$GITHUB_ENV"
-          echo "NET_PACKAGE=sonar-scanner-${RELEASE_VERSION}-net.nupkg" >> "$GITHUB_ENV"
-
-      - name: Install tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-        with:
-          cache: true
-          tool_versions: |
-            github-cli 2.92
-
       - name: Get secrets
         id: secrets
         uses: SonarSource/vault-action-wrapper@v3
         with:
           secrets: |
-            development/team/languages/kv/data/chocolatey choco_api_key | CHOCO_API_KEY;
+            development/kv/data/chocolatey api-key | CHOCO_API_KEY;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-public-reader access_token | PUBLIC_ARTIFACTORY_ACCESS_TOKEN;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-public-reader role         | PUBLIC_ARTIFACTORY_ROLE;
 
-      - name: Download release assets
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ inputs.version }}
-          FRAMEWORK_PACKAGE: ${{ env.FRAMEWORK_PACKAGE }}
-          NET_PACKAGE: ${{ env.NET_PACKAGE }}
-          PACKAGES_DIR: ${{ runner.temp }}/packages
+      - name: Download packages from Repox
         shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          PACKAGES_DIR: ${{ runner.temp }}/packages
+          REPOX_USER: vault-${{ fromJSON(steps.secrets.outputs.vault).PUBLIC_ARTIFACTORY_ROLE }}
+          REPOX_PASS: ${{ fromJSON(steps.secrets.outputs.vault).PUBLIC_ARTIFACTORY_ACCESS_TOKEN }}
         run: |
+          set -e
+          REPOX_BASE_URL="https://repox.jfrog.io/artifactory/sonarsource-public-builds"
+          ARTIFACT_BASE="org/sonarsource/scanner/msbuild/sonar-scanner/${RELEASE_VERSION}"
           mkdir -p "$PACKAGES_DIR"
-          gh release download "$RELEASE_VERSION" \
-            --repo "${{ github.repository }}" \
-            --pattern "$FRAMEWORK_PACKAGE" \
-            --pattern "$NET_PACKAGE" \
-            --dir "$PACKAGES_DIR"
 
-          if [ ! -f "$PACKAGES_DIR/$FRAMEWORK_PACKAGE" ]; then
-            echo "::error::Package $FRAMEWORK_PACKAGE not found in release $RELEASE_VERSION"
-            exit 1
-          fi
-          if [ ! -f "$PACKAGES_DIR/$NET_PACKAGE" ]; then
-            echo "::error::Package $NET_PACKAGE not found in release $RELEASE_VERSION"
-            exit 1
-          fi
-
-          echo "Downloaded: $FRAMEWORK_PACKAGE, $NET_PACKAGE"
+          for pkg in "$FRAMEWORK_PACKAGE" "$NET_PACKAGE"; do
+            url="${REPOX_BASE_URL}/${ARTIFACT_BASE}/${pkg}"
+            echo "Downloading ${url}..."
+            if ! curl -fSL -u "$REPOX_USER:$REPOX_PASS" -o "$PACKAGES_DIR/$pkg" "$url"; then
+              echo "::error::Failed to download ${pkg} from Repox. Verify that version ${RELEASE_VERSION} has been promoted."
+              exit 1
+            fi
+            echo "Downloaded $pkg"
+          done
 
       - name: Publish .NET Framework package to Chocolatey
         if: ${{ !inputs.dry-run }}
         shell: bash
         env:
           CHOCO_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).CHOCO_API_KEY }}
-          FRAMEWORK_PACKAGE: ${{ env.FRAMEWORK_PACKAGE }}
           PACKAGES_DIR: ${{ runner.temp }}/packages
         run: |
           echo "Publishing $FRAMEWORK_PACKAGE..."
@@ -86,7 +70,6 @@ jobs:
         shell: bash
         env:
           CHOCO_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).CHOCO_API_KEY }}
-          NET_PACKAGE: ${{ env.NET_PACKAGE }}
           PACKAGES_DIR: ${{ runner.temp }}/packages
         run: |
           echo "Publishing $NET_PACKAGE..."
@@ -97,9 +80,6 @@ jobs:
       - name: Summary
         if: ${{ inputs.dry-run }}
         shell: bash
-        env:
-          FRAMEWORK_PACKAGE: ${{ env.FRAMEWORK_PACKAGE }}
-          NET_PACKAGE: ${{ env.NET_PACKAGE }}
         run: |
           echo "## Dry Run Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
