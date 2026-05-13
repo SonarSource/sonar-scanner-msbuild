@@ -22,7 +22,7 @@ $sonarHome = wsl wslpath -a "$sonarHome"
 $mavenHome = (Join-Path -Path $Env:USERPROFILE -ChildPath ".m2") -replace '\\', '/'
 $mavenHome = wsl wslpath -a "$mavenHome"
 
-if (-Not $imageExists -or $BuildImage) {
+if (-not $imageExists -or $BuildImage) {
     $dockerfilePath = "$PSScriptRoot/Dockerfile" -replace '\\', '/'
     $dockerfilePath = wsl wslpath -a "$dockerfilePath"
     Write-Host "Docker image '$fullImageName' does not exist. Building the image..."
