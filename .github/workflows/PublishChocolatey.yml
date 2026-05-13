@@ -1,6 +1,6 @@
 name: Publish Chocolatey
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
         description: "Release version (e.g. 10.1.0.12345)"
