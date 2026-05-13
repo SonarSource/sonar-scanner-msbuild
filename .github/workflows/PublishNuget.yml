@@ -1,6 +1,6 @@
 name: Publish NuGet
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version:
         description: "Release version (e.g. 10.1.0.12345)"
@@ -65,8 +65,7 @@ jobs:
           echo "Publishing $PACKAGE_NAME to NuGet..."
           dotnet nuget push "${PACKAGES_DIR}/${PACKAGE_NAME}" \
             --api-key "$NUGET_API_KEY" \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
+            --source https://api.nuget.org/v3/index.json
 
       - name: Summary
         if: ${{ inputs.dry-run }}

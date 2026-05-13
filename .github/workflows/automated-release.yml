@@ -53,3 +53,14 @@ jobs:
       verbose: ${{ inputs.verbose }}
       use-jira-sandbox: ${{ inputs.dry-run }}
       is-draft-release: ${{ inputs.dry-run }}
+
+  publish-nuget:
+    name: Publish NuGet
+    needs: release
+    uses: ./.github/workflows/PublishNuget.yml
+    permissions:
+      id-token: write
+      contents: write
+    with:
+      version: ${{ needs.release.outputs.release-version }}
+      dry-run: ${{ inputs.dry-run }}
