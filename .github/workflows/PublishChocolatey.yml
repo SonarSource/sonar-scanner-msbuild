@@ -53,29 +53,19 @@ jobs:
             echo "Downloaded $pkg"
           done
 
-      - name: Publish .NET Framework package to Chocolatey
+      - name: Publish packages to Chocolatey
         if: ${{ !inputs.dry-run }}
         shell: bash
         env:
           CHOCO_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).CHOCO_API_KEY }}
           PACKAGES_DIR: ${{ runner.temp }}/packages
         run: |
-          echo "Publishing $FRAMEWORK_PACKAGE..."
-          choco apikey --key "$CHOCO_API_KEY" --source https://push.chocolatey.org/
-          choco push "${PACKAGES_DIR}/${FRAMEWORK_PACKAGE}" \
-            --source='https://push.chocolatey.org/' --yes --verbose --debug
-
-      - name: Publish .NET package to Chocolatey
-        if: ${{ !inputs.dry-run }}
-        shell: bash
-        env:
-          CHOCO_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).CHOCO_API_KEY }}
-          PACKAGES_DIR: ${{ runner.temp }}/packages
-        run: |
-          echo "Publishing $NET_PACKAGE..."
-          choco apikey --key "$CHOCO_API_KEY" --source https://push.chocolatey.org/
-          choco push "${PACKAGES_DIR}/${NET_PACKAGE}" \
-            --source='https://push.chocolatey.org/' --yes --verbose --debug
+          choco apikey --key "$CHOCO_API_KEY" --source https://push.chocolatey.org/ > /dev/null
+          for pkg in "$FRAMEWORK_PACKAGE" "$NET_PACKAGE"; do
+            echo "Publishing ${pkg}..."
+            choco push "${PACKAGES_DIR}/${pkg}" \
+              --source='https://push.chocolatey.org/' --yes
+          done
 
       - name: Summary
         if: ${{ inputs.dry-run }}
