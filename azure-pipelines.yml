@@ -125,13 +125,13 @@ stages:
               verbosityRestore: 'normal'  # Default is noisy 'Detailed'
 
           - task: DotNetCoreCLI@2
-            displayName: Dotnet generate SBOM
+            displayName: Generate SBOM
             # https://sonarsource.atlassian.net/browse/BUILD-1303
             inputs:
               command: custom
               custom: CycloneDX
               projects: '$(SOLUTION)'
-              arguments: '-t --json -o build'
+              arguments: '-t --json -o Packaging\Binaries'
 
           - task: DotNetCoreCLI@2
             env:
@@ -152,31 +152,54 @@ stages:
               arguments: '/m /p:DeployExtension=false /p:ZipPackageCompressionLevel=normal /p:configuration=$(BUILD_CONFIGURATION) /p:platform="$(BUILD_PLATFORM)"'
 
           - task: PowerShell@2
-            displayName: 'Sign and package scanner files'
+            displayName: 'Sign .NET Assemblies'
             env:
               SM_CLIENT_CRT_FILE: $(SM_CLIENT_CRT.secureFilePath)
               SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
               SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
               SM_API_KEY: $(SM_API_KEY)
               SM_CERT: $(SM_CERT)
+            condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
             inputs:
               targetType: 'inline'
               script: |
-                . (Join-Path "scripts" "package-artifacts.ps1")
-                . (Join-Path "scripts" "variables.ps1")
+                function Sign-Assemblies([string]$FolderPath) {
+                    Write-Host "Signing $FolderPath"
+                    Get-ChildItem -Path $FolderPath -Recurse -Include @("Sonar*.dll", "Sonar*.exe") |
+                        Foreach-Object {
+                            Write-Host "Signing $($_.FullName)"
+                            & signtool sign /du https://www.sonarsource.com/ /tr http://timestamp.digicert.com /td SHA256 /fd SHA256 /csp "DigiCert Signing Manager KSP" /kc "$env:SM_KP" /f "$env:SM_CLIENT_CRT_FILE" $_.FullName
+                        }
+                }
 
-                $signAssemblies = [System.Convert]::ToBoolean("$(IS_RELEASE_BRANCH)") # the variable is a string, we need a boolean
-                Package-NetFrameworkScanner -SignAssemblies $signAssemblies
-                Package-NetScanner -SignAssemblies $signAssemblies
+                Sign-Assemblies "Packaging/Binaries/Net"
+                Sign-Assemblies "Packaging/Binaries/Net-Framework"
 
-          - script: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $(PATCH_VERSION) -OutputDirectory Packaging\Binaries
+          - task: PowerShell@2
+            displayName: 'Zip .NET Packages'
+            inputs:
+              targetType: 'inline'
+              script: |
+                function Zip-Assemblies([string]$Source, [string]$Destination) {
+                    Write-Host "Zipping $Source to $Destination"
+                    # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
+                    tar -c -a -C "$Source" --options "zip:compression-level=9" -f "$Destination" *
+                }
+
+                Zip-Assemblies "Packaging/Binaries/Net" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net.zip"
+                Zip-Assemblies "Packaging/Binaries/Net-Framework" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net-framework.zip"
+
+          - script: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $(PATCH_VERSION) -OutputDirectory Packaging\Binaries\NuGet
             displayName: 'Package dotnet global tool'
+
+          - powershell: . .\scripts\create-choco-packages.ps1
+            displayName: 'Generate Choco Packages'
 
           - task: PowerShell@2
             displayName: "Sign NuGet packages"
             condition: and(succeeded(), eq(variables.IS_RELEASE_BRANCH, 'true'))
             env:
-              PACKAGES_PATH: '$(Build.SourcesDirectory)\build\dotnet-sonarscanner*.nupkg'
+              PACKAGES_PATH: '$(Build.SourcesDirectory)\Packaging\Binaries\NuGet\dotnet-sonarscanner*.nupkg'
               SM_CLIENT_CERT_FILE: $(SM_CLIENT_CERT.secureFilePath)
               SM_CLIENT_CERT_PASSWORD: $(SM_CLIENT_CERT_PASSWORD)
               SM_API_KEY: $(SM_API_KEY)
@@ -191,8 +214,10 @@ stages:
             inputs:
               secureFile: 'maven-settings.xml'
 
-          - powershell: . .\scripts\generate-packages.ps1
-            displayName: 'Generate packages'
+          - powershell: dotnet test Tests\SonarScanner.MSBuild.PackagingTest\SonarScanner.MSBuild.PackagingTest.csproj --configuration $(BUILD_CONFIGURATION) --no-build --no-restore
+            displayName: 'Run Packaging tests'
+            env:
+              IS_RELEASE_BRANCH: $(IS_RELEASE_BRANCH)
 
           - task: DownloadSecureFile@1
             displayName: 'Download the sign key'
@@ -225,10 +250,10 @@ stages:
               mavenOptions: $(MAVEN_OPTS)
 
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish Packaging artifact'
+            displayName: 'Publish Binaries artifact'
             inputs:
-              targetPath: 'Packaging'
-              artifact: 'Packaging'
+              targetPath: 'Packaging/Binaries'
+              artifact: 'Binaries'
 
   - stage: qa_windows
     displayName: 'QA - Windows:'
@@ -245,11 +270,11 @@ stages:
             displayName: "Set Version"
 
           - task: DownloadPipelineArtifact@2
-            displayName: 'Download Packaging artifact'
+            displayName: 'Download Binaries artifact'
             inputs:
               buildType: 'current'
-              targetPath: '$(Build.SourcesDirectory)/Packaging'
-              artifactName: Packaging
+              targetPath: '$(Build.SourcesDirectory)/Packaging/Binaries'
+              artifactName: Binaries
 
           - task: PowerShell@2
             displayName: "NuGet Restore"

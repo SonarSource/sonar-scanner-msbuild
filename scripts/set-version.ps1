@@ -1,5 +1,5 @@
 [CmdletBinding()]
-Param(
+param(
     [Parameter(Mandatory = $True, Position = 1)]
     [ValidatePattern("^\d{1,3}\.\d{1,3}(\.\d{1,3})?$")]
     [String]$Version,
@@ -54,7 +54,7 @@ try {
     UpdateDotNet
     UpdateJava
 
-    if ($BuildNumber -eq 0 -and -not $NoGit) {
+    if ($BuildNumber -eq 0) {
         Write-Host "Checking out branch version-bump/$ShortVersion"
         git checkout -b "version-bump/$ShortVersion"
 

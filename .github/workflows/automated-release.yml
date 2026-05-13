@@ -2,6 +2,10 @@ name: Automated Release
 on:
   workflow_dispatch:
     inputs:
+      pm-email:
+        description: "Product manager email"
+        required: true
+        type: string
       short-description:
         description: "Short description for the REL ticket"
         required: true
@@ -38,11 +42,11 @@ jobs:
       project-name: "SonarScanner for .NET"
       plugin-name: "scanner-msbuild" # irrelevant for Scanner MSBuild but required
       jira-project-key: "SCAN4NET"
-      pm-email: "denis.troller@sonarsource.com"
       slack-channel: "squad-dotnet-s4net"
       rule-props-changed: false
       sqc-integration: false
       sqs-integration: false
+      pm-email: ${{ inputs.pm-email }}
       short-description: ${{ inputs.short-description }}
       branch: ${{ inputs.branch }}
       new-version: ${{ inputs.new-version }}
@@ -50,49 +54,13 @@ jobs:
       use-jira-sandbox: ${{ inputs.dry-run }}
       is-draft-release: ${{ inputs.dry-run }}
 
-  bump-version:
-    needs: [release]
-    runs-on: sonar-s
+  publish-nuget:
+    name: Publish NuGet
+    needs: release
+    uses: ./.github/workflows/PublishNuget.yml
     permissions:
       id-token: write
       contents: write
-      pull-requests: write
-    steps:
-      - name: Install tools
-        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-        with:
-          cache: true
-          tool_versions: |
-            powershell-core 7.6.1
-            dotnet 10
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Normalize version to X.Y.Z
-        id: normalize
-        shell: pwsh
-        env:
-          NEW_VERSION: ${{ needs.release.outputs.new-version }}
-        run: |
-          $v = $env:NEW_VERSION
-          if ($v -match '^\d+\.\d+$') { $v = "$v.0" }
-          "version=$v" >> $env:GITHUB_OUTPUT
-
-      - name: Run version bump script
-        shell: pwsh
-        env:
-          NEW_VERSION: ${{ steps.normalize.outputs.version }}
-        run: ./scripts/set-version.ps1 -Version $env:NEW_VERSION -NoGit
-
-      - name: Update lock files
-        shell: pwsh
-        run: dotnet restore SonarScanner.MSBuild.sln --force-evaluate
-
-      - name: Create Pull Request
-        uses: SonarSource/release-github-actions/create-pull-request@v1
-        with:
-          branch: bump/${{ steps.normalize.outputs.version }}
-          base: master
-          title: "Bump version to ${{ steps.normalize.outputs.version }}"
-          commit-message: "Bump version to ${{ steps.normalize.outputs.version }}"
-          reviewers: ${{ github.actor }}
+    with:
+      version: ${{ needs.release.outputs.release-version }}
+      dry-run: ${{ inputs.dry-run }}

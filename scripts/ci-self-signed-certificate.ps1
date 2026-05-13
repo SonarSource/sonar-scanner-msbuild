@@ -1,12 +1,12 @@
 #
-# This script is designed to be run in an Azure DevOps pipeline and is responsible 
-# for generating a self-signed SSL certificate, exporting it to a PKCS12 keystore, 
-# and importing it into the Java keystore. 
+# This script is designed to be run in an Azure DevOps pipeline and is responsible
+# for generating a self-signed SSL certificate, exporting it to a PKCS12 keystore,
+# and importing it into the Java keystore.
 #
 # It also updates the system's trusted certificates based on the operating system.
 #
 # This certificate is used for the SslTest integration tests.
-# 
+#
 
 # Set strict error handling
 $ErrorActionPreference = "Stop"

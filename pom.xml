@@ -70,31 +70,31 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>build/sonar-scanner-${env.FULL_VERSION}-net-framework.zip</file>
+                  <file>Packaging/Binaries/sonar-scanner-${env.FULL_VERSION}-net-framework.zip</file>
                   <type>zip</type>
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>build/sonarscanner-net-framework.${env.PATCH_VERSION}.nupkg</file>
+                  <file>Packaging/Binaries/Chocolatey/sonarscanner-net-framework.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                   <classifier>net-framework</classifier>
                 </artifact>
                 <artifact>
-                  <file>build/sonar-scanner-${env.FULL_VERSION}-net.zip</file>
+                  <file>Packaging/Binaries/sonar-scanner-${env.FULL_VERSION}-net.zip</file>
                   <type>zip</type>
                   <classifier>net</classifier>
                 </artifact>
                 <artifact>
-                  <file>build/sonarscanner-net.${env.PATCH_VERSION}.nupkg</file>
+                  <file>Packaging/Binaries/Chocolatey/sonarscanner-net.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                   <classifier>net</classifier>
                 </artifact>
                 <artifact>
-                  <file>Packaging/Binaries/dotnet-sonarscanner.${env.PATCH_VERSION}.nupkg</file>
+                  <file>Packaging/Binaries/NuGet/dotnet-sonarscanner.${env.PATCH_VERSION}.nupkg</file>
                   <type>nupkg</type>
                 </artifact>
                 <artifact>
-                  <file>build/bom.json</file>
+                  <file>Packaging/Binaries/bom.json</file>
                   <type>json</type>
                   <classifier>cyclonedx</classifier>
                 </artifact>
