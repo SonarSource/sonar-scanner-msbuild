@@ -47,6 +47,6 @@ public static class Paths
                 current = Path.GetDirectoryName(current);
             }
         }
-        throw new InvalidOperationException($"Could not find root directory for '{expectedSubdirectory}' from current path: ${Path.GetFullPath(".")}");
+        throw new InvalidOperationException($"Could not find root directory for '{expectedSubdirectory}' from current path: {Path.GetFullPath(".")}");
     }
 }
