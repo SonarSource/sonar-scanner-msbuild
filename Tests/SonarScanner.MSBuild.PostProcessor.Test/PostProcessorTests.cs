@@ -99,6 +99,36 @@ public class PostProcessorTests
     }
 
     [TestMethod]
+    public void LogStartupSettings_SonarQubeCloud_LogsCloudMessage()
+    {
+        config.SonarQubeVersion = "8.0.0.29456"; // SonarQube Cloud version (8.0.x != SQ 8.0 build 29455)
+
+        Execute();
+
+        runtime.Logger.Should().HaveInfos("Connected to SonarQube Cloud.");
+    }
+
+    [TestMethod]
+    public void LogStartupSettings_SonarQubeServer_LogsServerMessage()
+    {
+        config.SonarQubeVersion = "10.3.0.82913";
+
+        Execute();
+
+        runtime.Logger.Should().HaveInfos("Connected to SonarQube Server v10.3.0.82913.");
+    }
+
+    [TestMethod]
+    public void LogStartupSettings_NullVersion_LogsServerMessageWithNullVersion()
+    {
+        config.SonarQubeVersion = null;
+
+        Execute();
+
+        runtime.Logger.Should().HaveInfos("Connected to SonarQube Server v.");
+    }
+
+    [TestMethod]
     public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
     {
         Execute(withProject: false).Should().BeFalse("Expecting post-processor to have failed");

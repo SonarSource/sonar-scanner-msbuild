@@ -199,4 +199,10 @@ Config file: {5}</value>
   <data name="MSG_WritingScannerEngineInput" xml:space="preserve">
     <value>Writing Scanner Engine Input to {0}</value>
   </data>
+  <data name="MSG_ConnectedToSonarQubeCloud" xml:space="preserve">
+    <value>Connected to SonarQube Cloud.</value>
+  </data>
+  <data name="MSG_ConnectedToSonarQubeServer" xml:space="preserve">
+    <value>Connected to SonarQube Server v{0}.</value>
+  </data>
 </root>

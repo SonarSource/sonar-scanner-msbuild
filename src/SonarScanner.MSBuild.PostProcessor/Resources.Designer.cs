@@ -190,6 +190,24 @@ namespace SonarScanner.MSBuild.PostProcessor {
                 return ResourceManager.GetString("MSG_WritingScannerEngineInput", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Connected to SonarQube Cloud..
+        /// </summary>
+        internal static string MSG_ConnectedToSonarQubeCloud {
+            get {
+                return ResourceManager.GetString("MSG_ConnectedToSonarQubeCloud", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Connected to SonarQube Server v{0}..
+        /// </summary>
+        internal static string MSG_ConnectedToSonarQubeServer {
+            get {
+                return ResourceManager.GetString("MSG_ConnectedToSonarQubeServer", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Creating a summary markdown file....

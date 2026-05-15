@@ -151,6 +151,15 @@ public class PostProcessor
             settings.SonarConfigDirectory,
             settings.SonarOutputDirectory,
             settings.AnalysisConfigFilePath);
+        var serverVersion = config.FindServerVersion();
+        if (serverVersion is not null && SonarProduct.IsSonarCloud(serverVersion))
+        {
+            runtime.LogInfo(Resources.MSG_ConnectedToSonarQubeCloud);
+        }
+        else
+        {
+            runtime.LogInfo(Resources.MSG_ConnectedToSonarQubeServer, config.SonarQubeVersion);
+        }
     }
 
     private void DumpScannerEngineInput(IBuildSettings settings, ScannerEngineInput engineInput)
