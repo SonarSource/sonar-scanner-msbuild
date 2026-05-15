@@ -118,3 +118,39 @@ jobs:
           NEW_VERSION: ${{ steps.normalize.outputs.version }}
           GH_TOKEN: ${{ github.token }}
         run: ./scripts/set-version.ps1 -Version $env:NEW_VERSION
+  
+  integrate-sonarcloud-scanner:
+    needs: [release]
+    runs-on: sonar-s
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Get Vault secrets
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/github/token/{REPO_OWNER_NAME_DASH}-release-automation token | GITHUB_TOKEN
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: SonarSource/sonarcloud-autoscan
+          token: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_TOKEN}}
+
+      - name: Update SCANNER_DOTNET_VERSION
+        env:
+          VERSION: ${{ needs.release.outputs.release-version }}
+        run: |
+          sed -i "s/SCANNER_DOTNET_VERSION=\"[^\"]*\"/SCANNER_DOTNET_VERSION=\"${VERSION}\"/" worker-for-dotnet/docker/download_prerequisites.sh
+
+      - name: Create Pull Request
+        uses: SonarSource/release-github-actions/create-pull-request@v1
+        with:
+          branch: integrate/dotnet-scanner-${{ needs.release.outputs.release-version }}
+          base: master
+          title: "Bump SonarScanner for .NET to ${{ needs.release.outputs.release-version }}"
+          commit-message: "Bump SonarScanner for .NET to ${{ needs.release.outputs.release-version }}"
+          reviewers: ${{ github.actor }}
+          draft: true
