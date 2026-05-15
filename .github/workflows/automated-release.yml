@@ -43,7 +43,10 @@ jobs:
       plugin-name: "scanner-msbuild" # irrelevant for Scanner MSBuild but required
       jira-project-key: "SCAN4NET"
       slack-channel: "squad-dotnet-s4net"
-      release-artifacts-public: sonarsource-public-builds/org/sonarsource/scanner/msbuild/sonar-scanner/{version}/sonar-scanner-{version}.nupkg
+      release-artifacts-public: |
+        sonarsource-public-builds/org/sonarsource/scanner/msbuild/sonar-scanner/{version}/sonar-scanner-{version}-net-framework.zip
+        sonarsource-public-builds/org/sonarsource/scanner/msbuild/sonar-scanner/{version}/sonar-scanner-{version}-net.zip
+        sonarsource-public-builds/org/sonarsource/scanner/msbuild/sonar-scanner/{version}/sonar-scanner-{version}.nupkg
       rule-props-changed: false
       sqc-integration: false
       sqs-integration: false
