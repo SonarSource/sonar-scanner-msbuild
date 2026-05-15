@@ -67,6 +67,16 @@ jobs:
       version: ${{ needs.release.outputs.release-version }}
       dry-run: ${{ inputs.dry-run }}
 
+  publish-chocolatey:
+    name: Publish Chocolatey
+    needs: release
+    uses: ./.github/workflows/PublishChocolatey.yml
+    permissions:
+      id-token: write
+    with:
+      version: ${{ needs.release.outputs.release-version }}
+      dry-run: ${{ inputs.dry-run }}
+
   bump-version:
     name: Bump version
     needs: [release]
