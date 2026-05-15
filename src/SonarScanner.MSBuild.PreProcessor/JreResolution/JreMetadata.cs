@@ -26,7 +26,7 @@ public sealed class JreMetadata(string Id, string Filename, string JavaPath, Uri
     public string Filename { get; } = Filename;
     public string Sha256 { get; } = Sha256;
     public string JavaPath { get; } = JavaPath;
-    public Uri DownloadUrl { get; } = DownloadUrl;   // Optional, only exists for SonarCloud
+    public Uri DownloadUrl { get; } = DownloadUrl;   // Optional, only exists for SonarQube Cloud
 
     public ArchiveDescriptor ToDescriptor() =>
         new(Filename, Sha256, JavaPath);

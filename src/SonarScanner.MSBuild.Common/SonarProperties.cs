@@ -27,7 +27,7 @@ namespace SonarScanner.MSBuild.Common;
 /// </summary>
 public static class SonarProperties
 {
-    // SonarCloud server settings
+    // SonarQube Cloud server settings
     public const string CacheBaseUrl = "sonar.sensor.cache.baseUrl";
 
     // SonarQube server settings

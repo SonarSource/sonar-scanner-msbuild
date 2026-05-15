@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
+        ///   Looks up a localized string similar to Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarQube Cloud).
         ///Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine..
         /// </summary>
         internal static string CONV_ERROR_ConversionToolFailed {

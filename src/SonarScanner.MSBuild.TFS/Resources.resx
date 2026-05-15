@@ -121,7 +121,7 @@
     <value>Converting coverage file '{0}' to '{1}'.</value>
   </data>
   <data name="CONV_ERROR_ConversionToolFailed" xml:space="preserve">
-    <value>Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
+    <value>Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarQube Cloud).
 Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.</value>
   </data>
   <data name="CONV_ERROR_InputFileNotFound" xml:space="preserve">

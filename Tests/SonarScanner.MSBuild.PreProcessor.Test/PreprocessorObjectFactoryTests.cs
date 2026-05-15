@@ -108,8 +108,8 @@ public class PreprocessorObjectFactoryTests
         var downloader = Substitute.For<IDownloader>();
         downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
-        var detected = isCloud ? "SonarCloud" : "SonarQube";
-        var real = isCloud ? "SonarQube" : "SonarCloud";
+        var detected = isCloud ? "SonarQube Cloud" : "SonarQube";
+        var real = isCloud ? "SonarQube" : "SonarQube Cloud";
 
         var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader);
 

@@ -26,7 +26,7 @@ public sealed record EngineMetadata(string Filename, string Sha256, Uri Download
 {
     public string Filename { get; } = Filename;
     public string Sha256 { get; } = Sha256;
-    public Uri DownloadUrl { get; } = DownloadUrl; // Optional, only exists for SonarCloud
+    public Uri DownloadUrl { get; } = DownloadUrl; // Optional, only exists for SonarQube Cloud
 
     public FileDescriptor ToDescriptor() =>
         new(Filename, Sha256);

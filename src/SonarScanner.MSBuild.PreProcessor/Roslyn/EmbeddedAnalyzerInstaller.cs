@@ -41,7 +41,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 /// <para>
 /// The analyzer resources are cached locally under %temp%\.sonarqube\resources\(each analyzer inside a subfolder).
 /// The %temp%\.sonarqube\resources\ folder contains a file called index.json which stores the folder to analyzer mapping.
-/// If the required version is available locally then it will not be downloaded from the SonarQube/SonarCloud server.
+/// If the required version is available locally then it will not be downloaded from the SonarQube/SonarQube Cloud server.
 /// </para>
 /// </remarks>
 public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller

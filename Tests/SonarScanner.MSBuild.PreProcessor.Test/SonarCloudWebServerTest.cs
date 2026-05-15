@@ -51,7 +51,7 @@ public class SonarCloudWebServerTest
     {
         var logger = new TestLogger();
         _ = new SonarCloudWebServer(Substitute.For<IDownloader>(), Substitute.For<IDownloader>(), Version, logger, Organization, HttpTimeout);
-        logger.Should().HaveInfos("Using SonarCloud.");
+        logger.Should().HaveInfos("Using SonarQube Cloud.");
     }
 
     [TestMethod]

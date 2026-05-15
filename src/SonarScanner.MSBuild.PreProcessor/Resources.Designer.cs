@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /key:[SonarQube/SonarCloud project key].
+        ///   Looks up a localized string similar to /key:[SonarQube/SonarQube Cloud project key].
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectKey {
             get {
@@ -97,7 +97,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /name:[SonarQube/SonarCloud project name] - required for SonarQube &lt; 6.1.
+        ///   Looks up a localized string similar to /name:[SonarQube/SonarQube Cloud project name] - required for SonarQube &lt; 6.1.
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectName {
             get {
@@ -106,7 +106,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /version:[SonarQube/SonarCloud project version] - required for SonarQube &lt; 6.1.
+        ///   Looks up a localized string similar to /version:[SonarQube/SonarQube Cloud project version] - required for SonarQube &lt; 6.1.
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectVersion {
             get {
@@ -151,7 +151,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Detected SonarCloud but server was found to be SonarQube. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
+        ///   Looks up a localized string similar to Detected SonarQube Cloud but server was found to be SonarQube. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
         /// </summary>
         internal static string ERR_DetectedErroneouslySonarCloud {
             get {
@@ -160,7 +160,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Detected SonarQube but server was found to be SonarCloud. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
+        ///   Looks up a localized string similar to Detected SonarQube but server was found to be SonarQube Cloud. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
         /// </summary>
         internal static string ERR_DetectedErroneouslySonarQube {
             get {
@@ -169,7 +169,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!.
+        ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the server (SonarQube/SonarQube Cloud)!.
         /// </summary>
         internal static string ERR_DotNetAnalyzersNotFound {
             get {
@@ -387,7 +387,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         
         /// <summary>
         ///   Looks up a localized string similar to Expecting at least the following command line argument:
-        ///- SonarQube/SonarCloud project key
+        ///- SonarQube/SonarQube Cloud project key
         ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
         ///Use &apos;/?&apos; or &apos;/h&apos; to see the help message..
         /// </summary>
@@ -1156,7 +1156,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarCloud detected, skipping license check..
+        ///   Looks up a localized string similar to SonarQube Cloud detected, skipping license check..
         /// </summary>
         internal static string MSG_SonarCloudDetected_SkipLicenseCheck {
             get {
@@ -1165,7 +1165,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarCloud detected, skipping server version check..
+        ///   Looks up a localized string similar to SonarQube Cloud detected, skipping server version check..
         /// </summary>
         internal static string MSG_SonarCloudDetected_SkipVersionCheck {
             get {
@@ -1246,7 +1246,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using SonarCloud..
+        ///   Looks up a localized string similar to Using SonarQube Cloud..
         /// </summary>
         internal static string MSG_UsingSonarCloud {
             get {

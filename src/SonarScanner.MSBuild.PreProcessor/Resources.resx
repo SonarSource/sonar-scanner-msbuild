@@ -127,13 +127,13 @@
     <value>/organization:[Organization to which the project belongs]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectKey" xml:space="preserve">
-    <value>/key:[SonarQube/SonarCloud project key]</value>
+    <value>/key:[SonarQube/SonarQube Cloud project key]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectName" xml:space="preserve">
-    <value>/name:[SonarQube/SonarCloud project name] - required for SonarQube &lt; 6.1</value>
+    <value>/name:[SonarQube/SonarQube Cloud project name] - required for SonarQube &lt; 6.1</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectVersion" xml:space="preserve">
-    <value>/version:[SonarQube/SonarCloud project version] - required for SonarQube &lt; 6.1</value>
+    <value>/version:[SonarQube/SonarQube Cloud project version] - required for SonarQube &lt; 6.1</value>
   </data>
   <data name="ERROR_CmdLine_InvalidInstallTargetsValue" xml:space="preserve">
     <value>Invalid value for /install: {0}. Valid values are "true" or "false".</value>
@@ -146,7 +146,7 @@
   </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expecting at least the following command line argument:
-- SonarQube/SonarCloud project key
+- SonarQube/SonarQube Cloud project key
 The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
 Use '/?' or '/h' to see the help message.</value>
   </data>
@@ -199,7 +199,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Downloading from {0}...</value>
   </data>
   <data name="MSG_UsingSonarCloud" xml:space="preserve">
-    <value>Using SonarCloud.</value>
+    <value>Using SonarQube Cloud.</value>
   </data>
   <data name="MSG_UsingSonarQube" xml:space="preserve">
     <value>Using SonarQube v{0}.</value>
@@ -262,7 +262,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Skipping installing the ImportsBefore targets file.</value>
   </data>
   <data name="MSG_SonarCloudDetected_SkipLicenseCheck" xml:space="preserve">
-    <value>SonarCloud detected, skipping license check.</value>
+    <value>SonarQube Cloud detected, skipping license check.</value>
   </data>
   <data name="MSG_UpdatingMSBuildTargets" xml:space="preserve">
     <value>Updating build integration targets...</value>
@@ -361,10 +361,10 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Checking if the server version is supported...</value>
   </data>
   <data name="MSG_SonarCloudDetected_SkipVersionCheck" xml:space="preserve">
-    <value>SonarCloud detected, skipping server version check.</value>
+    <value>SonarQube Cloud detected, skipping server version check.</value>
   </data>
   <data name="ERR_DotNetAnalyzersNotFound" xml:space="preserve">
-    <value>Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!</value>
+    <value>Could not find any dotnet analyzer plugin on the server (SonarQube/SonarQube Cloud)!</value>
   </data>
   <data name="ERROR_InvalidJavaExePath" xml:space="preserve">
     <value>The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the java executable.</value>
@@ -373,10 +373,10 @@ Use '/?' or '/h' to see the help message.</value>
     <value>The argument 'sonar.scanner.skipJreProvisioning' has an invalid value. Please ensure it is set to either 'true' or 'false'.</value>
   </data>
   <data name="ERR_DetectedErroneouslySonarCloud" xml:space="preserve">
-    <value>Detected SonarCloud but server was found to be SonarQube. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.</value>
+    <value>Detected SonarQube Cloud but server was found to be SonarQube. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.</value>
   </data>
   <data name="ERR_DetectedErroneouslySonarQube" xml:space="preserve">
-    <value>Detected SonarQube but server was found to be SonarCloud. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.</value>
+    <value>Detected SonarQube but server was found to be SonarQube Cloud. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.</value>
   </data>
   <data name="WARN_JreMetadataNotRetrieved" xml:space="preserve">
     <value>JRE Metadata could not be retrieved from {0}.</value>
