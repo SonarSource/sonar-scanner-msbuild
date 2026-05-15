@@ -105,13 +105,10 @@ public static class ArgumentProcessor
     {
         var areValid = true;
 
-        foreach (var property in provider.GetAllProperties())
+        foreach (var property in provider.GetAllProperties().Where(x => !IsPermittedProperty(x)))
         {
-            if (!IsPermittedProperty(property))
-            {
-                areValid = false;
-                logger.LogError(Resources.ERROR_CmdLine_DisallowedArgument, property.Id);
-            }
+            areValid = false;
+            logger.LogError(Resources.ERROR_CmdLine_DisallowedArgument, property.Id);
         }
 
         return areValid;
