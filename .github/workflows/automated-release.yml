@@ -50,6 +50,8 @@ jobs:
       rule-props-changed: false
       sqc-integration: false
       sqs-integration: false
+      bump-version: false
+      freeze-branch: true
       pm-email: ${{ inputs.pm-email }}
       short-description: ${{ inputs.short-description }}
       branch: ${{ inputs.branch }}
@@ -68,3 +70,55 @@ jobs:
     with:
       version: ${{ needs.release.outputs.release-version }}
       dry-run: ${{ inputs.dry-run }}
+
+  publish-chocolatey:
+    name: Publish Chocolatey
+    needs: release
+    uses: ./.github/workflows/PublishChocolatey.yml
+    permissions:
+      id-token: write
+    with:
+      version: ${{ needs.release.outputs.release-version }}
+      dry-run: ${{ inputs.dry-run }}
+
+  bump-version:
+    name: Bump version
+    needs: [release]
+    if: ${{ inputs.dry-run == false }}
+    runs-on: sonar-s
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install tools
+        uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+        with:
+          cache: true
+          tool_versions: |
+            powershell-core 7.6.1
+            dotnet 10
+
+      - name: Normalize version to X.Y.Z
+        id: normalize
+        shell: pwsh
+        env:
+          NEW_VERSION: ${{ needs.release.outputs.new-version }}
+        run: |
+          $v = $env:NEW_VERSION
+          if ($v -match '^\d+\.\d+$') { $v = "$v.0" }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run version bump script
+        shell: pwsh
+        env:
+          NEW_VERSION: ${{ steps.normalize.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/set-version.ps1 -Version $env:NEW_VERSION

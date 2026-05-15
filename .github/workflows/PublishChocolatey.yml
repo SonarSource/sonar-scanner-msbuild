@@ -1,0 +1,77 @@
+name: Publish Chocolatey
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Release version (e.g. 10.1.0.12345)"
+        required: true
+        type: string
+      dry-run:
+        description: "Dry run: skip publish, show summary only"
+        type: boolean
+        default: false
+
+jobs:
+  publish-chocolatey:
+    name: Publish to Chocolatey
+    runs-on: sonar-xs
+    permissions:
+      id-token: write
+    env:
+      FRAMEWORK_PACKAGE: sonar-scanner-${{ inputs.version }}-net-framework.nupkg
+      NET_PACKAGE: sonar-scanner-${{ inputs.version }}-net.nupkg
+    steps:
+      - name: Get secrets
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/kv/data/chocolatey api-key | CHOCO_API_KEY;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-public-reader access_token | PUBLIC_ARTIFACTORY_ACCESS_TOKEN;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-public-reader role         | PUBLIC_ARTIFACTORY_ROLE;
+
+      - name: Download packages from Repox
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          PACKAGES_DIR: ${{ runner.temp }}/packages
+          REPOX_USER: vault-${{ fromJSON(steps.secrets.outputs.vault).PUBLIC_ARTIFACTORY_ROLE }}
+          REPOX_PASS: ${{ fromJSON(steps.secrets.outputs.vault).PUBLIC_ARTIFACTORY_ACCESS_TOKEN }}
+        run: |
+          set -e
+          REPOX_BASE_URL="https://repox.jfrog.io/artifactory/sonarsource-public-builds"
+          ARTIFACT_BASE="org/sonarsource/scanner/msbuild/sonar-scanner/${RELEASE_VERSION}"
+          mkdir -p "$PACKAGES_DIR"
+
+          for pkg in "$FRAMEWORK_PACKAGE" "$NET_PACKAGE"; do
+            url="${REPOX_BASE_URL}/${ARTIFACT_BASE}/${pkg}"
+            echo "Downloading ${url}..."
+            if ! curl -fSL -u "$REPOX_USER:$REPOX_PASS" -o "$PACKAGES_DIR/$pkg" "$url"; then
+              echo "::error::Failed to download ${pkg} from Repox. Verify that version ${RELEASE_VERSION} has been promoted."
+              exit 1
+            fi
+            echo "Downloaded $pkg"
+          done
+
+      - name: Publish packages to Chocolatey
+        if: ${{ !inputs.dry-run }}
+        shell: bash
+        env:
+          CHOCO_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).CHOCO_API_KEY }}
+          PACKAGES_DIR: ${{ runner.temp }}/packages
+        run: |
+          dotnet nuget push "${PACKAGES_DIR}/*.nupkg" \
+            --source 'https://push.chocolatey.org/' \
+            --api-key "$CHOCO_API_KEY" \
+            --skip-duplicate
+
+      - name: Summary
+        if: ${{ inputs.dry-run }}
+        shell: bash
+        run: |
+          echo "## Dry Run Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "The following packages would have been published to Chocolatey:" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`${FRAMEWORK_PACKAGE}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`${NET_PACKAGE}\`" >> "$GITHUB_STEP_SUMMARY"
