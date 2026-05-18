@@ -6,10 +6,6 @@ on:
         description: 'Release version'
         required: true
         type: string
-      releaseId:
-        description: 'GitHub Release ID'
-        required: true
-        type: string
       dryRun:
         description: 'Dry run mode (draft release)'
         required: false
@@ -26,5 +22,4 @@ jobs:
       publishToBinaries: true
       slackChannel: squad-dotnet-s4net
       version: ${{ inputs.version }}
-      releaseId: ${{ inputs.releaseId }}
       dryRun: ${{ inputs.dryRun }}
