@@ -34,7 +34,7 @@ jobs:
         uses: SonarSource/vault-action-wrapper@v3
         with:
           secrets: |
-            development/team/languages/kv/data/nuget nuget | NUGET_API_KEY;
+            development/team/languages/kv/data/nuget apikey | NUGET_API_KEY;
 
       - name: Download release assets
         env:
