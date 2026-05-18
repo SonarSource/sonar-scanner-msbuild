@@ -29,6 +29,25 @@ on:
         default: false
 
 jobs:
+  lock-branch:
+    name: Lock branch
+    runs-on: sonar-xs
+    permissions:
+      id-token: write
+    steps:
+      - id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/github/token/{REPO_OWNER_NAME_DASH}-lock token | lock_token;
+            development/kv/data/slack token | slack_api_token;
+      - uses: sonarsource/gh-action-lt-backlog/LockBranch@v2
+        with:
+          github-token: ${{ fromJSON(steps.secrets.outputs.vault).lock_token }}
+          slack-token: ${{ fromJSON(steps.secrets.outputs.vault).slack_api_token }}
+          slack-channel: squad-dotnet-s4net
+          branch-pattern: ${{ inputs.branch }}
+          lock-branch: true
   release:
     name: Release
     uses: SonarSource/release-github-actions/.github/workflows/automated-release.yml@v1
@@ -51,7 +70,7 @@ jobs:
       sqc-integration: false
       sqs-integration: false
       bump-version: false
-      freeze-branch: true
+      freeze-branch: false
       pm-email: ${{ inputs.pm-email }}
       short-description: ${{ inputs.short-description }}
       branch: ${{ inputs.branch }}
@@ -59,6 +78,28 @@ jobs:
       verbose: ${{ inputs.verbose }}
       use-jira-sandbox: ${{ inputs.dry-run }}
       is-draft-release: ${{ inputs.dry-run }}
+
+  unlock-branch:
+    name: Unlock branch
+    runs-on: sonar-xs
+    needs: release
+    if: ${{ needs.release.result == 'success' }}
+    permissions:
+      id-token: write
+    steps:
+      - id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/github/token/{REPO_OWNER_NAME_DASH}-lock token | lock_token;
+            development/kv/data/slack token | slack_api_token;
+      - uses: sonarsource/gh-action-lt-backlog/LockBranch@v2
+        with:
+          github-token: ${{ fromJSON(steps.secrets.outputs.vault).lock_token }}
+          slack-token: ${{ fromJSON(steps.secrets.outputs.vault).slack_api_token }}
+          slack-channel: squad-dotnet-s4net
+          branch-pattern: ${{ inputs.branch }}
+          lock-branch: false
 
   publish-nuget:
     name: Publish NuGet
