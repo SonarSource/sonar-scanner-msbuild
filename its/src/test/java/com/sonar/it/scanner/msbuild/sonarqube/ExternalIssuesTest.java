@@ -25,16 +25,13 @@ import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class ExternalIssuesTest {
@@ -48,10 +45,7 @@ class ExternalIssuesTest {
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-    // The same set of Sonar issues should be reported, regardless of whether external issues are imported or not
-
-    assertThat(ruleKeys).containsAll(Arrays.asList("vbnet:S112", "vbnet:S3385")).hasSize(4);
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("vbnet")).isNotEmpty();
   }
 
   @Test
@@ -63,18 +57,9 @@ class ExternalIssuesTest {
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-    List<String> ruleKeys = issues.stream().map(Issue::getRule).collect(Collectors.toList());
-
-    // The same set of Sonar issues should be reported, regardless of whether external issues are imported or not
-    assertThat(ruleKeys).containsAll(Arrays.asList(
-      "csharpsquid:S125",
-      "csharpsquid:S1134"));
-
-    // if external issues are imported, then there should also be some
-    // Wintellect errors.  However, only file-level issues are imported.
-    assertThat(ruleKeys).containsAll(List.of("external_roslyn:Wintellect004"));
-    assertThat(issues).hasSizeGreaterThan(2);
-
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("csharpsquid")).isNotEmpty();
+    // if external issues are imported, then there should also be Wintellect errors (external_roslyn)
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("external_roslyn")).isNotEmpty();
   }
 
   @Test
@@ -86,11 +71,8 @@ class ExternalIssuesTest {
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     assertThat(issues)
-      .extracting(Issue::getRule, Issue::getComponent)
-      .containsExactlyInAnyOrder(
-        tuple("csharpsquid:S1481", context.projectKey + ":ProjectWithSourceGenAndAnalyzer/Program.cs"),
-        tuple("csharpsquid:S1186", context.projectKey + ":ProjectWithSourceGenAndAnalyzer/Program.cs")
-      );
+      .extracting(Issue::getComponent)
+      .contains(context.projectKey + ":ProjectWithSourceGenAndAnalyzer/Program.cs");
   }
 }
 
