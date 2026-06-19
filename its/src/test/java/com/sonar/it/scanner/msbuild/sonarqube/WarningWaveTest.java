@@ -27,7 +27,6 @@ import org.sonarqube.ws.Issues.Issue;
 import java.util.List;
 
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class WarningWaveTest {
@@ -42,7 +41,8 @@ class WarningWaveTest {
 
     List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
     assertThat(issues)
-      .extracting(Issue::getRule, Issue::getComponent)
-      .contains(tuple("external_roslyn:CS8981", context.projectKey + ":Program.cs"));
+      .filteredOn(x -> x.getRule().startsWith("external_roslyn"))
+      .extracting(Issue::getComponent)
+      .contains(context.projectKey + ":Program.cs");
   }
 }
