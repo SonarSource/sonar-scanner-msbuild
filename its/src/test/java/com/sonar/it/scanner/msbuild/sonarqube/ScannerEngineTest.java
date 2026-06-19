@@ -47,7 +47,6 @@ import org.xml.sax.SAXException;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -66,14 +65,12 @@ class ScannerEngineTest {
 
     assertTrue(result.isSuccess());
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
+    // This test verifies UTF-8 filename handling, so we assert the component (the unicode filename) is reported,
+    // but not the specific rule, which changes with analyzer versions.
     assertThat(issues)
-      .extracting(x -> tuple(x.getComponent(), x.getRule(), x.getMessage()))
-      .containsExactlyInAnyOrder(
-        tuple(
-          context.projectKey + ":UTF8Filenames/UTF8Filename_äöüß_ソナー_😊.cs",
-          "csharpsquid:S101",
-          "Rename class 'UTF8Filename_äöüß_ソナー' to match pascal case naming rules, consider using 'Utf8Filenameäöüßソナー'.")
-      );
+      .extracting(x -> x.getComponent())
+      .contains(context.projectKey + ":UTF8Filenames/UTF8Filename_äöüß_ソナー_😊.cs");
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("csharpsquid")).isNotEmpty();
     var analyses = TestUtils.newWsClient(ORCHESTRATOR).projectAnalyses().search(new SearchRequest().setProject(context.projectKey)).getAnalysesList();
     assertThat(analyses)
       .extracting(ProjectAnalyses.Analysis::getBuildString)
