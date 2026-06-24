@@ -21,4 +21,4 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         uses: SonarSource/gh-action_slack-notify@v1
         with:
-          slackChannel: squad-dotnet-s4net
+          slackChannel: squad-corelang-notifs

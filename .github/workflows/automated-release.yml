@@ -45,7 +45,7 @@ jobs:
         with:
           github-token: ${{ fromJSON(steps.secrets.outputs.vault).lock_token }}
           slack-token: ${{ fromJSON(steps.secrets.outputs.vault).slack_api_token }}
-          slack-channel: squad-dotnet-s4net
+          slack-channel: squad-corelang-releases
           branch-pattern: ${{ inputs.branch }}
           lock-branch: true
   release:
@@ -61,7 +61,7 @@ jobs:
       project-name: "SonarScanner for .NET"
       plugin-name: "scanner-msbuild" # irrelevant for Scanner MSBuild but required
       jira-project-key: "SCAN4NET"
-      slack-channel: "squad-dotnet-s4net"
+      slack-channel: "squad-corelang-releases"
       release-artifacts-private: |
         sonarsource-public-builds/org/sonarsource/scanner/msbuild/sonar-scanner/{version}/sonar-scanner-{version}-net-framework.zip
         sonarsource-public-builds/org/sonarsource/scanner/msbuild/sonar-scanner/{version}/sonar-scanner-{version}-net.zip
@@ -97,7 +97,7 @@ jobs:
         with:
           github-token: ${{ fromJSON(steps.secrets.outputs.vault).lock_token }}
           slack-token: ${{ fromJSON(steps.secrets.outputs.vault).slack_api_token }}
-          slack-channel: squad-dotnet-s4net
+          slack-channel: squad-corelang-releases
           branch-pattern: ${{ inputs.branch }}
           lock-branch: false
 

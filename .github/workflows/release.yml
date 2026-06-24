@@ -20,6 +20,6 @@ jobs:
     uses: SonarSource/gh-action_release/.github/workflows/main.yaml@v7
     with:
       publishToBinaries: true
-      slackChannel: squad-dotnet-s4net
+      slackChannel: squad-corelang-releases
       version: ${{ inputs.version }}
       dryRun: ${{ inputs.dryRun }}
