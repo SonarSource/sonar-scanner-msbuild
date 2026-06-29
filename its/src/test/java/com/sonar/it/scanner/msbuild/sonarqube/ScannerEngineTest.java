@@ -65,12 +65,9 @@ class ScannerEngineTest {
 
     assertTrue(result.isSuccess());
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-    // This test verifies UTF-8 filename handling, so we assert the component (the unicode filename) is reported,
-    // but not the specific rule, which changes with analyzer versions.
-    assertThat(issues)
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("csharpsquid"))
       .extracting(x -> x.getComponent())
       .contains(context.projectKey + ":UTF8Filenames/UTF8Filename_äöüß_ソナー_😊.cs");
-    assertThat(issues).filteredOn(x -> x.getRule().startsWith("csharpsquid")).isNotEmpty();
     var analyses = TestUtils.newWsClient(ORCHESTRATOR).projectAnalyses().search(new SearchRequest().setProject(context.projectKey)).getAnalysesList();
     assertThat(analyses)
       .extracting(ProjectAnalyses.Analysis::getBuildString)
