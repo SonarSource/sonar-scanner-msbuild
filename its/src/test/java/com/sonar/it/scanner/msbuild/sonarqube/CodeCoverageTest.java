@@ -33,6 +33,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
+
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class CodeCoverageTest {
 
@@ -118,8 +119,10 @@ class CodeCoverageTest {
     context.build.useDotNet();
     context.runAnalysis();
 
-    assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey))
-      .filteredOn(x -> x.getRule().startsWith("csharpsquid")).isNotEmpty();
+    var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("csharpsquid")).isNotEmpty();
+    assertThat(issues).extracting(x -> x.getComponent())
+      .noneMatch(c -> c.contains("dotCover.Output"));
   }
 
   private static Stream<Arguments> parameterizedArgumentsForExclusions() {
