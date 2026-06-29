@@ -82,7 +82,6 @@ class BaseDirTest {
         "' and will not be analyzed.");
       assertThat(logs).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
       var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-      // The two projects under the base directory are analyzed; the project on the other drive (DriveY) is excluded (see warnings above).
       assertThat(issues).filteredOn(x -> x.getRule().startsWith("csharpsquid"))
         .extracting(x -> x.getComponent())
         .contains(context.projectKey + ":DefaultDrive/Program.cs");
