@@ -527,6 +527,9 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.docker.file.patterns")]
     [DataRow("sonar.groovy.file.patterns")]
     [DataRow("sonar.java.jvmframeworkconfig.file.patterns")]
+    [DataRow("sonar.sql.dialect.postgres.patterns")]
+    [DataRow("sonar.sql.dialect.tsql.patterns")]
+    [DataRow("sonar.sql.dialect.plsql.patterns")]
     [DataRow("sonar.text.inclusions")]
     public void AdditionalFiles_WildcardPattern_RelativePattern(string property)
     {
@@ -562,6 +565,48 @@ public class AdditionalFilesServiceTest
             Path.Combine(nestedFolder.FullName, "Dfile"),
             Path.Combine(nestedFolder.FullName, "MyApp.dfile"),
             Path.Combine(nestedFolder.FullName, "MyOtherApp.Dfile"));
+        files.Tests.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_SqlDialectPattern_LocalSettingsTakePrecedence()
+    {
+        runtime.Directory
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns(
+                [
+                    new(Path.Combine(ProjectBaseDir.FullName, "local.sql")),
+                    new(Path.Combine(ProjectBaseDir.FullName, "server.sql"))
+                ]);
+        var config = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [new("sonar.sql.dialect.tsql.patterns", "local.sql")],
+            ServerSettings = [new("sonar.sql.dialect.tsql.patterns", "server.sql")]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("local.sql");
+        files.Tests.Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public void AdditionalFiles_SqlDialectPattern_UnsupportedDialectIgnored()
+    {
+        runtime.Directory
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns([new(Path.Combine(ProjectBaseDir.FullName, "ignored.sql"))]);
+        var config = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings = [new("sonar.sql.dialect.mysql.patterns", "ignored.sql")]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
     }
 

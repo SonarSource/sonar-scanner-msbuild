@@ -74,6 +74,9 @@ public class AdditionalFilesService
         "sonar.docker.file.patterns",
         "sonar.groovy.file.patterns",
         "sonar.java.jvmframeworkconfig.file.patterns",
+        "sonar.sql.dialect.postgres.patterns",
+        "sonar.sql.dialect.tsql.patterns",
+        "sonar.sql.dialect.plsql.patterns",
         "sonar.text.inclusions"
     ];
 
