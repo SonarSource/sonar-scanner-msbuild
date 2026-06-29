@@ -704,6 +704,7 @@ public partial class ScannerEngineInputGeneratorTest
         string[] rootSources =
         [
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.ipynb"),
+            TestUtils.CreateEmptyFile(rootProjects, "rootSource.gsx"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.php"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.py"),
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.spec.ipynb"),
@@ -724,6 +725,7 @@ public partial class ScannerEngineInputGeneratorTest
         ];
         string[] project1Sources =
         [
+            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.gsx"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.sql"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.py"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.ipynb"),
@@ -732,6 +734,7 @@ public partial class ScannerEngineInputGeneratorTest
         ];
         string[] project2Sources =
         [
+            TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.gsx"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.tsx"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.sql"),
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project2), "project2.py"),
@@ -745,8 +748,9 @@ public partial class ScannerEngineInputGeneratorTest
         ];
         AnalysisProperties serverProperties =
         [
+            new("sonar.gosu.file.suffixes", "gsx"),
             new("sonar.typescript.file.suffixes", ".ts,.tsx"),
-            new("sonar.tsql.file.suffixes", "sql"),
+            new("sonar.sql.file.suffixes", "sql"),
             new("sonar.python.file.suffixes", "py"),
             new("sonar.ipynb.file.suffixes", "ipynb"),
             new("sonar.php.file.suffixes", "php"),
