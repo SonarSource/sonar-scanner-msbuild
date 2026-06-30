@@ -37,6 +37,7 @@ jobs:
       PYTHON_VERSION: "LATEST_RELEASE"
       RUBY_VERSION: "LATEST_RELEASE"
       TEXT_VERSION: "LATEST_RELEASE"
+      TSQL_VERSION: "LATEST_RELEASE"
       XML_VERSION: "LATEST_RELEASE"
       JDKVERSION: "1.17"
       PLATFORMTOOLSET: "v140"
@@ -121,6 +122,7 @@ jobs:
             -Dsonar.rubyplugin.version=$(RUBY_VERSION)
             -Dsonar.goplugin.version=$(GO_VERSION)
             -Dsonar.goplugin-enterprise.version=$(GO_ENTERPRISE_VERSION)
+            -Dsonar.tsqlplugin.version=$(TSQL_VERSION)
             -Dgo.groupid=$(GO_GROUP_ID)
             -Dsonar.runtimeVersion=$(SQ_VERSION)
             -Dsonar.sonarQubeEdition=$(SQ_EDITION)

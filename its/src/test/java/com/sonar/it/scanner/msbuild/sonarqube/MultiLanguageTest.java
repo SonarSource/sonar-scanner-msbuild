@@ -102,6 +102,7 @@ class MultiLanguageTest {
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
+    context.begin.setProperty("sonar.tsql.file.suffixes", ".tsql");
     context.begin.CreateAndSetUserHomeFolder("junit-sdkFormat-");
     // Begin step runs in MultiLanguageSupport
     // Build step runs in MultiLanguageSupport/src
@@ -118,6 +119,7 @@ class MultiLanguageTest {
       assertLanguageExists(issues, "csharpsquid");
       assertLanguageExists(issues, "javascript");
       assertLanguageExists(issues, "plsql");
+      assertLanguageExists(issues, "tsql");
       assertLanguageExists(issues, "python");
       assertLanguageExists(issues, "php");
       assertLanguageExists(issues, "go");
@@ -241,7 +243,6 @@ class MultiLanguageTest {
     // Rule keys are `<repository>:<ruleKey>`; the trailing `:` avoids matching a longer language (e.g. `java` vs `javascript`).
     assertThat(issues).filteredOn(x -> x.getRule().startsWith(language + ":")).isNotEmpty();
   }
-
 
   // This class is used to create a .git folder in the project directory.
   // This is required for the sonar-text-plugin to work correctly.
