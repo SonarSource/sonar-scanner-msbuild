@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<profile>
+  <name>SQL_S2260</name>
+  <language>sql</language>
+  <rules>
+    <rule>
+      <repositoryKey>sqldre</repositoryKey>
+      <key>S2260</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+  </rules>
+</profile>

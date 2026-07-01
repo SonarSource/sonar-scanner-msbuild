@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<profile>
+  <name>GOSU_S1135</name>
+  <language>gosu</language>
+  <rules>
+    <rule>
+      <repositoryKey>gosudre</repositoryKey>
+      <key>S1135</key>
+      <priority>MAJOR</priority>
+      <parameters/>
+    </rule>
+  </rules>
+</profile>
