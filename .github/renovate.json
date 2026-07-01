@@ -1,11 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>SonarSource/renovate-config"
+    "local>SonarSource/core-languages-tooling-public:renovate-config"
   ],
   "rebaseWhen": "auto",
   "minimumReleaseAge": "3 days",
-  "minimumReleaseAgeBehaviour": "timestamp-optional",
   "enabledManagers": [
     "nuget",
     "maven",
