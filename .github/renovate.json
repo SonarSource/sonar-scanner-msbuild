@@ -1,10 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "local>SonarSource/core-languages-tooling-public:renovate-config"
+    "local>SonarSource/core-languages-tooling-public:net-squad"
   ],
-  "rebaseWhen": "auto",
-  "minimumReleaseAge": "3 days",
   "enabledManagers": [
     "nuget",
     "maven",
@@ -16,60 +14,60 @@
   },
   "nuget": {
     "description": "ignorePaths in the root does not work due to higher-precedence built-in counter-intuitive nuget-specifc defaults",
-    "ignorePaths": [ "its/projects/**" ]
+    "ignorePaths": [
+      "its/projects/**"
+    ]
   },
   "packageRules": [
     {
-      "description": "Group GitHub Actions updates",
-      "matchManagers": ["github-actions"],
-      "groupName": "GitHub Actions dependencies",
-      "groupSlug": "github-actions-dependencies"
-    },
-    {
-      "description": "Group Maven updates",
-      "matchManagers": ["maven"],
-      "groupName": "Maven dependencies",
-      "groupSlug": "maven-dependencies"
-    },
-    {
-      "description": "Group NuGet updates",
-      "matchManagers": ["nuget"],
-      "groupName": "NuGet dependencies",
-      "groupSlug": "nuget-dependencies"
-    },
-    {
       "description": "Do not update SonarSource GH actions, we want the branch-version. Only external actions must have commit ID.",
-      "matchDepNames": [ "SonarSource/**" ],
+      "matchDepNames": [
+        "SonarSource/**"
+      ],
       "enabled": false
     },
     {
       "description": "Do update SonarSource/sonar-secrets-pre-commit.",
-      "matchDepNames": [ "SonarSource/sonar-secrets-pre-commit" ],
+      "matchDepNames": [
+        "SonarSource/sonar-secrets-pre-commit"
+      ],
       "enabled": true
     },
     {
       "description": "Group MSTest dependencies into a single PR",
-      "matchPackageNames": [ "MSTest.**", "Microsoft.NET.Test.Sdk" ],
+      "matchPackageNames": [
+        "MSTest.**",
+        "Microsoft.NET.Test.Sdk"
+      ],
       "groupName": "MSTest"
     },
     {
       "description": "Group Coverlet dependencies into a single PR",
-      "matchPackageNames": [ "coverlet.**" ],
+      "matchPackageNames": [
+        "coverlet.**"
+      ],
       "groupName": "Coverlet"
     },
     {
       "description": "Group protobuf packages together - Grpc.Tools bundles protoc which must be compatible with the Google.Protobuf runtime",
-      "matchPackageNames": [ "Google.Protobuf", "Grpc.Tools" ],
+      "matchPackageNames": [
+        "Google.Protobuf",
+        "Grpc.Tools"
+      ],
       "groupName": "protobuf"
     },
     {
       "description": "Do not update Build dependency. It provides backward compatibility with MsBuild 14+",
-      "matchPackageNames": [ "Microsoft.Build**" ],
+      "matchPackageNames": [
+        "Microsoft.Build**"
+      ],
       "enabled": false
     },
     {
       "description": "Do not update FluentAssertions above v7 due to license change",
-      "matchPackageNames": [ "FluentAssertions" ],
+      "matchPackageNames": [
+        "FluentAssertions"
+      ],
       "allowedVersions": "<8.0.0"
     }
   ]
