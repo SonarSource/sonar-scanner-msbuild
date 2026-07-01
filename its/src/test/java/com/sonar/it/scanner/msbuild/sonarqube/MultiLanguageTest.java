@@ -103,8 +103,9 @@ class MultiLanguageTest {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
     context.begin.setProperty("sonar.gosu.file.suffixes", ".gsx");
+    context.begin.setProperty("sonar.plsql.file.suffixes", ".plsql-disabled");
     context.begin.setProperty("sonar.sql.dialect.postgres.patterns", "src/MultiLanguageSupport/postgres.query");
-    context.begin.setProperty("sonar.tsql.file.suffixes", ".tsql");
+    context.begin.setProperty("sonar.tsql.file.suffixes", ".tsql-disabled");
     context.begin.CreateAndSetUserHomeFolder("junit-sdkFormat-");
     // Begin step runs in MultiLanguageSupport
     // Build step runs in MultiLanguageSupport/src
