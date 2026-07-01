@@ -261,7 +261,7 @@ public class AdditionalFilesServiceTest
     {
         runtime.Directory
             .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
-            .Returns([new("valid.sql"), new("valid.tsql"), new("valid.plsql"), new("invalid.cs")]);
+            .Returns([new("valid.sql"), new("valid.tsql"), new("valid.plsql"), new("invalid.mysql")]);
         var config = new AnalysisConfig
         {
             ScanAllAnalysis = true,

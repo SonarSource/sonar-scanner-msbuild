@@ -102,6 +102,8 @@ class MultiLanguageTest {
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     context.begin.setDebugLogs();
+    context.begin.setProperty("sonar.gosu.file.suffixes", ".gsx");
+    context.begin.setProperty("sonar.sql.dialect.postgres.patterns", "src/MultiLanguageSupport/postgres.query");
     context.begin.setProperty("sonar.tsql.file.suffixes", ".tsql");
     context.begin.CreateAndSetUserHomeFolder("junit-sdkFormat-");
     // Begin step runs in MultiLanguageSupport
@@ -154,8 +156,10 @@ class MultiLanguageTest {
         assertLanguageExists(issues, "ipython");
       }
       if (version.isGreaterThan(2026, 1)) {
+        assertLanguageExists(issues, "gosudre");
         assertLanguageExists(issues, "groovydre");
         assertLanguageExists(issues, "powershelldre");
+        assertLanguageExists(issues, "sqldre");
       }
       assertThat(issues).extracting(Issue::getComponent)
         .contains(context.projectKey + ":src/MultiLanguageSupport/Included.cs")
