@@ -20,6 +20,24 @@
   },
   "packageRules": [
     {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions dependencies",
+      "groupSlug": "github-actions-dependencies"
+    },
+    {
+      "description": "Group Maven updates",
+      "matchManagers": ["maven"],
+      "groupName": "Maven dependencies",
+      "groupSlug": "maven-dependencies"
+    },
+    {
+      "description": "Group NuGet updates",
+      "matchManagers": ["nuget"],
+      "groupName": "NuGet dependencies",
+      "groupSlug": "nuget-dependencies"
+    },
+    {
       "description": "Do not update SonarSource GH actions, we want the branch-version. Only external actions must have commit ID.",
       "matchDepNames": [ "SonarSource/**" ],
       "enabled": false
