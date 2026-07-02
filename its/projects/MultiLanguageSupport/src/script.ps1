@@ -1,4 +1,0 @@
-# TODO trigger powershelldre:S1135
-
-# S6702
-Write-Host "squ_e0015b6f1397c601e9029e0f52d80e24327cf062"
