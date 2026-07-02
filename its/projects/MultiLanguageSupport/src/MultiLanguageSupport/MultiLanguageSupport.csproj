@@ -4,9 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>    
+  <ItemGroup>
     <Compile Remove="NotIncluded.cs" />
-    <None Remove="NotIncluded.js" />
-    <None Remove="NotIncluded.sql" />
   </ItemGroup>
 </Project>
