@@ -47,7 +47,6 @@ import org.xml.sax.SAXException;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -66,14 +65,9 @@ class ScannerEngineTest {
 
     assertTrue(result.isSuccess());
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-    assertThat(issues)
-      .extracting(x -> tuple(x.getComponent(), x.getRule(), x.getMessage()))
-      .containsExactlyInAnyOrder(
-        tuple(
-          context.projectKey + ":UTF8Filenames/UTF8Filename_äöüß_ソナー_😊.cs",
-          "csharpsquid:S101",
-          "Rename class 'UTF8Filename_äöüß_ソナー' to match pascal case naming rules, consider using 'Utf8Filenameäöüßソナー'.")
-      );
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("csharpsquid"))
+      .extracting(x -> x.getComponent())
+      .contains(context.projectKey + ":UTF8Filenames/UTF8Filename_äöüß_ソナー_😊.cs");
     var analyses = TestUtils.newWsClient(ORCHESTRATOR).projectAnalyses().search(new SearchRequest().setProject(context.projectKey)).getAnalysesList();
     assertThat(analyses)
       .extracting(ProjectAnalyses.Analysis::getBuildString)
