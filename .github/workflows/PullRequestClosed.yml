@@ -7,7 +7,7 @@ on:
 jobs:
   PullRequestClosed_job:
     name: Pull Request Closed
-    runs-on: github-ubuntu-latest-s
+    runs-on: sonar-xs
     permissions:
       id-token: write
       pull-requests: read
