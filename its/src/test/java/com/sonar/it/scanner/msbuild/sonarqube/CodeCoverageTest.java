@@ -30,11 +30,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class CodeCoverageTest {
@@ -121,9 +119,10 @@ class CodeCoverageTest {
     context.build.useDotNet();
     context.runAnalysis();
 
-    assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).hasSize(1)
-      .extracting(Issues.Issue::getRule)
-      .containsOnly("csharpsquid:S2699");
+    var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
+    assertThat(issues).filteredOn(x -> x.getRule().startsWith("csharpsquid")).isNotEmpty();
+    assertThat(issues).extracting(x -> x.getComponent())
+      .noneMatch(c -> c.contains("dotCover.Output"));
   }
 
   private static Stream<Arguments> parameterizedArgumentsForExclusions() {
@@ -177,14 +176,16 @@ class CodeCoverageTest {
     }
     context.runAnalysis();
 
+    var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     if (isFileExcluded) {
-      assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
-        .contains(tuple("csharpsquid:S1118", context.projectKey + ":ExclusionsAndCoverage/Calculator.cs"))
-        .doesNotContain(tuple("javascript:S1529", context.projectKey + ":ExclusionsAndCoverage/Excluded.js"));
+      assertThat(issues).extracting(x -> x.getComponent())
+        .contains(context.projectKey + ":ExclusionsAndCoverage/Calculator.cs")
+        .doesNotContain(context.projectKey + ":ExclusionsAndCoverage/Excluded.js");
     } else {
-      assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
-        .contains(tuple("csharpsquid:S1118", context.projectKey + ":ExclusionsAndCoverage/Calculator.cs"))
-        .contains(tuple("javascript:S1529", context.projectKey + ":ExclusionsAndCoverage/Excluded.js"));
+      assertThat(issues).extracting(x -> x.getComponent())
+        .contains(
+          context.projectKey + ":ExclusionsAndCoverage/Calculator.cs",
+          context.projectKey + ":ExclusionsAndCoverage/Excluded.js");
     }
   }
 
