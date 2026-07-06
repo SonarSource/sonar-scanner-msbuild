@@ -20,20 +20,6 @@
   },
   "packageRules": [
     {
-      "description": "Do not update SonarSource GH actions, we want the branch-version. Only external actions must have commit ID.",
-      "matchDepNames": [
-        "SonarSource/**"
-      ],
-      "enabled": false
-    },
-    {
-      "description": "Do update SonarSource/sonar-secrets-pre-commit.",
-      "matchDepNames": [
-        "SonarSource/sonar-secrets-pre-commit"
-      ],
-      "enabled": true
-    },
-    {
       "description": "Group MSTest dependencies into a single PR",
       "matchPackageNames": [
         "MSTest.**",
