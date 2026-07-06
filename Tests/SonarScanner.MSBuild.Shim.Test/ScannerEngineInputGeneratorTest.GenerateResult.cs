@@ -750,7 +750,7 @@ public partial class ScannerEngineInputGeneratorTest
         [
             new("sonar.gosu.file.suffixes", "gsx"),
             new("sonar.typescript.file.suffixes", ".ts,.tsx"),
-            new("sonar.sql.file.suffixes", "sql"),
+            new("sonar.postgres.file.suffixes", "sql"),
             new("sonar.python.file.suffixes", "py"),
             new("sonar.ipynb.file.suffixes", "ipynb"),
             new("sonar.php.file.suffixes", "php"),

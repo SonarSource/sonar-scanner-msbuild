@@ -51,7 +51,7 @@ public class AdditionalFilesService
     [
         "sonar.tsql.file.suffixes",
         "sonar.plsql.file.suffixes",
-        "sonar.sql.file.suffixes",
+        "sonar.postgres.file.suffixes",
         "sonar.yaml.file.suffixes",
         "sonar.json.file.suffixes",
         "sonar.css.file.suffixes",
@@ -74,9 +74,6 @@ public class AdditionalFilesService
         "sonar.docker.file.patterns",
         "sonar.groovy.file.patterns",
         "sonar.java.jvmframeworkconfig.file.patterns",
-        "sonar.sql.dialect.postgres.patterns",
-        "sonar.sql.dialect.tsql.patterns",
-        "sonar.sql.dialect.plsql.patterns",
         "sonar.text.inclusions"
     ];
 

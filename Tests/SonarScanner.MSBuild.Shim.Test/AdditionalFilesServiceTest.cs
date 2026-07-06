@@ -222,7 +222,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     [DataRow("sonar.tsql.file.suffixes")]
     [DataRow("sonar.plsql.file.suffixes")]
-    [DataRow("sonar.sql.file.suffixes")]
+    [DataRow("sonar.postgres.file.suffixes")]
     [DataRow("sonar.yaml.file.suffixes")]
     [DataRow("sonar.json.file.suffixes")]
     [DataRow("sonar.css.file.suffixes")]
@@ -268,7 +268,7 @@ public class AdditionalFilesServiceTest
             LocalSettings = [],
             ServerSettings =
             [
-                new("sonar.sql.file.suffixes", ".sql"),
+                new("sonar.postgres.file.suffixes", ".sql"),
                 new("sonar.tsql.file.suffixes", ".tsql"),
                 new("sonar.plsql.file.suffixes", ".plsql")
             ]
@@ -308,7 +308,7 @@ public class AdditionalFilesServiceTest
             ServerSettings =
             [
                 new("sonar.html.file.suffixes", ".cs.html"),
-                new("sonar.sql.file.suffixes", ".sql"),
+                new("sonar.postgres.file.suffixes", ".sql"),
                 new("sonar.python.file.suffixes", ".py"),
                 new("sonar.ipynb.file.suffixes", ".ipynb"),
                 new("sonar.php.file.suffixes", ".php"),
@@ -527,9 +527,6 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.docker.file.patterns")]
     [DataRow("sonar.groovy.file.patterns")]
     [DataRow("sonar.java.jvmframeworkconfig.file.patterns")]
-    [DataRow("sonar.sql.dialect.postgres.patterns")]
-    [DataRow("sonar.sql.dialect.tsql.patterns")]
-    [DataRow("sonar.sql.dialect.plsql.patterns")]
     [DataRow("sonar.text.inclusions")]
     public void AdditionalFiles_WildcardPattern_RelativePattern(string property)
     {
@@ -565,48 +562,6 @@ public class AdditionalFilesServiceTest
             Path.Combine(nestedFolder.FullName, "Dfile"),
             Path.Combine(nestedFolder.FullName, "MyApp.dfile"),
             Path.Combine(nestedFolder.FullName, "MyOtherApp.Dfile"));
-        files.Tests.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void AdditionalFiles_SqlDialectPattern_LocalSettingsTakePrecedence()
-    {
-        runtime.Directory
-            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
-            .Returns(
-                [
-                    new(Path.Combine(ProjectBaseDir.FullName, "local.sql")),
-                    new(Path.Combine(ProjectBaseDir.FullName, "server.sql"))
-                ]);
-        var config = new AnalysisConfig
-        {
-            ScanAllAnalysis = true,
-            LocalSettings = [new("sonar.sql.dialect.tsql.patterns", "local.sql")],
-            ServerSettings = [new("sonar.sql.dialect.tsql.patterns", "server.sql")]
-        };
-
-        var files = sut.AdditionalFiles(config, ProjectBaseDir);
-
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("local.sql");
-        files.Tests.Should().BeEmpty();
-    }
-
-    [TestMethod]
-    public void AdditionalFiles_SqlDialectPattern_UnsupportedDialectIgnored()
-    {
-        runtime.Directory
-            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
-            .Returns([new(Path.Combine(ProjectBaseDir.FullName, "ignored.sql"))]);
-        var config = new AnalysisConfig
-        {
-            ScanAllAnalysis = true,
-            LocalSettings = [],
-            ServerSettings = [new("sonar.sql.dialect.mysql.patterns", "ignored.sql")]
-        };
-
-        var files = sut.AdditionalFiles(config, ProjectBaseDir);
-
-        files.Sources.Should().BeEmpty();
         files.Tests.Should().BeEmpty();
     }
 
