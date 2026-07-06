@@ -103,7 +103,6 @@ class MultiLanguageTest {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
     var version = ORCHESTRATOR.getServer().version();
     context.begin.setDebugLogs();
-    context.begin.setProperty("sonar.gosu.file.suffixes", ".gs");
     context.begin.CreateAndSetUserHomeFolder("junit-sdkFormat-");
     // Begin step runs in MultiLanguageSupport
     // Build step runs in MultiLanguageSupport/src
@@ -154,7 +153,6 @@ class MultiLanguageTest {
         assertLanguageExists(issues, "ipython");
       }
       if (version.isGreaterThan(2026, 1)) {
-        assertLanguageExists(issues, "gosudre");
         assertLanguageExists(issues, "groovydre");
         assertLanguageExists(issues, "powershelldre");
         assertLanguageExists(issues, "postgresdre");
