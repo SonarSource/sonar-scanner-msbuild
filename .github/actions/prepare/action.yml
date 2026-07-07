@@ -58,3 +58,22 @@ runs:
         secrets: |
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
+
+    - name: Setup cache month variable
+      shell: powershell
+      run: |
+        "CACHE_MONTH=$(Get-Date -Format 'MM')" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: Cache NuGet packages
+      uses: SonarSource/gh-action_cache@v1
+      with:
+        path: ${{ github.workspace }}\.nuget\packages
+        key: nuget-${{ env.CACHE_MONTH }}-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: nuget-${{ env.CACHE_MONTH }}-
+
+    - name: Restore
+      shell: powershell
+      env:
+        ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
+        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+      run: dotnet restore SonarScanner.MSBuild.sln --locked-mode --configfile "NuGet.Config"
