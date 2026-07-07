@@ -1,6 +1,46 @@
 name: Prepare
 description: Install tools, cache NuGet, fetch secrets, compute version, and restore.
 
+outputs:
+  SHORT_VERSION:
+    description: Short version (e.g. 1.2)
+    value: ${{ steps.set-version.outputs.SHORT_VERSION }}
+  PATCH_VERSION:
+    description: Patch version (e.g. 1.2.0)
+    value: ${{ steps.set-version.outputs.PATCH_VERSION }}
+  FULL_VERSION:
+    description: Full version including build number (e.g. 1.2.0.123)
+    value: ${{ steps.set-version.outputs.FULL_VERSION }}
+  BUILD_NUMBER:
+    description: CI build number
+    value: ${{ steps.get-build-number.outputs.BUILD_NUMBER }}
+
 runs:
   using: composite
   steps:
+
+    - name: Get build number
+      uses: SonarSource/ci-github-actions/get-build-number@master
+      id: get-build-number
+
+    - name: Set version
+      id: set-version
+      #TODO: Rename params in set-version-ci.ps1 when we delete azure-pipelines.yml
+      shell: powershell
+      env:
+        BUILD_BUILDID:          ${{ steps.get-build-number.outputs.BUILD_NUMBER }}
+        BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
+        BUILD_SOURCEVERSION:    ${{ github.sha }}
+      run: |
+        [xml]$xml = Get-Content Version.targets
+        $ShortVersion = $xml.Project.PropertyGroup.ShortVersion.Trim()
+        $PatchVersion = if ($ShortVersion.IndexOf('.') -eq $ShortVersion.LastIndexOf('.')) { "$ShortVersion.0" } else { $ShortVersion }
+        $FullVersion  = "$PatchVersion.${{ steps.get-build-number.outputs.BUILD_NUMBER }}"
+        Write-Host "SHORT_VERSION=$ShortVersion"
+        Write-Host "PATCH_VERSION=$PatchVersion"
+        Write-Host "FULL_VERSION=$FullVersion"
+        "SHORT_VERSION=$ShortVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "PATCH_VERSION=$PatchVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "FULL_VERSION=$FullVersion"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        $env:SHORT_VERSION = $ShortVersion
+        ./scripts/set-version-ci.ps1
