@@ -33,3 +33,11 @@ runs:
         Write-Host "FULL_VERSION=$FullVersion"
         $env:SHORT_VERSION = $ShortVersion
         ./scripts/set-version-ci.ps1
+
+    - name: Fetch Vault Secrets
+      id: secrets
+      uses: SonarSource/vault-action-wrapper@v3
+      with:
+        secrets: |
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
