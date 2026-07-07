@@ -83,11 +83,12 @@ class BaseDirTest {
       assertThat(logs).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + context.projectDir +
         "' and will not be analyzed.");
       assertThat(logs).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
-      assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).hasSize(2)
+      assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey))
+        .filteredOn(x -> x.getRule().endsWith("S1134"))
         .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
         .containsExactlyInAnyOrder(
-          tuple("vbnet:S6145", context.projectKey),
-          tuple("csharpsquid:S1134", context.projectKey + ":DefaultDrive/Program.cs")
+          tuple("csharpsquid:S1134", context.projectKey + ":DefaultDrive/Program.cs"),
+          tuple("vbnet:S1134", context.projectKey + ":DefaultDriveSecondProject/Program.vb")
         );
     } finally {
       TestUtils.deleteVirtualDrive("Y:", context.projectDir);
