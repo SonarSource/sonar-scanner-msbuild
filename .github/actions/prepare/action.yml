@@ -26,7 +26,7 @@ runs:
       run: |
         [xml]$xml = Get-Content Version.targets
         $ShortVersion = $xml.Project.PropertyGroup.ShortVersion.Trim()
-        $PatchVersion = if ($ShortVersion.IndexOf('.') -eq $ShortVersion.LastIndexOf('.')) { "$ShortVersion.0" } else { $ShortVersion }
+        $PatchVersion = if ($ShortVersion.Split('.').Count -eq 2) { "$ShortVersion.0" } else { $ShortVersion }
         $FullVersion  = "$PatchVersion.${{ steps.get-build-number.outputs.BUILD_NUMBER }}"
         Write-Host "SHORT_VERSION=$ShortVersion"
         Write-Host "PATCH_VERSION=$PatchVersion"
