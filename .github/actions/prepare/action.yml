@@ -1,0 +1,12 @@
+name: Prepare
+description: Install tools, cache NuGet, fetch secrets, compute version, and restore.
+
+runs:
+  using: composite
+  steps:
+    - name: Install tools
+      uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
+      with:
+        cache: true
+        tool_versions: |
+          gh 2.92
