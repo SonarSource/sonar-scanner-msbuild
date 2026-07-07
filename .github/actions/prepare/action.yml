@@ -1,20 +1,6 @@
 name: Prepare
 description: Install tools, cache NuGet, fetch secrets, compute version, and restore.
 
-outputs:
-  SHORT_VERSION:
-    description: Short version (e.g. 1.2)
-    value: ${{ steps.set-version.outputs.SHORT_VERSION }}
-  PATCH_VERSION:
-    description: Patch version (e.g. 1.2.0)
-    value: ${{ steps.set-version.outputs.PATCH_VERSION }}
-  FULL_VERSION:
-    description: Full version including build number (e.g. 1.2.0.123)
-    value: ${{ steps.set-version.outputs.FULL_VERSION }}
-  BUILD_NUMBER:
-    description: CI build number
-    value: ${{ steps.get-build-number.outputs.BUILD_NUMBER }}
-
 runs:
   using: composite
   steps:
@@ -31,7 +17,7 @@ runs:
 
     - name: Set version
       id: set-version
-      #TODO: Rename params in set-version-ci.ps1 when we delete azure-pipelines.yml
+      #TODO: Wait for https://sonarsource.atlassian.net/browse/NET-4093 (rewrite set-version-ci.ps1), then adopt the same approach here.
       shell: powershell
       env:
         BUILD_BUILDID:          ${{ steps.get-build-number.outputs.BUILD_NUMBER }}
@@ -45,8 +31,5 @@ runs:
         Write-Host "SHORT_VERSION=$ShortVersion"
         Write-Host "PATCH_VERSION=$PatchVersion"
         Write-Host "FULL_VERSION=$FullVersion"
-        "SHORT_VERSION=$ShortVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-        "PATCH_VERSION=$PatchVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-        "FULL_VERSION=$FullVersion"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         $env:SHORT_VERSION = $ShortVersion
         ./scripts/set-version-ci.ps1
