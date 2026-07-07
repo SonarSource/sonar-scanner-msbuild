@@ -47,6 +47,10 @@ runs:
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
 
+    # The cache bucket is the current month. It's part of the cache key so the cache
+    # rotates monthly, preventing it from growing unbounded with stale packages.
+    # Get-Date can't be called inside a ${{ }} expression, so it's computed here.
+    # see: https://docs.github.com/en/actions/reference/workflows-and-actions/expressions
     - name: Setup cache month variable
       id: cache-month
       shell: powershell
