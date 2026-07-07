@@ -20,28 +20,6 @@
   },
   "packageRules": [
     {
-      "description": "Do not update SonarSource GH actions, we want the branch-version. Only external actions must have commit ID.",
-      "matchDepNames": [
-        "SonarSource/**"
-      ],
-      "enabled": false
-    },
-    {
-      "description": "Do update SonarSource/sonar-secrets-pre-commit.",
-      "matchDepNames": [
-        "SonarSource/sonar-secrets-pre-commit"
-      ],
-      "enabled": true
-    },
-    {
-      "description": "Group MSTest dependencies into a single PR",
-      "matchPackageNames": [
-        "MSTest.**",
-        "Microsoft.NET.Test.Sdk"
-      ],
-      "groupName": "MSTest"
-    },
-    {
       "description": "Group Coverlet dependencies into a single PR",
       "matchPackageNames": [
         "coverlet.**"
@@ -49,26 +27,11 @@
       "groupName": "Coverlet"
     },
     {
-      "description": "Group protobuf packages together - Grpc.Tools bundles protoc which must be compatible with the Google.Protobuf runtime",
-      "matchPackageNames": [
-        "Google.Protobuf",
-        "Grpc.Tools"
-      ],
-      "groupName": "protobuf"
-    },
-    {
       "description": "Do not update Build dependency. It provides backward compatibility with MsBuild 14+",
       "matchPackageNames": [
         "Microsoft.Build**"
       ],
       "enabled": false
-    },
-    {
-      "description": "Do not update FluentAssertions above v7 due to license change",
-      "matchPackageNames": [
-        "FluentAssertions"
-      ],
-      "allowedVersions": "<8.0.0"
     }
   ]
 }
