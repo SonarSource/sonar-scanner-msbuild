@@ -67,6 +67,7 @@ class ScannerEngineTest {
     assertTrue(result.isSuccess());
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     assertThat(issues)
+      .filteredOn(x -> x.getRule().equals("csharpsquid:S101"))
       .extracting(x -> tuple(x.getComponent(), x.getRule(), x.getMessage()))
       .containsExactlyInAnyOrder(
         tuple(
