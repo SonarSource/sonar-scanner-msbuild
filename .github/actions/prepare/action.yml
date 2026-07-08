@@ -6,7 +6,7 @@ runs:
   steps:
 
     - name: Get build number
-      uses: SonarSource/ci-github-actions/get-build-number@master
+      uses: SonarSource/ci-github-actions/get-build-number@v1
       id: get-build-number
 
     - name: Set version
