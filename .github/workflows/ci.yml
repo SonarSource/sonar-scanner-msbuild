@@ -32,14 +32,17 @@ jobs:
 
       - name: Set version
         id: set-version
-        shell: pwsh
+        shell: bash
         run: |
-          [xml]$xml = Get-Content Version.targets
-          $ShortVersion = $xml.Project.PropertyGroup.ShortVersion.Trim()
-          $PatchVersion = if ($ShortVersion.Split('.').Count -eq 2) { "$ShortVersion.0" } else { $ShortVersion }
-          $FullVersion  = "$PatchVersion.${{ steps.get-build-number.outputs.BUILD_NUMBER }}"
-          "PATCH_VERSION=$PatchVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "FULL_VERSION=$FullVersion"   | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          SHORT_VERSION=$(sed -n 's/.*<ShortVersion>\(.*\)<\/ShortVersion>.*/\1/p' Version.targets | xargs)
+          if [ "$(echo "$SHORT_VERSION" | tr -cd '.' | wc -c)" -eq 1 ]; then
+            PATCH_VERSION="$SHORT_VERSION.0"
+          else
+            PATCH_VERSION="$SHORT_VERSION"
+          fi
+          FULL_VERSION="$PATCH_VERSION.${{ steps.get-build-number.outputs.BUILD_NUMBER }}"
+          echo "PATCH_VERSION=$PATCH_VERSION" >> "$GITHUB_OUTPUT"
+          echo "FULL_VERSION=$FULL_VERSION"   >> "$GITHUB_OUTPUT"
 
   build:
     name: Build
