@@ -7,7 +7,7 @@ on:
       - '**.md'
       - 'docs/**'
       - '.github/CODEOWNERS'
-pull_request:
+  pull_request:
     paths-ignore:
       - '**.md'
       - 'docs/**'
