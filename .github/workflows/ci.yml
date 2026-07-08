@@ -32,7 +32,7 @@ jobs:
           nuget-packages-path: ${{ env.NUGET_PACKAGES }}
 
       - name: Build
-        run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release
+        run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /m
 
       - name: Upload Binaries artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
