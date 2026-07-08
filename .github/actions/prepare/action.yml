@@ -1,6 +1,11 @@
 name: Prepare
 description: Install tools, cache NuGet, fetch secrets, compute version, and restore.
 
+inputs:
+  nuget-packages-path:
+    description: Directory NuGet packages are restored into and cached from. Must match the NUGET_PACKAGES env var in the caller so cache and restore agree.
+    required: true
+
 runs:
   using: composite
   steps:
@@ -41,3 +46,24 @@ runs:
         secrets: |
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
+
+    - name: Setup cache month variable
+      id: cache-month
+      shell: powershell
+      run: |
+        "CACHE_MONTH=$(Get-Date -Format 'MM')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+    - name: Cache NuGet packages
+      uses: SonarSource/gh-action_cache@v1
+      with:
+        path: ${{ inputs.nuget-packages-path }}
+        key: nuget-${{ steps.cache-month.outputs.CACHE_MONTH }}-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: nuget-${{ steps.cache-month.outputs.CACHE_MONTH }}-
+
+    - name: Restore
+      shell: powershell
+      env:
+        NUGET_PACKAGES:       ${{ inputs.nuget-packages-path }}
+        ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
+        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+      run: dotnet restore SonarScanner.MSBuild.sln --locked-mode --configfile "NuGet.Config"
