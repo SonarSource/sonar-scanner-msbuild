@@ -60,6 +60,18 @@ jobs:
           Zip-Assemblies "Packaging/Binaries/Net" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net.zip"
           Zip-Assemblies "Packaging/Binaries/Net-Framework" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net-framework.zip"
 
+      - name: Package dotnet global tool
+        env:
+          PATCH_VERSION: ${{ steps.prepare.outputs.PATCH_VERSION }}
+        run: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $env:PATCH_VERSION -OutputDirectory Packaging\Binaries\NuGet
+
+      - name: Generate Choco packages
+        shell: powershell
+        env:
+          FULL_VERSION: ${{ steps.prepare.outputs.FULL_VERSION }}
+          PATCH_VERSION: ${{ steps.prepare.outputs.PATCH_VERSION }}
+        run: . .\scripts\create-choco-packages.ps1
+
       - name: Upload Binaries artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

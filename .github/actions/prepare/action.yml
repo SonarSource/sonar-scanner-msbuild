@@ -10,6 +10,9 @@ outputs:
   FULL_VERSION:
     description: Full version including build number (e.g. 10.28.0.123)
     value: ${{ steps.set-version.outputs.FULL_VERSION }}
+  PATCH_VERSION:
+    description: Patch version (e.g. 10.28.0)
+    value: ${{ steps.set-version.outputs.PATCH_VERSION }}
 
 runs:
   using: composite
@@ -41,6 +44,7 @@ runs:
         Write-Host "SHORT_VERSION=$ShortVersion"
         Write-Host "PATCH_VERSION=$PatchVersion"
         Write-Host "FULL_VERSION=$FullVersion"
+        "PATCH_VERSION=$PatchVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         "FULL_VERSION=$FullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         $env:SHORT_VERSION = $ShortVersion
         ./scripts/set-version-ci.ps1
