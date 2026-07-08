@@ -32,9 +32,11 @@ import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Components;
+import org.sonarqube.ws.Issues;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class BaseDirTest {
@@ -81,13 +83,13 @@ class BaseDirTest {
       assertThat(logs).contains("WARNING: File 'Y:\\Subfolder\\Program.cs' is not located under the base directory '" + context.projectDir +
         "' and will not be analyzed.");
       assertThat(logs).contains("File was referenced by the following projects: 'Y:\\Subfolder\\DriveY.csproj'.");
-      var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-      assertThat(issues).filteredOn(x -> x.getRule().startsWith("csharpsquid"))
-        .extracting(x -> x.getComponent())
-        .contains(context.projectKey + ":DefaultDrive/Program.cs");
-      assertThat(issues).filteredOn(x -> x.getRule().startsWith("vbnet"))
-        .extracting(x -> x.getComponent())
-        .contains(context.projectKey + ":DefaultDriveSecondProject/Program.vb");
+      assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey))
+        .filteredOn(x -> x.getRule().endsWith("S1134"))
+        .extracting(Issues.Issue::getRule, Issues.Issue::getComponent)
+        .containsExactlyInAnyOrder(
+          tuple("csharpsquid:S1134", context.projectKey + ":DefaultDrive/Program.cs"),
+          tuple("vbnet:S1134", context.projectKey + ":DefaultDriveSecondProject/Program.vb")
+        );
     } finally {
       TestUtils.deleteVirtualDrive("Y:", context.projectDir);
     }
