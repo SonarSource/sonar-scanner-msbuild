@@ -38,6 +38,15 @@ jobs:
       - name: Build
         run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /m
 
+      - name: Sign DLLs
+        uses: SonarSource/gh-action_azure-artifact-signing@v1
+        with:
+          files: |
+            Packaging/Binaries/Net/Sonar*.dll
+            Packaging/Binaries/Net/Sonar*.exe
+            Packaging/Binaries/Net-Framework/Sonar*.dll
+            Packaging/Binaries/Net-Framework/Sonar*.exe
+
       - name: Zip .NET packages
         shell: powershell
         env:
