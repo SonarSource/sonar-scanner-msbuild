@@ -3,7 +3,17 @@ name: Build, Test, and Publish
 on:
   push:
     branches: [master, 'branch-*', 'feature/*']
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/CODEOWNERS'
+      - 'LICENSE.txt'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/CODEOWNERS'
+      - 'LICENSE.txt'
   workflow_dispatch:
 
 concurrency:
