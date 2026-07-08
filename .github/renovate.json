@@ -3,15 +3,9 @@
   "extends": [
     "local>SonarSource/core-languages-tooling-public:renovate-config"
   ],
-  "enabledManagers": [
-    "nuget",
-    "maven",
-    "github-actions",
-    "pre-commit"
+  "ignorePaths": [
+    "its/projects/**"
   ],
-  "pre-commit": {
-    "enabled": true
-  },
   "nuget": {
     "description": "ignorePaths in the root does not work due to higher-precedence built-in counter-intuitive nuget-specifc defaults",
     "ignorePaths": [
@@ -19,13 +13,6 @@
     ]
   },
   "packageRules": [
-    {
-      "description": "Group Coverlet dependencies into a single PR",
-      "matchPackageNames": [
-        "coverlet.**"
-      ],
-      "groupName": "Coverlet"
-    },
     {
       "description": "Do not update Build dependency. It provides backward compatibility with MsBuild 14+",
       "matchPackageNames": [
