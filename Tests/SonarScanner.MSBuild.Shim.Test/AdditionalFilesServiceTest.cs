@@ -222,6 +222,7 @@ public class AdditionalFilesServiceTest
     [TestMethod]
     [DataRow("sonar.tsql.file.suffixes")]
     [DataRow("sonar.plsql.file.suffixes")]
+    [DataRow("sonar.postgres.file.suffixes")]
     [DataRow("sonar.yaml.file.suffixes")]
     [DataRow("sonar.json.file.suffixes")]
     [DataRow("sonar.css.file.suffixes")]
@@ -234,6 +235,7 @@ public class AdditionalFilesServiceTest
     [DataRow("sonar.azureresourcemanager.file.suffixes")]
     [DataRow("sonar.terraform.file.suffixes")]
     [DataRow("sonar.go.file.suffixes")]
+    [DataRow("sonar.gosu.file.suffixes")]
     [DataRow("sonar.groovy.file.suffixes")]
     [DataRow("sonar.powershell.file.suffixes")]
     public void AdditionalFiles_ExtensionsFound_SingleProperty(string propertyName)
@@ -255,6 +257,30 @@ public class AdditionalFilesServiceTest
     }
 
     [TestMethod]
+    public void AdditionalFiles_ExtensionsFound_SqlSuffixPropertiesCoexist()
+    {
+        runtime.Directory
+            .EnumerateFiles(ProjectBaseDir, "*", SearchOption.TopDirectoryOnly)
+            .Returns([new("valid.sql"), new("valid.tsql"), new("valid.plsql"), new("invalid.mysql")]);
+        var config = new AnalysisConfig
+        {
+            ScanAllAnalysis = true,
+            LocalSettings = [],
+            ServerSettings =
+            [
+                new("sonar.postgres.file.suffixes", ".sql"),
+                new("sonar.tsql.file.suffixes", ".tsql"),
+                new("sonar.plsql.file.suffixes", ".plsql")
+            ]
+        };
+
+        var files = sut.AdditionalFiles(config, ProjectBaseDir);
+
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.sql", "valid.tsql", "valid.plsql");
+        files.Tests.Should().BeEmpty();
+    }
+
+    [TestMethod]
     public void AdditionalFiles_ExtensionsFound_MultipleProperties()
     {
         var allFiles = new[]
@@ -267,6 +293,7 @@ public class AdditionalFilesServiceTest
             "valid.bicep",
             "valid.tf",
             "valid.go",
+            "valid.gsu",
             "invalid.js",
             "invalid.html",
             "invalid.vb.html",
@@ -281,19 +308,20 @@ public class AdditionalFilesServiceTest
             ServerSettings =
             [
                 new("sonar.html.file.suffixes", ".cs.html"),
-                new("sonar.tsql.file.suffixes", ".sql"),
+                new("sonar.postgres.file.suffixes", ".sql"),
                 new("sonar.python.file.suffixes", ".py"),
                 new("sonar.ipynb.file.suffixes", ".ipynb"),
                 new("sonar.php.file.suffixes", ".php"),
                 new("sonar.azureresourcemanager.file.suffixes", ".bicep"),
                 new("sonar.terraform.file.suffixes", ".tf"),
                 new("sonar.go.file.suffixes", ".go"),
+                new("sonar.gosu.file.suffixes", ".gsu"),
             ]
         };
 
         var files = sut.AdditionalFiles(analysisConfig, ProjectBaseDir);
 
-        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.cs.html", "valid.sql", "valid.py", "valid.ipynb", "valid.php", "valid.bicep", "valid.tf", "valid.go");
+        files.Sources.Select(x => x.Name).Should().BeEquivalentTo("valid.cs.html", "valid.sql", "valid.py", "valid.ipynb", "valid.php", "valid.bicep", "valid.tf", "valid.go", "valid.gsu");
         files.Tests.Should().BeEmpty();
     }
 

@@ -364,6 +364,7 @@ stages:
               PYTHON_VERSION: "3.4.1.8066"      # Bundled version with SQ 8.9
               RUBY_VERSION: "NONE"              # DRE Dependency
               TEXT_VERSION: "NONE"              # Not release brefore SQ 9.9, the plug-in should not be loaded
+              TSQL_VERSION: "1.5.1.4340"        # Bundled version with SQ 8.9
               XML_VERSION: "2.2.0.2973"         # Bundled version with SQ 8.9
             LTA-99:
               PRODUCT: "SonarQube"
@@ -386,6 +387,7 @@ stages:
               PYTHON_VERSION: "3.24.0.10784"     # Bundled version with SQ 9.9
               RUBY_VERSION: "NONE"               # DRE Dependency
               TEXT_VERSION: "NONE"               # Not required in our ITs for SQ 9.9
+              TSQL_VERSION: "1.7.0.5449"         # Bundled version with SQ 9.9
               XML_VERSION: "2.7.0.3820"          # Bundled version with SQ 9.9
             LTA-2025-1:
               PRODUCT: "SonarQube"
@@ -408,6 +410,7 @@ stages:
               PYTHON_VERSION: "4.26.0.19456"          # Bundled version with SQ 2025.1
               RUBY_VERSION: "NONE"                    # DRE Dependency
               TEXT_VERSION: "2.20.0.5038"             # Bundled version with SQ 2025.1
+              TSQL_VERSION: "1.14.0.7614"             # Bundled version with SQ 2025.1
               XML_VERSION: "2.12.0.5749"              # Bundled version with SQ 2025.1
             LTA-2025-4:
               PRODUCT: "SonarQube"
@@ -431,6 +434,7 @@ stages:
               PYTHON_VERSION: "5.7.1.26730"           # Bundled version with SQ 2025.4
               RUBY_VERSION: "NONE"                    # DRE Dependency
               TEXT_VERSION: "2.26.1.9976"             # Bundled version with SQ 2025.4
+              TSQL_VERSION: "1.15.0.7898"             # Bundled version with SQ 2025.4
               XML_VERSION: "2.13.1.6351"              # Bundled version with SQ 2025.4
             LTA-2026-1:
               PRODUCT: "SonarQube"
@@ -454,6 +458,7 @@ stages:
               PYTHON_VERSION: "5.14.2.29072"          # Bundled version with SQ 2026.1
               RUBY_VERSION: "NONE"                    # DRE Dependency
               TEXT_VERSION: "2.38.0.10279"            # Bundled version with SQ 2026.1
+              TSQL_VERSION: "1.16.1.9133"             # Bundled version with SQ 2026.1
               XML_VERSION: "2.15.0.7513"              # Bundled version with SQ 2026.1
             LATEST_RELEASE:
               PRODUCT: "SonarQube"
@@ -498,6 +503,7 @@ stages:
               IAC_ENTERPRISE_VERSION: "NONE"  # Commercial plugin
               RUBY_VERSION: "NONE"            # Not-Commercial, but only required when the DRE plugin is installed
               PLSQL_VERSION: "NONE"           # Commercial plugin
+              TSQL_VERSION: "NONE"            # Commercial plugin
               JDKVERSION: "1.21"
             Cloud:
               PRODUCT: "SonarCloud"

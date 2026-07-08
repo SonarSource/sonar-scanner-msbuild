@@ -51,6 +51,7 @@ public class AdditionalFilesService
     [
         "sonar.tsql.file.suffixes",
         "sonar.plsql.file.suffixes",
+        "sonar.postgres.file.suffixes",
         "sonar.yaml.file.suffixes",
         "sonar.json.file.suffixes",
         "sonar.css.file.suffixes",
@@ -63,6 +64,7 @@ public class AdditionalFilesService
         "sonar.azureresourcemanager.file.suffixes",
         "sonar.terraform.file.suffixes",
         "sonar.go.file.suffixes",
+        "sonar.gosu.file.suffixes",
         "sonar.groovy.file.suffixes",
         "sonar.powershell.file.suffixes",
     ];

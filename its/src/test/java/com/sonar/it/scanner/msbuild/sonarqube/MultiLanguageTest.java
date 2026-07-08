@@ -101,6 +101,7 @@ class MultiLanguageTest {
   @DisableOnEdition(Edition.COMMUNITY)
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
+    var version = ORCHESTRATOR.getServer().version();
     context.begin.setDebugLogs();
     context.begin.CreateAndSetUserHomeFolder("junit-sdkFormat-");
     // Begin step runs in MultiLanguageSupport
@@ -114,10 +115,10 @@ class MultiLanguageTest {
       var logs = context.runAnalysis().end().getLogs();
 
       var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-      var version = ORCHESTRATOR.getServer().version();
       assertLanguageExists(issues, "csharpsquid");
       assertLanguageExists(issues, "javascript");
       assertLanguageExists(issues, "plsql");
+      assertLanguageExists(issues, "tsql");
       assertLanguageExists(issues, "python");
       assertLanguageExists(issues, "php");
       assertLanguageExists(issues, "go");
@@ -154,6 +155,7 @@ class MultiLanguageTest {
       if (version.isGreaterThan(2026, 1)) {
         assertLanguageExists(issues, "groovydre");
         assertLanguageExists(issues, "powershelldre");
+        assertLanguageExists(issues, "postgresdre");
       }
       assertThat(issues).extracting(Issue::getComponent)
         .contains(context.projectKey + ":src/MultiLanguageSupport/Included.cs")
@@ -239,9 +241,13 @@ class MultiLanguageTest {
 
   private static void assertLanguageExists(List<Issue> issues, String language) {
     // Rule keys are `<repository>:<ruleKey>`; the trailing `:` avoids matching a longer language (e.g. `java` vs `javascript`).
-    assertThat(issues).filteredOn(x -> x.getRule().startsWith(language + ":")).isNotEmpty();
+    assertThat(issues)
+      .filteredOn(x -> x.getRule().startsWith(language + ":"))
+      .as("Expected at least one issue for language/repository '%s' among %s issue(s)",
+        language,
+        issues.size())
+      .isNotEmpty();
   }
-
 
   // This class is used to create a .git folder in the project directory.
   // This is required for the sonar-text-plugin to work correctly.

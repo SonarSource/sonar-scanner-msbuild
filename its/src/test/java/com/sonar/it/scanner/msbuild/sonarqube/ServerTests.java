@@ -82,6 +82,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     addPlugin(orchestrator, "org.sonarsource.php", "sonar-php-plugin", "sonar.phpplugin.version");
     addPlugin(orchestrator, "org.sonarsource.python", "sonar-python-plugin", "sonar.pythonplugin.version");
     addPlugin(orchestrator, "org.sonarsource.text", "sonar-text-plugin", "sonar.textplugin.version");
+    addPlugin(orchestrator, "com.sonarsource.tsql", "sonar-tsql-plugin", "sonar.tsqlplugin.version");
     addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version");
     addPlugin(orchestrator, "org.sonarsource.slang", "sonar-ruby-plugin", "sonar.rubyplugin.version");
     addPlugin(orchestrator, "com.sonarsource.go", "sonar-go-enterprise-plugin", "sonar.goplugin-enterprise.version");

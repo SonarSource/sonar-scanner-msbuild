@@ -1,0 +1,1 @@
+GRANT CREATE ON SCHEMA app_schema TO PUBLIC; -- FIXME ensure unsafe schema grant is detected - postgresdre:S8934

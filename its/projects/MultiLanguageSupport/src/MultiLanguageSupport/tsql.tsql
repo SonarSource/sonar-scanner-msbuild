@@ -1,0 +1,2 @@
+CREATE TABLE dbo.mytable(col1 INT NOT NULL);
+INSERT INTO dbo.mytable(col1) VALUES (1); -- FIXME ensure value is not null - tsql:S1134
