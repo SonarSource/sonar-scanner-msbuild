@@ -118,3 +118,91 @@ jobs:
           path: Packaging/Binaries
           retention-days: 1
           if-no-files-found: error
+
+  qa_windows:
+    name: QA Windows - UTs and analysis
+    needs: version
+    runs-on: warp-custom-dotnet-bubble-ci
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Prepare
+        uses: ./.github/actions/prepare
+        with:
+          nuget-packages-path: ${{ env.NUGET_PACKAGES }}
+          build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
+
+      - name: Fetch Vault Secrets
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
+            development/kv/data/sonarcloud token                                             | SONAR_TOKEN;
+
+      - name: Setup cache date variable
+        id: cache-date
+        shell: powershell
+        run: |
+          "CACHE_DATE=$(Get-Date -Format 'yyyy-MM-dd')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Cache SonarScanner for .NET
+        id: s4net-cache
+        uses: SonarSource/gh-action_cache@v1
+        with:
+          path: ${{ runner.temp }}\S4NET
+          key: s4net-${{ steps.cache-date.outputs.CACHE_DATE }}
+
+      - name: Install SonarScanner for .NET
+        if: steps.s4net-cache.outputs.cache-hit != 'true'
+        shell: powershell
+        env:
+          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+        run: dotnet tool update dotnet-sonarscanner --tool-path "${{ runner.temp }}\S4NET" --configfile "NuGet.Config"
+
+      - name: SonarQube begin
+        shell: powershell
+        env:
+          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
+        run: >
+          & "${{ runner.temp }}\S4NET\dotnet-sonarscanner" begin
+          /o:"sonarsource"
+          /k:"sonarscanner-msbuild"
+          /n:"SonarScanner for .NET"
+          /v:"${{ needs.version.outputs.SHORT_VERSION }}"
+          /d:sonar.token="$env:SONAR_TOKEN"
+          /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}\Coverage\*.xml"
+          /d:sonar.cs.vstest.reportsPaths="${{ github.workspace }}\TestResults\*.trx"
+          /d:sonar.sca.exclusions="its/projects/**"
+
+      - name: Build and analyze
+        run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true
+
+      - name: Run UTs and compute coverage
+        shell: powershell
+        env:
+          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+        run: .\scripts\run-unit-tests.ps1 -SourcesDirectory "${{ github.workspace }}" -BuildConfiguration Release
+
+      - name: Delete files created by unit tests
+        shell: powershell
+        run: |
+          Get-ChildItem "${{ runner.temp }}" -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
+
+      - name: SonarQube end
+        shell: powershell
+        env:
+          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
+        run: '& "${{ runner.temp }}\S4NET\dotnet-sonarscanner" end /d:sonar.token="$env:SONAR_TOKEN"'
