@@ -1,6 +1,8 @@
 name: Build, Test, and Publish
 
 on:
+  schedule:
+    - cron: '17 2 * * 1-5'
   push:
     branches: [master, 'branch-*', 'feature/*']
   pull_request:
