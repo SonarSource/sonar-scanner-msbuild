@@ -14,13 +14,6 @@
   },
   "packageRules": [
     {
-      "description": "Group Coverlet dependencies into a single PR",
-      "matchPackageNames": [
-        "coverlet.**"
-      ],
-      "groupName": "Coverlet"
-    },
-    {
       "description": "Do not update Build dependency. It provides backward compatibility with MsBuild 14+",
       "matchPackageNames": [
         "Microsoft.Build**"
