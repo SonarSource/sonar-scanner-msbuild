@@ -5,14 +5,9 @@ inputs:
   nuget-packages-path:
     description: Directory NuGet packages are restored into and cached from. Must match the NUGET_PACKAGES env var in the caller so cache and restore agree.
     required: true
-
-outputs:
-  FULL_VERSION:
-    description: Full version including build number (e.g. 10.28.0.123)
-    value: ${{ steps.set-version.outputs.FULL_VERSION }}
-  PATCH_VERSION:
-    description: Patch version (e.g. 10.28.0)
-    value: ${{ steps.set-version.outputs.PATCH_VERSION }}
+  build-number:
+    description: Build number computed by the version job. Used to set Version.targets before building.
+    required: true
 
 runs:
   using: composite
@@ -24,28 +19,17 @@ runs:
         tool_versions: |
           gh 2.96.0
 
-    - name: Get build number
-      uses: SonarSource/ci-github-actions/get-build-number@v1
-      id: get-build-number
-
     - name: Set version
-      id: set-version
       #TODO: Wait for https://sonarsource.atlassian.net/browse/NET-4093 (rewrite set-version-ci.ps1), then adopt the same approach here.
       shell: powershell
       env:
-        BUILD_BUILDID:          ${{ steps.get-build-number.outputs.BUILD_NUMBER }}
+        BUILD_BUILDID:          ${{ inputs.build-number }}
         BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
         BUILD_SOURCEVERSION:    ${{ github.sha }}
       run: |
         [xml]$xml = Get-Content Version.targets
         $ShortVersion = $xml.Project.PropertyGroup.ShortVersion.Trim()
-        $PatchVersion = if ($ShortVersion.Split('.').Count -eq 2) { "$ShortVersion.0" } else { $ShortVersion }
-        $FullVersion  = "$PatchVersion.${{ steps.get-build-number.outputs.BUILD_NUMBER }}"
         Write-Host "SHORT_VERSION=$ShortVersion"
-        Write-Host "PATCH_VERSION=$PatchVersion"
-        Write-Host "FULL_VERSION=$FullVersion"
-        "PATCH_VERSION=$PatchVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-        "FULL_VERSION=$FullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         $env:SHORT_VERSION = $ShortVersion
         ./scripts/set-version-ci.ps1
 
