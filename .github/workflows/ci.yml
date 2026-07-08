@@ -32,6 +32,9 @@ jobs:
         with:
           nuget-packages-path: ${{ env.NUGET_PACKAGES }}
 
+      - name: Generate SBOM
+        run: dotnet CycloneDX SonarScanner.MSBuild.sln -t --json -o Packaging\Binaries
+
       - name: Build
         run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /m
 
