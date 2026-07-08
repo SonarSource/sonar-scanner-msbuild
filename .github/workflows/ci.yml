@@ -7,13 +7,11 @@ on:
       - '**.md'
       - 'docs/**'
       - '.github/CODEOWNERS'
-      - 'LICENSE.txt'
-  pull_request:
+pull_request:
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - '.github/CODEOWNERS'
-      - 'LICENSE.txt'
   workflow_dispatch:
 
 concurrency:
