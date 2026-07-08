@@ -2,7 +2,7 @@ name: Build, Test, and Publish
 
 on:
   schedule:
-    - cron: '17 2 * * 1-5'
+    - cron: '17 2 * * 1-5' # Mon-Fri 2:17 AM UTC
   push:
     branches: [master, 'branch-*', 'feature/*']
   pull_request:
