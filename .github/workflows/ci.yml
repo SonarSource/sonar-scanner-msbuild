@@ -108,6 +108,12 @@ jobs:
         shell: powershell
         run: . .\scripts\create-choco-packages.ps1
 
+      - name: Sign NuGet package
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
+        uses: SonarSource/gh-action_azure-artifact-signing@v1
+        with:
+          files: Packaging/Binaries/NuGet/dotnet-sonarscanner*.nupkg
+
       - name: Run packaging tests
         env:
           IS_RELEASE_BRANCH: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-') }}
