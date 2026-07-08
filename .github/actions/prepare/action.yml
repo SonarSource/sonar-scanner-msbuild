@@ -3,7 +3,7 @@ description: Install tools, cache NuGet, fetch secrets, compute version, and res
 
 inputs:
   nuget-packages-path:
-    description: Directory NuGet packages are restored into and cached from. Must match the NUGET_PACKAGES env var in the caller so cache and restore agree.
+    description: Directory NuGet packages are restored into and cached from.
     required: true
 
 runs:
