@@ -6,6 +6,11 @@ inputs:
     description: Directory NuGet packages are restored into and cached from. Must match the NUGET_PACKAGES env var in the caller so cache and restore agree.
     required: true
 
+outputs:
+  FULL_VERSION:
+    description: Full version including build number (e.g. 10.28.0.123)
+    value: ${{ steps.set-version.outputs.FULL_VERSION }}
+
 runs:
   using: composite
   steps:
@@ -36,6 +41,7 @@ runs:
         Write-Host "SHORT_VERSION=$ShortVersion"
         Write-Host "PATCH_VERSION=$PatchVersion"
         Write-Host "FULL_VERSION=$FullVersion"
+        "FULL_VERSION=$FullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
         $env:SHORT_VERSION = $ShortVersion
         ./scripts/set-version-ci.ps1
 

@@ -27,12 +27,26 @@ jobs:
           fetch-depth: 0
 
       - name: Prepare
+        id: prepare
         uses: ./.github/actions/prepare
         with:
           nuget-packages-path: ${{ env.NUGET_PACKAGES }}
 
       - name: Build
         run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /m
+
+      - name: Zip .NET packages
+        shell: powershell
+        env:
+          FULL_VERSION: ${{ steps.prepare.outputs.FULL_VERSION }}
+        run: |
+          function Zip-Assemblies([string]$Source, [string]$Destination) {
+              # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
+              tar -c -a -C "$Source" --options "zip:compression-level=9" -f "$Destination" *
+          }
+
+          Zip-Assemblies "Packaging/Binaries/Net" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net.zip"
+          Zip-Assemblies "Packaging/Binaries/Net-Framework" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net-framework.zip"
 
       - name: Upload Binaries artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
