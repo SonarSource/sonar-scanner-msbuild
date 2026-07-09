@@ -6,7 +6,10 @@ inputs:
     description: Directory NuGet packages are restored into and cached from. Must match the NUGET_PACKAGES env var in the caller so cache and restore agree.
     required: true
   build-number:
-    description: Build number computed by the version job. Used to set Version.targets before building.
+    description: Build number used to set Version.targets before building.
+    required: true
+  short-version:
+    description: Short version (e.g. 5.15) used to set Version.targets before building.
     required: true
 
 runs:
@@ -23,15 +26,11 @@ runs:
       #TODO: Wait for https://sonarsource.atlassian.net/browse/NET-4093 (rewrite set-version-ci.ps1), then adopt the same approach here.
       shell: powershell
       env:
+        SHORT_VERSION:          ${{ inputs.short-version }}
         BUILD_BUILDID:          ${{ inputs.build-number }}
         BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
         BUILD_SOURCEVERSION:    ${{ github.sha }}
-      run: |
-        [xml]$xml = Get-Content Version.targets
-        $ShortVersion = $xml.Project.PropertyGroup.ShortVersion.Trim()
-        Write-Host "SHORT_VERSION=$ShortVersion"
-        $env:SHORT_VERSION = $ShortVersion
-        ./scripts/set-version-ci.ps1
+      run: ./scripts/set-version-ci.ps1
 
     - name: Fetch Vault Secrets
       id: secrets

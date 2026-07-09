@@ -18,6 +18,7 @@ jobs:
       id-token: write
     outputs:
       BUILD_NUMBER: ${{ steps.get-build-number.outputs.BUILD_NUMBER }}
+      SHORT_VERSION: ${{ steps.set-version.outputs.SHORT_VERSION }}
       FULL_VERSION: ${{ steps.set-version.outputs.FULL_VERSION }}
       PATCH_VERSION: ${{ steps.set-version.outputs.PATCH_VERSION }}
     steps:
@@ -41,6 +42,7 @@ jobs:
             PATCH_VERSION="$SHORT_VERSION"
           fi
           FULL_VERSION="$PATCH_VERSION.${{ steps.get-build-number.outputs.BUILD_NUMBER }}"
+          echo "SHORT_VERSION=$SHORT_VERSION" >> "$GITHUB_OUTPUT"
           echo "PATCH_VERSION=$PATCH_VERSION" >> "$GITHUB_OUTPUT"
           echo "FULL_VERSION=$FULL_VERSION"   >> "$GITHUB_OUTPUT"
 
@@ -67,6 +69,7 @@ jobs:
         with:
           nuget-packages-path: ${{ env.NUGET_PACKAGES }}
           build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
+          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
 
       - name: Generate SBOM
         run: dotnet CycloneDX SonarScanner.MSBuild.sln -t --json -o Packaging\Binaries
