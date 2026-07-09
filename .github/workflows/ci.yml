@@ -109,7 +109,6 @@ jobs:
         run: . .\scripts\create-choco-packages.ps1
 
       - name: Sign NuGet package
-        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
         uses: SonarSource/gh-action_azure-artifact-signing@v1
         with:
           files: Packaging/Binaries/NuGet/dotnet-sonarscanner*.nupkg
