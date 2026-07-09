@@ -35,7 +35,7 @@ jobs:
         id: set-version
         shell: bash
         run: |
-          SHORT_VERSION=$(sed -n 's/.*<ShortVersion>\(.*\)<\/ShortVersion>.*/\1/p' Version.targets | xargs)
+          SHORT_VERSION=$(xmllint --xpath 'string(//ShortVersion)' Version.targets)
           if [ "$(echo "$SHORT_VERSION" | tr -cd '.' | wc -c)" -eq 1 ]; then
             PATCH_VERSION="$SHORT_VERSION.0"
           else
@@ -55,6 +55,8 @@ jobs:
       contents: read
     env:
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+      BUILD_NUMBER: ${{ needs.version.outputs.BUILD_NUMBER }}
+      SHORT_VERSION: ${{ needs.version.outputs.SHORT_VERSION }}
       FULL_VERSION: ${{ needs.version.outputs.FULL_VERSION }}
       PATCH_VERSION: ${{ needs.version.outputs.PATCH_VERSION }}
     steps:
@@ -68,8 +70,8 @@ jobs:
         uses: ./.github/actions/prepare
         with:
           nuget-packages-path: ${{ env.NUGET_PACKAGES }}
-          build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
-          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
+          build-number: ${{ env.BUILD_NUMBER }}
+          short-version: ${{ env.SHORT_VERSION }}
 
       - name: Generate SBOM
         run: dotnet CycloneDX SonarScanner.MSBuild.sln -t --json -o Packaging\Binaries
