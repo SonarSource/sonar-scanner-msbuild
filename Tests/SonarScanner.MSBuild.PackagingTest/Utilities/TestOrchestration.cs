@@ -25,11 +25,13 @@ public static class TestOrchestration
     public static bool IsReleaseBranch => bool.TryParse(Environment.GetEnvironmentVariable("IS_RELEASE_BRANCH"), out var value) && value;
     public static string FullVersion => typeof(TestOrchestration).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
 
-    private static bool IsAzureDevOpsContext => Environment.GetEnvironmentVariable("BUILD_REASON") is not null;
+    private static bool IsCIContext =>
+        Environment.GetEnvironmentVariable("BUILD_REASON") is not null      // Azure DevOps
+        || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null; // GitHub Actions
 
     public static void InitializeTestClass()
     {
-        if (!IsAzureDevOpsContext)
+        if (!IsCIContext)
         {
             Assert.Inconclusive("This test must run on the CI environment, after the signing.");
         }
