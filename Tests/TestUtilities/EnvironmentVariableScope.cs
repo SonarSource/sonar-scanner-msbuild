@@ -26,7 +26,39 @@ namespace TestUtilities;
 /// </summary>
 public sealed class EnvironmentVariableScope : IDisposable
 {
+    // All environment variables CIPlatformDetector.Detect() checks. Tests that assert on a specific CI platform
+    // must clear these first, since the actual CI system running the test (e.g. GITHUB_ACTIONS on GitHub Actions)
+    // would otherwise take precedence over whichever variable the test itself sets.
+    private static readonly string[] CIDetectorVariables =
+    [
+        "GITHUB_ACTIONS",
+        "TF_BUILD",
+        "GITLAB_CI",
+        "TRAVIS",
+        "CIRCLECI",
+        "JENKINS_URL",
+        "JENKINS_HOME",
+        "BITBUCKET_BUILD_NUMBER",
+        "APPVEYOR",
+        "TEAMCITY_VERSION",
+        "bamboo_buildKey",
+        "CODEBUILD_BUILD_ID",
+        "BUILD_ID",
+        "PROJECT_ID",
+        "DRONE",
+        "BUILDKITE"
+    ];
+
     private IDictionary<string, string> originalValues = new Dictionary<string, string>();
+
+    public EnvironmentVariableScope ClearCIEnvironmentVariables()
+    {
+        foreach (var variable in CIDetectorVariables)
+        {
+            SetVariable(variable, null);
+        }
+        return this;
+    }
 
     public EnvironmentVariableScope SetVariable(string name, string value)
     {
