@@ -28,6 +28,15 @@ public sealed class EnvironmentVariableScope : IDisposable
 {
     private IDictionary<string, string> originalValues = new Dictionary<string, string>();
 
+    public EnvironmentVariableScope ClearCIEnvironmentVariables()
+    {
+        foreach (var variable in CIPlatformDetector.PlatformVariables.Keys.SelectMany(x => x))
+        {
+            SetVariable(variable, null);
+        }
+        return this;
+    }
+
     public EnvironmentVariableScope SetVariable(string name, string value)
     {
         // Store the original value, or null if there isn't one
