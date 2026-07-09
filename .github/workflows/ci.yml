@@ -35,7 +35,7 @@ jobs:
         id: set-version
         shell: bash
         run: |
-          SHORT_VERSION=$(xmllint --xpath 'string(//ShortVersion)' Version.targets)
+          SHORT_VERSION=$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('Version.targets').getroot().find('.//ShortVersion').text.strip())")
           if [ "$(echo "$SHORT_VERSION" | tr -cd '.' | wc -c)" -eq 1 ]; then
             PATCH_VERSION="$SHORT_VERSION.0"
           else
