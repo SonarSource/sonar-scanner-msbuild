@@ -140,6 +140,7 @@ jobs:
         with:
           nuget-packages-path: ${{ env.NUGET_PACKAGES }}
           build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
+          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
 
       - name: Fetch Vault Secrets
         id: secrets
