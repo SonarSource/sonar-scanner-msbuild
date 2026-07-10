@@ -183,5 +183,6 @@ target/
 .claude
 CLAUDE.md
 
+.sonar-code-context
 
 Packaging/Binaries/
