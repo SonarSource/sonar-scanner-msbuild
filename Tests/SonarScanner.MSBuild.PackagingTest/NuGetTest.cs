@@ -30,7 +30,7 @@ public class NuGetTest
     [TestMethod]
     public void ValidateFileList() =>
         Verifier.UnzippedFileList("NuGet", "dotnet-sonarscanner.*.nupkg").Where(x => !x.StartsWith("package/services/metadata/core-properties/")).Should().BeEquivalentTo(
-            NuGetSignatureFiles().Concat([
+            new[] { ".signature.p7s" }.Concat([
                 "dotnet-sonarscanner.nuspec",
                 "[Content_Types].xml",
                 "_rels/.rels",
@@ -69,7 +69,4 @@ public class NuGetTest
             Verifier.ValidateSignature(dll);
         }
     }
-
-    private static string[] NuGetSignatureFiles() =>
-        TestOrchestration.IsReleaseBranch ? [".signature.p7s"] : [];
 }
