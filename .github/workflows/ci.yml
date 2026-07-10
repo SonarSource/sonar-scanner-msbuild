@@ -157,3 +157,34 @@ jobs:
           ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet tool restore --tool-manifest .config/dotnet-tools.json --configfile "NuGet.Config"
+
+      - name: SonarQube begin
+        env:
+          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
+        run: >
+          dotnet tool run dotnet-sonarscanner -- begin
+          /o:"sonarsource"
+          /k:"sonarscanner-msbuild"
+          /v:"${{ needs.version.outputs.SHORT_VERSION }}"
+          /d:sonar.token="$env:SONAR_TOKEN"
+          /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}\Coverage\*.xml"
+          /d:sonar.cs.vstest.reportsPaths="${{ github.workspace }}\TestResults\*.trx"
+          /d:sonar.sca.exclusions="its/projects/**"
+
+      - name: Build and analyze
+        run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true
+
+      - name: Run UTs and compute coverage
+        env:
+          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+        run: .\scripts\run-unit-tests.ps1 -SourcesDirectory "${{ github.workspace }}" -BuildConfiguration Release
+
+      - name: Delete files created by unit tests
+        run: |
+          Get-ChildItem "${{ runner.temp }}" -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
+
+      - name: SonarQube end
+        env:
+          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
+        run: dotnet tool run dotnet-sonarscanner -- end /d:sonar.token="$env:SONAR_TOKEN"
