@@ -147,7 +147,6 @@ jobs:
 
       - name: Setup cache date variable
         id: cache-date
-        shell: powershell
         run: |
           "CACHE_DATE=$(Get-Date -Format 'yyyy-MM-dd')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
@@ -160,21 +159,18 @@ jobs:
 
       - name: Install SonarScanner for .NET
         if: steps.s4net-cache.outputs.cache-hit != 'true'
-        shell: powershell
         env:
           ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet tool update dotnet-sonarscanner --tool-path "${{ runner.temp }}\S4NET" --configfile "NuGet.Config"
 
       - name: SonarQube begin
-        shell: powershell
         env:
           SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
         run: >
           & "${{ runner.temp }}\S4NET\dotnet-sonarscanner" begin
           /o:"sonarsource"
           /k:"sonarscanner-msbuild"
-          /n:"SonarScanner for .NET"
           /v:"${{ needs.version.outputs.SHORT_VERSION }}"
           /d:sonar.token="$env:SONAR_TOKEN"
           /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}\Coverage\*.xml"
@@ -185,19 +181,16 @@ jobs:
         run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true
 
       - name: Run UTs and compute coverage
-        shell: powershell
         env:
           ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
         run: .\scripts\run-unit-tests.ps1 -SourcesDirectory "${{ github.workspace }}" -BuildConfiguration Release
 
       - name: Delete files created by unit tests
-        shell: powershell
         run: |
           Get-ChildItem "${{ runner.temp }}" -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
 
       - name: SonarQube end
-        shell: powershell
         env:
           SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
         run: '& "${{ runner.temp }}\S4NET\dotnet-sonarscanner" end /d:sonar.token="$env:SONAR_TOKEN"'
