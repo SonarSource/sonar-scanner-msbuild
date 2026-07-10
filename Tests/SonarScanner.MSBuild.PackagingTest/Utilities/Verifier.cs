@@ -53,7 +53,6 @@ public static class Verifier
         certificates.Size.Should().NotBe(0, $"file {entry.FullName} should contain signature");
         var cms = new SignedCms();
         cms.Decode(peReader.GetEntireImage().GetContent().AsSpan(certificates.RelativeVirtualAddress + HeaderSize, certificates.Size - HeaderSize));
-        // Release branches sign with the real SonarSource SA certificate; other branches get Azure Trusted Signing's test certificate instead.
         var expectedSubject = TestOrchestration.IsReleaseBranch
             ? "CN=SonarSource SA, O=SonarSource SA, L=Vernier, S=Genève, C=CH"
             : "CN=\"SonarSource US, Inc.(TEST ONLY)\", O=\"SonarSource US, Inc.\", L=Austin, S=Texas, C=US";
