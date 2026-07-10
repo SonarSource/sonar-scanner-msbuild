@@ -292,7 +292,6 @@ public class ZipTest
     [DataRow("sonar-scanner-*-net-framework.zip", 8)]   // 6x dll + 2x exe
     public void ValidateSignatures(string pattern, int expectedFileCount)
     {
-        TestOrchestration.RunOnlyOnReleaseBranch();
         using var archive = Verifier.UnzipFile(null, pattern);
         var dlls = archive.Entries.Where(Verifier.IsSonarBinary).ToArray();
         dlls.Should().HaveCount(expectedFileCount);
