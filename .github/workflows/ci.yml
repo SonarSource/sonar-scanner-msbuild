@@ -61,6 +61,10 @@ jobs:
       SHORT_VERSION: ${{ needs.version.outputs.SHORT_VERSION }}
       FULL_VERSION: ${{ needs.version.outputs.FULL_VERSION }}
       PATCH_VERSION: ${{ needs.version.outputs.PATCH_VERSION }}
+      PACKAGING_BINARIES: Packaging/Binaries
+      PACKAGING_BINARIES_NET: Packaging/Binaries/Net
+      PACKAGING_BINARIES_NET_FRAMEWORK: Packaging/Binaries/Net-Framework
+      PACKAGING_BINARIES_NUGET: Packaging/Binaries/NuGet
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -77,7 +81,7 @@ jobs:
           short-version: ${{ env.SHORT_VERSION }}
 
       - name: Generate SBOM
-        run: dotnet CycloneDX SonarScanner.MSBuild.sln -t --json -o Packaging\Binaries
+        run: dotnet CycloneDX SonarScanner.MSBuild.sln -t --json -o $env:PACKAGING_BINARIES
 
       - name: Build
         run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /m
@@ -86,10 +90,10 @@ jobs:
         uses: SonarSource/gh-action_azure-artifact-signing@v1
         with:
           files: |
-            Packaging/Binaries/Net/Sonar*.dll
-            Packaging/Binaries/Net/Sonar*.exe
-            Packaging/Binaries/Net-Framework/Sonar*.dll
-            Packaging/Binaries/Net-Framework/Sonar*.exe
+            ${{ env.PACKAGING_BINARIES_NET }}/Sonar*.dll
+            ${{ env.PACKAGING_BINARIES_NET }}/Sonar*.exe
+            ${{ env.PACKAGING_BINARIES_NET_FRAMEWORK }}/Sonar*.dll
+            ${{ env.PACKAGING_BINARIES_NET_FRAMEWORK }}/Sonar*.exe
 
       - name: Zip .NET packages
         run: |
@@ -98,11 +102,11 @@ jobs:
               tar -c -a -C "$Source" --options "zip:compression-level=9" -f "$Destination" *
           }
 
-          Zip-Assemblies "Packaging/Binaries/Net" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net.zip"
-          Zip-Assemblies "Packaging/Binaries/Net-Framework" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net-framework.zip"
+          Zip-Assemblies "$env:PACKAGING_BINARIES_NET" "$env:PACKAGING_BINARIES/sonar-scanner-$env:FULL_VERSION-net.zip"
+          Zip-Assemblies "$env:PACKAGING_BINARIES_NET_FRAMEWORK" "$env:PACKAGING_BINARIES/sonar-scanner-$env:FULL_VERSION-net-framework.zip"
 
       - name: Package dotnet global tool
-        run: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $env:PATCH_VERSION -OutputDirectory Packaging\Binaries\NuGet
+        run: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $env:PATCH_VERSION -OutputDirectory $env:PACKAGING_BINARIES_NUGET
 
       - name: Generate Choco packages
         run: . .\scripts\create-choco-packages.ps1
@@ -114,7 +118,7 @@ jobs:
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
         uses: ./.github/actions/sign-nuget-package
         with:
-          package-path: Packaging/Binaries/NuGet/dotnet-sonarscanner*.nupkg
+          package-path: ${{ env.PACKAGING_BINARIES_NUGET }}/dotnet-sonarscanner*.nupkg
 
       - name: Run packaging tests
         env:
@@ -125,7 +129,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: Binaries
-          path: Packaging/Binaries
+          path: ${{ env.PACKAGING_BINARIES }}
           retention-days: 1
           if-no-files-found: error
 
