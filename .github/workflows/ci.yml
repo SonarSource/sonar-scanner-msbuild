@@ -47,7 +47,6 @@ jobs:
             Packaging/Binaries/Net-Framework/Sonar*.exe
 
       - name: Zip .NET packages
-        shell: powershell
         env:
           FULL_VERSION: ${{ steps.prepare.outputs.FULL_VERSION }}
         run: |
@@ -65,7 +64,6 @@ jobs:
         run: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $env:PATCH_VERSION -OutputDirectory Packaging\Binaries\NuGet
 
       - name: Generate Choco packages
-        shell: powershell
         env:
           FULL_VERSION: ${{ steps.prepare.outputs.FULL_VERSION }}
           PATCH_VERSION: ${{ steps.prepare.outputs.PATCH_VERSION }}
