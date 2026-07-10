@@ -36,12 +36,4 @@ public static class TestOrchestration
             Assert.Inconclusive("This test must run on the CI environment, after the signing.");
         }
     }
-
-    public static void RunOnlyOnReleaseBranch()
-    {
-        if (!IsReleaseBranch)
-        {
-            Assert.Inconclusive("This test runs only on a release branch with signing.");
-        }
-    }
 }
