@@ -10,6 +10,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
 
+env:
+  NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+
 jobs:
   version:
     name: Compute version
@@ -54,7 +57,6 @@ jobs:
       id-token: write
       contents: read
     env:
-      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
       BUILD_NUMBER: ${{ needs.version.outputs.BUILD_NUMBER }}
       SHORT_VERSION: ${{ needs.version.outputs.SHORT_VERSION }}
       FULL_VERSION: ${{ needs.version.outputs.FULL_VERSION }}
@@ -126,8 +128,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    env:
-      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
