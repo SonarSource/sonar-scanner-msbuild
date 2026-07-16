@@ -18,7 +18,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="WireMock.Net" Version="2.3.0" />
+    <PackageReference Include="WireMock.Net" Version="2.12.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(ProjectName)' != 'LogArgs' And '$(ProjectName)' != 'SonarScanner.MSBuild.PackagingTest'">
