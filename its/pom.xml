@@ -45,13 +45,13 @@
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator-junit5</artifactId>
-      <version>6.1.0.3962</version>
+      <version>6.3.0.4464</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.sonarsource.sonarqube</groupId>
       <artifactId>sonar-ws</artifactId>
-      <version>26.5.0.122743</version>
+      <version>26.7.0.124771</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -110,7 +110,7 @@
     <dependency>
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
-      <version>7.6.0.202603022253-r</version>
+      <version>7.7.0.202606012155-r</version>
     </dependency>
   </dependencies>
 
