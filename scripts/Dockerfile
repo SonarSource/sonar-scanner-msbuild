@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0
+FROM mcr.microsoft.com/dotnet/sdk:10.0
 
 ENV SSL_KEYSTORE_PASSWORD=changeit
 ENV SSL_KEYSTORE_PATH=/certs/system-trusted.p12
