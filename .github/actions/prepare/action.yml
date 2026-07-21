@@ -1,6 +1,11 @@
 name: Prepare
 description: Install tools, cache NuGet, fetch secrets, compute version, and restore.
 
+inputs:
+  nuget-packages-path:
+    description: Directory NuGet packages are restored into and cached from.
+    required: true
+
 runs:
   using: composite
   steps:
@@ -26,3 +31,36 @@ runs:
         Write-Host "FULL_VERSION=$FullVersion"
         $env:SHORT_VERSION = $ShortVersion
         ./scripts/set-version-ci.ps1
+
+    - name: Fetch Vault Secrets
+      id: secrets
+      uses: SonarSource/vault-action-wrapper@v3
+      with:
+        secrets: |
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
+
+    # The cache bucket is the current month. It's part of the cache key so the cache
+    # rotates monthly, preventing it from growing unbounded with stale packages.
+    # Get-Date can't be called inside a ${{ }} expression, so it's computed here.
+    # see: https://docs.github.com/en/actions/reference/workflows-and-actions/expressions
+    - name: Setup cache month variable
+      id: cache-month
+      shell: powershell
+      run: |
+        "CACHE_MONTH=$(Get-Date -Format 'MM')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+    - name: Cache NuGet packages
+      uses: SonarSource/gh-action_cache@v1
+      with:
+        path: ${{ inputs.nuget-packages-path }}
+        key: nuget-${{ steps.cache-month.outputs.CACHE_MONTH }}-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: nuget-${{ steps.cache-month.outputs.CACHE_MONTH }}-
+
+    - name: Restore
+      shell: powershell
+      env:
+        NUGET_PACKAGES:       ${{ inputs.nuget-packages-path }}
+        ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
+        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+      run: dotnet restore SonarScanner.MSBuild.sln --locked-mode --configfile "NuGet.Config"
