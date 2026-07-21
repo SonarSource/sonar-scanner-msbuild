@@ -4,10 +4,14 @@ parameters:
   - name: initSteps
     type: stepList
     default: []
+  - name: condition
+    type: string
+    default: 'true'
 
 jobs:
   - job: its
     displayName: 'Run ITs'
+    condition: ${{ parameters.condition }}
     workspace:
       clean: all
     strategy:
