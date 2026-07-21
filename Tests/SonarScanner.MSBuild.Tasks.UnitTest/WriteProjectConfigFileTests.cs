@@ -42,17 +42,22 @@ public class WriteProjectConfigFileTests
             FilesToAnalyzePath = @"c:\fullPath\files.txt",
             OutPath = @"c:\fullPath\out\42\",
             IsTest = false,
-            TargetFramework = "target-42"
+            TargetFramework = "target-42",
+            ProjectAssetsFile = @"c:\fullPath\project.assets.json",
         };
 
         var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
 
-        reloadedConfig.AnalysisConfigPath.Should().Be(@"c:\fullPath\config.xml");
-        reloadedConfig.ProjectPath.Should().Be(@"c:\fullPath\project.xproj");
-        reloadedConfig.OutPath.Should().Be(@"c:\fullPath\out\42\");
-        reloadedConfig.FilesToAnalyzePath.Should().Be(@"c:\fullPath\files.txt");
-        reloadedConfig.ProjectType.Should().Be(ProjectType.Product);
-        reloadedConfig.TargetFramework.Should().Be("target-42");
+        reloadedConfig.Should().BeEquivalentTo(new ProjectConfig
+        {
+            AnalysisConfigPath = @"c:\fullPath\config.xml",
+            ProjectPath = @"c:\fullPath\project.xproj",
+            OutPath = @"c:\fullPath\out\42\",
+            FilesToAnalyzePath = @"c:\fullPath\files.txt",
+            ProjectType = ProjectType.Product,
+            TargetFramework = "target-42",
+            ProjectAssetsFile = @"c:\fullPath\project.assets.json",
+        });
     }
 
     [TestMethod]
@@ -68,7 +73,8 @@ public class WriteProjectConfigFileTests
             FilesToAnalyzePath = "not empty",
             OutPath = "not empty",
             IsTest = true,
-            TargetFramework = "not empty"
+            TargetFramework = "not empty",
+            ProjectAssetsFile = "not empty",
         };
 
         var reloadedConfig = ExecuteAndReloadConfig(task, testFolder);
