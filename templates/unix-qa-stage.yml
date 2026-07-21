@@ -56,6 +56,7 @@ stages:
 
       - template: ./its-jobs.yml
         parameters:
+          # Restricted to master while the Azure->GHA CI migration is in progress: these ITs are slow and unrelated to the migration PRs, so skipping them on branches/PRs avoids delaying that work.
           condition: eq(variables['Build.SourceBranchName'], 'master')
           initSteps:
             - powershell: $(Build.SourcesDirectory)/scripts/ci-self-signed-certificate.ps1
