@@ -23,6 +23,29 @@ namespace SonarScanner.MSBuild.Common.Test;
 [TestClass]
 public class CIPlatformDetectorTests
 {
+    // All environment variables CIPlatformDetector checks. Tests must clear these first, since the actual CI
+    // system running the test (e.g. GITHUB_ACTIONS on GitHub Actions) would otherwise take precedence over
+    // whichever variable a given test case sets.
+    private static readonly string[] AllDetectorVariables =
+    [
+        "GITHUB_ACTIONS",
+        "TF_BUILD",
+        "GITLAB_CI",
+        "TRAVIS",
+        "CIRCLECI",
+        "JENKINS_URL",
+        "JENKINS_HOME",
+        "BITBUCKET_BUILD_NUMBER",
+        "APPVEYOR",
+        "TEAMCITY_VERSION",
+        "bamboo_buildKey",
+        "CODEBUILD_BUILD_ID",
+        "BUILD_ID",
+        "PROJECT_ID",
+        "DRONE",
+        "BUILDKITE"
+    ];
+
     [TestMethod]
     [DataRow(null, null, CIPlatform.None)]
     [DataRow("GITHUB_ACTIONS", "true", CIPlatform.GitHubActions)]
@@ -42,6 +65,7 @@ public class CIPlatformDetectorTests
     public void Detect_ReturnsExpectedPlatform_WhenEnvVarSet(string variable, string value, CIPlatform expected)
     {
         using var scope = new EnvironmentVariableScope();
+        ClearAmbientDetectorVariables(scope);
         if (variable is not null)
         {
             scope.SetVariable(variable, value);
@@ -53,8 +77,17 @@ public class CIPlatformDetectorTests
     public void Detect_ReturnsCloudBuild_WhenBothBuildIdAndProjectIdSet()
     {
         using var scope = new EnvironmentVariableScope();
+        ClearAmbientDetectorVariables(scope);
         scope.SetVariable("BUILD_ID", "build-123");
         scope.SetVariable("PROJECT_ID", "my-project");
         CIPlatformDetector.Detect().Should().Be(CIPlatform.CloudBuild);
+    }
+
+    private static void ClearAmbientDetectorVariables(EnvironmentVariableScope scope)
+    {
+        foreach (var variable in AllDetectorVariables)
+        {
+            scope.SetVariable(variable, null);
+        }
     }
 }
