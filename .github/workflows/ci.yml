@@ -27,6 +27,7 @@ jobs:
           fetch-depth: 0
 
       - name: Prepare
+        id: prepare
         uses: ./.github/actions/prepare
         with:
           nuget-packages-path: ${{ env.NUGET_PACKAGES }}
