@@ -342,6 +342,7 @@ stages:
 
       - template: templates/its-jobs.yml
         parameters:
+          condition: eq(variables['Build.SourceBranchName'], 'master')
           matrix:
             LTA-89:
               PRODUCT: "SonarQube"
