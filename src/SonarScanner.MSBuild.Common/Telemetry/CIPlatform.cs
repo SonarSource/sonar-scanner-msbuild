@@ -41,40 +41,41 @@ public enum CIPlatform
 
 public static class CIPlatformDetector
 {
-    private static readonly Dictionary<CIPlatform, Func<bool>> PlatformDetectors = new()
+    internal static readonly Dictionary<string[], CIPlatform> PlatformVariables = new()
     {
         // https://docs.github.com/en/actions/reference/workflows-and-actions/variables#default-environment-variables
-        { CIPlatform.GitHubActions,      () => EnvironmentVariablePresent("GITHUB_ACTIONS") },
+        { ["GITHUB_ACTIONS"], CIPlatform.GitHubActions },
         // https://learn.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml#system-variables-devops-services
-        { CIPlatform.AzureDevops,        () => EnvironmentVariablePresent("TF_BUILD") },
+        { ["TF_BUILD"], CIPlatform.AzureDevops },
         // https://docs.gitlab.com/ci/variables/predefined_variables/
-        { CIPlatform.GitLabCI,           () => EnvironmentVariablePresent("GITLAB_CI") },
+        { ["GITLAB_CI"], CIPlatform.GitLabCI },
         // https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
-        { CIPlatform.TravisCI,           () => EnvironmentVariablePresent("TRAVIS") },
+        { ["TRAVIS"], CIPlatform.TravisCI },
         // https://circleci.com/docs/variables/#built-in-environment-variables
-        { CIPlatform.CircleCI,           () => EnvironmentVariablePresent("CIRCLECI") },
+        { ["CIRCLECI"], CIPlatform.CircleCI },
         // https://www.jenkins.io/doc/book/pipeline/jenkinsfile/#using-environment-variables
-        { CIPlatform.Jenkins,            () => EnvironmentVariablePresent("JENKINS_URL") || EnvironmentVariablePresent("JENKINS_HOME") },
+        { ["JENKINS_URL"], CIPlatform.Jenkins },
+        { ["JENKINS_HOME"], CIPlatform.Jenkins },
         // https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
-        { CIPlatform.BitbucketPipelines, () => EnvironmentVariablePresent("BITBUCKET_BUILD_NUMBER") },
+        { ["BITBUCKET_BUILD_NUMBER"], CIPlatform.BitbucketPipelines },
         // https://www.appveyor.com/docs/environment-variables/
-        { CIPlatform.AppVeyor,           () => EnvironmentVariablePresent("APPVEYOR") },
+        { ["APPVEYOR"], CIPlatform.AppVeyor },
         // https://www.jetbrains.com/help/teamcity/predefined-build-parameters.html
-        { CIPlatform.TeamCity,           () => EnvironmentVariablePresent("TEAMCITY_VERSION") },
+        { ["TEAMCITY_VERSION"], CIPlatform.TeamCity },
         // https://confluence.atlassian.com/bamboo/bamboo-variables-289277087.html
-        { CIPlatform.Bamboo,             () => EnvironmentVariablePresent("bamboo_buildKey") },
+        { ["bamboo_buildKey"], CIPlatform.Bamboo },
         // https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
-        { CIPlatform.CodeBuild,          () => EnvironmentVariablePresent("CODEBUILD_BUILD_ID") },
+        { ["CODEBUILD_BUILD_ID"], CIPlatform.CodeBuild },
         // https://cloud.google.com/build/docs/configuring-builds/substitute-variable-values
-        { CIPlatform.CloudBuild,         () => EnvironmentVariablePresent("BUILD_ID") && EnvironmentVariablePresent("PROJECT_ID") },
+        { ["BUILD_ID", "PROJECT_ID"], CIPlatform.CloudBuild },
         // https://docs.drone.io/pipeline/environment/reference/
-        { CIPlatform.Drone,              () => EnvironmentVariablePresent("DRONE") },
+        { ["DRONE"], CIPlatform.Drone },
         // https://buildkite.com/docs/pipelines/environment-variables
-        { CIPlatform.Buildkite,          () => EnvironmentVariablePresent("BUILDKITE") }
+        { ["BUILDKITE"], CIPlatform.Buildkite }
     };
 
     public static CIPlatform Detect() =>
-        PlatformDetectors.FirstOrDefault(x => x.Value()).Key;
+        PlatformVariables.FirstOrDefault(x => x.Key.All(EnvironmentVariablePresent)).Value;
 
     private static bool EnvironmentVariablePresent(string variableName) =>
         !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(variableName));
