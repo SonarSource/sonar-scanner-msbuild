@@ -11,14 +11,54 @@ concurrency:
   cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
 
 jobs:
+  version:
+    name: Compute version
+    runs-on: sonar-xs
+    permissions:
+      id-token: write
+    outputs:
+      BUILD_NUMBER: ${{ steps.get-build-number.outputs.BUILD_NUMBER }}
+      SHORT_VERSION: ${{ steps.set-version.outputs.SHORT_VERSION }}
+      FULL_VERSION: ${{ steps.set-version.outputs.FULL_VERSION }}
+      PATCH_VERSION: ${{ steps.set-version.outputs.PATCH_VERSION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Get build number
+        uses: SonarSource/ci-github-actions/get-build-number@v1
+        id: get-build-number
+
+      - name: Set version
+        id: set-version
+        shell: bash
+        run: |
+          SHORT_VERSION=$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('Version.targets').getroot().find('.//ShortVersion').text.strip())")
+          if [ "$(echo "$SHORT_VERSION" | tr -cd '.' | wc -c)" -eq 1 ]; then
+            PATCH_VERSION="$SHORT_VERSION.0"
+          else
+            PATCH_VERSION="$SHORT_VERSION"
+          fi
+          FULL_VERSION="$PATCH_VERSION.${{ steps.get-build-number.outputs.BUILD_NUMBER }}"
+          echo "SHORT_VERSION=$SHORT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "PATCH_VERSION=$PATCH_VERSION" >> "$GITHUB_OUTPUT"
+          echo "FULL_VERSION=$FULL_VERSION"   >> "$GITHUB_OUTPUT"
+
   build:
     name: Build
+    needs: version
     runs-on: warp-custom-dotnet-bubble-ci
     permissions:
       id-token: write
       contents: read
     env:
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+      BUILD_NUMBER: ${{ needs.version.outputs.BUILD_NUMBER }}
+      SHORT_VERSION: ${{ needs.version.outputs.SHORT_VERSION }}
+      FULL_VERSION: ${{ needs.version.outputs.FULL_VERSION }}
+      PATCH_VERSION: ${{ needs.version.outputs.PATCH_VERSION }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -31,6 +71,8 @@ jobs:
         uses: ./.github/actions/prepare
         with:
           nuget-packages-path: ${{ env.NUGET_PACKAGES }}
+          build-number: ${{ env.BUILD_NUMBER }}
+          short-version: ${{ env.SHORT_VERSION }}
 
       - name: Generate SBOM
         run: dotnet CycloneDX SonarScanner.MSBuild.sln -t --json -o Packaging\Binaries
@@ -48,8 +90,6 @@ jobs:
             Packaging/Binaries/Net-Framework/Sonar*.exe
 
       - name: Zip .NET packages
-        env:
-          FULL_VERSION: ${{ steps.prepare.outputs.FULL_VERSION }}
         run: |
           function Zip-Assemblies([string]$Source, [string]$Destination) {
               # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
@@ -60,14 +100,9 @@ jobs:
           Zip-Assemblies "Packaging/Binaries/Net-Framework" "Packaging/Binaries/sonar-scanner-$env:FULL_VERSION-net-framework.zip"
 
       - name: Package dotnet global tool
-        env:
-          PATCH_VERSION: ${{ steps.prepare.outputs.PATCH_VERSION }}
         run: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $env:PATCH_VERSION -OutputDirectory Packaging\Binaries\NuGet
 
       - name: Generate Choco packages
-        env:
-          FULL_VERSION: ${{ steps.prepare.outputs.FULL_VERSION }}
-          PATCH_VERSION: ${{ steps.prepare.outputs.PATCH_VERSION }}
         run: . .\scripts\create-choco-packages.ps1
 
       - name: Upload binaries as pipeline artifact
