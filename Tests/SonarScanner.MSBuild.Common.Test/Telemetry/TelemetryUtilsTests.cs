@@ -130,6 +130,7 @@ public class TelemetryUtilsTests
     public void AddCIEnvironmentTelemetry_NoCIEnvironment_DoesNotAddTelemetry()
     {
         using var scope = new EnvironmentVariableScope();
+        scope.ClearCIEnvironmentVariables();
         var telemetry = new TestTelemetry();
         TelemetryUtils.AddCIEnvironmentTelemetry(telemetry);
         telemetry.Messages.Should().BeEmpty();
@@ -145,6 +146,7 @@ public class TelemetryUtilsTests
     public void AddCIEnvironmentTelemetry_CIEnvironmentDetected_AddsTelemetry(string envVar, string value, string expectedPlatform)
     {
         using var scope = new EnvironmentVariableScope();
+        scope.ClearCIEnvironmentVariables();
         scope.SetVariable(envVar, value);
         var telemetry = new TestTelemetry();
         TelemetryUtils.AddCIEnvironmentTelemetry(telemetry);

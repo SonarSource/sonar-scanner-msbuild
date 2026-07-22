@@ -42,6 +42,7 @@ public class CIPlatformDetectorTests
     public void Detect_ReturnsExpectedPlatform_WhenEnvVarSet(string variable, string value, CIPlatform expected)
     {
         using var scope = new EnvironmentVariableScope();
+        scope.ClearCIEnvironmentVariables();
         if (variable is not null)
         {
             scope.SetVariable(variable, value);
@@ -53,6 +54,7 @@ public class CIPlatformDetectorTests
     public void Detect_ReturnsCloudBuild_WhenBothBuildIdAndProjectIdSet()
     {
         using var scope = new EnvironmentVariableScope();
+        scope.ClearCIEnvironmentVariables();
         scope.SetVariable("BUILD_ID", "build-123");
         scope.SetVariable("PROJECT_ID", "my-project");
         CIPlatformDetector.Detect().Should().Be(CIPlatform.CloudBuild);
