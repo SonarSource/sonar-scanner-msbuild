@@ -125,6 +125,21 @@ jobs:
           IS_RELEASE_BRANCH: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-') }}
         run: dotnet test Tests\SonarScanner.MSBuild.PackagingTest\SonarScanner.MSBuild.PackagingTest.csproj --configuration Release --no-build --no-restore
 
+      - name: Set Maven project version
+        shell: bash
+        env:
+          SHORT_VERSION: ${{ needs.version.outputs.SHORT_VERSION }}
+          FULL_VERSION: ${{ needs.version.outputs.FULL_VERSION }}
+        run: |
+          echo "CURRENT_VERSION=$SHORT_VERSION" >> "$GITHUB_ENV"
+          echo "PROJECT_VERSION=$FULL_VERSION" >> "$GITHUB_ENV"
+
+      - name: Stage to repox
+        uses: SonarSource/ci-github-actions/build-maven@v1
+        with:
+          deploy-pull-request: true
+          sonar-platform: none
+
       - name: Upload binaries as pipeline artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
