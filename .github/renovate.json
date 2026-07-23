@@ -19,6 +19,27 @@
         "Microsoft.Build**"
       ],
       "enabled": false
+    },
+    {
+      "description": "Refresh NuGet lockfiles with .NET 10 after dependency updates",
+      "matchManagers": [
+        "nuget"
+      ],
+      "skipArtifactsUpdate": true,
+      "constraints": {
+        "dotnet": ">=10.0.100 <11.0.0"
+      },
+      "postUpgradeTasks": {
+        "installTools": {
+          "dotnet": {}
+        },
+        "commands": [
+          "dotnet restore SonarScanner.MSBuild.sln --force-evaluate"
+        ],
+        "fileFilters": [
+          "**/packages.lock.json"
+        ]
+      }
     }
   ]
 }
