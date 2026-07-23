@@ -122,7 +122,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-      actions: read
       checks: write
     steps:
       - name: Checkout
