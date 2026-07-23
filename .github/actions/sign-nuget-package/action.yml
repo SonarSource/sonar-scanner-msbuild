@@ -1,0 +1,116 @@
+name: Sign NuGet package
+description: >-
+  Sign a .nupkg with the SonarSource DigiCert certificate. NuGet.org requires a registered
+  certificate thumbprint, which rules out Azure Trusted Signing (its certs rotate too often to
+  register), so this uses DigiCert instead - via jsign's DIGICERTONE keystore, which talks to
+  DigiCert's Signing Manager REST API directly. Mirrors the proven GitHub Actions setup from
+  SonarSource/sonar-analyzer-commons#465 and SonarSource/sonar-dotnet-enterprise#2256.
+
+inputs:
+  package-path:
+    description: Path to the .nupkg file to sign.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Fetch DigiCert secrets
+      id: secrets
+      uses: SonarSource/vault-action-wrapper@v3
+      with:
+        secrets: |
+          development/kv/data/sign/digicert apikey                  | SM_API_KEY;
+          development/kv/data/sign/digicert client_cert_file_base64 | SM_CLIENT_CERT_FILE_B64;
+          development/kv/data/sign/digicert client_cert_password    | SM_CLIENT_CERT_PASSWORD;
+          development/kv/data/sign/digicert host                    | SM_HOST;
+
+    - name: Decode DigiCert client certificate
+      id: client-cert
+      shell: pwsh
+      env:
+        SM_CLIENT_CERT_FILE_B64: ${{ fromJSON(steps.secrets.outputs.vault).SM_CLIENT_CERT_FILE_B64 }}
+      run: |
+        $certPath = Join-Path $env:RUNNER_TEMP "digicert_authentication_certificate.p12"
+        [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:SM_CLIENT_CERT_FILE_B64))
+        "path=$certPath" >> $env:GITHUB_OUTPUT
+
+    # jsign is a plain jar - unlike smctl's own installer, nothing registers it on PATH, so
+    # download it straight into RUNNER_TEMP and invoke the jar directly. Checksum pinned from
+    # sonar-dotnet-enterprise#2256's proven setup for the same jsign release.
+    - name: Cache jsign jar
+      id: jsign-cache
+      uses: SonarSource/gh-action_cache@v1
+      with:
+        path: ${{ runner.temp }}/jsign.jar
+        key: jsign-${{ runner.os }}-7.5
+
+    - name: Set up jsign
+      id: jsign
+      if: steps.jsign-cache.outputs.cache-hit != 'true'
+      shell: pwsh
+      run: |
+        $jarPath = Join-Path $env:RUNNER_TEMP "jsign.jar"
+        Invoke-WebRequest -Uri "https://github.com/ebourg/jsign/releases/download/7.5/jsign-7.5.jar" -OutFile $jarPath
+        $actual = (Get-FileHash -Path $jarPath -Algorithm SHA256).Hash
+        $expected = "602a51c3545a6dc4fb99bd2ea7152b26d1345916d0c93ddfbd5936cb735af91c"
+        if ($actual -ne $expected) {
+          throw "Checksum mismatch for jsign: expected $expected, got $actual"
+        }
+        "path=$jarPath" >> $env:GITHUB_OUTPUT
+
+    # smctl is only used to look up the certificate alias (cert_<digits> - distinct from the
+    # keypair alias key_<digits> smctl also exposes). The actual signing goes through jsign's
+    # DIGICERTONE REST keystore directly, not through smctl. Same lookup as sonar-dotnet-enterprise#2256.
+    - name: Resolve DigiCert certificate alias
+      id: certificate
+      shell: pwsh
+      env:
+        SM_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).SM_API_KEY }}
+        SM_CLIENT_CERT_FILE: ${{ steps.client-cert.outputs.path }}
+        SM_CLIENT_CERT_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).SM_CLIENT_CERT_PASSWORD }}
+      run: |
+        $certificates = smctl certificate ls
+        $certificates | Write-Host
+        if ($LASTEXITCODE -ne 0) {
+          throw "smctl certificate ls failed with exit code $LASTEXITCODE"
+        }
+        $activeFields = $null
+        foreach ($line in $certificates) {
+          $fields = $line.Trim() -split '\s+'
+          if ($fields[3] -eq 'ACTIVE') {
+            $activeFields = $fields
+            break
+          }
+        }
+        if (-not $activeFields) {
+          throw "Could not determine the active DigiCert ONE certificate alias via smctl."
+        }
+        "alias=$($activeFields[1])" >> $env:GITHUB_OUTPUT
+
+    - name: Sign NuGet package
+      shell: pwsh
+      env:
+        SM_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).SM_API_KEY }}
+        SM_CLIENT_CERT_FILE: ${{ steps.client-cert.outputs.path }}
+        SM_CLIENT_CERT_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).SM_CLIENT_CERT_PASSWORD }}
+        SM_HOST: ${{ fromJSON(steps.secrets.outputs.vault).SM_HOST }}
+        JSIGN_BINARY: ${{ runner.temp }}/jsign.jar
+        CERT_ALIAS: ${{ steps.certificate.outputs.alias }}
+      run: |
+        $package = Get-ChildItem -Path "${{ inputs.package-path }}" -File
+        if ($package.Count -ne 1) {
+          throw "Expected exactly one package matching '${{ inputs.package-path }}', found $($package.Count)"
+        }
+
+        java -jar $env:JSIGN_BINARY `
+          --storetype DIGICERTONE `
+          --keystore $env:SM_HOST `
+          --storepass "$env:SM_API_KEY|$env:SM_CLIENT_CERT_FILE|$env:SM_CLIENT_CERT_PASSWORD" `
+          --alias $env:CERT_ALIAS `
+          --tsaurl http://timestamp.digicert.com `
+          --alg SHA-256 `
+          "$($package.FullName)"
+        if ($LASTEXITCODE -ne 0) {
+          throw "jsign failed for $($package.FullName)"
+        }
+        Write-Host "Signed $($package.FullName)"
