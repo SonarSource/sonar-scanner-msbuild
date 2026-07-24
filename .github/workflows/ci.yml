@@ -394,7 +394,7 @@ jobs:
     name: QA macOS - UTs
     needs: [version, build]
     runs-on: macos-latest-xlarge
-    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
+    if: true # TEMPORARY: smoke-test on this branch before restoring the release-branch-only gate
     permissions:
       id-token: write
       contents: read
