@@ -343,11 +343,11 @@ jobs:
             powershell-core 7.5.4
 
       # Tests/SonarScanner.MSBuild.Tasks.IntegrationTest/MSBuildExecution/MSBuildLocator.cs only
-      # looks for dotnet at the well-known paths used by Microsoft's official install script
-      # (which is what provisions dotnet on the Azure agents this job mirrors), not wherever a
-      # tool manager happens to put it. mise installs elsewhere, so symlink it into place.
+      # looks for the dotnet executable at a few hardcoded file paths used by Microsoft's official
+      # install script (which is what provisions dotnet on the Azure agents this job mirrors), not
+      # wherever a tool manager happens to put it. mise installs elsewhere, so symlink it into place.
       - name: Make dotnet discoverable at the well-known Linux path
-        run: sudo ln -sfn "$DOTNET_ROOT" /usr/share/dotnet
+        run: sudo ln -sfn "$(command -v dotnet)" /usr/local/bin/dotnet
 
       - name: Set version
         shell: pwsh
