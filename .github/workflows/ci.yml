@@ -307,7 +307,7 @@ jobs:
     # Ported from azure-pipelines.yml's Unix ITs, which only run on master (slow, and unrelated to most PRs).
     # workflow_dispatch is additionally allowed so this can be triggered manually from any branch, e.g. while iterating on this job.
     if: github.ref_name == 'master' || github.event_name == 'workflow_dispatch'
-    runs-on: sonar-xs
+    runs-on: ${{ matrix.runsOn }}
     permissions:
       id-token: write
       contents: read
@@ -317,14 +317,20 @@ jobs:
       matrix:
         scenario: [LATEST_RELEASE, Others]
         include:
+          # sonar-xs was observed to be too small for this scenario (runner lost communication with the server, most likely
+          # OOM-killed): it boots a real SonarQube Developer Edition server via Orchestrator and runs many more tests,
+          # including npm-based frontend builds, unlike Others. Bumped one size up per the "start small, scale up only if
+          # observed to be memory-bound" runner convention.
           - scenario: LATEST_RELEASE
             product: SonarQube
             sqVersion: LATEST_RELEASE
             testInclude: "**/sonarqube/*"
+            runsOn: sonar-s
           - scenario: Others
             product: others
             sqVersion: ""
             testInclude: "**/others/*"
+            runsOn: sonar-xs
     env:
       # Matches the Xmx used by the Azure equivalent (templates/its-jobs.yml). config-maven defaults to -Xmx1536m, which is too
       # small for the Orchestrator-driven ITs.
