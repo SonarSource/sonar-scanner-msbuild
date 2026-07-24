@@ -330,12 +330,14 @@ jobs:
             development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
             development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
 
-      # sonar-xs doesn't ship PowerShell Core, unlike the Azure Linux/macOS agents this job mirrors.
-      - name: Install PowerShell Core
+      # sonar-xs is a bare runner and doesn't ship the .NET SDK or PowerShell Core,
+      # unlike the Azure Linux/macOS agents this job mirrors (which have both preinstalled).
+      - name: Install tools
         uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
         with:
           cache: true
           tool_versions: |
+            dotnet 10
             powershell-core 7.5.4
 
       - name: Set version
