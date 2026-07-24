@@ -370,11 +370,17 @@ jobs:
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net9.0 --self-contained -r linux-x64
 
+      # The runner's LANGUAGE env var (e.g. en_US.UTF-8) is picked up by MSBuild as the implicit
+      # $(Language) global property (env vars become properties, matched case-insensitively),
+      # which leaks into ProjectLanguage="$(Language)" in SonarQube.Integration.targets and fails
+      # tests that expect a bare/unrecognized project type to have a null project language.
       - name: Run UTs
         env:
           ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
-        run: dotnet test --framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=NoLinux" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
+        run: |
+          unset LANGUAGE
+          dotnet test --framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=NoLinux" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
 
       - name: Publish test results
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
