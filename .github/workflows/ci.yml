@@ -36,7 +36,6 @@ jobs:
 
       - name: Set version
         id: set-version
-        shell: bash
         run: |
           SHORT_VERSION=$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('Version.targets').getroot().find('.//ShortVersion').text.strip())")
           if [ "$(echo "$SHORT_VERSION" | tr -cd '.' | wc -c)" -eq 1 ]; then
@@ -111,9 +110,7 @@ jobs:
       - name: Generate Choco packages
         run: . .\scripts\create-choco-packages.ps1
 
-      # Azure Trusted Signing can't be used here: NuGet.org requires a registered certificate
-      # thumbprint, but Azure Trusted Signing certs rotate too often (~72h) to register one.
-      # https://github.com/NuGet/NuGetGallery/issues/10027
+      # We can't use Azure Artifact Signing for NuGets: https://github.com/NuGet/NuGetGallery/issues/10027
       - name: Sign NuGet package
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
         uses: ./.github/actions/sign-nuget-package
@@ -126,13 +123,12 @@ jobs:
         run: dotnet test Tests\SonarScanner.MSBuild.PackagingTest\SonarScanner.MSBuild.PackagingTest.csproj --configuration Release --no-build --no-restore
 
       - name: Set Maven project version
-        shell: bash
         env:
           SHORT_VERSION: ${{ needs.version.outputs.SHORT_VERSION }}
           FULL_VERSION: ${{ needs.version.outputs.FULL_VERSION }}
         run: |
-          echo "CURRENT_VERSION=$SHORT_VERSION" >> "$GITHUB_ENV"
-          echo "PROJECT_VERSION=$FULL_VERSION" >> "$GITHUB_ENV"
+          "CURRENT_VERSION=$env:SHORT_VERSION" >> $env:GITHUB_ENV
+          "PROJECT_VERSION=$env:FULL_VERSION" >> $env:GITHUB_ENV
 
       - name: Stage to repox
         uses: SonarSource/ci-github-actions/build-maven@v1
