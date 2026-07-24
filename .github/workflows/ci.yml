@@ -107,6 +107,15 @@ jobs:
       - name: Generate Choco packages
         run: . .\scripts\create-choco-packages.ps1
 
+      # Azure Trusted Signing can't be used here: NuGet.org requires a registered certificate
+      # thumbprint, but Azure Trusted Signing certs rotate too often (~72h) to register one.
+      # https://github.com/NuGet/NuGetGallery/issues/10027
+      - name: Sign NuGet package
+        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
+        uses: ./.github/actions/sign-nuget-package
+        with:
+          package-path: Packaging/Binaries/NuGet/dotnet-sonarscanner*.nupkg
+
       - name: Run packaging tests
         env:
           IS_RELEASE_BRANCH: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-') }}
