@@ -339,6 +339,10 @@ jobs:
       # root pom.xml's real release version must not be touched by this job.
       CURRENT_VERSION: unused
       PROJECT_VERSION: unused
+      # Overrides the workflow-level NUGET_PACKAGES (${{ github.workspace }}\.nuget\packages), which is only valid on the
+      # Windows runners build/qa_windows run on: on Linux, the literal backslashes aren't path separators, so dotnet ends up
+      # restoring into a bogus single-segment directory named "sonar-scanner-msbuild\.nuget\packages".
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -352,7 +356,9 @@ jobs:
           tool_versions: |
             java temurin-21
             maven 3.9.15
-            dotnet 10.0.100
+            # Multiple SDKs, space-separated on one line (asdf/mise .tool-versions syntax installs all of them; the first is
+            # the default on PATH). SolutionKindTest/ExternalIssuesTest exercise older SDKs via per-test global.json files.
+            dotnet 10.0.100 9 8
             node 20
 
       - name: Download Binaries artifact
