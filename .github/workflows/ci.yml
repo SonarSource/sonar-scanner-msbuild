@@ -389,10 +389,6 @@ jobs:
     env:
       BUILD_NUMBER: ${{ needs.version.outputs.BUILD_NUMBER }}
     steps:
-      # Azure's IS_RELEASE_BRANCH-gated "Set GitHub commit status for release automation" step is
-      # intentionally not ported: the promote action already posts a repox-<branch> commit status
-      # unconditionally. Revisit only if release automation owners say the Azure-specific gating is
-      # still required once this is GH-native.
       - uses: SonarSource/ci-github-actions/promote@v1
         with:
           promote-pull-request: true
