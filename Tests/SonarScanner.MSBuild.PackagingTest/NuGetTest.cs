@@ -61,6 +61,7 @@ public class NuGetTest
     [TestMethod]
     public void ValidateSignatures()
     {
+        TestOrchestration.RunOnlyOnReleaseBranch();
         using var archive = Verifier.UnzipFile("NuGet", "dotnet-sonarscanner.*.nupkg");
         var dlls = archive.Entries.Where(Verifier.IsSonarBinary).ToArray();
         dlls.Should().HaveCount(7);
