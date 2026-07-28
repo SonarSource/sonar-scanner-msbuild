@@ -304,9 +304,6 @@ jobs:
   its:
     name: ITs Linux (${{ matrix.scenario }})
     needs: build
-    # Ported from azure-pipelines.yml's Unix ITs, which only run on master (slow, and unrelated to most PRs).
-    # workflow_dispatch is additionally allowed so this can be triggered manually from any branch, e.g. while iterating on this job.
-    if: github.ref_name == 'master' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.runsOn }}
     permissions:
       id-token: write
