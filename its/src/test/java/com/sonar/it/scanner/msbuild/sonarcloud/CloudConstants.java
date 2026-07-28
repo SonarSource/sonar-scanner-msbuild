@@ -22,7 +22,7 @@ package com.sonar.it.scanner.msbuild.sonarcloud;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
 
 public class CloudConstants {
-  // These ITs run against SQ-C staging environment. Values are configured in "sonar-scanner-dotnet-variables" library in Azure DevOps.
+  // These ITs run against SQ-C staging environment. Values are configured as GitHub Actions secrets/vars on sonar-scanner-msbuild.
   // There exists a dedicated organization s4net-its. Any user that has Execute Analysis permission (explicitly, or by being an owner) can create a new token.
   // As of 2025, s4net-its owners are: Pavel, Martin, Tim.
   // When debugging against a different organization, don't forget that SQ-C project keys must be UNIQUE across all organizations.

@@ -121,7 +121,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <failIfNoTests>${failIfNoTests}</failIfNoTests>
-          <!-- Display logs in AzureDevOps pipeline output -->
+          <!-- Display logs in CI output -->
           <redirectTestOutputToFile>false</redirectTestOutputToFile>
           <includes>
             <include>${testInclude}</include>
