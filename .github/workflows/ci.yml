@@ -114,9 +114,9 @@ jobs:
       # https://github.com/NuGet/NuGetGallery/issues/10027
       - name: Sign NuGet package
         if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
-        uses: ./.github/actions/sign-nuget-package
+        uses: SonarSource/core-languages-tooling-public/dotnet_pipeline/digicert-sign@master
         with:
-          package-path: Packaging/Binaries/NuGet/dotnet-sonarscanner*.nupkg
+          files: Packaging/Binaries/NuGet/dotnet-sonarscanner*.nupkg
 
       - name: Run packaging tests
         env:
