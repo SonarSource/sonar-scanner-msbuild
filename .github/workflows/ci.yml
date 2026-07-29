@@ -299,14 +299,7 @@ jobs:
         run: |
           export JAVA_HOME="${!JDK_HOME_VAR}"
           MSBUILD_PATH="${MSBUILD_PATH_VAR:+${!MSBUILD_PATH_VAR}}"
-          # TODO(SCAN4NET-1676): remove this exclusion once fixed. CodeCoverageTest and TelemetryTest
-          # fail on warp-custom-dotnet-bubble-ci with "Multiple CI environments are detected: [Azure
-          # DevOps, Github Actions]" from the Java Scanner Engine's CiConfigurationProvider - the image
-          # doubles as an Azure DevOps agent (genuine ambient TF_BUILD) alongside GitHub Actions' own
-          # native GITHUB_ACTIONS. CodeCoverageTest's two Azure-simulation tests are fully explained
-          # (they deliberately re-set TF_BUILD, and GITHUB_ACTIONS is never scrubbed); the 4 failing
-          # TelemetryTest methods never touch TF_BUILD at all and shouldn't be affected by
-          # BaseCommand's existing TF_BUILD scrub - that gap is unexplained, see the ticket.
+          # TODO(SCAN4NET-1676): remove this exclusion once fixed.
           mvn -f its -B -e verify \
             "-Dtest=${{ matrix.testInclude }},!**/CodeCoverageTest,!**/TelemetryTest" \
             "-Dsonar.runtimeVersion=${{ matrix.sqVersion || 'LATEST_RELEASE' }}" \
