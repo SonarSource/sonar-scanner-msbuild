@@ -48,7 +48,7 @@ runs:
       with:
         secrets: |
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | ARTIFACTORY_USER;
-          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_TOKEN;
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
           development/github/token/licenses-ro token                                       | GITHUB_TOKEN;
 
     # working-directory: its (on both this and Configure NPM below) fixes a real bug present in both jobs prior to this
@@ -59,6 +59,11 @@ runs:
       with:
         artifactory-reader-role: private-reader
         working-directory: its
+      # Opts config-maven out of its automatic -SNAPSHOT -> build-number version bump: the ITs don't publish anything, so
+      # the root pom.xml's real release version must not be touched by this job.
+      env:
+        CURRENT_VERSION: unused
+        PROJECT_VERSION: unused
 
     - name: Configure NPM
       uses: SonarSource/ci-github-actions/config-npm@v1
@@ -72,14 +77,21 @@ runs:
     # Windows-only/caller-specific knobs read by scripts/run-its.sh, and this action is Unix-only.
     - name: Run Maven ITs
       env:
+        # Matches the Xmx used by the Azure equivalent (templates/its-jobs.yml). config-maven defaults to -Xmx1536m, which
+        # is too small for the Orchestrator-driven ITs.
+        MAVEN_OPTS: -Xmx3072m
         TEST_INCLUDE: ${{ inputs.test-include }}
         SQ_VERSION: ${{ inputs.sq-version }}
         SQ_EDITION: DEVELOPER
         ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
-        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_TOKEN }}
-        ARTIFACTORY_QA_READER_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_TOKEN }}
-        ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_TOKEN }}
+        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+        ARTIFACTORY_QA_READER_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+        ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_TOKEN }}
+        # Overrides the workflow-level NUGET_PACKAGES (${{ github.workspace }}\.nuget\packages), which is only valid on the
+        # Windows runners build/qa_windows run on: on Linux, the literal backslashes aren't path separators, so dotnet ends
+        # up restoring into a bogus single-segment directory named "sonar-scanner-msbuild\.nuget\packages".
+        NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
       shell: bash
       run: bash scripts/run-its.sh
 
