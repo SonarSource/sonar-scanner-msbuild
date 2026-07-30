@@ -295,9 +295,11 @@ jobs:
           NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
           MSBUILD_PATH_VAR: ${{ matrix.msbuildPathVar }}
           JDK_HOME_VAR: ${{ matrix.jdkHomeVar }}
-          TEST_INCLUDE: ${{ matrix.testInclude }}
-          # TODO(SCAN4NET-1676): remove this exclusion once fixed.
-          EXTRA_TEST_EXCLUSIONS: ',!**/CodeCoverageTest,!**/TelemetryTest'
+          # SCAN4NET-1676: temporarily isolate the two excluded ITs to investigate why they fail on
+          # GitHub Actions but not on Azure DevOps. Revert to matrix.testInclude + the exclusions below
+          # once done.
+          TEST_INCLUDE: '**/CodeCoverageTest,**/TelemetryTest'
+          # EXTRA_TEST_EXCLUSIONS: ',!**/CodeCoverageTest,!**/TelemetryTest'
         run: bash scripts/run-its.sh
 
       - name: Publish IT results
