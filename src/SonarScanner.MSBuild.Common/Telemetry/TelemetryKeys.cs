@@ -38,8 +38,11 @@ public static class TelemetryKeys
     // EndStep
     public const string EndstepLegacyTFS            = "dotnetenterprise.s4net.endstep.legacyTFS";
     public const string EndstepCoverageConversion   = "dotnetenterprise.s4net.endstep.coverage_conversion";
-    public const string EndStepSarifVersionValid = "dotnetenterprise.s4net.endstep.Sarif.{0}.Valid";
-    public const string EndStepSarifVersionFixed = "dotnetenterprise.s4net.endstep.Sarif.{0}.Fixed";
+    public const string EndStepSarifVersionValid    = "dotnetenterprise.s4net.endstep.Sarif.{0}.Valid";
+    public const string EndStepSarifVersionFixed    = "dotnetenterprise.s4net.endstep.Sarif.{0}.Fixed";
     // Begin
     public const string BeginRuntime                = "dotnetenterprise.s4net.begin.runtime";
+    public const string CIPlatform                  = "dotnetenterprise.s4net.ci_platform";
+    public const string ParamsSource                = "dotnetenterprise.s4net.params.{0}.source";
+    public const string ParamsValue                 = "dotnetenterprise.s4net.params.{0}.value";
 }
