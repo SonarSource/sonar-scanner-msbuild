@@ -12,36 +12,17 @@ inputs:
 runs:
   using: composite
   steps:
-    # sonar-xs (the Linux qa runner) is bare and ships no PowerShell at all; installed here so
-    # callers don't need to provision it themselves before calling in. GitHub-hosted macOS
-    # runners ship pwsh preinstalled, so this only runs on Linux.
+    # Only GitHub-hosted macOS runners ship pwsh preinstalled; sonar-xs (Linux) and
+    # warp-custom-dotnet-bubble-ci (Windows) don't, so mise installs it on both.
     - name: Install PowerShell Core
-      if: runner.os == 'Linux'
+      if: runner.os != 'macOS'
       uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
       with:
         cache: true
         tool_versions: |
           powershell-core 7.5.4
 
-    # A composite step's 'shell:' can't read runner.os directly (only inputs/literals), so each
-    # PowerShell step below is split into a Windows/non-Windows pair with identical bodies: Windows
-    # ships 'powershell' (Desktop edition) built in; Linux/macOS run the 'pwsh' (PowerShell Core)
-    # installed above (Linux) or preinstalled (macOS) instead. The split is a real constraint, not
-    # just caution: this repo's Windows runner image (ci-ami-images' dotnet-bubble-ci playbook)
-    # never installs pwsh, only the Windows PowerShell 5.1 that ships with the OS.
-    - name: Set version (Windows)
-      if: runner.os == 'Windows'
-      #TODO: Wait for https://sonarsource.atlassian.net/browse/NET-4093 (rewrite set-version-ci.ps1), then adopt the same approach here.
-      shell: powershell
-      env:
-        SHORT_VERSION:          ${{ inputs.short-version }}
-        BUILD_BUILDID:          ${{ inputs.build-number }}
-        BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
-        BUILD_SOURCEVERSION:    ${{ github.sha }}
-      run: ./scripts/set-version-ci.ps1
-
-    - name: Set version (Linux/macOS)
-      if: runner.os != 'Windows'
+    - name: Set version
       shell: pwsh
       env:
         SHORT_VERSION:          ${{ inputs.short-version }}
@@ -61,18 +42,7 @@ runs:
     # Exported as job-level env vars (rather than an action output) so every later step in the
     # job that touches NuGet restore - explicit or implicit via build/test/publish - picks these
     # up without repeating fromJSON(steps.*.outputs.vault) at each call site.
-    - name: Export Artifactory credentials (Windows)
-      if: runner.os == 'Windows'
-      shell: powershell
-      env:
-        ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
-      run: |
-        "ARTIFACTORY_USER=$env:ARTIFACTORY_USER"         | Out-File -FilePath $env:GITHUB_ENV -Append
-        "ARTIFACTORY_PASSWORD=$env:ARTIFACTORY_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-    - name: Export Artifactory credentials (Linux/macOS)
-      if: runner.os != 'Windows'
+    - name: Export Artifactory credentials
       shell: pwsh
       env:
         ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
