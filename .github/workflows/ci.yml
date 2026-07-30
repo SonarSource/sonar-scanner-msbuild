@@ -336,3 +336,63 @@ jobs:
           test-include: ${{ matrix.testInclude }}
           sq-version: ${{ matrix.sqVersion }}
           sonarcloud-project-token: ${{ secrets.SONARCLOUD_PROJECT_TOKEN }}
+
+  its_macos:
+    name: ITs macOS (${{ matrix.scenario }})
+    needs: build
+    # Ported from azure-pipelines.yml's Unix ITs (templates/unix-qa-stage.yml -> its-jobs.yml), which only run on master.
+    # workflow_dispatch is additionally allowed so this can be triggered manually from any branch, e.g. while iterating on this job.
+    if: github.ref_name == 'master' || github.event_name == 'workflow_dispatch'
+    # GitHub-hosted macos-latest-xlarge is the only macOS runner available (no Sonar-managed macOS runner exists org-wide,
+    # per the qa_macos job) - unlike Linux ITs there's no self-hosted sonar-* option to size per scenario.
+    runs-on: macos-latest-xlarge
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [LATEST_RELEASE, Others]
+        include:
+          - scenario: LATEST_RELEASE
+            product: SonarQube
+            sqVersion: LATEST_RELEASE
+            testInclude: "**/sonarqube/*"
+          - scenario: Others
+            product: others
+            sqVersion: ""
+            testInclude: "**/others/*"
+    env:
+      # Matches the Xmx used by the Azure equivalent (templates/its-jobs.yml). config-maven defaults to -Xmx1536m, which is too
+      # small for the Orchestrator-driven ITs.
+      MAVEN_OPTS: -Xmx3072m
+      # Opts config-maven out of its automatic -SNAPSHOT -> build-number version bump: the ITs don't publish anything, so the
+      # root pom.xml's real release version must not be touched by this job.
+      CURRENT_VERSION: unused
+      PROJECT_VERSION: unused
+      # Overrides the workflow-level NUGET_PACKAGES (${{ github.workspace }}\.nuget\packages), which is only valid on the
+      # Windows runners build/qa_windows run on - same fix as the Linux ITs job.
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+    steps:
+      # Must be the literal first step, before checkout: GitHub-hosted macOS runners have no static IP, so every later step
+      # that reaches Vault or private repos depends on this tunnel being up (same requirement as qa_macos).
+      - name: Setup Cloudflare WARP
+        uses: SonarSource/gh-action_setup-cloudflare-warp@v1
+        id: warp
+
+      - name: Remove pre-existing .bash_profile
+        run: rm -f ~/.bash_profile
+
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Run ITs
+        uses: ./.github/actions/its-unix
+        with:
+          scenario: ${{ matrix.scenario }}
+          product: ${{ matrix.product }}
+          test-include: ${{ matrix.testInclude }}
+          sq-version: ${{ matrix.sqVersion }}
