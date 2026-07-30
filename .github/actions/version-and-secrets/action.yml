@@ -8,26 +8,28 @@ inputs:
   short-version:
     description: Short version (e.g. 5.15) used to set Version.targets.
     required: true
-  shell:
-    description: >
-      PowerShell host used to run set-version-ci.ps1. Windows runners ship the
-      Desktop edition as 'powershell' (default); Linux/macOS have no built-in
-      PowerShell, so callers there must pass 'pwsh' (PowerShell Core) and ensure
-      it's installed (e.g. via mise) before calling this action.
-    required: false
-    default: powershell
-
-outputs:
-  vault:
-    description: Raw vault-action-wrapper output; read fields via fromJSON(...).REPOX_USER / REPOX_TOKEN.
-    value: ${{ steps.secrets.outputs.vault }}
 
 runs:
   using: composite
   steps:
-    - name: Set version
+    # A composite step's 'shell:' can't read runner.os directly (only inputs/literals), so each
+    # PowerShell step below is split into a Windows/non-Windows pair with identical bodies: Windows
+    # ships 'powershell' (Desktop edition) built in; Linux/macOS have no built-in PowerShell, so they
+    # need 'pwsh' (PowerShell Core) installed separately (e.g. via mise) and run that instead.
+    - name: Set version (Windows)
+      if: runner.os == 'Windows'
       #TODO: Wait for https://sonarsource.atlassian.net/browse/NET-4093 (rewrite set-version-ci.ps1), then adopt the same approach here.
-      shell: ${{ inputs.shell }}
+      shell: powershell
+      env:
+        SHORT_VERSION:          ${{ inputs.short-version }}
+        BUILD_BUILDID:          ${{ inputs.build-number }}
+        BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
+        BUILD_SOURCEVERSION:    ${{ github.sha }}
+      run: ./scripts/set-version-ci.ps1
+
+    - name: Set version (Linux/macOS)
+      if: runner.os != 'Windows'
+      shell: pwsh
       env:
         SHORT_VERSION:          ${{ inputs.short-version }}
         BUILD_BUILDID:          ${{ inputs.build-number }}
@@ -42,3 +44,26 @@ runs:
         secrets: |
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
+
+    # Exported as job-level env vars (rather than an action output) so every later step in the
+    # job that touches NuGet restore - explicit or implicit via build/test/publish - picks these
+    # up without repeating fromJSON(steps.*.outputs.vault) at each call site.
+    - name: Export Artifactory credentials (Windows)
+      if: runner.os == 'Windows'
+      shell: powershell
+      env:
+        ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
+        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+      run: |
+        "ARTIFACTORY_USER=$env:ARTIFACTORY_USER"         | Out-File -FilePath $env:GITHUB_ENV -Append
+        "ARTIFACTORY_PASSWORD=$env:ARTIFACTORY_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: Export Artifactory credentials (Linux/macOS)
+      if: runner.os != 'Windows'
+      shell: pwsh
+      env:
+        ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
+        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+      run: |
+        "ARTIFACTORY_USER=$env:ARTIFACTORY_USER"         | Out-File -FilePath $env:GITHUB_ENV -Append
+        "ARTIFACTORY_PASSWORD=$env:ARTIFACTORY_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append

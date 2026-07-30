@@ -16,7 +16,6 @@ runs:
   using: composite
   steps:
     - name: Version and secrets
-      id: version-and-secrets
       uses: ./.github/actions/version-and-secrets
       with:
         build-number: ${{ inputs.build-number }}
@@ -42,7 +41,5 @@ runs:
     - name: Restore
       shell: powershell
       env:
-        NUGET_PACKAGES:       ${{ inputs.nuget-packages-path }}
-        ARTIFACTORY_USER:     ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_USER }}
-        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_TOKEN }}
+        NUGET_PACKAGES: ${{ inputs.nuget-packages-path }}
       run: dotnet restore SonarScanner.MSBuild.sln --locked-mode --configfile "NuGet.Config"

@@ -341,15 +341,11 @@ jobs:
       - name: Make dotnet discoverable at the well-known Linux path
         run: sudo ln -sfn "$(command -v dotnet)" /usr/local/bin/dotnet
 
-      # Linux has no built-in 'powershell' (Windows PowerShell Desktop), so this runs on the
-      # 'pwsh' (PowerShell Core) mise just installed above, unlike the Windows prepare action.
       - name: Version and secrets
-        id: version-and-secrets
         uses: ./.github/actions/version-and-secrets
         with:
           build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
           short-version: ${{ needs.version.outputs.SHORT_VERSION }}
-          shell: pwsh
 
       - name: Download Binaries artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -358,9 +354,6 @@ jobs:
           path: Packaging/Binaries
 
       - name: Build test pre-requisites
-        env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net9.0 --self-contained -r linux-x64
 
       # The runner's LANGUAGE env var (e.g. en_US.UTF-8) is picked up by MSBuild as the implicit
@@ -368,9 +361,6 @@ jobs:
       # which leaks into ProjectLanguage="$(Language)" in SonarQube.Integration.targets and fails
       # tests that expect a bare/unrecognized project type to have a null project language.
       - name: Run UTs
-        env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_TOKEN }}
         run: |
           unset LANGUAGE
           dotnet test --framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=NoLinux" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
@@ -405,15 +395,11 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
-      # macOS has no built-in 'powershell' (Windows PowerShell Desktop); GitHub-hosted macOS
-      # images ship 'pwsh' (PowerShell Core) preinstalled, unlike the Windows prepare action.
       - name: Version and secrets
-        id: version-and-secrets
         uses: ./.github/actions/version-and-secrets
         with:
           build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
           short-version: ${{ needs.version.outputs.SHORT_VERSION }}
-          shell: pwsh
 
       - name: Download Binaries artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -422,15 +408,9 @@ jobs:
           path: Packaging/Binaries
 
       - name: Build test pre-requisites
-        env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net9.0 --self-contained -r osx-arm64
 
       - name: Run UTs
-        env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet test --framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=NoMacOS" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
 
       - name: Publish test results
