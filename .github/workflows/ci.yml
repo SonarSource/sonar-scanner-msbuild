@@ -229,3 +229,81 @@ jobs:
         env:
           SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
         run: dotnet tool run dotnet-sonarscanner -- end /d:sonar.token="$env:SONAR_TOKEN"
+
+  its_windows:
+    name: QA Windows - ITs (${{ matrix.scenario }})
+    needs: [version, build]
+    runs-on: warp-custom-dotnet-bubble-ci
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [LATEST_RELEASE]
+        include:
+          - scenario: LATEST_RELEASE
+            product: SonarQube
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+          # TODO add remaining matrix entries
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Fetch Vault Secrets
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | ARTIFACTORY_USER;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
+            development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
+
+      - name: Configure Maven
+        uses: SonarSource/ci-github-actions/config-maven@v1
+        with:
+          artifactory-reader-role: private-reader
+          working-directory: its
+        env:
+          CURRENT_VERSION: ${{ needs.version.outputs.SHORT_VERSION }}
+          PROJECT_VERSION: ${{ needs.version.outputs.FULL_VERSION }}
+
+      - name: Download Binaries artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: Binaries
+          path: Packaging/Binaries
+
+      # MultiLanguageTest needs npm
+      - name: Set npm registry to Repox
+        shell: bash
+        run: |
+          npm config set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
+          npm config set "//repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$ARTIFACTORY_ACCESS_TOKEN"
+
+      - name: Run Windows ITs (${{ matrix.scenario }})
+        env:
+          MAVEN_OPTS: -Xmx3072m
+          GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+          NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
+          MSBUILD_PATH_VAR: ${{ matrix.msbuildPathVar }}
+          JDK_HOME_VAR: ${{ matrix.jdkHomeVar }}
+          TEST_INCLUDE: ${{ matrix.testInclude }}
+          # TODO(SCAN4NET-1676): remove this exclusion once fixed.
+          EXTRA_TEST_EXCLUSIONS: ',!**/CodeCoverageTest,!**/TelemetryTest'
+        run: bash scripts/run-its.sh
+
+      - name: Publish IT results
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
+        if: ${{ !cancelled() }}
+        with:
+          name: Windows ITs Results (${{ matrix.scenario }})
+          path: its/target/surefire-reports/TEST-*.xml
+          reporter: java-junit
