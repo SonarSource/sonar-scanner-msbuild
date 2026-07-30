@@ -22,4 +22,5 @@ package com.sonar.it.scanner.msbuild.utils;
 public class GithubActions {
   public final static String GITHUB_ACTIONS = "GITHUB_ACTIONS";
   public final static String GITHUB_ACTION = "GITHUB_ACTION";
+  public final static String GITHUB_BASE_REF = "GITHUB_BASE_REF";
 }

@@ -447,9 +447,17 @@ jobs:
           npm config set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
           npm config set "//repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$ARTIFACTORY_ACCESS_TOKEN"
 
+      # Files.createTempDirectory() requires java.io.tmpdir to already exist.
+      - name: Create short-path temp directory for ITs
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force -Path C:\ittmp | Out-Null
+
       - name: Run Windows ITs (${{ matrix.scenario }})
         env:
-          MAVEN_OPTS: -Xmx3072m
+          # java.io.tmpdir shortened: the default runner temp path is long enough that IT-generated project
+          # paths (junit5-ContextExtension-<test>-<os>-<uuid>\...) approach Windows' 260-char MAX_PATH, which
+          # breaks MSBuild 15 (no long-path support) - see DEV_MsBuild15 scenario failures.
+          MAVEN_OPTS: -Xmx3072m -Djava.io.tmpdir=C:\ittmp
           GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
