@@ -295,37 +295,10 @@ jobs:
           NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
           MSBUILD_PATH_VAR: ${{ matrix.msbuildPathVar }}
           JDK_HOME_VAR: ${{ matrix.jdkHomeVar }}
-        shell: bash
-        run: |
-          export JAVA_HOME="${!JDK_HOME_VAR}"
-          MSBUILD_PATH="${MSBUILD_PATH_VAR:+${!MSBUILD_PATH_VAR}}"
+          TEST_INCLUDE: ${{ matrix.testInclude }}
           # TODO(SCAN4NET-1676): remove this exclusion once fixed.
-          mvn -f its -B -e verify \
-            "-Dtest=${{ matrix.testInclude }},!**/CodeCoverageTest,!**/TelemetryTest" \
-            "-Dsonar.runtimeVersion=${{ matrix.sqVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.sonarQubeEdition=${{ matrix.sqEdition || 'DEVELOPER' }}" \
-            "-Dsonar.csharpplugin.version=${{ matrix.dotnetVersion || 'DEV' }}" \
-            "-Dsonar.vbnetplugin.version=${{ matrix.dotnetVersion || 'DEV' }}" \
-            "-Dsonar.dreplugin.version=${{ matrix.dreVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.cfamilyplugin.version=${{ matrix.cfamilyVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.xmlplugin.version=${{ matrix.xmlVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.css.version=${{ matrix.cssVersion || 'NONE' }}" \
-            "-Dsonar.javascriptplugin.version=${{ matrix.javascriptVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.plsqlplugin.version=${{ matrix.plsqlVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.pythonplugin.version=${{ matrix.pythonVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.phpplugin.version=${{ matrix.phpVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.iacplugin.version=${{ matrix.iacVersion || 'NONE' }}" \
-            "-Dsonar.iacplugin-enterprise.version=${{ matrix.iacEnterpriseVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.javaplugin.version=${{ matrix.javaVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.textplugin.version=${{ matrix.textVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.rubyplugin.version=${{ matrix.rubyVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.goplugin.version=${{ matrix.goVersion || 'NONE' }}" \
-            "-Dsonar.goplugin-enterprise.version=${{ matrix.goEnterpriseVersion || 'LATEST_RELEASE' }}" \
-            "-Dsonar.tsqlplugin.version=${{ matrix.tsqlVersion || 'LATEST_RELEASE' }}" \
-            "-Dgo.groupid=${{ matrix.goGroupId || 'org.sonarsource.go' }}" \
-            "-Dmsbuild.path=$MSBUILD_PATH" \
-            "-Dmsbuild.platformtoolset=v140" \
-            "-Dmsbuild.windowssdk=10.0.17763.0"
+          EXTRA_TEST_EXCLUSIONS: ',!**/CodeCoverageTest,!**/TelemetryTest'
+        run: bash scripts/run-its.sh
 
       - name: Publish IT results
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
