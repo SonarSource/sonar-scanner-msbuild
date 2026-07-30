@@ -12,20 +12,6 @@ inputs:
 runs:
   using: composite
   steps:
-    # sonar-xs (the Linux qa runner) is bare and ships no PowerShell at all. Windows ships
-    # Windows PowerShell 5.1 built in; GitHub-hosted macOS ships pwsh preinstalled - neither
-    # needs anything installed.
-    - name: Install PowerShell Core
-      if: runner.os == 'Linux'
-      uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
-      with:
-        cache: true
-        tool_versions: |
-          powershell-core 7.5.4
-
-    # shell: only accepts a static value or ${{ inputs.x }} - not runner.os or any other
-    # context - but a run: command's own text has no such restriction, so the PowerShell host
-    # (powershell on Windows, pwsh elsewhere) is picked there instead, under a plain bash shell.
     - name: Set version
       shell: bash
       env:
@@ -43,10 +29,6 @@ runs:
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
 
-    # Exported as job-level env vars (rather than an action output) so every later step in the
-    # job that touches NuGet restore - explicit or implicit via build/test/publish - picks these
-    # up without repeating fromJSON(steps.*.outputs.vault) at each call site. Plain env-file
-    # plumbing, so this doesn't need PowerShell at all - just bash, like the step above.
     - name: Export Artifactory credentials
       shell: bash
       env:
