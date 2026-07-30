@@ -16,6 +16,19 @@ env:
   NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
 
 jobs:
+  test_dynamic_shell:
+    name: TEMPORARY - test shell from steps.outputs
+    runs-on: sonar-xs
+    steps:
+      - name: select_shell
+        id: select_shell
+        shell: bash
+        run: echo "chosen_shell=bash" >> "$GITHUB_OUTPUT"
+
+      - name: use dynamic shell
+        shell: ${{ steps.select_shell.outputs.chosen_shell }}
+        run: echo "it worked, dynamic shell resolved"
+
   version:
     name: Compute version
     runs-on: sonar-xs
