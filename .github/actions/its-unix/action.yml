@@ -1,0 +1,133 @@
+name: ITs Unix
+description: >-
+  Shared IT runner for the Linux and macOS ITs jobs: installs toolchains, creates the self-signed
+  certificate needed by SslTest, configures Maven/NPM, runs the Maven ITs for one matrix leg via
+  scripts/run-its.sh, and publishes/cleans up afterwards. Not used by the Windows ITs job (separate
+  toolchain needs; see run-its.sh's Windows-only branches, which this action never sets env vars for).
+
+inputs:
+  scenario:
+    description: Matrix leg name (e.g. LATEST_RELEASE, Others), used only for step/check-run display names.
+    required: true
+  product:
+    description: Product label for the leg (e.g. SonarQube, others), used only for the "Run Maven ITs for" step name.
+    required: true
+  test-include:
+    description: Value passed through to run-its.sh as TEST_INCLUDE (e.g. "**/sonarqube/*").
+    required: true
+  sq-version:
+    description: Value passed through to run-its.sh as SQ_VERSION. A valid empty string for the Others leg.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Java, Maven, .NET and Node
+      uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
+      with:
+        cache: true
+        tool_versions: |
+          java temurin-21
+          maven 3.9.15
+          # Multiple SDKs, space-separated on one line (asdf/mise .tool-versions syntax installs all of them; the first is
+          # the default on PATH). SolutionKindTest/ExternalIssuesTest exercise older SDKs via per-test global.json files.
+          dotnet 10.0.100 9 8
+          node 20
+
+    - name: Download Binaries artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: Binaries
+        path: Packaging/Binaries
+
+    # Reimplemented in bash rather than calling scripts/ci-self-signed-certificate.ps1 directly: that script is also used,
+    # unmodified, by azure-pipelines.yml on Microsoft-hosted Unix agents, and depends on Azure-only env vars
+    # (BUILD_SOURCESDIRECTORY, AGENT_OS, JAVA_HOME_17_X64) and ADO log commands (##vso[task.setvariable]) that don't exist on
+    # GitHub Actions. Needed for the SslTest integration test. The two OSes only differ in how the cert is trusted by the
+    # system store, so that's the only line split across the two runner.os-branched steps below.
+    - name: Create self-signed certificate
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p certs
+        openssl req -newkey rsa:2048 -x509 -sha256 -addext "subjectAltName = DNS:localhost" -nodes \
+          -out certs/system-trusted.crt -subj "/C=CS/ST=U/L=U/O=U/OU=U" -keyout certs/system-trusted.key
+        openssl pkcs12 -export -out certs/system-trusted.p12 -inkey certs/system-trusted.key -in certs/system-trusted.crt \
+          -passout pass:changeit
+        keytool -import -storepass changeit -noprompt -cacerts -alias system-trusted -file certs/system-trusted.crt
+        sudo cp certs/system-trusted.crt /usr/local/share/ca-certificates/system-trusted.crt
+        sudo update-ca-certificates
+        echo "SSL_KEYSTORE_PATH=$GITHUB_WORKSPACE/certs/system-trusted.p12" >> "$GITHUB_ENV"
+        echo "SSL_KEYSTORE_PASSWORD=changeit" >> "$GITHUB_ENV"
+
+    - name: Create self-signed certificate
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p certs
+        openssl req -newkey rsa:2048 -x509 -sha256 -addext "subjectAltName = DNS:localhost" -nodes \
+          -out certs/system-trusted.crt -subj "/C=CS/ST=U/L=U/O=U/OU=U" -keyout certs/system-trusted.key
+        openssl pkcs12 -export -out certs/system-trusted.p12 -inkey certs/system-trusted.key -in certs/system-trusted.crt \
+          -passout pass:changeit
+        keytool -import -storepass changeit -noprompt -cacerts -alias system-trusted -file certs/system-trusted.crt
+        sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain certs/system-trusted.crt
+        echo "SSL_KEYSTORE_PATH=$GITHUB_WORKSPACE/certs/system-trusted.p12" >> "$GITHUB_ENV"
+        echo "SSL_KEYSTORE_PASSWORD=changeit" >> "$GITHUB_ENV"
+
+    - name: Fetch Vault Secrets
+      id: secrets
+      uses: SonarSource/vault-action-wrapper@v3
+      with:
+        secrets: |
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | ARTIFACTORY_USER;
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_TOKEN;
+          development/github/token/licenses-ro token                                       | GITHUB_TOKEN;
+
+    # working-directory: its (on both this and Configure NPM below) fixes a real bug present in both jobs prior to this
+    # action existing: without it, the Maven/NPM cache keys hash every pom.xml/package.json in the whole repo instead of
+    # just the its/ subtree.
+    - name: Configure Maven
+      uses: SonarSource/ci-github-actions/config-maven@v1
+      with:
+        artifactory-reader-role: private-reader
+        working-directory: its
+
+    - name: Configure NPM
+      uses: SonarSource/ci-github-actions/config-npm@v1
+      with:
+        artifactory-reader-role: private-reader
+        working-directory: its
+
+    # SQ_EDITION is hardcoded to DEVELOPER (matching templates/its-jobs.yml and both jobs' prior behavior; Linux/macOS never
+    # override it), hence the licenses-ro GITHUB_TOKEN: Orchestrator uses it to fetch a Developer Edition license from the
+    # private licenses repo. MSBUILD_PATH_VAR/JDK_HOME_VAR/EXTRA_TEST_EXCLUSIONS are intentionally left unset: those are
+    # Windows-only/caller-specific knobs read by scripts/run-its.sh, and this action is Unix-only.
+    - name: Run Maven ITs for ${{ inputs.product }}
+      env:
+        TEST_INCLUDE: ${{ inputs.test-include }}
+        SQ_VERSION: ${{ inputs.sq-version }}
+        SQ_EDITION: DEVELOPER
+        ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_TOKEN }}
+        ARTIFACTORY_QA_READER_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_TOKEN }}
+        ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_TOKEN }}
+        GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_TOKEN }}
+      shell: bash
+      run: bash scripts/run-its.sh
+
+    - name: Publish test results
+      uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
+      if: ${{ !cancelled() }}
+      with:
+        name: ITs ${{ runner.os }} (${{ inputs.scenario }})
+        path: its/target/surefire-reports/TEST-*.xml
+        reporter: java-junit
+
+    # Matches templates/its-jobs.yml's revertPomChanges step: something in the reactor (parent-oss profiles) rewrites
+    # pom.xml during the Maven run; revert it so the next run's cache key (based on committed pom.xml content) stays stable.
+    - name: Revert changes made to pom.xml to not break cache feature
+      if: success()
+      shell: bash
+      run: git checkout -- pom.xml its/pom.xml
