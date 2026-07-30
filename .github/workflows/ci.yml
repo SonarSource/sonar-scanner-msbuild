@@ -356,24 +356,11 @@ jobs:
         scenario: [LATEST_RELEASE, Others]
         include:
           - scenario: LATEST_RELEASE
-            product: SonarQube
             sqVersion: LATEST_RELEASE
             testInclude: "**/sonarqube/*"
           - scenario: Others
-            product: others
             sqVersion: ""
             testInclude: "**/others/*"
-    env:
-      # Matches the Xmx used by the Azure equivalent (templates/its-jobs.yml). config-maven defaults to -Xmx1536m, which is too
-      # small for the Orchestrator-driven ITs.
-      MAVEN_OPTS: -Xmx3072m
-      # Opts config-maven out of its automatic -SNAPSHOT -> build-number version bump: the ITs don't publish anything, so the
-      # root pom.xml's real release version must not be touched by this job.
-      CURRENT_VERSION: unused
-      PROJECT_VERSION: unused
-      # Overrides the workflow-level NUGET_PACKAGES (${{ github.workspace }}\.nuget\packages), which is only valid on the
-      # Windows runners build/qa_windows run on - same fix as the Linux ITs job.
-      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     steps:
       # Must be the literal first step, before checkout: GitHub-hosted macOS runners have no static IP, so every later step
       # that reaches Vault or private repos depends on this tunnel being up (same requirement as qa_macos).
@@ -393,6 +380,5 @@ jobs:
         uses: ./.github/actions/its-unix
         with:
           scenario: ${{ matrix.scenario }}
-          product: ${{ matrix.product }}
           test-include: ${{ matrix.testInclude }}
           sq-version: ${{ matrix.sqVersion }}
