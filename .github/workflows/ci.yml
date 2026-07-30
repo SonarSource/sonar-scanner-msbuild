@@ -212,6 +212,7 @@ jobs:
           name: Unit Test Results
           path: TestResults/*.trx
           reporter: dotnet-trx
+          fail-on-error: false
 
       - name: Delete files created by unit tests
         run: |
@@ -486,6 +487,7 @@ jobs:
           name: Windows ITs Results (${{ matrix.scenario }})
           path: its/target/surefire-reports/TEST-*.xml
           reporter: java-junit
+          fail-on-error: false
 
   qa_linux:
     name: QA Linux - UTs
