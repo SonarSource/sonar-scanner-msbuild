@@ -174,9 +174,7 @@ jobs:
         uses: SonarSource/vault-action-wrapper@v3
         with:
           secrets: |
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
-            development/kv/data/sonarcloud token                                             | SONAR_TOKEN;
+            development/kv/data/sonarcloud token | SONAR_TOKEN;
 
       - name: Cache SonarScanner for .NET
         id: s4net-cache
@@ -186,9 +184,6 @@ jobs:
           key: s4net-${{ hashFiles('.config/dotnet-tools.json') }}
 
       - name: Restore SonarScanner for .NET
-        env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet tool restore --tool-manifest .config/dotnet-tools.json --configfile "NuGet.Config"
 
       - name: SonarQube Analysis begin
@@ -208,9 +203,6 @@ jobs:
         run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true
 
       - name: Run UTs and compute coverage
-        env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
         run: .\scripts\run-unit-tests.ps1 -SourcesDirectory "${{ github.workspace }}" -BuildConfiguration Release
 
       - name: Publish test results
@@ -307,3 +299,67 @@ jobs:
           name: Windows ITs Results (${{ matrix.scenario }})
           path: its/target/surefire-reports/TEST-*.xml
           reporter: java-junit
+
+  qa_linux:
+    name: QA Linux - UTs
+    needs: [version, build]
+    runs-on: sonar-xs
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Install tools
+        uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
+        with:
+          cache: true
+          tool_versions: |
+            dotnet 9
+            powershell-core 7.5.4
+
+      # 
+      - name: Make dotnet discoverable at the well-known Linux path
+        run: sudo ln -sfn "$(command -v dotnet)" /usr/local/bin/dotnet
+
+      - name: QA UTs
+        uses: ./.github/actions/qa-unix
+        with:
+          build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
+          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
+          rid: linux-x64
+          os-name: Linux
+
+  qa_macos:
+    name: QA macOS - UTs
+    needs: [version, build]
+    runs-on: macos-latest-xlarge
+    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    steps:
+      - name: Setup Cloudflare WARP
+        uses: SonarSource/gh-action_setup-cloudflare-warp@v1
+        id: warp
+
+      - name: Remove pre-existing .bash_profile
+        run: rm -f ~/.bash_profile
+
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: QA UTs
+        uses: ./.github/actions/qa-unix
+        with:
+          build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
+          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
+          rid: osx-arm64
+          os-name: MacOS

@@ -647,7 +647,10 @@ public class ProcessRunnerTests
         }
         else // MacOs
         {
-            return Path.Combine(basePath.Replace("Debug", "Release"), "osx-x64", "LogArgs");
+            // Azure's macOS-14 hosted agent publishes/runs osx-x64 (templates/unix-qa-stage.yml);
+            // GitHub's macos-latest-xlarge is native Apple Silicon and publishes osx-arm64 (ci.yml).
+            var rid = RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "osx-arm64" : "osx-x64";
+            return Path.Combine(basePath.Replace("Debug", "Release"), rid, "LogArgs");
         }
     }
 
