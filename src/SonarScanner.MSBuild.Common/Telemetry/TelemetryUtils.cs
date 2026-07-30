@@ -87,12 +87,9 @@ public static class TelemetryUtils
     {
         if (CIPlatformDetector.Detect() is { } ciPlatform and not CIPlatform.None)
         {
-            telemetry["dotnetenterprise.s4net.ci_platform"] = ciPlatform.ToString();
+            telemetry[TelemetryKeys.CIPlatform] = ciPlatform.ToString();
         }
     }
-
-    internal static string ToTelemetryId(string property) =>
-        $"dotnetenterprise.s4net.params.{SanitizeKey(property)}";
 
     private static IEnumerable<KeyValuePair<string, string>> SelectManyTelemetryProperties(KeyValuePair<Property, IAnalysisPropertyProvider> argument)
     {
@@ -165,11 +162,11 @@ public static class TelemetryUtils
 
     private static IEnumerable<KeyValuePair<string, string>> MessagePair(IAnalysisPropertyProvider source, Property property, string value)
     {
-        var telemetryKey = $"{ToTelemetryId(property.Id)}";
-        yield return new($"{telemetryKey}.source", source.ProviderType.ToString());
+        var key = SanitizeKey(property.Id);
+        yield return new(string.Format(TelemetryKeys.ParamsSource, key), source.ProviderType.ToString());
         if (!string.IsNullOrWhiteSpace(value))
         {
-            yield return new($"{telemetryKey}.value", value);
+            yield return new(string.Format(TelemetryKeys.ParamsValue, key), value);
         }
     }
 
