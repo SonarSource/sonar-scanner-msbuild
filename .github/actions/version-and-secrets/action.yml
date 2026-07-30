@@ -12,24 +12,28 @@ inputs:
 runs:
   using: composite
   steps:
-    # Only GitHub-hosted macOS runners ship pwsh preinstalled; sonar-xs (Linux) and
-    # warp-custom-dotnet-bubble-ci (Windows) don't, so mise installs it on both.
+    # sonar-xs (the Linux qa runner) is bare and ships no PowerShell at all. Windows ships
+    # Windows PowerShell 5.1 built in; GitHub-hosted macOS ships pwsh preinstalled - neither
+    # needs anything installed.
     - name: Install PowerShell Core
-      if: runner.os != 'macOS'
+      if: runner.os == 'Linux'
       uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
       with:
         cache: true
         tool_versions: |
           powershell-core 7.5.4
 
+    # shell: only accepts a static value or ${{ inputs.x }} - not runner.os or any other
+    # context - but a run: command's own text has no such restriction, so the PowerShell host
+    # (powershell on Windows, pwsh elsewhere) is picked there instead, under a plain bash shell.
     - name: Set version
-      shell: pwsh
+      shell: bash
       env:
         SHORT_VERSION:          ${{ inputs.short-version }}
         BUILD_BUILDID:          ${{ inputs.build-number }}
         BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
         BUILD_SOURCEVERSION:    ${{ github.sha }}
-      run: ./scripts/set-version-ci.ps1
+      run: ${{ runner.os == 'Windows' && 'powershell' || 'pwsh' }} -File ./scripts/set-version-ci.ps1
 
     - name: Fetch Vault Secrets
       id: secrets
@@ -41,12 +45,13 @@ runs:
 
     # Exported as job-level env vars (rather than an action output) so every later step in the
     # job that touches NuGet restore - explicit or implicit via build/test/publish - picks these
-    # up without repeating fromJSON(steps.*.outputs.vault) at each call site.
+    # up without repeating fromJSON(steps.*.outputs.vault) at each call site. Plain env-file
+    # plumbing, so this doesn't need PowerShell at all - just bash, like the step above.
     - name: Export Artifactory credentials
-      shell: pwsh
+      shell: bash
       env:
         ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
         ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
       run: |
-        "ARTIFACTORY_USER=$env:ARTIFACTORY_USER"         | Out-File -FilePath $env:GITHUB_ENV -Append
-        "ARTIFACTORY_PASSWORD=$env:ARTIFACTORY_PASSWORD" | Out-File -FilePath $env:GITHUB_ENV -Append
+        echo "ARTIFACTORY_USER=$ARTIFACTORY_USER" >> "$GITHUB_ENV"
+        echo "ARTIFACTORY_PASSWORD=$ARTIFACTORY_PASSWORD" >> "$GITHUB_ENV"
