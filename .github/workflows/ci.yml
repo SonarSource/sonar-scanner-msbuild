@@ -457,8 +457,6 @@ jobs:
           MSBUILD_PATH_VAR: ${{ matrix.msbuildPathVar }}
           JDK_HOME_VAR: ${{ matrix.jdkHomeVar }}
           TEST_INCLUDE: ${{ matrix.testInclude }}
-          # TODO(SCAN4NET-1676): remove this exclusion once fixed.
-          EXTRA_TEST_EXCLUSIONS: ',!**/CodeCoverageTest,!**/TelemetryTest'
           SQ_VERSION: ${{ matrix.sqVersion }}
           SQ_EDITION: ${{ matrix.sqEdition }}
           DOTNET_VERSION: ${{ matrix.dotnetVersion }}
