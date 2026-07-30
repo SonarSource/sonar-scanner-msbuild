@@ -259,7 +259,6 @@ jobs:
             dotnet 9
             powershell-core 7.5.4
 
-      #
       - name: Make dotnet discoverable at the well-known Linux path
         run: sudo ln -sfn "$(command -v dotnet)" /usr/local/bin/dotnet
 
@@ -319,12 +318,10 @@ jobs:
           # including npm-based frontend builds, unlike Others. Bumped one size up per the "start small, scale up only if
           # observed to be memory-bound" runner convention.
           - scenario: LATEST_RELEASE
-            product: SonarQube
             sqVersion: LATEST_RELEASE
             testInclude: "**/sonarqube/*"
             runsOn: sonar-s
           - scenario: Others
-            product: others
             sqVersion: ""
             testInclude: "**/others/*"
             runsOn: sonar-xs
@@ -350,6 +347,5 @@ jobs:
         uses: ./.github/actions/its-unix
         with:
           scenario: ${{ matrix.scenario }}
-          product: ${{ matrix.product }}
           test-include: ${{ matrix.testInclude }}
           sq-version: ${{ matrix.sqVersion }}
