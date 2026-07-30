@@ -1,0 +1,39 @@
+name: Version and secrets
+description: Set Version.targets and fetch Artifactory credentials from Vault.
+
+inputs:
+  build-number:
+    description: Build number used to set Version.targets.
+    required: true
+  short-version:
+    description: Short version (e.g. 5.15) used to set Version.targets.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set version
+      shell: bash
+      env:
+        SHORT_VERSION:          ${{ inputs.short-version }}
+        BUILD_BUILDID:          ${{ inputs.build-number }}
+        BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
+        BUILD_SOURCEVERSION:    ${{ github.sha }}
+      run: ${{ runner.os == 'Windows' && 'powershell' || 'pwsh' }} -File ./scripts/set-version-ci.ps1
+
+    - name: Fetch Vault Secrets
+      id: secrets
+      uses: SonarSource/vault-action-wrapper@v3
+      with:
+        secrets: |
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
+
+    - name: Export Artifactory credentials
+      shell: bash
+      env:
+        ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
+        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+      run: |
+        echo "ARTIFACTORY_USER=$ARTIFACTORY_USER" >> "$GITHUB_ENV"
+        echo "ARTIFACTORY_PASSWORD=$ARTIFACTORY_PASSWORD" >> "$GITHUB_ENV"
