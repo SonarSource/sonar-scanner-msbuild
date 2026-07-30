@@ -38,13 +38,16 @@ public abstract class BaseCommand<T extends BaseCommand<T>> {
     // S4NET and the scanner engine think they're inside a normal CI run of that system (e.g. picking up paths
     // to .sonarqube folder like C:\sonar-ci\_work\1\.sonarqube\conf\SonarQubeAnalysisConfig.xml, or - since
     // GITHUB_ACTION is always set on GitHub Actions - colliding with tests that simulate another CI vendor via
-    // setEnvironmentVariable, which trips sonar-scanner-engine's "Multiple CI environments are detected" check).
+    // setEnvironmentVariable, which trips sonar-scanner-engine's "Multiple CI environments are detected" check.
+    // GITHUB_BASE_REF is also real on any pull_request-triggered run, which makes the scanner auto-detect a PR
+    // base branch that tests not expecting a CI context don't account for).
     // Individual tests that want to simulate a specific CI vendor re-add its variables explicitly.
     setEnvironmentVariable(AzureDevOps.TF_BUILD, null);
     setEnvironmentVariable(AzureDevOps.AGENT_BUILDDIRECTORY, null);
     setEnvironmentVariable(AzureDevOps.BUILD_SOURCESDIRECTORY, null);
     setEnvironmentVariable(GithubActions.GITHUB_ACTIONS, null);
     setEnvironmentVariable(GithubActions.GITHUB_ACTION, null);
+    setEnvironmentVariable(GithubActions.GITHUB_BASE_REF, null);
   }
 
   public T setEnvironmentVariable(String name, String value) {

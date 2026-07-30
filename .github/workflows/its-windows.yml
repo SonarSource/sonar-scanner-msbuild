@@ -32,46 +32,46 @@ jobs:
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_17_X64
-            cfamilyVersion: "6.20.5.49286"    # Bundled version with SQ 8.9
-            cssVersion: "1.4.2.2002"          # Bundled version with SQ 8.9
-            dotnetVersion: "8.22.0.31243"     # Bundled version with SQ 8.9
-            dreVersion: "NONE"                # No release before 2026.1
-            goVersion: "1.8.3.2219"           # Bundled version with SQ 8.9
-            goEnterpriseVersion: "NONE"       # DRE Dependency
+            cfamilyVersion: "6.20.5.49286"          # Bundled version with SQ 8.9
+            cssVersion: "1.4.2.2002"                # Bundled version with SQ 8.9
+            dotnetVersion: "8.22.0.31243"           # Bundled version with SQ 8.9
+            dreVersion: "NONE"                      # No release before 2026.1
+            goVersion: "1.8.3.2219"                 # Bundled version with SQ 8.9
+            goEnterpriseVersion: "NONE"             # DRE Dependency
             goGroupId: org.sonarsource.slang
-            iacEnterpriseVersion: "NONE"      # Not present until LTA-2025
-            javaVersion: "NONE"               # Not required in our ITs for SQ 8.9
-            javascriptVersion: "7.4.4.15624"  # Bundled version with SQ 8.9
-            phpVersion: "3.17.0.7439"         # Bundled version with SQ 8.9
-            plsqlVersion: "3.6.1.3873"        # Bundled version with SQ 8.9
-            pythonVersion: "3.4.1.8066"       # Bundled version with SQ 8.9
-            rubyVersion: "NONE"               # DRE Dependency
-            textVersion: "NONE"               # Not release before SQ 9.9, the plug-in should not be loaded
-            tsqlVersion: "1.5.1.4340"         # Bundled version with SQ 8.9
-            xmlVersion: "2.2.0.2973"          # Bundled version with SQ 8.9
+            iacEnterpriseVersion: "NONE"            # Not present until LTA-2025
+            javaVersion: "NONE"                     # Not required in our ITs for SQ 8.9
+            javascriptVersion: "7.4.4.15624"        # Bundled version with SQ 8.9
+            phpVersion: "3.17.0.7439"               # Bundled version with SQ 8.9
+            plsqlVersion: "3.6.1.3873"              # Bundled version with SQ 8.9
+            pythonVersion: "3.4.1.8066"             # Bundled version with SQ 8.9
+            rubyVersion: "NONE"                     # DRE Dependency
+            textVersion: "NONE"                     # Not release before SQ 9.9, the plug-in should not be loaded
+            tsqlVersion: "1.5.1.4340"               # Bundled version with SQ 8.9
+            xmlVersion: "2.2.0.2973"                # Bundled version with SQ 8.9
           - scenario: LTA-99
             product: SonarQube
             sqVersion: "LATEST_RELEASE[9.9]"
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_17_X64
-            cfamilyVersion: "6.41.0.60884"     # Bundled version with SQ 9.9
-            dotnetVersion: "8.51.0.59060"      # Bundled version with SQ 9.9
-            dreVersion: "NONE"                 # No release before 2026.1
-            goVersion: "1.11.0.3905"           # Bundled version with SQ 9.9
-            goEnterpriseVersion: "NONE"        # DRE Dependency
+            cfamilyVersion: "6.41.0.60884"          # Bundled version with SQ 9.9
+            dotnetVersion: "8.51.0.59060"           # Bundled version with SQ 9.9
+            dreVersion: "NONE"                      # No release before 2026.1
+            goVersion: "1.11.0.3905"                # Bundled version with SQ 9.9
+            goEnterpriseVersion: "NONE"             # DRE Dependency
             goGroupId: org.sonarsource.slang
-            iacVersion: "1.11.0.2847"          # Bundled version with SQ 9.9
-            iacEnterpriseVersion: "NONE"       # Not present until LTA-2025
-            javaVersion: "NONE"                # Not required in our ITs for SQ 9.9
-            javascriptVersion: "9.13.0.20537"  # Bundled version with SQ 9.9
-            phpVersion: "3.27.1.9352"          # Bundled version with SQ 9.9
-            plsqlVersion: "3.8.0.4948"         # Bundled version with SQ 9.9
-            pythonVersion: "3.24.0.10784"      # Bundled version with SQ 9.9
-            rubyVersion: "NONE"                # DRE Dependency
-            textVersion: "NONE"                # Not required in our ITs for SQ 9.9
-            tsqlVersion: "1.7.0.5449"          # Bundled version with SQ 9.9
-            xmlVersion: "2.7.0.3820"           # Bundled version with SQ 9.9
+            iacVersion: "1.11.0.2847"               # Bundled version with SQ 9.9
+            iacEnterpriseVersion: "NONE"            # Not present until LTA-2025
+            javaVersion: "NONE"                     # Not required in our ITs for SQ 9.9
+            javascriptVersion: "9.13.0.20537"       # Bundled version with SQ 9.9
+            phpVersion: "3.27.1.9352"               # Bundled version with SQ 9.9
+            plsqlVersion: "3.8.0.4948"              # Bundled version with SQ 9.9
+            pythonVersion: "3.24.0.10784"           # Bundled version with SQ 9.9
+            rubyVersion: "NONE"                     # DRE Dependency
+            textVersion: "NONE"                     # Not required in our ITs for SQ 9.9
+            tsqlVersion: "1.7.0.5449"               # Bundled version with SQ 9.9
+            xmlVersion: "2.7.0.3820"                # Bundled version with SQ 9.9
           - scenario: LTA-2025-1
             product: SonarQube
             sqVersion: "LATEST_RELEASE[2025.1]"
@@ -82,19 +82,19 @@ jobs:
             dotnetVersion: "10.4.0.108396"          # Bundled version with SQ 2025.1
             dreVersion: "NONE"                      # No release before 2026.1
             goVersion: "1.18.0.240"                 # Bundled version with SQ 2025.1
-            goEnterpriseVersion: "NONE"              # DRE Dependency
+            goEnterpriseVersion: "NONE"             # DRE Dependency
             goGroupId: org.sonarsource.slang
-            iacVersion: "1.41.0.14206"               # Bundled version with SQ 2025.1
-            iacEnterpriseVersion: "1.41.0.14206"     # Bundled version with SQ 2025.1
-            javaVersion: "8.9.0.37768"               # Bundled version with SQ 2025.1, required by sonar-text to analyse .properties files
-            javascriptVersion: "10.20.0.29356"       # Bundled version with SQ 2025.1
-            phpVersion: "3.42.0.12795"               # Bundled version with SQ 2025.1
-            plsqlVersion: "3.15.0.7123"              # Bundled version with SQ 2025.1
-            pythonVersion: "4.26.0.19456"            # Bundled version with SQ 2025.1
-            rubyVersion: "NONE"                      # DRE Dependency
-            textVersion: "2.20.0.5038"                # Bundled version with SQ 2025.1
-            tsqlVersion: "1.14.0.7614"                # Bundled version with SQ 2025.1
-            xmlVersion: "2.12.0.5749"                 # Bundled version with SQ 2025.1
+            iacVersion: "1.41.0.14206"              # Bundled version with SQ 2025.1
+            iacEnterpriseVersion: "1.41.0.14206"    # Bundled version with SQ 2025.1
+            javaVersion: "8.9.0.37768"              # Bundled version with SQ 2025.1, required by sonar-text to analyse .properties files
+            javascriptVersion: "10.20.0.29356"      # Bundled version with SQ 2025.1
+            phpVersion: "3.42.0.12795"              # Bundled version with SQ 2025.1
+            plsqlVersion: "3.15.0.7123"             # Bundled version with SQ 2025.1
+            pythonVersion: "4.26.0.19456"           # Bundled version with SQ 2025.1
+            rubyVersion: "NONE"                     # DRE Dependency
+            textVersion: "2.20.0.5038"              # Bundled version with SQ 2025.1
+            tsqlVersion: "1.14.0.7614"              # Bundled version with SQ 2025.1
+            xmlVersion: "2.12.0.5749"               # Bundled version with SQ 2025.1
           - scenario: LTA-2025-4
             product: SonarQube
             sqVersion: "LATEST_RELEASE[2025.4]"
@@ -230,22 +230,18 @@ jobs:
           npm config set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
           npm config set "//repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$ARTIFACTORY_ACCESS_TOKEN"
 
-      # Files.createTempDirectory() requires java.io.tmpdir to already exist.
-      - name: Create short-path temp directory for ITs
+      # MSBuild 15 (VS2017) never got MSBuild's long-path support (added in MSBuild 16/VS2019, see dotnet/msbuild#3507).
+      - name: Use short-path temp directory (DEV_MsBuild15 only)
+        if: matrix.scenario == 'DEV_MsBuild15'
         shell: pwsh
-        run: New-Item -ItemType Directory -Force -Path C:\ittmp | Out-Null
+        run: |
+          New-Item -ItemType Directory -Force -Path C:\ittmp | Out-Null
+          "TEMP=C:\ittmp" >> $env:GITHUB_ENV
+          "TMP=C:\ittmp" >> $env:GITHUB_ENV
 
       - name: Run Windows ITs (${{ matrix.scenario }})
         env:
           MAVEN_OPTS: -Xmx3072m
-          # TEMP/TMP shortened (not -Djava.io.tmpdir via MAVEN_OPTS: that only affects the top-level mvn
-          # process, not the JVM surefire forks to actually run the tests, which computes its own
-          # java.io.tmpdir from %TEMP%/%TMP% at its own startup). The default runner temp path is long
-          # enough that IT-generated project paths (junit5-ContextExtension-<test>-<os>-<uuid>\...)
-          # approach Windows' 260-char MAX_PATH, which breaks MSBuild 15 (no long-path support) - see
-          # DEV_MsBuild15 scenario failures.
-          TEMP: C:\ittmp
-          TMP: C:\ittmp
           GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_TOKEN }}
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
