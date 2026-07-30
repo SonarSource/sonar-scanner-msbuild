@@ -7,14 +7,24 @@ description: >-
 
 inputs:
   scenario:
-    description: Matrix leg name (e.g. LATEST_RELEASE, Others), used only for step/check-run display names.
+    description: Matrix leg name (e.g. LATEST_RELEASE, Others, Cloud), used only for step/check-run display names.
     required: true
   test-include:
     description: Value passed through to run-its.sh as TEST_INCLUDE (e.g. "**/sonarqube/*").
     required: true
   sq-version:
-    description: Value passed through to run-its.sh as SQ_VERSION. A valid empty string for the Others leg.
-    required: true
+    description: >-
+      Value passed through to run-its.sh as SQ_VERSION. Omit for legs that don't boot a local SonarQube
+      server (e.g. Cloud/Others).
+    required: false
+    default: ""
+  sonarcloud-project-token:
+    description: >-
+      SonarCloud project token for the Cloud leg. Composite actions cannot read the caller workflow's
+      "secrets" context directly, so callers with a Cloud leg (currently only Linux) must pass
+      secrets.SONARCLOUD_PROJECT_TOKEN in explicitly. Left empty by callers with no Cloud leg (e.g. macOS).
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -68,7 +78,6 @@ runs:
       with:
         artifactory-reader-role: private-reader
         working-directory: its
-
     - name: Run Maven ITs
       env:
         MAVEN_OPTS: -Xmx3072m
@@ -77,6 +86,10 @@ runs:
         SQ_EDITION: DEVELOPER
         ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
+        SONARCLOUD_PROJECT_TOKEN: ${{ inputs.sonarcloud-project-token }}
+        SONARCLOUD_URL: https://sc-staging.io/
+        SONARCLOUD_API_URL: https://api.sc-staging.io
+        SONARCLOUD_ORGANIZATION: s4net-its
       shell: bash
       run: bash scripts/run-its.sh
 

@@ -311,15 +311,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: [LATEST_RELEASE, Others]
+        scenario: [LATEST_RELEASE, Others, Cloud]
         include:
           - scenario: LATEST_RELEASE
             sqVersion: LATEST_RELEASE
             testInclude: "**/sonarqube/*"
             runsOn: sonar-s
           - scenario: Others
-            sqVersion: ""
             testInclude: "**/others/*"
+            runsOn: sonar-xs
+          # No local SQ server boot (hits real SonarQube Cloud instead), so sonar-xs is enough - same reasoning as Others.
+          - scenario: Cloud
+            testInclude: "**/sonarcloud/*"
             runsOn: sonar-xs
     steps:
       - name: Checkout
@@ -333,3 +336,4 @@ jobs:
           scenario: ${{ matrix.scenario }}
           test-include: ${{ matrix.testInclude }}
           sq-version: ${{ matrix.sqVersion }}
+          sonarcloud-project-token: ${{ secrets.SONARCLOUD_PROJECT_TOKEN }}
