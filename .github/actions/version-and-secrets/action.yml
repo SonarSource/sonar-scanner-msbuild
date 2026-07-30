@@ -1,0 +1,44 @@
+name: Version and secrets
+description: Set Version.targets and fetch Artifactory credentials from Vault.
+
+inputs:
+  build-number:
+    description: Build number used to set Version.targets.
+    required: true
+  short-version:
+    description: Short version (e.g. 5.15) used to set Version.targets.
+    required: true
+  shell:
+    description: >
+      PowerShell host used to run set-version-ci.ps1. Windows runners ship the
+      Desktop edition as 'powershell' (default); Linux/macOS have no built-in
+      PowerShell, so callers there must pass 'pwsh' (PowerShell Core) and ensure
+      it's installed (e.g. via mise) before calling this action.
+    required: false
+    default: powershell
+
+outputs:
+  vault:
+    description: Raw vault-action-wrapper output; read fields via fromJSON(...).REPOX_USER / REPOX_TOKEN.
+    value: ${{ steps.secrets.outputs.vault }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set version
+      #TODO: Wait for https://sonarsource.atlassian.net/browse/NET-4093 (rewrite set-version-ci.ps1), then adopt the same approach here.
+      shell: ${{ inputs.shell }}
+      env:
+        SHORT_VERSION:          ${{ inputs.short-version }}
+        BUILD_BUILDID:          ${{ inputs.build-number }}
+        BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
+        BUILD_SOURCEVERSION:    ${{ github.sha }}
+      run: ./scripts/set-version-ci.ps1
+
+    - name: Fetch Vault Secrets
+      id: secrets
+      uses: SonarSource/vault-action-wrapper@v3
+      with:
+        secrets: |
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;

@@ -322,14 +322,6 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
-      - name: Fetch Vault Secrets
-        id: secrets
-        uses: SonarSource/vault-action-wrapper@v3
-        with:
-          secrets: |
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
-
       # sonar-xs is a bare runner and doesn't ship the .NET SDK or PowerShell Core,
       # unlike the Azure Linux/macOS agents this job mirrors (which have both preinstalled).
       # dotnet 9 (not 10) is required: the test host needs a runtime matching the
@@ -349,14 +341,15 @@ jobs:
       - name: Make dotnet discoverable at the well-known Linux path
         run: sudo ln -sfn "$(command -v dotnet)" /usr/local/bin/dotnet
 
-      - name: Set version
-        shell: pwsh
-        env:
-          SHORT_VERSION:          ${{ needs.version.outputs.SHORT_VERSION }}
-          BUILD_BUILDID:          ${{ needs.version.outputs.BUILD_NUMBER }}
-          BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
-          BUILD_SOURCEVERSION:    ${{ github.sha }}
-        run: ./scripts/set-version-ci.ps1
+      # Linux has no built-in 'powershell' (Windows PowerShell Desktop), so this runs on the
+      # 'pwsh' (PowerShell Core) mise just installed above, unlike the Windows prepare action.
+      - name: Version and secrets
+        id: version-and-secrets
+        uses: ./.github/actions/version-and-secrets
+        with:
+          build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
+          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
+          shell: pwsh
 
       - name: Download Binaries artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -366,8 +359,8 @@ jobs:
 
       - name: Build test pre-requisites
         env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+          ARTIFACTORY_USER:     ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net9.0 --self-contained -r linux-x64
 
       # The runner's LANGUAGE env var (e.g. en_US.UTF-8) is picked up by MSBuild as the implicit
@@ -376,8 +369,8 @@ jobs:
       # tests that expect a bare/unrecognized project type to have a null project language.
       - name: Run UTs
         env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+          ARTIFACTORY_USER:     ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_TOKEN }}
         run: |
           unset LANGUAGE
           dotnet test --framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=NoLinux" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
@@ -412,22 +405,15 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
-      - name: Fetch Vault Secrets
-        id: secrets
-        uses: SonarSource/vault-action-wrapper@v3
+      # macOS has no built-in 'powershell' (Windows PowerShell Desktop); GitHub-hosted macOS
+      # images ship 'pwsh' (PowerShell Core) preinstalled, unlike the Windows prepare action.
+      - name: Version and secrets
+        id: version-and-secrets
+        uses: ./.github/actions/version-and-secrets
         with:
-          secrets: |
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
-
-      - name: Set version
-        shell: pwsh
-        env:
-          SHORT_VERSION:          ${{ needs.version.outputs.SHORT_VERSION }}
-          BUILD_BUILDID:          ${{ needs.version.outputs.BUILD_NUMBER }}
-          BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
-          BUILD_SOURCEVERSION:    ${{ github.sha }}
-        run: ./scripts/set-version-ci.ps1
+          build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
+          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
+          shell: pwsh
 
       - name: Download Binaries artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -437,14 +423,14 @@ jobs:
 
       - name: Build test pre-requisites
         env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+          ARTIFACTORY_USER:     ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net9.0 --self-contained -r osx-arm64
 
       - name: Run UTs
         env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+          ARTIFACTORY_USER:     ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.version-and-secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet test --framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=NoMacOS" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
 
       - name: Publish test results
