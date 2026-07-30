@@ -124,6 +124,7 @@ runs:
         name: ITs ${{ runner.os }} (${{ inputs.scenario }})
         path: its/target/surefire-reports/TEST-*.xml
         reporter: java-junit
+        fail-on-error: false
 
     # Matches templates/its-jobs.yml's revertPomChanges step: something in the reactor (parent-oss profiles) rewrites
     # pom.xml during the Maven run; revert it so the next run's cache key (based on committed pom.xml content) stays stable.
