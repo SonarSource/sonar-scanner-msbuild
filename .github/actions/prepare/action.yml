@@ -15,23 +15,11 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Set version
-      #TODO: Wait for https://sonarsource.atlassian.net/browse/NET-4093 (rewrite set-version-ci.ps1), then adopt the same approach here.
-      shell: powershell
-      env:
-        SHORT_VERSION:          ${{ inputs.short-version }}
-        BUILD_BUILDID:          ${{ inputs.build-number }}
-        BUILD_SOURCEBRANCHNAME: ${{ github.ref_name }}
-        BUILD_SOURCEVERSION:    ${{ github.sha }}
-      run: ./scripts/set-version-ci.ps1
-
-    - name: Fetch Vault Secrets
-      id: secrets
-      uses: SonarSource/vault-action-wrapper@v3
+    - name: Version and secrets
+      uses: ./.github/actions/version-and-secrets
       with:
-        secrets: |
-          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
-          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
+        build-number: ${{ inputs.build-number }}
+        short-version: ${{ inputs.short-version }}
 
     # The cache bucket is the current month. It's part of the cache key so the cache
     # rotates monthly, preventing it from growing unbounded with stale packages.
@@ -53,7 +41,5 @@ runs:
     - name: Restore
       shell: powershell
       env:
-        NUGET_PACKAGES:       ${{ inputs.nuget-packages-path }}
-        ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
+        NUGET_PACKAGES: ${{ inputs.nuget-packages-path }}
       run: dotnet restore SonarScanner.MSBuild.sln --locked-mode --configfile "NuGet.Config"
