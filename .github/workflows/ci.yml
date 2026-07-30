@@ -174,9 +174,7 @@ jobs:
         uses: SonarSource/vault-action-wrapper@v3
         with:
           secrets: |
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | REPOX_USER;
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | REPOX_TOKEN;
-            development/kv/data/sonarcloud token                                             | SONAR_TOKEN;
+            development/kv/data/sonarcloud token | SONAR_TOKEN;
 
       - name: Cache SonarScanner for .NET
         id: s4net-cache
@@ -186,9 +184,6 @@ jobs:
           key: s4net-${{ hashFiles('.config/dotnet-tools.json') }}
 
       - name: Restore SonarScanner for .NET
-        env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
         run: dotnet tool restore --tool-manifest .config/dotnet-tools.json --configfile "NuGet.Config"
 
       - name: SonarQube Analysis begin
@@ -208,9 +203,6 @@ jobs:
         run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true
 
       - name: Run UTs and compute coverage
-        env:
-          ARTIFACTORY_USER:     ${{ fromJSON(steps.secrets.outputs.vault).REPOX_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).REPOX_TOKEN }}
         run: .\scripts\run-unit-tests.ps1 -SourcesDirectory "${{ github.workspace }}" -BuildConfiguration Release
 
       - name: Publish test results
@@ -322,17 +314,16 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
-      # sonar-xs is a bare runner and doesn't ship the .NET SDK or PowerShell Core,
-      # unlike the Azure Linux/macOS agents this job mirrors (which have both preinstalled).
-      # dotnet 9 (not 10) is required: the test host needs a runtime matching the
-      # `--framework net9.0` filter below, and .NET doesn't roll forward across major versions.
+      # sonar-xs is a bare runner and doesn't ship the .NET SDK, unlike the Azure Linux/macOS
+      # agents this job mirrors. dotnet 9 (not 10) is required: the test host needs a runtime
+      # matching the `--framework net9.0` filter below, and .NET doesn't roll forward across
+      # major versions. (PowerShell Core is installed by the version-and-secrets action below.)
       - name: Install tools
         uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
         with:
           cache: true
           tool_versions: |
             dotnet 9
-            powershell-core 7.5.4
 
       # Tests/SonarScanner.MSBuild.Tasks.IntegrationTest/MSBuildExecution/MSBuildLocator.cs only
       # looks for the dotnet executable at a few hardcoded file paths used by Microsoft's official
