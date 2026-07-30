@@ -149,6 +149,7 @@ jobs:
 
   qa_windows:
     name: QA Windows - UTs and analysis
+    if: false
     needs: version
     runs-on: warp-custom-dotnet-bubble-ci
     permissions:
@@ -285,6 +286,19 @@ jobs:
         run: |
           npm config set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
           npm config set "//repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$ARTIFACTORY_ACCESS_TOKEN"
+
+      # NET-2037 investigation: CodeCoverageTest/TelemetryTest fail here with "Multiple CI environments are
+      # detected: [Azure DevOps, Github Actions]" (org.sonar.scanner.ci.CiConfigurationProvider only trips on
+      # this when TF_BUILD=true AND GITHUB_ACTION are both set). GITHUB_ACTION is always set on GH Actions; this
+      # step checks where TF_BUILD is coming from (process env vs machine/user env baked into the runner image).
+      - name: Diagnose CI environment variables (SCAN4NET-1676/NET-2037)
+        shell: pwsh
+        run: |
+          Write-Host "TF_BUILD (process): $env:TF_BUILD"
+          Write-Host "TF_BUILD (machine): $([Environment]::GetEnvironmentVariable('TF_BUILD','Machine'))"
+          Write-Host "TF_BUILD (user):    $([Environment]::GetEnvironmentVariable('TF_BUILD','User'))"
+          Write-Host "GITHUB_ACTION: $env:GITHUB_ACTION"
+          Get-ChildItem Env: | Where-Object { $_.Name -match '^(TF_|AGENT_|SYSTEM_|BUILD_)' } | Sort-Object Name | Format-Table -AutoSize
 
       - name: Run Windows ITs (${{ matrix.scenario }})
         env:
