@@ -309,6 +309,11 @@ jobs:
       contents: read
       checks: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
       # sonar-xs is a bare runner and doesn't ship the .NET SDK or PowerShell Core, unlike the
       # Azure Linux/macOS agents this job mirrors (which have both preinstalled). dotnet 9 (not
       # 10) is required: the test host needs a runtime matching the `--framework net9.0` filter
@@ -352,6 +357,11 @@ jobs:
 
       - name: Remove pre-existing .bash_profile
         run: rm -f ~/.bash_profile
+
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
 
       - name: QA UTs
         uses: ./.github/actions/qa-unix
