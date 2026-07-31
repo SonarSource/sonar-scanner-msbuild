@@ -14,8 +14,7 @@ inputs:
     required: true
   sq-version:
     description: >-
-      Value passed through to run-its.sh as SQ_VERSION. Omit for legs that don't boot a local SonarQube
-      server (e.g. Cloud/Others).
+      Value passed through to run-its.sh as SQ_VERSION. Omit for legs that don't boot a local SonarQube server.
     required: false
     default: ""
   sonarcloud-project-token:
