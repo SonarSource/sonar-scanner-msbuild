@@ -49,7 +49,7 @@ runs:
         secrets: |
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | ARTIFACTORY_USER;
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
-          development/github/token/licenses-ro token                                       | GITHUB_TOKEN;
+          development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
 
     # working-directory: its (on both this and Configure NPM below) fixes a real bug present in both jobs prior to this
     # action existing: without it, the Maven/NPM cache keys hash every pom.xml/package.json in the whole repo instead of
@@ -87,7 +87,7 @@ runs:
         ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
         ARTIFACTORY_QA_READER_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
         ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
-        GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
         # Overrides the workflow-level NUGET_PACKAGES (${{ github.workspace }}\.nuget\packages), which is only valid on the
         # Windows runners build/qa_windows run on: on Linux, the literal backslashes aren't path separators, so dotnet ends
         # up restoring into a bogus single-segment directory named "sonar-scanner-msbuild\.nuget\packages".
