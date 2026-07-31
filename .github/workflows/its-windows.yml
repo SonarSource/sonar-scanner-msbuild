@@ -27,7 +27,6 @@ jobs:
         scenario: [LTA-89, LTA-99, LTA-2025-1, LTA-2025-4, LTA-2026-1, LATEST_RELEASE, DEV_MsBuild15, DEV_MsBuild16, DEV_MsBuild17, DEV_MsBuild18, DEV_Community, Cloud, Others]
         include:
           - scenario: LTA-89
-            product: SonarQube
             sqVersion: "LATEST_RELEASE[8.9]"
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_18_PATH
@@ -50,7 +49,6 @@ jobs:
             tsqlVersion: "1.5.1.4340"               # Bundled version with SQ 8.9
             xmlVersion: "2.2.0.2973"                # Bundled version with SQ 8.9
           - scenario: LTA-99
-            product: SonarQube
             sqVersion: "LATEST_RELEASE[9.9]"
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_18_PATH
@@ -73,7 +71,6 @@ jobs:
             tsqlVersion: "1.7.0.5449"               # Bundled version with SQ 9.9
             xmlVersion: "2.7.0.3820"                # Bundled version with SQ 9.9
           - scenario: LTA-2025-1
-            product: SonarQube
             sqVersion: "LATEST_RELEASE[2025.1]"
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_18_PATH
@@ -96,7 +93,6 @@ jobs:
             tsqlVersion: "1.14.0.7614"              # Bundled version with SQ 2025.1
             xmlVersion: "2.12.0.5749"               # Bundled version with SQ 2025.1
           - scenario: LTA-2025-4
-            product: SonarQube
             sqVersion: "LATEST_RELEASE[2025.4]"
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_18_PATH
@@ -118,7 +114,6 @@ jobs:
             tsqlVersion: "1.15.0.7898"              # Bundled version with SQ 2025.4
             xmlVersion: "2.13.1.6351"               # Bundled version with SQ 2025.4
           - scenario: LTA-2026-1
-            product: SonarQube
             sqVersion: "LATEST_RELEASE[2026.1]"
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_18_PATH
@@ -139,36 +134,30 @@ jobs:
             tsqlVersion: "1.16.1.9133"              # Bundled version with SQ 2026.1
             xmlVersion: "2.15.0.7513"               # Bundled version with SQ 2026.1
           - scenario: LATEST_RELEASE
-            product: SonarQube
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_MsBuild15
-            product: SonarQube
             sqVersion: DEV
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_15_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_MsBuild16
-            product: SonarQube
             sqVersion: DEV
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_16_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_MsBuild17
-            product: SonarQube
             sqVersion: DEV
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_17_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_MsBuild18
-            product: SonarQube
             sqVersion: DEV
             testInclude: "**/sonarqube/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_Community
-            product: SonarQube
             sqVersion: DEV
             sqEdition: COMMUNITY
             testInclude: "**/sonarqube/*"
@@ -182,16 +171,11 @@ jobs:
             rubyVersion: "NONE"                     # Not-Commercial, but only required when the DRE plugin is installed
             tsqlVersion: "NONE"                     # Commercial plugin
           - scenario: Cloud
-            product: SonarCloud
-            sqVersion: ""
             testInclude: "**/sonarcloud/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_17_X64
           - scenario: Others
-            product: others
-            sqVersion: ""
             testInclude: "**/others/*"
-            msbuildPathVar: ""
             jdkHomeVar: JAVA_HOME_17_X64
     steps:
       - name: Checkout
@@ -223,8 +207,9 @@ jobs:
           name: Binaries
           path: Packaging/Binaries
 
-      # MultiLanguageTest needs npm
+      # MultiLanguageTest needs npm, and only runs as part of the **/sonarqube/* legs.
       - name: Set npm registry to Repox
+        if: matrix.testInclude == '**/sonarqube/*'
         shell: bash
         env:
           ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
