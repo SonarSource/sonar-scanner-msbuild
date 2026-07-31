@@ -20,6 +20,7 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.orchestrator.build.BuildResult;
+import java.util.regex.Pattern;
 
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
@@ -31,7 +32,7 @@ public final class ProvisioningAssertions {
 
     var cacheFolderPattern = ".+[\\\\/]cache[\\\\/].+";
     if (useSonarScannerCLI) {
-      var escapedOldJavaHome = oldJavaHome.replace("\\", "\\\\");
+      var escapedOldJavaHome = Pattern.quote(oldJavaHome);
       TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + cacheFolderPattern);
       TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: " + escapedOldJavaHome + ", new value: " + cacheFolderPattern);
     } else {
@@ -42,7 +43,7 @@ public final class ProvisioningAssertions {
   public static void assertCacheMissBeginStep(BuildResult begin, String sqApiUrl, String userHome, Boolean isCloud, Boolean useSonarScannerCLI) {
     var os = OSPlatform.current().name().toLowerCase();
     var arch = OSPlatform.currentArchitecture().toLowerCase();
-    var cacheFolderPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+";
+    var cacheFolderPattern = Pattern.quote(userHome) + "[\\\\/]cache.+";
     var beginLogs = begin.getLogs();
     String jreUrlPattern;
     String engineUrlPattern;
@@ -77,8 +78,8 @@ public final class ProvisioningAssertions {
   }
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {
-    var javaPattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+_extracted.+java(?:\\.exe)?";
-    var enginePattern = userHome.replace("\\", "\\\\") + "[\\\\/]cache.+scanner.+\\.jar"; // flexible assertion to avoid breaking on file name changes
+    var javaPattern = Pattern.quote(userHome) + "[\\\\/]cache.+_extracted.+java(?:\\.exe)?";
+    var enginePattern = Pattern.quote(userHome) + "[\\\\/]cache.+scanner.+\\.jar"; // flexible assertion to avoid breaking on file name changes
     assertThat(secondBegin.isSuccess()).isTrue();
     TestUtils.matchesSingleLine(secondBegin.getLogs(),
       "JreResolver: Cache hit '" + javaPattern + "'");
