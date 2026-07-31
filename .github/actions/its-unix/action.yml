@@ -88,10 +88,6 @@ runs:
         ARTIFACTORY_QA_READER_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
         ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
-        # Overrides the workflow-level NUGET_PACKAGES (${{ github.workspace }}\.nuget\packages), which is only valid on the
-        # Windows runners build/qa_windows run on: on Linux, the literal backslashes aren't path separators, so dotnet ends
-        # up restoring into a bogus single-segment directory named "sonar-scanner-msbuild\.nuget\packages".
-        NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
       shell: bash
       run: bash scripts/run-its.sh
 
