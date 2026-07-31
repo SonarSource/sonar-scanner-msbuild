@@ -300,7 +300,7 @@ jobs:
           rid: osx-arm64
           os-name: MacOS
 
-  its:
+  its_linux:
     name: ITs Linux (${{ matrix.scenario }})
     needs: build
     runs-on: ${{ matrix.runsOn }}
