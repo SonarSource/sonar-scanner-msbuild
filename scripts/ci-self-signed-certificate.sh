@@ -1,14 +1,7 @@
 #!/usr/bin/env bash
 # Generates a self-signed certificate for the SslTest integration test, and trusts it in the system store.
-# Reimplemented from scripts/ci-self-signed-certificate.ps1 rather than calling it directly: that script depends on
-# Azure-only env vars (BUILD_SOURCESDIRECTORY, AGENT_OS, JAVA_HOME_17_X64) and ADO log commands
-# (##vso[task.setvariable]) that don't exist on GitHub Actions. The two OSes only differ in how the cert is trusted
-# by the system store, so uname is used to pick the right one - shared by the Linux and macOS ITs jobs.
 set -euo pipefail
 
-# Anchored to $GITHUB_WORKSPACE explicitly (rather than a plain relative "certs", which happens to land in the same
-# place today only because composite run: steps default their cwd there) so this keeps working even if this step
-# gains a working-directory: override later, like Configure Maven/NPM below it already have.
 CERTS_DIR="$GITHUB_WORKSPACE/certs"
 mkdir -p "$CERTS_DIR"
 openssl req -newkey rsa:2048 -x509 -sha256 -addext "subjectAltName = DNS:localhost" -nodes \

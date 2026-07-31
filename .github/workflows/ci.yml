@@ -313,10 +313,6 @@ jobs:
       matrix:
         scenario: [LATEST_RELEASE, Others]
         include:
-          # sonar-xs was observed to be too small for this scenario (runner lost communication with the server, most likely
-          # OOM-killed): it boots a real SonarQube Developer Edition server via Orchestrator and runs many more tests,
-          # including npm-based frontend builds, unlike Others. Bumped one size up per the "start small, scale up only if
-          # observed to be memory-bound" runner convention.
           - scenario: LATEST_RELEASE
             sqVersion: LATEST_RELEASE
             testInclude: "**/sonarqube/*"

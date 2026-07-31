@@ -26,8 +26,6 @@ runs:
         tool_versions: |
           java temurin-21
           maven 3.9.15
-          # Multiple SDKs, space-separated on one line (asdf/mise .tool-versions syntax installs all of them; the first is
-          # the default on PATH). SolutionKindTest/ExternalIssuesTest exercise older SDKs via per-test global.json files.
           dotnet 10.0.100 9 8
           node 20
 
@@ -51,16 +49,13 @@ runs:
           development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
           development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
 
-    # working-directory: its (on both this and Configure NPM below) fixes a real bug present in both jobs prior to this
-    # action existing: without it, the Maven/NPM cache keys hash every pom.xml/package.json in the whole repo instead of
-    # just the its/ subtree.
     - name: Configure Maven
       uses: SonarSource/ci-github-actions/config-maven@v1
       with:
         artifactory-reader-role: private-reader
         working-directory: its
-      # Opts config-maven out of its automatic -SNAPSHOT -> build-number version bump: the ITs don't publish anything, so
-      # the root pom.xml's real release version must not be touched by this job.
+      # Opts config-maven out of its automatic build-number bump. Otherwise it would update pom.xml with wrong values.
+      # We do not deploy, so dummy values are fine.
       env:
         CURRENT_VERSION: unused
         PROJECT_VERSION: unused
@@ -71,14 +66,8 @@ runs:
         artifactory-reader-role: private-reader
         working-directory: its
 
-    # SQ_EDITION is hardcoded to DEVELOPER (matching templates/its-jobs.yml and both jobs' prior behavior; Linux/macOS never
-    # override it), hence the licenses-ro GITHUB_TOKEN: Orchestrator uses it to fetch a Developer Edition license from the
-    # private licenses repo. MSBUILD_PATH_VAR/JDK_HOME_VAR/EXTRA_TEST_EXCLUSIONS are intentionally left unset: those are
-    # Windows-only/caller-specific knobs read by scripts/run-its.sh, and this action is Unix-only.
     - name: Run Maven ITs
       env:
-        # Matches the Xmx used by the Azure equivalent (templates/its-jobs.yml). config-maven defaults to -Xmx1536m, which
-        # is too small for the Orchestrator-driven ITs.
         MAVEN_OPTS: -Xmx3072m
         TEST_INCLUDE: ${{ inputs.test-include }}
         SQ_VERSION: ${{ inputs.sq-version }}
