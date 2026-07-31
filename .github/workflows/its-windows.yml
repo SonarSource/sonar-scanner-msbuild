@@ -226,6 +226,8 @@ jobs:
       # MultiLanguageTest needs npm
       - name: Set npm registry to Repox
         shell: bash
+        env:
+          ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
         run: |
           npm config set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
           npm config set "//repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$ARTIFACTORY_ACCESS_TOKEN"
