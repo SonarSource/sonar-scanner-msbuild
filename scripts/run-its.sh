@@ -25,8 +25,6 @@ GO_ENTERPRISE_VERSION="${GO_ENTERPRISE_VERSION:-LATEST_RELEASE}"
 TSQL_VERSION="${TSQL_VERSION:-LATEST_RELEASE}"
 GO_GROUP_ID="${GO_GROUP_ID:-org.sonarsource.go}"
 
-TEST_VALUE="${TEST_INCLUDE}${EXTRA_TEST_EXCLUSIONS:-}"
-
 if [ -n "${JDK_HOME_VAR:-}" ]; then
   export JAVA_HOME="${!JDK_HOME_VAR}"
 fi
@@ -34,7 +32,7 @@ fi
 MVN_ARGS=(
   -f its -B -e verify
   -Denable-repo=qa
-  "-Dtest=${TEST_VALUE}"
+  "-Dtest=${TEST_INCLUDE}"
   "-Dsonar.runtimeVersion=${SQ_VERSION}"
   "-Dsonar.sonarQubeEdition=${SQ_EDITION}"
   "-Dsonar.csharpplugin.version=${DOTNET_VERSION}"
