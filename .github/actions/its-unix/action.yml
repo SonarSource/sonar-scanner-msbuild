@@ -78,6 +78,7 @@ runs:
       with:
         artifactory-reader-role: private-reader
         working-directory: its
+
     - name: Run Maven ITs
       env:
         MAVEN_OPTS: -Xmx3072m
