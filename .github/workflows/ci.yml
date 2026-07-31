@@ -340,7 +340,7 @@ jobs:
   its_macos:
     name: ITs macOS (${{ matrix.scenario }})
     needs: build
-    if: true # TEMPORARY: smoke-test on this PR before restoring the master/workflow_dispatch-only gate above
+    if: github.ref_name == 'master' || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest-xlarge
     permissions:
       id-token: write
