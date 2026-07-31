@@ -359,7 +359,6 @@ jobs:
             sqVersion: LATEST_RELEASE
             testInclude: "**/sonarqube/*"
           - scenario: Others
-            sqVersion: ""
             testInclude: "**/others/*"
     steps:
       # Must be the literal first step, before checkout: GitHub-hosted macOS runners have no static IP, so every later step
