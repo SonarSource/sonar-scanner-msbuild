@@ -15,7 +15,7 @@ on:
 
 jobs:
   its_windows:
-    name: QA Windows - ITs (${{ matrix.scenario }})
+    name: ${{ matrix.scenario }}
     runs-on: warp-custom-dotnet-bubble-ci
     permissions:
       id-token: write

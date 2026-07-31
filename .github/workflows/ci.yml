@@ -224,7 +224,7 @@ jobs:
         run: dotnet tool run dotnet-sonarscanner -- end /d:sonar.token="$env:SONAR_TOKEN"
 
   its_windows:
-    name: QA Windows - ITs
+    name: ITs Windows
     needs: [version, build]
     uses: ./.github/workflows/its-windows.yml
     permissions:
