@@ -2,9 +2,6 @@ name: Prepare
 description: Install tools, cache NuGet, fetch secrets, compute version, and restore.
 
 inputs:
-  nuget-packages-path:
-    description: Directory NuGet packages are restored into and cached from.
-    required: true
   build-number:
     description: Build number used to set Version.targets before building.
     required: true
@@ -34,12 +31,12 @@ runs:
     - name: Cache NuGet packages
       uses: SonarSource/gh-action_cache@v1
       with:
-        path: ${{ inputs.nuget-packages-path }}
+        path: ${{ github.workspace }}/.nuget/packages
         key: nuget-${{ steps.cache-month.outputs.CACHE_MONTH }}-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: nuget-${{ steps.cache-month.outputs.CACHE_MONTH }}-
 
     - name: Restore
       shell: powershell
       env:
-        NUGET_PACKAGES: ${{ inputs.nuget-packages-path }}
+        NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
       run: dotnet restore SonarScanner.MSBuild.sln --locked-mode --configfile "NuGet.Config"
