@@ -206,7 +206,7 @@ jobs:
           secrets: |
             development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | ARTIFACTORY_USER;
             development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
-            development/github/token/licenses-ro token                                       | GITHUB_TOKEN;
+            development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
 
       - name: Configure Maven
         uses: SonarSource/ci-github-actions/config-maven@v1
@@ -242,7 +242,7 @@ jobs:
       - name: Run Windows ITs (${{ matrix.scenario }})
         env:
           MAVEN_OPTS: -Xmx3072m
-          GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
           NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
