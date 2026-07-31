@@ -647,7 +647,6 @@ public class ProcessRunnerTests
         }
         else // MacOs
         {
-            // GitHub's macos-latest-xlarge is the only macOS runner (native Apple Silicon), so osx-arm64 is the only RID.
             return Path.Combine(basePath.Replace("Debug", "Release"), "osx-arm64", "LogArgs");
         }
     }
