@@ -320,7 +320,6 @@ jobs:
           - scenario: Others
             testInclude: "**/others/*"
             runsOn: sonar-xs
-          # No local SQ server boot (hits real SonarQube Cloud instead), so sonar-xs is enough - same reasoning as Others.
           - scenario: Cloud
             testInclude: "**/sonarcloud/*"
             runsOn: sonar-xs

@@ -20,9 +20,7 @@ inputs:
     default: ""
   sonarcloud-project-token:
     description: >-
-      SonarCloud project token for the Cloud leg. Composite actions cannot read the caller workflow's
-      "secrets" context directly, so callers with a Cloud leg (currently only Linux) must pass
-      secrets.SONARCLOUD_PROJECT_TOKEN in explicitly. Left empty by callers with no Cloud leg (e.g. macOS).
+      SonarCloud project token for the Cloud leg.
     required: false
     default: ""
 
