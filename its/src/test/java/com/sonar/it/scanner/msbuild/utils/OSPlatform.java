@@ -42,9 +42,7 @@ public class OSPlatform {
   public static String currentArchitecture() {
     var arch = System.getProperty("os.arch");
 
-    // Java 'os.arch' returns amd64 (Linux x64), x86_64 (macOS Intel), or aarch64 (Linux/macOS ARM64, e.g.
-    // GitHub's macos-latest-xlarge). .NET 'RuntimeInformation.OSArchitecture' reports "x64"/"arm64" respectively -
-    // a naive "ends with 64" check collapses aarch64 into "x64" too, since it also ends in "64".
+    // Java 'os.arch' returns amd64 (Linux x64), x86_64 (macOS Intel), or aarch64 (Linux/macOS ARM64). .NET 'RuntimeInformation.OSArchitecture' reports "x64"/"arm64" respectively.
     return switch (arch) {
       case "amd64", "x86_64" -> "x64";
       case "aarch64", "arm64" -> "arm64";
