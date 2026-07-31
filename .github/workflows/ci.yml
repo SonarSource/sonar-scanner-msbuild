@@ -382,6 +382,10 @@ jobs:
   promote:
     name: Promote
     needs: [version, build, qa_windows, qa_linux, qa_macos, its_windows, its, its_macos]
+    # qa_macos/its_macos are conditionally skipped (see their own `if:`), and GitHub Actions skips a job whenever
+    # any of its `needs` was skipped unless told otherwise - without this, promote would never run on PR builds or
+    # non-master/branch-* pushes, exactly where it's supposed to promote to sonarsource-public-dev/-builds.
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     runs-on: sonar-xs
     permissions:
       id-token: write
