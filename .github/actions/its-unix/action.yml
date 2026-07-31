@@ -2,7 +2,7 @@ name: ITs Unix
 description: >-
   Shared IT runner for the Linux and macOS ITs jobs: installs toolchains, creates the self-signed
   certificate needed by SslTest, configures Maven/NPM, runs the Maven ITs for one matrix leg via
-  scripts/run-its.sh, and publishes/cleans up afterwards. Not used by the Windows ITs job (separate
+  scripts/run-its.sh, and publishes the results. Not used by the Windows ITs job (separate
   toolchain needs; see run-its.sh's Windows-only branches, which this action never sets env vars for).
 
 inputs:
@@ -35,8 +35,9 @@ runs:
         name: Binaries
         path: Packaging/Binaries
 
-    # Needed for the SslTest integration test.
+    # Needed for the SslTest integration test, which only runs as part of the LATEST_RELEASE leg (**/sonarqube/*).
     - name: Create self-signed certificate
+      if: inputs.scenario == 'LATEST_RELEASE'
       shell: bash
       run: bash scripts/ci-self-signed-certificate.sh
 
@@ -60,7 +61,9 @@ runs:
         CURRENT_VERSION: unused
         PROJECT_VERSION: unused
 
+    # Needed for MultiLanguageTest, which only runs as part of the LATEST_RELEASE leg (**/sonarqube/*).
     - name: Configure NPM
+      if: inputs.scenario == 'LATEST_RELEASE'
       uses: SonarSource/ci-github-actions/config-npm@v1
       with:
         artifactory-reader-role: private-reader
