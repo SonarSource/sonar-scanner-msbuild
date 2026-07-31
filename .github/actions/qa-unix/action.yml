@@ -30,15 +30,11 @@ runs:
         name: Binaries
         path: Packaging/Binaries
 
-    # The cache bucket is the current month. It's part of the cache key so the cache
-    # rotates monthly, preventing it from growing unbounded with stale packages.
     - name: Setup cache month variable
       id: cache-month
       shell: bash
       run: echo "CACHE_MONTH=$(date +%m)" >> "$GITHUB_OUTPUT"
 
-    # Keyed separately per runner.os (unlike the Windows build/qa_windows cache) since this action runs on both
-    # Linux and macOS - a shared key would let one OS's cache be restored onto the other.
     - name: Cache NuGet packages
       uses: SonarSource/gh-action_cache@v1
       with:
@@ -46,20 +42,12 @@ runs:
         key: nuget-${{ runner.os }}-${{ steps.cache-month.outputs.CACHE_MONTH }}-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: nuget-${{ runner.os }}-${{ steps.cache-month.outputs.CACHE_MONTH }}-
 
-    # NUGET_PACKAGES overrides the workflow-level default (${{ github.workspace }}\.nuget\packages), which uses
-    # backslashes that are only valid path separators on the Windows runners build/qa_windows run on: on Linux/macOS,
-    # dotnet would otherwise restore into a bogus single-segment directory literally named
-    # "sonar-scanner-msbuild\.nuget\packages", bypassing the cache above entirely.
     - name: Build test pre-requisites
       shell: bash
-      env:
-        NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
       run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net9.0 --self-contained -r ${{ inputs.rid }}
 
     - name: Run UTs
       shell: bash
-      env:
-        NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
       run: |
         unset LANGUAGE
         dotnet test --framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ inputs.os-name }}" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
