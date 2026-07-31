@@ -247,6 +247,8 @@ jobs:
           GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+          ARTIFACTORY_QA_READER_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+          ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
           NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
           # These variables are needed for SQC ITs (see CloudConstants.java).
           # s4net-its is a dedicated organization setup specifically for this purpose. Any user that has Execute Analysis permission (explicitly, or by being an owner) can create a new token.
