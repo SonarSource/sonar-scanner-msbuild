@@ -342,7 +342,7 @@ jobs:
     needs: build
     # Ported from azure-pipelines.yml's Unix ITs (templates/unix-qa-stage.yml -> its-jobs.yml), which only run on master.
     # workflow_dispatch is additionally allowed so this can be triggered manually from any branch, e.g. while iterating on this job.
-    if: github.ref_name == 'master' || github.event_name == 'workflow_dispatch'
+    if: true # TEMPORARY: smoke-test on this PR before restoring the master/workflow_dispatch-only gate above
     # GitHub-hosted macos-latest-xlarge is the only macOS runner available (no Sonar-managed macOS runner exists org-wide,
     # per the qa_macos job) - unlike Linux ITs there's no self-hosted sonar-* option to size per scenario.
     runs-on: macos-latest-xlarge
