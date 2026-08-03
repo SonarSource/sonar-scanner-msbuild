@@ -802,6 +802,28 @@ public class E2EAnalysisTests
             x => x.Should().Be("""{"dotnetenterprise.s4net.build.test_project_in_proj.cnt":"true"}"""));
     }
 
+    [TestMethod]
+    public void E2E_TelemetryFiles_PackageReferences_Written()
+    {
+        var context = CreateContext();
+
+        var result = BuildRunner.BuildTargets(TestContext, context.CreateProjectFile($"""
+            <ItemGroup>
+              <Compile Include='{context.CreateInputFile("codeFile1.cs")}' />
+            </ItemGroup>
+            <ItemGroup>
+              <PackageReference Include="FluentAssertions" Version="7.2.2" />
+              <PackageReference Include="MSTest.TestFramework" Version="4.2.1" />
+            </ItemGroup>
+            """));
+        result.BuildSucceeded.Should().BeTrue();
+        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
+        File.Exists(projectTelemetryFile).Should().BeTrue();
+        var telemetryLines = File.ReadAllLines(projectTelemetryFile);
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.packages.fluentassertions.cnt":"true"}""");
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.packages.mstest_testframework.cnt":"true"}""");
+    }
+
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
     {
         // Protobuf files containing metrics information should be created for test projects.
