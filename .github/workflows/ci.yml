@@ -148,7 +148,7 @@ jobs:
           if-no-files-found: error
 
   uts_windows:
-    name: UTs Windows
+    name: UTs Windows and analysis
     needs: version
     runs-on: warp-custom-dotnet-bubble-ci
     permissions:
