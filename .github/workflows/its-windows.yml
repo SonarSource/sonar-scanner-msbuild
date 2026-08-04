@@ -1,0 +1,277 @@
+name: Windows ITs
+
+on:
+  workflow_call:
+    inputs:
+      short-version:
+        required: true
+        type: string
+      full-version:
+        required: true
+        type: string
+    secrets:
+      SONARCLOUD_PROJECT_TOKEN:
+        required: true
+
+jobs:
+  its_windows:
+    name: ${{ matrix.scenario }}
+    runs-on: warp-custom-dotnet-bubble-ci
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [LTA-89, LTA-99, LTA-2025-1, LTA-2025-4, LTA-2026-1, LATEST_RELEASE, DEV_MsBuild15, DEV_MsBuild16, DEV_MsBuild17, DEV_MsBuild18, DEV_Community, Cloud, Others]
+        include:
+          - scenario: LTA-89
+            sqVersion: "LATEST_RELEASE[8.9]"
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_17_X64
+            cfamilyVersion: "6.20.5.49286"          # Bundled version with SQ 8.9
+            cssVersion: "1.4.2.2002"                # Bundled version with SQ 8.9
+            dotnetVersion: "8.22.0.31243"           # Bundled version with SQ 8.9
+            dreVersion: "NONE"                      # No release before 2026.1
+            goVersion: "1.8.3.2219"                 # Bundled version with SQ 8.9
+            goEnterpriseVersion: "NONE"             # DRE Dependency
+            goGroupId: org.sonarsource.slang
+            iacEnterpriseVersion: "NONE"            # Not present until LTA-2025
+            javaVersion: "NONE"                     # Not required in our ITs for SQ 8.9
+            javascriptVersion: "7.4.4.15624"        # Bundled version with SQ 8.9
+            phpVersion: "3.17.0.7439"               # Bundled version with SQ 8.9
+            plsqlVersion: "3.6.1.3873"              # Bundled version with SQ 8.9
+            pythonVersion: "3.4.1.8066"             # Bundled version with SQ 8.9
+            rubyVersion: "NONE"                     # DRE Dependency
+            textVersion: "NONE"                     # Not release before SQ 9.9, the plug-in should not be loaded
+            tsqlVersion: "1.5.1.4340"               # Bundled version with SQ 8.9
+            xmlVersion: "2.2.0.2973"                # Bundled version with SQ 8.9
+          - scenario: LTA-99
+            sqVersion: "LATEST_RELEASE[9.9]"
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_17_X64
+            cfamilyVersion: "6.41.0.60884"          # Bundled version with SQ 9.9
+            dotnetVersion: "8.51.0.59060"           # Bundled version with SQ 9.9
+            dreVersion: "NONE"                      # No release before 2026.1
+            goVersion: "1.11.0.3905"                # Bundled version with SQ 9.9
+            goEnterpriseVersion: "NONE"             # DRE Dependency
+            goGroupId: org.sonarsource.slang
+            iacVersion: "1.11.0.2847"               # Bundled version with SQ 9.9
+            iacEnterpriseVersion: "NONE"            # Not present until LTA-2025
+            javaVersion: "NONE"                     # Not required in our ITs for SQ 9.9
+            javascriptVersion: "9.13.0.20537"       # Bundled version with SQ 9.9
+            phpVersion: "3.27.1.9352"               # Bundled version with SQ 9.9
+            plsqlVersion: "3.8.0.4948"              # Bundled version with SQ 9.9
+            pythonVersion: "3.24.0.10784"           # Bundled version with SQ 9.9
+            rubyVersion: "NONE"                     # DRE Dependency
+            textVersion: "NONE"                     # Not required in our ITs for SQ 9.9
+            tsqlVersion: "1.7.0.5449"               # Bundled version with SQ 9.9
+            xmlVersion: "2.7.0.3820"                # Bundled version with SQ 9.9
+          - scenario: LTA-2025-1
+            sqVersion: "LATEST_RELEASE[2025.1]"
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_17_X64
+            cfamilyVersion: "6.62.0.78645"          # Bundled version with SQ 2025.1
+            dotnetVersion: "10.4.0.108396"          # Bundled version with SQ 2025.1
+            dreVersion: "NONE"                      # No release before 2026.1
+            goVersion: "1.18.0.240"                 # Bundled version with SQ 2025.1
+            goEnterpriseVersion: "NONE"             # DRE Dependency
+            goGroupId: org.sonarsource.slang
+            iacVersion: "1.41.0.14206"              # Bundled version with SQ 2025.1
+            iacEnterpriseVersion: "1.41.0.14206"    # Bundled version with SQ 2025.1
+            javaVersion: "8.9.0.37768"              # Bundled version with SQ 2025.1, required by sonar-text to analyse .properties files
+            javascriptVersion: "10.20.0.29356"      # Bundled version with SQ 2025.1
+            phpVersion: "3.42.0.12795"              # Bundled version with SQ 2025.1
+            plsqlVersion: "3.15.0.7123"             # Bundled version with SQ 2025.1
+            pythonVersion: "4.26.0.19456"           # Bundled version with SQ 2025.1
+            rubyVersion: "NONE"                     # DRE Dependency
+            textVersion: "2.20.0.5038"              # Bundled version with SQ 2025.1
+            tsqlVersion: "1.14.0.7614"              # Bundled version with SQ 2025.1
+            xmlVersion: "2.12.0.5749"               # Bundled version with SQ 2025.1
+          - scenario: LTA-2025-4
+            sqVersion: "LATEST_RELEASE[2025.4]"
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+            cfamilyVersion: "6.70.1.93088"          # Bundled version with SQ 2025.4
+            dotnetVersion: "10.21.0.135717"         # Minimum version supporting new telemetry convention (bundled was 10.15.0)
+            dreVersion: "NONE"                      # No release before 2026.1
+            goVersion: "1.26.0.3421"                # Bundled version with SQ 2025.4
+            goEnterpriseVersion: "NONE"             # DRE Dependency
+            iacVersion: "1.48.1.18410"              # Bundled version with SQ 2025.4
+            iacEnterpriseVersion: "1.48.1.18410"    # Bundled version with SQ 2025.4
+            javaVersion: "8.18.0.40025"             # Bundled version with SQ 2025.4, required by sonar-text to analyse .properties files
+            javascriptVersion: "10.26.0.35551"      # Bundled version with SQ 2025.4
+            phpVersion: "3.46.1.15272"              # Bundled version with SQ 2025.4
+            plsqlVersion: "3.17.1.7623"             # Bundled version with SQ 2025.4
+            pythonVersion: "5.7.1.26730"            # Bundled version with SQ 2025.4
+            rubyVersion: "NONE"                     # DRE Dependency
+            textVersion: "2.26.1.9976"              # Bundled version with SQ 2025.4
+            tsqlVersion: "1.15.0.7898"              # Bundled version with SQ 2025.4
+            xmlVersion: "2.13.1.6351"               # Bundled version with SQ 2025.4
+          - scenario: LTA-2026-1
+            sqVersion: "LATEST_RELEASE[2026.1]"
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+            cfamilyVersion: "6.77.0.95488"          # Bundled version with SQ 2026.1
+            dotnetVersion: "10.21.0.135717"         # Minimum version supporting new telemetry convention (bundled was 10.18.0)
+            dreVersion: "NONE"                      # The DRE plugin is not required for the tests for this version
+            goVersion: "1.31.0.4938"                # Bundled version with SQ 2026.1
+            goEnterpriseVersion: "NONE"             # DRE Dependency
+            iacEnterpriseVersion: "2.6.1.19203"     # Minimum version supporting githubactions rules (bundled was 2.5.0)
+            javaVersion: "8.22.0.41895"             # Bundled version with SQ 2026.1, required by sonar-text to analyse .properties files
+            javascriptVersion: "12.1.0.39434"       # Forward version: 12.1.0 no longer raises typescript:S7785 on Angular's main.ts (bundled was 11.8.0.37897)
+            phpVersion: "3.54.0.15452"              # Bundled version with SQ 2026.1
+            plsqlVersion: "3.18.1.230"              # Bundled version with SQ 2026.1
+            pythonVersion: "5.14.2.29072"           # Bundled version with SQ 2026.1
+            rubyVersion: "NONE"                     # DRE Dependency
+            textVersion: "2.38.0.10279"             # Bundled version with SQ 2026.1
+            tsqlVersion: "1.16.1.9133"              # Bundled version with SQ 2026.1
+            xmlVersion: "2.15.0.7513"               # Bundled version with SQ 2026.1
+          - scenario: LATEST_RELEASE
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+          - scenario: DEV_MsBuild15
+            sqVersion: DEV
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_15_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+          - scenario: DEV_MsBuild16
+            sqVersion: DEV
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_16_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+          - scenario: DEV_MsBuild17
+            sqVersion: DEV
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_17_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+          - scenario: DEV_MsBuild18
+            sqVersion: DEV
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+          - scenario: DEV_Community
+            sqVersion: DEV
+            sqEdition: COMMUNITY
+            testInclude: "**/sonarqube/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+            cfamilyVersion: "NONE"                  # Commercial plugin
+            dreVersion: "NONE"                      # Commercial plugin
+            goEnterpriseVersion: "NONE"             # Commercial plugin & DRE Dependency
+            iacEnterpriseVersion: "NONE"            # Commercial plugin
+            plsqlVersion: "NONE"                    # Commercial plugin
+            rubyVersion: "NONE"                     # Not-Commercial, but only required when the DRE plugin is installed
+            tsqlVersion: "NONE"                     # Commercial plugin
+          - scenario: Cloud
+            testInclude: "**/sonarcloud/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_17_X64
+          - scenario: Others
+            testInclude: "**/others/*"
+            jdkHomeVar: JAVA_HOME_17_X64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Fetch Vault Secrets
+        id: secrets
+        uses: SonarSource/vault-action-wrapper@v3
+        with:
+          secrets: |
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | ARTIFACTORY_USER;
+            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
+            development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
+
+      - name: Configure Maven
+        uses: SonarSource/ci-github-actions/config-maven@v1
+        with:
+          artifactory-reader-role: private-reader
+          working-directory: its
+        env:
+          CURRENT_VERSION: ${{ inputs.short-version }}
+          PROJECT_VERSION: ${{ inputs.full-version }}
+
+      - name: Download Binaries artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: Binaries
+          path: Packaging/Binaries
+
+      # MultiLanguageTest needs npm, and only runs as part of the **/sonarqube/* legs.
+      - name: Set npm registry to Repox
+        if: matrix.testInclude == '**/sonarqube/*'
+        shell: bash
+        env:
+          ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+        run: |
+          npm config set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
+          npm config set "//repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$ARTIFACTORY_ACCESS_TOKEN"
+
+      # MSBuild 15 (VS2017) never got MSBuild's long-path support (added in MSBuild 16/VS2019, see dotnet/msbuild#3507).
+      - name: Use short-path temp directory (DEV_MsBuild15 only)
+        if: matrix.scenario == 'DEV_MsBuild15'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path C:\ittmp | Out-Null
+          "TEMP=C:\ittmp" >> $env:GITHUB_ENV
+          "TMP=C:\ittmp" >> $env:GITHUB_ENV
+
+      - name: Run Windows ITs (${{ matrix.scenario }})
+        env:
+          MAVEN_OPTS: -Xmx3072m
+          GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
+          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+          NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
+          # These variables are needed for SQC ITs (see CloudConstants.java).
+          # s4net-its is a dedicated organization setup specifically for this purpose. Any user that has Execute Analysis permission (explicitly, or by being an owner) can create a new token.
+          # As of 2025, s4net-its owners are: Pavel, Martin, Tim.
+          # When debugging against a different organization, don't forget that SQ-C project keys must be UNIQUE across all organizations.
+          SONARCLOUD_PROJECT_TOKEN: ${{ secrets.SONARCLOUD_PROJECT_TOKEN }}
+          SONARCLOUD_URL: https://sc-staging.io/
+          SONARCLOUD_API_URL: https://api.sc-staging.io
+          SONARCLOUD_ORGANIZATION: s4net-its
+          MSBUILD_PATH_VAR: ${{ matrix.msbuildPathVar }}
+          JDK_HOME_VAR: ${{ matrix.jdkHomeVar }}
+          TEST_INCLUDE: ${{ matrix.testInclude }}
+          SQ_VERSION: ${{ matrix.sqVersion }}
+          SQ_EDITION: ${{ matrix.sqEdition }}
+          DOTNET_VERSION: ${{ matrix.dotnetVersion }}
+          DRE_VERSION: ${{ matrix.dreVersion }}
+          CFAMILY_VERSION: ${{ matrix.cfamilyVersion }}
+          XML_VERSION: ${{ matrix.xmlVersion }}
+          CSS_VERSION: ${{ matrix.cssVersion }}
+          JAVASCRIPT_VERSION: ${{ matrix.javascriptVersion }}
+          PLSQL_VERSION: ${{ matrix.plsqlVersion }}
+          PYTHON_VERSION: ${{ matrix.pythonVersion }}
+          PHP_VERSION: ${{ matrix.phpVersion }}
+          IAC_VERSION: ${{ matrix.iacVersion }}
+          IAC_ENTERPRISE_VERSION: ${{ matrix.iacEnterpriseVersion }}
+          JAVA_VERSION: ${{ matrix.javaVersion }}
+          TEXT_VERSION: ${{ matrix.textVersion }}
+          RUBY_VERSION: ${{ matrix.rubyVersion }}
+          GO_VERSION: ${{ matrix.goVersion }}
+          GO_ENTERPRISE_VERSION: ${{ matrix.goEnterpriseVersion }}
+          TSQL_VERSION: ${{ matrix.tsqlVersion }}
+          GO_GROUP_ID: ${{ matrix.goGroupId }}
+        run: bash scripts/run-its.sh
+
+      - name: Publish IT results
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
+        if: ${{ !cancelled() }}
+        with:
+          name: Windows ITs Results (${{ matrix.scenario }})
+          path: its/target/surefire-reports/TEST-*.xml
+          reporter: java-junit
+          fail-on-error: false
+
