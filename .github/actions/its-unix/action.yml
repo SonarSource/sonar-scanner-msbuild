@@ -7,14 +7,21 @@ description: >-
 
 inputs:
   scenario:
-    description: Matrix leg name (e.g. LATEST_RELEASE, Others), used only for step/check-run display names.
+    description: Matrix leg name (e.g. LATEST_RELEASE, Others, Cloud), used only for step/check-run display names.
     required: true
   test-include:
     description: Value passed through to run-its.sh as TEST_INCLUDE (e.g. "**/sonarqube/*").
     required: true
   sq-version:
-    description: Value passed through to run-its.sh as SQ_VERSION. A valid empty string for the Others leg.
-    required: true
+    description: >-
+      Value passed through to run-its.sh as SQ_VERSION. Omit for legs that don't boot a local SonarQube server.
+    required: false
+    default: ""
+  sonarcloud-project-token:
+    description: >-
+      SonarCloud project token for the Cloud leg.
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -77,6 +84,10 @@ runs:
         SQ_EDITION: DEVELOPER
         ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
+        SONARCLOUD_PROJECT_TOKEN: ${{ inputs.sonarcloud-project-token }}
+        SONARCLOUD_URL: https://sc-staging.io/
+        SONARCLOUD_API_URL: https://api.sc-staging.io
+        SONARCLOUD_ORGANIZATION: s4net-its
       shell: bash
       run: bash scripts/run-its.sh
 
