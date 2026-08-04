@@ -340,7 +340,7 @@ jobs:
   its_macos:
     name: ITs macOS (${{ matrix.scenario }})
     needs: build
-    if: github.ref_name == 'master' || github.event_name == 'workflow_dispatch'
+    if: github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'feature/') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest-xlarge
     permissions:
       id-token: write
