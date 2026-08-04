@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
 
 env:
-  NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
 
 jobs:
   version:
@@ -180,7 +180,7 @@ jobs:
         id: s4net-cache
         uses: SonarSource/gh-action_cache@v1
         with:
-          path: ${{ env.NUGET_PACKAGES }}\dotnet-sonarscanner
+          path: ${{ env.NUGET_PACKAGES }}/dotnet-sonarscanner
           key: s4net-${{ hashFiles('.config/dotnet-tools.json') }}
 
       - name: Restore SonarScanner for .NET
@@ -259,7 +259,6 @@ jobs:
             dotnet 9
             powershell-core 7.5.4
 
-      # 
       - name: Make dotnet discoverable at the well-known Linux path
         run: sudo ln -sfn "$(command -v dotnet)" /usr/local/bin/dotnet
 
@@ -300,3 +299,37 @@ jobs:
           short-version: ${{ needs.version.outputs.SHORT_VERSION }}
           rid: osx-arm64
           os-name: MacOS
+
+  its_linux:
+    name: ITs Linux (${{ matrix.scenario }})
+    needs: build
+    runs-on: ${{ matrix.runsOn }}
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [LATEST_RELEASE, Others]
+        include:
+          - scenario: LATEST_RELEASE
+            sqVersion: LATEST_RELEASE
+            testInclude: "**/sonarqube/*"
+            runsOn: sonar-s
+          - scenario: Others
+            sqVersion: ""
+            testInclude: "**/others/*"
+            runsOn: sonar-xs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Run ITs
+        uses: ./.github/actions/its-unix
+        with:
+          scenario: ${{ matrix.scenario }}
+          test-include: ${{ matrix.testInclude }}
+          sq-version: ${{ matrix.sqVersion }}
