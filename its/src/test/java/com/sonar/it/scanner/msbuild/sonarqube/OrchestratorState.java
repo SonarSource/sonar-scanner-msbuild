@@ -57,6 +57,8 @@ public class OrchestratorState {
           .getToken();
         // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
         analyzeEmptyProject();
+        // To avoid a race condition in the scanner-cli cache — the standalone sonar-scanner CLI's own FileCache/JarDownloader. Used only when sonar.scanner.useSonarScannerCLI=true is set.
+        analyzeEmptyProjectWithScannerCli();
         isStarted = true;
       } else if (!isStarted) {  // The second, third and any other caller should fail fast if something went wrong for the first one
         throw new IllegalStateException("Previous OrchestratorState startup failed");
@@ -87,6 +89,17 @@ public class OrchestratorState {
     assertTrue(result.begin().isSuccess(), "Orchestrator warmup failed - begin step");
     assertTrue(result.build().isSuccess(), "Orchestrator warmup failed - build");
     assertTrue(result.end().isSuccess(), "Orchestrator warmup failed - end step");
+    ContextExtension.cleanup();
+  }
+
+  private void analyzeEmptyProjectWithScannerCli() {
+    ContextExtension.init("OrchestratorState.StartupCli." + Thread.currentThread().getName());
+    var context = AnalysisContext.forServer("Empty");
+    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true");
+    var result = context.runAnalysis();
+    assertTrue(result.begin().isSuccess(), "Orchestrator warmup (scanner CLI) failed - begin step");
+    assertTrue(result.build().isSuccess(), "Orchestrator warmup (scanner CLI) failed - build");
+    assertTrue(result.end().isSuccess(), "Orchestrator warmup (scanner CLI) failed - end step");
     ContextExtension.cleanup();
   }
 }
