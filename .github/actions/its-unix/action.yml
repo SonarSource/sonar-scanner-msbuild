@@ -1,0 +1,90 @@
+name: ITs Unix
+description: >-
+  Shared IT runner for the Linux and macOS ITs jobs: installs toolchains, creates the self-signed
+  certificate needed by SslTest, configures Maven/NPM, runs the Maven ITs for one matrix leg via
+  scripts/run-its.sh, and publishes the results. Not used by the Windows ITs job (separate
+  toolchain needs; see run-its.sh's Windows-only branches, which this action never sets env vars for).
+
+inputs:
+  scenario:
+    description: Matrix leg name (e.g. LATEST_RELEASE, Others), used only for step/check-run display names.
+    required: true
+  test-include:
+    description: Value passed through to run-its.sh as TEST_INCLUDE (e.g. "**/sonarqube/*").
+    required: true
+  sq-version:
+    description: Value passed through to run-its.sh as SQ_VERSION. A valid empty string for the Others leg.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Java, Maven, .NET and Node
+      uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
+      with:
+        cache: true
+        tool_versions: |
+          java temurin-21
+          maven 3.9.15
+          dotnet 10.0.100 9 8
+          node 20
+
+    - name: Download Binaries artifact
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: Binaries
+        path: Packaging/Binaries
+
+    # Needed for the SslTest integration test, which only runs as part of the LATEST_RELEASE leg (**/sonarqube/*).
+    - name: Create self-signed certificate
+      if: inputs.scenario == 'LATEST_RELEASE'
+      shell: bash
+      run: bash scripts/ci-self-signed-certificate.sh
+
+    - name: Fetch Vault Secrets
+      id: secrets
+      uses: SonarSource/vault-action-wrapper@v3
+      with:
+        secrets: |
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | ARTIFACTORY_USER;
+          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
+          development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
+
+    - name: Configure Maven
+      uses: SonarSource/ci-github-actions/config-maven@v1
+      with:
+        artifactory-reader-role: private-reader
+        working-directory: its
+      # Opts config-maven out of its automatic build-number bump. Otherwise it would update pom.xml with wrong values.
+      # We do not deploy, so dummy values are fine.
+      env:
+        CURRENT_VERSION: unused
+        PROJECT_VERSION: unused
+
+    # Needed for MultiLanguageTest, which only runs as part of the LATEST_RELEASE leg (**/sonarqube/*).
+    - name: Configure NPM
+      if: inputs.scenario == 'LATEST_RELEASE'
+      uses: SonarSource/ci-github-actions/config-npm@v1
+      with:
+        artifactory-reader-role: private-reader
+        working-directory: its
+
+    - name: Run Maven ITs
+      env:
+        MAVEN_OPTS: -Xmx3072m
+        TEST_INCLUDE: ${{ inputs.test-include }}
+        SQ_VERSION: ${{ inputs.sq-version }}
+        SQ_EDITION: DEVELOPER
+        ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+        GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
+      shell: bash
+      run: bash scripts/run-its.sh
+
+    - name: Publish test results
+      uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
+      if: ${{ !cancelled() }}
+      with:
+        name: ITs ${{ runner.os }} (${{ inputs.scenario }})
+        path: its/target/surefire-reports/TEST-*.xml
+        reporter: java-junit
+        fail-on-error: false
