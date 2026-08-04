@@ -349,13 +349,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: [LATEST_RELEASE, Others]
+        scenario: [LATEST_RELEASE, Others, Cloud]
         include:
           - scenario: LATEST_RELEASE
             sqVersion: LATEST_RELEASE
             testInclude: "**/sonarqube/*"
           - scenario: Others
             testInclude: "**/others/*"
+          - scenario: Cloud
+            testInclude: "**/sonarcloud/*"
     steps:
       - name: Setup Cloudflare WARP
         uses: SonarSource/gh-action_setup-cloudflare-warp@v1
@@ -375,3 +377,4 @@ jobs:
           scenario: ${{ matrix.scenario }}
           test-include: ${{ matrix.testInclude }}
           sq-version: ${{ matrix.sqVersion }}
+          sonarcloud-project-token: ${{ secrets.SONARCLOUD_PROJECT_TOKEN }}
