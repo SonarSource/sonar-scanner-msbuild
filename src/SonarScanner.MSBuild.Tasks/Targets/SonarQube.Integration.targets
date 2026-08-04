@@ -416,7 +416,7 @@
       <SonarProjectTelemetry Condition="$(SonarQubeHasFileExclusions) == 'true'" Include="dotnetenterprise.s4net.build.exclusion_file.cnt">
         <Value>true</Value>
       </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true'" Include="dotnetenterprise.s4net.build.packages.$([System.Text.RegularExpressions.Regex]::Replace('%(PackageReference.Identity)', '[^a-zA-Z0-9]', '_').ToLower()).cnt">
+      <SonarProjectTelemetry Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true' AND '%(PackageReference.Identity)' != ''" Include="dotnetenterprise.s4net.build.packages.$([System.Text.RegularExpressions.Regex]::Replace('%(PackageReference.Identity)', '[^a-zA-Z0-9]', '_').ToLower()).cnt">
         <Value>true</Value>
       </SonarProjectTelemetry>
     </ItemGroup>
