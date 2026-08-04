@@ -55,13 +55,11 @@ You can run the Unit Tests via the Test Explorer of Visual Studio.
 In order to be able to run the ITs for SonarCloud the following environment variables need to be set:
 - SONARCLOUD_URL
 - SONARCLOUD_ORGANIZATION
-- SONARCLOUD_PROJECT_KEY
 - SONARCLOUD_PROJECT_TOKEN
 
 In our CI/CD pipeline, we use the following:
 - SONARCLOUD_URL=https://sc-staging.io
-- SONARCLOUD_ORGANIZATION=team-lang-dotnet
-- SONARCLOUD_PROJECT_KEY=team-lang-dotnet_incremental-pr-analysis
+- SONARCLOUD_ORGANIZATION=s4net-its
 - SONARCLOUD_PROJECT_TOKEN=[user-token]
 
 These can be set either on the operating system or your preferred IDE test run configuration.
