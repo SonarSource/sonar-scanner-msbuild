@@ -382,12 +382,8 @@ jobs:
   promote:
     name: Promote
     needs: [version, build, uts_windows, uts_linux, uts_macos, its_windows, its_linux, its_macos]
-    # uts_macos/its_macos are conditionally skipped (see their own `if:`), and GitHub Actions skips a job whenever
-    # any of its `needs` was skipped unless told otherwise - without this, promote would never run on PR builds or
-    # non-master/branch-* pushes, exactly where it's supposed to promote to sonarsource-public-dev/-builds.
-    # Always runs (never skips due to a dependency's outcome) so that a real failure surfaces as this job actually
-    # FAILING rather than being SKIPPED: GitHub treats a skipped required check as satisfying it, which would let a
-    # broken Build/UTs/ITs run merge silently if this job's own `if:` were the one doing the failure/cancel check.
+    # always() is needed because uts_macos/its_macos are conditionally skipped, and GitHub would then
+    # skip this job too - but a skipped required check counts as passing, letting a real failure merge silently.
     if: always()
     runs-on: sonar-xs
     permissions:
