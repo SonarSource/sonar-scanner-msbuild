@@ -336,3 +336,42 @@ jobs:
           test-include: ${{ matrix.testInclude }}
           sq-version: ${{ matrix.sqVersion }}
           sonarcloud-project-token: ${{ secrets.SONARCLOUD_PROJECT_TOKEN }}
+
+  its_macos:
+    name: ITs macOS (${{ matrix.scenario }})
+    needs: build
+    if: github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'feature/') || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest-xlarge
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [LATEST_RELEASE, Others]
+        include:
+          - scenario: LATEST_RELEASE
+            sqVersion: LATEST_RELEASE
+            testInclude: "**/sonarqube/*"
+          - scenario: Others
+            testInclude: "**/others/*"
+    steps:
+      - name: Setup Cloudflare WARP
+        uses: SonarSource/gh-action_setup-cloudflare-warp@v1
+        id: warp
+
+      - name: Remove pre-existing .bash_profile
+        run: rm -f ~/.bash_profile
+
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Run ITs
+        uses: ./.github/actions/its-unix
+        with:
+          scenario: ${{ matrix.scenario }}
+          test-include: ${{ matrix.testInclude }}
+          sq-version: ${{ matrix.sqVersion }}
