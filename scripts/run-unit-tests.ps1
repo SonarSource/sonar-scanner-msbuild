@@ -8,7 +8,12 @@ function Test-ExitCode([string]$errorMessage = "ERROR: Command FAILED.") {
 
 function Run-Tests-With-Coverage ([string]$ProjectPath) {
     $ProjectNameLiteral = '$(ProjectName)'  #AltCover will replace this MsBuild-style variable with actual project name. The '' deals with PowerShell evaluation
-    dotnet test $ProjectPath --configuration $BuildConfiguration --results-directory "$SourcesDirectory\TestResults" -l trx --no-build --no-restore --filter "TestCategory!=NoWindows" /p:AltCover=true,AltCoverForce=true,AltCoverVisibleBranches=true,AltCoverAssemblyFilter="testhost|AltCover|Microsoft|protobuf|Humanizer|GraphQL|StructuredLogger|Test",AltCoverAttributeFilter="ExcludeFromCodeCoverage",AltCoverReport="$SourcesDirectory/Coverage/$ProjectNameLiteral.xml"
+    # Built as its own string first, then passed as a single quoted argument: $SourcesDirectory/$ProjectNameLiteral only interpolate
+    # reliably this way. Embedded inside an unquoted /p:Key=Val,... token passed straight to the dotnet native executable, pwsh's
+    # native-argument-passing left both variables un-interpolated, silently misdirecting every coverage report (unlike Windows
+    # PowerShell 5.1, which Azure Pipelines used, where this same pattern happened to interpolate correctly).
+    $msbuildProperties = "AltCover=true,AltCoverForce=true,AltCoverVisibleBranches=true,AltCoverAssemblyFilter=testhost|AltCover|Microsoft|protobuf|Humanizer|GraphQL|StructuredLogger|Test,AltCoverAttributeFilter=ExcludeFromCodeCoverage,AltCoverReport=$SourcesDirectory/Coverage/$ProjectNameLiteral.xml"
+    dotnet test $ProjectPath --configuration $BuildConfiguration --results-directory "$SourcesDirectory\TestResults" -l trx --no-build --no-restore --filter "TestCategory!=NoWindows" "/p:$msbuildProperties"
     Test-ExitCode "ERROR: Unit tests for '$ProjectPath' FAILED."
 }
 
