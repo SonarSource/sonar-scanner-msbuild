@@ -390,6 +390,29 @@
       <SonarReportFilePath Condition= "$(SonarErrorLogExists) == 'true'" Include="$(SonarErrorLog)" />
     </ItemGroup>
 
+    <!-- Whitelist of well-known NuGet packages reported in telemetry. -->
+    <ItemGroup>
+      <!-- Test / mocking / assertions -->
+      <SonarKnownTelemetryPackage Include="xunit;NUnit;MSTest.TestFramework;Microsoft.NET.Test.Sdk;Moq;NSubstitute;FluentAssertions;Shouldly;coverlet.collector;coverlet.msbuild;AutoFixture;Bogus;BenchmarkDotNet" />
+      <!-- Logging / observability -->
+      <SonarKnownTelemetryPackage Include="Serilog;Serilog.AspNetCore;NLog;log4net;Microsoft.Extensions.Logging;OpenTelemetry.Extensions.Hosting;OpenTelemetry.Exporter.OpenTelemetryProtocol;Microsoft.ApplicationInsights.AspNetCore" />
+      <!-- Serialization -->
+      <SonarKnownTelemetryPackage Include="Newtonsoft.Json;System.Text.Json;protobuf-net;MessagePack;YamlDotNet" />
+      <!-- Web / API / validation / mapping / resilience -->
+      <SonarKnownTelemetryPackage Include="Swashbuckle.AspNetCore;MediatR;FluentValidation;AutoMapper;Polly;RestSharp;Refit;Microsoft.Extensions.Http;Grpc.AspNetCore;HotChocolate.AspNetCore;Microsoft.AspNetCore.SignalR.Client;Microsoft.AspNetCore.Authentication.JwtBearer" />
+      <!-- Data / ORM / drivers -->
+      <SonarKnownTelemetryPackage Include="Dapper;Microsoft.EntityFrameworkCore;Microsoft.EntityFrameworkCore.SqlServer;Microsoft.EntityFrameworkCore.Design;Npgsql;Npgsql.EntityFrameworkCore.PostgreSQL;Pomelo.EntityFrameworkCore.MySql;StackExchange.Redis;MongoDB.Driver;Microsoft.Data.SqlClient" />
+      <!-- DI / cloud -->
+      <SonarKnownTelemetryPackage Include="Microsoft.Extensions.DependencyInjection;Autofac;Azure.Identity;Azure.Storage.Blobs;Azure.Messaging.ServiceBus;Microsoft.Azure.Cosmos;AWSSDK.S3;AWSSDK.SQS;AWSSDK.DynamoDBv2" />
+      <!-- Auth / identity / misc -->
+      <SonarKnownTelemetryPackage Include="Microsoft.IdentityModel.Tokens;System.IdentityModel.Tokens.Jwt;BCrypt.Net-Next;NodaTime" />
+      <!-- Candidate: user-declared (non-implicit) PackageReferences -->
+      <SonarTelemetryPackage Include="@(PackageReference)" Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true' AND '%(PackageReference.Identity)' != ''" />
+
+      <SonarTelemetryPackageNotKnown Include="@(SonarTelemetryPackage)" Exclude="@(SonarKnownTelemetryPackage)" />
+      <SonarTelemetryPackage Remove="@(SonarTelemetryPackageNotKnown)" />
+    </ItemGroup>
+
     <ItemGroup>
       <SonarProjectTelemetry Condition="$(TargetFrameworkMoniker) != ''" Include="dotnetenterprise.s4net.build.target_framework_moniker" >
         <Value>$(TargetFrameworkMoniker)</Value>
@@ -416,7 +439,8 @@
       <SonarProjectTelemetry Condition="$(SonarQubeHasFileExclusions) == 'true'" Include="dotnetenterprise.s4net.build.exclusion_file.cnt">
         <Value>true</Value>
       </SonarProjectTelemetry>
-      <SonarProjectTelemetry Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true' AND '%(PackageReference.Identity)' != ''" Include="dotnetenterprise.s4net.build.packages.$([System.Text.RegularExpressions.Regex]::Replace('%(PackageReference.Identity)', '[^a-zA-Z0-9]', '_').ToLower()).cnt">
+      <SonarProjectTelemetry Condition="'%(SonarTelemetryPackage.Identity)' != ''"
+          Include="dotnetenterprise.s4net.build.packages.$([System.Text.RegularExpressions.Regex]::Replace('%(SonarTelemetryPackage.Identity)', '[^a-zA-Z0-9]', '_').ToLower()).cnt">
         <Value>true</Value>
       </SonarProjectTelemetry>
     </ItemGroup>

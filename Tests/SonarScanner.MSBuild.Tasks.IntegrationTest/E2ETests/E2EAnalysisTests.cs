@@ -814,6 +814,7 @@ public class E2EAnalysisTests
             <ItemGroup>
               <PackageReference Include="FluentAssertions" Version="7.2.2" />
               <PackageReference Include="MSTest.TestFramework" Version="4.2.1" />
+              <PackageReference Include="MSTest.TestAdapter" Version="4.2.1" />
             </ItemGroup>
             """));
         result.BuildSucceeded.Should().BeTrue();
@@ -822,6 +823,7 @@ public class E2EAnalysisTests
         var telemetryLines = File.ReadAllLines(projectTelemetryFile);
         telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.packages.fluentassertions.cnt":"true"}""");
         telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.packages.mstest_testframework.cnt":"true"}""");
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.packages.mstest_testadapter.cnt":"true"}""");
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
