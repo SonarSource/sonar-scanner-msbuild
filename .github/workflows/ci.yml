@@ -395,5 +395,6 @@ jobs:
         run: exit 1
 
       - uses: SonarSource/ci-github-actions/promote@v1
+        if: github.event_name == 'pull_request' || needs.version.outputs.IS_RELEASE_BRANCH == 'true' || startsWith(github.ref_name, 'dogfood-on-')
         with:
           promote-pull-request: true
