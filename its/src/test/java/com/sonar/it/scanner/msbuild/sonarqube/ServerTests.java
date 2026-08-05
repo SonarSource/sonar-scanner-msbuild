@@ -68,7 +68,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
       .setSonarVersion(version)
       .setEdition(edition)
       .setServerProperty("sonar.telemetry.enable", "false"); // Disabling telemetry to avoid polluting our own data.
-    // Plugin versions are defined in https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/azure-pipelines.yml
+    // Plugin versions are defined in https://github.com/SonarSource/sonar-scanner-msbuild/blob/master/.github/workflows/ci.yml
     // Set the version to NONE to disable the plugin.
     addPlugin(orchestrator, "com.sonarsource.cpp", "sonar-cfamily-plugin", "sonar.cfamilyplugin.version");
     addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version");
