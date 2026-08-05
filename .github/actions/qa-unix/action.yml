@@ -30,6 +30,18 @@ runs:
         name: Binaries
         path: Packaging/Binaries
 
+    - name: Setup cache month variable
+      id: cache-month
+      shell: bash
+      run: echo "CACHE_MONTH=$(date +%m)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache NuGet packages
+      uses: SonarSource/gh-action_cache@v1
+      with:
+        path: ${{ github.workspace }}/.nuget/packages
+        key: nuget-${{ runner.os }}-${{ steps.cache-month.outputs.CACHE_MONTH }}-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: nuget-${{ runner.os }}-${{ steps.cache-month.outputs.CACHE_MONTH }}-
+
     - name: Build test pre-requisites
       shell: bash
       run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net9.0 --self-contained -r ${{ inputs.rid }}
