@@ -378,3 +378,24 @@ jobs:
           test-include: ${{ matrix.testInclude }}
           sq-version: ${{ matrix.sqVersion }}
           sonarcloud-project-token: ${{ secrets.SONARCLOUD_PROJECT_TOKEN }}
+
+  promote:
+    name: Promote
+    needs: [version, build, uts_windows, uts_linux, uts_macos, its_windows, its_linux, its_macos]
+    # always() is needed because uts_macos/its_macos are conditionally skipped, and GitHub would then
+    # skip this job too - but a skipped required check counts as passing, letting a real failure merge silently.
+    if: always()
+    runs-on: sonar-xs
+    permissions:
+      id-token: write
+      contents: write
+    env:
+      BUILD_NUMBER: ${{ needs.version.outputs.BUILD_NUMBER }}
+    steps:
+      - name: Fail if a dependency failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
+
+      - uses: SonarSource/ci-github-actions/promote@v1
+        with:
+          promote-pull-request: true
