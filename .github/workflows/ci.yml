@@ -26,6 +26,7 @@ jobs:
       SHORT_VERSION: ${{ steps.set-version.outputs.SHORT_VERSION }}
       FULL_VERSION: ${{ steps.set-version.outputs.FULL_VERSION }}
       PATCH_VERSION: ${{ steps.set-version.outputs.PATCH_VERSION }}
+      IS_RELEASE_BRANCH: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-') }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -71,13 +72,11 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-          fetch-depth: 0
 
       - name: Prepare
         id: prepare
         uses: ./.github/actions/prepare
         with:
-          nuget-packages-path: ${{ env.NUGET_PACKAGES }}
           build-number: ${{ env.BUILD_NUMBER }}
           short-version: ${{ env.SHORT_VERSION }}
 
@@ -114,14 +113,14 @@ jobs:
 
       # We can't use Azure Artifact Signing for NuGets: https://github.com/NuGet/NuGetGallery/issues/10027
       - name: Sign NuGet package
-        if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
+        if: needs.version.outputs.IS_RELEASE_BRANCH == 'true'
         uses: SonarSource/core-languages-tooling-public/dotnet_pipeline/digicert-sign@master
         with:
           files: ${{ env.PACKAGING_BINARIES_NUGET }}/dotnet-sonarscanner*.nupkg
 
       - name: Run packaging tests
         env:
-          IS_RELEASE_BRANCH: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-') }}
+          IS_RELEASE_BRANCH: ${{ needs.version.outputs.IS_RELEASE_BRANCH }}
         run: dotnet test Tests\SonarScanner.MSBuild.PackagingTest\SonarScanner.MSBuild.PackagingTest.csproj --configuration Release --no-build --no-restore
 
       - name: Set Maven project version
@@ -165,7 +164,6 @@ jobs:
       - name: Prepare
         uses: ./.github/actions/prepare
         with:
-          nuget-packages-path: ${{ env.NUGET_PACKAGES }}
           build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
           short-version: ${{ needs.version.outputs.SHORT_VERSION }}
 
@@ -238,7 +236,7 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Install tools
-        uses: jdx/mise-action@c1ecc8f748cd28cdeabf76dab3cccde4ce692fe4 # v4.0.0
+        uses: jdx/mise-action@e6a8b3978addb5a52f2b4cd9d91eafa7f0ab959d # v4.2.0
         with:
           cache: true
           tool_versions: |
@@ -260,7 +258,7 @@ jobs:
     name: UTs macOS
     needs: [version, build]
     runs-on: macos-latest-xlarge
-    if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-')
+    if: needs.version.outputs.IS_RELEASE_BRANCH == 'true'
     permissions:
       id-token: write
       contents: read
