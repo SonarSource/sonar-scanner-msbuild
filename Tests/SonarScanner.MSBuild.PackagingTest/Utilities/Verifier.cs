@@ -54,7 +54,11 @@ public static class Verifier
         certificates.Size.Should().NotBe(0, $"file {entry.FullName} should contain signature");
         var cms = new SignedCms();
         cms.Decode(peReader.GetEntireImage().GetContent().AsSpan(certificates.RelativeVirtualAddress + HeaderSize, certificates.Size - HeaderSize));
-        cms.Certificates.Should().ContainSingle(x => !IsCertificateAuthority(x) && x.Subject.Contains("SonarSource"));
+        // The two SonarSource signing backends in use don't share a longer common Subject fragment than "SonarSource".
+        cms.Certificates.Should().ContainSingle(x =>
+            !IsCertificateAuthority(x)
+            && (x.Subject.Contains("O=\"SonarSource US, Inc.\"") // Azure Trusted Signing
+                || x.Subject.Contains("O=SonarSource SA, L=Vernier"))); // Test certificate
     }
 
     private static bool IsCertificateAuthority(X509Certificate2 certificate) =>
