@@ -196,12 +196,22 @@ jobs:
           /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}\Coverage\*.xml"
           /d:sonar.cs.vstest.reportsPaths="${{ github.workspace }}\TestResults\*.trx"
           /d:sonar.sca.exclusions="its/projects/**"
+          /d:sonar.qualitygate.wait=true
+          /d:sonar.qualitygate.timeout=300
 
       - name: Build and analyze
         run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true
 
       - name: Run UTs and compute coverage
         run: .\scripts\run-unit-tests.ps1 -SourcesDirectory "${{ github.workspace }}" -BuildConfiguration Release
+
+      - name: Upload coverage report as pipeline artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: CoverageReport
+          path: ${{ github.workspace }}/Coverage
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Publish test results
         uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0

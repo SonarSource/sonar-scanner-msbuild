@@ -8,7 +8,10 @@ function Test-ExitCode([string]$errorMessage = "ERROR: Command FAILED.") {
 
 function Run-Tests-With-Coverage ([string]$ProjectPath) {
     $ProjectNameLiteral = '$(ProjectName)'  #AltCover will replace this MsBuild-style variable with actual project name. The '' deals with PowerShell evaluation
-    dotnet test $ProjectPath --configuration $BuildConfiguration --results-directory "$SourcesDirectory\TestResults" -l trx --no-build --no-restore --filter "TestCategory!=NoWindows" /p:AltCover=true,AltCoverForce=true,AltCoverVisibleBranches=true,AltCoverAssemblyFilter="testhost|AltCover|Microsoft|protobuf|Humanizer|GraphQL|StructuredLogger|Test",AltCoverAttributeFilter="ExcludeFromCodeCoverage",AltCoverReport="$SourcesDirectory/Coverage/$ProjectNameLiteral.xml"
+    # Built as its own variable and passed as a single quoted argument. Interpolating $SourcesDirectory/$ProjectNameLiteral directly inside an unquoted /p:Key=Val,...
+    # token broke under pwsh's native-argument-passing to dotnet, silently.
+    $MsbuildProperties = "AltCover=true,AltCoverForce=true,AltCoverVisibleBranches=true,AltCoverAssemblyFilter=testhost|AltCover|Microsoft|protobuf|Humanizer|GraphQL|StructuredLogger|Test,AltCoverAttributeFilter=ExcludeFromCodeCoverage,AltCoverReport=$SourcesDirectory/Coverage/$ProjectNameLiteral.xml"
+    dotnet test $ProjectPath --configuration $BuildConfiguration --results-directory "$SourcesDirectory\TestResults" -l trx --no-build --no-restore --filter "TestCategory!=NoWindows" "/p:$MsbuildProperties"
     Test-ExitCode "ERROR: Unit tests for '$ProjectPath' FAILED."
 }
 
