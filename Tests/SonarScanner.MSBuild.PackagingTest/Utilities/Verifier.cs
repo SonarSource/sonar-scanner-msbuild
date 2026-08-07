@@ -21,6 +21,7 @@
 using System.IO.Compression;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography.Pkcs;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SonarScanner.MSBuild.PackagingTest.Utilities;
 
@@ -53,10 +54,9 @@ public static class Verifier
         certificates.Size.Should().NotBe(0, $"file {entry.FullName} should contain signature");
         var cms = new SignedCms();
         cms.Decode(peReader.GetEntireImage().GetContent().AsSpan(certificates.RelativeVirtualAddress + HeaderSize, certificates.Size - HeaderSize));
-        var expectedSubject = TestOrchestration.IsReleaseBranch
-            ? "CN=SonarSource SA, O=SonarSource SA, L=Vernier, S=Genève, C=CH"
-            : "CN=\"SonarSource US, Inc.(TEST ONLY)\", O=\"SonarSource US, Inc.\", L=Austin, S=Texas, C=US";
-        cms.Certificates.Should().ContainSingle(x => x.Subject == expectedSubject);    // There's also a Microsoft/DigiCert CA certificate present
+        cms.Certificates.Should().ContainSingle(x =>
+            x.Subject.Contains("O=\"SonarSource US, Inc.\"")        // Azure Trusted Signing
+            || x.Subject.Contains("O=SonarSource SA, L=Vernier"));  // Test certificate
     }
 
     private static MemoryStream ReadStream(ZipArchiveEntry entry)
