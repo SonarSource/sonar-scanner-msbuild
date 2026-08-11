@@ -143,7 +143,7 @@ jobs:
         with:
           name: Binaries
           path: ${{ env.PACKAGING_BINARIES }}
-          retention-days: 1
+          retention-days: 14
           if-no-files-found: error
 
   uts_windows:
@@ -196,8 +196,6 @@ jobs:
           /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}\Coverage\*.xml"
           /d:sonar.cs.vstest.reportsPaths="${{ github.workspace }}\TestResults\*.trx"
           /d:sonar.sca.exclusions="its/projects/**"
-          /d:sonar.qualitygate.wait=true
-          /d:sonar.qualitygate.timeout=300
 
       - name: Build and analyze
         run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true
@@ -210,7 +208,7 @@ jobs:
         with:
           name: CoverageReport
           path: ${{ github.workspace }}/Coverage
-          retention-days: 7
+          retention-days: 14
           if-no-files-found: error
 
       - name: Publish test results
@@ -263,6 +261,7 @@ jobs:
           short-version: ${{ needs.version.outputs.SHORT_VERSION }}
           rid: linux-x64
           os-name: Linux
+          is-release-branch: ${{ needs.version.outputs.IS_RELEASE_BRANCH }}
 
   uts_macos:
     name: UTs macOS
@@ -293,6 +292,7 @@ jobs:
           short-version: ${{ needs.version.outputs.SHORT_VERSION }}
           rid: osx-arm64
           os-name: MacOS
+          is-release-branch: ${{ needs.version.outputs.IS_RELEASE_BRANCH }}
 
   its_windows:
     name: ITs Windows

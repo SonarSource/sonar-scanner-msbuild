@@ -25,8 +25,7 @@ public static class TestOrchestration
     public static bool IsReleaseBranch => bool.TryParse(Environment.GetEnvironmentVariable("IS_RELEASE_BRANCH"), out var value) && value;
     public static string FullVersion => typeof(TestOrchestration).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
 
-    private static bool IsCIContext =>
-        Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
+    private static bool IsCIContext => Environment.GetEnvironmentVariable("GITHUB_ACTIONS") is not null;
 
     public static void InitializeTestClass()
     {

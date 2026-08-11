@@ -14,6 +14,9 @@ inputs:
   os-name:
     description: TestCategory/display-name suffix (Linux or MacOS).
     required: true
+  is-release-branch:
+    description: Whether this run is on a release branch, used to validate the NuGet package signature file list.
+    required: true
 
 runs:
   using: composite
@@ -48,6 +51,8 @@ runs:
 
     - name: Run UTs
       shell: bash
+      env:
+        IS_RELEASE_BRANCH: ${{ inputs.is-release-branch }}
       run: |
         unset LANGUAGE
         dotnet test --framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ inputs.os-name }}" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
