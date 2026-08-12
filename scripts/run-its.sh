@@ -25,7 +25,7 @@ GO_ENTERPRISE_VERSION="${GO_ENTERPRISE_VERSION:-LATEST_RELEASE}"
 TSQL_VERSION="${TSQL_VERSION:-LATEST_RELEASE}"
 GO_GROUP_ID="${GO_GROUP_ID:-org.sonarsource.go}"
 
-if [ -n "${JDK_HOME_VAR:-}" ]; then
+if [[ -n "${JDK_HOME_VAR:-}" ]]; then
   export JAVA_HOME="${!JDK_HOME_VAR}"
 fi
 
@@ -55,7 +55,7 @@ MVN_ARGS=(
   "-Dsonar.tsqlplugin.version=${TSQL_VERSION}"
   "-Dgo.groupid=${GO_GROUP_ID}"
 )
-if [ "${MSBUILD_PATH_VAR+set}" = "set" ]; then
+if [[ "${MSBUILD_PATH_VAR+set}" = "set" ]]; then
   MSBUILD_PATH="${MSBUILD_PATH_VAR:+${!MSBUILD_PATH_VAR}}"
   MVN_ARGS+=(
     "-Dmsbuild.path=$MSBUILD_PATH"

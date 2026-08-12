@@ -173,7 +173,7 @@ jobs:
           - scenario: Cloud
             testInclude: "**/sonarcloud/*"
             msbuildPathVar: MSBUILD_18_PATH
-            jdkHomeVar: JAVA_HOME_17_X64
+            jdkHomeVar: JAVA_HOME_21_X64
           - scenario: Others
             testInclude: "**/others/*"
             jdkHomeVar: JAVA_HOME_17_X64
