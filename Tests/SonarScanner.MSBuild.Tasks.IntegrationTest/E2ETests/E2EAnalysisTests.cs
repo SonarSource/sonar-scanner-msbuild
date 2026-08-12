@@ -806,7 +806,6 @@ public class E2EAnalysisTests
     public void E2E_TelemetryFiles_PackageReferences_Written()
     {
         var context = CreateContext();
-
         var result = BuildRunner.BuildTargets(TestContext, context.CreateProjectFile($"""
             <ItemGroup>
               <Compile Include='{context.CreateInputFile("codeFile1.cs")}' />
@@ -814,16 +813,38 @@ public class E2EAnalysisTests
             <ItemGroup>
               <PackageReference Include="FluentAssertions" Version="7.2.2" />
               <PackageReference Include="MSTest.TestFramework" Version="4.2.1" />
-              <PackageReference Include="MSTest.TestAdapter" Version="4.2.1" />
+              <PackageReference Include="Castle.Core" Version="5.2.1" />
             </ItemGroup>
             """));
         result.BuildSucceeded.Should().BeTrue();
         var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
         File.Exists(projectTelemetryFile).Should().BeTrue();
         var telemetryLines = File.ReadAllLines(projectTelemetryFile);
-        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.packages.fluentassertions.cnt":"true"}""");
-        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.packages.mstest_testframework.cnt":"true"}""");
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.packages.mstest_testadapter.cnt":"true"}""");
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.fluentassertions.cnt":"true"}""");
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.mstest_testframework.cnt":"true"}""");
+        // We whitelist the packages we care about. so Castle.Core should not be reported.
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.castle_core.cnt":"true"}""");
+    }
+
+    [TestMethod]
+    public void E2E_TelemetryFiles_AssemblyReferences_Written()
+    {
+        var context = CreateContext();
+        var result = BuildRunner.BuildTargets(TestContext, context.CreateProjectFile($"""
+            <ItemGroup>
+              <Compile Include='{context.CreateInputFile("codeFile1.cs")}' />
+            </ItemGroup>
+            <ItemGroup>
+              <Reference Include="System.Web" />
+            </ItemGroup>
+            """));
+        result.BuildSucceeded.Should().BeTrue();
+        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
+        File.Exists(projectTelemetryFile).Should().BeTrue();
+        var telemetryLines = File.ReadAllLines(projectTelemetryFile);
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.system_web.cnt":"true"}""");
+        // System.Xml is referenced implicitly by the SDK for .NET Framework projects but is deliberately not whitelisted.
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.system_xml.cnt":"true"}""");
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
