@@ -32,16 +32,18 @@ import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 class FileBasedAppTest {
 
   @Test
-  // File-based apps (https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/preprocessor-directives#file-based-apps)
+  // File-based apps (https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps)
   void fileBasedApp_IsAnalyzed() {
     var context = AnalysisContext.forServer("FileBasedApp");
+    // dotnet CLI only recognizes "file-based app" mode when the entry file name is the sole build argument.
+    // skipExtraArgs() also drops the --disable-build-servers switch that BuildCommand normally appends to every due to
+    // https://github.com/SonarSource/sonar-scanner-msbuild/issues/1122. MSBUILDDISABLENODEREUSE=1 below replaces it.
     context.setEnvironmentVariable("MSBUILDDISABLENODEREUSE", "1");
-    // dotnet CLI only recognizes "file-based app" mode when the entry file name is the  sole build argument
-    // any additional switch makes it fall back to project build
     context.build.useDotNet("build").skipExtraArgs().addArgument("app.cs");
     context.runAnalysis();
 
-    // SCAN4NET-1694: app.cs issues are raised during complilation but not reported in the end.
+    // SCAN4NET-1694: app.cs references Lib/Lib.csproj via #:project, Included.cs via #:include, and
+    // Newtonsoft.Json via #:package. Issues from all files are raised during compilation but not reported in the end.
     assertThat(TestUtils.listComponents(context.orchestrator, context.projectKey))
       .extracting(Components.Component::getKey)
       .containsExactlyInAnyOrder(context.projectKey + ":Lib/Greeter.cs");

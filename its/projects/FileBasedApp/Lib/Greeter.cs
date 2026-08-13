@@ -2,6 +2,6 @@ namespace FileBasedApp.Lib
 {
     public static class Greeter
     {
-        public static string Greeting() => "Hello from a file-based app!";
+        public static string Greeting() => "Hello from a file-based app!"; // S3400
     }
 }
