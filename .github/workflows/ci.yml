@@ -267,7 +267,7 @@ jobs:
     name: UTs macOS
     needs: [version, build]
     runs-on: macos-latest-xlarge
-    if: needs.version.outputs.IS_RELEASE_BRANCH == 'true'
+    if: needs.version.outputs.IS_RELEASE_BRANCH == 'true' || startsWith(github.ref_name, 'feature/') || github.event_name == 'workflow_dispatch'
     permissions:
       id-token: write
       contents: read
@@ -347,8 +347,8 @@ jobs:
 
   its_macos:
     name: ITs macOS (${{ matrix.scenario }})
-    needs: build
-    if: github.ref_name == 'master' || startsWith(github.ref_name, 'branch-') || startsWith(github.ref_name, 'feature/') || github.event_name == 'workflow_dispatch'
+    needs: [version, build]
+    if: needs.version.outputs.IS_RELEASE_BRANCH == 'true' || startsWith(github.ref_name, 'feature/') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest-xlarge
     permissions:
       id-token: write
