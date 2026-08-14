@@ -25,6 +25,7 @@ import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.sonarqube.ws.Components;
+import org.sonarqube.ws.Issues.Issue;
 
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
@@ -48,6 +49,12 @@ class FileBasedAppTest {
     assertThat(TestUtils.listComponents(context.orchestrator, context.projectKey))
       .extracting(Components.Component::getKey)
       .containsExactlyInAnyOrder(context.projectKey + ":Lib/Greeter.cs");
+    // This should fail once SCAN4NET-1694 is implemented.
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "files", context.orchestrator)).isEqualTo(1);
+
+    assertThat(TestUtils.projectIssues(context.orchestrator, context.projectKey))
+      .filteredOn(issue -> issue.getComponent().equals(context.projectKey + ":Lib/Greeter.cs"))
+      .extracting(Issue::getRule)
+      .containsExactly("csharpsquid:S3400");
   }
 }
