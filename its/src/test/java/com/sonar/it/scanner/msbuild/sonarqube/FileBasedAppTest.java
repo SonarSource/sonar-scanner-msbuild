@@ -42,8 +42,9 @@ class FileBasedAppTest {
     context.build.useDotNet("build").skipExtraArgs().addArgument("app.cs");
     context.runAnalysis();
 
-    // SCAN4NET-1694: app.cs references Lib/Lib.csproj via #:project, Included.cs via #:include, and
-    // Newtonsoft.Json via #:package. Issues from all files are raised during compilation but not reported in the end.
+    // SCAN4NET-1694: app.cs references Lib/Lib.csproj via #:project and Newtonsoft.Json via #:package.
+    // app.cs issues are raised during compilation but not reported in the end.
+    // #:include is not covered here: it requires .NET SDK 10.0.300+/.NET 11 Preview 3, newer than what CI has.
     assertThat(TestUtils.listComponents(context.orchestrator, context.projectKey))
       .extracting(Components.Component::getKey)
       .containsExactlyInAnyOrder(context.projectKey + ":Lib/Greeter.cs");
