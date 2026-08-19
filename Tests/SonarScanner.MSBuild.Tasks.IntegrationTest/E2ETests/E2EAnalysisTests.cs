@@ -508,9 +508,7 @@ public class E2EAnalysisTests
         var filesToAnalyze = projectInfo.AssertAnalysisResultFileExists(nameof(AnalysisResultFileType.FilesToAnalyze));
         var actualFilesToAnalyze = File.ReadAllLines(filesToAnalyze.Location);
         actualFilesToAnalyze.Should().BeEquivalentTo([codeFile, contentFile], "Unexpected list of files to analyze");
-        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
-        File.Exists(projectTelemetryFile).Should().BeTrue();
-        File.ReadAllLines(projectTelemetryFile).Should().Contain("""{"dotnetenterprise.s4net.build.exclusion_file.cnt":"true"}""");
+        ReadTelemetryLines(context).Should().Contain("""{"dotnetenterprise.s4net.build.exclusion_file.cnt":"true"}""");
     }
 
     // Checks that projects that don't include the standard managed targets are still
@@ -817,12 +815,10 @@ public class E2EAnalysisTests
             </ItemGroup>
             """));
         result.BuildSucceeded.Should().BeTrue();
-        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
-        File.Exists(projectTelemetryFile).Should().BeTrue();
-        var telemetryLines = File.ReadAllLines(projectTelemetryFile);
+        var telemetryLines = ReadTelemetryLines(context);
         telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.fluentassertions.cnt":"true"}""");
         telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.mstest_testframework.cnt":"true"}""");
-        // We whitelist the packages we care about. so Castle.Core should not be reported.
+        // We whitelist the packages we care about, so Castle.Core should not be reported.
         telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.castle_core.cnt":"true"}""");
     }
 
@@ -835,16 +831,29 @@ public class E2EAnalysisTests
               <Compile Include='{context.CreateInputFile("codeFile1.cs")}' />
             </ItemGroup>
             <ItemGroup>
+              <!-- Direct authored reference -> reported. -->
               <Reference Include="System.Web" />
+              <!-- Whitelisted name, but resolved from a NuGet package -> must NOT be reported (direct NuGet
+                   references are caught via PackageReference). Guards the NuGetPackageId condition. -->
+              <Reference Include="System.Windows.Forms">
+                <NuGetPackageId>Some.Package</NuGetPackageId>
+              </Reference>
+              <!-- Whitelisted name, but implicitly defined by the SDK -> must NOT be reported.
+                   Guards the IsImplicitlyDefined condition. -->
+              <Reference Include="System.ServiceModel">
+                <IsImplicitlyDefined>true</IsImplicitlyDefined>
+              </Reference>
             </ItemGroup>
             """));
         result.BuildSucceeded.Should().BeTrue();
-        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
-        File.Exists(projectTelemetryFile).Should().BeTrue();
-        var telemetryLines = File.ReadAllLines(projectTelemetryFile);
+        var telemetryLines = ReadTelemetryLines(context);
         telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.system_web.cnt":"true"}""");
         // System.Xml is referenced implicitly by the SDK for .NET Framework projects but is deliberately not whitelisted.
         telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.system_xml.cnt":"true"}""");
+        // Comes from a NuGet package, so it is caught via PackageReference, not as a direct assembly reference.
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.system_windows_forms.cnt":"true"}""");
+        // Implicitly defined by the SDK, so it is not a direct assembly reference.
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.system_servicemodel.cnt":"true"}""");
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
@@ -909,6 +918,13 @@ public class E2EAnalysisTests
 
     private TargetsTestsContext CreateContext(string language = "C#", string inputFolderName = "Inputs") =>
         new(TestContext, language, inputFolderName);
+
+    private static string[] ReadTelemetryLines(TargetsTestsContext context)
+    {
+        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
+        File.Exists(projectTelemetryFile).Should().BeTrue();
+        return File.ReadAllLines(projectTelemetryFile);
+    }
 
     private static void AssertNoAdditionalFilesInFolder(string folderPath, params string[] allowedFileNames)
     {

@@ -30,50 +30,50 @@ public class DependencyTelemetryTests
     [DataRow("FluentAssertions", "dotnetenterprise.s4net.build.dependencies.fluentassertions.cnt")]
     [DataRow("Microsoft.EntityFrameworkCore", "dotnetenterprise.s4net.build.dependencies.microsoft_entityframeworkcore.cnt")]
     public void WhitelistedPackage_IsReported(string id, string expectedKey) =>
-        Keys(Execute([Dependency(id)])).Should().ContainSingle().Which.Should().Be(expectedKey);
+        Keys(Execute([CreateDependency(id)])).Should().ContainSingle().Which.Should().Be(expectedKey);
 
     [TestMethod]
     [DataRow("System.Web", "dotnetenterprise.s4net.build.dependencies.system_web.cnt")]
     [DataRow("System.Web.Services", "dotnetenterprise.s4net.build.dependencies.system_web_services.cnt")]
     [DataRow("System.Web, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "dotnetenterprise.s4net.build.dependencies.system_web.cnt")]
     public void WhitelistedReference_IsReported(string spec, string expectedKey) =>
-        Keys(Execute(references: [Reference(spec)])).Should().ContainSingle().Which.Should().Be(expectedKey);
+        Keys(Execute(references: [CreateReference(spec)])).Should().ContainSingle().Which.Should().Be(expectedKey);
 
     [TestMethod]
     public void KnownDependency_TelemetryValueIsTrue() =>
-        Execute([Dependency("Serilog")]).Telemetry.Should().ContainSingle().Which.GetMetadata("Value").Should().Be("true");
+        Execute([CreateDependency("Serilog")]).Telemetry.Should().ContainSingle().Which.GetMetadata("Value").Should().Be("true");
 
     [TestMethod]
     [DataRow("Some.Random.Package", null, false)]
     [DataRow("Newtonsoft.Json", "Newtonsoft.Json", false)]
     [DataRow("System.Web", null, true)]
     public void UnwantedReference_IsNotReported(string spec, string nuGetPackageId, bool isImplicit) =>
-        Execute(references: [Reference(spec, nuGetPackageId, isImplicit)]).Telemetry.Should().BeEmpty();
+        Execute(references: [CreateReference(spec, nuGetPackageId, isImplicit)]).Telemetry.Should().BeEmpty();
 
     [TestMethod]
     [DataRow("Some.Random.Package", false)]
     [DataRow("Microsoft.Extensions.Logging", true)]
     public void UnwantedPackage_IsNotReported(string id, bool isImplicit) =>
-    Execute([Dependency(id, isImplicit)]).Telemetry.Should().BeEmpty();
+        Execute([CreateDependency(id, isImplicit)]).Telemetry.Should().BeEmpty();
 
     [TestMethod]
     public void Matching_IsCaseInsensitive() =>
-        Keys(Execute([Dependency("fluentassertions")], [Reference("system.web")])).Should().BeEquivalentTo(
+        Keys(Execute([CreateDependency("fluentassertions")], [CreateReference("system.WEB")])).Should().BeEquivalentTo(
             "dotnetenterprise.s4net.build.dependencies.fluentassertions.cnt",
             "dotnetenterprise.s4net.build.dependencies.system_web.cnt");
 
     [TestMethod]
     public void MixedInputs_ReportedAndDeduplicated() =>
         Keys(Execute(
-            [Dependency("Serilog"), Dependency("Dapper"), Dependency("Unknown"), Dependency("Serilog")],
-            [Reference("System.Windows.Forms"), Reference("mscorlib")])).Should().BeEquivalentTo(
+            [CreateDependency("Serilog"), CreateDependency("Dapper"), CreateDependency("Unknown"), CreateDependency("Serilog")],
+            [CreateReference("System.Windows.Forms"), CreateReference("mscorlib")])).Should().BeEquivalentTo(
             "dotnetenterprise.s4net.build.dependencies.dapper.cnt",
             "dotnetenterprise.s4net.build.dependencies.serilog.cnt",
             "dotnetenterprise.s4net.build.dependencies.system_windows_forms.cnt");
 
     [TestMethod]
     public void Empty_Inputs_ProduceNoTelemetry() =>
-    Execute().Telemetry.Should().BeEmpty();
+        Execute().Telemetry.Should().BeEmpty();
 
     [TestMethod]
     public void Null_Inputs_ProduceNoTelemetry()
@@ -106,7 +106,7 @@ public class DependencyTelemetryTests
     private static IEnumerable<string> Keys(DependencyTelemetry task) =>
         task.Telemetry.Select(x => x.ItemSpec);
 
-    private static TaskItem Dependency(string id, bool isImplicit = false)
+    private static TaskItem CreateDependency(string id, bool isImplicit = false)
     {
         var item = new TaskItem(id);
         if (isImplicit)
@@ -116,7 +116,7 @@ public class DependencyTelemetryTests
         return item;
     }
 
-    private static TaskItem Reference(string spec, string nuGetPackageId = null, bool isImplicit = false)
+    private static TaskItem CreateReference(string spec, string nuGetPackageId = null, bool isImplicit = false)
     {
         var item = new TaskItem(spec);
         if (nuGetPackageId is not null)

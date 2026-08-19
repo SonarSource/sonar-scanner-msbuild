@@ -32,30 +32,87 @@ public sealed class DependencyTelemetry : Task
     internal static readonly HashSet<string> KnownDependencies = new(StringComparer.OrdinalIgnoreCase)
         {
             // Test / mocking / assertions
-            "xunit", "NUnit", "MSTest.TestFramework", "Microsoft.NET.Test.Sdk", "Moq", "NSubstitute", "FluentAssertions",
-            "Shouldly", "coverlet.collector", "coverlet.msbuild", "AutoFixture", "Bogus", "BenchmarkDotNet",
+            "AutoFixture",
+            "BenchmarkDotNet",
+            "Bogus",
+            "coverlet.collector",
+            "coverlet.msbuild",
+            "FluentAssertions",
+            "Microsoft.NET.Test.Sdk",
+            "Moq",
+            "MSTest.TestFramework",
+            "NSubstitute",
+            "NUnit",
+            "Shouldly",
+            "xunit",
             // Logging / observability
-            "Serilog", "Serilog.AspNetCore", "NLog", "log4net", "Microsoft.Extensions.Logging", "OpenTelemetry.Extensions.Hosting",
-            "OpenTelemetry.Exporter.OpenTelemetryProtocol", "Microsoft.ApplicationInsights.AspNetCore",
+            "log4net",
+            "Microsoft.ApplicationInsights.AspNetCore",
+            "Microsoft.Extensions.Logging",
+            "NLog",
+            "OpenTelemetry.Exporter.OpenTelemetryProtocol",
+            "OpenTelemetry.Extensions.Hosting",
+            "Serilog",
+            "Serilog.AspNetCore",
             // Serialization
-            "Newtonsoft.Json", "System.Text.Json", "protobuf-net", "MessagePack", "YamlDotNet",
+            "MessagePack",
+            "Newtonsoft.Json",
+            "protobuf-net",
+            "System.Text.Json",
+            "YamlDotNet",
             // Web / API / validation / mapping / resilience
-            "Swashbuckle.AspNetCore", "MediatR", "FluentValidation", "AutoMapper", "Polly", "RestSharp", "Refit",
-            "Microsoft.Extensions.Http", "Grpc.AspNetCore", "HotChocolate.AspNetCore", "Microsoft.AspNetCore.SignalR.Client",
+            "AutoMapper",
+            "FluentValidation",
+            "Grpc.AspNetCore",
+            "HotChocolate.AspNetCore",
+            "MediatR",
             "Microsoft.AspNetCore.Authentication.JwtBearer",
+            "Microsoft.AspNetCore.SignalR.Client",
+            "Microsoft.Extensions.Http",
+            "Polly",
+            "Refit",
+            "RestSharp",
+            "Swashbuckle.AspNetCore",
             // Data / ORM / drivers
-            "Dapper", "Microsoft.EntityFrameworkCore", "Microsoft.EntityFrameworkCore.SqlServer", "Microsoft.EntityFrameworkCore.Design",
-            "Npgsql", "Npgsql.EntityFrameworkCore.PostgreSQL", "Pomelo.EntityFrameworkCore.MySql", "StackExchange.Redis",
-            "MongoDB.Driver", "Microsoft.Data.SqlClient", "EntityFramework",
+            "Dapper",
+            "EntityFramework",
+            "Microsoft.Data.SqlClient",
+            "Microsoft.EntityFrameworkCore",
+            "Microsoft.EntityFrameworkCore.Design",
+            "Microsoft.EntityFrameworkCore.SqlServer",
+            "MongoDB.Driver",
+            "Npgsql",
+            "Npgsql.EntityFrameworkCore.PostgreSQL",
+            "Pomelo.EntityFrameworkCore.MySql",
+            "StackExchange.Redis",
             // DI / cloud
-            "Microsoft.Extensions.DependencyInjection", "Autofac", "Azure.Identity", "Azure.Storage.Blobs",
-            "Azure.Messaging.ServiceBus", "Microsoft.Azure.Cosmos", "AWSSDK.S3", "AWSSDK.SQS", "AWSSDK.DynamoDBv2",
+            "Autofac",
+            "AWSSDK.DynamoDBv2",
+            "AWSSDK.S3",
+            "AWSSDK.SQS",
+            "Azure.Identity",
+            "Azure.Messaging.ServiceBus",
+            "Azure.Storage.Blobs",
+            "Microsoft.Azure.Cosmos",
+            "Microsoft.Extensions.DependencyInjection",
             // Auth / identity / misc
-            "Microsoft.IdentityModel.Tokens", "System.IdentityModel.Tokens.Jwt", "BCrypt.Net-Next", "NodaTime",
+            "BCrypt.Net-Next",
+            "Microsoft.IdentityModel.Tokens",
+            "NodaTime",
+            "System.IdentityModel.Tokens.Jwt",
             // .NET Framework assemblies referenced directly by non-SDK-style projects (no NuGet package)
-            "System.Web", "System.Web.Mvc", "System.Web.Services", "System.Web.Http", "System.Windows.Forms",
-            "System.ServiceModel", "PresentationFramework", "PresentationCore", "WindowsBase", "System.Configuration",
-            "System.DirectoryServices", "System.Messaging"
+            "PresentationCore",
+            "PresentationFramework",
+            "System.Configuration",
+            "System.DirectoryServices",
+            "System.Messaging",
+            "System.ServiceModel",
+            "System.Web",
+            "System.Web.Http",
+            "System.Web.Mvc",
+            "System.Web.Services",
+            "System.Windows.Forms",
+            "WindowsBase"
         };
 
     public ITaskItem[] PackageReferences { get; set; } = [];
@@ -69,6 +126,7 @@ public sealed class DependencyTelemetry : Task
     {
         Telemetry = PackageNames()
             .Concat(AssemblyNames())
+            .Where(KnownDependencies.Contains)
             .Select(TelemetryKey)
             .Distinct(StringComparer.Ordinal)
             .Select(CreateTelemetryItem)
@@ -79,14 +137,12 @@ public sealed class DependencyTelemetry : Task
     private IEnumerable<string> PackageNames() =>
         (PackageReferences ?? [])
             .Where(x => !string.IsNullOrEmpty(x.ItemSpec) && !string.Equals(x.GetMetadata("IsImplicitlyDefined"), "true", StringComparison.OrdinalIgnoreCase))
-            .Select(x => x.ItemSpec)
-            .Where(KnownDependencies.Contains);
+            .Select(x => x.ItemSpec);
 
     private IEnumerable<string> AssemblyNames() =>
         (AssemblyReferences ?? [])
             .Where(IsDirectReference)
-            .Select(x => SimpleAssemblyName(x.ItemSpec))
-            .Where(KnownDependencies.Contains);
+            .Select(x => SimpleAssemblyName(x.ItemSpec));
 
     // Keep only assemblies authored as plain <Reference> items. Skip those with NuGetPackageId as direct Nuget references are caught via PackageReferences, and transitive are unwanted.
     private static bool IsDirectReference(ITaskItem reference) =>
