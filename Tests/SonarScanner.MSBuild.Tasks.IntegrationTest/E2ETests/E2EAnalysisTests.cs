@@ -824,11 +824,13 @@ public class E2EAnalysisTests
 
     // On .NET Framework, UseWPF/UseWindowsForms make the SDK inject PresentationCore,PresentationFramework, WindowsBase and System.Windows.Forms into @(Reference) with IsImplicitlyDefined=true.
     [TestMethod]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
     public void E2E_TelemetryFiles_AssemblyReferences_Written()
     {
         var context = CreateContext();
         var result = BuildRunner.BuildTargets(TestContext, context.CreateProjectFile($"""
-            <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+            <PropertyGroup>
               <UseWPF>true</UseWPF>
               <UseWindowsForms>true</UseWindowsForms>
             </PropertyGroup>
