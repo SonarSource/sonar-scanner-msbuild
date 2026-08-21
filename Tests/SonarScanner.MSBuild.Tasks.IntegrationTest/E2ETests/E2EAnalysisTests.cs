@@ -822,8 +822,46 @@ public class E2EAnalysisTests
         telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.castle_core.cnt":"true"}""");
     }
 
+    // On .NET Framework, UseWPF/UseWindowsForms make the SDK inject PresentationCore,PresentationFramework, WindowsBase and System.Windows.Forms into @(Reference) with IsImplicitlyDefined=true.
     [TestMethod]
     public void E2E_TelemetryFiles_AssemblyReferences_Written()
+    {
+        var context = CreateContext();
+        var result = BuildRunner.BuildTargets(TestContext, context.CreateProjectFile($"""
+            <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+              <UseWPF>true</UseWPF>
+              <UseWindowsForms>true</UseWindowsForms>
+            </PropertyGroup>
+            <ItemGroup>
+              <Compile Include='{context.CreateInputFile("codeFile1.cs")}' />
+            </ItemGroup>
+            <ItemGroup>
+              <!-- A whitelisted framework assembly the user references directly is reported. -->
+              <Reference Include="System.Web" />
+            </ItemGroup>
+            <!-- Capture how MSBuild/the SDK decorate the @(Reference) items handed to DependencyTelemetry -->
+            <Target Name="CaptureReferenceMetadata" AfterTargets="ResolveReferences" BeforeTargets="Build">
+              <Message Importance="high" Text="REF|%(Reference.Identity)|IsImplicitlyDefined=[%(Reference.IsImplicitlyDefined)]" />
+            </Target>
+            """));
+        result.BuildSucceeded.Should().BeTrue();
+        result.Messages.Should().Contain(x => x.Contains("REF|System.Web|IsImplicitlyDefined=[]"));
+        result.Messages.Should().Contain(x => x.Contains("REF|PresentationCore|IsImplicitlyDefined=[true]"));
+        result.Messages.Should().Contain(x => x.Contains("REF|PresentationFramework|IsImplicitlyDefined=[true]"));
+        result.Messages.Should().Contain(x => x.Contains("REF|WindowsBase|IsImplicitlyDefined=[true]"));
+        result.Messages.Should().Contain(x => x.Contains("REF|System.Windows.Forms|IsImplicitlyDefined=[true]"));
+
+        var telemetryLines = ReadTelemetryLines(context);
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.system_web.cnt":"true"}""");
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.presentationcore.cnt":"true"}""");
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.presentationframework.cnt":"true"}""");
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.windowsbase.cnt":"true"}""");
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.system_windows_forms.cnt":"true"}""");
+    }
+
+    // Adding the direct, whitelisted package Microsoft.Extensions.Http makes NuGet resolve the whitelisted Microsoft.Extensions.Logging and Microsoft.Extensions.DependencyInjection transitively.
+    [TestMethod]
+    public void E2E_TelemetryFiles_TransitiveDependencies_AreNotReported()
     {
         var context = CreateContext();
         var result = BuildRunner.BuildTargets(TestContext, context.CreateProjectFile($"""
@@ -831,29 +869,26 @@ public class E2EAnalysisTests
               <Compile Include='{context.CreateInputFile("codeFile1.cs")}' />
             </ItemGroup>
             <ItemGroup>
-              <!-- Direct authored reference -> reported. -->
-              <Reference Include="System.Web" />
-              <!-- Whitelisted name, but resolved from a NuGet package -> must NOT be reported (direct NuGet
-                   references are caught via PackageReference). Guards the NuGetPackageId condition. -->
-              <Reference Include="System.Windows.Forms">
-                <NuGetPackageId>Some.Package</NuGetPackageId>
-              </Reference>
-              <!-- Whitelisted name, but implicitly defined by the SDK -> must NOT be reported.
-                   Guards the IsImplicitlyDefined condition. -->
-              <Reference Include="System.ServiceModel">
-                <IsImplicitlyDefined>true</IsImplicitlyDefined>
-              </Reference>
+              <!-- Direct, whitelisted package the user adds themselves -->
+              <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.32" />
             </ItemGroup>
+            <!-- Capture how NuGet decorates the resolved items -->
+            <Target Name="CaptureDependencyMetadata" AfterTargets="ResolveReferences" BeforeTargets="Build">
+              <Message Importance="high" Text="PKG_REF|[%(PackageReference.Identity)]" />
+              <Message Importance="high" Text="RESOLVED_REF|%(ReferencePath.Filename)|NuGetPackageId=[%(ReferencePath.NuGetPackageId)]" />
+            </Target>
             """));
         result.BuildSucceeded.Should().BeTrue();
+        result.Messages.Should().Contain(x => x.Contains("RESOLVED_REF|Microsoft.Extensions.Logging|NuGetPackageId=[Microsoft.Extensions.Logging]"));
+        result.Messages.Should().Contain(x => x.Contains("RESOLVED_REF|Microsoft.Extensions.DependencyInjection|NuGetPackageId=[Microsoft.Extensions.DependencyInjection]"));
+        result.Messages.Should().Contain(x => x.Contains("PKG_REF|[Microsoft.Extensions.Http]"));
+        result.Messages.Should().NotContain(x => x.Contains("PKG_REF|[Microsoft.Extensions.Logging]"));
+        result.Messages.Should().NotContain(x => x.Contains("PKG_REF|[Microsoft.Extensions.DependencyInjection]"));
+
         var telemetryLines = ReadTelemetryLines(context);
-        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.system_web.cnt":"true"}""");
-        // System.Xml is referenced implicitly by the SDK for .NET Framework projects but is deliberately not whitelisted.
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.system_xml.cnt":"true"}""");
-        // Comes from a NuGet package, so it is caught via PackageReference, not as a direct assembly reference.
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.system_windows_forms.cnt":"true"}""");
-        // Implicitly defined by the SDK, so it is not a direct assembly reference.
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.system_servicemodel.cnt":"true"}""");
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.microsoft_extensions_http.cnt":"true"}""");
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.microsoft_extensions_logging.cnt":"true"}""");
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.microsoft_extensions_dependencyinjection.cnt":"true"}""");
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
