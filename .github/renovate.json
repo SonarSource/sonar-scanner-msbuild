@@ -27,9 +27,10 @@
       ],
       "skipArtifactsUpdate": true,
       "constraints": {
-        "dotnet": ">=10.0.100 <11.0.0"
+        "dotnet": "10.0.100"
       },
       "postUpgradeTasks": {
+        "executionMode": "branch",
         "installTools": {
           "dotnet": {}
         },
