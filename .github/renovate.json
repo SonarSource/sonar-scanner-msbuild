@@ -30,7 +30,7 @@
         "dotnet": "10.0.100"
       },
       "postUpgradeTasks": {
-        "executionMode": "branch",
+        "executionMode": "update",
         "installTools": {
           "dotnet": {}
         },
