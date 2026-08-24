@@ -183,6 +183,11 @@ jobs:
         with:
           ref: ${{ github.head_ref || github.ref_name }}
 
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+
       - name: Fetch Vault Secrets
         id: secrets
         uses: SonarSource/vault-action-wrapper@v3
@@ -274,4 +279,3 @@ jobs:
           path: its/target/surefire-reports/TEST-*.xml
           reporter: java-junit
           fail-on-error: false
-

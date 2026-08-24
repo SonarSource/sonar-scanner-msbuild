@@ -140,7 +140,7 @@ jobs:
           cache: true
           tool_versions: |
             powershell-core 7.6.1
-            dotnet 10
+            dotnet 10.0.100
 
       - name: Normalize version to X.Y.Z
         id: normalize

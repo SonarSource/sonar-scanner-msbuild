@@ -1,0 +1,6 @@
+{
+  "sdk": {
+    "comment": "Renovate and CI must use this exact SDK version",
+    "version": "10.0.100"
+  }
+}

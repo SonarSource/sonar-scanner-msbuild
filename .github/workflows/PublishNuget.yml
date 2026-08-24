@@ -26,7 +26,7 @@ jobs:
         with:
           cache: true
           tool_versions: |
-            dotnet 10
+            dotnet 10.0.100
             github-cli 2.92
 
       - name: Get secrets

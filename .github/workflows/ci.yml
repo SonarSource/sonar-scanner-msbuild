@@ -248,7 +248,7 @@ jobs:
         with:
           cache: true
           tool_versions: |
-            dotnet 9
+            dotnet 10.0.100 9
             powershell-core 7.5.4
 
       - name: Make dotnet discoverable at the well-known Linux path
