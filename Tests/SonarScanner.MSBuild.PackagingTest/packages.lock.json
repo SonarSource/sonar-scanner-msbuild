@@ -94,12 +94,12 @@
       },
       "System.Security.Cryptography.Pkcs": {
         "type": "Direct",
-        "requested": "[10.0.9, )",
-        "resolved": "10.0.9",
-        "contentHash": "aud6Ox9eSPayMBNu6qL+Zk7yDB6ShrRxg1aMJ1uPqFTGAFVisrjFeKj6RE9SimjNKcbl+chwmiYIK4b3hvc61A==",
+        "requested": "[10.0.11, )",
+        "resolved": "10.0.11",
+        "contentHash": "8IV+rI3xN/Mkq9MsSX7VZTv9T9Wt+tyhHLwBX9VNZBk8m8kknEs1JeTSjI2x9M2L/fSja+c2WSE5n5Yy0GXdoQ==",
         "dependencies": {
-          "Microsoft.Bcl.Cryptography": "10.0.9",
-          "System.Formats.Asn1": "10.0.9"
+          "Microsoft.Bcl.Cryptography": "10.0.11",
+          "System.Formats.Asn1": "10.0.11"
         }
       },
       "WireMock.Net": {
@@ -813,8 +813,8 @@
       },
       "Microsoft.Bcl.Cryptography": {
         "type": "Transitive",
-        "resolved": "10.0.9",
-        "contentHash": "iSljz/oaqFzH7c4mNKwYt8GqK1mxoDMgP0wliKaEF9TejFxyZ3acLopin1v5PAQIa9GE0flOESkwOnik83X0YA=="
+        "resolved": "10.0.11",
+        "contentHash": "7foJyHT7LbitR/l0BGJ2T86U6cULoc0P6mc+/Ih1Hj1nPOL8Wh2qc1DF4rn2sUzlcJH4tZ8M2A75/Xqrce2QGg=="
       },
       "Microsoft.CodeAnalysis.Analyzers": {
         "type": "Transitive",
@@ -1335,8 +1335,8 @@
       },
       "System.Formats.Asn1": {
         "type": "Transitive",
-        "resolved": "10.0.9",
-        "contentHash": "8bZO8fKrV3yzHt28pJleimT66buB+xSHxqQl2wOa6IYfn6JQ6VUVh9cdpBTb4mwgAVu7IuX2EW1wywBhXKyeJA=="
+        "resolved": "10.0.11",
+        "contentHash": "OxAZMMykBaKsD+r2jXujE0f/ldcRfwsfLDXOZRI7iOAPNwfwIwwnj8HCR0NdEP7oxH8PKQs/pqseNcRwFx3BVQ=="
       },
       "System.Globalization": {
         "type": "Transitive",
