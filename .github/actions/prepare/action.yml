@@ -12,6 +12,26 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      with:
+        global-json-file: global.json
+
+    - name: Validate Renovate .NET SDK version
+      shell: powershell
+      run: |
+        $GlobalVersion = (Get-Content global.json -Raw | ConvertFrom-Json).sdk.version
+        $RenovateConfig = Get-Content .github/renovate.json -Raw | ConvertFrom-Json
+        $RenovateRule = $RenovateConfig.packageRules |
+          Where-Object { $null -ne $_.postUpgradeTasks -and $null -ne $_.constraints.dotnet } |
+          Select-Object -First 1
+        $RenovateVersion = $RenovateRule.constraints.dotnet
+        $InstalledVersion = dotnet --version
+
+        if ($RenovateVersion -ne $GlobalVersion -or $InstalledVersion -ne $GlobalVersion) {
+          throw "SDK version mismatch: Renovate=$RenovateVersion, global.json=$GlobalVersion, installed=$InstalledVersion"
+        }
+
     - name: Version and secrets
       uses: ./.github/actions/version-and-secrets
       with:

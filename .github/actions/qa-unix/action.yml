@@ -21,6 +21,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Setup .NET SDK on macOS
+      if: runner.os == 'macOS'
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      with:
+        global-json-file: global.json
+
     - name: Version and secrets
       uses: ./.github/actions/version-and-secrets
       with:
