@@ -1,7 +1,6 @@
 {
   "sdk": {
-    "comment": "This must reference an existing SDK version because Renovate does not understand rollForward",
-    "version": "10.0.100",
-    "rollForward": "latestMinor"
+    "comment": "Renovate and CI must use this exact SDK version",
+    "version": "10.0.100"
   }
 }
