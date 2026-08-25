@@ -45,7 +45,7 @@ public class TestTelemetryAssertions : ReferenceTypeAssertions<TestTelemetry, Te
         Execute.Assertion
             .BecauseOf(because, becauseArgs)
             .ForCondition(Subject[key].Equals(value))
-            .FailWith($"Expected the Telemetry key '{key}' to be {value}, but it was {Subject[key].Equals(value)}");
+            .FailWith($"Expected the Telemetry key '{key}' to be {value}, but it was {Subject[key]}");
         return new(this);
     }
 
