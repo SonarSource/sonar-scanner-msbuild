@@ -13,7 +13,7 @@
     <ProjectReference Include="..\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.35.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.36.0" />
     <PackageReference Include="Grpc.Tools" Version="2.83.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
