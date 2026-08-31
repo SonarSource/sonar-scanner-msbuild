@@ -853,12 +853,8 @@ public class E2EAnalysisTests
         result.Messages.Should().Contain(x => x.Contains("REF|WindowsBase|IsImplicitlyDefined=[true]"));
         result.Messages.Should().Contain(x => x.Contains("REF|System.Windows.Forms|IsImplicitlyDefined=[true]"));
 
-        var telemetryLines = ReadTelemetryLines(context);
-        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.system_web.cnt":"true"}""");
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.presentationcore.cnt":"true"}""");
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.presentationframework.cnt":"true"}""");
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.windowsbase.cnt":"true"}""");
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.system_windows_forms.cnt":"true"}""");
+        ReadTelemetryLines(context).Where(x => x.StartsWith("""{"dotnetenterprise.s4net.build.dependencies."""))
+            .Should().BeEquivalentTo(["""{"dotnetenterprise.s4net.build.dependencies.system_web.cnt":"true"}"""]);
     }
 
     // Adding the direct, whitelisted package Microsoft.Extensions.Http makes NuGet resolve the whitelisted Microsoft.Extensions.Logging and Microsoft.Extensions.DependencyInjection transitively.
@@ -887,10 +883,8 @@ public class E2EAnalysisTests
         result.Messages.Should().NotContain(x => x.Contains("PKG_REF|[Microsoft.Extensions.Logging]"));
         result.Messages.Should().NotContain(x => x.Contains("PKG_REF|[Microsoft.Extensions.DependencyInjection]"));
 
-        var telemetryLines = ReadTelemetryLines(context);
-        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.microsoft_extensions_http.cnt":"true"}""");
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.microsoft_extensions_logging.cnt":"true"}""");
-        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.microsoft_extensions_dependencyinjection.cnt":"true"}""");
+        ReadTelemetryLines(context).Where(x => x.StartsWith("""{"dotnetenterprise.s4net.build.dependencies."""))
+            .Should().BeEquivalentTo(["""{"dotnetenterprise.s4net.build.dependencies.microsoft_extensions_http.cnt":"true"}"""]);
     }
 
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
