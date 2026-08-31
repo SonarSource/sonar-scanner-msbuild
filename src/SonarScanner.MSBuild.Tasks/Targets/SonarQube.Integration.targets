@@ -128,6 +128,7 @@
   <UsingTask TaskName="GetAnalyzerSettings" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="MakeUniqueDir" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="WriteZeroLengthFiles" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
+  <UsingTask TaskName="DependencyTelemetry" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
   <UsingTask TaskName="WriteSonarTelemetry" AssemblyFile="$([MSBUILD]::Unescape($(SonarQubeBuildTasksAssemblyFile)))" />
 
   <!-- **************************************************************************** -->
@@ -417,6 +418,11 @@
         <Value>true</Value>
       </SonarProjectTelemetry>
     </ItemGroup>
+
+    <DependencyTelemetry PackageReferences="@(PackageReference)" AssemblyReferences="@(Reference)">
+      <Output TaskParameter="Telemetry" ItemName="SonarProjectTelemetry" />
+    </DependencyTelemetry>
+
     <WriteSonarTelemetry Condition="$(SonarProjectTelemetryFilePath)!=''" Filename="$(SonarProjectTelemetryFilePath)" Telemetry="@(SonarProjectTelemetry)" />
 
     <ItemGroup>

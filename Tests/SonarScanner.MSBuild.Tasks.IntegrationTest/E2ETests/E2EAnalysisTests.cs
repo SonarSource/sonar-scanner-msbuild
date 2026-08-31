@@ -508,9 +508,7 @@ public class E2EAnalysisTests
         var filesToAnalyze = projectInfo.AssertAnalysisResultFileExists(nameof(AnalysisResultFileType.FilesToAnalyze));
         var actualFilesToAnalyze = File.ReadAllLines(filesToAnalyze.Location);
         actualFilesToAnalyze.Should().BeEquivalentTo([codeFile, contentFile], "Unexpected list of files to analyze");
-        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
-        File.Exists(projectTelemetryFile).Should().BeTrue();
-        File.ReadAllLines(projectTelemetryFile).Should().Contain("""{"dotnetenterprise.s4net.build.exclusion_file.cnt":"true"}""");
+        ReadTelemetryLines(context).Should().Contain("""{"dotnetenterprise.s4net.build.exclusion_file.cnt":"true"}""");
     }
 
     // Checks that projects that don't include the standard managed targets are still
@@ -802,6 +800,93 @@ public class E2EAnalysisTests
             x => x.Should().Be("""{"dotnetenterprise.s4net.build.test_project_in_proj.cnt":"true"}"""));
     }
 
+    [TestMethod]
+    public void E2E_TelemetryFiles_PackageReferences_Written()
+    {
+        var context = CreateContext();
+        var result = BuildRunner.BuildTargets(TestContext, context.CreateProjectFile($"""
+            <ItemGroup>
+              <Compile Include='{context.CreateInputFile("codeFile1.cs")}' />
+            </ItemGroup>
+            <ItemGroup>
+              <PackageReference Include="FluentAssertions" Version="7.2.2" />
+              <PackageReference Include="MSTest.TestFramework" Version="4.2.1" />
+              <PackageReference Include="Castle.Core" Version="5.2.1" />
+            </ItemGroup>
+            """));
+        result.BuildSucceeded.Should().BeTrue();
+        var telemetryLines = ReadTelemetryLines(context);
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.fluentassertions.cnt":"true"}""");
+        telemetryLines.Should().Contain("""{"dotnetenterprise.s4net.build.dependencies.mstest_testframework.cnt":"true"}""");
+        // We whitelist the packages we care about, so Castle.Core should not be reported.
+        telemetryLines.Should().NotContain("""{"dotnetenterprise.s4net.build.dependencies.castle_core.cnt":"true"}""");
+    }
+
+    // On .NET Framework, UseWPF/UseWindowsForms make the SDK inject PresentationCore,PresentationFramework, WindowsBase and System.Windows.Forms into @(Reference) with IsImplicitlyDefined=true.
+    [TestMethod]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void E2E_TelemetryFiles_AssemblyReferences_Written()
+    {
+        var context = CreateContext();
+        var result = BuildRunner.BuildTargets(TestContext, context.CreateProjectFile($"""
+            <PropertyGroup>
+              <UseWPF>true</UseWPF>
+              <UseWindowsForms>true</UseWindowsForms>
+            </PropertyGroup>
+            <ItemGroup>
+              <Compile Include='{context.CreateInputFile("codeFile1.cs")}' />
+            </ItemGroup>
+            <ItemGroup>
+              <!-- A whitelisted framework assembly the user references directly is reported. -->
+              <Reference Include="System.Web" />
+            </ItemGroup>
+            <!-- Capture how MSBuild/the SDK decorate the @(Reference) items handed to DependencyTelemetry -->
+            <Target Name="CaptureReferenceMetadata" AfterTargets="ResolveReferences" BeforeTargets="Build">
+              <Message Importance="high" Text="REF|%(Reference.Identity)|IsImplicitlyDefined=[%(Reference.IsImplicitlyDefined)]" />
+            </Target>
+            """));
+        result.BuildSucceeded.Should().BeTrue();
+        result.Messages.Should().Contain(x => x.Contains("REF|System.Web|IsImplicitlyDefined=[]"));
+        result.Messages.Should().Contain(x => x.Contains("REF|PresentationCore|IsImplicitlyDefined=[true]"));
+        result.Messages.Should().Contain(x => x.Contains("REF|PresentationFramework|IsImplicitlyDefined=[true]"));
+        result.Messages.Should().Contain(x => x.Contains("REF|WindowsBase|IsImplicitlyDefined=[true]"));
+        result.Messages.Should().Contain(x => x.Contains("REF|System.Windows.Forms|IsImplicitlyDefined=[true]"));
+
+        ReadTelemetryLines(context).Where(x => x.StartsWith("""{"dotnetenterprise.s4net.build.dependencies."""))
+            .Should().BeEquivalentTo(["""{"dotnetenterprise.s4net.build.dependencies.system_web.cnt":"true"}"""]);
+    }
+
+    // Adding the direct, whitelisted package Microsoft.Extensions.Http makes NuGet resolve the whitelisted Microsoft.Extensions.Logging and Microsoft.Extensions.DependencyInjection transitively.
+    [TestMethod]
+    public void E2E_TelemetryFiles_TransitiveDependencies_AreNotReported()
+    {
+        var context = CreateContext();
+        var result = BuildRunner.BuildTargets(TestContext, context.CreateProjectFile($"""
+            <ItemGroup>
+              <Compile Include='{context.CreateInputFile("codeFile1.cs")}' />
+            </ItemGroup>
+            <ItemGroup>
+              <!-- Direct, whitelisted package the user adds themselves -->
+              <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.32" />
+            </ItemGroup>
+            <!-- Capture how NuGet decorates the resolved items -->
+            <Target Name="CaptureDependencyMetadata" AfterTargets="ResolveReferences" BeforeTargets="Build">
+              <Message Importance="high" Text="PKG_REF|[%(PackageReference.Identity)]" />
+              <Message Importance="high" Text="RESOLVED_REF|%(ReferencePath.Filename)|NuGetPackageId=[%(ReferencePath.NuGetPackageId)]" />
+            </Target>
+            """));
+        result.BuildSucceeded.Should().BeTrue();
+        result.Messages.Should().Contain(x => x.Contains("RESOLVED_REF|Microsoft.Extensions.Logging|NuGetPackageId=[Microsoft.Extensions.Logging]"));
+        result.Messages.Should().Contain(x => x.Contains("RESOLVED_REF|Microsoft.Extensions.DependencyInjection|NuGetPackageId=[Microsoft.Extensions.DependencyInjection]"));
+        result.Messages.Should().Contain(x => x.Contains("PKG_REF|[Microsoft.Extensions.Http]"));
+        result.Messages.Should().NotContain(x => x.Contains("PKG_REF|[Microsoft.Extensions.Logging]"));
+        result.Messages.Should().NotContain(x => x.Contains("PKG_REF|[Microsoft.Extensions.DependencyInjection]"));
+
+        ReadTelemetryLines(context).Where(x => x.StartsWith("""{"dotnetenterprise.s4net.build.dependencies."""))
+            .Should().BeEquivalentTo(["""{"dotnetenterprise.s4net.build.dependencies.microsoft_extensions_http.cnt":"true"}"""]);
+    }
+
     private BuildLog Execute_E2E_TestProjects_ProtobufFileNamesAreUpdated(bool isTestProject, string projectSpecificSubDir)
     {
         // Protobuf files containing metrics information should be created for test projects.
@@ -864,6 +949,13 @@ public class E2EAnalysisTests
 
     private TargetsTestsContext CreateContext(string language = "C#", string inputFolderName = "Inputs") =>
         new(TestContext, language, inputFolderName);
+
+    private static string[] ReadTelemetryLines(TargetsTestsContext context)
+    {
+        var projectTelemetryFile = Path.Combine(context.OutputFolder, "0", "Telemetry.json");
+        File.Exists(projectTelemetryFile).Should().BeTrue();
+        return File.ReadAllLines(projectTelemetryFile);
+    }
 
     private static void AssertNoAdditionalFilesInFolder(string folderPath, params string[] allowedFileNames)
     {
