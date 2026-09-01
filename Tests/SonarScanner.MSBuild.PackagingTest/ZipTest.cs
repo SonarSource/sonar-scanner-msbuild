@@ -29,7 +29,7 @@ public class ZipTest
 
     [TestMethod]
     public void ValidateFileList_Net() =>
-        Verifier.UnzippedFileList(null, "sonar-scanner-*-net.zip").Should().BeEquivalentTo([
+        Verifier.UnzippedFileList(null, "sonar-scanner-*-net.zip").Should().BeEquivalentTo(
             "Google.Protobuf.dll",
             "ICSharpCode.SharpZipLib.dll",
             "Microsoft.CodeCoverage.IO.dll",
@@ -52,12 +52,11 @@ public class ZipTest
             "Licenses/THIRD_PARTY_LICENSES/Google.Protobuf-LICENSE.txt",
             "Licenses/THIRD_PARTY_LICENSES/Microsoft.CodeCoverage.IO-LICENSE.txt",
             "Licenses/THIRD_PARTY_LICENSES/Newtonsoft.Json-LICENSE.txt",
-            "Licenses/THIRD_PARTY_LICENSES/SharpZipLib-LICENSE.txt"
-        ]);
+            "Licenses/THIRD_PARTY_LICENSES/SharpZipLib-LICENSE.txt");
 
     [TestMethod]
     public void ValidateFileList_NetFramework() =>
-        Verifier.UnzippedFileList(null, "sonar-scanner-*-net-framework.zip").Should().BeEquivalentTo([
+        Verifier.UnzippedFileList(null, "sonar-scanner-*-net-framework.zip").Should().BeEquivalentTo(
             "Google.Protobuf.dll",
             "ICSharpCode.SharpZipLib.dll",
             "Microsoft.CodeCoverage.IO.dll",
@@ -284,8 +283,7 @@ public class ZipTest
             "Licenses/THIRD_PARTY_LICENSES/System.Xml.XmlDocument-LICENSE.txt",
             "Licenses/THIRD_PARTY_LICENSES/System.Xml.XmlSerializer-LICENSE.txt",
             "Licenses/THIRD_PARTY_LICENSES/System.Xml.XPath-LICENSE.txt",
-            "Licenses/THIRD_PARTY_LICENSES/System.Xml.XPath.XDocument-LICENSE.txt",
-        ]);
+            "Licenses/THIRD_PARTY_LICENSES/System.Xml.XPath.XDocument-LICENSE.txt");
 
     [TestMethod]
     [DataRow("sonar-scanner-*-net.zip", 7)]             // 7x dll

@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Drawing.Drawing2D;
 using System.Security.Cryptography;
 
 namespace SonarScanner.MSBuild.PackagingTest;
@@ -32,21 +31,19 @@ public class ChocolateyTest
 
     [TestMethod]
     public void ValidateFileList_Net() =>
-        Verifier.UnzippedFileList("Chocolatey", "sonarscanner-net.*.nupkg").Where(x => !x.StartsWith("package/services/metadata/core-properties/")).Should().BeEquivalentTo([
+        Verifier.UnzippedFileList("Chocolatey", "sonarscanner-net.*.nupkg").Where(x => !x.StartsWith("package/services/metadata/core-properties/")).Should().BeEquivalentTo(
             "[Content_Types].xml",
             "sonarscanner-net.nuspec",
             "_rels/.rels",
-            "tools/chocolateyInstall.ps1",
-        ]);
+            "tools/chocolateyInstall.ps1");
 
     [TestMethod]
     public void ValidateFileList_NetFramework() =>
-        Verifier.UnzippedFileList("Chocolatey", "sonarscanner-net-framework.*.nupkg").Where(x => !x.StartsWith("package/services/metadata/core-properties/")).Should().BeEquivalentTo([
+        Verifier.UnzippedFileList("Chocolatey", "sonarscanner-net-framework.*.nupkg").Where(x => !x.StartsWith("package/services/metadata/core-properties/")).Should().BeEquivalentTo(
             "[Content_Types].xml",
             "sonarscanner-net-framework.nuspec",
             "_rels/.rels",
-            "tools/chocolateyInstall.ps1",
-        ]);
+            "tools/chocolateyInstall.ps1");
 
     [TestMethod]
     [DataRow("net")]

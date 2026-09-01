@@ -21,7 +21,6 @@
 using System.IO.Compression;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography.Pkcs;
-using System.Security.Cryptography.X509Certificates;
 
 namespace SonarScanner.MSBuild.PackagingTest.Utilities;
 
@@ -38,7 +37,7 @@ public static class Verifier
 
     public static string[] UnzippedFileList(string directoryName, string pattern)
     {
-        using var archive = Verifier.UnzipFile(directoryName, pattern);
+        using var archive = UnzipFile(directoryName, pattern);
         return archive.Entries.Select(x => x.FullName).ToArray();
     }
 
