@@ -59,17 +59,25 @@ public class NuGetTest
             ]));
 
     [TestMethod]
-    public void ValidateSignatures()
+    public void ValidateDllSignatures()
     {
         using var archive = Verifier.UnzipFile("NuGet", "dotnet-sonarscanner.*.nupkg");
         var dlls = archive.Entries.Where(Verifier.IsSonarBinary).ToArray();
         dlls.Should().HaveCount(7);
         foreach (var dll in dlls)
         {
-            Verifier.ValidateSignature(dll);
+            Verifier.ValidateDllSignature(dll);
         }
     }
 
+    [TestMethod]
+    public void NuGetPackage_IsSigned()
+    {
+        TestOrchestration.RequireReleaseBranch();
+        using var archive = Verifier.UnzipFile("NuGet", "dotnet-sonarscanner.*.nupkg");
+        Verifier.ValidatePackageSignature(archive);
+    }
+
     private static string[] NuGetSignatureFiles() =>
-        TestOrchestration.IsReleaseBranch ? [".signature.p7s"] : [];
+        TestOrchestration.IsReleaseBranch ? [Verifier.PackageSignatureEntryName] : [];
 }

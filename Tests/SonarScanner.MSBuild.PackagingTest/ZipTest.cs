@@ -295,7 +295,7 @@ public class ZipTest
         dlls.Should().HaveCount(expectedFileCount);
         foreach (var dll in dlls)
         {
-            Verifier.ValidateSignature(dll);
+            Verifier.ValidateDllSignature(dll);
         }
     }
 }
