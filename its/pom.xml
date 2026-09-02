@@ -21,6 +21,9 @@
     <jetty.version>12.1.12</jetty.version>
     <testInclude>**/*</testInclude>
     <failIfNoTests>true</failIfNoTests>
+    <!-- Integration-test module: not a release artifact. -->
+    <artifactsToPublish></artifactsToPublish>
+    <maven.deploy.skip>true</maven.deploy.skip>
   </properties>
 
   <dependencyManagement>
