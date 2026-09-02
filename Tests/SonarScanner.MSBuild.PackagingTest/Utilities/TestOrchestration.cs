@@ -34,4 +34,12 @@ public static class TestOrchestration
             Assert.Inconclusive("This test must run on the CI environment, after the signing.");
         }
     }
+
+    public static void RequireReleaseBranch()
+    {
+        if (!IsReleaseBranch)
+        {
+            Assert.Inconclusive("This test must run on a release branch, after the package has been signed.");
+        }
+    }
 }

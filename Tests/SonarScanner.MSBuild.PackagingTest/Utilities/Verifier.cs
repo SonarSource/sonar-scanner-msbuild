@@ -20,13 +20,15 @@
 
 using System.IO.Compression;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.Pkcs;
-using System.Security.Cryptography.X509Certificates;
 
 namespace SonarScanner.MSBuild.PackagingTest.Utilities;
 
 public static class Verifier
 {
+    public const string PackageSignatureEntryName = ".signature.p7s";
+
     private const int HeaderSize = 8; // WIN_CERTIFICATE header: dwLength(4) + wRevision(2) + wCertificateType(2) = 8 bytes, followed by the PKCS#7 blob
 
     public static ZipArchive UnzipFile(string directoryName, string pattern)
@@ -38,7 +40,7 @@ public static class Verifier
 
     public static string[] UnzippedFileList(string directoryName, string pattern)
     {
-        using var archive = Verifier.UnzipFile(directoryName, pattern);
+        using var archive = UnzipFile(directoryName, pattern);
         return archive.Entries.Select(x => x.FullName).ToArray();
     }
 
@@ -46,25 +48,37 @@ public static class Verifier
         entry.Name.StartsWith("Sonar", StringComparison.OrdinalIgnoreCase)
         && (entry.Name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) || entry.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
 
-    public static void ValidateSignature(ZipArchiveEntry entry)
+    public static void ValidateDllSignature(ZipArchiveEntry entry)
     {
-        using var stream = ReadStream(entry);
-        using var peReader = new PEReader(stream);
+        using var peReader = new PEReader(ImmutableCollectionsMarshal.AsImmutableArray(ReadBytes(entry)));
         var certificates = peReader.PEHeaders.PEHeader.CertificateTableDirectory;
         certificates.Size.Should().NotBe(0, $"file {entry.FullName} should contain signature");
         var cms = new SignedCms();
         cms.Decode(peReader.GetEntireImage().GetContent().AsSpan(certificates.RelativeVirtualAddress + HeaderSize, certificates.Size - HeaderSize));
-        cms.Certificates.Should().ContainSingle(x =>
-            x.Subject.Contains("O=\"SonarSource US, Inc.\"")        // Azure Trusted Signing
-            || x.Subject.Contains("O=SonarSource SA, L=Vernier"));  // Test certificate
+        ValidateSignerCertificate(cms, entry.FullName);
     }
 
-    private static MemoryStream ReadStream(ZipArchiveEntry entry)
+    public static void ValidatePackageSignature(ZipArchive archive)
     {
-        var contentStream = new MemoryStream();
+        var entry = archive.GetEntry(PackageSignatureEntryName);
+        entry.Should().NotBeNull($"the package should contain the '{PackageSignatureEntryName}' entry");
+        var cms = new SignedCms();
+        cms.Decode(ReadBytes(entry));
+        ValidateSignerCertificate(cms, entry.FullName);
+    }
+
+    private static void ValidateSignerCertificate(SignedCms cms, string entryName) =>
+        cms.Certificates.Should().ContainSingle(
+            x => x.Subject == """CN="SonarSource US, Inc.", O="SonarSource US, Inc.", L=Austin, S=Texas, C=US"""                   // Azure Trusted Signing (release)
+                    || x.Subject == """CN="SonarSource US, Inc.(TEST ONLY)", O="SonarSource US, Inc.", L=Austin, S=Texas, C=US"""  // Azure Trusted Signing (test, PR builds)
+                    || x.Subject == "CN=SonarSource SA, O=SonarSource SA, L=Vernier, S=Genève, C=CH",                              // NuGet package signature (DigiCert-chained release only)
+            $"'{entryName}' should be signed with a SonarSource certificate.");
+
+    private static byte[] ReadBytes(ZipArchiveEntry entry)
+    {
+        var buffer = new byte[entry.Length];
         using var entryStream = entry.Open();
-        entryStream.CopyTo(contentStream);
-        contentStream.Position = 0;
-        return contentStream;
+        entryStream.ReadExactly(buffer);
+        return buffer;
     }
 }
