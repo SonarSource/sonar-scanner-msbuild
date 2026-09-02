@@ -50,7 +50,7 @@ public static class ExceptionExtensions
     public static IEnumerable<string> MessagesNotAlreadyContainedIn(this Exception exception, string precedingMessage)
     {
         var reportedMessages = new List<string> { precedingMessage };
-        foreach (var message in exception.Messages().Where(message => !reportedMessages.Any(x => x.Contains(message))))
+        foreach (var message in exception.Messages().Where(x => !reportedMessages.Any(y => y.Contains(x))))
         {
             yield return message;
             reportedMessages.Add(message);
