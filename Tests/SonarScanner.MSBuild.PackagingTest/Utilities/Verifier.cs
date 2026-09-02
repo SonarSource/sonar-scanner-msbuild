@@ -69,8 +69,9 @@ public static class Verifier
 
     private static void ValidateSignerCertificate(SignedCms cms, string entryName) =>
         cms.Certificates.Should().ContainSingle(
-            x => x.Subject.Contains("O=\"SonarSource US, Inc.\"")          // Azure Trusted Signing (release)
-                    || x.Subject.Contains("O=SonarSource SA, L=Vernier"),  // Test certificate (PR builds)
+            x => x.Subject == """CN="SonarSource US, Inc.", O="SonarSource US, Inc.", L=Austin, S=Texas, C=US"""                   // Azure Trusted Signing (release)
+                    || x.Subject == """CN="SonarSource US, Inc.(TEST ONLY)", O="SonarSource US, Inc.", L=Austin, S=Texas, C=US"""  // Azure Trusted Signing (test, PR builds)
+                    || x.Subject == "CN=SonarSource SA, O=SonarSource SA, L=Vernier, S=Genève, C=CH",                              // NuGet package signature (DigiCert-chained release only)
             $"'{entryName}' should be signed with a SonarSource certificate.");
 
     private static byte[] ReadBytes(ZipArchiveEntry entry)
