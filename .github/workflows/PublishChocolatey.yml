@@ -21,10 +21,12 @@ jobs:
       FRAMEWORK_PACKAGE: sonar-scanner-${{ inputs.version }}-net-framework.nupkg
       NET_PACKAGE: sonar-scanner-${{ inputs.version }}-net.nupkg
     steps:
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      - name: Install tools
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
         with:
-          dotnet-version: 10.0.100
+          cache: true
+          tool_versions: |
+            dotnet 10.0.100
 
       - name: Get secrets
         id: secrets
