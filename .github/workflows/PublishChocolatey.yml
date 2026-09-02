@@ -1,5 +1,15 @@
 name: Publish Chocolatey
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 10.1.0.12345)"
+        required: true
+        type: string
+      dry-run:
+        description: "Dry run: skip publish, show summary only"
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       version:
