@@ -373,7 +373,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Detected SonarQube but server was found to be SonarCloud. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.</value>
   </data>
   <data name="WARN_JreMetadataNotRetrieved" xml:space="preserve">
-    <value>JRE Metadata could not be retrieved from {0}.</value>
+    <value>JRE Metadata could not be retrieved from {0}. {1}</value>
   </data>
   <data name="ERR_UserHomeInvalid" xml:space="preserve">
     <value>The attempt to create the directory specified by 'sonar.userHome' at '{0}' failed with error '{1}'. Provide a valid path for 'sonar.userHome' to a directory that can be created.</value>
@@ -425,6 +425,10 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="MSG_Resolver_DownloadFailure" xml:space="preserve">
     <value>{0}: Download failure. {1}</value>
+  </data>
+  <data name="ERR_JreResolver_DownloadFailure" xml:space="preserve">
+    <value>JreResolver: Download failure. {0}
+The analysis will continue with the Java runtime environment found in JAVA_HOME or on the PATH. If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=&lt;PATH&gt;".</value>
   </data>
   <data name="MSG_DeletingFileFailure" xml:space="preserve">
     <value>Failed to delete file '{0}'. {1}</value>
@@ -560,7 +564,7 @@ Check the certificates in the truststore file '{1}' specified via the {2} parame
     <value>Using local sonar engine provided by sonar.scanner.engineJarPath={0}</value>
   </data>
   <data name="WARN_EngineMetadataNotRetrieved" xml:space="preserve">
-    <value>Sonar Engine Metadata could not be retrieved from {0}.</value>
+    <value>Sonar Engine Metadata could not be retrieved from {0}. {1}</value>
   </data>
   <data name="MSG_EngineResolver_NotSupportedByServer" xml:space="preserve">
     <value>EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.</value>

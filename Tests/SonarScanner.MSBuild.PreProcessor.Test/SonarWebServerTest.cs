@@ -723,10 +723,10 @@ public class SonarWebServerTest
     {
         downloader
             .When(x => x.Download(new("analysis/jres?os=what&arch=ever", UriKind.Relative)))
-            .Throw(new Exception());
+            .Throw(new InvalidOperationException("Connection failed", new IOException("SSL handshake failed")));
 
         (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
-        logger.Should().HaveWarnings("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever.");
+        logger.Should().HaveWarnings("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever. Connection failed -> SSL handshake failed");
     }
 
     [TestMethod]
@@ -740,7 +740,7 @@ public class SonarWebServerTest
             .Returns(jresResponse);
 
         (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
-        logger.Should().HaveWarnings("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever.");
+        logger.Warnings.Should().ContainSingle().Which.Should().StartWith("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever. ");
     }
 
     [TestMethod]
@@ -803,12 +803,14 @@ public class SonarWebServerTest
     [TestMethod]
     public async Task DownloadEngineMetadataAsync_Throws_Warning()
     {
+        var exception = new InvalidOperationException("Connection failed", new IOException("SSL handshake failed"));
         downloader
             .When(x => x.Download(new("analysis/engine", UriKind.Relative)))
-            .Throw(new Exception());
+            .Throw(exception);
 
         (await sut.DownloadEngineMetadataAsync()).Should().BeNull();
-        logger.Should().HaveWarnings("Sonar Engine Metadata could not be retrieved from analysis/engine.");
+        logger.Should().HaveWarnings("Sonar Engine Metadata could not be retrieved from analysis/engine. Connection failed -> SSL handshake failed");
+        logger.DebugMessages.Should().ContainSingle().Which.Should().StartWith("System.InvalidOperationException: Connection failed").And.Contain("SSL handshake failed");
     }
 
     [TestMethod]
@@ -828,7 +830,7 @@ public class SonarWebServerTest
             .Returns(jresResponse);
 
         (await sut.DownloadEngineMetadataAsync()).Should().BeNull();
-        logger.Should().HaveWarnings("Sonar Engine Metadata could not be retrieved from analysis/engine.");
+        logger.Warnings.Should().ContainSingle().Which.Should().StartWith("Sonar Engine Metadata could not be retrieved from analysis/engine. ");
     }
 
     [TestMethod]

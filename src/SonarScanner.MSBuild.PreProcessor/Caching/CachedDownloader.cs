@@ -65,9 +65,9 @@ public class CachedDownloader
             }
             return null;
         }
-        catch
+        catch (Exception e)
         {
-            return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath));
+            return new DownloadError(string.Format(Resources.MSG_DirectoryCouldNotBeCreated, FileRootPath), e);
         }
     }
 
@@ -115,7 +115,7 @@ public class CachedDownloader
             fileStream.Close();
             if (ValidateFile(tempFile) is { } error)
             {
-                return new(string.Format(Resources.ERR_DownloadFailed, error.Message));
+                return new(string.Format(Resources.ERR_DownloadFailed, error.Message), error.Exception);
             }
             else
             {
@@ -126,36 +126,36 @@ public class CachedDownloader
         catch (Exception e)
         {
             TryDeleteFile(tempFile);
-            return new(string.Format(Resources.ERR_DownloadFailed, e.Message));
+            return new(string.Format(Resources.ERR_DownloadFailed, e.Message), e);
         }
     }
 
     private DownloadError ValidateFile(string file)
     {
-        if (ValidateChecksum(file, fileDescriptor.Sha256))
-        {
-            return null;
-        }
-        else
+        var validationError = ValidateChecksum(file, fileDescriptor.Sha256);
+        if (validationError is not null)
         {
             TryDeleteFile(file);
-            return new(Resources.ERR_ChecksumMismatch);
         }
+
+        return validationError;
     }
 
-    private bool ValidateChecksum(string downloadTarget, string sha256)
+    private DownloadError ValidateChecksum(string downloadTarget, string sha256)
     {
         try
         {
             using var fs = runtime.File.Open(downloadTarget);
             var fileChecksum = checksum.ComputeHash(fs);
             runtime.LogDebug(Resources.MSG_FileChecksum, fileChecksum, sha256);
-            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(fileChecksum, sha256, StringComparison.OrdinalIgnoreCase)
+                ? null
+                : new DownloadError(Resources.ERR_ChecksumMismatch);
         }
         catch (Exception ex)
         {
             runtime.LogDebug(Resources.ERR_ChecksumCalculationFailed, downloadTarget, ex.Message);
-            return false;
+            return new DownloadError(Resources.ERR_ChecksumMismatch, ex);
         }
     }
 

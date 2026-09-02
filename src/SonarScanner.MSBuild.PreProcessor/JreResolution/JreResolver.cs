@@ -54,18 +54,40 @@ public class JreResolver : IResolver
             return null;
         }
 
-        if (await DownloadJre(args) is { } jrePath)
+        var result = await DownloadJre(args);
+        if (result is FileRetrieved retrieved)
         {
-            return jrePath;
+            return retrieved.FilePath;
         }
-        else
+
+        runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
+        var retry = await DownloadJre(args);
+        if (retry is FileRetrieved retriedFile)
         {
-            runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
-            return await DownloadJre(args);
+            return retriedFile.FilePath;
+        }
+        // The retry can fail before the download is even attempted, e.g. when the metadata could not be retrieved. The first failure is the informative one in that case.
+        if ((retry ?? result) is DownloadError error)
+        {
+            LogDownloadFailure(error);
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Provisioning failures are not fatal, the analysis falls back to a locally installed Java. They are still reported at error level, because a silent
+    /// fallback is impossible to diagnose without verbose logs. The stack trace is only relevant when troubleshooting the scanner itself, so it stays at debug level.
+    /// </summary>
+    private void LogDownloadFailure(DownloadError error)
+    {
+        runtime.LogError(Resources.ERR_JreResolver_DownloadFailure, error.DetailedMessage);
+        if (error.Exception is not null)
+        {
+            runtime.LogDebug(error.Exception.ToString());
         }
     }
 
-    private async Task<string> DownloadJre(ProcessedArgs args)
+    private async Task<DownloadResult> DownloadJre(ProcessedArgs args)
     {
         var metadata = await server.DownloadJreMetadataAsync(args.OperatingSystem, args.Architecture);
         if (metadata is null)
@@ -79,26 +101,28 @@ public class JreResolver : IResolver
         return await DownloadJre(archiveDownloader, metadata);
     }
 
-    private async Task<string> DownloadJre(ArchiveDownloader archiveDownloader, JreMetadata metadata)
+    private async Task<DownloadResult> DownloadJre(ArchiveDownloader archiveDownloader, JreMetadata metadata)
     {
-        switch (await archiveDownloader.DownloadAsync(() => server.DownloadJreAsync(metadata)))
+        var result = await archiveDownloader.DownloadAsync(() => server.DownloadJreAsync(metadata));
+        switch (result)
         {
             case CacheHit cacheHit:
                 runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), cacheHit.FilePath);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
-                return cacheHit.FilePath;
+                break;
             case Downloaded downloaded:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", downloaded.FilePath);
                 runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, metadata.Filename);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Downloaded;
-                return downloaded.FilePath;
+                break;
             case DownloadError error:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
-                return null;
+                break;
             default:
                 throw new NotSupportedException("Download result is expected to be FileRetrieved or DownloadError.");
         }
+        return result;
     }
 
     private bool IsValid(ProcessedArgs args)

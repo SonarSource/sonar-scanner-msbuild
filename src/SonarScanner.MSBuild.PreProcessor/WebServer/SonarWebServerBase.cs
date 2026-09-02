@@ -134,9 +134,11 @@ public abstract class SonarWebServerBase : IDisposable
             // Spec: The API can return multiple results, and the first result should be used.
             return jres.FirstOrDefault();
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            logger.LogWarning(Resources.WARN_JreMetadataNotRetrieved, uri);
+            // The cause has to be part of the warning: it is the only signal the user gets when JRE provisioning fails at this stage.
+            logger.LogWarning(Resources.WARN_JreMetadataNotRetrieved, uri, e.MessageChain());
+            logger.LogDebug(e.ToString());
             return null;
         }
     }
@@ -148,9 +150,10 @@ public abstract class SonarWebServerBase : IDisposable
         {
             return JsonConvert.DeserializeObject<EngineMetadata>(await apiDownloader.Download(new(api, UriKind.Relative)));
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            logger.LogWarning(Resources.WARN_EngineMetadataNotRetrieved, api);
+            logger.LogWarning(Resources.WARN_EngineMetadataNotRetrieved, api, e.MessageChain());
+            logger.LogDebug(e.ToString());
             return null;
         }
     }
