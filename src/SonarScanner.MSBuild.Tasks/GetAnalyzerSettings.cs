@@ -18,15 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using SonarScanner.MSBuild.Common;
 
 namespace SonarScanner.MSBuild.Tasks;
 
@@ -38,9 +32,7 @@ public class GetAnalyzerSettings : Task
     private const string ExcludeTestProjectsSettingId = "sonar.dotnet.excludeTestProjects";
     private const string DllExtension = ".dll";
 
-    private readonly string[] sonarDotNetPluginKeys = new[] { "csharp", "vbnet" };
-
-    #region Properties
+    private readonly string[] sonarDotNetPluginKeys = ["csharp", "vbnet"];
 
     /// <summary>
     /// The directory containing the analysis config settings file.
@@ -109,17 +101,13 @@ public class GetAnalyzerSettings : Task
     [Output]
     public string[] AdditionalFilePaths { get; private set; }
 
-    #endregion Properties
-
-    #region Overrides
-
     public override bool Execute()
     {
         var logger = new MSBuildLoggerAdapter(Log);
         var config = TaskUtilities.TryGetConfig(AnalysisConfigDir, logger);
 
-        var languageSettings = GetLanguageSpecificSettings(config);
-        if (languageSettings == null)
+        var languageSettings = LanguageSpecificSettings(config);
+        if (languageSettings is null)
         {
             // Early-out: we don't have any settings for the current language.
             // Preserve the default existing behaviour of only preserving the original list of additional files but clearing the analyzers.
@@ -138,16 +126,8 @@ public class GetAnalyzerSettings : Task
         }
         else
         {
-            if (ShouldMergeAnalysisSettings(Language, config, logger))
-            {
-                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_MergingSettings);
-                outputs = CreateMergedAnalyzerSettings(languageSettings);
-            }
-            else
-            {
-                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_OverwritingSettings);
-                outputs = CreateLegacyProductProjectSettings(languageSettings);
-            }
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_MergingSettings);
+            outputs = CreateMergedAnalyzerSettings(languageSettings);
         }
 
         ApplyTaskOutput(outputs);
@@ -159,58 +139,25 @@ public class GetAnalyzerSettings : Task
             && excludeTestProjects.Equals("true", StringComparison.OrdinalIgnoreCase);
     }
 
-    #endregion Overrides
-
-    #region Private methods
-
-    internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config, Common.ILogger logger)
-    {
-        Debug.Assert(!string.IsNullOrEmpty(language), "Expecting the language to be specified.");
-        Debug.Assert(config != null, "Expecting the configuration to be specified.");
-
-        // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
-        // Legacy behaviour is to overwrite.
-        var serverVersion = config?.FindServerVersion();
-        if (serverVersion != null && serverVersion >= new Version("7.4"))
-        {
-            return true;
-        }
-        else
-        {
-            logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported);
-            return false;
-        }
-    }
-
     private TaskOutputs CreateDeactivatedProjectSettings(AnalyzerSettings settings)
     {
         var sonarDotNetAnalyzers = settings.AnalyzerPlugins
-                .Where(p => sonarDotNetPluginKeys.Contains(p.Key, StringComparer.OrdinalIgnoreCase))
-                .SelectMany(p => p.AssemblyPaths);
-
+            .Where(x => sonarDotNetPluginKeys.Contains(x.Key, StringComparer.OrdinalIgnoreCase))
+            .SelectMany(x => x.AssemblyPaths);
         return new TaskOutputs(settings.DeactivatedRulesetPath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
-    }
-
-    private TaskOutputs CreateLegacyProductProjectSettings(AnalyzerSettings settings)
-    {
-        var configOnlyAnalyzers = settings.AnalyzerPlugins.SelectMany(p => p.AssemblyPaths);
-        var additionalFilePaths = MergeAdditionalFilesLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
-
-        return new TaskOutputs(settings.RulesetPath, configOnlyAnalyzers, additionalFilePaths);
     }
 
     private TaskOutputs CreateMergedAnalyzerSettings(AnalyzerSettings settings)
     {
         var mergedRuleset = CreateMergedRuleset(settings);
-        var allAnalyzers = MergeAnalyzersLists(settings.AnalyzerPlugins.SelectMany(ap => ap.AssemblyPaths), OriginalAnalyzers);
+        var allAnalyzers = MergeAnalyzersLists(settings.AnalyzerPlugins.SelectMany(x => x.AssemblyPaths), OriginalAnalyzers);
         var additionalFilePaths = MergeAdditionalFilesLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
-
         return new TaskOutputs(mergedRuleset, allAnalyzers, additionalFilePaths);
     }
 
     private string CreateMergedRuleset(AnalyzerSettings languageSpecificSettings)
     {
-        if (OriginalRulesetFilePath == null)
+        if (OriginalRulesetFilePath is null)
         {
             // If the project doesn't already have a ruleset can just
             // return the generated one directly
@@ -218,14 +165,14 @@ public class GetAnalyzerSettings : Task
             return languageSpecificSettings.RulesetPath;
         }
 
-        var resolvedRulesetPath = GetAbsoluteRulesetPath();
+        var resolvedRulesetPath = AbsoluteRulesetPath();
         var mergedRulesetFilePath = Path.Combine(ProjectSpecificConfigDirectory, "merged.ruleset");
         Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_CreatingMergedRuleset, mergedRulesetFilePath);
         WriteMergedRuleSet(resolvedRulesetPath, languageSpecificSettings.RulesetPath, mergedRulesetFilePath);
         return mergedRulesetFilePath;
     }
 
-    private string GetAbsoluteRulesetPath()
+    private string AbsoluteRulesetPath()
     {
         // If the supplied ruleset path is relative then it is relative to the project folder.
         // This relative path will be wrong if use it directly in the generated merged ruleset
@@ -242,7 +189,8 @@ public class GetAnalyzerSettings : Task
             resolvedRulesetFilePath = Path.GetFullPath(Path.Combine(CurrentProjectDirectoryPath, OriginalRulesetFilePath));
         }
 
-        Log.LogMessage(MessageImportance.Low,
+        Log.LogMessage(
+            MessageImportance.Low,
             File.Exists(resolvedRulesetFilePath) ? Resources.AnalyzerSettings_ResolvedRulesetFound : Resources.AnalyzerSettings_ResolvedRulesetNotFound,
             resolvedRulesetFilePath);
         return resolvedRulesetFilePath;
@@ -257,47 +205,44 @@ public class GetAnalyzerSettings : Task
         using (var reader = new StreamReader(languageRuleset))
         {
             var xdoc = XDocument.Load(reader, LoadOptions.PreserveWhitespace);
-
-            // This will fail if the ruleset is invalid. However, we generated the
-            // ruleset so something else is already wrong in that case.
+            // This will fail if the ruleset is invalid. However, we generated the ruleset so something else is already wrong in that case.
             var rulesetNode = xdoc.Descendants().First(e => e.Name == "RuleSet");
-
             var importElement = new XElement("Include");
             importElement.Add(new XAttribute("Path", originalRuleset));
             importElement.Add(new XAttribute("Action", "Default"));
-
             rulesetNode.AddFirst(importElement);
             xdoc.Save(mergedRulesetFilePath);
         }
     }
 
-    private AnalyzerSettings GetLanguageSpecificSettings(AnalysisConfig config)
+    private AnalyzerSettings LanguageSpecificSettings(AnalysisConfig config)
     {
-        if (config == null)
+        if (config is null)
         {
             return null;
         }
-
-        if (string.IsNullOrEmpty(Language))
+        else if (string.IsNullOrEmpty(Language))
         {
             Log.LogMessage(Resources.AnalyzerSettings_LanguageNotSpecified);
             return null;
         }
-
-        IList<AnalyzerSettings> analyzers = config.AnalyzersSettings;
-        if (analyzers == null)
+        else if (config.AnalyzersSettings is { } analyzers)
+        {
+            if (analyzers.SingleOrDefault(x => Language.Equals(x.Language)) is { } settings)
+            {
+                return settings;
+            }
+            else
+            {
+                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
+                return null;
+            }
+        }
+        else
         {
             Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
             return null;
         }
-
-        var settings = analyzers.SingleOrDefault(s => Language.Equals(s.Language));
-        if (settings == null)
-        {
-            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_NotSpecifiedInConfig, Language);
-            return null;
-        }
-        return settings;
     }
 
     /// <summary>
@@ -306,18 +251,15 @@ public class GetAnalyzerSettings : Task
     /// </summary>
     private string[] MergeAnalyzersLists(IEnumerable<string> sonarAnalyzerPaths, IEnumerable<string> userProvidedAnalyzerPaths)
     {
-        Debug.Assert(sonarAnalyzerPaths != null, $"{nameof(sonarAnalyzerPaths)} should not be null at this point.");
+        Debug.Assert(sonarAnalyzerPaths is not null, $"{nameof(sonarAnalyzerPaths)} should not be null at this point.");
         var nonNullUserProvidedAnalyzerPaths = userProvidedAnalyzerPaths ?? Enumerable.Empty<string>();
-
         var sonarAnalyzerDuplicates = nonNullUserProvidedAnalyzerPaths
-           .Where(x => GetFileName(x).StartsWith("SonarAnalyzer", StringComparison.OrdinalIgnoreCase))
-           .ToArray();
-
+            .Where(x => FileNameOrDefault(x).StartsWith("SonarAnalyzer", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
         var finalList = sonarAnalyzerPaths
             .Union(nonNullUserProvidedAnalyzerPaths)
             .Except(sonarAnalyzerDuplicates)
             .ToArray();
-
         LogRemovedFiles(sonarAnalyzerDuplicates);
         return finalList;
     }
@@ -330,13 +272,11 @@ public class GetAnalyzerSettings : Task
     {
         var nonNullSonarAdditionalFiles = sonarAdditionalFiles ?? Enumerable.Empty<string>();
         var nonNullUserProvidedAdditionalFiles = userProvidedAdditionalFiles ?? Enumerable.Empty<string>();
-
-        var duplicateAdditionalFiles = GetEntriesWithMatchingFileNames(nonNullSonarAdditionalFiles, nonNullUserProvidedAdditionalFiles);
+        var duplicateAdditionalFiles = EntriesWithMatchingFileNames(nonNullSonarAdditionalFiles, nonNullUserProvidedAdditionalFiles);
         var finalList = nonNullSonarAdditionalFiles
             .Union(nonNullUserProvidedAdditionalFiles)
             .Except(duplicateAdditionalFiles)
             .ToArray();
-
         LogRemovedFiles(duplicateAdditionalFiles);
         return finalList;
     }
@@ -351,24 +291,15 @@ public class GetAnalyzerSettings : Task
     /// Returns the entries from <paramref name="candidateFilePaths"/> where the file name
     /// part of the candidate matches the file name of an entry in <paramref name="sourceFilePaths"/>.
     /// </summary>
-    private static string[] GetEntriesWithMatchingFileNames(IEnumerable<string> sourceFilePaths, IEnumerable<string> candidateFilePaths)
+    private static string[] EntriesWithMatchingFileNames(IEnumerable<string> sourceFilePaths, IEnumerable<string> candidateFilePaths)
     {
-        Debug.Assert(sourceFilePaths != null, $"{nameof(sourceFilePaths)} should not be null at this point.");
-        Debug.Assert(candidateFilePaths != null, $"{nameof(candidateFilePaths)} should not be null at this point.");
-
-        var sourceFileNames = new HashSet<string>(
-            sourceFilePaths
-                .Select(sfp => GetFileName(sfp))
-                .Where(n => !string.IsNullOrEmpty(n)));
-
-        var matches = candidateFilePaths
-            .Where(candidate => sourceFileNames.Contains(GetFileName(candidate), StringComparer.OrdinalIgnoreCase))
-            .ToArray();
-
-        return matches;
+        Debug.Assert(sourceFilePaths is not null, $"{nameof(sourceFilePaths)} should not be null at this point.");
+        Debug.Assert(candidateFilePaths is not null, $"{nameof(candidateFilePaths)} should not be null at this point.");
+        var sourceFileNames = new HashSet<string>(sourceFilePaths.Select(FileNameOrDefault).Where(x => !string.IsNullOrEmpty(x)));
+        return candidateFilePaths.Where(x => sourceFileNames.Contains(FileNameOrDefault(x), StringComparer.OrdinalIgnoreCase)).ToArray();
     }
 
-    private static string GetFileName(string path)
+    private static string FileNameOrDefault(string path)
     {
         try
         {
@@ -381,39 +312,33 @@ public class GetAnalyzerSettings : Task
     }
 
     private static string[] RemoveNonAnalyzerFiles(IEnumerable<string> files) =>
-        files.Where(f => IsAssemblyLibraryFileName(f)).ToArray();
+        files.Where(IsAssemblyLibraryFileName).ToArray();
 
     /// <summary>
     /// Returns whether the supplied string is an assembly library (i.e. dll).
     /// </summary>
     private static bool IsAssemblyLibraryFileName(string filePath) =>
-        // Not expecting .winmd or .exe files to contain Roslyn analyzers
-        // so we'll ignore them
+        // Not expecting .winmd or .exe files to contain Roslyn analyzers so we'll ignore them
         filePath.EndsWith(DllExtension, StringComparison.OrdinalIgnoreCase);
 
     private void ApplyTaskOutput(TaskOutputs outputs)
     {
-        RuleSetFilePath = outputs.Ruleset;
+        RuleSetFilePath = outputs.RuleSet;
         AnalyzerFilePaths = RemoveNonAnalyzerFiles(outputs.AssemblyPaths);
         AdditionalFilePaths = outputs.AdditionalFilePaths;
     }
 
-    #endregion Private methods
-
-    /// <summary>
-    /// Internal data class to hold the set of output values for this task.
-    /// </summary>
     private sealed class TaskOutputs
     {
-        public TaskOutputs(string ruleset, IEnumerable<string> assemblyPaths, IEnumerable<string> additionalFilePaths)
+        public string RuleSet { get; }
+        public string[] AssemblyPaths { get; }
+        public string[] AdditionalFilePaths { get; }
+
+        public TaskOutputs(string ruleSet, IEnumerable<string> assemblyPaths, IEnumerable<string> additionalFilePaths)
         {
-            Ruleset = ruleset;
+            RuleSet = ruleSet;
             AssemblyPaths = assemblyPaths?.ToArray() ?? new string[] { };
             AdditionalFilePaths = additionalFilePaths?.ToArray() ?? new string[] { };
         }
-
-        public string Ruleset { get; }
-        public string[] AssemblyPaths { get; }
-        public string[] AdditionalFilePaths { get; }
     }
 }

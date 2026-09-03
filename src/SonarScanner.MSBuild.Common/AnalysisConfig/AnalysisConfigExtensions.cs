@@ -142,17 +142,6 @@ public static class ConfigSettingsExtensions
         return null;
     }
 
-    public static Version FindServerVersion(this AnalysisConfig config)
-    {
-        if (config == null)
-        {
-            throw new ArgumentNullException(nameof(config));
-        }
-
-        Version.TryParse(config.SonarQubeVersion, out var version);
-        return version;
-    }
-
     public static string GetSettingOrDefault(this AnalysisConfig config, string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
     {
         if (config == null)

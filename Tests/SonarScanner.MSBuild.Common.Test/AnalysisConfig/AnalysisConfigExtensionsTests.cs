@@ -251,22 +251,6 @@ public class AnalysisConfigExtensionsTests
     }
 
     [TestMethod]
-    public void ConfigExt_FindServerVersion_WhenConfigIsNull_Throws() =>
-        FluentActions.Invoking(() => ConfigSettingsExtensions.FindServerVersion(null)).Should().Throw<ArgumentNullException>().WithParameterName("config");
-
-    [TestMethod]
-    public void ConfigExt_FindServerVersion_NoSetting_ReturnsNull() =>
-        ConfigSettingsExtensions.FindServerVersion(new AnalysisConfig()).Should().BeNull();
-
-    [TestMethod]
-    public void ConfigExt_FindServerVersion_InvalidVersion_ReturnsNull() =>
-        ConfigSettingsExtensions.FindServerVersion(new AnalysisConfig { SonarQubeVersion = "invalid" }).Should().BeNull();
-
-    [TestMethod]
-    public void ConfigExt_FindServerVersion_ValidVersion_ReturnsVersion() =>
-        ConfigSettingsExtensions.FindServerVersion(new AnalysisConfig { SonarQubeVersion = "6.7.1.2" }).Should().Be(new Version("6.7.1.2"));
-
-    [TestMethod]
     public void ConfigExt_GetSettingOrDefault_InvalidArgs_Throw()
     {
         var config = new AnalysisConfig();

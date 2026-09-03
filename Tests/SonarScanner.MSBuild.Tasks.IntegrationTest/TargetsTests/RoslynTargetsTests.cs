@@ -90,66 +90,6 @@ public class RoslynTargetsTests
     }
 
     [TestMethod]
-    [Description("Checks any existing analyzers are overridden for projects using SonarQube pre-7.5")]
-    public void Settings_ValidSetup_LegacyServer_Override_Analyzers()
-    {
-        var dataFolder = baseDir + "data" + Path.DirectorySeparatorChar;
-        var config = new AnalysisConfig
-        {
-            SonarQubeHostUrl = "http://sonarqube.com",
-            SonarQubeVersion = "6.7", // legacy version
-            AnalyzersSettings =
-            [
-                new AnalyzerSettings
-                {
-                    Language = "cs",
-                    RulesetPath = $"{otherDrive}my.ruleset",
-                    AnalyzerPlugins = [CreateAnalyzerPlugin($"{dataFolder}new.analyzer1.dll"), CreateAnalyzerPlugin($"{baseDir}new.analyzer2.dll")],
-                    AdditionalFilePaths = [$"{baseDir}config.1.txt", $"{baseDir}config.2.txt"]
-                }
-            ]
-        };
-
-        var testSpecificProjectXml = $"""
-              <PropertyGroup>
-                <ResolvedCodeAnalysisRuleSet>{baseDir}should.be.overridden.ruleset</ResolvedCodeAnalysisRuleSet>
-                <Language>C#</Language>
-              </PropertyGroup>
-
-              <ItemGroup>
-                <!-- all analyzers specified in the project file should be removed -->
-                <Analyzer Include='{baseDir}should.be.preserved.analyzer2.dll' />
-                <Analyzer Include='should.be.preserved.analyzer1.dll' />
-              </ItemGroup>
-              <ItemGroup>
-                <!-- These additional files don't match ones in the config and should be preserved -->
-                <AdditionalFiles Include='should.be.preserved.additional1.txt' />
-                <AdditionalFiles Include='should.be.preserved.additional2.txt' />
-
-                <!-- This additional file matches one in the config and should be removed -->
-                <AdditionalFiles Include='should.be.removed/CONFIG.1.TXT' />
-                <AdditionalFiles Include='should.be.removed\CONFIG.2.TXT' />
-              </ItemGroup>
-            """;
-
-        var filePath = new TargetsTestsContext(TestContext).CreateProjectFile(testSpecificProjectXml, config: config);
-
-        var result = BuildRunner.BuildTargets(TestContext, filePath, TargetConstants.SonarOverrideRunAnalyzers, TargetConstants.OverrideRoslynAnalysis);
-
-        result.AssertTargetExecuted(TargetConstants.SonarCreateProjectSpecificDirs);
-        result.AssertTargetExecuted(TargetConstants.OverrideRoslynAnalysis);
-        result.AssertTargetExecuted(TargetConstants.SetRoslynAnalysisProperties);
-        result.BuildSucceeded.Should().BeTrue();
-
-        AssertErrorLogIsSetBySonarQubeTargets(result);
-        AssertExpectedResolvedRuleset(result, $"{otherDrive}my.ruleset");
-        AssertExpectedAdditionalFiles(result, "should.be.preserved.additional1.txt", "should.be.preserved.additional2.txt");
-        AssertExpectedAnalyzers(result, $"{dataFolder}new.analyzer1.dll", $"{baseDir}new.analyzer2.dll");
-        AssertWarningsAreNotTreatedAsErrorsNorIgnored(result);
-        AssertRunAnalyzersIsEnabled(result);
-    }
-
-    [TestMethod]
     [Description("Checks existing analysis settings are merged for projects using SonarQube 7.5+")]
     public void Settings_ValidSetup_NonLegacyServer_MergeSettings()
     {
@@ -325,7 +265,7 @@ public class RoslynTargetsTests
               <RunAnalyzers>false</RunAnalyzers>
               <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
               <TargetFramework>netcore2.1</TargetFramework>
-            
+
               <!-- This will override the value that was set earlier in the project file -->
               <SonarQubeTempPath />
             </PropertyGroup>
