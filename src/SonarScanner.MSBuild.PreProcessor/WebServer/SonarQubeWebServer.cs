@@ -148,11 +148,6 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
         return await apiDownloader.DownloadStream(new(uri, UriKind.Relative), new() { { "Accept", "application/octet-stream" } });
     }
 
-    protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component) =>
-        serverVersion.CompareTo(new Version(6, 3)) >= 0
-            ? await base.DownloadComponentProperties(component)
-            : await DownloadComponentPropertiesLegacy(component);
-
     protected override Uri AddOrganization(Uri uri) =>
         serverVersion.CompareTo(new Version(6, 3)) < 0 ? uri : base.AddOrganization(uri);
 
@@ -160,13 +155,4 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
         serverVersion.CompareTo(new Version(9, 8)) < 0
             ? base.ParseRuleSearchPaging(json)
             : new(json["paging"]["total"].ToObject<int>(), json["paging"]["pageSize"].ToObject<int>());
-
-    private async Task<IDictionary<string, string>> DownloadComponentPropertiesLegacy(string projectId)
-    {
-        var uri = WebUtils.EscapedUri("api/properties?resource={0}", projectId);
-        runtime.LogDebug(Resources.MSG_FetchingProjectProperties, projectId);
-        var contents = await webDownloader.Download(uri, true);
-        var properties = JArray.Parse(contents);
-        return CheckTestProjectPattern(properties.ToDictionary(x => x["key"].ToString(), x => x["value"].ToString()));
-    }
 }

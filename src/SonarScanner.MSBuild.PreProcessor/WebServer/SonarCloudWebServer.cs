@@ -29,8 +29,6 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
 internal class SonarCloudWebServer : SonarWebServerBase, ISonarWebServer
 {
-    private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
-
     private readonly HttpClient unauthenticatedClient;
 
     public SonarCloudWebServer(IDownloader webDownloader,
@@ -121,15 +119,6 @@ internal class SonarCloudWebServer : SonarWebServerBase, ISonarWebServer
         _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(EngineMetadata)} must contain a valid download URL.");
         logger.LogDebug(Resources.MSG_EngineDownloadUri, metadata.DownloadUrl);
         return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
-    }
-
-    protected override async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
-    {
-        if (!propertiesCache.ContainsKey(component))
-        {
-            propertiesCache.Add(component, await base.DownloadComponentProperties(component));
-        }
-        return propertiesCache[component];
     }
 
     protected override void Dispose(bool disposing)

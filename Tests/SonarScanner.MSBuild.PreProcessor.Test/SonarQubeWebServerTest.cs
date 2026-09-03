@@ -235,10 +235,12 @@ public class SonarQubeWebServerTest
     }
 
     [TestMethod]
-    public void DownloadProperties_Sq63()
+    [DataRow(null, "api/settings/values?component=componentName")]
+    [DataRow("someBranch", "api/settings/values?component=componentName%3AsomeBranch")]
+    public void DownloadProperties(string projectBranch, string escapedUri)
     {
-        var context = new Context("6.3");
-        context.WebDownloader.TryDownloadIfExists(new("api/settings/values?component=comp", UriKind.Relative), Arg.Any<bool>())
+        var context = new Context();
+        context.WebDownloader.TryDownloadIfExists(new(escapedUri, UriKind.Relative), Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(true, """
                 {settings: [
                     {
@@ -268,7 +270,7 @@ public class SonarQubeWebServerTest
                     }]
                 }
                 """)));
-        var result = context.Server.DownloadProperties("comp", null).Result;
+        var result = context.Server.DownloadProperties("componentName", projectBranch).Result;
 
         result.Should().HaveCount(7);
         result["sonar.exclusions"].Should().Be("myfile,myfile2");
@@ -280,9 +282,9 @@ public class SonarQubeWebServerTest
     }
 
     [TestMethod]
-    public async Task DownloadProperties_Sq63_NoComponentSettings_FallsBackToCommon()
+    public async Task DownloadProperties_NoComponentSettings_FallsBackToCommon()
     {
-        var context = new Context("6.3");
+        var context = new Context();
         const string componentName = "nonexistent-component";
         context.WebDownloader.TryDownloadIfExists(new($"api/settings/values?component={componentName}", UriKind.Relative), Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
@@ -295,66 +297,8 @@ public class SonarQubeWebServerTest
     }
 
     [TestMethod]
-    public async Task DownloadProperties_Sq63_MissingValue_Throws()
-    {
-        var context = new Context("6.3");
-        const string componentName = "nonexistent-component";
-        context.WebDownloader.TryDownloadIfExists(new($"api/settings/values?component={componentName}", UriKind.Relative), Arg.Any<bool>())
-            .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
-        context.WebDownloader.Download(new("api/settings/values", UriKind.Relative), Arg.Any<bool>())
-            .Returns(Task.FromResult(@"{ settings: [ { key: ""key"" } ] }"));
-
-        await context.Server.Invoking(async x => await x.DownloadProperties(componentName, null))
-            .Should().ThrowAsync<ArgumentException>()
-            .WithMessage("Invalid property");
-    }
-
-    [TestMethod]
     public async Task DownloadProperties_NullProjectKey_Throws() =>
         (await new Context().Server.Invoking(x => x.DownloadProperties(null, null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("projectKey");
-
-    [TestMethod]
-    public async Task DownloadProperties_ProjectWithBranch_SuccessfullyRetrieveProperties()
-    {
-        var context = new Context("5.6");
-        context.WebDownloader.Download(new("api/properties?resource=someKey%3AaBranch", UriKind.Relative), Arg.Any<bool>())
-            .Returns(Task.FromResult("""[{"key": "sonar.property1","value": "anotherValue1"},{"key": "sonar.property2","value": "anotherValue2"}]"""));
-        var result = await context.Server.DownloadProperties("someKey", "aBranch");
-
-        result.Should().BeEquivalentTo(new Dictionary<string, string>
-        {
-            ["sonar.property1"] = "anotherValue1",
-            ["sonar.property2"] = "anotherValue2"
-        });
-        await context.WebDownloader.Received().Download(new("api/properties?resource=someKey%3AaBranch", UriKind.Relative), Arg.Any<bool>());
-    }
-
-    [TestMethod]
-    public async Task DownloadProperties_ProjectWithoutBranch_SuccessfullyRetrieveProperties()
-    {
-        var context = new Context("5.6");
-        context.WebDownloader.Download(new("api/properties?resource=someKey", UriKind.Relative), Arg.Any<bool>())
-            .Returns(Task.FromResult("""[{"key": "sonar.property1","value": "anotherValue1"},{"key": "sonar.property2","value": "anotherValue2"}]"""));
-        var result = await context.Server.DownloadProperties("someKey", null);
-
-        result.Should().BeEquivalentTo(new Dictionary<string, string>
-        {
-            ["sonar.property1"] = "anotherValue1",
-            ["sonar.property2"] = "anotherValue2"
-        });
-        await context.WebDownloader.Received().Download(new("api/properties?resource=someKey", UriKind.Relative), Arg.Any<bool>());
-    }
-
-    [TestMethod]
-    public async Task DownloadProperties_Old_Forbidden()
-    {
-        var context = new Context("1.2.3.4");
-        context.WebDownloader.Download(new($"api/properties?resource={ProjectKey}", UriKind.Relative), Arg.Any<bool>())
-            .Returns(Task.FromException<string>(new HttpRequestException("Forbidden")));
-        Func<Task> action = async () => await context.Server.DownloadProperties(ProjectKey, null);
-
-        await action.Should().ThrowAsync<HttpRequestException>();
-    }
 
     [TestMethod]
     public async Task DownloadProperties_Sq63plus_Forbidden()
@@ -367,38 +311,14 @@ public class SonarQubeWebServerTest
     }
 
     [TestMethod]
-    public async Task DownloadProperties_SQ63AndHigherWithProject_ShouldBeEmpty()
+    public async Task DownloadProperties_Empty()
     {
-        var context = new Context("6.3");
+        var context = new Context();
         context.WebDownloader.TryDownloadIfExists(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(Tuple.Create(true, "{ settings: [ ] }")));
         var properties = await context.Server.DownloadProperties("key", null);
 
         properties.Should().BeEmpty();
         await context.WebDownloader.Received().TryDownloadIfExists(new("api/settings/values?component=key", UriKind.Relative), true);
-    }
-
-    [TestMethod]
-    public async Task DownloadProperties_OlderThanSQ63_ShouldBeEmpty()
-    {
-        var context = new Context("6.2.9");
-        context.WebDownloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult("[]"));
-        var properties = await context.Server.DownloadProperties("key", null);
-
-        properties.Should().BeEmpty();
-        await context.WebDownloader.Received().Download(Arg.Any<Uri>(), Arg.Any<bool>());
-    }
-
-    [TestMethod]
-    public async Task DownloadProperties_SQ63AndHigherWithoutProject_ShouldBeEmpty()
-    {
-        var context = new Context("6.3");
-        context.WebDownloader.TryDownloadIfExists(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(Tuple.Create(false, (string)null)));
-        context.WebDownloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult("{ settings: [ ] }"));
-        var properties = await context.Server.DownloadProperties("key", null);
-
-        properties.Should().BeEmpty();
-        await context.WebDownloader.Received().TryDownloadIfExists(Arg.Any<Uri>(), Arg.Any<bool>());
-        await context.WebDownloader.Received().Download(Arg.Any<Uri>(), Arg.Any<bool>());
     }
 
     [TestMethod]
