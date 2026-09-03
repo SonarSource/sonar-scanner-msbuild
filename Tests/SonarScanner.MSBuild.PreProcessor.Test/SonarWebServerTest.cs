@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
@@ -912,5 +913,8 @@ public class SonarWebServerTest
         public Task<Stream> DownloadJreAsync(JreMetadata metadata) => throw new NotImplementedException();
 
         public Task<Stream> DownloadEngineAsync(EngineMetadata metadata) => throw new NotImplementedException();
+
+        protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
+            new(json["total"].ToObject<int>(), json["ps"].ToObject<int>()); // Cloud version, Server uses different format
     }
 }
