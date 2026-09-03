@@ -22,11 +22,6 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class ExceptionExtensions
 {
-    /// <summary>
-    /// Returns the message of the exception, followed by the messages of all its inner exceptions, from the outermost to the innermost.
-    /// The root cause of a failure is often only present in an inner exception (e.g. the certificate problem behind an SSL handshake failure),
-    /// so it has to be reported for the failure to be actionable.
-    /// </summary>
     public static IEnumerable<string> Messages(this Exception exception)
     {
         if (exception is null)
@@ -43,10 +38,6 @@ public static class ExceptionExtensions
         }
     }
 
-    /// <summary>
-    /// Returns the messages of the exception and its inner exceptions that are not already contained in <paramref name="precedingMessage"/>
-    /// or in a previously returned message.
-    /// </summary>
     public static IEnumerable<string> MessagesNotAlreadyContainedIn(this Exception exception, string precedingMessage)
     {
         var reportedMessages = new List<string> { precedingMessage };
@@ -57,9 +48,6 @@ public static class ExceptionExtensions
         }
     }
 
-    /// <summary>
-    /// Returns the messages of the exception and all its inner exceptions, joined on a single line.
-    /// </summary>
     public static string MessageChain(this Exception exception) =>
         string.Join(" -> ", exception.MessagesNotAlreadyContainedIn(string.Empty));
 }

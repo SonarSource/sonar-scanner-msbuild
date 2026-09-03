@@ -45,9 +45,5 @@ public sealed record CacheHit(string FilePath) : FileRetrieved(FilePath);
 /// </summary>
 public sealed record DownloadError(string Message, Exception Exception = null) : DownloadResult
 {
-    /// <summary>
-    /// <see cref="Message"/>, followed by the messages of <see cref="Exception"/> and its inner exceptions that it does not already contain.
-    /// This is what should be reported at default verbosity: it explains what failed and why, without the stack trace.
-    /// </summary>
     public string DetailedMessage => Message + string.Concat(Exception.MessagesNotAlreadyContainedIn(Message).Select(x => $"{Environment.NewLine}  -> {x}"));
 }

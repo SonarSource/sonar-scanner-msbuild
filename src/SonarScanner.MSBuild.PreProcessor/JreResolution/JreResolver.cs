@@ -79,10 +79,6 @@ public class JreResolver : IResolver
         return null;
     }
 
-    /// <summary>
-    /// Provisioning failures are not fatal, the analysis falls back to a locally installed Java. They are still reported at error level, because a silent
-    /// fallback is impossible to diagnose without verbose logs. The stack trace is only relevant when troubleshooting the scanner itself, so it stays at debug level.
-    /// </summary>
     private void LogDownloadFailure(DownloadError error)
     {
         runtime.LogError(Resources.ERR_JreResolver_DownloadFailure, error.DetailedMessage);

@@ -136,7 +136,6 @@ public abstract class SonarWebServerBase : IDisposable
         }
         catch (Exception e)
         {
-            // The cause has to be part of the warning: it is the only signal the user gets when JRE provisioning fails at this stage.
             logger.LogWarning(Resources.WARN_JreMetadataNotRetrieved, uri, e.MessageChain());
             logger.LogDebug(e.ToString());
             return null;
