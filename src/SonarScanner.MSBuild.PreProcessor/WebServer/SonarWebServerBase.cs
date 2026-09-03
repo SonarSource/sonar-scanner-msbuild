@@ -37,6 +37,7 @@ public abstract class SonarWebServerBase : IDisposable
     protected readonly Version serverVersion;
     protected readonly ILogger logger;
 
+    private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
     private readonly string organization;
     private bool disposed;
 
@@ -176,9 +177,7 @@ public abstract class SonarWebServerBase : IDisposable
     public async Task<IDictionary<string, string>> DownloadProperties(string projectKey, string projectBranch)
     {
         Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
-        var component = ComponentIdentifier(projectKey, projectBranch);
-
-        return await DownloadComponentProperties(component);
+        return await DownloadComponentProperties(ComponentIdentifier(projectKey, projectBranch));
     }
 
     public void Dispose()
@@ -195,21 +194,6 @@ public abstract class SonarWebServerBase : IDisposable
             apiDownloader.Dispose();
             disposed = true;
         }
-    }
-
-    protected virtual async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
-    {
-        var uri = WebUtils.EscapedUri("api/settings/values?component={0}", component);
-        logger.LogDebug(Resources.MSG_FetchingProjectProperties, component);
-        var projectFound = await webDownloader.TryDownloadIfExists(uri, true);
-        var contents = projectFound.Item2;
-        if (projectFound is { Item1: false })
-        {
-            logger.LogDebug("No settings for project {0}. Getting global settings...", component);
-            contents = await webDownloader.Download(new("api/settings/values", UriKind.Relative));
-        }
-
-        return ParseSettingsResponse(contents);
     }
 
     protected Dictionary<string, string> CheckTestProjectPattern(Dictionary<string, string> settings)
@@ -264,6 +248,29 @@ public abstract class SonarWebServerBase : IDisposable
 
     protected virtual RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
         new(json["total"].ToObject<int>(), json["ps"].ToObject<int>());
+
+    private async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
+    {
+        if (propertiesCache.TryGetValue(component, out var result))
+        {
+            return result;
+        }
+        else
+        {
+            logger.LogDebug(Resources.MSG_FetchingProjectProperties, component);
+            var uri = WebUtils.EscapedUri("api/settings/values?component={0}", component);
+            var projectFound = await webDownloader.TryDownloadIfExists(uri, true);
+            var contents = projectFound.Item2;
+            if (projectFound is { Item1: false })
+            {
+                logger.LogDebug("No settings for project {0}. Getting global settings...", component);
+                contents = await webDownloader.Download(new("api/settings/values", UriKind.Relative));
+            }
+            result = ParseSettingsResponse(contents);
+            propertiesCache.Add(component, result);
+            return result;
+        }
+    }
 
     private Dictionary<string, string> ParseSettingsResponse(string contents)
     {
