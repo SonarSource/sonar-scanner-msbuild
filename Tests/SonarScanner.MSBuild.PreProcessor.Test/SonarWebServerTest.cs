@@ -196,9 +196,6 @@ public class SonarWebServerTest
         qualityProfile.Should().BeNull();
     }
 
-    // This scenario is unlikely to happen but still needs to be covered
-    // The behavior needs to be update according to the comment in the method.
-    // The exception raised is not the correct one.
     [TestMethod]
     public async Task DownloadQualityProfile_MultipleProfileWithSameLanguage_ShouldThrow()
     {
@@ -207,9 +204,8 @@ public class SonarWebServerTest
             .TryDownloadIfExists(new($"api/qualityprofiles/search?project={ProjectKey}", UriKind.Relative), Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
 
-        Func<Task> act = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
-
-        await act.Should().ThrowAsync<AnalysisException>();
+        await FluentActions.Invoking(() => sut.DownloadQualityProfile(ProjectKey, null, "cs")).Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Sequence contains more than one matching element");   // Too unlikely to deserve a better message
     }
 
     [TestMethod]

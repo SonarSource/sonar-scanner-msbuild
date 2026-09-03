@@ -479,15 +479,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to It seems that you are using an old version of SonarQube which is not supported anymore. Please update to at least 6.7..
-        /// </summary>
-        internal static string ERROR_UnsupportedSonarQubeVersion {
-            get {
-                return ResourceManager.GetString("ERROR_UnsupportedSonarQubeVersion", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The archive was successfully extracted to &apos;{0}&apos;..
         /// </summary>
         internal static string MSG_ArchiveExtractedSucessfully {
