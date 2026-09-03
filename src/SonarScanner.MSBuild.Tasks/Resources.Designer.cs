@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.Tasks {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -75,15 +75,6 @@ namespace SonarScanner.MSBuild.Tasks {
         internal static string AnalyzerSettings_CreatingMergedRuleset {
             get {
                 return ResourceManager.GetString("AnalyzerSettings_CreatingMergedRuleset", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to External issues are not supported on this version of SonarQube. Version 7.4+ is required..
-        /// </summary>
-        internal static string AnalyzerSettings_ExternalIssueNotSupported {
-            get {
-                return ResourceManager.GetString("AnalyzerSettings_ExternalIssueNotSupported", resourceCulture);
             }
         }
         
@@ -147,15 +138,6 @@ namespace SonarScanner.MSBuild.Tasks {
         internal static string AnalyzerSettings_OriginalRulesetNotSpecified {
             get {
                 return ResourceManager.GetString("AnalyzerSettings_OriginalRulesetNotSpecified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Overwriting analysis settings....
-        /// </summary>
-        internal static string AnalyzerSettings_OverwritingSettings {
-            get {
-                return ResourceManager.GetString("AnalyzerSettings_OverwritingSettings", resourceCulture);
             }
         }
         

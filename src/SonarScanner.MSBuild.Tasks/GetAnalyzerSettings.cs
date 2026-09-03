@@ -138,16 +138,8 @@ public class GetAnalyzerSettings : Task
         }
         else
         {
-            if (ShouldMergeAnalysisSettings(Language, config, logger))
-            {
-                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_MergingSettings);
-                outputs = CreateMergedAnalyzerSettings(languageSettings);
-            }
-            else
-            {
-                Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_OverwritingSettings);
-                outputs = CreateLegacyProductProjectSettings(languageSettings);
-            }
+            Log.LogMessage(MessageImportance.Low, Resources.AnalyzerSettings_MergingSettings);
+            outputs = CreateMergedAnalyzerSettings(languageSettings);
         }
 
         ApplyTaskOutput(outputs);
@@ -159,29 +151,6 @@ public class GetAnalyzerSettings : Task
             && excludeTestProjects.Equals("true", StringComparison.OrdinalIgnoreCase);
     }
 
-    #endregion Overrides
-
-    #region Private methods
-
-    internal /* for testing */ static bool ShouldMergeAnalysisSettings(string language, AnalysisConfig config, Common.ILogger logger)
-    {
-        Debug.Assert(!string.IsNullOrEmpty(language), "Expecting the language to be specified.");
-        Debug.Assert(config != null, "Expecting the configuration to be specified.");
-
-        // See https://github.com/SonarSource/sonar-scanner-msbuild/issues/561
-        // Legacy behaviour is to overwrite.
-        var serverVersion = config?.FindServerVersion();
-        if (serverVersion != null && serverVersion >= new Version("7.4"))
-        {
-            return true;
-        }
-        else
-        {
-            logger.LogInfo(Resources.AnalyzerSettings_ExternalIssueNotSupported);
-            return false;
-        }
-    }
-
     private TaskOutputs CreateDeactivatedProjectSettings(AnalyzerSettings settings)
     {
         var sonarDotNetAnalyzers = settings.AnalyzerPlugins
@@ -189,14 +158,6 @@ public class GetAnalyzerSettings : Task
                 .SelectMany(p => p.AssemblyPaths);
 
         return new TaskOutputs(settings.DeactivatedRulesetPath, sonarDotNetAnalyzers, settings.AdditionalFilePaths);
-    }
-
-    private TaskOutputs CreateLegacyProductProjectSettings(AnalyzerSettings settings)
-    {
-        var configOnlyAnalyzers = settings.AnalyzerPlugins.SelectMany(p => p.AssemblyPaths);
-        var additionalFilePaths = MergeAdditionalFilesLists(settings.AdditionalFilePaths, OriginalAdditionalFiles);
-
-        return new TaskOutputs(settings.RulesetPath, configOnlyAnalyzers, additionalFilePaths);
     }
 
     private TaskOutputs CreateMergedAnalyzerSettings(AnalyzerSettings settings)

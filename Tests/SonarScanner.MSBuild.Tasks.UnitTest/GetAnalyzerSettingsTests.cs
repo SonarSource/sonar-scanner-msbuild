@@ -239,17 +239,14 @@ public class GetAnalyzerSettingsTests
     }
 
     [TestMethod]
-    [DataRow("7.3", "cs", null, "wintellect1", "Google.Protobuf", DisplayName = "Legacy CS - Sonar Config used")]
-    [DataRow("7.3", "vbnet", null, "wintellect1", "Google.Protobuf", DisplayName = "Legacy VB - Sonar Config used")]
-    [DataRow("7.4", "cs", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved", DisplayName = "CS - Merged with user provided")]
-    [DataRow("7.4", "vbnet", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved", DisplayName = "VB - Merged with user provided")]
-    public void ConfigExists_ForProductProject(string sonarQubeVersion, string language, string excludeTestProject, params string[] additionalDlls)
+    [DataRow("cs", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved")]
+    [DataRow("vbnet", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved")]
+    public void ConfigExists_ForProductProject_MergedWithUserConfig(string language, string excludeTestProject, params string[] additionalDlls)
     {
         var alwaysPresentAnalyzers = new[] { $"sonar.{language}", "Google.Protobuf" };
         var expectedAnalyzers = alwaysPresentAnalyzers.Concat(additionalDlls).Select(x => Path.Combine(DriveRoot(), $"{x}.dll"));
 
-        var sut = Execute_ConfigExists(sonarQubeVersion, language, false, null);
-
+        var sut = Execute_ConfigExists("2026.1", language, false, null);
         sut.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-normal.ruleset"));
         sut.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
         sut.AdditionalFilePaths.Should().BeEquivalentTo(
@@ -312,27 +309,6 @@ public class GetAnalyzerSettingsTests
         executedTask.AnalyzerFilePaths.Should().BeNull();
         executedTask.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.removed.for.excluded.test.txt", Path.Combine("original.should.be.preserved", "replaced1.txt"));
     }
-
-    // The "importAllValue" setting should be ignored for old server versions
-    [TestMethod]
-    [DataRow("cs")]
-    [DataRow("vbnet")]
-    public void ShouldMerge_OldServerVersion_ReturnsFalse(string language) =>
-        CheckShouldMerge("7.3.1", language, ignoreExternalIssues: "true", expected: false)
-            .Should().HaveInfos("External issues are not supported on this version of SonarQube. Version 7.4+ is required.");
-
-    [TestMethod]
-    [DataRow("cs")]
-    [DataRow("vbnet")]
-    public void ShouldMerge_NewServerVersion_ReturnsTrue(string language) =>
-        CheckShouldMerge("7.4.1", language, ignoreExternalIssues: "true", expected: true);
-
-    [TestMethod]
-    [DataRow("cs")]
-    [DataRow("vbnet")]
-    public void ShouldMerge_NewServerVersion_InvalidSetting_NoError_ReturnsTrue(string language) =>
-        CheckShouldMerge("7.4", language, ignoreExternalIssues: "not a boolean value", expected: true)
-            .Should().HaveNoWarnings();
 
     [TestMethod]
     public void MergeRulesets_NoOriginalRuleset_FirstGeneratedRulsetUsed()
@@ -496,26 +472,6 @@ public class GetAnalyzerSettingsTests
         ExecuteAndCheckSuccess(testSubject);
 
         return testSubject;
-    }
-
-    // Should default to true i.e. don't override, merge
-    private static TestLogger CheckShouldMerge(string serverVersion, string language, string ignoreExternalIssues, bool expected)
-    {
-        var logger = new TestLogger();
-        var config = new AnalysisConfig
-        {
-            SonarQubeHostUrl = "http://sonarqube.com",
-            SonarQubeVersion = serverVersion
-        };
-        if (ignoreExternalIssues is null)
-        {
-            config.ServerSettings = [new($"sonar.{language}.roslyn.ignoreIssues", ignoreExternalIssues)];
-        }
-
-        var result = GetAnalyzerSettings.ShouldMergeAnalysisSettings(language, config, logger);
-
-        result.Should().Be(expected);
-        return logger;
     }
 
     private static GetAnalyzerSettings CreateConfiguredTestSubject(AnalysisConfig config, string language, TestContext testContext)
