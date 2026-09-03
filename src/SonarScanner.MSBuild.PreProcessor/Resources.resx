@@ -462,9 +462,6 @@ If you already have a compatible Java version installed, please add either the p
   <data name="ERROR_InvalidScanAllAnalysis" xml:space="preserve">
     <value>The argument 'sonar.scanner.scanAll' has an invalid value. Please ensure it is set to either 'true' or 'false'.</value>
   </data>
-  <data name="MSG_JreResolver_NotSupportedByServer" xml:space="preserve">
-    <value>JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it.</value>
-  </data>
   <data name="ERROR_SonarSourcesAndTestsNotSupported" xml:space="preserve">
     <value>The arguments 'sonar.sources' and 'sonar.tests' are not supported. Please remove them and invoke the scanner again.</value>
   </data>
@@ -561,9 +558,6 @@ Check the certificates in the truststore file '{1}' specified via the {2} parame
   </data>
   <data name="WARN_EngineMetadataNotRetrieved" xml:space="preserve">
     <value>Sonar Engine Metadata could not be retrieved from {0}.</value>
-  </data>
-  <data name="MSG_EngineResolver_NotSupportedByServer" xml:space="preserve">
-    <value>EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.</value>
   </data>
   <data name="MSG_EngineResolver_MetadataFailure" xml:space="preserve">
     <value>EngineResolver: Metadata could not be retrieved.</value>

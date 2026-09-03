@@ -650,15 +650,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it..
-        /// </summary>
-        internal static string MSG_EngineResolver_NotSupportedByServer {
-            get {
-                return ResourceManager.GetString("MSG_EngineResolver_NotSupportedByServer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Using local sonar engine provided by sonar.scanner.engineJarPath={0}.
         /// </summary>
         internal static string MSG_EngineResolver_UsingLocalEngine {
@@ -927,15 +918,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_JreResolver_JavaExePathSet {
             get {
                 return ResourceManager.GetString("MSG_JreResolver_JavaExePathSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it..
-        /// </summary>
-        internal static string MSG_JreResolver_NotSupportedByServer {
-            get {
-                return ResourceManager.GetString("MSG_JreResolver_NotSupportedByServer", resourceCulture);
             }
         }
         

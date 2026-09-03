@@ -175,18 +175,6 @@ public class SonarQubeWebServerTest
     }
 
     [TestMethod]
-    [DataRow("7.9.0.5545", false)]
-    [DataRow("8.0.0.18670", false)]
-    [DataRow("8.8.0.1121", false)]
-    [DataRow("8.9.0.0", false)]
-    [DataRow("9.0.0.1121", false)]
-    [DataRow("10.5.1.90531", false)]
-    [DataRow("10.6.0.92166", true)] // First version with JRE provisioning
-    [DataRow("10.15.0.1121", true)]
-    public void SupportsJreProvisioningVersionSupported(string sqVersion, bool expected) =>
-        new Context(sqVersion).Server.SupportsJreProvisioning.Should().Be(expected);
-
-    [TestMethod]
     [DataRow("someKey", "my org")]
     public async Task DownloadQualityProfile_OrganizationProfile_QualityProfileUrlContainsOrganization(string projectKey, string organization)
     {

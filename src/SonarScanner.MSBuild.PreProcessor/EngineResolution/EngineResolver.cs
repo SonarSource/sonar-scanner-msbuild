@@ -53,12 +53,6 @@ public class EngineResolver : IResolver
             runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.UserSupplied;
             return localEngine;
         }
-        if (!server.SupportsJreProvisioning) // JRE and sonar engine provisioning were introduced by the same version of SQ Server
-        {
-            runtime.LogDebug(Resources.MSG_EngineResolver_NotSupportedByServer);
-            runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Unsupported;
-            return null;
-        }
         runtime.Telemetry[TelemetryKeys.ScannerEngineBootstrapping] = TelemetryValues.ScannerEngineBootstrapping.Enabled;
 
         if (await ResolveEnginePath() is { } enginePath)

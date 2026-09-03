@@ -30,8 +30,6 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
 {
     private readonly IRuntime runtime;
 
-    public override bool SupportsJreProvisioning => serverVersion >= new Version(10, 6);
-
     public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
         : base(webDownloader, apiDownloader, serverVersion, runtime.Logger, organization)
     {

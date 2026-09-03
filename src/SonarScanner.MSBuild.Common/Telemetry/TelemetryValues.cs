@@ -24,7 +24,6 @@ public static class TelemetryValues
 {
     public static class JreBootstrapping
     {
-        public static readonly string UnsupportedByServer = nameof(UnsupportedByServer);
         public static readonly string UnsupportedNoOS = nameof(UnsupportedNoOS);
         public static readonly string UnsupportedNoArch = nameof(UnsupportedNoArch);
         public static readonly string Enabled = nameof(Enabled);
@@ -41,7 +40,6 @@ public static class TelemetryValues
 
     public static class ScannerEngineBootstrapping
     {
-        public static readonly string Unsupported = nameof(Unsupported);
         public static readonly string Enabled = nameof(Enabled);
         public static readonly string Disabled = nameof(Disabled);
     }
