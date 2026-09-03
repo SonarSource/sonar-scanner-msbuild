@@ -24,6 +24,7 @@ using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
+using static Humanizer.In;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -201,7 +202,7 @@ public class SonarQubeWebServerTest
     }
 
     [TestMethod]
-    public void DownloadQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
+    public async Task DownloadQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
     {
         var context = new Context();
         var downloadResult = Tuple.Create(true, """
@@ -212,12 +213,8 @@ public class SonarQubeWebServerTest
             """);
         context.WebDownloader.TryDownloadIfExists(new("api/qualityprofiles/search?project=someKey", UriKind.Relative), Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
 
-        // ToDo: This behavior is confusing, and not all the parsing errors should lead to this. See: https://sonarsource.atlassian.net/browse/SCAN4NET-578
-        ((Func<string>)(() => context.Server.DownloadQualityProfile("someKey", null, "cs").Result))
-            .Should()
-            .ThrowExactly<AggregateException>()
-            .WithInnerExceptionExactly<AnalysisException>()
-            .WithMessage("It seems that you are using an old version of SonarQube which is not supported anymore. Please update to at least 6.7.");
+        await FluentActions.Invoking(() => context.Server.DownloadQualityProfile("someKey", null, "cs")).Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Sequence contains more than one matching element");   // Too unlikely to deserve a better message
     }
 
     [TestMethod]
