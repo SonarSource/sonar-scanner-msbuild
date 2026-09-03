@@ -38,28 +38,37 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         _ = context.Server;
-        context.Runtime.Logger.Should().HaveInfos("Using SonarQube v9.9.");
+        context.Runtime.Logger.Should().HaveInfos("Using SonarQube v2026.1.");
     }
 
     [TestMethod]
     [DataRow("7.9.0.5545")]
     [DataRow("8.0.0.18670")]
     [DataRow("8.8.9.999")]
-    public void IsServerVersionSupported_FailHard_LogError(string sqVersion)
+    [DataRow("9.9.9.999")]
+    [DataRow("10.9.9.999")]
+    [DataRow("2025.0.9.999")]   // Fake number, as there are no hardfail commercial editions with 2025.x version (yet)
+    public void IsServerVersionSupported_FailHard_CommercialEdition(string sqVersion)
     {
         var context = new Context(sqVersion);
         context.Server.IsServerVersionSupported().Should().BeFalse();
-        context.Runtime.Logger.Should().HaveErrors("SonarQube versions below 8.9 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version to 8.9 or above or use an older version of the scanner (< 6.0.0), to be able to run the analysis.");
+        context.Runtime.Logger.Should().HaveErrors("SonarQube versions below 2025.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.");
     }
 
     [TestMethod]
-    [DataRow("8.9.0.0")]
-    [DataRow("9.0.0.1121")]
-    [DataRow("9.8.9.999")]
-    [DataRow("9.9.0.0")]
-    [DataRow("10.15.0.1121")]
     [DataRow("24.12.0.100206")]
-    [DataRow("2025.0.0.111222")] // There isn't any real release with the new versioning scheme that is out of support yet 2025.0 is a fake version.
+    [DataRow("24.12.1.100206")]
+    public void IsServerVersionSupported_FailHard_CommunityEdition(string sqVersion)
+    {
+        var context = new Context(sqVersion);
+        context.Server.IsServerVersionSupported().Should().BeFalse();
+        context.Runtime.Logger.Should().HaveErrors("SonarQube versions below 25.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.");
+    }
+
+    [TestMethod]
+    [DataRow("25.1.0.1121")]
+    [DataRow("25.12.0.9999")]
+    [DataRow("2025.1.8.123366")]
     public void IsServerVersionSupported_OutOfSupport_LogWarning(string sqVersion)
     {
         var context = new Context(sqVersion);
@@ -69,8 +78,13 @@ public class SonarQubeWebServerTest
     }
 
     [TestMethod]
-    [DataRow("25.1.0.102122")]
-    [DataRow("2025.1.0.102418")]
+    [DataRow("26.1.0.111")]
+    [DataRow("27.1.0.111")]
+    [DataRow("28.1.0.111")]
+    [DataRow("2025.4.0.111")]
+    [DataRow("2026.1.0.111")]
+    [DataRow("2027.1.0.111")]
+    [DataRow("2028.1.0.111")]
     public void IsServerVersionSupported_Supported_NoLogs(string sqVersion)
     {
         var context = new Context(sqVersion);
@@ -676,7 +690,7 @@ public class SonarQubeWebServerTest
 
         public SonarQubeWebServer Server => server.Value;
 
-        public Context(string version = "9.9", string organization = null)
+        public Context(string version = "2026.1", string organization = null)
         {
             server = new Lazy<SonarQubeWebServer>(() => new SonarQubeWebServer(WebDownloader, ApiDownloader, new(version), Runtime, organization));
         }
