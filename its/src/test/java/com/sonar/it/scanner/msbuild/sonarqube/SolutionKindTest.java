@@ -19,14 +19,21 @@
  */
 package com.sonar.it.scanner.msbuild.sonarqube;
 
+import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
+import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
+import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.MSBuildMaxVersion;
+import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import com.sonar.it.scanner.msbuild.utils.Workload;
+import com.sonar.it.scanner.msbuild.utils.WorkloadPrerequisite;
+import com.sonar.orchestrator.container.Edition;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.sonar.it.scanner.msbuild.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
@@ -202,19 +209,15 @@ class SolutionKindTest {
   }
 
   private void assertUIWarnings(AnalysisResult result) {
-    // AnalysisWarningsSensor was implemented starting from analyzer version 8.39.0.47922 (https://github.com/SonarSource/sonar-dotnet-enterprise/commit/39baabb01799aa1945ac5c80d150f173e6ada45f)
-    // So it's available from SQ 9.9 onwards
     var version = ORCHESTRATOR.getServer().version();
-    if (version.isGreaterThanOrEquals(9, 9)) {
-      var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, result.end());
-      assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
-      if (version.getMajor() == 9) {
-        assertThat(warnings.getWarningsList())
-          .singleElement()
-          .isEqualTo("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
-      } else {
-        assertThat(warnings.getWarningsList()).isEmpty();
-      }
+    var warnings = TestUtils.getAnalysisWarningsTask(ORCHESTRATOR, result.end());
+    assertThat(warnings.getStatus()).isEqualTo(Ce.TaskStatus.SUCCESS);
+    if (ORCHESTRATOR.getServer().getEdition() == Edition.COMMUNITY || version.isGreaterThanOrEquals(2025, 4)) {
+      assertThat(warnings.getWarningsList()).isEmpty();
+    } else {
+      assertThat(warnings.getWarningsList())
+        .singleElement()
+        .isEqualTo("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
     }
   }
 
