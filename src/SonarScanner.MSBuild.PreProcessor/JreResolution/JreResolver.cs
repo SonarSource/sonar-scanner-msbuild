@@ -54,20 +54,25 @@ public class JreResolver : IResolver
             return null;
         }
 
-        var result = await DownloadJre(args);
-        if (result is FileRetrieved retrieved)
+        DownloadResult result = null;
+        for (var attempt = 0; attempt < 2; attempt++)
         {
-            return retrieved.FilePath;
+            if (attempt > 0)
+            {
+                runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
+            }
+
+            var attemptResult = await DownloadJre(args);
+            if (attemptResult is FileRetrieved retrieved)
+            {
+                return retrieved.FilePath;
+            }
+
+            result = attemptResult ?? result;
         }
 
-        runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
-        var retry = await DownloadJre(args);
-        if (retry is FileRetrieved retriedFile)
-        {
-            return retriedFile.FilePath;
-        }
         // The retry can fail before the download is even attempted, e.g. when the metadata could not be retrieved. The first failure is the informative one in that case.
-        if ((retry ?? result) is DownloadError error)
+        if (result is DownloadError error)
         {
             LogDownloadFailure(error);
         }
