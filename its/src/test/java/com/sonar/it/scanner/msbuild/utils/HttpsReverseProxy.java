@@ -20,9 +20,13 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 import com.sonar.orchestrator.util.NetworkUtils;
+import jakarta.servlet.ServletException;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
@@ -48,13 +52,24 @@ public class HttpsReverseProxy implements AutoCloseable {
   private final String proxyTo;
   private final String keystorePath;
   private final String keystorePassword;
+  private final RequestInterceptor requestInterceptor;
   private Server server;
   private int httpsPort;
 
   public HttpsReverseProxy(String proxyTo, String keystorePath, String keystorePassword) {
+    this(proxyTo, keystorePath, keystorePassword, null);
+  }
+
+  public HttpsReverseProxy(String proxyTo, String keystorePath, String keystorePassword, RequestInterceptor requestInterceptor) {
     this.proxyTo = proxyTo;
     this.keystorePath = keystorePath;
     this.keystorePassword = keystorePassword;
+    this.requestInterceptor = requestInterceptor;
+  }
+
+  @FunctionalInterface
+  public interface RequestInterceptor {
+    boolean handle(HttpServletRequest request, HttpServletResponse response) throws IOException;
   }
 
   // https://github.com/SonarSource/sonar-scanner-java-library/blob/6f65b90dad474521e0711f80b637a1ebe6c7c493/its/it-tests/src/test/java/com/sonar/scanner/lib/it/SSLTest.java#L99-L159
@@ -146,15 +161,27 @@ public class HttpsReverseProxy implements AutoCloseable {
 
   private ServletContextHandler proxyHandler() {
     ServletContextHandler contextHandler = new ServletContextHandler();
+    contextHandler.setAttribute(RequestInterceptor.class.getName(), requestInterceptor);
     contextHandler.setServletHandler(newServletHandler());
     return contextHandler;
   }
 
   private ServletHandler newServletHandler() {
     ServletHandler handler = new ServletHandler();
-    ServletHolder holder = handler.addServletWithMapping(ProxyServlet.Transparent.class, "/*");
+    ServletHolder holder = handler.addServletWithMapping(InterceptingProxyServlet.class, "/*");
     holder.setInitParameter("proxyTo", this.proxyTo);
     return handler;
+  }
+
+  public static class InterceptingProxyServlet extends ProxyServlet.Transparent {
+    @Override
+    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+      var requestInterceptor = (RequestInterceptor) getServletContext().getAttribute(RequestInterceptor.class.getName());
+      if (requestInterceptor != null && requestInterceptor.handle(request, response)) {
+        return;
+      }
+      super.service(request, response);
+    }
   }
 
 }

@@ -45,5 +45,5 @@ public sealed record CacheHit(string FilePath) : FileRetrieved(FilePath);
 /// </summary>
 public sealed record DownloadError(string Message, Exception Exception = null) : DownloadResult
 {
-    public string DetailedMessage => Message + string.Concat(Exception.MessagesNotAlreadyContainedIn(Message).Select(x => $"{Environment.NewLine}  -> {x}"));
+    public string DetailedMessage => Message + string.Concat(Exception.UnreportedMessages(Message).Select(x => $"{Environment.NewLine}  -> {x}"));
 }

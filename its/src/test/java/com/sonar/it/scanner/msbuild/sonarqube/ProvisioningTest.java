@@ -21,16 +21,19 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
+import com.sonar.it.scanner.msbuild.utils.HttpsReverseProxy;
 import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
+import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -137,6 +140,83 @@ class ProvisioningTest {
     }
   }
 
+  @Test
+  @ServerMinVersion("10.6")
+  void jreDownloadWithUntrustedCertificate_LogsNestedFailureAtDefaultVerbosity() throws Exception {
+    var jreDownloadRequests = new AtomicInteger();
+    try (var untrustedJreServer = startProxy("untrusted-jre-server.p12", null)) {
+      try (var proxy = startProxy("trusted-jre-proxy.p12", (request, response) -> {
+        if (isJreArchiveDownload(request)) {
+          jreDownloadRequests.incrementAndGet();
+          response.sendRedirect(untrustedJreServer.getUrl());
+          return true;
+        }
+        return false;
+      })) {
+        var result = createContext(ContextExtension.currentTempDir().resolve(".sonar"), proxy).begin.execute(ORCHESTRATOR);
+
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getLogs())
+          .containsOnlyOnce("JreResolver: Download failure.")
+          .contains("The SSL connection could not be established, see inner exception.")
+          .containsOnlyOnce("The remote certificate was rejected by the provided RemoteCertificateValidationCallback.")
+          .doesNotContain("JreResolver: Resolving JRE path. Retrying...");
+        assertThat(jreDownloadRequests).hasValue(2);
+      }
+    }
+  }
+
+  @Test
+  @ServerMinVersion("10.6")
+  void jreDownloadFailsThenSucceeds_RetriesWithoutDefaultError() throws Exception {
+    var jreDownloadRequests = new AtomicInteger();
+    try (var proxy = startProxy("transient-jre-proxy.p12", (request, response) -> {
+      if (isJreArchiveDownload(request) && jreDownloadRequests.incrementAndGet() == 1) {
+        response.sendError(503, "Transient JRE download failure");
+        return true;
+      }
+      return false;
+    })) {
+      var result = createContext(ContextExtension.currentTempDir().resolve(".sonar"), proxy).begin.execute(ORCHESTRATOR);
+
+      assertThat(result.isSuccess()).isTrue();
+      assertThat(result.getLogs())
+        .contains("JRE provisioned:")
+        .doesNotContain("JreResolver: Download failure.");
+      assertThat(jreDownloadRequests).hasValue(2);
+    }
+  }
+
+  @Test
+  @ServerMinVersion("10.6")
+  void jreDownloadFailsThenMetadataIsUnavailable_ReportsOriginalDownloadFailure() throws Exception {
+    var jreDownloadRequests = new AtomicInteger();
+    var jreMetadataRequests = new AtomicInteger();
+    try (var proxy = startProxy("metadata-failure-jre-proxy.p12", (request, response) -> {
+      if (isJreArchiveDownload(request)) {
+        jreDownloadRequests.incrementAndGet();
+        response.sendError(503, "JRE download failure");
+        return true;
+      }
+      if (isJreMetadataDownload(request) && jreMetadataRequests.incrementAndGet() == 2) {
+        response.setContentType("application/json");
+        response.getWriter().write("[]");
+        return true;
+      }
+      return false;
+    })) {
+      var result = createContext(ContextExtension.currentTempDir().resolve(".sonar"), proxy).begin.execute(ORCHESTRATOR);
+
+      assertThat(result.isSuccess()).isTrue();
+      assertThat(result.getLogs())
+        .containsOnlyOnce("JreResolver: Download failure.")
+        .containsOnlyOnce("The download stream is null. The server likely returned an error status code.")
+        .contains("The analysis will continue with the Java runtime environment found in JAVA_HOME or on the PATH.");
+      assertThat(jreDownloadRequests).hasValue(1);
+      assertThat(jreMetadataRequests).hasValue(2);
+    }
+  }
+
   private static AnalysisContext createContext(Path userHome) {
     var context = AnalysisContext.forServer(DIRECTORY_NAME);
     context.begin
@@ -144,5 +224,32 @@ class ProvisioningTest {
       .setProperty("sonar.scanner.skipJreProvisioning", null)  // Undo the default IT behavior and use the default scanner behavior.
       .setDebugLogs();
     return context;
+  }
+
+  private static AnalysisContext createContext(Path userHome, HttpsReverseProxy proxy) {
+    var context = AnalysisContext.forServer(DIRECTORY_NAME);
+    context.begin
+      .setProperty("sonar.userHome", userHome.toString())
+      .setProperty("sonar.scanner.skipJreProvisioning", null)
+      .setProperty("sonar.host.url", proxy.getUrl())
+      .setProperty("sonar.scanner.truststorePath", proxy.getKeystorePath())
+      .setProperty("sonar.scanner.truststorePassword", proxy.getKeystorePassword());
+    return context;
+  }
+
+  private static HttpsReverseProxy startProxy(String keyStoreName, HttpsReverseProxy.RequestInterceptor requestInterceptor) throws Exception {
+    var password = "p@ssw0rd42";
+    var keyStorePath = SslUtils.generateKeyStore(ContextExtension.currentTempDir().resolve(keyStoreName), "localhost", password);
+    var proxy = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), keyStorePath, password, requestInterceptor);
+    proxy.start();
+    return proxy;
+  }
+
+  private static boolean isJreArchiveDownload(jakarta.servlet.http.HttpServletRequest request) {
+    return request.getRequestURI().contains("/analysis/jres/");
+  }
+
+  private static boolean isJreMetadataDownload(jakarta.servlet.http.HttpServletRequest request) {
+    return request.getRequestURI().endsWith("/analysis/jres");
   }
 }

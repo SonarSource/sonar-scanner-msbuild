@@ -132,13 +132,12 @@ public class CachedDownloader
 
     private DownloadError ValidateFile(string file)
     {
-        var validationError = ValidateChecksum(file, fileDescriptor.Sha256);
-        if (validationError is not null)
+        if (ValidateChecksum(file, fileDescriptor.Sha256) is { } validationError)
         {
             TryDeleteFile(file);
+            return validationError;
         }
-
-        return validationError;
+        return null;
     }
 
     private DownloadError ValidateChecksum(string downloadTarget, string sha256)

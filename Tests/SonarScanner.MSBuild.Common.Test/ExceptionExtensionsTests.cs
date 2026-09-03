@@ -24,41 +24,51 @@ namespace SonarScanner.MSBuild.Common.Test;
 public class ExceptionExtensionsTests
 {
     [TestMethod]
-    public void Messages_Null_IsEmpty() =>
-        ((Exception)null).Messages().Should().BeEmpty();
+    public void UnreportedMessages_NullExceptionWithAlreadyReported_ReturnsEmpty() =>
+        ((Exception)null).UnreportedMessages("Already reported").Should().BeEmpty();
 
     [TestMethod]
-    public void Messages_NoInnerException_ReturnsSingleMessage() =>
-        new InvalidOperationException("Something went wrong").Messages().Should().BeEquivalentTo("Something went wrong");
+    public void UnreportedMessages_AllExceptionMessagesContainedInAlreadyReported_ReturnsEmpty() =>
+        new InvalidOperationException("Outer: Root cause", new Exception("Root cause"))
+            .UnreportedMessages("Outer: Root cause")
+            .Should().BeEmpty();
 
     [TestMethod]
-    public void Messages_InnerExceptions_ReturnsOutermostFirst() =>
+    public void UnreportedMessages_NoExceptionMessageContainedInAlreadyReported_ReturnsAllExceptionMessages() =>
+        new InvalidOperationException("Outer", new IOException("Inner", new Exception("Root cause")))
+            .UnreportedMessages("Already reported")
+            .Should().Equal("Outer", "Inner", "Root cause");
+
+    [TestMethod]
+    public void MessageChain_Null_IsEmpty() =>
+        ((Exception)null).MessageChain().Should().BeEmpty();
+
+    [TestMethod]
+    public void MessageChain_NoInnerException_ReturnsMessage() =>
+        new InvalidOperationException("Something went wrong").MessageChain().Should().Be("Something went wrong");
+
+    [TestMethod]
+    public void MessageChain_InnerExceptions_ReturnsOutermostFirst() =>
         new InvalidOperationException(
             "The SSL connection could not be established, see inner exception.",
             new IOException("The handshake failed.", new Exception("The remote certificate is invalid.")))
-            .Messages()
-            .Should().BeEquivalentTo(
-                [
-                    "The SSL connection could not be established, see inner exception.",
-                    "The handshake failed.",
-                    "The remote certificate is invalid."
-                ],
-                x => x.WithStrictOrdering());
+            .MessageChain()
+            .Should().Be(
+                "The SSL connection could not be established, see inner exception. -> The handshake failed. -> The remote certificate is invalid.");
 
     [TestMethod]
-    public void Messages_AggregateException_ReturnsAllInnerExceptions()
+    public void MessageChain_AggregateException_DoesNotRepeatMessagesContainedInAggregateMessage()
     {
-        var messages = new AggregateException("Everything failed", new InvalidOperationException("First"), new IOException("Second", new Exception("Root cause"))).Messages().ToArray();
+        var exception = new AggregateException("Everything failed", new InvalidOperationException("First"), new IOException("Second", new Exception("Root cause")));
 
-        // AggregateException.Message already embeds the messages of its direct inner exceptions, so only the tail can be asserted precisely.
-        messages.Should().HaveCount(4);
-        messages[0].Should().StartWith("Everything failed");
-        messages.Skip(1).Should().BeEquivalentTo(["First", "Second", "Root cause"], x => x.WithStrictOrdering());
+        // On .NET, AggregateException.Message already embeds its direct inner-exception messages, so they are not repeated.
+        // On .NET Framework it does not, so they all appear in the chain.
+        var expected = exception.Message.Contains("First")
+            ? $"{exception.Message} -> Root cause"
+            : $"{exception.Message} -> First -> Second -> Root cause";
+
+        exception.MessageChain().Should().Be(expected);
     }
-
-    [TestMethod]
-    public void MessageChain_JoinsAllMessagesOnASingleLine() =>
-        new InvalidOperationException("Outer", new IOException("Inner")).MessageChain().Should().Be("Outer -> Inner");
 
     [TestMethod]
     public void MessageChain_DoesNotRepeatMessageContainedInPreviousInnerException() =>
@@ -66,8 +76,4 @@ public class ExceptionExtensionsTests
             .MessageChain()
             .Should()
             .Be("Outer -> Inner: Root cause");
-
-    [TestMethod]
-    public void MessageChain_NoInnerException_ReturnsMessage() =>
-        new InvalidOperationException("Outer").MessageChain().Should().Be("Outer");
 }

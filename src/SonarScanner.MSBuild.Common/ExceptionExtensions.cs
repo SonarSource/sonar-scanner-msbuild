@@ -22,32 +22,33 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class ExceptionExtensions
 {
-    public static IEnumerable<string> Messages(this Exception exception)
-    {
-        if (exception is null)
-        {
-            yield break;
-        }
-        yield return exception.Message;
-        var inner = exception is AggregateException aggregate
-            ? (IEnumerable<Exception>)aggregate.InnerExceptions
-            : [exception.InnerException];
-        foreach (var message in inner.SelectMany(x => x.Messages()))
-        {
-            yield return message;
-        }
-    }
-
-    public static IEnumerable<string> MessagesNotAlreadyContainedIn(this Exception exception, string precedingMessage)
-    {
-        var reportedMessages = new List<string> { precedingMessage };
-        foreach (var message in exception.Messages().Where(x => !reportedMessages.Any(y => y.Contains(x))))
-        {
-            yield return message;
-            reportedMessages.Add(message);
-        }
-    }
-
     public static string MessageChain(this Exception exception) =>
-        string.Join(" -> ", exception.MessagesNotAlreadyContainedIn(string.Empty));
+        string.Join(" -> ", exception.UnreportedMessages());
+
+    public static IEnumerable<string> UnreportedMessages(this Exception exception, string alreadyReported = "")
+    {
+        var messages = new List<string>();
+        AppendMessages(exception);
+        return messages;
+
+        void AppendMessages(Exception current)
+        {
+            while (current is not null)
+            {
+                if (!alreadyReported.Contains(current.Message) && !messages.Any(x => x.Contains(current.Message)))
+                {
+                    messages.Add(current.Message);
+                }
+                if (current is AggregateException aggregate)
+                {
+                    foreach (var inner in aggregate.InnerExceptions)
+                    {
+                        AppendMessages(inner);
+                    }
+                    return;
+                }
+                current = current.InnerException;
+            }
+        }
+    }
 }
