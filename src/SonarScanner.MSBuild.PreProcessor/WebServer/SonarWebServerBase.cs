@@ -202,11 +202,6 @@ public abstract class SonarWebServerBase : IDisposable
         return settings;
     }
 
-    protected virtual Uri AddOrganization(Uri uri) =>
-        string.IsNullOrEmpty(organization)
-            ? uri
-            : WebUtils.EscapedUri($"{uri}&organization={{0}}", organization);
-
     protected bool TryGetBaseBranch(ProcessedArgs localSettings, out string branch)
     {
         if (localSettings.TryGetSetting(SonarProperties.PullRequestBase, out branch))
@@ -334,4 +329,7 @@ public abstract class SonarWebServerBase : IDisposable
             id++;
         }
     }
+
+    private Uri AddOrganization(Uri uri) =>
+        string.IsNullOrEmpty(organization) ? uri : WebUtils.EscapedUri($"{uri}&organization={{0}}", organization);
 }
