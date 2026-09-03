@@ -104,37 +104,32 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
 
     public async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
     {
-        var empty = Array.Empty<SensorCacheEntry>();
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
-
-        // SonarQube cache web API is available starting with v9.9
-        if (ServerVersion.CompareTo(new Version(9, 9)) < 0)
-        {
-            runtime.LogInfo(Resources.MSG_IncrementalPRAnalysisUpdateSonarQube);
-            return empty;
-        }
+        var empty = Array.Empty<SensorCacheEntry>();
         if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
         {
             runtime.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
             return empty;
         }
-        if (!TryGetBaseBranch(localSettings, out var branch))
+        else if (TryGetBaseBranch(localSettings, out var branch))
+        {
+            try
+            {
+                runtime.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
+                var uri = WebUtils.EscapedUri("api/analysis_cache/get?project={0}&branch={1}", localSettings.ProjectKey, branch);
+                using var stream = await webDownloader.DownloadStream(uri);
+                return ParseCacheEntries(stream);
+            }
+            catch (Exception e)
+            {
+                runtime.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+                runtime.LogDebug(e.ToString());
+                return empty;
+            }
+        }
+        else
         {
             runtime.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
-            return empty;
-        }
-
-        try
-        {
-            runtime.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
-            var uri = WebUtils.EscapedUri("api/analysis_cache/get?project={0}&branch={1}", localSettings.ProjectKey, branch);
-            using var stream = await webDownloader.DownloadStream(uri);
-            return ParseCacheEntries(stream);
-        }
-        catch (Exception e)
-        {
-            runtime.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
-            runtime.LogDebug(e.ToString());
             return empty;
         }
     }

@@ -794,15 +794,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Incremental PR analysis is available starting with SonarQube 9.9 or later..
-        /// </summary>
-        internal static string MSG_IncrementalPRAnalysisUpdateSonarQube {
-            get {
-                return ResourceManager.GetString("MSG_IncrementalPRAnalysisUpdateSonarQube", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Installed {0} to {1}.
         /// </summary>
         internal static string MSG_InstallTargets_Copy {

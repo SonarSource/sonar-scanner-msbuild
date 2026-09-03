@@ -406,12 +406,11 @@ public class SonarQubeWebServerTest
         (await new Context().Server.Invoking(x => x.DownloadCache(null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("localSettings");
 
     [TestMethod]
-    [DataRow("9.8", "", "", "Incremental PR analysis is available starting with SonarQube 9.9 or later.")]
-    [DataRow("9.9", "", "", "Incremental PR analysis: ProjectKey parameter was not provided.")]
-    [DataRow("9.9", "BestProject", "", "Incremental PR analysis: Base branch parameter was not provided.")]
-    public async Task DownloadCache_InvalidArguments(string version, string projectKey, string branch, string debugMessage)
+    [DataRow("", "", "Incremental PR analysis: ProjectKey parameter was not provided.")]
+    [DataRow("BestProject", "", "Incremental PR analysis: Base branch parameter was not provided.")]
+    public async Task DownloadCache_InvalidArguments(string projectKey, string branch, string debugMessage)
     {
-        var context = new Context(version);
+        var context = new Context();
         var result = await context.Server.DownloadCache(CreateLocalSettings(projectKey, branch));
 
         result.Should().BeEmpty();
