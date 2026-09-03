@@ -239,9 +239,9 @@ public class GetAnalyzerSettingsTests
     }
 
     [TestMethod]
-    [DataRow("cs", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved")]
-    [DataRow("vbnet", null, "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved")]
-    public void ConfigExists_ForProductProject_MergedWithUserConfig(string language, string excludeTestProject, params string[] additionalDlls)
+    [DataRow("cs", "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved")]
+    [DataRow("vbnet", "wintellect1", "analyzer1.should.be.preserved", "analyzer2.should.be.preserved")]
+    public void ConfigExists_ForProductProject_MergedWithUserConfig(string language, params string[] additionalDlls)
     {
         var alwaysPresentAnalyzers = new[] { $"sonar.{language}", "Google.Protobuf" };
         var expectedAnalyzers = alwaysPresentAnalyzers.Concat(additionalDlls).Select(x => Path.Combine(DriveRoot(), $"{x}.dll"));
