@@ -55,11 +55,6 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     return ORCHESTRATOR_STATE.token();
   }
 
-  // Supported since SQS 10.6
-  public static Boolean serverSupportsProvisioning() {
-    return ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(10, 6);
-  }
-
   public static OrchestratorExtensionBuilder orchestratorBuilder() {
     var version = System.getProperty("sonar.runtimeVersion", "LATEST_RELEASE");
     var edition = Edition.valueOf(System.getProperty("sonar.sonarQubeEdition", Edition.DEVELOPER.name()));
