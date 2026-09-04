@@ -45,8 +45,6 @@ import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 class MultiLanguageTest {
 
   @Test
-  // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
-  @ServerMinVersion("10.8")
   void bothRoslynLanguages() {
     var context = AnalysisContext.forServer("ConsoleMultiLanguage")
       .setQualityProfile(QualityProfile.CS_S1134)
@@ -68,8 +66,6 @@ class MultiLanguageTest {
 
   @Test
   @EnabledOnOs({OS.WINDOWS, OS.LINUX}) // macOS fails with ERR_SSL_CIPHER_OPERATION_FAILED during npm install - see SCAN4NET-1142
-  // SonarQube 10.8 changed the way the numbers are reported. To keep the test simple we only run the test on the latest versions.
-  @ServerMinVersion("10.8")
   // This test is not supported on versions older than Visual Studio 2026
   @MSBuildMinVersion(18)
   @DisableOnEdition(Edition.COMMUNITY)
@@ -123,35 +119,26 @@ class MultiLanguageTest {
       assertLanguageExists(issues, "php");
       assertLanguageExists(issues, "go");
       assertLanguageExists(issues, "css");
-      if (version.getMajor() != 9) {
-        assertLanguageExists(issues, "typescript");
-      }
-      if (version.isGreaterThan(8, 9)) {
-        // JS test files are picked up
-        assertThat(issues).extracting(Issue::getComponent).contains(context.projectKey + ":frontend/Test.test.js");
-        assertLanguageExists(issues, "terraform");
+      assertLanguageExists(issues, "typescript");
+      // JS test files are picked up
+      assertThat(issues).extracting(Issue::getComponent).contains(context.projectKey + ":frontend/Test.test.js");
+      assertLanguageExists(issues, "terraform");
 
-        // Docker patterns `**/Dockerfile` and `**/Dockerfile.*` are detected; MyDockerfile.production is not.
-        var dockerFiles = new ArrayList<>(List.of(
-          context.projectKey + ":Dockerfile",
-          context.projectKey + ":src/MultiLanguageSupport/Dockerfile",
-          context.projectKey + ":src/MultiLanguageSupport/Dockerfile.production"));
-        if (version.isGreaterThan(9, 9)) {
-          // `**/*.dockerfile` is always detected by scanner but only recognized by the IAC plugin in >9.9
-          dockerFiles.add(context.projectKey + ":src/MultiLanguageSupport/MultiLangSupport.dockerfile");
-        }
-        assertThat(issues).filteredOn(x -> x.getRule().startsWith("docker")).extracting(Issue::getComponent)
-          .contains(dockerFiles.toArray(new String[]{}))
-          .doesNotContain(context.projectKey + ":src/MultiLanguageSupport/MyDockerfile.production");
-      }
-      if (version.isGreaterThan(9, 9)) {
-        assertLanguageExists(issues, "secrets");
-        // `java` is matched by `sonar.java.jvmframeworkconfig.file.patterns`; `sonar.java.file.suffixes` is not supported.
-        assertLanguageExists(issues, "java");
-        assertLanguageExists(issues, "azureresourcemanager");
-        assertLanguageExists(issues, "cloudformation");
-        assertLanguageExists(issues, "ipython");
-      }
+      // Docker patterns `**/Dockerfile` and `**/Dockerfile.*` are detected; MyDockerfile.production is not.
+      var dockerFiles = new ArrayList<>(List.of(
+        context.projectKey + ":Dockerfile",
+        context.projectKey + ":src/MultiLanguageSupport/Dockerfile",
+        context.projectKey + ":src/MultiLanguageSupport/Dockerfile.production"));
+      dockerFiles.add(context.projectKey + ":src/MultiLanguageSupport/MultiLangSupport.dockerfile");
+      assertThat(issues).filteredOn(x -> x.getRule().startsWith("docker")).extracting(Issue::getComponent)
+        .contains(dockerFiles.toArray(new String[]{}))
+        .doesNotContain(context.projectKey + ":src/MultiLanguageSupport/MyDockerfile.production");
+      assertLanguageExists(issues, "secrets");
+      // `java` is matched by `sonar.java.jvmframeworkconfig.file.patterns`; `sonar.java.file.suffixes` is not supported.
+      assertLanguageExists(issues, "java");
+      assertLanguageExists(issues, "azureresourcemanager");
+      assertLanguageExists(issues, "cloudformation");
+      assertLanguageExists(issues, "ipython");
       if (version.isGreaterThan(2026, 1)) {
         assertLanguageExists(issues, "groovydre");
         assertLanguageExists(issues, "powershelldre");
@@ -179,12 +166,9 @@ class MultiLanguageTest {
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-    var version = ORCHESTRATOR.getServer().version();
     assertLanguageExists(issues, "csharpsquid");
     assertLanguageExists(issues, "javascript");
-    if (version.isGreaterThan(8, 9)) {
-      assertLanguageExists(issues, "python");
-    }
+    assertLanguageExists(issues, "python");
   }
 
   @Test
@@ -205,24 +189,13 @@ class MultiLanguageTest {
     assertLanguageExists(issues, "javascript");
     assertLanguageExists(issues, "python");
     assertLanguageExists(issues, "php");
-    if (version.isGreaterThan(8, 9)) {
-      assertLanguageExists(issues, "typescript");
-    }
+    assertLanguageExists(issues, "typescript");
     if (version.isGreaterThanOrEquals(2025, 5)) {
       assertLanguageExists(issues, "githubactions");
-    }
-    if (version.getMajor() == 8) {
-      // In version 8.9 css files are handled by a dedicated plugin and node_modules are not filtered in that plugin.
-      // This is because the IT are running without scm support. Normally these files are excluded by the scm ignore settings.
-      assertThat(issues)
-        .filteredOn(x -> x.getRule().startsWith("css") && x.getComponent().contains("/node_modules/"))
-        .isNotEmpty();
     }
   }
 
   @Test
-  // Multi-language unsupported in SQ99
-  @ServerMinVersion("10.0")
   @EnabledOnOs(OS.WINDOWS)
   @DisableOnEdition(Edition.COMMUNITY)
   void nonSdkFormat() {

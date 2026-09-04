@@ -51,9 +51,6 @@ class ProvisioningTest {
 
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
-  // provisioning does not exist before 10.6, and all newer versions support the scanner-engine download. We need to make sure the
-  // combination of JRE cache miss with scanner-cli invocation and scanner-engine download both work as expected
-  @ServerMinVersion("10.6")
   void cacheMiss_DownloadsCache(Boolean useSonarScannerCLI) {
     var userHome = ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath();
     var context = createContext(userHome);
@@ -69,8 +66,6 @@ class ProvisioningTest {
   }
 
   @Test
-  // provisioning does not exist before 10.6
-  @ServerMinVersion("10.6")
   void cacheHit_ReusesCachedFiles() {
     var userHome = ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath();
     var context = createContext(userHome);
@@ -86,8 +81,6 @@ class ProvisioningTest {
   }
 
   @Test
-  // provisioning does not exist before 10.6
-  @ServerMinVersion("10.6")
   void scannerEngineJarPathSet_DoesNotDownloadFromServer() throws IOException {
     var userHome = ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath();
     var context = createContext(userHome);
