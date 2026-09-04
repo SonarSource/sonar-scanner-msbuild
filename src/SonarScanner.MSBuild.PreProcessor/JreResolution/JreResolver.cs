@@ -54,18 +54,41 @@ public class JreResolver : IResolver
             return null;
         }
 
-        if (await DownloadJre(args) is { } jrePath)
+        DownloadResult result = null;
+        for (var attempt = 0; attempt < 2; attempt++)
         {
-            return jrePath;
+            if (attempt > 0)
+            {
+                runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
+            }
+
+            var attemptResult = await DownloadJre(args);
+            if (attemptResult is FileRetrieved retrieved)
+            {
+                return retrieved.FilePath;
+            }
+
+            result = attemptResult ?? result;
         }
-        else
+
+        // The retry can fail before the download is even attempted, e.g. when the metadata could not be retrieved. The first failure is the informative one in that case.
+        if (result is DownloadError error)
         {
-            runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(JreResolver), "JRE", " Retrying...");
-            return await DownloadJre(args);
+            LogDownloadFailure(error);
+        }
+        return null;
+    }
+
+    private void LogDownloadFailure(DownloadError error)
+    {
+        runtime.LogError(Resources.ERR_JreResolver_DownloadFailure, error.DetailedMessage);
+        if (error.Exception is not null)
+        {
+            runtime.LogDebug(error.Exception.ToString());
         }
     }
 
-    private async Task<string> DownloadJre(ProcessedArgs args)
+    private async Task<DownloadResult> DownloadJre(ProcessedArgs args)
     {
         var metadata = await server.DownloadJreMetadataAsync(args.OperatingSystem, args.Architecture);
         if (metadata is null)
@@ -79,26 +102,28 @@ public class JreResolver : IResolver
         return await DownloadJre(archiveDownloader, metadata);
     }
 
-    private async Task<string> DownloadJre(ArchiveDownloader archiveDownloader, JreMetadata metadata)
+    private async Task<DownloadResult> DownloadJre(ArchiveDownloader archiveDownloader, JreMetadata metadata)
     {
-        switch (await archiveDownloader.DownloadAsync(() => server.DownloadJreAsync(metadata)))
+        var result = await archiveDownloader.DownloadAsync(() => server.DownloadJreAsync(metadata));
+        switch (result)
         {
             case CacheHit cacheHit:
                 runtime.LogDebug(Resources.MSG_Resolver_CacheHit, nameof(JreResolver), cacheHit.FilePath);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.CacheHit;
-                return cacheHit.FilePath;
+                break;
             case Downloaded downloaded:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(JreResolver), "JRE", downloaded.FilePath);
                 runtime.LogInfo(Resources.MSG_JreDownloadBottleneck, metadata.Filename);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Downloaded;
-                return downloaded.FilePath;
+                break;
             case DownloadError error:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadFailure, nameof(JreResolver), error.Message);
                 runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.Failed;
-                return null;
+                break;
             default:
                 throw new NotSupportedException("Download result is expected to be FileRetrieved or DownloadError.");
         }
+        return result;
     }
 
     private bool IsValid(ProcessedArgs args)

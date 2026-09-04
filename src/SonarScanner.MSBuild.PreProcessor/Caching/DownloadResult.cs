@@ -43,7 +43,7 @@ public sealed record CacheHit(string FilePath) : FileRetrieved(FilePath);
 /// <summary>
 /// The download is invalid, the downloaded file is invalid, or the download has failed.
 /// </summary>
-public sealed record DownloadError(string Message) : DownloadResult
+public sealed record DownloadError(string Message, Exception Exception = null) : DownloadResult
 {
-    public string Message { get; } = Message;
+    public string DetailedMessage => Message + string.Concat(Exception.UnreportedMessages(Message).Select(x => $"{Environment.NewLine}  -> {x}"));
 }

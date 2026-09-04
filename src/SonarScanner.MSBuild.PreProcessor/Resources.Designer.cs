@@ -257,7 +257,17 @@ namespace SonarScanner.MSBuild.PreProcessor {
                 return ResourceManager.GetString("ERR_JavaExeNotFoundAtExpectedLocation", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to JreResolver: Download failure. {0}
+        ///The analysis will continue with the Java runtime environment found in JAVA_HOME or on the PATH. If you already have a compatible Java version installed, please add either the parameter &quot;/d:sonar.scanner.skipJreProvisioning=true&quot; or &quot;/d:sonar.scanner.javaExePath=&lt;PATH&gt;&quot;..
+        /// </summary>
+        internal static string ERR_JreResolver_DownloadFailure {
+            get {
+                return ResourceManager.GetString("ERR_JreResolver_DownloadFailure", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Organization parameter (/o:&quot;&lt;organization&gt;&quot;) is required and needs to be provided!.
         /// </summary>
@@ -1382,7 +1392,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Sonar Engine Metadata could not be retrieved from {0}..
+        ///   Looks up a localized string similar to Sonar Engine Metadata could not be retrieved from {0}. {1}.
         /// </summary>
         internal static string WARN_EngineMetadataNotRetrieved {
             get {
@@ -1409,7 +1419,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JRE Metadata could not be retrieved from {0}..
+        ///   Looks up a localized string similar to JRE Metadata could not be retrieved from {0}. {1}.
         /// </summary>
         internal static string WARN_JreMetadataNotRetrieved {
             get {

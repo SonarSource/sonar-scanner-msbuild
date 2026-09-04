@@ -151,7 +151,11 @@ public class ArchiveDownloaderTests
 
         var result = await ExecuteDownloadAndUnpack();
 
-        result.Should().BeOfType<DownloadError>().Which.Message.Should().Be("The downloaded archive could not be extracted.");
+        var error = result.Should().BeOfType<DownloadError>().Which;
+        error.Message.Should().Be("The downloaded archive could not be extracted.");
+        error.Exception.Should().BeOfType<InvalidOperationException>()
+            .Which.Message.Should().Be($"The target file in the extracted archive was expected to be at '{Path.Combine(ShaPath, TargetFileName)}' but couldn't be found.");
+        error.DetailedMessage.Should().Be($"The downloaded archive could not be extracted.{Environment.NewLine}  -> {error.Exception.Message}");
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
             $"Cache miss. Could not find '{ExtractedTargetFile}'.",
             $"The file was already downloaded from the server and stored at '{DownloadPath}'.",
