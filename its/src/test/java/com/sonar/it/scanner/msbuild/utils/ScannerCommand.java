@@ -148,10 +148,7 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     } else {
       command.addArgument(step.toString());
       if (token != null) {
-        var tokenProperty = orchestrator == null || orchestrator.getServer().version().isGreaterThanOrEquals(10, 0)
-          ? "/d:sonar.token=" + token   // The `sonar.token` property was introduced in SonarQube 10.0
-          : "/d:sonar.login=" + token;  // sonar.login is obsolete
-        command.addArgument(tokenProperty);
+        command.addArgument("/d:sonar.token=" + token);
       }
     }
     if (step == Step.begin) {

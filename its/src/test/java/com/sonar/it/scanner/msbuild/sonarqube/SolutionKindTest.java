@@ -108,10 +108,7 @@ class SolutionKindTest {
     context.build.addArgument("CSharpAllFlat.sln");
     context.runAnalysis();
     var expectedComponent = new ArrayList<>(List.of(context.projectKey + ":Common.cs"));
-    if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
-      // Multilanguage support is enabled and NuGet.Config is also picked up
-      expectedComponent.add(context.projectKey + ":NuGet.Config");
-    }
+    expectedComponent.add(context.projectKey + ":NuGet.Config");
     assertThat(TestUtils.listComponents(ORCHESTRATOR, context.projectKey))
       .extracting(Components.Component::getKey)
       .containsExactlyInAnyOrder(expectedComponent.toArray(new String[]{}));

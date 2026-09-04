@@ -46,11 +46,7 @@ class SQLServerTest {
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
-    if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
-      assertThat(issues).hasSize(4);
-    } else {
-      assertThat(issues).hasSize(3);
-    }
+    assertThat(issues).hasSize(4);
     var fileKey = context.projectKey + ":Database1/util/SqlStoredProcedure1.cs";
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isEqualTo(36);
     assertThat(TestUtils.getMeasureAsInteger(fileKey, "ncloc", ORCHESTRATOR)).isEqualTo(19);

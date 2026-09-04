@@ -128,16 +128,7 @@ public class TestUtils {
       results.addAll(issues.getIssuesList());
       page++;
     } while (results.size() < issues.getPaging().getTotal());
-    if (!orchestrator.getServer().version().isGreaterThan(9, 9)) {
-      // The filtering per component key does not work with SQ 9.9 and below
-      // We get all issues and filter by hand instead
-      results.removeIf(x -> !StringUtils.equalsAny(projectKey, x.getProject(), x.getComponent()));
-    }
     return results;
-  }
-
-  public static String getDefaultBranchName(Orchestrator orchestrator) {
-    return orchestrator.getServer().version().isGreaterThanOrEquals(9, 8) ? "main" : "master";
   }
 
   public static WsClient newWsClient(Orchestrator orchestrator) {
