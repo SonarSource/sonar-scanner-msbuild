@@ -60,7 +60,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             return null;
         }
 
-        var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
+        var serverVersion = await QueryServerVersion(apiDownloader);
         if (!ValidateServerVersion(args.ServerInfo, serverVersion))
         {
             return null;
@@ -143,31 +143,18 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         return true;
     }
 
-    private async Task<Version> QueryServerVersion(IDownloader downloader, IDownloader fallback)
+    private async Task<Version> QueryServerVersion(IDownloader downloader)
     {
         runtime.LogDebug(Resources.MSG_FetchingVersion);
-
         try
         {
-            return await QueryVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
+            var contents = await downloader.Download(new("analysis/version", UriKind.Relative));
+            return new Version(contents.Split('-')[0]);
         }
         catch
         {
-            try
-            {
-                return await QueryVersion(fallback, "api/server/version", LoggerVerbosity.Info);
-            }
-            catch
-            {
-                runtime.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
-                return null;
-            }
-        }
-
-        static async Task<Version> QueryVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
-        {
-            var contents = await downloader.Download(new(path, UriKind.Relative), failureVerbosity: failureVerbosity);
-            return new Version(contents.Split('-')[0]);
+            runtime.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
+            return null;
         }
     }
 

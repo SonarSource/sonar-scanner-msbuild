@@ -90,11 +90,10 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
+        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>(), Arg.Any<LoggerVerbosity>()).Returns(Task.FromResult(version));
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
 
         var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader, downloader);
-
         service.Should().BeOfType(serviceType);
     }
 
@@ -106,12 +105,12 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
+        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>(), Arg.Any<LoggerVerbosity>()).Returns(Task.FromResult(version));
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
         var detected = isCloud ? "SonarCloud" : "SonarQube";
         var real = isCloud ? "SonarQube" : "SonarCloud";
 
-        var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader);
+        var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader, downloader);
 
         service.Should().BeNull();
         runtime.Logger
@@ -119,23 +118,17 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
-    [DataRow("8.9", "10.3", 8)]
-    [DataRow("10.3", "8.9", 10)]
-    [DataRow(null, "8.3", 8)]
-    [DataRow("10.3", null, 10)]
-    public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned(string endpointResult, string fallbackResult, int expectedVersion)
+    public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned()
     {
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download(new("analysis/version", UriKind.Relative), Arg.Any<bool>(), LoggerVerbosity.Debug).Returns(Task.FromResult(endpointResult));
-        downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>(), LoggerVerbosity.Info).Returns(Task.FromResult(fallbackResult));
+        downloader.Download(new("analysis/version", UriKind.Relative), Arg.Any<bool>(), LoggerVerbosity.Info).Returns(Task.FromResult("2026.1.0.1234"));
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
         var validArgs = CreateValidArguments();
         var sut = new PreprocessorObjectFactory(runtime);
 
         var server = await sut.CreateSonarWebServer(validArgs, downloader, downloader);
-
         server.Should().NotBeNull();
-        server.ServerVersion.Major.Should().Be(expectedVersion);
+        server.ServerVersion.Should().Be(new Version(2026, 1, 0, 1234));
     }
 
     [TestMethod]
@@ -157,12 +150,11 @@ public class PreprocessorObjectFactoryTests
     public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnErrorAndWarning()
     {
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
+        downloader.Download(new("analysis/version", UriKind.Relative), Arg.Any<bool>(), Arg.Any<LoggerVerbosity>()).Returns(Task.FromResult("8.0")); // SonarCloud
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
         var sut = new PreprocessorObjectFactory(runtime);
 
-        var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: null), downloader);
-
+        var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: null), downloader, downloader);
         server.Should().BeNull();
         runtime.Logger.Should().HaveErrorOnce(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!")
             .And.HaveWarningOnce("""
@@ -178,7 +170,7 @@ public class PreprocessorObjectFactoryTests
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage(status));
-        downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
+        downloader.Download(new("analysis/version", UriKind.Relative), Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
         var sut = new PreprocessorObjectFactory(runtime);
 
         var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: "org"), downloader);
