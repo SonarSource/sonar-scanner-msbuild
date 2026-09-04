@@ -110,31 +110,28 @@ public class JreResolver : IResolver
             runtime.Telemetry[TelemetryKeys.JreDownload] = TelemetryValues.JreDownload.UserSupplied;
             return false;
         }
-        if (args.SkipJreProvisioning)
+        else if (args.SkipJreProvisioning)
         {
             runtime.LogDebug(Resources.MSG_JreResolver_SkipJreProvisioningSet);
             runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Disabled;
             return false;
         }
-        if (!server.SupportsJreProvisioning)
-        {
-            runtime.LogDebug(Resources.MSG_JreResolver_NotSupportedByServer);
-            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedByServer;
-            return false;
-        }
-        if (string.IsNullOrWhiteSpace(args.OperatingSystem))
+        else if (string.IsNullOrWhiteSpace(args.OperatingSystem))
         {
             runtime.LogDebug(Resources.MSG_JreResolver_OperatingSystemMissing);
             runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedNoOS;
             return false;
         }
-        if (string.IsNullOrWhiteSpace(args.Architecture))
+        else if (string.IsNullOrWhiteSpace(args.Architecture))
         {
             runtime.LogDebug(Resources.MSG_JreResolver_ArchitectureMissing);
             runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.UnsupportedNoArch;
             return false;
         }
-        runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Enabled;
-        return true;
+        else
+        {
+            runtime.Telemetry[TelemetryKeys.JreBootstrapping] = TelemetryValues.JreBootstrapping.Enabled;
+            return true;
+        }
     }
 }

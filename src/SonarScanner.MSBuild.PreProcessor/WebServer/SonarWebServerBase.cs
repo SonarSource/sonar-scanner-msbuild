@@ -42,7 +42,6 @@ public abstract class SonarWebServerBase : IDisposable
     private bool disposed;
 
     public Version ServerVersion => serverVersion;
-    public virtual bool SupportsJreProvisioning => true;
 
     protected SonarWebServerBase(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
     {

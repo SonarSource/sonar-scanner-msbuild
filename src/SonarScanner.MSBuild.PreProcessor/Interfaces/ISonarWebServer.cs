@@ -36,11 +36,6 @@ public interface ISonarWebServer : IDisposable
     Version ServerVersion { get; }
 
     /// <summary>
-    /// Returns <see langword="true"/> if the <see cref="ISonarWebServer"> supports the JRE provisioning API.
-    /// </summary>
-    bool SupportsJreProvisioning { get; }
-
-    /// <summary>
     /// Retrieves rules from the quality profile with the given ID, including their parameters and template keys.
     /// </summary>
     /// <param name="qProfile">Quality profile id.</param>

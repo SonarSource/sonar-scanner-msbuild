@@ -47,7 +47,6 @@ public class EngineResolverTests
 
     public EngineResolverTests()
     {
-        server.SupportsJreProvisioning.Returns(true);
         args.EngineJarPath.ReturnsNull();
         server.DownloadEngineMetadataAsync().Returns(metadata);
         resolver = new EngineResolver(server, "sonarUserHome", runtime, checksum);
@@ -69,25 +68,6 @@ public class EngineResolverTests
 
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Disabled)
             .And.HaveMessage(TelemetryKeys.ScannerEngineDownload, TelemetryValues.ScannerEngineDownload.UserSupplied);
-    }
-
-    [TestMethod]
-    public async Task ResolveEngine_JreProvisioningNotSupported_LogsAndReturnsNull()
-    {
-        server.SupportsJreProvisioning.Returns(false);
-        args.EngineJarPath.ReturnsNull();
-
-        var result = await resolver.ResolvePath(args);
-
-        result.Should().BeNull();
-        await server.DidNotReceive().DownloadEngineMetadataAsync();
-        await server.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
-        AssertDebugMessages(
-            "EngineResolver: Resolving Scanner Engine path.",
-            "EngineResolver: Skipping Sonar Engine provisioning because this version of SonarQube does not support it.");
-
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.ScannerEngineBootstrapping, TelemetryValues.ScannerEngineBootstrapping.Unsupported)
-            .And.NotHaveKey(TelemetryKeys.ScannerEngineDownload);
     }
 
     [TestMethod]

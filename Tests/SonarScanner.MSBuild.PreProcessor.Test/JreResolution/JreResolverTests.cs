@@ -51,7 +51,6 @@ public class JreResolverTests
         provider.AddProperty("sonar.scanner.os", "linux");
         server = Substitute.For<ISonarWebServer>();
         server.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(metadata);
-        server.SupportsJreProvisioning.Returns(true);
         runtime = new();
 
         sut = new JreResolver(server, checksum, SonarUserHome, runtime, Substitute.For<UnpackerFactory>(runtime));
@@ -341,20 +340,6 @@ public class JreResolverTests
     }
 
     [TestMethod]
-    public async Task ResolveJrePath_SkipProvisioningOnUnsupportedServers()
-    {
-        server.SupportsJreProvisioning.Returns(false);
-        await sut.ResolvePath(Args());
-
-        runtime.Logger.Should().HaveNoInfos();
-        AssertDebugMessages(
-            "JreResolver: Resolving JRE path.",
-            "JreResolver: Skipping Java runtime environment provisioning because this version of SonarQube does not support it.");
-        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.UnsupportedByServer)
-            .And.NotHaveKey(TelemetryKeys.JreDownload);
-    }
-
-    [TestMethod]
     public async Task Args_IsValid_Priority()
     {
         var args = Args();
@@ -363,7 +348,6 @@ public class JreResolverTests
         {
             (Valid: () => args.JavaExePath.Returns(string.Empty), Invalid: () => args.JavaExePath.Returns("path"), Message: Resources.MSG_JreResolver_JavaExePathSet),
             (Valid: () => args.SkipJreProvisioning.Returns(false), Invalid: () => args.SkipJreProvisioning.Returns(true), Message: Resources.MSG_JreResolver_SkipJreProvisioningSet),
-            (Valid: () => server.SupportsJreProvisioning.Returns(true), Invalid: () => server.SupportsJreProvisioning.Returns(false), Message: Resources.MSG_JreResolver_NotSupportedByServer),
             (Valid: () => args.OperatingSystem.Returns("os"), Invalid: () => args.OperatingSystem.Returns(string.Empty), Message: Resources.MSG_JreResolver_OperatingSystemMissing),
             (Valid: () => args.Architecture.Returns("arch"), Invalid: () => args.Architecture.Returns(string.Empty), Message: Resources.MSG_JreResolver_ArchitectureMissing),
         };
