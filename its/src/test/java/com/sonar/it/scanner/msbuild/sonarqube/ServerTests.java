@@ -72,7 +72,6 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     // Set the version to NONE to disable the plugin.
     addPlugin(orchestrator, "com.sonarsource.cpp", "sonar-cfamily-plugin", "sonar.cfamilyplugin.version");
     addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version");
-    addPlugin(orchestrator, "org.sonarsource.css", "sonar-css-plugin", "sonar.css.version", "NONE");
     addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-csharp-plugin", "sonar.csharpplugin.version", "DEV");
     addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-vbnet-plugin", "sonar.vbnetplugin.version", "DEV");
     addPlugin(orchestrator, "org.sonarsource.iac", "sonar-iac-plugin", "sonar.iacplugin.version");
