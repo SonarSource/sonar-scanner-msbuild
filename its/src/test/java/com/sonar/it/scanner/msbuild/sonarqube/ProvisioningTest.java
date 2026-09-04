@@ -28,6 +28,7 @@ import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.SslUtils;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,6 +42,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.utils.HttpsReverseProxy.RequestInterceptor;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})
@@ -237,7 +239,7 @@ class ProvisioningTest {
     return context;
   }
 
-  private static HttpsReverseProxy startProxy(String keyStoreName, HttpsReverseProxy.RequestInterceptor requestInterceptor) throws Exception {
+  private static HttpsReverseProxy startProxy(String keyStoreName, RequestInterceptor requestInterceptor) throws Exception {
     var password = "p@ssw0rd42";
     var keyStorePath = SslUtils.generateKeyStore(ContextExtension.currentTempDir().resolve(keyStoreName), "localhost", password);
     var proxy = new HttpsReverseProxy(ORCHESTRATOR.getServer().getUrl(), keyStorePath, password, requestInterceptor);
@@ -245,11 +247,11 @@ class ProvisioningTest {
     return proxy;
   }
 
-  private static boolean isJreArchiveDownload(jakarta.servlet.http.HttpServletRequest request) {
+  private static boolean isJreArchiveDownload(HttpServletRequest request) {
     return request.getRequestURI().contains("/analysis/jres/");
   }
 
-  private static boolean isJreMetadataDownload(jakarta.servlet.http.HttpServletRequest request) {
+  private static boolean isJreMetadataDownload(HttpServletRequest request) {
     return request.getRequestURI().endsWith("/analysis/jres");
   }
 }
