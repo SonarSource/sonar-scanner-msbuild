@@ -148,9 +148,6 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
         return await apiDownloader.DownloadStream(new(uri, UriKind.Relative), new() { { "Accept", "application/octet-stream" } });
     }
 
-    protected override Uri AddOrganization(Uri uri) =>
-        serverVersion.CompareTo(new Version(6, 3)) < 0 ? uri : base.AddOrganization(uri);
-
     protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
         serverVersion.CompareTo(new Version(9, 8)) < 0
             ? base.ParseRuleSearchPaging(json)

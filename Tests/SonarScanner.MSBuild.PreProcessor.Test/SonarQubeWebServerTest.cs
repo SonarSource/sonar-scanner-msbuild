@@ -201,21 +201,6 @@ public class SonarQubeWebServerTest
     }
 
     [TestMethod]
-    [DataRow("someKey", "my org")]
-    public async Task DownloadQualityProfile_SQ62OrganizationProfile_QualityProfileUrlDoesNotContainsOrganization(string projectKey, string organization)
-    {
-        const string profileKey = "orgProfile";
-        const string language = "cs";
-        var context = new Context("6.2", organization);
-        var qualityProfileUrl = WebUtils.EscapedUri("api/qualityprofiles/search?project={0}", projectKey);
-        var downloadResult = Tuple.Create(true, $$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}""");
-        context.WebDownloader.TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
-        var result = await context.Server.DownloadQualityProfile(projectKey, null, language);
-
-        result.Should().Be(profileKey);
-    }
-
-    [TestMethod]
     public async Task DownloadQualityProfile_MultipleQPForSameLanguage_ShouldThrow()
     {
         var context = new Context();
