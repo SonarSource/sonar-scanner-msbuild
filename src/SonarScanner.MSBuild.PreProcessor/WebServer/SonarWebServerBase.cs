@@ -41,6 +41,8 @@ public abstract class SonarWebServerBase : IDisposable
     private readonly string organization;
     private bool disposed;
 
+    protected abstract RuleSearchPaging ParseRuleSearchPaging(JObject json);
+
     public Version ServerVersion => serverVersion;
 
     protected SonarWebServerBase(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
@@ -229,9 +231,6 @@ public abstract class SonarWebServerBase : IDisposable
         }
         return cacheEntries;
     }
-
-    protected virtual RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
-        new(json["total"].ToObject<int>(), json["ps"].ToObject<int>());
 
     private async Task<IDictionary<string, string>> DownloadComponentProperties(string component)
     {

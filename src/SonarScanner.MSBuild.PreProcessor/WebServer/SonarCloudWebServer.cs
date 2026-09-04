@@ -21,6 +21,7 @@
 using System.IO.Compression;
 using System.Net.Http;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
@@ -120,6 +121,9 @@ internal class SonarCloudWebServer : SonarWebServerBase, ISonarWebServer
         logger.LogDebug(Resources.MSG_EngineDownloadUri, metadata.DownloadUrl);
         return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
     }
+
+    protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
+        new(json["total"].ToObject<int>(), json["ps"].ToObject<int>());
 
     protected override void Dispose(bool disposing)
     {

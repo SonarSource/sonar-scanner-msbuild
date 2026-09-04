@@ -427,9 +427,9 @@ public class SonarQubeWebServerTest
     }
 
     [TestMethod]
-    public async Task DownloadRules_SonarQubeVersion98()
+    public async Task DownloadRules()
     {
-        var context = new Context("9.8");
+        var context = new Context();
         context.WebDownloader
             .Download(new("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1", UriKind.Relative))
             .Returns("""
@@ -445,35 +445,6 @@ public class SonarQubeWebServerTest
                             "repo": "csharpsquid",
                             "type": "BUG"
                     }]
-                }
-                """);
-        var rules = await context.Server.DownloadRules("qp");
-
-        rules.Should().ContainSingle();
-        rules[0].RepoKey.Should().Be("csharpsquid");
-        rules[0].RuleKey.Should().Be("S2757");
-        rules[0].InternalKeyOrKey.Should().Be("S2757");
-        rules[0].Parameters.Should().BeNull();
-        rules[0].IsActive.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public async Task DownloadRules_SonarQubeVersion89()
-    {
-        var context = new Context("8.9");
-        context.WebDownloader
-            .Download(new("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1", UriKind.Relative))
-            .Returns("""
-                {
-                    "total": 3,
-                    "p": 1,
-                    "ps": 500,
-                    "rules": [
-                        {
-                            "key": "csharpsquid:S2757",
-                            "repo": "csharpsquid",
-                            "type": "BUG"
-                        }]
                 }
                 """);
         var rules = await context.Server.DownloadRules("qp");

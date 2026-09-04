@@ -147,7 +147,5 @@ internal class SonarQubeWebServer : SonarWebServerBase, ISonarWebServer
     }
 
     protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
-        serverVersion.CompareTo(new Version(9, 8)) < 0
-            ? base.ParseRuleSearchPaging(json)
-            : new(json["paging"]["total"].ToObject<int>(), json["paging"]["pageSize"].ToObject<int>());
+        new(json["paging"]["total"].ToObject<int>(), json["paging"]["pageSize"].ToObject<int>());
 }
