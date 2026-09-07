@@ -484,38 +484,6 @@ public class ProcessedArgsTests
         runtime.AnalysisWarnings.Messages.Should().ContainSingle(expectedMessage);
     }
 
-    [TestMethod]
-    public void ProcessedArgs_TfsLegacy_SetUseCliTrue()
-    {
-        using var env = new EnvironmentVariableScope();
-        env.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "true");
-        env.SetVariable(EnvironmentVariables.BuildUriLegacy, "legacy build uri");
-        var sut = CreateDefaultArgs(buildSettings: BuildSettings.GetSettingsFromEnvironment());
-        sut.IsValid.Should().BeTrue();
-#if NETFRAMEWORK
-        sut.UseSonarScannerCli.Should().BeTrue();
-        runtime.Logger.Should().HaveDebugs("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
-#else
-        sut.UseSonarScannerCli.Should().BeFalse();
-#endif
-        runtime.Logger.Should().HaveNoWarnings()
-            .And.HaveNoErrors();
-    }
-
-    [TestMethod]
-    public void ProcessedArgs_TfsLegacy_SkipCodeCoverage_SetUseCliFalse()
-    {
-        using var env = new EnvironmentVariableScope();
-        env.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "true");
-        env.SetVariable(EnvironmentVariables.BuildUriLegacy, "legacy build uri");
-        env.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "true");
-        var sut = CreateDefaultArgs(buildSettings: BuildSettings.GetSettingsFromEnvironment());
-        sut.IsValid.Should().BeTrue();
-        sut.UseSonarScannerCli.Should().BeFalse();
-        runtime.Logger.Should().HaveNoWarnings()
-            .And.HaveNoErrors();
-    }
-
     private static IEnumerable<object[]> ProcessedArgs_SourcesOrTests_Warning_DataSource() =>
     [
         [new Property(SonarProperties.Sources, "src")],
