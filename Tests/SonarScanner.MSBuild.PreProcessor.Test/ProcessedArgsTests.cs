@@ -76,7 +76,6 @@ public class ProcessedArgsTests
                     cmdLineProperties: null,
                     EmptyPropertyProvider.Instance,
                     EmptyPropertyProvider.Instance,
-                    buildSettings: null,
                     runtime))
             .Should().Throw<ArgumentNullException>()
             .WithParameterName("cmdLineProperties");
@@ -93,7 +92,6 @@ public class ProcessedArgsTests
                     EmptyPropertyProvider.Instance,
                     globalFileProperties: null,
                     EmptyPropertyProvider.Instance,
-                    buildSettings: null,
                     runtime))
             .Should().Throw<ArgumentNullException>()
             .WithParameterName("globalFileProperties");
@@ -110,7 +108,6 @@ public class ProcessedArgsTests
                     EmptyPropertyProvider.Instance,
                     EmptyPropertyProvider.Instance,
                     scannerEnvProperties: null,
-                    buildSettings: null,
                     runtime))
             .Should().Throw<ArgumentNullException>()
             .WithParameterName("scannerEnvProperties");
@@ -363,7 +360,6 @@ public class ProcessedArgsTests
             : EmptyPropertyProvider.Instance,
             globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
             scannerEnvProperties: new ListPropertiesProvider([new Property(SonarProperties.UserHome, "NotADirectory")]),
-            buildSettings: null,
             runtime);
         runtime.Logger.Errors.Should().HaveCount(errors);
         sut.IsValid.Should().Be(errors == 0);
@@ -494,7 +490,6 @@ public class ProcessedArgsTests
     private ProcessedArgs CreateDefaultArgs(IAnalysisPropertyProvider cmdLineProperties = null,
                                             IAnalysisPropertyProvider globalFileProperties = null,
                                             IAnalysisPropertyProvider scannerEnvProperties = null,
-                                            BuildSettings buildSettings = null,
                                             string key = "key",
                                             string organization = "organization") =>
         new(
@@ -506,7 +501,6 @@ public class ProcessedArgsTests
             cmdLineProperties: cmdLineProperties ?? EmptyPropertyProvider.Instance,
             globalFileProperties: globalFileProperties ?? EmptyPropertyProvider.Instance,
             scannerEnvProperties: scannerEnvProperties ?? EmptyPropertyProvider.Instance,
-            buildSettings: buildSettings,
             runtime);
 
     private static void AssertExpectedValue(string key, string expectedValue, ProcessedArgs args)

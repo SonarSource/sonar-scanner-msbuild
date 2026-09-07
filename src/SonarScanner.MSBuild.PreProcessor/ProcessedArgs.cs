@@ -20,9 +20,6 @@
 
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-#if NETFRAMEWORK
-using SonarScanner.MSBuild.Common.TFS;
-#endif
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -149,7 +146,6 @@ public class ProcessedArgs
         IAnalysisPropertyProvider cmdLineProperties,
         IAnalysisPropertyProvider globalFileProperties,
         IAnalysisPropertyProvider scannerEnvProperties,
-        BuildSettings buildSettings,
         IRuntime runtime)
     {
         IsValid = true;

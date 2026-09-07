@@ -43,7 +43,7 @@ public class PreProcessor
     {
         runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
         var buildSettings = BuildSettings.GetSettingsFromEnvironment();
-        var processedArgs = ArgumentProcessor.TryProcessArgs(args, buildSettings, runtime);
+        var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime);
 
         if (processedArgs is null)
         {
