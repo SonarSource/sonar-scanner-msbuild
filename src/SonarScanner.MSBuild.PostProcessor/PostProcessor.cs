@@ -198,22 +198,14 @@ public class PostProcessor
 
     private bool ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, AnalysisResult analysisResult)
     {
-#if NETFRAMEWORK
-        if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
-        {
-            runtime.LogInfo(Resources.MSG_ConvertingCoverageReports);
-            var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
-            WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
-            WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
-            analysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
-            analysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
-            return additionalProperties.CoverageConversionPerformed;
-        }
-#endif
-        return false;
+        runtime.LogInfo(Resources.MSG_ConvertingCoverageReports);
+        var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
+        WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
+        WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
+        analysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
+        analysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
+        return additionalProperties.CoverageConversionPerformed;
     }
-
-#if NETFRAMEWORK
 
     private void WriteProperty(string propertiesFilePath, string property, string[] paths)
     {
@@ -222,8 +214,6 @@ public class PostProcessor
             runtime.File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
         }
     }
-
-#endif
 
     private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, string propertiesFilePath)
     {
