@@ -48,7 +48,6 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
 import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
-import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.serverSupportsProvisioning;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -132,15 +131,8 @@ class SslTest {
         .setDebugLogs();
 
       var logs = context.runAnalysis().end().getLogs();
-      if (serverSupportsProvisioning()) {
-        assertThat(logs)
-          .contains("Args: -Djavax.net.ssl.trustStoreType=Windows-ROOT");
-        assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
-      } else {
-        assertThat(logs)
-          .contains("SONAR_SCANNER_OPTS")
-          .contains("-Djavax.net.ssl.trustStoreType=Windows-ROOT");
-      }
+      assertThat(logs).contains("Args: -Djavax.net.ssl.trustStoreType=Windows-ROOT");
+      assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
     }
   }
 
@@ -152,12 +144,8 @@ class SslTest {
         .setProperty("sonar.host.url", server.getUrl())
         .setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
-      if (serverSupportsProvisioning()) {
-        assertThat(logs).contains("Args: -Xmx2048m");
-        assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
-      } else {
-        assertThat(logs).contains("SONAR_SCANNER_OPTS=-Xmx2048m");
-      }
+      assertThat(logs).contains("Args: -Xmx2048m");
+      assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
     }
   }
 
@@ -206,16 +194,10 @@ class SslTest {
         .setDebugLogs();
       var logs = context.runAnalysis().end().getLogs();
 
-      if (serverSupportsProvisioning()) {
-        assertThat(logs)
-          .containsPattern("Args: -Djavax.net.ssl.trustStore=\"?" + server.getKeystorePath().replace('\\', '/'))
-          .doesNotContain(server.getKeystorePassword());
-        assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
-      } else {
-        assertThat(logs)
-          .contains("SONAR_SCANNER_OPTS=-D<sensitive data removed>")
-          .doesNotContain(server.getKeystorePassword());
-      }
+      assertThat(logs)
+        .containsPattern("Args: -Djavax.net.ssl.trustStore=\"?" + server.getKeystorePath().replace('\\', '/'))
+        .doesNotContain(server.getKeystorePassword());
+      assertThat(TestUtils.scannerEngineInputJson(context)).hasAllSecretsRedacted();
     }
   }
 
@@ -331,12 +313,7 @@ class SslTest {
       var result = validateAnalysis(context, server);
       if (defaultPassword.equals("sonar")) {
         assertThat(result.begin().getLogs()).containsPattern("Could not import the truststore '.*truststore.p12' with the default password at index 0. Reason: .*");
-        if (serverSupportsProvisioning()) {
-          assertThat(result.end().getLogs()).containsPattern("WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'");
-        } else {
-          assertThat(result.end().getLogs()).containsPattern("Could not import the truststore '\"?.*truststore.p12\"?' with the default password at index 0. Reason: .*");
-
-        }
+        assertThat(result.end().getLogs()).containsPattern("WARNING: WARN: Using deprecated default password for truststore '\"?.*truststore.p12\"?'");
       }
     }
   }
@@ -458,18 +435,10 @@ class SslTest {
       trustStorePath = "\"" + trustStorePath + "\"";
       trustStorePassword = "\"" + trustStorePassword + "\"";
     }
-    if (serverSupportsProvisioning()) {
-      assertThat(logs)
-        .contains("Args: ")
-        .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
-        .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
-    } else {
-      assertThat(logs)
-        .contains("SONAR_SCANNER_OPTS")
-        .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
-        .contains("-D<sensitive data removed>")
-        .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
-    }
+    assertThat(logs)
+      .contains("Args: ")
+      .contains("-Djavax.net.ssl.trustStore=" + trustStorePath)
+      .doesNotContain("-Djavax.net.ssl.trustStorePassword=" + trustStorePassword);
 
     // When using the 'sonar' default password, check if it is not logged will always fail
     // because we have a lot of 'sonar' occurrences in the logs (e.g.: .sonarqube)
