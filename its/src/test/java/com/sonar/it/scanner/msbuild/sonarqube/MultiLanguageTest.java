@@ -24,7 +24,6 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.DisableOnEdition;
 import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
-import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
 import com.sonar.orchestrator.container.Edition;
