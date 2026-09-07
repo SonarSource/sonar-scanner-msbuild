@@ -96,7 +96,7 @@ public class CacheProcessorTests
     {
         var workingDirectory = TestContext.ResultsDirectory;
         using var scope = new WorkingDirectoryScope(workingDirectory);
-        var localSettings = ArgumentProcessor.TryProcessArgs(["/k:key", "/d:sonar.projectBaseDir=Custom"], null, new TestRuntime { Logger = logger });
+        var localSettings = ArgumentProcessor.TryProcessArgs(["/k:key", "/d:sonar.projectBaseDir=Custom"], new TestRuntime { Logger = logger });
         var buildSettings = Substitute.For<IBuildSettings>();
         buildSettings.SourcesDirectory.Returns(@"C:\Sources\Directory");
         buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
@@ -273,7 +273,7 @@ public class CacheProcessorTests
     {
         // When CI is run for a PR, AzureDevOps extension sets this to the actual PR analysis of S4NET project.
         using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", null);
-        var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), null, new TestRuntime { Logger = logger });
+        var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), new TestRuntime { Logger = logger });
         processedArgs.Should().NotBeNull();
         return processedArgs;
     }
@@ -322,10 +322,10 @@ public class CacheProcessorTests
                 var fullFilePath = Path.GetFullPath(CreateFile(Root, relativeFilePath, content, Encoding.UTF8));
                 Paths.Add(fullFilePath);
                 cache.Add(new SensorCacheEntry
-                          {
-                              Key = relativeFilePath,
-                              Data = ByteString.CopyFrom(Sut.ContentHash(fullFilePath))
-                          });
+                {
+                    Key = relativeFilePath,
+                    Data = ByteString.CopyFrom(Sut.ContentHash(fullFilePath))
+                });
             }
             Factory.Server.DownloadCache(null).ReturnsForAnyArgs(cache);
             Sut.PullRequestCacheBasePath.Should().Be(Root, "Cache files must exist on expected path.");

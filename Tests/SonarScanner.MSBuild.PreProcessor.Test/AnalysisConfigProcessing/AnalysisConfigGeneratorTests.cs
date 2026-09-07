@@ -702,18 +702,15 @@ public class AnalysisConfigGeneratorTests
         }
     }
 
-    private static ProcessedArgs CreateProcessedArgs() =>
-        CreateProcessedArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, new TestRuntime(), null);
-
-    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties) =>
-        CreateProcessedArgs(cmdLineProperties, EmptyPropertyProvider.Instance, new TestRuntime(), null);
-
     private static ProcessedArgs CreateProcessedArgs(
-        IAnalysisPropertyProvider cmdLineProperties,
-        IAnalysisPropertyProvider globalFileProperties,
-        IRuntime runtime,
-        BuildSettings buildSettings = null) =>
-        new(
+        IAnalysisPropertyProvider cmdLineProperties = null,
+        IAnalysisPropertyProvider globalFileProperties = null,
+        IRuntime runtime = null)
+    {
+        cmdLineProperties ??= EmptyPropertyProvider.Instance;
+        globalFileProperties ??= EmptyPropertyProvider.Instance;
+        runtime ??= new TestRuntime();
+        return new(
             "valid.key",
             "valid.name",
             "1.0",
@@ -722,6 +719,6 @@ public class AnalysisConfigGeneratorTests
             cmdLineProperties,
             globalFileProperties,
             EmptyPropertyProvider.Instance,
-            buildSettings,
             runtime);
+    }
 }
