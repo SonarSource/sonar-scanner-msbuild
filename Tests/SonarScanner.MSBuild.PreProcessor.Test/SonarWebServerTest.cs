@@ -911,10 +911,10 @@ public class SonarWebServerTest
         public override Task<Stream> DownloadJreAsync(JreMetadata metadata) =>
             throw new NotSupportedException();
 
-        public override bool IsServerVersionSupported() =>
+        protected override bool IsServerVersionSupported() =>
             throw new NotSupportedException();
 
-        public override Task<bool> IsServerLicenseValid() =>
+        protected override Task<bool> IsServerLicenseValid() =>
             throw new NotSupportedException();
 
         protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>

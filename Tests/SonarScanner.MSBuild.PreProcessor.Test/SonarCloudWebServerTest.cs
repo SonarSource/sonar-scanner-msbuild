@@ -55,21 +55,12 @@ public class SonarCloudWebServerTest
     }
 
     [TestMethod]
-    public void IsServerVersionSupported_IsSonarCloud_ShouldReturnTrue() =>
-        new Context().Server.IsServerVersionSupported().Should().BeTrue();
-
-    [TestMethod]
-    public async Task IsLicenseValid_IsSonarCloud_ShouldReturnTrue() =>
-        (await new Context().Server.IsServerLicenseValid()).Should().BeTrue();
-
-    [TestMethod]
-    public async Task IsLicenseValid_AlwaysValid()
+    public async Task IsAllValid_AlwaysTrue()
     {
         var context = new Context();
-        context.WebDownloader
-            .Download(new("api/editions/is_valid_license", UriKind.Relative))
-            .Returns("""{ "isValidLicense": false }""");
-        (await context.Server.IsServerLicenseValid()).Should().BeTrue();
+        (await context.Server.IsAllValid()).Should().BeTrue();
+        context.Logger.Should().HaveDebugs("SonarCloud detected, skipping server version check.");
+        context.Logger.Should().HaveDebugs("SonarCloud detected, skipping license check.");
     }
 
     [TestMethod]
@@ -126,16 +117,6 @@ public class SonarCloudWebServerTest
         ((Action)(() => new Context().Server.DownloadProperties(null, null).GetAwaiter().GetResult())).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("projectKey");
-
-    [TestMethod]
-    public async Task IsServerLicenseValid_AlwaysTrue()
-    {
-        var context = new Context();
-        var isValid = await context.Server.IsServerLicenseValid();
-
-        isValid.Should().BeTrue();
-        context.Logger.Should().HaveDebugs("SonarCloud detected, skipping license check.");
-    }
 
     [TestMethod]
     public async Task DownloadCache_NullArgument() =>
