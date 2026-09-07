@@ -702,10 +702,7 @@ public class AnalysisConfigGeneratorTests
         }
     }
 
-    private static ProcessedArgs CreateProcessedArgs(
-        IAnalysisPropertyProvider cmdLineProperties = null,
-        IAnalysisPropertyProvider globalFileProperties = null,
-        IRuntime runtime = null)
+    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties = null, IAnalysisPropertyProvider globalFileProperties = null, IRuntime runtime = null)
     {
         cmdLineProperties ??= EmptyPropertyProvider.Instance;
         globalFileProperties ??= EmptyPropertyProvider.Instance;
