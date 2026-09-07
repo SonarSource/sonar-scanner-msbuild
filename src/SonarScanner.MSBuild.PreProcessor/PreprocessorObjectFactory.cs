@@ -55,7 +55,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         }
         webDownloader ??= CreateDownloader(args.ServerInfo.ServerUrl);
         apiDownloader ??= CreateDownloader(args.ServerInfo.ApiBaseUrl);
-        if (!await CanAuthenticate(webDownloader))
+        if (!await VerifyCredentials(webDownloader))
         {
             return null;
         }
@@ -65,20 +65,9 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         {
             return null;
         }
-        if (args.ServerInfo.IsSonarCloud)
-        {
-            if (string.IsNullOrWhiteSpace(args.Organization))
-            {
-                runtime.LogError(Resources.ERR_MissingOrganization);
-                runtime.LogWarning(Resources.WARN_DefaultHostUrlChanged);
-                return null;
-            }
-            return new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization, args.HttpTimeout);
-        }
-        else
-        {
-            return new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, args.Organization);
-        }
+        return args.ServerInfo.IsSonarCloud
+            ? new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization, args.HttpTimeout)
+            : new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, args.Organization);
 
         IDownloader CreateDownloader(string baseUrl) =>
             new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, runtime.Logger)
@@ -174,7 +163,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     /// <summary>
     /// Makes a throw-away request to the server to ensure we can properly authenticate.
     /// </summary>
-    private async Task<bool> CanAuthenticate(IDownloader downloader)
+    private async Task<bool> VerifyCredentials(IDownloader downloader)
     {
         var response = await downloader.DownloadResource(new("api/settings/values?component=unknown", UriKind.Relative));
         if (response.StatusCode is HttpStatusCode.Forbidden or HttpStatusCode.Unauthorized)
