@@ -26,7 +26,7 @@ namespace SonarScanner.MSBuild.TFS.Test;
 public class BuildSettingsTests
 {
     [TestMethod]
-    public void TBSettings_NotTeamBuild()
+    public void SettingsFromEnvironment_NoTFSVariable_NotTeamBuild()
     {
         // 0. Setup
         BuildSettings settings;
@@ -48,6 +48,13 @@ public class BuildSettingsTests
                 null,
                 null);
         }
+    }
+
+    [TestMethod]
+    public void SettingsFromEnvironment_IncompleteTFSVariableSet_NotTeamBuild()
+    {
+        // 0. Setup
+        BuildSettings settings;
 
         // 2. Some Team build settings provided, but not marked as in team build
         using (var scope = new EnvironmentVariableScope())
@@ -69,6 +76,13 @@ public class BuildSettingsTests
                 null,
                 null);
         }
+    }
+
+    [TestMethod]
+    public void SettingsFromEnvironment_InvalidTFSVariable_NotTeamBuild()
+    {
+        // 0. Setup
+        BuildSettings settings;
 
         // 3. Env var set to a non-boolean -> false
         using (var scope = new EnvironmentVariableScope())
@@ -77,6 +91,13 @@ public class BuildSettingsTests
             settings = BuildSettings.GetSettingsFromEnvironment();
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
         }
+    }
+
+    [TestMethod]
+    public void SettingsFromEnvironment_TFSVariableFalse_NotTeamBuild()
+    {
+        // 0. Setup
+        BuildSettings settings;
 
         // 4. Env var set to false -> false
         using (var scope = new EnvironmentVariableScope())
@@ -88,7 +109,7 @@ public class BuildSettingsTests
     }
 
     [TestMethod]
-    public void TBSettings_TeamBuild()
+    public void SettingsFromEnvironment_TFSVariableTrue_TeamBuild()
     {
         // Arrange
         BuildSettings settings;
