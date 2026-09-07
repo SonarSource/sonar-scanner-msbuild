@@ -21,13 +21,14 @@
 using System.Security.Cryptography;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
 public sealed class CacheProcessor : IDisposable
 {
     private readonly ILogger logger;
-    private readonly ISonarWebServer server;
+    private readonly SonarWebServerBase server;
     private readonly ProcessedArgs localSettings;
     private readonly IBuildSettings buildSettings;
     private readonly HashAlgorithm sha256 = new SHA256CryptoServiceProvider();
@@ -35,7 +36,7 @@ public sealed class CacheProcessor : IDisposable
     public string PullRequestCacheBasePath { get; }
     public string UnchangedFilesPath { get; private set; }
 
-    public CacheProcessor(ISonarWebServer server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
+    public CacheProcessor(SonarWebServerBase server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
     {
         this.server = server ?? throw new ArgumentNullException(nameof(server));
         this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));

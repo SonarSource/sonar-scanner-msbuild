@@ -20,7 +20,9 @@
 
 using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.Test;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution.Test;
 
@@ -40,7 +42,7 @@ public class JreResolverTests
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
 
     private ListPropertiesProvider provider;
-    private ISonarWebServer server;
+    private SonarWebServerBase server;
     private JreResolver sut;
     private TestRuntime runtime;
 
@@ -49,7 +51,7 @@ public class JreResolverTests
     {
         provider = [];
         provider.AddProperty("sonar.scanner.os", "linux");
-        server = Substitute.For<ISonarWebServer>();
+        server = MockSonarWebServer.Create();
         server.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(metadata);
         runtime = new();
 

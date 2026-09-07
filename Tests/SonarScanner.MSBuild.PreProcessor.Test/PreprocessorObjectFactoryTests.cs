@@ -142,16 +142,16 @@ public class PreprocessorObjectFactoryTests
     public void CreateJreResolver_Success()
     {
         var sut = new PreprocessorObjectFactory(runtime);
-        sut.CreateJreResolver(Substitute.For<ISonarWebServer>(), "sonarUserHome").Should().NotBeNull();
+        sut.CreateJreResolver(MockSonarWebServer.Create(), "sonarUserHome").Should().NotBeNull();
     }
 
     [TestMethod]
     public void CreateEngineResolver_Success() =>
-        new PreprocessorObjectFactory(runtime).CreateEngineResolver(Substitute.For<ISonarWebServer>(), "sonarUserHome").Should().NotBeNull();
+        new PreprocessorObjectFactory(runtime).CreateEngineResolver(MockSonarWebServer.Create(), "sonarUserHome").Should().NotBeNull();
 
     [TestMethod]
     public void CreateScannerCliResolver_Success() =>
-        new PreprocessorObjectFactory(runtime).CreateScannerCliResolver(Substitute.For<ISonarWebServer>(), "sonarUserHome").Should().NotBeNull();
+        new PreprocessorObjectFactory(runtime).CreateScannerCliResolver(MockSonarWebServer.Create(), "sonarUserHome").Should().NotBeNull();
 
     [TestMethod]
     public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnErrorAndWarning()
@@ -198,7 +198,7 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        sut.CreateRoslynAnalyzerProvider(Substitute.For<ISonarWebServer>(), "cache", settings, new ListPropertiesProvider(), [], "cs").Should().NotBeNull();
+        sut.CreateRoslynAnalyzerProvider(MockSonarWebServer.Create(), "cache", settings, new ListPropertiesProvider(), [], "cs").Should().NotBeNull();
     }
 
     [TestMethod]

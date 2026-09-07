@@ -20,6 +20,7 @@
 
 using System.IO.Compression;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -34,13 +35,13 @@ public class EmbeddedAnalyzerInstallerTests
 
     [TestMethod]
     public void Constructor_NullLogger_ThrowsArgumentNullException() =>
-        FluentActions.Invoking(() => new EmbeddedAnalyzerInstaller(Substitute.For<ISonarWebServer>(), "NonNullPath", null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        FluentActions.Invoking(() => new EmbeddedAnalyzerInstaller(MockSonarWebServer.Create(), "NonNullPath", null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
     [TestMethod]
     public void InstallAssemblies_NullPlugins_ThrowsArgumentNullException()
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var embeddedAnalyzerInstaller = new EmbeddedAnalyzerInstaller(Substitute.For<ISonarWebServer>(), localCacheDir, new TestLogger());
+        var embeddedAnalyzerInstaller = new EmbeddedAnalyzerInstaller(MockSonarWebServer.Create(), localCacheDir, new TestLogger());
         FluentActions.Invoking(() => embeddedAnalyzerInstaller.InstallAssemblies(null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("plugins");
     }
 
@@ -50,7 +51,7 @@ public class EmbeddedAnalyzerInstallerTests
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
         var requestedPlugin = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = "embeddedFile1.zip" };
-        var server = Substitute.For<ISonarWebServer>();
+        var server = MockSonarWebServer.Create();
         AddPlugin(server, requestedPlugin, "file1.dll", "file2.txt");
         var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "file1.dll", "file2.txt");
         var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
@@ -72,7 +73,7 @@ public class EmbeddedAnalyzerInstallerTests
         {
             var logger = new TestLogger();
             var requestedPlugin = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = "embeddedFile1.zip" };
-            var server = Substitute.For<ISonarWebServer>();
+            var server = MockSonarWebServer.Create();
             AddPlugin(server, requestedPlugin, "file1.dll", "file2.txt");
             var expectedFilePaths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "file1.dll", "file2.txt");
             var testSubject = new EmbeddedAnalyzerInstaller(server, localCacheDir, logger);
@@ -104,7 +105,7 @@ public class EmbeddedAnalyzerInstallerTests
         var request1 = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = $"{p1Resource1}.zip" };
         var request2 = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = $"{p1Resource2}.zip" };
         var request3 = new Plugin { Key = "plugin2", Version = "2.0", StaticResourceName = $"{p2Resource1}.zip" };
-        var server = Substitute.For<ISonarWebServer>();
+        var server = MockSonarWebServer.Create();
         AddPlugin(server, request1, $"{p1Resource1}.file1.dll", $"{p1Resource1}.file2.dll");
         AddPlugin(server, request2, $"{p1Resource2}.file1.dll");
         AddPlugin(server, request3, $"{p2Resource1}.dll");
@@ -160,7 +161,7 @@ public class EmbeddedAnalyzerInstallerTests
         var logger = new TestLogger();
         var request1 = new Plugin { Key = "plugin1", Version = "1.0", StaticResourceName = "p1.resource1.zip" };
         var request2 = new Plugin { Key = "plugin2", Version = "2.0", StaticResourceName = "p2.resource1.zip" };
-        var server = Substitute.For<ISonarWebServer>();
+        var server = MockSonarWebServer.Create();
         AddPlugin(server, request1, "p1.resource1.file1.dll", "p1.resource1.file2.dll");
         AddPlugin(server, request2 /* no assemblies */);
         var expectedPaths = new List<string>();
@@ -188,7 +189,7 @@ public class EmbeddedAnalyzerInstallerTests
         var logger = new TestLogger();
         var requestA = new Plugin { Key = "p111", Version = "1.0-SNAPSHOT", StaticResourceName = "p1.zip" };
         var requestB = new Plugin { Key = "p222", Version = "9.1.3.0", StaticResourceName = "p2.zip" };
-        var server = Substitute.For<ISonarWebServer>();
+        var server = MockSonarWebServer.Create();
         AddPlugin(server, requestA, "aaa", "bbb");
         AddPlugin(server, requestB, "ccc");
         var expectedPlugin111Paths = CalculateExpectedCachedFilePaths(localCacheDir, 0, "aaa", "bbb");
@@ -242,15 +243,15 @@ public class EmbeddedAnalyzerInstallerTests
     /// <summary>
     /// Used by tests that don't care about the content of the plugin, just it's existence.
     /// </summary>
-    private static ISonarWebServer CreateServerWithDummyPlugin(string languageKey)
+    private static SonarWebServerBase CreateServerWithDummyPlugin(string languageKey)
     {
-        var server = Substitute.For<ISonarWebServer>();
+        var server = MockSonarWebServer.Create();
         server.DownloadAllLanguages().Returns([languageKey]);
         server.TryDownloadEmbeddedFile(languageKey, "embeddedFile1.zip", Arg.Any<string>()).Returns(true);
         return server;
     }
 
-    private static void AddPlugin(ISonarWebServer server, Plugin plugin, params string[] files) =>
+    private static void AddPlugin(SonarWebServerBase server, Plugin plugin, params string[] files) =>
         server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, Arg.Any<string>()).Returns(true)
             .AndDoes(x => CreateZipFile(Path.Combine(x.ArgAt<string>(2), plugin.StaticResourceName), files));
 

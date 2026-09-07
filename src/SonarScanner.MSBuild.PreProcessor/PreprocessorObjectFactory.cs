@@ -41,7 +41,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     public PreprocessorObjectFactory(IRuntime runtime) =>
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
-    public async Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
+    public async Task<SonarWebServerBase> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
         var userName = args.SettingOrDefault(SonarProperties.SonarToken, null) ?? args.SettingOrDefault(SonarProperties.SonarUserName, null);
@@ -88,7 +88,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
                 .Build();
     }
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarWebServerBase server,
                                                                string localCacheTempPath,
                                                                BuildSettings teamBuildSettings,
                                                                IAnalysisPropertyProvider sonarProperties,
@@ -96,13 +96,13 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
                                                                string language) =>
         new(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
 
-    public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
+    public IResolver CreateJreResolver(SonarWebServerBase server, string sonarUserHome) =>
         new JreResolver(server, ChecksumSha256.Instance, sonarUserHome, runtime);
 
-    public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
+    public IResolver CreateEngineResolver(SonarWebServerBase server, string sonarUserHome) =>
         new EngineResolver(server, sonarUserHome, runtime);
 
-    public IResolver CreateScannerCliResolver(ISonarWebServer server, string sonarUserHome) =>
+    public IResolver CreateScannerCliResolver(SonarWebServerBase server, string sonarUserHome) =>
         new ScannerCliResolver(ChecksumSha256.Instance, sonarUserHome, runtime);
 
     private bool ValidateServerUrl(string serverUrl)

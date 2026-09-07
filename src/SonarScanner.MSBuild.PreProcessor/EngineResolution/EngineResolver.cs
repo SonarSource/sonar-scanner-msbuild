@@ -20,6 +20,7 @@
 
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
@@ -27,12 +28,12 @@ public class EngineResolver : IResolver
 {
     private const string ScannerEngine = "Scanner Engine";
 
-    private readonly ISonarWebServer server;
+    private readonly SonarWebServerBase server;
     private readonly IRuntime runtime;
     private readonly IChecksum checksum;
     private readonly string sonarUserHome;
 
-    public EngineResolver(ISonarWebServer server,
+    public EngineResolver(SonarWebServerBase server,
                           string sonarUserHome,
                           IRuntime runtime,
                           IChecksum checksum = null)

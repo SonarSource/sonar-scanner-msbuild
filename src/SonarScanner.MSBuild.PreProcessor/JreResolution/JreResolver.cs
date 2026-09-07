@@ -21,19 +21,20 @@
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
 public class JreResolver : IResolver
 {
-    private readonly ISonarWebServer server;
+    private readonly SonarWebServerBase server;
     private readonly UnpackerFactory unpackerFactory;
     private readonly IChecksum checksum;
     private readonly string sonarUserHome;
     private readonly IRuntime runtime;
 
-    public JreResolver(ISonarWebServer server,
+    public JreResolver(SonarWebServerBase server,
                        IChecksum checksum,
                        string sonarUserHome,
                        IRuntime runtime,

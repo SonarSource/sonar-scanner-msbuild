@@ -41,6 +41,11 @@ public abstract class SonarWebServerBase : IDisposable
     private readonly string organization;
     private bool disposed;
 
+    public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
+    public abstract Task<Stream> DownloadEngineAsync(EngineMetadata metadata);
+    public abstract Task<Stream> DownloadJreAsync(JreMetadata metadata);
+    public abstract bool IsServerVersionSupported();
+    public abstract Task<bool> IsServerLicenseValid();
     protected abstract RuleSearchPaging ParseRuleSearchPaging(JObject json);
 
     public Version ServerVersion => serverVersion;
@@ -54,7 +59,7 @@ public abstract class SonarWebServerBase : IDisposable
         this.organization = organization;
     }
 
-    public async Task<string> DownloadQualityProfile(string projectKey, string projectBranch, string language)
+    public virtual async Task<string> DownloadQualityProfile(string projectKey, string projectBranch, string language)
     {
         var component = ComponentIdentifier(projectKey, projectBranch);
         var uri = AddOrganization(WebUtils.EscapedUri("api/qualityprofiles/search?project={0}", component));
@@ -75,7 +80,7 @@ public abstract class SonarWebServerBase : IDisposable
         return JObject.Parse(contents)["profiles"]?.Children<JObject>().SingleOrDefault(x => language.Equals(x["language"]?.ToString()))?["key"]?.ToString();
     }
 
-    public async Task<IList<SonarRule>> DownloadRules(string qProfile)
+    public virtual async Task<IList<SonarRule>> DownloadRules(string qProfile)
     {
         const int limit = 10000;
         var fetched = 0;
@@ -102,14 +107,14 @@ public abstract class SonarWebServerBase : IDisposable
         return allRules;
     }
 
-    public async Task<IEnumerable<string>> DownloadAllLanguages()
+    public virtual async Task<IEnumerable<string>> DownloadAllLanguages()
     {
         var contents = await webDownloader.Download(new("api/languages/list", UriKind.Relative));
         var langArray = JObject.Parse(contents).Value<JArray>("languages");
         return langArray.Select(x => x["key"].ToString());
     }
 
-    public async Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
+    public virtual async Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
     {
         Contract.ThrowIfNullOrWhitespace(pluginKey, nameof(pluginKey));
         Contract.ThrowIfNullOrWhitespace(embeddedFileName, nameof(embeddedFileName));
@@ -122,7 +127,7 @@ public abstract class SonarWebServerBase : IDisposable
         return await webDownloader.TryDownloadFileIfExists(uri, targetFilePath);
     }
 
-    public async Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture)
+    public virtual async Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture)
     {
         Contract.ThrowIfNullOrWhitespace(operatingSystem, nameof(operatingSystem));
         Contract.ThrowIfNullOrWhitespace(architecture, nameof(architecture));
@@ -143,7 +148,7 @@ public abstract class SonarWebServerBase : IDisposable
         }
     }
 
-    public async Task<EngineMetadata> DownloadEngineMetadataAsync()
+    public virtual async Task<EngineMetadata> DownloadEngineMetadataAsync()
     {
         const string api = "analysis/engine";
         try
@@ -167,7 +172,7 @@ public abstract class SonarWebServerBase : IDisposable
     /// <param name="projectBranch">The project branch to retrieve properties for (optional).</param>
     /// <returns>A dictionary of key-value property pairs.</returns>
     ///
-    public async Task<IDictionary<string, string>> DownloadProperties(string projectKey, string projectBranch)
+    public virtual async Task<IDictionary<string, string>> DownloadProperties(string projectKey, string projectBranch)
     {
         Contract.ThrowIfNullOrWhitespace(projectKey, nameof(projectKey));
         return await DownloadComponentProperties(ComponentIdentifier(projectKey, projectBranch));

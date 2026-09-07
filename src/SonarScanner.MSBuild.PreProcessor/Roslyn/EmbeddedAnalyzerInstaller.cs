@@ -18,13 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using SonarScanner.MSBuild.Common;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 
@@ -46,13 +41,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 /// </remarks>
 public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 {
-    private readonly ISonarWebServer server;
+    private readonly SonarWebServerBase server;
     private readonly ILogger logger;
     private readonly PluginResourceCache cache;
 
-    public EmbeddedAnalyzerInstaller(ISonarWebServer server, ILogger logger) : this(server, GetLocalCacheDirectory(), logger) { }
+    public EmbeddedAnalyzerInstaller(SonarWebServerBase server, ILogger logger) : this(server, GetLocalCacheDirectory(), logger) { }
 
-    public EmbeddedAnalyzerInstaller(ISonarWebServer server, string localCacheDirectory, ILogger logger)
+    public EmbeddedAnalyzerInstaller(SonarWebServerBase server, string localCacheDirectory, ILogger logger)
     {
         if (string.IsNullOrWhiteSpace(localCacheDirectory))
         {
@@ -69,8 +64,6 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 
         cache = new PluginResourceCache(localCacheDirectory);
     }
-
-    #region IAnalyzerInstaller methods
 
     public IEnumerable<AnalyzerPlugin> InstallAssemblies(IEnumerable<Plugin> plugins)
     {
@@ -101,10 +94,6 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 
         return analyzerPlugins;
     }
-
-    #endregion IAnalyzerInstaller methods
-
-    #region Private methods
 
     /// <summary>
     /// We want the resource cache to be in a well-known location so we can re-use files that have
@@ -168,6 +157,4 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 
     private static bool IsZipFile(string fileName) =>
         string.Equals(".zip", Path.GetExtension(fileName), StringComparison.OrdinalIgnoreCase);
-
-    #endregion Private methods
 }
