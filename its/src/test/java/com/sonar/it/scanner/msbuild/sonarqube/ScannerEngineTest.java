@@ -22,7 +22,6 @@ package com.sonar.it.scanner.msbuild.sonarqube;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.OSPlatform;
-import com.sonar.it.scanner.msbuild.utils.ServerMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.it.scanner.msbuild.utils.Timeout;
 import com.sonar.orchestrator.util.StreamConsumer;
@@ -55,7 +54,6 @@ class ScannerEngineTest {
 
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
-  @ServerMinVersion("2025.1")
   void scannerInput_UTF8(boolean useSonarScannerCLI) {
     var context = AnalysisContext.forServer(Paths.get("ScannerEngine", "UTF8Filenames_äöü").toString());
     context.begin
@@ -95,7 +93,6 @@ class ScannerEngineTest {
 
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
-  @ServerMinVersion("2025.1")
   void javaExe_fromPath(boolean useSonarScannerCLI) throws ParserConfigurationException, IOException, SAXException {
     // Test if java.exe is found via %PATH% when skipJreProvisioning=true and JAVA_HOME=null
     var context = AnalysisContext.forServer("Empty");
@@ -131,7 +128,6 @@ class ScannerEngineTest {
 
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
-  @ServerMinVersion("2025.1")
   void javaExe_withCacheDirectory(boolean useSonarScannerCLI) {
     var context = AnalysisContext.forServer("Empty");
     var sonarHome = ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath().toString();
@@ -154,7 +150,6 @@ class ScannerEngineTest {
     "sonar.scanner.useSonarScannerCLI, true, SonarScannerCliPath",
     "sonar.scanner.useSonarScannerCLI, false, EngineJarPath",
     "sonar.scanner.skipJreProvisioning, false, JavaExePath"})
-  @ServerMinVersion("2025.1")
   void scannerEngineJarPath_PassedAsAbsolute(String argument, String value, String element) throws ParserConfigurationException, IOException, SAXException {
     var context = AnalysisContext.forServer("Empty");
     context.begin
