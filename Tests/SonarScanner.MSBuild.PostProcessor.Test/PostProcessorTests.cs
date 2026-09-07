@@ -404,7 +404,6 @@ public class PostProcessorTests
 
         Execute().Should().BeTrue();
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null);
-        runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.endstep.legacyTFS", "NotCalled");
         runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.endstep.coverage_conversion", false);
     }
 

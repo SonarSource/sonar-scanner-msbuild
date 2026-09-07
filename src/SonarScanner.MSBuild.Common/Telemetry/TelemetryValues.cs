@@ -59,12 +59,6 @@ public static class TelemetryValues
         public static readonly string Failed = nameof(Failed);
     }
 
-    public static class EndstepLegacyTFS
-    {
-        public static readonly string Called = nameof(Called);
-        public static readonly string NotCalled = nameof(NotCalled);
-    }
-
     public static class EndStepSarifVersion
     {
         public static readonly string True = nameof(True);

@@ -23,26 +23,25 @@ namespace SonarScanner.MSBuild.Common;
 public static class TelemetryKeys
 {
     // Jre Bootstrapping
-    public const string JreBootstrapping            = "dotnetenterprise.s4net.jre.bootstrapping";
-    public const string JreDownload                 = "dotnetenterprise.s4net.jre.download";
+    public const string JreBootstrapping = "dotnetenterprise.s4net.jre.bootstrapping";
+    public const string JreDownload = "dotnetenterprise.s4net.jre.download";
     // Scanner Engine Bootstrapping
-    public const string ScannerEngineBootstrapping  = "dotnetenterprise.s4net.scannerEngine.bootstrapping";
-    public const string ScannerEngineDownload       = "dotnetenterprise.s4net.scannerEngine.download";
+    public const string ScannerEngineBootstrapping = "dotnetenterprise.s4net.scannerEngine.bootstrapping";
+    public const string ScannerEngineDownload = "dotnetenterprise.s4net.scannerEngine.download";
     // Scanner CLI Bootstrapping
-    public const string ScannerCliDownload          = "dotnetenterprise.s4net.scannerCli.download";
+    public const string ScannerCliDownload = "dotnetenterprise.s4net.scannerCli.download";
     // Server Info
-    public const string ServerInfoRegion            = "dotnetenterprise.s4net.serverInfo.region";
-    public const string ServerInfoProduct           = "dotnetenterprise.s4net.serverInfo.product";
-    public const string ServerInfoServerUrl         = "dotnetenterprise.s4net.serverInfo.serverUrl";
-    public const string ServerInfoVersion           = "dotnetenterprise.s4net.serverInfo.version";
+    public const string ServerInfoRegion = "dotnetenterprise.s4net.serverInfo.region";
+    public const string ServerInfoProduct = "dotnetenterprise.s4net.serverInfo.product";
+    public const string ServerInfoServerUrl = "dotnetenterprise.s4net.serverInfo.serverUrl";
+    public const string ServerInfoVersion = "dotnetenterprise.s4net.serverInfo.version";
     // EndStep
-    public const string EndstepLegacyTFS            = "dotnetenterprise.s4net.endstep.legacyTFS";
-    public const string EndstepCoverageConversion   = "dotnetenterprise.s4net.endstep.coverage_conversion";
-    public const string EndStepSarifVersionValid    = "dotnetenterprise.s4net.endstep.Sarif.{0}.Valid";
-    public const string EndStepSarifVersionFixed    = "dotnetenterprise.s4net.endstep.Sarif.{0}.Fixed";
+    public const string EndstepCoverageConversion = "dotnetenterprise.s4net.endstep.coverage_conversion";
+    public const string EndStepSarifVersionValid = "dotnetenterprise.s4net.endstep.Sarif.{0}.Valid";
+    public const string EndStepSarifVersionFixed = "dotnetenterprise.s4net.endstep.Sarif.{0}.Fixed";
     // Begin
-    public const string BeginRuntime                = "dotnetenterprise.s4net.begin.runtime";
-    public const string CIPlatform                  = "dotnetenterprise.s4net.ci_platform";
-    public const string ParamsSource                = "dotnetenterprise.s4net.params.{0}.source";
-    public const string ParamsValue                 = "dotnetenterprise.s4net.params.{0}.value";
+    public const string BeginRuntime = "dotnetenterprise.s4net.begin.runtime";
+    public const string CIPlatform = "dotnetenterprise.s4net.ci_platform";
+    public const string ParamsSource = "dotnetenterprise.s4net.params.{0}.source";
+    public const string ParamsValue = "dotnetenterprise.s4net.params.{0}.value";
 }
