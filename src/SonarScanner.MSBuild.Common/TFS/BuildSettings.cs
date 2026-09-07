@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Globalization;
-using System.IO;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Common.TFS;
 
@@ -28,15 +25,11 @@ namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
 /// Provides access to TeamBuild-specific settings and settings calculated
-/// from those settings
+/// from those settings.
 /// </summary>
 public class BuildSettings : IBuildSettings
 {
-    public const int DefaultLegacyCodeCoverageTimeout = 30000; // ms
-
     public static bool IsInTeamBuild => TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
-    public static bool SkipLegacyCodeCoverageProcessing => TryGetBoolEnvironmentVariable(EnvironmentVariables.SkipLegacyCodeCoverage, false);
-    public static int LegacyCodeCoverageProcessingTimeout => TryGetIntEnvironmentVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, DefaultLegacyCodeCoverageTimeout);
     public BuildEnvironment BuildEnvironment { get; private set; }
     public string TfsUri { get; private set; }
     public string BuildUri { get; private set; }
@@ -49,22 +42,22 @@ public class BuildSettings : IBuildSettings
 
     /// <summary>
     /// The base working directory under which the various analysis
-    /// sub-directories (bin, conf, out) should be created
+    /// sub-directories (bin, conf, out) should be created.
     /// </summary>
     public string AnalysisBaseDirectory { get; private set; }
 
     /// <summary>
-    /// The build directory as specified by the build system
+    /// The build directory as specified by the build system.
     /// </summary>
     public string BuildDirectory { get; private set; }
 
     /// <summary>
-    /// The working directory that will be set when the sonar-scanner will be spawned
+    /// The working directory that will be set when the sonar-scanner will be spawned.
     /// </summary>
     public string SonarScannerWorkingDirectory { get; private set; }
 
     /// <summary>
-    /// Private constructor to prevent direct creation
+    /// Private constructor to prevent direct creation.
     /// </summary>
     private BuildSettings() { }
 
@@ -136,7 +129,7 @@ public class BuildSettings : IBuildSettings
     }
 
     /// <summary>
-    /// Returns the type of the current build environment: not under TeamBuild, legacy TeamBuild, "new" TeamBuild
+    /// Returns the type of the current build environment: not under TeamBuild, legacy TeamBuild, "new" TeamBuild.
     /// </summary>
     private static BuildEnvironment GetBuildEnvironment()
     {
@@ -164,12 +157,6 @@ public class BuildSettings : IBuildSettings
 
     private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue) =>
         Environment.GetEnvironmentVariable(envVar) is { } value && bool.TryParse(value, out var result)
-            ? result
-            : defaultValue;
-
-    private static int TryGetIntEnvironmentVariable(string envVar, int defaultValue) =>
-        Environment.GetEnvironmentVariable(envVar) is { } value
-        && int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result)
             ? result
             : defaultValue;
 }
