@@ -69,7 +69,7 @@ public class BuildSettings : IBuildSettings
     /// calculated from environment variables.
     /// Returns null if all the required environment variables are not present.
     /// </summary>
-    public static BuildSettings GetSettingsFromEnvironment()
+    public static BuildSettings SettingsFromEnvironment()
     {
         var settings = IsTeamBuild
             ? new BuildSettings

@@ -28,108 +28,71 @@ public class BuildSettingsTests
     [TestMethod]
     public void SettingsFromEnvironment_NoTFSVariable_NotTeamBuild()
     {
-        // 0. Setup
-        BuildSettings settings;
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
 
-        // 1. No environment vars set
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
-
-            settings = BuildSettings.GetSettingsFromEnvironment();
-
-            // Check the environment properties
-            CheckExpectedSettings(
-                settings,
-                BuildEnvironment.NotTeamBuild,
-                Directory.GetCurrentDirectory(),
-                null,
-                null,
-                null,
-                null);
-        }
+        var settings = BuildSettings.SettingsFromEnvironment();
+        CheckExpectedSettings(
+            settings,
+            BuildEnvironment.NotTeamBuild,
+            Directory.GetCurrentDirectory(),
+            null,
+            null,
+            null,
+            null);
     }
 
     [TestMethod]
     public void SettingsFromEnvironment_IncompleteTFSVariableSet_NotTeamBuild()
     {
-        // 0. Setup
-        BuildSettings settings;
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
+        scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "build uri");
+        scope.SetVariable(EnvironmentVariables.TfsCollectionUriLegacy, "collection uri");
+        scope.SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "should be ignored");
+        scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "should be ignored");
 
-        // 2. Some Team build settings provided, but not marked as in team build
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
-            scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "build uri");
-            scope.SetVariable(EnvironmentVariables.TfsCollectionUriLegacy, "collection uri");
-            scope.SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "should be ignored");
-            scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "should be ignored");
-
-            settings = BuildSettings.GetSettingsFromEnvironment();
-
-            CheckExpectedSettings(
-                settings,
-                BuildEnvironment.NotTeamBuild,
-                Directory.GetCurrentDirectory(),
-                null,
-                null,
-                null,
-                null);
-        }
+        var settings = BuildSettings.SettingsFromEnvironment();
+        CheckExpectedSettings(
+            settings,
+            BuildEnvironment.NotTeamBuild,
+            Directory.GetCurrentDirectory(),
+            null,
+            null,
+            null,
+            null);
     }
 
     [TestMethod]
     public void SettingsFromEnvironment_InvalidTFSVariable_NotTeamBuild()
     {
-        // 0. Setup
-        BuildSettings settings;
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
 
-        // 3. Env var set to a non-boolean -> false
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
-            settings = BuildSettings.GetSettingsFromEnvironment();
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
-        }
+        BuildSettings.SettingsFromEnvironment().BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
     }
 
     [TestMethod]
     public void SettingsFromEnvironment_TFSVariableFalse_NotTeamBuild()
     {
-        // 0. Setup
-        BuildSettings settings;
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false");
 
-        // 4. Env var set to false -> false
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false");
-            settings = BuildSettings.GetSettingsFromEnvironment();
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
-        }
+        BuildSettings.SettingsFromEnvironment().BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
     }
 
     [TestMethod]
     public void SettingsFromEnvironment_TFSVariableTrue_TeamBuild()
     {
-        // Arrange
-        BuildSettings settings;
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
+        scope.SetVariable(EnvironmentVariables.BuildUriTfs2015, "http://builduri");
+        scope.SetVariable(EnvironmentVariables.TfsCollectionUriTfs2015, "http://collectionUri");
+        scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "non-legacy team build");
+        scope.SetVariable(EnvironmentVariables.SourcesDirectoryTfs2015, @"c:\agent\_work\1");
 
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
-            scope.SetVariable(EnvironmentVariables.BuildUriTfs2015, "http://builduri");
-            scope.SetVariable(EnvironmentVariables.TfsCollectionUriTfs2015, "http://collectionUri");
-            scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "non-legacy team build");
-            scope.SetVariable(EnvironmentVariables.SourcesDirectoryTfs2015, @"c:\agent\_work\1");
-
-            // Act
-            settings = BuildSettings.GetSettingsFromEnvironment();
-        }
-
-        // Assert
+        var settings = BuildSettings.SettingsFromEnvironment();
         settings.Should().NotBeNull("Failed to create the BuildSettings");
-
-        // Check the environment properties
         CheckExpectedSettings(
             settings,
             BuildEnvironment.TeamBuild,
