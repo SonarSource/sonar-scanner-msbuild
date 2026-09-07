@@ -29,7 +29,6 @@ namespace SonarScanner.MSBuild.Common;
 /// </summary>
 public class BuildSettings : IBuildSettings
 {
-    public static bool IsInTeamBuild => TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
     public BuildEnvironment BuildEnvironment { get; private set; }
     public string TfsUri { get; private set; }
     public string BuildUri { get; private set; }
@@ -56,6 +55,10 @@ public class BuildSettings : IBuildSettings
     /// </summary>
     public string SonarScannerWorkingDirectory { get; private set; }
 
+    private static bool IsTeamBuild => TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false)
+                                        && (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy))
+                                            || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015)));
+
     /// <summary>
     /// Private constructor to prevent direct creation.
     /// </summary>
@@ -68,33 +71,22 @@ public class BuildSettings : IBuildSettings
     /// </summary>
     public static BuildSettings GetSettingsFromEnvironment()
     {
-        var env = GetBuildEnvironment();
-        var settings = env switch
-        {
-            BuildEnvironment.LegacyTeamBuild => new BuildSettings
+        var settings = IsTeamBuild
+            ? new BuildSettings
             {
-                BuildEnvironment = env,
-                BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy),
-                TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriLegacy),
-                BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryLegacy),
-                SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectoryLegacy),
-            },
-            BuildEnvironment.TeamBuild => new BuildSettings
-            {
-                BuildEnvironment = env,
+                BuildEnvironment = BuildEnvironment.TeamBuild,
                 BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015),
                 TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
                 BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryTfs2015),
                 SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
                 CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
-            },
-            _ => new BuildSettings
+            }
+            : new BuildSettings
             {
-                BuildEnvironment = env,
+                BuildEnvironment = BuildEnvironment.NotTeamBuild,
                 // there's no reliable of way of finding the SourcesDirectory, except after the build
                 CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
-            }
-        };
+            };
 
         // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
         settings.AnalysisBaseDirectory = Directory.GetCurrentDirectory();
@@ -126,33 +118,6 @@ public class BuildSettings : IBuildSettings
             SonarScannerWorkingDirectory = workingDirectory,
             SourcesDirectory = workingDirectory,
         };
-    }
-
-    /// <summary>
-    /// Returns the type of the current build environment: not under TeamBuild, legacy TeamBuild, "new" TeamBuild.
-    /// </summary>
-    private static BuildEnvironment GetBuildEnvironment()
-    {
-        var env = BuildEnvironment.NotTeamBuild;
-
-        if (IsInTeamBuild)
-        {
-            // Work out which flavor of TeamBuild
-            var buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy);
-            if (string.IsNullOrEmpty(buildUri))
-            {
-                buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015);
-                if (!string.IsNullOrEmpty(buildUri))
-                {
-                    env = BuildEnvironment.TeamBuild;
-                }
-            }
-            else
-            {
-                env = BuildEnvironment.LegacyTeamBuild;
-            }
-        }
-        return env;
     }
 
     private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue) =>

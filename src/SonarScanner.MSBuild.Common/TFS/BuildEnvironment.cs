@@ -21,11 +21,10 @@
 namespace SonarScanner.MSBuild.Common.TFS;
 
 /// <summary>
-/// Lists the recognized build environments
+/// Lists the recognized build environments.
 /// </summary>
 public enum BuildEnvironment
 {
     NotTeamBuild,
-    LegacyTeamBuild,
     TeamBuild
 }

@@ -26,45 +26,6 @@ namespace SonarScanner.MSBuild.TFS.Test;
 public class BuildSettingsTests
 {
     [TestMethod]
-    public void TBSettings_IsInTeamBuild()
-    {
-        // 0. Setup
-        bool result;
-
-        // 1. Env var not set
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
-            result = BuildSettings.IsInTeamBuild;
-            result.Should().BeFalse();
-        }
-
-        // 2. Env var set to a non-boolean -> false
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
-            result = BuildSettings.IsInTeamBuild;
-            result.Should().BeFalse();
-        }
-
-        // 3. Env var set to false -> false
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false");
-            result = BuildSettings.IsInTeamBuild;
-            result.Should().BeFalse();
-        }
-
-        // 4. Env var set to true -> true
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
-            result = BuildSettings.IsInTeamBuild;
-            result.Should().BeTrue();
-        }
-    }
-
-    [TestMethod]
     public void TBSettings_NotTeamBuild()
     {
         // 0. Setup
@@ -107,6 +68,22 @@ public class BuildSettingsTests
                 null,
                 null,
                 null);
+        }
+
+        // 3. Env var set to a non-boolean -> false
+        using (var scope = new EnvironmentVariableScope())
+        {
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
+            settings = BuildSettings.GetSettingsFromEnvironment();
+            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
+        }
+
+        // 4. Env var set to false -> false
+        using (var scope = new EnvironmentVariableScope())
+        {
+            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false");
+            settings = BuildSettings.GetSettingsFromEnvironment();
+            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
         }
     }
 
