@@ -231,15 +231,6 @@ Possible causes:
     <value>The following projects do not have a valid ProjectGuid and were not built using a valid solution (.sln) thus will be skipped from analysis...
 {0}</value>
   </data>
-  <data name="ERR_TFSProcessorExecutionFailed" xml:space="preserve">
-    <value>The TFS Processor did not complete successfully</value>
-  </data>
-  <data name="MSG_TFSProcessorCalling" xml:space="preserve">
-    <value>Calling the TFS Processor executable...</value>
-  </data>
-  <data name="MSG_TFSProcessorCompleted" xml:space="preserve">
-    <value>The TFS Processor has finished</value>
-  </data>
   <data name="MSG_UsingAzDoSourceDirectoryAsProjectBaseDir" xml:space="preserve">
     <value>Using TFS/Azure DevOps sources directory as project base directory: '{0}'.</value>
   </data>
