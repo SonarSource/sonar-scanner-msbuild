@@ -165,12 +165,7 @@ class ParameterTest {
       .setProperty("sonar.tests", "Program.cs");   // If they were passed, it results to double-indexing error.
     context.build.useDotNet();
     context.runAnalysis();
-
-    if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
-      assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).hasSize(4);
-    } else {
-      assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).hasSize(3);
-    }
+    assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).hasSize(4);
   }
 
   @ParameterizedTest
@@ -186,7 +181,7 @@ class ParameterTest {
     context.build.useDotNet();
 
     var logs = context.runFailedAnalysis().end().getLogs();
-      assertThat(logs).contains("ERROR: File Program.cs can't be indexed twice. Please check that inclusion/exclusion patterns produce disjoint sets for main and test files");
+    assertThat(logs).contains("ERROR: File Program.cs can't be indexed twice. Please check that inclusion/exclusion patterns produce disjoint sets for main and test files");
   }
 
 

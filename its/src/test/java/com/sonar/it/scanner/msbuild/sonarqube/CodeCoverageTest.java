@@ -41,18 +41,13 @@ class CodeCoverageTest {
   void whenRunningOutsideAzureDevops_coverageIsNotImported() {
     try (var buildDirectory = new TempDirectory("junit-CodeCoverage.BuildDirectory.Local-")) {
       var logs = createContextWithCoverage(buildDirectory, ScannerClassifier.NET).runAnalysis().end().getLogs();
-
-      if (ORCHESTRATOR.getServer().version().isGreaterThan(9, 9)) {
-        assertThat(logs).contains(
-          "'C# Tests Coverage Report Import' skipped because of missing configuration requirements.",
-          "Accessed configuration:",
-          "- sonar.cs.dotcover.reportsPaths: <empty>",
-          "- sonar.cs.ncover3.reportsPaths: <empty>",
-          "- sonar.cs.vscoveragexml.reportsPaths: <empty>",
-          "- sonar.cs.opencover.reportsPaths: <empty>");
-      } else {
-        assertThat(logs).contains("C# Tests Coverage Report Import' skipped because one of the required properties is missing");
-      }
+      assertThat(logs).contains(
+        "'C# Tests Coverage Report Import' skipped because of missing configuration requirements.",
+        "Accessed configuration:",
+        "- sonar.cs.dotcover.reportsPaths: <empty>",
+        "- sonar.cs.ncover3.reportsPaths: <empty>",
+        "- sonar.cs.vscoveragexml.reportsPaths: <empty>",
+        "- sonar.cs.opencover.reportsPaths: <empty>");
     }
   }
 

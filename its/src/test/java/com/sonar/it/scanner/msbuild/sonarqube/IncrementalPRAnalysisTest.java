@@ -57,19 +57,13 @@ class IncrementalPRAnalysisTest {
     assertThat(unexpectedUnchangedFiles).doesNotExist();
     assertThat(result.getLogs()).contains("Processing analysis cache");
 
-    if (ORCHESTRATOR.getServer().version().isGreaterThanOrEquals(9, 9)) {
-      assertThat(result.getLogs()).contains("Cache data is empty. A full analysis will be performed.");
-    } else {
-      assertThat(result.getLogs()).contains("Incremental PR analysis is available starting with SonarQube 9.9 or later.");
-    }
+    assertThat(result.getLogs()).contains("Cache data is empty. A full analysis will be performed.");
   }
 
   @Test
-  // Public cache API was introduced in 9.9
-  @ServerMinVersion("9.9")
   void withCache_ProducesUnchangedFiles() throws IOException {
     var context = AnalysisContext.forServer("IncrementalPRAnalysis");
-    String baseBranch = TestUtils.getDefaultBranchName(ORCHESTRATOR);
+    String baseBranch = "main";
     context.runAnalysis();  // First analysis to populate the cache
     waitForCacheInitialization(context.projectKey, baseBranch);
 
