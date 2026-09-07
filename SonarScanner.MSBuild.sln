@@ -52,8 +52,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.TFS.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.TFS", "src\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj", "{5114A25B-9439-48B7-9B5E-124F307EBE22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.TFS.Classic", "src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj", "{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarScanner.MSBuild.PackagingTest", "Tests\SonarScanner.MSBuild.PackagingTest\SonarScanner.MSBuild.PackagingTest.csproj", "{66E29A28-708A-65C4-3B63-72A293705171}"
 EndProject
 Global
@@ -248,18 +246,6 @@ Global
 		{5114A25B-9439-48B7-9B5E-124F307EBE22}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{5114A25B-9439-48B7-9B5E-124F307EBE22}.Release|x86.ActiveCfg = Release|Any CPU
 		{5114A25B-9439-48B7-9B5E-124F307EBE22}.Release|x86.Build.0 = Release|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Debug|x86.Build.0 = Debug|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Release|x86.ActiveCfg = Release|Any CPU
-		{1DB8ABE8-2D7C-4ED1-A6B5-3CA13563A1A7}.Release|x86.Build.0 = Release|Any CPU
 		{66E29A28-708A-65C4-3B63-72A293705171}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{66E29A28-708A-65C4-3B63-72A293705171}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66E29A28-708A-65C4-3B63-72A293705171}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

@@ -17,7 +17,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' != 'net48'">
-    <Compile Remove="Classic\**" />
     <Compile Remove="Infrastructure\MockReportDownloader.cs" />
     <Compile Remove="ProgramTests.cs" />
   </ItemGroup>
@@ -25,8 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Shim\SonarScanner.MSBuild.Shim.csproj" />
-    <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS.Classic\SonarScanner.MSBuild.TFS.Classic.csproj"
-                      Condition="'$(TargetFramework)' == 'net48'" />
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.TFS\SonarScanner.MSBuild.TFS.csproj" />
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
