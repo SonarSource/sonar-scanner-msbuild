@@ -85,7 +85,6 @@ public class PostProcessor
             {
                 DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
                 // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
-                runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = IsTfsProcessorCalled(settings);
                 runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = coverageConversionPerformed;
                 runtime.Telemetry.Write(settings.SonarOutputDirectory);
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
@@ -115,18 +114,6 @@ public class PostProcessor
         }
         return result;
     }
-
-    private static string IsTfsProcessorCalled(IBuildSettings settings) =>
-        // We need to know IsTfsProcessorCalled? before we call the scanner/engine because telemetry needs to be complete before that call.
-        // tfsProcessor.Execute is called in ProcessSummaryReportBuilder (called after the scanner/engine invocation) if NETFRAMEWORK and BuildEnvironment.LegacyTeamBuild and also in
-        // ProcessCoverageReport (before the scanner/engine invocation and only if !BuildSettings.SkipLegacyCodeCoverageProcessing).
-        // We are interested if either of the calls happened and therefore we assume ProcessSummaryReportBuilder will happen after the scanner/engine invocation
-        // and BuildSettings.SkipLegacyCodeCoverageProcessing is ignored for telemetry.
-#if NETFRAMEWORK
-        settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild ? TelemetryValues.EndstepLegacyTFS.Called : TelemetryValues.EndstepLegacyTFS.NotCalled;
-#else
-        TelemetryValues.EndstepLegacyTFS.NotCalled;
-#endif
 
     private void LogStartupSettings(AnalysisConfig config, IBuildSettings settings)
     {
