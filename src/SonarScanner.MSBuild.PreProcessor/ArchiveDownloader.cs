@@ -89,7 +89,7 @@ public class ArchiveDownloader
         {
             runtime.LogDebug(Resources.ERR_ExtractionFailedWithError, ex.Message);
             CleanupFolder(tempExtractionPath);
-            return new DownloadError(Resources.ERR_ExtractionFailed);
+            return new DownloadError(Resources.ERR_ExtractionFailed, ex);
         }
     }
 

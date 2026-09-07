@@ -83,7 +83,9 @@ public sealed class CachedDownloaderTests : IDisposable
         runtime.Directory.Exists(DownloadPath).Returns(false);
         runtime.Directory.When(x => x.CreateDirectory(DownloadPath)).Throw<IOException>();
 
-        (await cachedDownloader.DownloadFileAsync(null)).Should().Be(new DownloadError($"The directory '{DownloadPath}' could not be created."));
+        var error = (await cachedDownloader.DownloadFileAsync(null)).Should().BeOfType<DownloadError>().Which;
+        error.Message.Should().Be($"The directory '{DownloadPath}' could not be created.");
+        error.Exception.Should().BeOfType<IOException>();
 
         runtime.Directory.Received(1).Exists(DownloadPath);
         runtime.Directory.Received(1).CreateDirectory(DownloadPath);
@@ -132,14 +134,39 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
+    public async Task DownloadFileAsync_DownloadFails_RetainsException()
+    {
+        var exception = new IOException("JRE download failed", new InvalidOperationException("SSL handshake failed"));
+
+        var result = await cachedDownloader.DownloadFileAsync(() => Task.FromException<Stream>(exception));
+
+        var error = result.Should().BeOfType<DownloadError>().Which;
+        error.Message.Should().Be("The download of the file from the server failed with the exception 'JRE download failed'.");
+        error.Exception.Should().BeSameAs(exception);
+        // The message of the outer exception is already part of Message, only the root cause is added.
+        error.DetailedMessage.Should().Be($"The download of the file from the server failed with the exception 'JRE download failed'.{Environment.NewLine}  -> SSL handshake failed");
+    }
+
+    [TestMethod]
+    public void DownloadError_DetailedMessage_DoesNotRepeatMessageContainedInPreviousInnerException() =>
+        new DownloadError(
+            "The download failed.",
+            new InvalidOperationException("Outer", new IOException("Inner: Root cause", new Exception("Root cause"))))
+            .DetailedMessage
+            .Should()
+            .Be($"The download failed.{Environment.NewLine}  -> Outer{Environment.NewLine}  -> Inner: Root cause");
+
+    [TestMethod]
     public async Task DownloadFileAsync_WrongChecksum_ReturnsDownloadError()
     {
         checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
 
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<DownloadError>().Which.Message
-            .Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
+        var error = result.Should().BeOfType<DownloadError>().Which;
+        error.Message.Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
+        error.Exception.Should().BeNull("a checksum mismatch is not caused by an exception");
+        error.DetailedMessage.Should().Be(error.Message);
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
@@ -153,20 +180,40 @@ public sealed class CachedDownloaderTests : IDisposable
     [TestMethod]
     public async Task DownloadFileAsync_ChecksumCalculationFails_ReturnsDownloadError()
     {
-        checksum.ComputeHash(null).ThrowsForAnyArgs<InvalidOperationException>();
+        var exception = new InvalidOperationException("Checksum provider failed", new IOException("The provider is unavailable."));
+        checksum.ComputeHash(null).ThrowsForAnyArgs(exception);
 
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
 
-        result.Should().BeOfType<DownloadError>().Which.Message
-            .Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
+        var error = result.Should().BeOfType<DownloadError>().Which;
+        error.Message.Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
+        error.Exception.Should().BeSameAs(exception);
+        error.DetailedMessage.Should().Be($"{error.Message}{Environment.NewLine}  -> Checksum provider failed{Environment.NewLine}  -> The provider is unavailable.");
         AssertTempFileCreatedAndDeleted();
         AssertStreamDisposed();
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.Should().HaveDebugs(
             $"Cache miss. Could not find '{DownloadFilePath}'.",
-            $"The calculation of the checksum of the file '{TempFilePath}' failed with message 'Operation is not valid due to the current state of the object.'.",
+            $"The calculation of the checksum of the file '{TempFilePath}' failed with message 'Checksum provider failed'.",
             $"Deleting file '{Path.Combine(DownloadPath, TempFileName)}'.",
             "The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
+    }
+
+    [TestMethod]
+    public async Task DownloadFileAsync_ChecksumFileOpenFails_RetainsException()
+    {
+        var exception = new IOException("The downloaded file is locked.");
+        runtime.File.Open(TempFilePath).Throws(exception);
+
+        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
+
+        var error = result.Should().BeOfType<DownloadError>().Which;
+        error.Message.Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
+        error.Exception.Should().BeSameAs(exception);
+        error.DetailedMessage.Should().Be($"{error.Message}{Environment.NewLine}  -> The downloaded file is locked.");
+        AssertTempFileCreatedAndDeleted();
+        AssertStreamDisposed();
+        checksum.DidNotReceive().ComputeHash(Arg.Any<Stream>());
     }
 
     [TestMethod]

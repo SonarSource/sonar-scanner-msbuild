@@ -135,6 +135,7 @@ public class JreResolverTests
 
         res.Should().BeNull();
         runtime.Logger.Should().HaveNoInfos();
+        runtime.Logger.Should().HaveNoErrors("an empty list of JREs is a graceful opt-out, not a provisioning failure");
         AssertDebugMessages(
             true,
             "JreResolver: Resolving JRE path.",
@@ -178,6 +179,7 @@ public class JreResolverTests
         var res = await sut.ResolvePath(Args());
 
         res.Should().Be(ExtractedJavaPath);
+        runtime.Logger.Should().HaveNoErrors();
         runtime.Logger.Should().HaveInfos("""
             The JRE provisioning is a time consuming operation.
             JRE provisioned: filename.tar.gz.
@@ -235,21 +237,46 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_CacheMiss_DownloadFailure()
     {
-        runtime.File.Create(Arg.Any<string>()).Throws(new IOException("Reason"));
+        runtime.File.Create(Arg.Any<string>()).Throws(new IOException("JRE download failed", new InvalidOperationException("SSL handshake failed")));
         var res = await sut.ResolvePath(Args());
 
         res.Should().BeNull();
         runtime.Logger.Should().HaveNoInfos();
+        // The inner exception carries the root cause (here the SSL failure) and has to be visible without verbose logging.
+        runtime.Logger.Should().HaveErrors(1).And.HaveErrorOnce("""
+            JreResolver: Download failure. The download of the file from the server failed with the exception 'JRE download failed'.
+              -> SSL handshake failed
+            The analysis will continue with the Java runtime environment found in JAVA_HOME or on the PATH. If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+            """);
+        var stackTrace = AssertAndRemoveExceptionDebugMessage();
+        stackTrace.Should().Contain("JRE download failed").And.Contain("SSL handshake failed");
         AssertDebugMessages(
             true,
             "JreResolver: Resolving JRE path.",
             $"Cache miss. Could not find '{ExtractedJavaPath}'.",
             $"Cache miss. Could not find '{DownloadPath}'.",
             $"Deleting file '{ShaPath}'.",  // should be temp file path but the scaffolding is not setup
-            "The download of the file from the server failed with the exception 'Reason'.",
-            "JreResolver: Download failure. The download of the file from the server failed with the exception 'Reason'.");
+            "The download of the file from the server failed with the exception 'JRE download failed'.",
+            "JreResolver: Download failure. The download of the file from the server failed with the exception 'JRE download failed'.");
         runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreBootstrapping, TelemetryValues.JreBootstrapping.Enabled)
             .And.HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed);
+    }
+
+    [TestMethod]
+    public async Task ResolveJrePath_DownloadFailure_ThenMetadataFailureOnRetry_ReportsTheDownloadFailure()
+    {
+        // The retry does not get as far as downloading, so the failure of the first attempt is the only one that explains anything.
+        server.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(metadata, (JreMetadata)null);
+        runtime.File.Create(Arg.Any<string>()).Throws(new IOException("JRE download failed"));
+
+        var res = await sut.ResolvePath(Args());
+
+        res.Should().BeNull();
+        runtime.Logger.Should().HaveErrors(1).And.HaveErrorOnce("""
+            JreResolver: Download failure. The download of the file from the server failed with the exception 'JRE download failed'.
+            The analysis will continue with the Java runtime environment found in JAVA_HOME or on the PATH. If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
+            """);
+        runtime.Telemetry.Should().HaveMessage(TelemetryKeys.JreDownload, TelemetryValues.JreDownload.Failed);
     }
 
     [TestMethod]
@@ -271,6 +298,7 @@ public class JreResolverTests
         var res = await sut.ResolvePath(Args());
 
         res.Should().Be(ExtractedJavaPath);
+        runtime.Logger.Should().HaveNoErrors("the retry succeeded, the failure of the first attempt stays at debug level");
         runtime.Logger.Should().HaveInfos("""
             The JRE provisioning is a time consuming operation.
             JRE provisioned: filename.tar.gz.
@@ -410,6 +438,17 @@ public class JreResolverTests
 
     private void AssertDebugMessages(params string[] messages) =>
         AssertDebugMessages(false, messages);
+
+    /// <summary>
+    /// Asserts that the full exception, including its stack trace, was logged at debug level and removes it, so that the remaining messages can be asserted exactly.
+    /// The stack trace itself is not deterministic and cannot be part of an exact assertion.
+    /// </summary>
+    private string AssertAndRemoveExceptionDebugMessage()
+    {
+        var exceptionMessage = runtime.Logger.DebugMessages.Should().ContainSingle(x => x.StartsWith("System.IO.IOException:")).Which;
+        runtime.Logger.DebugMessages.Remove(exceptionMessage);
+        return exceptionMessage;
+    }
 
     private void AssertDebugMessages(bool retry, params string[] messages)
     {
