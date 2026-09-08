@@ -61,7 +61,7 @@ public class BuildSettings : IBuildSettings
     /// <summary>
     /// Factory method to create and return a new set of team build settings calculated from environment variables.
     /// </summary>
-    public static BuildSettings GetSettingsFromEnvironment(ILogger logger)
+    public static BuildSettings SettingsFromEnvironment(ILogger logger)
     {
         var isAzDo = false;
 
@@ -111,7 +111,7 @@ public class BuildSettings : IBuildSettings
     }
 
     /// <summary>
-    /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/> in product code.
+    /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="SettingsFromEnvironment(ILogger)"/> in product code.
     /// </summary>
     public static BuildSettings CreateSettingsForTesting(string analysisBaseDirectory, bool isAzDo = false)
     {
