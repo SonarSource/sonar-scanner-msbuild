@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.TFS;
-
 namespace SonarScanner.MSBuild.TFS.Test;
 
 [TestClass]
@@ -34,7 +32,7 @@ public class BuildSettingsTests
         var settings = BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger);
         CheckExpectedSettings(
             settings,
-            BuildEnvironment.NotTeamBuild,
+            false,
             Directory.GetCurrentDirectory(),
             null,
             null,
@@ -55,7 +53,7 @@ public class BuildSettingsTests
         var settings = BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger);
         CheckExpectedSettings(
             settings,
-            BuildEnvironment.NotTeamBuild,
+            false,
             Directory.GetCurrentDirectory(),
             null,
             null,
@@ -69,7 +67,7 @@ public class BuildSettingsTests
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
 
-        BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger).BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
+        BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger).IsAzureDevOps.Should().BeFalse();
     }
 
     [TestMethod]
@@ -78,7 +76,7 @@ public class BuildSettingsTests
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false");
 
-        BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger).BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
+        BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger).IsAzureDevOps.Should().BeFalse();
     }
 
     [TestMethod]
@@ -95,7 +93,7 @@ public class BuildSettingsTests
         settings.Should().NotBeNull("Failed to create the BuildSettings");
         CheckExpectedSettings(
             settings,
-            BuildEnvironment.TeamBuild,
+            true,
             Directory.GetCurrentDirectory(),
             "http://builduri",
             "http://collectionUri",
@@ -121,7 +119,7 @@ public class BuildSettingsTests
 
     private static void CheckExpectedSettings(
         BuildSettings actual,
-        BuildEnvironment expectedEnvironment,
+        bool expectedIsAzureDevOps,
         string expectedAnalysisDir,
         string expectedBuildUri,
         string expectedCollectionUri,
@@ -130,19 +128,19 @@ public class BuildSettingsTests
     {
         actual.Should().NotBeNull("Returned settings should never be null");
 
-        actual.BuildEnvironment.Should().Be(expectedEnvironment, "Unexpected build environment returned");
+        actual.IsAzureDevOps.Should().Be(expectedIsAzureDevOps, "Unexpected build environment returned");
         actual.AnalysisBaseDirectory.Should().Be(expectedAnalysisDir, "Unexpected analysis base directory returned");
         actual.BuildDirectory.Should().Be(expectedBuildDir, "Unexpected build directory returned");
         actual.BuildUri.Should().Be(expectedBuildUri, "Unexpected build uri returned");
         actual.TfsUri.Should().Be(expectedCollectionUri, "Unexpected tfs uri returned");
 
-        if (actual.BuildEnvironment == BuildEnvironment.NotTeamBuild)
+        if (actual.IsAzureDevOps)
         {
-            actual.SourcesDirectory.Should().BeNull("Should not be able to set the sources directory");
+            actual.SourcesDirectory.Should().Be(expectedSourcesDir, "Unexpected sources directory returned");
         }
         else
         {
-            actual.SourcesDirectory.Should().Be(expectedSourcesDir, "Unexpected sources directory returned");
+            actual.SourcesDirectory.Should().BeNull("Should not be able to set the sources directory");
         }
 
         // Check the calculated values

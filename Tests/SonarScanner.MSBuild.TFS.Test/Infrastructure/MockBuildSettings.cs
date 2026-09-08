@@ -18,15 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.TFS;
-
 namespace SonarScanner.MSBuild.TFS.Test.Infrastructure;
 
 internal class MockBuildSettings : IBuildSettings
 {
     // Settable properties for testing
 
-    public BuildEnvironment BuildEnvironment { get; set; }
+    public bool IsAzureDevOps { get; set; }
 
     public string TfsUri { get; set; }
 

@@ -19,7 +19,6 @@
  */
 
 using System.Runtime.CompilerServices;
-using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
@@ -77,7 +76,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     {
         var settings = BuildSettings.GetSettingsFromEnvironment(Runtime.Logger);
         settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-        settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+        settings.IsAzureDevOps.Should().BeFalse("Test setup error: build environment was not set correctly");
         return settings;
     }
 
