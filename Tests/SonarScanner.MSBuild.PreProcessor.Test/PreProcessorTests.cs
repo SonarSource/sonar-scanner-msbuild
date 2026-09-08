@@ -19,7 +19,6 @@
  */
 
 using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.Common.TFS;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -485,7 +484,7 @@ public partial class PreProcessorTests
         {
             var settings = BuildSettings.GetSettingsFromEnvironment(new TestLogger());
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            settings.IsAzureDevOps.Should().BeFalse("Test setup error: build environment was not set correctly");
             return settings;
         }
     }
