@@ -296,4 +296,7 @@
   <data name="ERROR_UnsupportedRegion" xml:space="preserve">
     <value>Unsupported region '{0}'. List of supported regions: 'us'. Please check the 'sonar.region' property.</value>
   </data>
+  <data name="ERROR_TFSLegacyNotSupported" xml:space="preserve">
+    <value>Team Foundation Server detected, which is not supported.</value>
+  </data>
 </root>

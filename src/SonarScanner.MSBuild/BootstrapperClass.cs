@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
 using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild;
@@ -150,8 +144,8 @@ public class BootstrapperClass
         }
 
         Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
-        IBuildSettings teamBuildSettings = BuildSettings.GetSettingsFromEnvironment();
-        var config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);
+        IBuildSettings teamBuildSettings = BuildSettings.GetSettingsFromEnvironment(logger);
+        var config = GetAnalysisConfig(teamBuildSettings?.AnalysisConfigFilePath);
 
         bool succeeded;
         if (config == null)

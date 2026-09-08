@@ -42,10 +42,14 @@ public class PreProcessor
 
     public virtual async Task<bool> Execute(IEnumerable<string> args)
     {
-        runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
-        var buildSettings = BuildSettings.GetSettingsFromEnvironment();
-        var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime);
+        var buildSettings = BuildSettings.GetSettingsFromEnvironment(runtime.Logger);
+        if (buildSettings is null)
+        {
+            return false;   // logging happens inside BuildSettings.GetSettingsFromEnvironment
+        }
 
+        runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
+        var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime);
         if (processedArgs is null)
         {
             runtime.Logger.ResumeOutput();

@@ -353,6 +353,18 @@ public partial class PreProcessorTests
         AssertExpectedServerSetting(actualConfig, "shared.CASING", "server upper case value");
     }
 
+    [TestMethod]
+    public async Task Execute_TFSLegacy_ReturnFalse()
+    {
+        using var context = new Context(TestContext);
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
+        scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "http://builduri");
+
+        (await context.Execute()).Should().BeFalse();
+        context.Factory.Runtime.Logger.Should().HaveErrors("Team Foundation Server detected, which is not supported.");
+    }
+
     private static IEnumerable<string> CreateArgs(string organization = null, Dictionary<string, string> properties = null)
     {
         yield return "/k:key";
@@ -471,7 +483,7 @@ public partial class PreProcessorTests
 
         private static BuildSettings ReadSettings()
         {
-            var settings = BuildSettings.GetSettingsFromEnvironment();
+            var settings = BuildSettings.GetSettingsFromEnvironment(new TestLogger());
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
             settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
             return settings;
