@@ -64,18 +64,16 @@ public class BuildSettings : IBuildSettings
     /// </summary>
     public static BuildSettings GetSettingsFromEnvironment(ILogger logger)
     {
-        var env = BuildEnvironment.NotTeamBuild;
+        var isAzDo = false;
 
         if (IsInTeamBuild)
         {
             // Work out which flavor of TeamBuild
-            var buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy);
-            if (string.IsNullOrEmpty(buildUri))
+            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy)))
             {
-                buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015);
-                if (!string.IsNullOrEmpty(buildUri))
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015)))
                 {
-                    env = BuildEnvironment.TeamBuild;
+                    isAzDo = true;
                 }
             }
             else
@@ -85,24 +83,22 @@ public class BuildSettings : IBuildSettings
             }
         }
 
-        var settings = env switch
-        {
-            BuildEnvironment.TeamBuild => new BuildSettings
+        var settings = isAzDo
+            ? new BuildSettings
             {
-                BuildEnvironment = env,
+                BuildEnvironment = BuildEnvironment.TeamBuild,
                 BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015),
                 TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
                 BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryTfs2015),
                 SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
                 CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
-            },
-            _ => new BuildSettings
+            }
+            : new BuildSettings
             {
-                BuildEnvironment = env,
+                BuildEnvironment = BuildEnvironment.NotTeamBuild,
                 // there's no reliable of way of finding the SourcesDirectory, except after the build
                 CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
-            }
-        };
+            };
 
         // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
         settings.AnalysisBaseDirectory = Directory.GetCurrentDirectory();
