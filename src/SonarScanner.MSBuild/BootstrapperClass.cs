@@ -143,8 +143,8 @@ public class BootstrapperClass
         }
 
         Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
-        IBuildSettings teamBuildSettings = BuildSettings.GetSettingsFromEnvironment();
-        var config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);
+        IBuildSettings teamBuildSettings = BuildSettings.GetSettingsFromEnvironment(logger);
+        var config = GetAnalysisConfig(teamBuildSettings?.AnalysisConfigFilePath);
 
         bool succeeded;
         if (config == null)

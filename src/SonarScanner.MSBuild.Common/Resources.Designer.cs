@@ -278,6 +278,15 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Team Foundation Server detected, which is not supported..
+        /// </summary>
+        internal static string ERROR_TFSLegacyNotSupported {
+            get {
+                return ResourceManager.GetString("ERROR_TFSLegacyNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A server certificate could not be validated. Possible cause: you are using a self-signed SSL certificate but the certificate has not been installed on the client machine. Please make sure that you can access {0} without encountering certificate errors..
         /// </summary>
         internal static string ERROR_TrustFailure {

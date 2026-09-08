@@ -119,7 +119,6 @@ public class PostProcessor
     {
         var environmentMessage = settings.BuildEnvironment switch
         {
-            BuildEnvironment.LegacyTeamBuild => Resources.SETTINGS_InLegacyTeamBuild,
             BuildEnvironment.TeamBuild => Resources.SETTINGS_InTeamBuild,
             BuildEnvironment.NotTeamBuild => Resources.SETTINGS_NotInTeamBuild,
             _ => throw new InvalidOperationException($"Unexpected BuildEnvironment: {settings.BuildEnvironment}")

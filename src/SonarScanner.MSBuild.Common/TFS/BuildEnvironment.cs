@@ -26,6 +26,5 @@ namespace SonarScanner.MSBuild.Common.TFS;
 public enum BuildEnvironment
 {
     NotTeamBuild,
-    LegacyTeamBuild,
     TeamBuild
 }
