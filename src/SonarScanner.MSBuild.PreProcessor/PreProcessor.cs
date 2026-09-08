@@ -77,19 +77,6 @@ public class PreProcessor
         {
             return false;
         }
-        try
-        {
-            if (!await server.IsAllValid())
-            {
-                return false;
-            }
-        }
-        catch (Exception ex)
-        {
-            runtime.LogError(ex.Message);
-            runtime.LogDebug(ex.StackTrace);
-            return false;
-        }
         runtime.Telemetry[TelemetryKeys.ServerInfoVersion] = server.ServerVersion.ToString();
 
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);

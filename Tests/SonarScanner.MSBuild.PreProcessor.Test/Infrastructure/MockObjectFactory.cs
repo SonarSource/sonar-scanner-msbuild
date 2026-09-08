@@ -50,7 +50,6 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         serverProperties.Add("server.key", "server value 1");
         Server.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
         Server.DownloadAllLanguages().Returns(["cs", "vbnet", "another_plugin"]);
-        Server.IsAllValid().Returns(true);
         if (withDefaultRules)
         {
             Server.DownloadRules("qp1").Returns([new SonarRule("csharpsquid", "cs.rule.id")]);
