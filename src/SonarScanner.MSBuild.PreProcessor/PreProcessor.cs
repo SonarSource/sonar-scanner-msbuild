@@ -42,10 +42,10 @@ public class PreProcessor
 
     public virtual async Task<bool> Execute(IEnumerable<string> args)
     {
-        var buildSettings = BuildSettings.GetSettingsFromEnvironment(runtime.Logger);
+        var buildSettings = BuildSettings.SettingsFromEnvironment(runtime.Logger);
         if (buildSettings is null)
         {
-            return false;   // logging happens inside BuildSettings.GetSettingsFromEnvironment
+            return false;   // logging happens inside BuildSettings.SettingsFromEnvironment
         }
 
         runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
