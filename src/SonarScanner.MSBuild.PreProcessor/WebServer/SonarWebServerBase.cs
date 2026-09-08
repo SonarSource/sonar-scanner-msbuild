@@ -34,13 +34,13 @@ public abstract class SonarWebServerBase : IDisposable
 
     protected readonly IDownloader webDownloader;
     protected readonly IDownloader apiDownloader;
-    protected readonly Version serverVersion;
     protected readonly string organization;
     protected readonly ILogger logger;
 
     private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
     private bool disposed;
 
+    public abstract string ServerVersion { get; }
     public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
     public abstract Task<Stream> DownloadEngineAsync(EngineMetadata metadata);
     public abstract Task<Stream> DownloadJreAsync(JreMetadata metadata);
@@ -49,13 +49,10 @@ public abstract class SonarWebServerBase : IDisposable
     protected abstract Task<bool> IsServerLicenseValid();
     protected abstract RuleSearchPaging ParseRuleSearchPaging(JObject json);
 
-    public Version ServerVersion => serverVersion;
-
-    protected SonarWebServerBase(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
+    protected SonarWebServerBase(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization)
     {
         this.webDownloader = webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
         this.apiDownloader = apiDownloader ?? throw new ArgumentNullException(nameof(apiDownloader));
-        this.serverVersion = serverVersion ?? throw new ArgumentNullException(nameof(serverVersion));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.organization = organization;
     }

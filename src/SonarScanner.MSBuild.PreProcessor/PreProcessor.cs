@@ -77,7 +77,7 @@ public class PreProcessor
         {
             return false;
         }
-        runtime.Telemetry[TelemetryKeys.ServerInfoVersion] = server.ServerVersion.ToString();
+        runtime.Telemetry[TelemetryKeys.ServerInfoVersion] = server.ServerVersion;
 
         var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
@@ -111,7 +111,7 @@ public class PreProcessor
             additionalSettings,
             argumentsAndRuleSets.ServerSettings,
             argumentsAndRuleSets.AnalyzersSettings,
-            server.ServerVersion.ToString(),
+            server.ServerVersion,
             resolvedJavaExePath,
             scannerEngineJarPath,
             scannerCliPath,

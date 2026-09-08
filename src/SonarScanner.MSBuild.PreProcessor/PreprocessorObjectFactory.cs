@@ -60,14 +60,9 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             return null;
         }
 
-        var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
-        if (!ValidateServerVersion(args.ServerInfo, serverVersion))
-        {
-            return null;
-        }
         return args.ServerInfo.IsSonarCloud
-            ? await SonarCloudWebServer.Create(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization, args.HttpTimeout)
-            : await SonarQubeWebServer.Create(webDownloader, apiDownloader, serverVersion, runtime, args.Organization);
+            ? await SonarCloudWebServer.Create(webDownloader, apiDownloader, runtime.Logger, args.Organization, args.HttpTimeout)
+            : await SonarQubeWebServer.Create(webDownloader, apiDownloader, runtime, args.Organization);
 
         IDownloader CreateDownloader(string baseUrl) =>
             new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, runtime.Logger)
@@ -112,52 +107,6 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             return false;
         }
         return true;
-    }
-
-    private bool ValidateServerVersion(HostInfo serverInfo, Version serverVersion)
-    {
-        if (serverVersion is null)
-        {
-            return false;
-        }
-        // Make sure the server is the one we detected from the user settings
-        else if (SonarProduct.IsSonarCloud(serverVersion) != serverInfo.IsSonarCloud)
-        {
-            var errorMessage = serverInfo.IsSonarCloud
-                ? Resources.ERR_DetectedErroneouslySonarCloud
-                : Resources.ERR_DetectedErroneouslySonarQube;
-            runtime.LogError(errorMessage);
-            return false;
-        }
-        return true;
-    }
-
-    private async Task<Version> QueryServerVersion(IDownloader downloader, IDownloader fallback)
-    {
-        runtime.LogDebug(Resources.MSG_FetchingVersion);
-
-        try
-        {
-            return await QueryVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
-        }
-        catch
-        {
-            try
-            {
-                return await QueryVersion(fallback, "api/server/version", LoggerVerbosity.Info);
-            }
-            catch
-            {
-                runtime.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
-                return null;
-            }
-        }
-
-        static async Task<Version> QueryVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
-        {
-            var contents = await downloader.Download(new(path, UriKind.Relative), failureVerbosity: failureVerbosity);
-            return new Version(contents.Split('-')[0]);
-        }
     }
 
     /// <summary>

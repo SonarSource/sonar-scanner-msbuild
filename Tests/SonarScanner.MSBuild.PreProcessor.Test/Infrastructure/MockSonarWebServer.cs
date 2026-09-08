@@ -25,5 +25,5 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 public static class MockSonarWebServer
 {
     public static SonarWebServerBase Create() =>
-        Substitute.For<SonarWebServerBase>(Substitute.For<IDownloader>(), Substitute.For<IDownloader>(), new Version(2026, 1), new TestLogger(), null);
+        Substitute.For<SonarWebServerBase>(Substitute.For<IDownloader>(), Substitute.For<IDownloader>(), new TestLogger(), null);
 }

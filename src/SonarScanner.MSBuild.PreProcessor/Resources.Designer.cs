@@ -151,24 +151,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Detected SonarCloud but server was found to be SonarQube. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
-        /// </summary>
-        internal static string ERR_DetectedErroneouslySonarCloud {
-            get {
-                return ResourceManager.GetString("ERR_DetectedErroneouslySonarCloud", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Detected SonarQube but server was found to be SonarCloud. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
-        /// </summary>
-        internal static string ERR_DetectedErroneouslySonarQube {
-            get {
-                return ResourceManager.GetString("ERR_DetectedErroneouslySonarQube", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!.
         /// </summary>
         internal static string ERR_DotNetAnalyzersNotFound {
@@ -257,7 +239,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
                 return ResourceManager.GetString("ERR_JavaExeNotFoundAtExpectedLocation", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to JreResolver: Download failure. {0}
         ///The analysis will continue with the Java runtime environment found in JAVA_HOME or on the PATH. If you already have a compatible Java version installed, please add either the parameter &quot;/d:sonar.scanner.skipJreProvisioning=true&quot; or &quot;/d:sonar.scanner.javaExePath=&lt;PATH&gt;&quot;..
@@ -267,7 +249,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
                 return ResourceManager.GetString("ERR_JreResolver_DownloadFailure", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Organization parameter (/o:&quot;&lt;organization&gt;&quot;) is required and needs to be provided!.
         /// </summary>

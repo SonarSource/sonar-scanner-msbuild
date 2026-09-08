@@ -47,7 +47,6 @@ class CloudRegionTest {
       "Api Url: https://api.sonarqube.us",
       "Is SonarCloud: True",
       "Downloading from https://sonarqube.us/api/settings/values?component=unknown",
-      "Downloading from https://api.sonarqube.us/analysis/version",
       "Using SonarCloud.",
       "Downloading from https://sonarqube.us/api/settings/values?component=" + ContextExtension.currentTestName() + "...",
       "Cannot download quality profile. Check scanner arguments and the reported URL for more information.",

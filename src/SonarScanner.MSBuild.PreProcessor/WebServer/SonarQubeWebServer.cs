@@ -29,22 +29,35 @@ namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 internal class SonarQubeWebServer : SonarWebServerBase
 {
     private readonly IRuntime runtime;
+    private readonly Version serverVersion;
+
+    public override string ServerVersion => serverVersion.ToString();
 
     private SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
-        : base(webDownloader, apiDownloader, serverVersion, runtime.Logger, organization) =>
-        this.runtime = runtime;
-
-    public static async Task<SonarQubeWebServer> Create(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
+        : base(webDownloader, apiDownloader, runtime.Logger, organization)
     {
-        var ret = new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, organization);
-        runtime.LogInfo(Resources.MSG_UsingSonarQube, serverVersion);
-        if (await ret.IsAllValid())
+        this.serverVersion = serverVersion;
+        this.runtime = runtime;
+    }
+
+    public static async Task<SonarQubeWebServer> Create(IDownloader webDownloader, IDownloader apiDownloader, IRuntime runtime, string organization)
+    {
+        if (await LoadServerVersion(apiDownloader, runtime.Logger) is { } serverVersion)
         {
-            return ret;
+            var ret = new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, organization);
+            runtime.LogInfo(Resources.MSG_UsingSonarQube, ret.ServerVersion);
+            if (await ret.IsAllValid())
+            {
+                return ret;
+            }
+            else
+            {
+                ret.Dispose();
+                return null;
+            }
         }
         else
         {
-            ret.Dispose();
             return null;
         }
     }
@@ -161,6 +174,39 @@ internal class SonarQubeWebServer : SonarWebServerBase
 
             runtime.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
             return false;
+        }
+    }
+
+    private static async Task<Version> LoadServerVersion(IDownloader apiDownloader, ILogger logger)
+    {
+        logger.LogDebug(Resources.MSG_FetchingVersion);
+        try
+        {
+            if (await apiDownloader.Download(new("analysis/version", UriKind.Relative)) is { } content)
+            {
+                return new Version(content.Split('-')[0]);
+            }
+            else
+            {
+                LogMessages(null);
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            LogMessages(ex);
+            return null;
+        }
+
+        void LogMessages(Exception exception)
+        {
+            logger.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
+            if (exception is not null)
+            {
+                logger.LogError(exception.Message);
+            }
+            logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);                    // Might have talked to SonarQube Cloud, which doesn't have the endpoint
+            logger.LogWarning(Resources.ERR_SonarQubeUnsupported, "2025.1 or 25.1");    // Older SQ might not have the endpoint
         }
     }
 }

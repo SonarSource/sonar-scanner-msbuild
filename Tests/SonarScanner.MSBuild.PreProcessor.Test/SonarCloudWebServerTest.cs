@@ -37,11 +37,10 @@ public class SonarCloudWebServerTest
     private const string Organization = "org42";
     private const string CacheBaseUrl = "https://www.cacheBaseUrl.com";
     private const string CacheFullUrl = $"{CacheBaseUrl}/sensor-cache/prepare-read?organization={Organization}&project={ProjectKey}&branch={ProjectBranch}";
-    private static readonly Version Version = new("5.6");
     private static readonly TimeSpan HttpTimeout = TimeSpan.FromSeconds(42);
 
     [TestMethod]
-    public async Task Ctor_LogsServerType()
+    public async Task Create_LogsServerType()
     {
         var context = new Context();
         await context.CreateServer();
@@ -455,7 +454,7 @@ public class SonarCloudWebServerTest
         }
 
         public Task<SonarCloudWebServer> CreateServer() =>
-            SonarCloudWebServer.Create(WebDownloader, ApiDownloader, Version, Logger, organization, HttpTimeout, handler);
+            SonarCloudWebServer.Create(WebDownloader, ApiDownloader, Logger, organization, HttpTimeout, handler);
 
         private void MockDownloaderServerSettings(string cacheBase)
         {

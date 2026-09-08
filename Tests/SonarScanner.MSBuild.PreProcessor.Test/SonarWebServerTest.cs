@@ -33,16 +33,14 @@ public class SonarWebServerTest
 
     private TestLogger logger;
     private IDownloader downloader;
-    private Version version;
     private SonarWebServerStub sut;
 
     [TestInitialize]
     public void Init()
     {
-        version = new Version("2026.1");
         logger = new();
         downloader = Substitute.For<IDownloader>();
-        sut = CreateServer(version);
+        sut = CreateServer();
     }
 
     [TestCleanup]
@@ -52,10 +50,9 @@ public class SonarWebServerTest
     [TestMethod]
     public void Ctor_Null_Throws()
     {
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, version, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
+        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -77,7 +74,7 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_InvalidOrganizationKey_After_Version63()
+    public async Task DownloadQualityProfile_InvalidOrganizationKey()
     {
         downloader
             .TryDownloadIfExists(WebUtils.EscapedUri("api/qualityprofiles/search?project={0}&organization=ThisIsInvalidValue", ProjectKey), false)
@@ -86,7 +83,7 @@ public class SonarWebServerTest
         downloader
             .Download(WebUtils.EscapedUri("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)
             .Returns(Task.FromResult<string>(null));
-        Func<Task> act = async () => await CreateServer(new Version("6.4"), "ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
+        Func<Task> act = async () => await CreateServer("ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
         await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
         logger.Should().HaveErrors("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
@@ -108,7 +105,7 @@ public class SonarWebServerTest
         downloader
             .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
-        var result = await CreateServer(null, organization).DownloadQualityProfile(projectKey, branchName, language);
+        var result = await CreateServer(organization).DownloadQualityProfile(projectKey, branchName, language);
 
         result.Should().Be(profileKey);
     }
@@ -704,15 +701,6 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
-    public void GetServerVersion_ReturnsVersion()
-    {
-        const string expected = "4.2";
-        sut = CreateServer(new Version(expected));
-
-        sut.ServerVersion.ToString().Should().Be(expected);
-    }
-
-    [TestMethod]
     public async Task DownloadJreMetadataAsync_NullOperatingSystem_Throws()
     {
         Func<Task> act = async () => await sut.DownloadJreMetadataAsync(null, "whatever");
@@ -900,13 +888,15 @@ public class SonarWebServerTest
         languages.Should().BeEmpty();
     }
 
-    private SonarWebServerStub CreateServer(Version version = null, string organization = null) =>
-        new(downloader, downloader, version ?? this.version, logger, organization);
+    private SonarWebServerStub CreateServer(string organization = null) =>
+        new(downloader, downloader, logger, organization);
 
     private class SonarWebServerStub : SonarWebServerBase
     {
-        public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
-            : base(webDownloader, apiDownloader, serverVersion, logger, organization)
+        public override string ServerVersion => throw new NotSupportedException();
+
+        public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization)
+            : base(webDownloader, apiDownloader, logger, organization)
         { }
 
         public Task<bool> IsAllValidPublic() =>
