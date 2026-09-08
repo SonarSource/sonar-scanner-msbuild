@@ -56,7 +56,7 @@ jobs:
           REPOX_PASS: ${{ fromJSON(steps.secrets.outputs.vault).PUBLIC_ARTIFACTORY_ACCESS_TOKEN }}
         run: |
           set -e
-          REPOX_BASE_URL="https://repox.jfrog.io/artifactory/sonarsource-public-builds"
+          REPOX_BASE_URL="https://repox.jfrog.io/artifactory/sonarsource-public-releases"
           ARTIFACT_BASE="org/sonarsource/scanner/msbuild/sonar-scanner/${RELEASE_VERSION}"
           mkdir -p "$PACKAGES_DIR"
 
