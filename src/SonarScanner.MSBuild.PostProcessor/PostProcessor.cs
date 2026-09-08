@@ -19,7 +19,6 @@
  */
 
 using SonarScanner.MSBuild.Common.Interfaces;
-using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
 
@@ -117,11 +116,10 @@ public class PostProcessor
 
     private void LogStartupSettings(AnalysisConfig config, IBuildSettings settings)
     {
-        var environmentMessage = settings.BuildEnvironment switch
+        var environmentMessage = settings.IsAzureDevOps switch
         {
-            BuildEnvironment.TeamBuild => Resources.SETTINGS_InTeamBuild,
-            BuildEnvironment.NotTeamBuild => Resources.SETTINGS_NotInTeamBuild,
-            _ => throw new InvalidOperationException($"Unexpected BuildEnvironment: {settings.BuildEnvironment}")
+            true => Resources.SETTINGS_InTeamBuild,
+            false => Resources.SETTINGS_NotInTeamBuild
         };
         runtime.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
         runtime.LogDebug(environmentMessage);
@@ -151,7 +149,7 @@ public class PostProcessor
     {
         // Currently we're only checking that the build Uris match as this is the most likely error - it probably means that an old analysis config file has been left behind somehow.
         // e.g. a build definition used to include analysis but has changed so that it is no longer an analysis build, but there is still an old analysis config on disc.
-        if (settings.BuildEnvironment == BuildEnvironment.NotTeamBuild)
+        if (!settings.IsAzureDevOps)
         {
             return true;
         }
@@ -199,7 +197,7 @@ public class PostProcessor
     private bool ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, AnalysisResult analysisResult)
     {
 #if NETFRAMEWORK
-        if (settings.BuildEnvironment is BuildEnvironment.TeamBuild)
+        if (settings.IsAzureDevOps)
         {
             runtime.LogInfo(Resources.MSG_ConvertingCoverageReports);
             var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);

@@ -19,7 +19,6 @@
  */
 
 using NSubstitute.ReceivedExtensions;
-using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
 using static FluentAssertions.FluentActions;
@@ -400,7 +399,7 @@ public class PostProcessorTests
     [TestMethod]
     public void Execute_NotTeamBuild_NoCoverageProcessorCalled()
     {
-        SubstituteSettings(BuildEnvironment.NotTeamBuild);
+        SubstituteSettings(false);
 
         Execute().Should().BeTrue();
         coverageReportProcessor.DidNotReceiveWithAnyArgs().ProcessCoverageReports(null, null);
@@ -410,7 +409,7 @@ public class PostProcessorTests
     [TestMethod]
     public void Execute_TeamBuild_CoverageReportProcessorCalled()
     {
-        SubstituteSettings(BuildEnvironment.TeamBuild);
+        SubstituteSettings(true);
 
         Execute().Should().BeTrue();
         AssertProcessCoverageReportsCalledIfNetFramework();
@@ -465,10 +464,10 @@ public class PostProcessorTests
     private void VerifyTargetsUninstaller() =>
         targetsUninstaller.Received(1).UninstallTargets(Arg.Any<string>());
 
-    private void SubstituteSettings(BuildEnvironment environment)
+    private void SubstituteSettings(bool isAzDo)
     {
         settings = Substitute.For<IBuildSettings>();
-        settings.BuildEnvironment.Returns(environment);
+        settings.IsAzureDevOps.Returns(isAzDo);
         settings.BuildUri.Returns(config.GetBuildUri());
         settings.AnalysisConfigFilePath.Returns("Path-to-SonarQubeAnalysisConfig.xml");
     }

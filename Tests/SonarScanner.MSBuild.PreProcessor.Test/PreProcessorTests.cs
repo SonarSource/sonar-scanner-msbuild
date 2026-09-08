@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.TFS;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
@@ -484,7 +482,7 @@ public partial class PreProcessorTests
         {
             var settings = BuildSettings.GetSettingsFromEnvironment(new TestLogger());
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            settings.IsAzureDevOps.Should().BeFalse("Test setup error: build environment was not set correctly");
             return settings;
         }
     }

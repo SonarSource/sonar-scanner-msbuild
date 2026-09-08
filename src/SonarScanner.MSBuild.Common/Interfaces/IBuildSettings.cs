@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.TFS;
-
 namespace SonarScanner.MSBuild.Common.Interfaces;
 
 public interface IBuildSettings
 {
-    BuildEnvironment BuildEnvironment { get; }
+    bool IsAzureDevOps { get; }
     string TfsUri { get; }
     string BuildUri { get; }
     string SourcesDirectory { get; }

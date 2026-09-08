@@ -19,7 +19,6 @@
  */
 
 using SonarScanner.MSBuild.Common.Interfaces;
-using SonarScanner.MSBuild.Common.TFS;
 
 namespace SonarScanner.MSBuild.Common;
 
@@ -29,7 +28,7 @@ namespace SonarScanner.MSBuild.Common;
 public class BuildSettings : IBuildSettings
 {
     public static bool IsInTeamBuild => ReadBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
-    public BuildEnvironment BuildEnvironment { get; private set; }
+    public bool IsAzureDevOps { get; private set; }
     public string TfsUri { get; private set; }
     public string BuildUri { get; private set; }
     public string SourcesDirectory { get; private set; }
@@ -86,7 +85,7 @@ public class BuildSettings : IBuildSettings
         var settings = isAzDo
             ? new BuildSettings
             {
-                BuildEnvironment = BuildEnvironment.TeamBuild,
+                IsAzureDevOps = true,
                 BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015),
                 TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
                 BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryTfs2015),
@@ -95,7 +94,7 @@ public class BuildSettings : IBuildSettings
             }
             : new BuildSettings
             {
-                BuildEnvironment = BuildEnvironment.NotTeamBuild,
+                IsAzureDevOps = false,
                 // there's no reliable of way of finding the SourcesDirectory, except after the build
                 CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
             };
@@ -114,7 +113,7 @@ public class BuildSettings : IBuildSettings
     /// <summary>
     /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/> in product code.
     /// </summary>
-    public static BuildSettings CreateSettingsForTesting(string analysisBaseDirectory, BuildEnvironment buildEnvironment = BuildEnvironment.NotTeamBuild)
+    public static BuildSettings CreateSettingsForTesting(string analysisBaseDirectory, bool isAzDo = false)
     {
         if (string.IsNullOrWhiteSpace(analysisBaseDirectory))
         {
@@ -124,7 +123,7 @@ public class BuildSettings : IBuildSettings
         var workingDirectory = Directory.GetParent(analysisBaseDirectory)?.FullName ?? throw new ArgumentException("Invalid analysis base directory");
         return new BuildSettings
         {
-            BuildEnvironment = buildEnvironment,
+            IsAzureDevOps = isAzDo,
             AnalysisBaseDirectory = analysisBaseDirectory,
             SonarScannerWorkingDirectory = workingDirectory,
             SourcesDirectory = workingDirectory,
