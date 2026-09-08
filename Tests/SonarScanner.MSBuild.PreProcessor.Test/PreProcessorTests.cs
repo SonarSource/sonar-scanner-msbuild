@@ -354,6 +354,18 @@ public partial class PreProcessorTests
         AssertExpectedServerSetting(actualConfig, "shared.CASING", "server upper case value");
     }
 
+    [TestMethod]
+    public async Task Execute_TFSLegacy_ReturnFalse()
+    {
+        using var context = new Context(TestContext);
+        using var scope = new EnvironmentVariableScope();
+        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
+        scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "http://builduri");
+
+        (await context.Execute()).Should().BeFalse();
+        context.Factory.Runtime.Logger.Should().HaveErrors("Team Foundation Server detected, which is not supported.");
+    }
+
     private static IEnumerable<string> CreateArgs(string organization = null, Dictionary<string, string> properties = null)
     {
         yield return "/k:key";

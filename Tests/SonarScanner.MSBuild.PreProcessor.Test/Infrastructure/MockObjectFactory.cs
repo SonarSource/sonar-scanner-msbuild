@@ -75,7 +75,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
 
     public BuildSettings ReadSettings()
     {
-        var settings = BuildSettings.GetSettingsFromEnvironment();
+        var settings = BuildSettings.GetSettingsFromEnvironment(Runtime.Logger);
         settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
         settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
         return settings;

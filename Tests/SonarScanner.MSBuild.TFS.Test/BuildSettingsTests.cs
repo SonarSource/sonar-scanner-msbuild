@@ -31,7 +31,7 @@ public class BuildSettingsTests
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
 
-        var settings = BuildSettings.GetSettingsFromEnvironment();
+        var settings = BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger);
         CheckExpectedSettings(
             settings,
             BuildEnvironment.NotTeamBuild,
@@ -52,7 +52,7 @@ public class BuildSettingsTests
         scope.SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "should be ignored");
         scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "should be ignored");
 
-        var settings = BuildSettings.GetSettingsFromEnvironment();
+        var settings = BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger);
         CheckExpectedSettings(
             settings,
             BuildEnvironment.NotTeamBuild,
@@ -69,7 +69,7 @@ public class BuildSettingsTests
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
 
-        BuildSettings.GetSettingsFromEnvironment().BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
+        BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger).BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
     }
 
     [TestMethod]
@@ -78,7 +78,7 @@ public class BuildSettingsTests
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false");
 
-        BuildSettings.GetSettingsFromEnvironment().BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
+        BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger).BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild);
     }
 
     [TestMethod]
@@ -91,7 +91,7 @@ public class BuildSettingsTests
         scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "non-legacy team build");
         scope.SetVariable(EnvironmentVariables.SourcesDirectoryTfs2015, @"c:\agent\_work\1");
 
-        var settings = BuildSettings.GetSettingsFromEnvironment();
+        var settings = BuildSettings.GetSettingsFromEnvironment(new TestRuntime().Logger);
         settings.Should().NotBeNull("Failed to create the BuildSettings");
         CheckExpectedSettings(
             settings,
@@ -113,16 +113,10 @@ public class BuildSettingsTests
         scope.SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "non-legacy team build");
         scope.SetVariable(EnvironmentVariables.SourcesDirectoryLegacy, @"c:\agent\_work\1");
 
-        var settings = BuildSettings.GetSettingsFromEnvironment();
-        settings.Should().NotBeNull("Failed to create the BuildSettings");
-        CheckExpectedSettings(
-            settings,
-            BuildEnvironment.LegacyTeamBuild,
-            Directory.GetCurrentDirectory(),
-            "http://builduri",
-            "http://collectionUri",
-            "non-legacy team build",
-            @"c:\agent\_work\1");
+        var logger = new TestRuntime().Logger;
+        var settings = BuildSettings.GetSettingsFromEnvironment(logger);
+        settings.Should().BeNull();
+        logger.Should().HaveErrorOnce("Team Foundation Server detected, which is not supported.");
     }
 
     private static void CheckExpectedSettings(

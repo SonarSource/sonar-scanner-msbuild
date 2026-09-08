@@ -62,19 +62,31 @@ public class BuildSettings : IBuildSettings
     /// <summary>
     /// Factory method to create and return a new set of team build settings calculated from environment variables.
     /// </summary>
-    public static BuildSettings GetSettingsFromEnvironment()
+    public static BuildSettings GetSettingsFromEnvironment(ILogger logger)
     {
-        var env = GetBuildEnvironment();
+        var env = BuildEnvironment.NotTeamBuild;
+
+        if (IsInTeamBuild)
+        {
+            // Work out which flavor of TeamBuild
+            var buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy);
+            if (string.IsNullOrEmpty(buildUri))
+            {
+                buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015);
+                if (!string.IsNullOrEmpty(buildUri))
+                {
+                    env = BuildEnvironment.TeamBuild;
+                }
+            }
+            else
+            {
+                logger.LogError(Resources.ERROR_TFSLegacyNotSupported);
+                return null;
+            }
+        }
+
         var settings = env switch
         {
-            BuildEnvironment.LegacyTeamBuild => new BuildSettings
-            {
-                BuildEnvironment = env,
-                BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy),
-                TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriLegacy),
-                BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryLegacy),
-                SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectoryLegacy),
-            },
             BuildEnvironment.TeamBuild => new BuildSettings
             {
                 BuildEnvironment = env,
@@ -121,33 +133,6 @@ public class BuildSettings : IBuildSettings
             SonarScannerWorkingDirectory = workingDirectory,
             SourcesDirectory = workingDirectory,
         };
-    }
-
-    /// <summary>
-    /// Returns the type of the current build environment: not under TeamBuild, legacy TeamBuild, "new" TeamBuild.
-    /// </summary>
-    private static BuildEnvironment GetBuildEnvironment()
-    {
-        var env = BuildEnvironment.NotTeamBuild;
-
-        if (IsInTeamBuild)
-        {
-            // Work out which flavor of TeamBuild
-            var buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy);
-            if (string.IsNullOrEmpty(buildUri))
-            {
-                buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015);
-                if (!string.IsNullOrEmpty(buildUri))
-                {
-                    env = BuildEnvironment.TeamBuild;
-                }
-            }
-            else
-            {
-                env = BuildEnvironment.LegacyTeamBuild;
-            }
-        }
-        return env;
     }
 
     private static bool ReadBoolEnvironmentVariable(string envVar, bool defaultValue) =>
