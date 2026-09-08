@@ -482,7 +482,7 @@ public partial class PreProcessorTests
 
         private static BuildSettings ReadSettings()
         {
-            var settings = BuildSettings.GetSettingsFromEnvironment(new TestLogger());
+            var settings = BuildSettings.SettingsFromEnvironment(new TestLogger());
             settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
             settings.IsAzureDevOps.Should().BeFalse("Test setup error: build environment was not set correctly");
             return settings;
