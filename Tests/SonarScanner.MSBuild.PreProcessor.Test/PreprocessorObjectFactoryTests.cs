@@ -42,21 +42,6 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
-    public async Task CreateSonarWebService_RequestServerVersionThrows_ShouldReturnNullAndLogError()
-    {
-        var sut = new PreprocessorObjectFactory(runtime);
-        var downloader = Substitute.For<IDownloader>();
-        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).ThrowsAsync<InvalidOperationException>();
-        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
-
-        var result = await sut.CreateSonarWebServer(CreateValidArguments(), downloader);
-
-        result.Should().BeNull();
-        runtime.Logger.Should().HaveErrorOnce("An error occured while querying the server version! Please check if the server is running and if the address is correct.")
-            .And.HaveNoWarnings();
-    }
-
-    [TestMethod]
     public async Task CreateSonarWebService_InvalidHostUrl_ReturnNullAndLogErrors()
     {
         var sut = new PreprocessorObjectFactory(runtime);
@@ -100,48 +85,6 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
-    [DataRow("https://sonarcloud.io", "8.9", true)]
-    [DataRow("https://sonarqube.gr", "8.0", false)]
-    [DataRow("http://localhost:4242", "8.0", false)]
-    public async Task CreateSonarWebServer_IncosistentServer(string hostUrl, string version, bool isCloud)
-    {
-        var sut = new PreprocessorObjectFactory(runtime);
-        var downloader = Substitute.For<IDownloader>();
-        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
-        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
-        var detected = isCloud ? "SonarCloud" : "SonarQube";
-        var real = isCloud ? "SonarQube" : "SonarCloud";
-
-        var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader);
-
-        service.Should().BeNull();
-        runtime.Logger
-            .Should().HaveErrors($"Detected {detected} but server was found to be {real}. Please make sure the correct combination of 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' is set.");
-    }
-
-    [TestMethod]
-    [DataRow("26.1", "27.1", 26)]
-    [DataRow("26.1", "25.1", 26)]
-    [DataRow(null, "26.1", 26)]
-    [DataRow("26.1", null, 26)]
-    public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned(string endpointResult, string fallbackResult, int expectedVersion)
-    {
-        var downloader = Substitute.For<IDownloader>();
-        downloader.Download(new("analysis/version", UriKind.Relative), Arg.Any<bool>(), LoggerVerbosity.Debug).Returns(Task.FromResult(endpointResult));
-        downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>(), LoggerVerbosity.Info).Returns(Task.FromResult(fallbackResult));
-        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
-        downloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative))
-            .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") }));
-        var validArgs = CreateValidArguments();
-        var sut = new PreprocessorObjectFactory(runtime);
-
-        var server = await sut.CreateSonarWebServer(validArgs, downloader, downloader);
-
-        server.Should().NotBeNull();
-        server.ServerVersion.Major.Should().Be(expectedVersion);
-    }
-
-    [TestMethod]
     public void CreateJreResolver_Success()
     {
         var sut = new PreprocessorObjectFactory(runtime);
@@ -163,7 +106,6 @@ public class PreprocessorObjectFactoryTests
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage(status));
-        downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
         var sut = new PreprocessorObjectFactory(runtime);
 
         var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: "org"), downloader);

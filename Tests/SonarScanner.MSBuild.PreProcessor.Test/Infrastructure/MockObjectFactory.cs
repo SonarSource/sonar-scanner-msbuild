@@ -48,6 +48,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     {
         serverProperties ??= [];
         serverProperties.Add("server.key", "server value 1");
+        Server.ServerVersion.Returns("2026.1");
         Server.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
         Server.DownloadAllLanguages().Returns(["cs", "vbnet", "another_plugin"]);
         if (withDefaultRules)

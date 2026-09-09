@@ -151,24 +151,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Detected SonarCloud but server was found to be SonarQube. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
-        /// </summary>
-        internal static string ERR_DetectedErroneouslySonarCloud {
-            get {
-                return ResourceManager.GetString("ERR_DetectedErroneouslySonarCloud", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Detected SonarQube but server was found to be SonarCloud. Please make sure the correct combination of &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; is set..
-        /// </summary>
-        internal static string ERR_DetectedErroneouslySonarQube {
-            get {
-                return ResourceManager.GetString("ERR_DetectedErroneouslySonarQube", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!.
         /// </summary>
         internal static string ERR_DotNetAnalyzersNotFound {

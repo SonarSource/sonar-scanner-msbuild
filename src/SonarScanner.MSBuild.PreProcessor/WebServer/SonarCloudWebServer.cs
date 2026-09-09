@@ -32,30 +32,23 @@ internal class SonarCloudWebServer : SonarWebServerBase
 {
     private readonly HttpClient unauthenticatedClient;
 
-    private SonarCloudWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization, HttpClient unauthenticatedClient)
-        : base(webDownloader, apiDownloader, serverVersion, logger, organization) =>
+    public override string ServerVersion => "Cloud";    // Well-known value recognized by the analyzer
+
+    private SonarCloudWebServer(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization, HttpClient unauthenticatedClient)
+        : base(webDownloader, apiDownloader, logger, organization) =>
         this.unauthenticatedClient = unauthenticatedClient;
 
     public static async Task<SonarCloudWebServer> Create(IDownloader webDownloader,
                                                          IDownloader apiDownloader,
-                                                         Version serverVersion,
                                                          ILogger logger,
                                                          string organization,
                                                          TimeSpan httpTimeout,
                                                          HttpMessageHandler handler = null)
     {
         var unauthenticatedClient = handler is null ? new HttpClient { Timeout = httpTimeout } : new HttpClient(handler, true) { Timeout = httpTimeout };
-        var ret = new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, logger, organization, unauthenticatedClient);
+        var ret = new SonarCloudWebServer(webDownloader, apiDownloader, logger, organization, unauthenticatedClient);
         logger.LogInfo(Resources.MSG_UsingSonarCloud);
-        if (await ret.IsAllValid())
-        {
-            return ret;
-        }
-        else
-        {
-            ret.Dispose();
-            return null;
-        }
+        return await ret.IsAllValid() ? ret : null;     // No dispose for ret or downloaders for simplicity. The program ends soon.
     }
 
     public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)

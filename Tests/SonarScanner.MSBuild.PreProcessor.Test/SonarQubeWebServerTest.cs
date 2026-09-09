@@ -34,11 +34,46 @@ public class SonarQubeWebServerTest
     private const string ProjectBranch = "project-branch";
 
     [TestMethod]
-    public async Task Ctor_LogsServerTypeAndVersion()
+    public async Task Create_LogsServerTypeAndVersion()
     {
         var context = new Context();
         await context.CreateServer();
+        context.Runtime.Logger.Should().HaveDebugs("Fetching server version...");
         context.Runtime.Logger.Should().HaveInfos("Using SonarQube v2026.1.");
+    }
+
+    [TestMethod]
+    public async Task LoadServerVersion_Throws_LogMessages()
+    {
+        var context = new Context(null);
+        context.ApiDownloader.Download(new("analysis/version", UriKind.Relative)).ThrowsAsync(new Exception("Some error was thrown along the way"));
+        (await context.CreateServer()).Should().BeNull();
+        context.Runtime.Logger.Should()
+            .HaveErrors(
+                "An error occured while querying the server version! Please check if the server is running and if the address is correct.",
+                "Some error was thrown along the way")
+            .And.HaveWarnings(
+                "SonarQube versions below 2025.1 or 25.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.",
+                """
+                In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
+                If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
+                """);
+    }
+
+    [TestMethod]
+    public async Task LoadServerVersion_DoesNotLoad_LogMessages()
+    {
+        var context = new Context(null);
+        (await context.CreateServer()).Should().BeNull();
+        context.Runtime.Logger.Should()
+            .HaveErrors(
+                "An error occured while querying the server version! Please check if the server is running and if the address is correct.")
+            .And.HaveWarnings(
+                "SonarQube versions below 2025.1 or 25.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.",
+                """
+                In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
+                If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
+                """);
     }
 
     [TestMethod]
@@ -525,7 +560,6 @@ public class SonarQubeWebServerTest
         public readonly IDownloader WebDownloader = Substitute.For<IDownloader>();
         public readonly IDownloader ApiDownloader = Substitute.For<IDownloader>();
         public readonly TestRuntime Runtime = new();
-        private readonly Version version;
         private readonly string organization;
         private SonarQubeWebServer server;
 
@@ -533,14 +567,14 @@ public class SonarQubeWebServerTest
 
         public Context(string version = "2026.1", string organization = null)
         {
-            this.version = new(version);
             this.organization = organization;
             var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") };
             WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
+            ApiDownloader.Download(new("analysis/version", UriKind.Relative)).Returns(Task.FromResult(version));
         }
 
         public Task<SonarQubeWebServer> CreateServer() =>
-            SonarQubeWebServer.Create(WebDownloader, ApiDownloader, version, Runtime, organization);
+            SonarQubeWebServer.Create(WebDownloader, ApiDownloader, Runtime, organization);
 
         public void MockDownloadStream(Stream stream) =>
             WebDownloader.DownloadStream(Arg.Any<Uri>()).Returns(Task.FromResult(stream));
