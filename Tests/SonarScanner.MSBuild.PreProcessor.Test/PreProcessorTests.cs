@@ -73,27 +73,6 @@ public partial class PreProcessorTests
     }
 
     [TestMethod]
-    public async Task Execute_InvalidSetup_ReturnsFalse()
-    {
-        using var context = new Context(TestContext);
-        context.Factory.Server.IsAllValid().Returns(false);
-
-        var result = await context.Execute();
-
-        result.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public async Task Execute_ValidationCheckThrows_ReturnsFalseAndLogsError()
-    {
-        using var context = new Context(TestContext);
-        context.Factory.Server.IsAllValid().ThrowsAsync(new InvalidOperationException("Some error was thrown during validation check."));
-
-        (await context.Execute()).Should().BeFalse();
-        context.Factory.Runtime.Logger.Should().HaveErrors("Some error was thrown during validation check.");
-    }
-
-    [TestMethod]
     public async Task Execute_TargetsNotInstalled_ReturnsFalseAndLogsDebugMessage()
     {
         using var context = new Context(TestContext);

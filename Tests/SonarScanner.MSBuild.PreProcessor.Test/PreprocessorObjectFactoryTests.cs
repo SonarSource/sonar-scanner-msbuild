@@ -84,17 +84,18 @@ public class PreprocessorObjectFactoryTests
     [DataRow("https://sonarcloud.io", "8.0", typeof(SonarCloudWebServer))]
     [DataRow("https://sonarcloud.io/", "8.0", typeof(SonarCloudWebServer))]
     [DataRow("https://sonarcloud.io//", "8.0", typeof(SonarCloudWebServer))]
-    [DataRow("https://sonarcloud_other.io//", "8.1", typeof(SonarQubeWebServer))]
-    [DataRow("http://localhost:222", "8.9", typeof(SonarQubeWebServer))]
+    [DataRow("https://sonarcloud_other.io//", "26.1", typeof(SonarQubeWebServer))]
+    [DataRow("http://localhost:222", "26.1", typeof(SonarQubeWebServer))]
     public async Task CreateSonarWebServer_CorrectServiceType(string hostUrl, string version, Type serviceType)
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var downloader = Substitute.For<IDownloader>();
         downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
+        downloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative))
+            .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") }));
 
         var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader, downloader);
-
         service.Should().BeOfType(serviceType);
     }
 
@@ -119,16 +120,18 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
-    [DataRow("8.9", "10.3", 8)]
-    [DataRow("10.3", "8.9", 10)]
-    [DataRow(null, "8.3", 8)]
-    [DataRow("10.3", null, 10)]
+    [DataRow("26.1", "27.1", 26)]
+    [DataRow("26.1", "25.1", 26)]
+    [DataRow(null, "26.1", 26)]
+    [DataRow("26.1", null, 26)]
     public async Task CreateSonarWebServer_ValidCallSequence_ValidObjectReturned(string endpointResult, string fallbackResult, int expectedVersion)
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.Download(new("analysis/version", UriKind.Relative), Arg.Any<bool>(), LoggerVerbosity.Debug).Returns(Task.FromResult(endpointResult));
         downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>(), LoggerVerbosity.Info).Returns(Task.FromResult(fallbackResult));
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
+        downloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative))
+            .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") }));
         var validArgs = CreateValidArguments();
         var sut = new PreprocessorObjectFactory(runtime);
 

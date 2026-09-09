@@ -30,11 +30,23 @@ internal class SonarQubeWebServer : SonarWebServerBase
 {
     private readonly IRuntime runtime;
 
-    public SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
-        : base(webDownloader, apiDownloader, serverVersion, runtime.Logger, organization)
-    {
+    private SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
+        : base(webDownloader, apiDownloader, serverVersion, runtime.Logger, organization) =>
         this.runtime = runtime;
+
+    public static async Task<SonarQubeWebServer> Create(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
+    {
+        var ret = new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, organization);
         runtime.LogInfo(Resources.MSG_UsingSonarQube, serverVersion);
+        if (await ret.IsAllValid())
+        {
+            return ret;
+        }
+        else
+        {
+            ret.Dispose();
+            return null;
+        }
     }
 
     public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)

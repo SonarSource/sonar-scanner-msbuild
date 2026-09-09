@@ -60,11 +60,6 @@ public abstract class SonarWebServerBase : IDisposable
         this.organization = organization;
     }
 
-    public virtual async Task<bool> IsAllValid() =>
-        IsConfigurationValid()
-        && IsServerVersionSupported()
-        && await IsServerLicenseValid();
-
     public virtual async Task<string> DownloadQualityProfile(string projectKey, string projectBranch, string language)
     {
         var component = ComponentIdentifier(projectKey, projectBranch);
@@ -197,6 +192,20 @@ public abstract class SonarWebServerBase : IDisposable
             webDownloader.Dispose();
             apiDownloader.Dispose();
             disposed = true;
+        }
+    }
+
+    protected virtual async Task<bool> IsAllValid()
+    {
+        try
+        {
+            return IsConfigurationValid() && IsServerVersionSupported() && await IsServerLicenseValid();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message);
+            logger.LogDebug(ex.StackTrace);
+            return false;
         }
     }
 

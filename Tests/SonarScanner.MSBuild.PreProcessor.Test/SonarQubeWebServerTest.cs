@@ -24,7 +24,6 @@ using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.WebServer;
-using static Humanizer.In;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -35,10 +34,10 @@ public class SonarQubeWebServerTest
     private const string ProjectBranch = "project-branch";
 
     [TestMethod]
-    public void Ctor_LogsServerTypeAndVersion()
+    public async Task Ctor_LogsServerTypeAndVersion()
     {
         var context = new Context();
-        _ = context.Server;
+        await context.CreateServer();
         context.Runtime.Logger.Should().HaveInfos("Using SonarQube v2026.1.");
     }
 
@@ -52,8 +51,9 @@ public class SonarQubeWebServerTest
     public async Task IsServerVersionSupported_FailHard_CommercialEdition(string sqVersion)
     {
         var context = new Context(sqVersion);
-        (await context.Server.IsAllValid()).Should().BeFalse();
-        context.Runtime.Logger.Should().HaveErrors("SonarQube versions below 2025.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.");
+        (await context.CreateServer()).Should().BeNull();
+        context.Runtime.Logger.Should()
+            .HaveErrors("SonarQube versions below 2025.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.");
     }
 
     [TestMethod]
@@ -62,8 +62,9 @@ public class SonarQubeWebServerTest
     public async Task IsServerVersionSupported_FailHard_CommunityEdition(string sqVersion)
     {
         var context = new Context(sqVersion);
-        (await context.Server.IsAllValid()).Should().BeFalse();
-        context.Runtime.Logger.Should().HaveErrors("SonarQube versions below 25.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.");
+        (await context.CreateServer()).Should().BeNull();
+        context.Runtime.Logger.Should()
+            .HaveErrors("SonarQube versions below 25.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.");
     }
 
     [TestMethod]
@@ -73,7 +74,7 @@ public class SonarQubeWebServerTest
     public async Task IsServerVersionSupported_OutOfSupport_LogWarning(string sqVersion)
     {
         var context = new Context(sqVersion);
-        (await context.Server.IsAllValid()).Should().BeTrue();
+        (await context.CreateServer()).Should().NotBeNull();
         context.Runtime.AnalysisWarnings.Should().HaveMessage("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
         context.Runtime.Logger.Should().HaveNoErrors();
     }
@@ -89,7 +90,7 @@ public class SonarQubeWebServerTest
     public async Task IsServerVersionSupported_Supported_NoLogs(string sqVersion)
     {
         var context = new Context(sqVersion);
-        (await context.Server.IsAllValid()).Should().BeTrue();
+        (await context.CreateServer()).Should().NotBeNull();
         context.Runtime.AnalysisWarnings.Should().HaveNoMessages();
         context.Runtime.Logger.Should().HaveNoErrors();
     }
@@ -104,7 +105,7 @@ public class SonarQubeWebServerTest
         context.WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
         context.WebDownloader.BaseUrl.Returns(new Uri("host", UriKind.Relative));
 
-        (await context.Server.IsAllValid()).Should().BeFalse();
+        (await context.CreateServer()).Should().BeNull();
         context.Runtime.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host")
             .And.HaveNoWarnings();
     }
@@ -114,7 +115,7 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
 
-        (await context.Server.IsAllValid()).Should().BeTrue();
+        (await context.CreateServer()).Should().NotBeNull();
         context.Runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
     }
@@ -125,7 +126,7 @@ public class SonarQubeWebServerTest
         var context = new Context();
         context.WebDownloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative)).Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.Unauthorized }));
 
-        (await context.Server.IsAllValid()).Should().BeFalse();
+        (await context.CreateServer()).Should().BeNull();
         context.Runtime.Logger.Should().HaveErrorOnce("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.")
             .And.HaveNoWarnings();
     }
@@ -138,7 +139,7 @@ public class SonarQubeWebServerTest
         context.WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
         context.WebDownloader.BaseUrl.Returns(new Uri("host", UriKind.Relative));
 
-        (await context.Server.IsAllValid()).Should().BeFalse();
+        (await context.CreateServer()).Should().BeNull();
         context.Runtime.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host")
             .And.HaveNoWarnings();
     }
@@ -150,7 +151,7 @@ public class SonarQubeWebServerTest
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}") };
         context.WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
 
-        (await context.Server.IsAllValid()).Should().BeTrue();
+        (await context.CreateServer()).Should().NotBeNull();
         context.Runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
     }
@@ -162,7 +163,7 @@ public class SonarQubeWebServerTest
         context.WebDownloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative))
             .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") }));
 
-        (await context.Server.IsAllValid()).Should().BeTrue();
+        (await context.CreateServer()).Should().NotBeNull();
         await context.WebDownloader.Received().DownloadResource(new("api/editions/is_valid_license", UriKind.Relative));
     }
 
@@ -175,8 +176,8 @@ public class SonarQubeWebServerTest
         const string language = "cs";
         var downloadResult = Tuple.Create(true, $$"""{ profiles: [{"key":"{{profileKey}}","name":"profile1","language":"{{language}}"}]}""");
         context.WebDownloader.TryDownloadIfExists(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(downloadResult));
-        var result = await context.Server.DownloadQualityProfile(projectKey, null, language);
 
+        var result = await context.Server.DownloadQualityProfile(projectKey, null, language);
         result.Should().Be(profileKey);
     }
 
@@ -233,7 +234,6 @@ public class SonarQubeWebServerTest
                 }
                 """)));
         var result = context.Server.DownloadProperties("componentName", projectBranch).Result;
-
         result.Should().HaveCount(7);
         result["sonar.exclusions"].Should().Be("myfile,myfile2");
         result["sonar.junit.reportsPath"].Should().Be("testing.xml");
@@ -252,8 +252,8 @@ public class SonarQubeWebServerTest
             .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
         context.WebDownloader.Download(new("api/settings/values", UriKind.Relative), Arg.Any<bool>())
             .Returns(Task.FromResult(@"{ settings: [ { key: ""key"", value: ""42"" } ] }"));
-        var result = await context.Server.DownloadProperties(componentName, null);
 
+        var result = await context.Server.DownloadProperties(componentName, null);
         result.Should().ContainSingle().And.ContainKey("key");
         result["key"].Should().Be("42");
     }
@@ -261,16 +261,6 @@ public class SonarQubeWebServerTest
     [TestMethod]
     public async Task DownloadProperties_NullProjectKey_Throws() =>
         (await new Context().Server.Invoking(x => x.DownloadProperties(null, null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("projectKey");
-
-    [TestMethod]
-    public async Task DownloadProperties_Sq63plus_Forbidden()
-    {
-        var context = new Context("6.3.0.0");
-        context.WebDownloader.TryDownloadIfExists(Arg.Any<Uri>(), Arg.Any<bool>())
-            .Returns(Task.FromException<Tuple<bool, string>>(new HttpRequestException("Forbidden")));
-
-        await context.Server.Invoking(x => x.DownloadProperties(ProjectKey, null)).Should().ThrowAsync<HttpRequestException>();
-    }
 
     [TestMethod]
     public async Task DownloadProperties_Empty()
@@ -294,7 +284,6 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         var result = await context.Server.DownloadCache(CreateLocalSettings(projectKey, branch));
-
         result.Should().BeEmpty();
         context.Runtime.Logger.Should().HaveInfoOnce(debugMessage);
     }
@@ -311,8 +300,8 @@ public class SonarQubeWebServerTest
         var context = new Context();
         using var environment = new EnvironmentVariableScope().SetVariable(variableName, "branch-42");
         context.MockDownloadStream(new MemoryStream());
-        await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, null));
 
+        await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, null));
         context.Runtime.Logger.Should().HaveInfos($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
     }
 
@@ -328,8 +317,8 @@ public class SonarQubeWebServerTest
         var context = new Context();
         using var environment = new EnvironmentVariableScope().SetVariable(variableName, "wrong_branch");
         context.MockDownloadStream(new MemoryStream());
-        await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
+        await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
         context.Runtime.Logger.Should().HaveInfoOnce("Downloading cache. Project key: project-key, branch: project-branch.");
     }
 
@@ -339,8 +328,8 @@ public class SonarQubeWebServerTest
         var context = new Context();
         using Stream stream = new MemoryStream();
         context.WebDownloader.DownloadStream(new("api/analysis_cache/get?project=project-key&branch=project-branch", UriKind.Relative)).Returns(Task.FromResult(stream));
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
+        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
         result.Should().BeEmpty();
         await context.WebDownloader.Received().DownloadStream(new("api/analysis_cache/get?project=project-key&branch=project-branch", UriKind.Relative));
     }
@@ -351,8 +340,8 @@ public class SonarQubeWebServerTest
         var context = new Context();
         using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
         context.MockDownloadStream(stream);
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
+        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
         result.Should().ContainSingle();
         result.Single(x => x.Key == "key").Data.ToStringUtf8().Should().Be("value");
         context.Runtime.Logger.Should().HaveInfos("Downloading cache. Project key: project-key, branch: project-branch.");
@@ -363,8 +352,8 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         context.MockDownloadStream(null);
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
+        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
         result.Should().BeEmpty();
         context.Runtime.Logger.Should().HaveNoWarnings()
             .And.HaveNoErrors(); // There are no errors or warnings logs but we will display an info message in the caller: "Cache data is empty. A full analysis will be performed."
@@ -375,10 +364,9 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         context.MockDownloadStream(new MemoryStream());
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
+        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
         result.Should().BeEmpty();
-        context.Runtime.Logger.Should().HaveNoDebugs();
     }
 
     [TestMethod]
@@ -386,8 +374,8 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         context.WebDownloader.DownloadStream(Arg.Any<Uri>()).Returns(Task.FromException<Stream>(new HttpRequestException()));
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
+        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
         result.Should().BeEmpty();
         context.Runtime.Logger.Should()
             .HaveWarningOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! Exception of type 'System.Net.Http.HttpRequestException' was thrown.");
@@ -400,8 +388,8 @@ public class SonarQubeWebServerTest
         var stream = Substitute.For<Stream>();
         stream.Length.Returns(x => throw new InvalidOperationException());
         context.MockDownloadStream(stream);
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
+        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
         result.Should().BeEmpty();
         context.Runtime.Logger.Should()
             .HaveWarningOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! Operation is not valid due to the current state of the object.");
@@ -412,8 +400,8 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         context.MockDownloadStream(new MemoryStream([42, 42])); // this is a random byte array that fails deserialization
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
+        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
         result.Should().BeEmpty();
         context.Runtime.Logger.Should().HaveWarningOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! While parsing a protocol message, the input ended unexpectedly in the middle of a field.  This could mean either that the input has been truncated or that an embedded message misreported its own length.");
     }
@@ -440,7 +428,6 @@ public class SonarQubeWebServerTest
                 }
                 """);
         var rules = await context.Server.DownloadRules("qp");
-
         rules.Should().ContainSingle();
         rules[0].RepoKey.Should().Be("csharpsquid");
         rules[0].RuleKey.Should().Be("S2757");
@@ -459,8 +446,8 @@ public class SonarQubeWebServerTest
                 new("analysis/jres/someId", UriKind.Relative),
                 Arg.Is<Dictionary<string, string>>(x => x.Single().Key == "Accept" && x.Single().Value == "application/octet-stream"))
             .Returns(Task.FromResult(expected));
-        var actual = await context.Server.DownloadJreAsync(new JreMetadata("someId", null, null, null, null));
 
+        var actual = await context.Server.DownloadJreAsync(new JreMetadata("someId", null, null, null, null));
         ((MemoryStream)actual).ToArray().Should().BeEquivalentTo([1, 2, 3]);
         context.Runtime.Logger.Should().HaveDebugs("Downloading Java JRE from analysis/jres/someId.");
     }
@@ -490,8 +477,8 @@ public class SonarQubeWebServerTest
                 new("analysis/engine", UriKind.Relative),
                 Arg.Is<Dictionary<string, string>>(x => x.Single().Key == "Accept" && x.Single().Value == "application/octet-stream"))
             .Returns(Task.FromResult(expected));
-        var actual = await context.Server.DownloadEngineAsync(new EngineMetadata(null, null, null));
 
+        var actual = await context.Server.DownloadEngineAsync(new EngineMetadata(null, null, null));
         ((MemoryStream)actual).ToArray().Should().BeEquivalentTo([1, 2, 3]);
         context.Runtime.Logger.Should().HaveDebugs("Downloading Scanner Engine from analysis/engine");
     }
@@ -538,16 +525,22 @@ public class SonarQubeWebServerTest
         public readonly IDownloader WebDownloader = Substitute.For<IDownloader>();
         public readonly IDownloader ApiDownloader = Substitute.For<IDownloader>();
         public readonly TestRuntime Runtime = new();
-        private readonly Lazy<SonarQubeWebServer> server;
+        private readonly Version version;
+        private readonly string organization;
+        private SonarQubeWebServer server;
 
-        public SonarQubeWebServer Server => server.Value;
+        public SonarQubeWebServer Server => server ??= CreateServer().Result;
 
         public Context(string version = "2026.1", string organization = null)
         {
-            server = new Lazy<SonarQubeWebServer>(() => new SonarQubeWebServer(WebDownloader, ApiDownloader, new(version), Runtime, organization));
+            this.version = new(version);
+            this.organization = organization;
             var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") };
             WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
         }
+
+        public Task<SonarQubeWebServer> CreateServer() =>
+            SonarQubeWebServer.Create(WebDownloader, ApiDownloader, version, Runtime, organization);
 
         public void MockDownloadStream(Stream stream) =>
             WebDownloader.DownloadStream(Arg.Any<Uri>()).Returns(Task.FromResult(stream));

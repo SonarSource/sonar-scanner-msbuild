@@ -39,7 +39,7 @@ public class SonarWebServerTest
     [TestInitialize]
     public void Init()
     {
-        version = new Version("9.9");
+        version = new Version("2026.1");
         logger = new();
         downloader = Substitute.For<IDownloader>();
         sut = CreateServer(version);
@@ -56,6 +56,13 @@ public class SonarWebServerTest
         ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, version, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
         ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serverVersion");
         ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, version, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+    }
+
+    [TestMethod]
+    public async Task IsAllValid_Throws_LogsError()
+    {
+        (await sut.IsAllValidPublic()).Should().BeFalse();
+        logger.Should().HaveErrors("Specified method is not supported.");   // NotSupportedException in the stub
     }
 
     [TestMethod]
@@ -901,6 +908,9 @@ public class SonarWebServerTest
         public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
             : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         { }
+
+        public Task<bool> IsAllValidPublic() =>
+            IsAllValid();
 
         public override Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) =>
             throw new NotSupportedException();

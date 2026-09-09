@@ -66,8 +66,8 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             return null;
         }
         return args.ServerInfo.IsSonarCloud
-            ? new SonarCloudWebServer(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization, args.HttpTimeout)
-            : new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, args.Organization);
+            ? await SonarCloudWebServer.Create(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization, args.HttpTimeout)
+            : await SonarQubeWebServer.Create(webDownloader, apiDownloader, serverVersion, runtime, args.Organization);
 
         IDownloader CreateDownloader(string baseUrl) =>
             new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, runtime.Logger)
