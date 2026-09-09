@@ -21,6 +21,7 @@
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -33,12 +34,12 @@ public interface IPreprocessorObjectFactory
     /// Creates the component that interacts with the Sonar server.
     /// </summary>
     /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary.</remarks>
-    Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null);
+    Task<SonarWebServerBase> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null);
 
     /// <summary>
     /// Creates the component that provisions the Roslyn analyzers.
     /// </summary>
-    RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
+    RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarWebServerBase server,
                                                         string localCacheTempPath,
                                                         BuildSettings teamBuildSettings,
                                                         IAnalysisPropertyProvider sonarProperties,
@@ -48,15 +49,15 @@ public interface IPreprocessorObjectFactory
     /// <summary>
     /// Creates the component that resolves the JRE path.
     /// </summary>
-    IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome);
+    IResolver CreateJreResolver(SonarWebServerBase server, string sonarUserHome);
 
     /// <summary>
     /// Creates the component that resolves the Scanner Engine path.
     /// </summary>
-    IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome);
+    IResolver CreateEngineResolver(SonarWebServerBase server, string sonarUserHome);
 
     /// <summary>
     /// Creates the component that resolves the Scanner Engine path.
     /// </summary>
-    IResolver CreateScannerCliResolver(ISonarWebServer server, string sonarUserHome);
+    IResolver CreateScannerCliResolver(SonarWebServerBase server, string sonarUserHome);
 }

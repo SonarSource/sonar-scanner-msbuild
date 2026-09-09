@@ -896,21 +896,26 @@ public class SonarWebServerTest
     private SonarWebServerStub CreateServer(Version version = null, string organization = null) =>
         new(downloader, downloader, version ?? this.version, logger, organization);
 
-    private class SonarWebServerStub : SonarWebServerBase, ISonarWebServer
+    private class SonarWebServerStub : SonarWebServerBase
     {
         public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, ILogger logger, string organization)
             : base(webDownloader, apiDownloader, serverVersion, logger, organization)
         { }
 
-        public Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) => throw new NotImplementedException();
+        public override Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings) =>
+            throw new NotSupportedException();
 
-        public bool IsServerVersionSupported() => throw new NotImplementedException();
+        public override Task<Stream> DownloadEngineAsync(EngineMetadata metadata) =>
+            throw new NotSupportedException();
 
-        public Task<bool> IsServerLicenseValid() => throw new NotImplementedException();
+        public override Task<Stream> DownloadJreAsync(JreMetadata metadata) =>
+            throw new NotSupportedException();
 
-        public Task<Stream> DownloadJreAsync(JreMetadata metadata) => throw new NotImplementedException();
+        public override bool IsServerVersionSupported() =>
+            throw new NotSupportedException();
 
-        public Task<Stream> DownloadEngineAsync(EngineMetadata metadata) => throw new NotImplementedException();
+        public override Task<bool> IsServerLicenseValid() =>
+            throw new NotSupportedException();
 
         protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
             new(json["total"].ToObject<int>(), json["ps"].ToObject<int>()); // Cloud version, Server uses different format

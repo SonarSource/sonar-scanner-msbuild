@@ -23,6 +23,7 @@ using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -31,7 +32,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     private readonly List<string> calledMethods = [];
 
     public TestRuntime Runtime { get; } = new();
-    public ISonarWebServer Server { get; set; } = Substitute.For<ISonarWebServer>();
+    public SonarWebServerBase Server { get; set; } = MockSonarWebServer.Create();
     public IResolver JreResolver { get; } = Substitute.For<IResolver>();
     public IResolver EngineResolver { get; } = Substitute.For<IResolver>();
     public IResolver ScannerCliResolver { get; } = Substitute.For<IResolver>();
@@ -49,7 +50,6 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         serverProperties.Add("server.key", "server value 1");
         Server.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
         Server.DownloadAllLanguages().Returns(["cs", "vbnet", "another_plugin"]);
-        Server.ServerVersion.Returns(new Version(5, 6));
         Server.IsServerVersionSupported().Returns(true);
         Server.IsServerLicenseValid().Returns(Task.FromResult(true));
         if (withDefaultRules)
@@ -59,10 +59,10 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         }
     }
 
-    public Task<ISonarWebServer> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null) =>
-        Task.FromResult((ISonarWebServer)Server);
+    public Task<SonarWebServerBase> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null) =>
+        Task.FromResult(Server);
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(ISonarWebServer server,
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarWebServerBase server,
                                                                string localCacheTempPath,
                                                                BuildSettings teamBuildSettings,
                                                                IAnalysisPropertyProvider sonarProperties,
@@ -82,13 +82,13 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         return settings;
     }
 
-    public IResolver CreateJreResolver(ISonarWebServer server, string sonarUserHome) =>
+    public IResolver CreateJreResolver(SonarWebServerBase server, string sonarUserHome) =>
         JreResolver;
 
-    public IResolver CreateEngineResolver(ISonarWebServer server, string sonarUserHome) =>
+    public IResolver CreateEngineResolver(SonarWebServerBase server, string sonarUserHome) =>
         EngineResolver;
 
-    public IResolver CreateScannerCliResolver(ISonarWebServer server, string sonarUserHome) =>
+    public IResolver CreateScannerCliResolver(SonarWebServerBase server, string sonarUserHome) =>
         ScannerCliResolver;
 
     public void AssertMethodCalled(string methodName, int callCount) =>

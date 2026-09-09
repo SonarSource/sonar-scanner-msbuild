@@ -20,15 +20,15 @@
 
 using Google.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
 public class CacheProcessorTests
 {
-    private static readonly Version SonarQubeVersion99 = new(9, 9);
     private TestLogger logger;
-    private ISonarWebServer server;
+    private SonarWebServerBase server;
 
     public TestContext TestContext { get; set; }
 
@@ -36,7 +36,7 @@ public class CacheProcessorTests
     public void Initialize()
     {
         logger = new();
-        server = Substitute.For<ISonarWebServer>();
+        server = MockSonarWebServer.Create();
     }
 
     [TestMethod]
@@ -100,7 +100,7 @@ public class CacheProcessorTests
         var buildSettings = Substitute.For<IBuildSettings>();
         buildSettings.SourcesDirectory.Returns(@"C:\Sources\Directory");
         buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
-        using var sut = new CacheProcessor(Substitute.For<ISonarWebServer>(), localSettings, buildSettings, logger);
+        using var sut = new CacheProcessor(MockSonarWebServer.Create(), localSettings, buildSettings, logger);
 
         sut.PullRequestCacheBasePath.Should().Be(Path.Combine(workingDirectory, "Custom"));
     }
@@ -328,7 +328,6 @@ public class CacheProcessorTests
                           });
             }
             Factory.Server.DownloadCache(null).ReturnsForAnyArgs(cache);
-            Factory.Server.ServerVersion.Returns(SonarQubeVersion99);
             Sut.PullRequestCacheBasePath.Should().Be(Root, "Cache files must exist on expected path.");
         }
 

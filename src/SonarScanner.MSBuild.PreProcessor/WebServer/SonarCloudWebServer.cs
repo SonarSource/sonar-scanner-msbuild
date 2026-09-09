@@ -28,7 +28,7 @@ using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.WebServer;
 
-internal class SonarCloudWebServer : SonarWebServerBase, ISonarWebServer
+internal class SonarCloudWebServer : SonarWebServerBase
 {
     private readonly HttpClient unauthenticatedClient;
 
@@ -48,19 +48,19 @@ internal class SonarCloudWebServer : SonarWebServerBase, ISonarWebServer
         logger.LogInfo(Resources.MSG_UsingSonarCloud);
     }
 
-    public bool IsServerVersionSupported()
+    public override bool IsServerVersionSupported()
     {
         logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipVersionCheck);
         return true;
     }
 
-    public Task<bool> IsServerLicenseValid()
+    public override Task<bool> IsServerLicenseValid()
     {
         logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
         return Task.FromResult(true);
     }
 
-    public async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
+    public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
@@ -108,14 +108,14 @@ internal class SonarCloudWebServer : SonarWebServerBase, ISonarWebServer
     }
 
     // Do not use the downloaders here, as this is an unauthenticated request
-    public async Task<Stream> DownloadJreAsync(JreMetadata metadata)
+    public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
     {
         _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(JreMetadata)} must contain a valid download URL.");
         logger.LogDebug(Resources.MSG_JreDownloadUri, metadata.DownloadUrl);
         return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
     }
 
-    public async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
+    public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
     {
         _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(EngineMetadata)} must contain a valid download URL.");
         logger.LogDebug(Resources.MSG_EngineDownloadUri, metadata.DownloadUrl);

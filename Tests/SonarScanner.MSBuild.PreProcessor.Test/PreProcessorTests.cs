@@ -116,7 +116,6 @@ public partial class PreProcessorTests
     public async Task Execute_ExplicitScanAllParameter_ReturnsTrue(bool scanAll)
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.ServerVersion.Returns(new Version(9, 10, 1, 2));
         var args = new List<string>(CreateArgs())
         {
             $"/d:sonar.scanner.scanAll={scanAll}",
@@ -158,8 +157,6 @@ public partial class PreProcessorTests
         // * rule sets are generated
         // * config file is created
         using var context = new Context(TestContext);
-        context.Factory.Server.ServerVersion.Returns(new Version(9, 10, 1, 2));
-
         (await context.Execute()).Should().BeTrue();
 
         context.AssertDirectoriesCreated();
@@ -169,7 +166,7 @@ public partial class PreProcessorTests
             .And.HaveDebugs("Processing analysis cache");
 
         var config = context.AssertAnalysisConfig(2);
-        config.SonarQubeVersion.Should().Be("9.10.1.2");
+        config.SonarQubeVersion.Should().Be("2026.1");
         config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
         await context.Factory.ScannerCliResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);  // engine was resolved so CLI should not be used
     }
@@ -184,8 +181,6 @@ public partial class PreProcessorTests
         // * rule sets are generated
         // * config file is created
         using var context = new Context(TestContext);
-        context.Factory.Server.ServerVersion.Returns(new Version(9, 10, 1, 2));
-
         var tmpCachePath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, ".temp-cache");
         var args = new List<string>(CreateArgs())
         {
@@ -203,7 +198,7 @@ public partial class PreProcessorTests
             .And.HaveDebugs("Processing analysis cache");
 
         var config = context.AssertAnalysisConfig(2);
-        config.SonarQubeVersion.Should().Be("9.10.1.2");
+        config.SonarQubeVersion.Should().Be("2026.1");
         config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
     }
 

@@ -36,7 +36,7 @@ public partial class PreProcessorTests
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
-            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "2026.1");
     }
 
     [TestMethod]
@@ -54,7 +54,7 @@ public partial class PreProcessorTests
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_ANALYSIS_XML")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
-            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "2026.1");
     }
 
     [TestMethod]
@@ -67,7 +67,7 @@ public partial class PreProcessorTests
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "SONARQUBE_SCANNER_PARAMS")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
-            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "2026.1");
     }
 
     [TestMethod]
@@ -84,7 +84,7 @@ public partial class PreProcessorTests
             .And.HaveMessage("dotnetenterprise.s4net.params.sonar_scanner_scanall.source", "CLI")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.product", "SQ_Server")
             .And.HaveMessage("dotnetenterprise.s4net.serverInfo.serverUrl", "custom_url")
-            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "5.6");
+            .And.HaveMessage("dotnetenterprise.s4net.serverInfo.version", "2026.1");
     }
 
     [TestMethod]

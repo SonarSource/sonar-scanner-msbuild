@@ -21,6 +21,8 @@
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.Test;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution.Test;
 
@@ -36,7 +38,7 @@ public class EngineResolverTests
 
     private readonly EngineResolver resolver;
     private readonly TestRuntime runtime = new();
-    private readonly ISonarWebServer server = Substitute.For<ISonarWebServer>();
+    private readonly SonarWebServerBase server = MockSonarWebServer.Create();
     private readonly ProcessedArgs args = Substitute.For<ProcessedArgs>();
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
 

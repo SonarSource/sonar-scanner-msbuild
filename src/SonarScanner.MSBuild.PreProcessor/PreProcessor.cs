@@ -20,6 +20,7 @@
 
 using System.Net;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
+using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -150,7 +151,7 @@ public class PreProcessor
         }
     }
 
-    private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(ISonarWebServer server, ProcessedArgs args, BuildSettings settings)
+    private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(SonarWebServerBase server, ProcessedArgs args, BuildSettings settings)
     {
         var argumentsAndRuleSets = new ArgumentsAndRuleSets();
 
