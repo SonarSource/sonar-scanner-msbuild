@@ -72,8 +72,6 @@ public class ZipTest
             "SonarScanner.MSBuild.Shim.dll",
             "SonarScanner.MSBuild.Tasks.dll",
             "SonarScanner.MSBuild.TFS.dll",
-            "SonarScanner.MSBuild.TFSProcessor.exe",
-            "SonarScanner.MSBuild.TFSProcessor.exe.config",
             "System.AppContext.dll",
             "System.Buffers.dll",
             "System.Collections.Concurrent.dll",
@@ -287,7 +285,7 @@ public class ZipTest
 
     [TestMethod]
     [DataRow("sonar-scanner-*-net.zip", 7)]             // 7x dll
-    [DataRow("sonar-scanner-*-net-framework.zip", 8)]   // 6x dll + 2x exe
+    [DataRow("sonar-scanner-*-net-framework.zip", 7)]   // 6x dll + 1x exe
     public void ValidateSignatures(string pattern, int expectedFileCount)
     {
         using var archive = Verifier.UnzipFile(null, pattern);
