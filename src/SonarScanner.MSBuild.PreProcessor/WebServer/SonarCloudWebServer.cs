@@ -48,15 +48,7 @@ internal class SonarCloudWebServer : SonarWebServerBase
         var unauthenticatedClient = handler is null ? new HttpClient { Timeout = httpTimeout } : new HttpClient(handler, true) { Timeout = httpTimeout };
         var ret = new SonarCloudWebServer(webDownloader, apiDownloader, logger, organization, unauthenticatedClient);
         logger.LogInfo(Resources.MSG_UsingSonarCloud);
-        if (await ret.IsAllValid())
-        {
-            return ret;
-        }
-        else
-        {
-            ret.Dispose();
-            return null;
-        }
+        return await ret.IsAllValid() ? ret : null;     // No dispose for ret or downloaders for simplicity. The program ends soon.
     }
 
     public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
