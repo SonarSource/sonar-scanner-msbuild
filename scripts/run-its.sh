@@ -62,4 +62,17 @@ if [[ "${MSBUILD_PATH_VAR+set}" = "set" ]]; then
   )
 fi
 
+# Orchestrator downloads SQ distributions (~1 GB zips) independently of Maven
+# settings.xml. Point those GETs at the internal Edge node when a token is
+# present (CI). GitHub-hosted macOS cannot reach Edge — callers override
+# ORCHESTRATOR_ARTIFACTORY_URL to SaaS there.
+ORCHESTRATOR_ARTIFACTORY_URL="${ORCHESTRATOR_ARTIFACTORY_URL:-https://repox-internal.dev.sonar.build/artifactory}"
+ORCHESTRATOR_ARTIFACTORY_TOKEN="${ARTIFACTORY_ACCESS_TOKEN:-${ARTIFACTORY_PASSWORD:-}}"
+if [[ -n "${ORCHESTRATOR_ARTIFACTORY_TOKEN}" ]]; then
+  MVN_ARGS+=(
+    "-Dorchestrator.artifactory.url=${ORCHESTRATOR_ARTIFACTORY_URL}"
+    "-Dorchestrator.artifactory.accessToken=${ORCHESTRATOR_ARTIFACTORY_TOKEN}"
+  )
+fi
+
 mvn "${MVN_ARGS[@]}"

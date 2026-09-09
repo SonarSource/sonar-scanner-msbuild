@@ -76,6 +76,14 @@ runs:
         artifactory-reader-role: private-reader
         working-directory: its
 
+    # GitHub-hosted macOS cannot reach the internal Edge node (same split as
+    # sonar-dataflow-bug-detection). Linux self-hosted runners can.
+    - name: Wait for Artifactory token federation
+      if: runner.os != 'macOS'
+      uses: SonarSource/sonarsource-infra-artifactory/.github/actions/wait-for-artifactory-token-federation@979fc5f122d4f67f0d7e0ea880e0f1c3b8019941
+      with:
+        probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-releases&v=*"
+
     - name: Run Maven ITs
       env:
         MAVEN_OPTS: -Xmx3072m
@@ -83,6 +91,8 @@ runs:
         SQ_VERSION: ${{ inputs.sq-version }}
         SQ_EDITION: DEVELOPER
         ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+        ORCHESTRATOR_ARTIFACTORY_URL: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
         SONARCLOUD_PROJECT_TOKEN: ${{ inputs.sonarcloud-project-token }}
         SONARCLOUD_URL: https://sc-staging.io/

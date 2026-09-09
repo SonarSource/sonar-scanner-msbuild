@@ -168,6 +168,12 @@ jobs:
           name: Binaries
           path: Packaging/Binaries
 
+      # WarpBuild Windows can reach Edge (same pattern as sonar-security plugin ITs).
+      - name: Wait for Artifactory token federation
+        uses: SonarSource/sonarsource-infra-artifactory/.github/actions/wait-for-artifactory-token-federation@979fc5f122d4f67f0d7e0ea880e0f1c3b8019941
+        with:
+          probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-releases&v=*"
+
       # MultiLanguageTest needs npm, and only runs as part of the **/sonarqube/* legs.
       - name: Set npm registry to Repox
         if: matrix.testInclude == '**/sonarqube/*'
