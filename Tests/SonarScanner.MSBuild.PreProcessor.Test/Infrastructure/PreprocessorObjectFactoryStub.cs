@@ -27,7 +27,7 @@ using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
-internal class MockObjectFactory : IPreprocessorObjectFactory
+internal class PreprocessorObjectFactoryStub : PreprocessorObjectFactory
 {
     private readonly List<string> calledMethods = [];
 
@@ -39,17 +39,15 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     public string PluginCachePath { get; private set; }
     public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
 
-    public MockObjectFactory(TestRuntime runtime) : this()
-    {
-        Runtime = runtime;
-    }
+    public PreprocessorObjectFactoryStub(TestRuntime runtime) : this(runtime, true) { }
 
-    public MockObjectFactory(bool withDefaultRules = true, string organization = null, Dictionary<string, string> serverProperties = null)
+    public PreprocessorObjectFactoryStub(bool withDefaultRules = true)
+        : this(new TestRuntime(), withDefaultRules) { }
+
+    private PreprocessorObjectFactoryStub(TestRuntime runtime, bool withDefaultRules) : base(runtime)
     {
-        serverProperties ??= [];
-        serverProperties.Add("server.key", "server value 1");
         Client.ServerVersion.Returns("2026.1");
-        Client.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
+        Client.DownloadProperties(null, null).ReturnsForAnyArgs(new Dictionary<string, string> { { "server.key", "server value 1" } });
         Client.DownloadAllLanguages().Returns(["cs", "vbnet", "another_plugin"]);
         if (withDefaultRules)
         {
@@ -58,15 +56,15 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         }
     }
 
-    public Task<SonarQubeBase> CreateClient(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null) =>
+    public override Task<SonarQubeBase> CreateClient(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null) =>
         Task.FromResult(Client);
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarQubeBase client,
-                                                               string localCacheTempPath,
-                                                               BuildSettings teamBuildSettings,
-                                                               IAnalysisPropertyProvider sonarProperties,
-                                                               IEnumerable<SonarRule> rules,
-                                                               string language)
+    public override RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarQubeBase client,
+                                                                        string localCacheTempPath,
+                                                                        BuildSettings teamBuildSettings,
+                                                                        IAnalysisPropertyProvider sonarProperties,
+                                                                        IEnumerable<SonarRule> rules,
+                                                                        string language)
     {
         LogMethodCalled();
         PluginCachePath = localCacheTempPath;
@@ -81,13 +79,13 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         return settings;
     }
 
-    public IResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
+    public override IResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
         JreResolver;
 
-    public IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
+    public override IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
         EngineResolver;
 
-    public IResolver CreateScannerCliResolver(SonarQubeBase client, string sonarUserHome) =>
+    public override IResolver CreateScannerCliResolver(SonarQubeBase client, string sonarUserHome) =>
         ScannerCliResolver;
 
     public void AssertMethodCalled(string methodName, int callCount) =>

@@ -31,10 +31,10 @@ public class PreProcessor
 
     private static readonly string[] Languages = [CSharpLanguage, VBNetLanguage];
 
-    private readonly IPreprocessorObjectFactory factory;
+    private readonly PreprocessorObjectFactory factory;
     private readonly IRuntime runtime;
 
-    public PreProcessor(IPreprocessorObjectFactory factory, IRuntime runtime)
+    public PreProcessor(PreprocessorObjectFactory factory, IRuntime runtime)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));

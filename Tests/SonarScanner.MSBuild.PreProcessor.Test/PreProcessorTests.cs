@@ -30,21 +30,22 @@ public partial class PreProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        FluentActions.Invoking(() => new PreProcessor(null, new TestRuntime())).Should().Throw<ArgumentNullException>().WithParameterName("factory");
-        FluentActions.Invoking(() => new PreProcessor(Substitute.For<IPreprocessorObjectFactory>(), null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
+        var runtime = new TestRuntime();
+        FluentActions.Invoking(() => new PreProcessor(null, runtime)).Should().Throw<ArgumentNullException>().WithParameterName("factory");
+        FluentActions.Invoking(() => new PreProcessor(Substitute.For<PreprocessorObjectFactory>(runtime), null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
     }
 
     [TestMethod]
     public void Execute_NullArguments_ThrowsArgumentNullException()
     {
-        var factory = new MockObjectFactory();
+        var factory = new PreprocessorObjectFactoryStub();
         new PreProcessor(factory, factory.Runtime).Invoking(async x => await x.Execute(null)).Should().ThrowExactlyAsync<ArgumentNullException>();
     }
 
     [TestMethod]
     public async Task Execute_InvalidArguments_ReturnsFalseAndLogsError()
     {
-        var factory = new MockObjectFactory();
+        var factory = new PreprocessorObjectFactoryStub();
 
         (await new PreProcessor(factory, factory.Runtime).Execute(["invalid args"])).Should().Be(false);
         factory.Runtime.Logger.Should().HaveErrors("""
@@ -203,10 +204,8 @@ public partial class PreProcessorTests
         // * server properties are fetched
         // * rule sets are generated
         // * config file is created
-        using var context = new Context(TestContext, new MockObjectFactory(organization: "organization"));
-
+        using var context = new Context(TestContext, new PreprocessorObjectFactoryStub());
         (await context.Execute(CreateArgs("organization"))).Should().BeTrue();
-
         context.AssertDirectoriesCreated();
         context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
         context.AssertAnalysisConfig(2);
@@ -281,7 +280,7 @@ public partial class PreProcessorTests
     [TestMethod]
     public async Task Execute_NoQualityProfile_ReturnsTrue()
     {
-        using var context = new Context(TestContext, new MockObjectFactory(false));
+        using var context = new Context(TestContext, new PreprocessorObjectFactoryStub(false));
         context.Factory.Client.DownloadQualityProfile(null, null, null).ReturnsForAnyArgs((string)null);
 
         (await context.Execute()).Should().BeTrue();
@@ -392,18 +391,18 @@ public partial class PreProcessorTests
     private sealed class Context : IDisposable
     {
         public readonly string WorkingDir;
-        public readonly MockObjectFactory Factory;
+        public readonly PreprocessorObjectFactoryStub Factory;
         public readonly PreProcessor PreProcessor;
 
         private readonly WorkingDirectoryScope workingDirectory;
         private readonly TestContext testContext;
 
-        public Context(TestContext testContext, MockObjectFactory factory = null)
+        public Context(TestContext testContext, PreprocessorObjectFactoryStub factory = null)
         {
             this.testContext = testContext;
             WorkingDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             workingDirectory = new WorkingDirectoryScope(WorkingDir);
-            Factory = factory ?? new MockObjectFactory();
+            Factory = factory ?? new PreprocessorObjectFactoryStub();
             PreProcessor = new PreProcessor(Factory, Factory.Runtime);
             Factory.Runtime.OperatingSystem.FolderPath(default, default).ReturnsForAnyArgs("some folder");
             Factory.Runtime.File.Exists(Path.Combine(Path.GetDirectoryName(typeof(ArgumentProcessor).Assembly.Location), "Targets", FileConstants.ImportBeforeTargetsName)).Returns(true);
