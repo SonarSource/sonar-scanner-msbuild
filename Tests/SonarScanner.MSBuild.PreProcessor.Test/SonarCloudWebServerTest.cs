@@ -48,6 +48,10 @@ public class SonarCloudWebServerTest
     }
 
     [TestMethod]
+    public async Task ServerVersion() =>
+        (await new Context().CreateServer()).ServerVersion.Should().Be("Cloud");
+
+    [TestMethod]
     public async Task IsAllValid_Valid()
     {
         var context = new Context();
