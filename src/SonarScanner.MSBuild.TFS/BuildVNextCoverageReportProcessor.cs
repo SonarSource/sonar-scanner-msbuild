@@ -41,7 +41,6 @@ public class BuildVNextCoverageReportProcessor
         runtime.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
         string[] vsTestReportsPaths = null;
         string[] vsCoverageXmlReportsPaths = null;
-        var conversionPerformed = false;
         var trxFilePaths = new TrxFileReader(runtime).FindTrxFiles(settings.BuildDirectory);
 
         if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, runtime.Logger) is null)
@@ -57,7 +56,7 @@ public class BuildVNextCoverageReportProcessor
         }
 
         var vsCoverageFilePaths = FindVsCoverageFiles(trxFilePaths, disableFallback: vsTestReportsPaths is not null);
-        ConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths, out conversionPerformed);
+        var conversionPerformed = ConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths);
         if (coverageReportPaths.Any()
             && config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, runtime.Logger) is null)
         {
@@ -149,10 +148,10 @@ public class BuildVNextCoverageReportProcessor
         }
     }
 
-    private void ConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths, out bool conversionPerformed)
+    private bool ConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths)
     {
         var xmlFileNames = new List<string>();
-        conversionPerformed = false;
+        var conversionPerformed = false;
         foreach (var vsCoverageFilePath in vsCoverageFilePaths)
         {
             var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
@@ -165,13 +164,14 @@ public class BuildVNextCoverageReportProcessor
                 if (!converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
                 {
                     vsCoverageXmlPaths = [];
-                    return;
+                    return false;
                 }
                 conversionPerformed = true;
             }
             xmlFileNames.Add(xmlFilePath);
         }
         vsCoverageXmlPaths = xmlFileNames;
+        return conversionPerformed;
     }
 
     internal class FileWithContentHash
