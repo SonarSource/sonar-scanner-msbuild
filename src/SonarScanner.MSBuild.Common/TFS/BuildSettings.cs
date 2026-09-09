@@ -24,12 +24,11 @@ using SonarScanner.MSBuild.Common.TFS;
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
-/// Provides access to TeamBuild-specific settings and settings calculated
-/// from those settings.
+/// Provides access to TeamBuild-specific settings and settings calculated from those settings.
 /// </summary>
 public class BuildSettings : IBuildSettings
 {
-    public static bool IsInTeamBuild => TryGetBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
+    public static bool IsInTeamBuild => ReadBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
     public BuildEnvironment BuildEnvironment { get; private set; }
     public string TfsUri { get; private set; }
     public string BuildUri { get; private set; }
@@ -41,8 +40,7 @@ public class BuildSettings : IBuildSettings
     public string AnalysisConfigFilePath => Path.Combine(SonarConfigDirectory, FileConstants.ConfigFileName);
 
     /// <summary>
-    /// The base working directory under which the various analysis
-    /// sub-directories (bin, conf, out) should be created.
+    /// The base working directory under which the various analysis sub-directories (bin, conf, out) should be created.
     /// </summary>
     public string AnalysisBaseDirectory { get; private set; }
 
@@ -62,9 +60,7 @@ public class BuildSettings : IBuildSettings
     private BuildSettings() { }
 
     /// <summary>
-    /// Factory method to create and return a new set of team build settings
-    /// calculated from environment variables.
-    /// Returns null if all the required environment variables are not present.
+    /// Factory method to create and return a new set of team build settings calculated from environment variables.
     /// </summary>
     public static BuildSettings GetSettingsFromEnvironment()
     {
@@ -108,8 +104,7 @@ public class BuildSettings : IBuildSettings
     }
 
     /// <summary>
-    /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/>
-    /// in product code.
+    /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/> in product code.
     /// </summary>
     public static BuildSettings CreateSettingsForTesting(string analysisBaseDirectory, BuildEnvironment buildEnvironment = BuildEnvironment.NotTeamBuild)
     {
@@ -155,7 +150,7 @@ public class BuildSettings : IBuildSettings
         return env;
     }
 
-    private static bool TryGetBoolEnvironmentVariable(string envVar, bool defaultValue) =>
+    private static bool ReadBoolEnvironmentVariable(string envVar, bool defaultValue) =>
         Environment.GetEnvironmentVariable(envVar) is { } value && bool.TryParse(value, out var result)
             ? result
             : defaultValue;
