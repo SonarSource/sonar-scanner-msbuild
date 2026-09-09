@@ -161,12 +161,15 @@ public class BuildVNextCoverageReportProcessor
             }
             else
             {
-                if (!converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
+                if (converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
+                {
+                    conversionPerformed = true;
+                }
+                else
                 {
                     vsCoverageXmlPaths = [];
-                    return false;
+                    return conversionPerformed;
                 }
-                conversionPerformed = true;
             }
             xmlFileNames.Add(xmlFilePath);
         }
