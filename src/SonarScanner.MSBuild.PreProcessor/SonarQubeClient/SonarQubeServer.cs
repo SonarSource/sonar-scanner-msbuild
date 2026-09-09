@@ -28,17 +28,13 @@ namespace SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 internal class SonarQubeServer : SonarQubeBase
 {
-    private readonly IRuntime runtime;
     private readonly Version serverVersion;
 
     public override string ServerVersion => serverVersion.ToString();
 
     private SonarQubeServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
-        : base(webDownloader, apiDownloader, runtime.Logger, organization)
-    {
+        : base(webDownloader, apiDownloader, runtime, organization) =>
         this.serverVersion = serverVersion;
-        this.runtime = runtime;
-    }
 
     public static async Task<SonarQubeServer> Create(IDownloader webDownloader, IDownloader apiDownloader, IRuntime runtime, string organization)
     {

@@ -25,5 +25,5 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 public static class MockSonarQube
 {
     public static SonarQubeBase Create() =>
-        Substitute.For<SonarQubeBase>(Substitute.For<IDownloader>(), Substitute.For<IDownloader>(), new TestLogger(), null);
+        Substitute.For<SonarQubeBase>(Substitute.For<IDownloader>(), Substitute.For<IDownloader>(), new TestRuntime(), null);
 }

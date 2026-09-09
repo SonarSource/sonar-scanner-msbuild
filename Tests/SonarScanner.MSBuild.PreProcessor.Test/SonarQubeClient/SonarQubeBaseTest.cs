@@ -30,14 +30,14 @@ public class SonarQubeBaseTest
 {
     private const string ProjectKey = "project-key";
 
-    private TestLogger logger;
+    private TestRuntime runtime;
     private IDownloader downloader;
     private SonarQubeStub sut;
 
     [TestInitialize]
     public void Init()
     {
-        logger = new();
+        runtime = new();
         downloader = Substitute.For<IDownloader>();
         sut = CreateClient();
     }
@@ -49,16 +49,16 @@ public class SonarQubeBaseTest
     [TestMethod]
     public void Ctor_Null_Throws()
     {
-        ((Func<SonarQubeStub>)(() => new SonarQubeStub(null, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
-        ((Func<SonarQubeStub>)(() => new SonarQubeStub(downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
-        ((Func<SonarQubeStub>)(() => new SonarQubeStub(downloader, downloader, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        ((Func<SonarQubeStub>)(() => new SonarQubeStub(null, null, runtime, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
+        ((Func<SonarQubeStub>)(() => new SonarQubeStub(downloader, null, runtime, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
+        ((Func<SonarQubeStub>)(() => new SonarQubeStub(downloader, downloader, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("runtime");
     }
 
     [TestMethod]
     public async Task IsAllValid_Throws_LogsError()
     {
         (await sut.IsAllValidPublic()).Should().BeFalse();
-        logger.Should().HaveErrors("Specified method is not supported.");   // NotSupportedException in the stub
+        runtime.Logger.Should().HaveErrors("Specified method is not supported.");   // NotSupportedException in the stub
     }
 
     [TestMethod]
@@ -85,7 +85,7 @@ public class SonarQubeBaseTest
         Func<Task> act = async () => await CreateClient("ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
         await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
-        logger.Should().HaveErrors("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+        runtime.Logger.Should().HaveErrors("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
     }
 
     [TestMethod]
@@ -721,7 +721,7 @@ public class SonarQubeBaseTest
             .Throw(new InvalidOperationException("Connection failed", new IOException("SSL handshake failed")));
 
         (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
-        logger.Should().HaveWarnings("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever. Connection failed -> SSL handshake failed");
+        runtime.Logger.Should().HaveWarnings("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever. Connection failed -> SSL handshake failed");
     }
 
     [TestMethod]
@@ -735,7 +735,7 @@ public class SonarQubeBaseTest
             .Returns(jresResponse);
 
         (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
-        logger.Warnings.Should().ContainSingle().Which.Should().StartWith("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever. ");
+        runtime.Logger.Warnings.Should().ContainSingle().Which.Should().StartWith("JRE Metadata could not be retrieved from analysis/jres?os=what&arch=ever. ");
     }
 
     [TestMethod]
@@ -762,7 +762,7 @@ public class SonarQubeBaseTest
         jreMetadata.Sha256.Should().Be("42==");
         jreMetadata.JavaPath.Should().Be("best/language/java.exe");
         jreMetadata.DownloadUrl.Should().BeNull();
-        logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -781,7 +781,7 @@ public class SonarQubeBaseTest
 
         jreMetadata.Should().NotBeNull();
         jreMetadata.Id.Should().Be("first");
-        logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -792,7 +792,7 @@ public class SonarQubeBaseTest
             .Returns("[]");
 
         (await sut.DownloadJreMetadataAsync("what", "ever")).Should().BeNull();
-        logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -804,8 +804,8 @@ public class SonarQubeBaseTest
             .Throw(exception);
 
         (await sut.DownloadEngineMetadataAsync()).Should().BeNull();
-        logger.Should().HaveWarnings("Sonar Engine Metadata could not be retrieved from analysis/engine. Connection failed -> SSL handshake failed");
-        logger.DebugMessages.Should().ContainSingle().Which.Should().StartWith("System.InvalidOperationException: Connection failed").And.Contain("SSL handshake failed");
+        runtime.Logger.Should().HaveWarnings("Sonar Engine Metadata could not be retrieved from analysis/engine. Connection failed -> SSL handshake failed");
+        runtime.Logger.DebugMessages.Should().ContainSingle().Which.Should().StartWith("System.InvalidOperationException: Connection failed").And.Contain("SSL handshake failed");
     }
 
     [TestMethod]
@@ -825,7 +825,7 @@ public class SonarQubeBaseTest
             .Returns(jresResponse);
 
         (await sut.DownloadEngineMetadataAsync()).Should().BeNull();
-        logger.Warnings.Should().ContainSingle().Which.Should().StartWith("Sonar Engine Metadata could not be retrieved from analysis/engine. ");
+        runtime.Logger.Warnings.Should().ContainSingle().Which.Should().StartWith("Sonar Engine Metadata could not be retrieved from analysis/engine. ");
     }
 
     [TestMethod]
@@ -849,7 +849,7 @@ public class SonarQubeBaseTest
             Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
             DownloadUrl = new Uri("https://scanner.sonarcloud.io/engines/sonarcloud-scanner-engine-11.14.1.763.jar")
         });
-        logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -872,7 +872,7 @@ public class SonarQubeBaseTest
             Sha256 = "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b",
             DownloadUrl = (Uri)null,
         });
-        logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoWarnings();
     }
 
     [TestMethod]
@@ -888,14 +888,14 @@ public class SonarQubeBaseTest
     }
 
     private SonarQubeStub CreateClient(string organization = null) =>
-        new(downloader, downloader, logger, organization);
+        new(downloader, downloader, runtime, organization);
 
     private class SonarQubeStub : SonarQubeBase
     {
         public override string ServerVersion => throw new NotSupportedException();
 
-        public SonarQubeStub(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization)
-            : base(webDownloader, apiDownloader, logger, organization)
+        public SonarQubeStub(IDownloader webDownloader, IDownloader apiDownloader, IRuntime runtime, string organization)
+            : base(webDownloader, apiDownloader, runtime, organization)
         { }
 
         public Task<bool> IsAllValidPublic() =>

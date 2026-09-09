@@ -442,10 +442,12 @@ public class SonarQubeCloudTest
     {
         public readonly IDownloader WebDownloader = Substitute.For<IDownloader>();
         public readonly IDownloader ApiDownloader = Substitute.For<IDownloader>();
-        public readonly TestLogger Logger = new();
         private readonly HttpMessageHandlerMock handler;
         private readonly string organization;
+        private readonly TestRuntime runtime = new();
         private SonarQubeCloud client;
+
+        public TestLogger Logger => runtime.Logger;
 
         public SonarQubeCloud Client => client ??= CreateClient().Result;
 
@@ -457,7 +459,7 @@ public class SonarQubeCloudTest
         }
 
         public Task<SonarQubeCloud> CreateClient() =>
-            SonarQubeCloud.Create(WebDownloader, ApiDownloader, Logger, organization, HttpTimeout, handler);
+            SonarQubeCloud.Create(WebDownloader, ApiDownloader, runtime, organization, HttpTimeout, handler);
 
         private void MockDownloaderServerSettings(string cacheBase)
         {
