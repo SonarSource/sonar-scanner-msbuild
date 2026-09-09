@@ -65,16 +65,16 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
-    [DataRow("https://sonarcloud.io", "8.0", typeof(SonarQubeCloud))]
-    [DataRow("https://sonarcloud.io/", "8.0", typeof(SonarQubeCloud))]
-    [DataRow("https://sonarcloud.io//", "8.0", typeof(SonarQubeCloud))]
-    [DataRow("https://sonarcloud_other.io//", "26.1", typeof(SonarQubeServer))]
-    [DataRow("http://localhost:222", "26.1", typeof(SonarQubeServer))]
-    public async Task CreateClient_CorrectServiceType(string hostUrl, string version, Type serviceType)
+    [DataRow("https://sonarcloud.io", typeof(SonarQubeCloud))]
+    [DataRow("https://sonarcloud.io/", typeof(SonarQubeCloud))]
+    [DataRow("https://sonarcloud.io//", typeof(SonarQubeCloud))]
+    [DataRow("https://sonarcloud_other.io//", typeof(SonarQubeServer))]
+    [DataRow("http://localhost:222", typeof(SonarQubeServer))]
+    public async Task CreateClient_CorrectServiceType(string hostUrl, Type serviceType)
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var downloader = Substitute.For<IDownloader>();
-        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult(version));
+        downloader.Download(Arg.Any<Uri>(), Arg.Any<bool>()).Returns(Task.FromResult("2026.1"));    // Only read by SonarQubeServer
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
         downloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative))
             .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") }));

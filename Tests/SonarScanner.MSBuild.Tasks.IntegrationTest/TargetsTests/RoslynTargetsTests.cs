@@ -91,13 +91,13 @@ public class RoslynTargetsTests
 
     [TestMethod]
     [Description("Checks existing analysis settings are merged for projects using SonarQube 7.5+")]
-    public void Settings_ValidSetup_NonLegacyServer_MergeSettings()
+    public void Settings_ValidSetup_MergeSettings()
     {
         var context = new TargetsTestsContext(TestContext);
         var dummyQpRulesetPath = TestUtils.CreateValidEmptyRuleset(context.ProjectFolder, "dummyQp");
         var config = new AnalysisConfig
         {
-            SonarQubeVersion = "7.5", // non-legacy version
+            SonarQubeVersion = "2026.1",
             ServerSettings = [new("sonar.cs.roslyn.ignoreIssues", "false")],
             AnalyzersSettings =
             [
@@ -544,7 +544,7 @@ public class RoslynTargetsTests
         var config = new AnalysisConfig
         {
             SonarQubeHostUrl = "http://sonarqube.com",
-            SonarQubeVersion = "8.9", // Latest behavior, test code is analyzed by default.
+            SonarQubeVersion = "2026.1", // Latest behavior, test code is analyzed by default.
             ServerSettings =
             [
                 new("sonar.cs.roslyn.ignoreIssues", "true"),
