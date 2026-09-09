@@ -77,13 +77,16 @@ runs:
         working-directory: its
 
     # GitHub-hosted macOS cannot reach the internal Edge node (same split as
-    # sonar-dataflow-bug-detection). Linux self-hosted runners can.
+    # sonar-dataflow-bug-detection). Linux self-hosted runners can. Only legs
+    # that boot a local SonarQube (i.e. have sq-version) download distributions.
     # Inline wait: this public repo cannot resolve the private infra action.
     - name: Wait for Artifactory token federation
-      if: runner.os != 'macOS'
+      if: runner.os != 'macOS' && inputs.sq-version != ''
+      timeout-minutes: 5
       shell: bash
       env:
         ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN }}
+        ARTIFACTORY_URL: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
       run: bash scripts/wait-for-artifactory-token-federation.sh
 
     - name: Run Maven ITs
@@ -93,7 +96,6 @@ runs:
         SQ_VERSION: ${{ inputs.sq-version }}
         SQ_EDITION: DEVELOPER
         ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
-        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
         ORCHESTRATOR_ARTIFACTORY_URL: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
         SONARCLOUD_PROJECT_TOKEN: ${{ inputs.sonarcloud-project-token }}

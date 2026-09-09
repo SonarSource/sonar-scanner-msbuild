@@ -170,10 +170,14 @@ jobs:
 
       # WarpBuild Windows can reach Edge (same pattern as sonar-security plugin ITs).
       # Inline wait: this public repo cannot resolve the private infra action.
+      # Only the **/sonarqube/* legs download a SonarQube distribution from Edge.
       - name: Wait for Artifactory token federation
+        if: matrix.testInclude == '**/sonarqube/*'
+        timeout-minutes: 5
         shell: bash
         env:
           ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN || fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+          ARTIFACTORY_URL: https://repox-internal.dev.sonar.build/artifactory
         run: bash scripts/wait-for-artifactory-token-federation.sh
 
       # MultiLanguageTest needs npm, and only runs as part of the **/sonarqube/* legs.
@@ -201,6 +205,7 @@ jobs:
           GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
           ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
           ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+          ORCHESTRATOR_ARTIFACTORY_URL: https://repox-internal.dev.sonar.build/artifactory
           NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
           # These variables are needed for SQC ITs (see CloudConstants.java).
           # s4net-its is a dedicated organization setup specifically for this purpose. Any user that has Execute Analysis permission (explicitly, or by being an owner) can create a new token.
