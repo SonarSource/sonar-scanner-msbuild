@@ -42,23 +42,23 @@ public class PreProcessor
 
     public virtual async Task<bool> Execute(IEnumerable<string> args)
     {
-        var buildSettings = BuildSettings.SettingsFromEnvironment(runtime.Logger);
-        if (buildSettings is null)
+        if (BuildSettings.CreateFromEnvironment(runtime.Logger) is { } buildSettings)
         {
-            return false;   // logging happens inside BuildSettings.SettingsFromEnvironment
-        }
-
-        runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
-        var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime);
-        if (processedArgs is null)
-        {
-            runtime.Logger.ResumeOutput();
-            runtime.LogError(Resources.ERROR_InvalidCommandLineArgs);
-            return false;
+            runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
+            if (ArgumentProcessor.TryProcessArgs(args, runtime) is { } processedArgs)
+            {
+                return await DoExecute(buildSettings, processedArgs);
+            }
+            else
+            {
+                runtime.Logger.ResumeOutput();
+                runtime.LogError(Resources.ERROR_InvalidCommandLineArgs);
+                return false;
+            }
         }
         else
         {
-            return await DoExecute(buildSettings, processedArgs);
+            return false;   // Messages were already logged
         }
     }
 

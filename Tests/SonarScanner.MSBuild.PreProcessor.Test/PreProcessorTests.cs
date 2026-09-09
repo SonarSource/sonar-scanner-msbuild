@@ -363,7 +363,7 @@ public partial class PreProcessorTests
         scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "http://builduri");
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Runtime.Logger.Should().HaveErrors("Team Foundation Server detected, which is not supported.");
+        context.Factory.Runtime.Logger.Should().HaveErrors("Team Foundation Server detected, which is not supported by this version of Scanner for .NET. Use older version of the scanner.");
     }
 
     private static IEnumerable<string> CreateArgs(string organization = null, Dictionary<string, string> properties = null)

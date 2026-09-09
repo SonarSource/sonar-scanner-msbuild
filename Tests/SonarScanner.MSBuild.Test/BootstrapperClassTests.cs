@@ -288,7 +288,7 @@ public class BootstrapperClassTests
             Substitute.For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), Substitute.For<IRuntime>()));
         processorFactory = Substitute.For<IProcessorFactory>();
         preProcessor.Execute(Arg.Any<string[]>()).Returns(Task.FromResult(preProcessorOutcome));
-        postProcessor.Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>()).Returns(postProcessorOutcome);
+        postProcessor.Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<BuildSettings>()).Returns(postProcessorOutcome);
         processorFactory.CreatePostProcessor().Returns(postProcessor);
         processorFactory.CreatePreProcessor().Returns(preProcessor);
     }
@@ -296,9 +296,7 @@ public class BootstrapperClassTests
     private static EnvironmentVariableScope InitializeNonTeamBuildEnvironment(string workingDirectory)
     {
         Directory.SetCurrentDirectory(workingDirectory);
-        return new EnvironmentVariableScope()
-            .SetVariable(EnvironmentVariables.BuildDirectoryLegacy, null)
-            .SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, null);
+        return new EnvironmentVariableScope().SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, null);
     }
 
     private TestLogger CheckExecutionFails(AnalysisPhase phase, bool debug, Func<string, Version> getAssemblyVersion = null, params string[] args)
@@ -348,10 +346,10 @@ public class BootstrapperClassTests
     }
 
     private void AssertPostProcessorNotCalled() =>
-        postProcessor.DidNotReceive().Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
+        postProcessor.DidNotReceive().Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<BuildSettings>());
 
     private void AssertPostProcessorArgs(params string[] expectedArgs) =>
-        postProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)), Arg.Any<AnalysisConfig>(), Arg.Any<IBuildSettings>());
+        postProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)), Arg.Any<AnalysisConfig>(), Arg.Any<BuildSettings>());
 
     private void AssertPreProcessorArgs(params string[] expectedArgs) =>
         preProcessor.Received(1).Execute(Arg.Is<string[]>(x => x.SequenceEqual(expectedArgs)));

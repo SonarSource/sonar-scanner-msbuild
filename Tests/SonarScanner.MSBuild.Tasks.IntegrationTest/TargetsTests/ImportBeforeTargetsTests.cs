@@ -46,7 +46,6 @@ public class ImportBeforeTargetsTests
             <PropertyGroup>
               <SonarQubeTargetsPath />
               <AGENT_BUILDDIRECTORY />
-              <TF_BUILD_BUILDDIRECTORY />
             </PropertyGroup>
             """;
         var projectFilePath = CreateProjectFile(projectXml);
@@ -90,7 +89,6 @@ public class ImportBeforeTargetsTests
               <SonarQubeTempPath>nonExistentPath</SonarQubeTempPath>
               <MSBuildExtensionsPath>nonExistentPath</MSBuildExtensionsPath>
               <AGENT_BUILDDIRECTORY />
-              <TF_BUILD_BUILDDIRECTORY />
             </PropertyGroup>
             """;
         var projectFilePath = CreateProjectFile(projectXml);
@@ -120,7 +118,6 @@ public class ImportBeforeTargetsTests
               <SonarQubeTempPath>{Path.GetTempPath()}</SonarQubeTempPath>
               <SonarQubeTargetsPath>{Path.GetDirectoryName(dummySonarTargetsDir)}</SonarQubeTargetsPath>
               <AGENT_BUILDDIRECTORY />
-              <TF_BUILD_BUILDDIRECTORY />
             </PropertyGroup>
             """;
         var projectFilePath = CreateProjectFile(projectXml);
@@ -151,8 +148,8 @@ public class ImportBeforeTargetsTests
         var fullPath = Path.Combine(testSpecificDir, TargetConstants.AnalysisTargetFile);
         if (!File.Exists(fullPath))
         {
-// To check whether the targets are imported or not we check for
-// the existence of the DummyProperty, below.
+            // To check whether the targets are imported or not we check for
+            // the existence of the DummyProperty, below.
             var contents = """
                 <Project xmlns='http://schemas.microsoft.com/developer/msbuild/2003'>
                   <PropertyGroup>
