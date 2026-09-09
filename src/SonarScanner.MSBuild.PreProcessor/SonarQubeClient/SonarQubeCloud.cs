@@ -26,27 +26,27 @@ using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
-namespace SonarScanner.MSBuild.PreProcessor.WebServer;
+namespace SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
-internal class SonarCloudWebServer : SonarWebServerBase
+internal class SonarQubeCloud : SonarQubeBase
 {
     private readonly HttpClient unauthenticatedClient;
 
     public override string ServerVersion => "Cloud";    // Well-known value recognized by the analyzer
 
-    private SonarCloudWebServer(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization, HttpClient unauthenticatedClient)
+    private SonarQubeCloud(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization, HttpClient unauthenticatedClient)
         : base(webDownloader, apiDownloader, logger, organization) =>
         this.unauthenticatedClient = unauthenticatedClient;
 
-    public static async Task<SonarCloudWebServer> Create(IDownloader webDownloader,
-                                                         IDownloader apiDownloader,
-                                                         ILogger logger,
-                                                         string organization,
-                                                         TimeSpan httpTimeout,
-                                                         HttpMessageHandler handler = null)
+    public static async Task<SonarQubeCloud> Create(IDownloader webDownloader,
+                                                    IDownloader apiDownloader,
+                                                    ILogger logger,
+                                                    string organization,
+                                                    TimeSpan httpTimeout,
+                                                    HttpMessageHandler handler = null)
     {
         var unauthenticatedClient = handler is null ? new HttpClient { Timeout = httpTimeout } : new HttpClient(handler, true) { Timeout = httpTimeout };
-        var ret = new SonarCloudWebServer(webDownloader, apiDownloader, logger, organization, unauthenticatedClient);
+        var ret = new SonarQubeCloud(webDownloader, apiDownloader, logger, organization, unauthenticatedClient);
         logger.LogInfo(Resources.MSG_UsingSonarCloud);
         return await ret.IsAllValid() ? ret : null;     // No dispose for ret or downloaders for simplicity. The program ends soon.
     }

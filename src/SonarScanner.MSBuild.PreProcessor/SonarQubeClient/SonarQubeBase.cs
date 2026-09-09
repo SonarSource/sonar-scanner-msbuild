@@ -25,9 +25,9 @@ using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
-namespace SonarScanner.MSBuild.PreProcessor.WebServer;
+namespace SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
-public abstract class SonarWebServerBase : IDisposable
+public abstract class SonarQubeBase : IDisposable
 {
     private const string OldDefaultProjectTestPattern = @"[^\\]*test[^\\]*$";
     private const string TestProjectPattern = "sonar.cs.msbuild.testProjectPattern";
@@ -49,7 +49,7 @@ public abstract class SonarWebServerBase : IDisposable
     protected abstract Task<bool> IsServerLicenseValid();
     protected abstract RuleSearchPaging ParseRuleSearchPaging(JObject json);
 
-    protected SonarWebServerBase(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization)
+    protected SonarQubeBase(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization)
     {
         this.webDownloader = webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
         this.apiDownloader = apiDownloader ?? throw new ArgumentNullException(nameof(apiDownloader));

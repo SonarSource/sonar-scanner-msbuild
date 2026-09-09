@@ -84,7 +84,7 @@ public partial class PreProcessorTests
     public async Task Execute_FetchArgumentsAndRuleSets_ConnectionIssue_ReturnsFalseAndLogsError()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure));
+        context.Factory.Client.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure));
 
         (await context.Execute()).Should().BeFalse();
         context.Factory.Runtime.Logger.Should().HaveErrors("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
@@ -110,7 +110,7 @@ public partial class PreProcessorTests
     public async Task Execute_ServerNotAvailable_ReturnsFalse()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server = null;
+        context.Factory.Client = null;
 
         var result = await context.Execute();
 
@@ -121,7 +121,7 @@ public partial class PreProcessorTests
     public async Task Execute_FetchArgumentsAndRuleSets_ServerReturnsUnexpectedStatus()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new WebException("Something else went wrong"));
+        context.Factory.Client.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new WebException("Something else went wrong"));
 
         await context.PreProcessor.Invoking(async x => await x.Execute(CreateArgs())).Should().ThrowAsync<WebException>().WithMessage("Something else went wrong");
     }
@@ -185,7 +185,7 @@ public partial class PreProcessorTests
     public async Task Execute_EndToEnd_SuccessCase_NoActiveRule()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.DownloadRules("qp1").Returns([]);
+        context.Factory.Client.DownloadRules("qp1").Returns([]);
 
         (await context.Execute()).Should().BeTrue();
 
@@ -310,7 +310,7 @@ public partial class PreProcessorTests
     public async Task Execute_NoPlugin_ReturnsFalseAndLogsError()
     {
         using var context = new Context(TestContext);
-        context.Factory.Server.DownloadAllLanguages().Returns(["invalid_plugin"]);
+        context.Factory.Client.DownloadAllLanguages().Returns(["invalid_plugin"]);
 
         (await context.Execute()).Should().BeFalse();
 
@@ -321,7 +321,7 @@ public partial class PreProcessorTests
     public async Task Execute_NoQualityProfile_ReturnsTrue()
     {
         using var context = new Context(TestContext, new MockObjectFactory(false));
-        context.Factory.Server.DownloadQualityProfile(null, null, null).ReturnsForAnyArgs((string)null);
+        context.Factory.Client.DownloadQualityProfile(null, null, null).ReturnsForAnyArgs((string)null);
 
         (await context.Execute()).Should().BeTrue();
 
@@ -337,11 +337,11 @@ public partial class PreProcessorTests
     {
         // Checks end-to-end behavior when AnalysisException is thrown inside FetchArgumentsAndRulesets
         using var context = new Context(TestContext);
-        context.Factory.Server.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new AnalysisException("This message and stacktrace should not propagate to the users"));
+        context.Factory.Client.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new AnalysisException("This message and stacktrace should not propagate to the users"));
 
         (await context.Execute(CreateArgs("InvalidOrganization"))).Should().BeFalse();    // Should not throw
 
-        await context.Factory.Server.ReceivedWithAnyArgs(1).DownloadQualityProfile(null, null, null);
+        await context.Factory.Client.ReceivedWithAnyArgs(1).DownloadQualityProfile(null, null, null);
     }
 
     [TestMethod]
@@ -357,7 +357,7 @@ public partial class PreProcessorTests
             .ResolvePath(Arg.Any<ProcessedArgs>())
             .Returns("some/path/to/engine.jar");
 
-        context.Factory.Server.DownloadProperties(null, null)
+        context.Factory.Client.DownloadProperties(null, null)
             .ReturnsForAnyArgs(new Dictionary<string, string> { { "server.key", "server value 1" }, { "shared.key1", "server shared value 1" }, { "shared.CASING", "server upper case value" } });
         // Local settings that should override matching server settings
         var args = new List<string>(CreateArgs())
@@ -490,10 +490,10 @@ public partial class PreProcessorTests
         public void AssertDownloadMethodsCalled(int properties, int allLanguages, int qualityProfile, int rules)
         {
             Factory.Runtime.Logger.Should().HaveInfos("Updating build integration targets...");             // TargetsInstaller was called
-            Factory.Server.ReceivedWithAnyArgs(properties).DownloadProperties(null, null);
-            Factory.Server.ReceivedWithAnyArgs(allLanguages).DownloadAllLanguages();
-            Factory.Server.ReceivedWithAnyArgs(qualityProfile).DownloadQualityProfile(null, null, null);    // C# and VBNet
-            Factory.Server.ReceivedWithAnyArgs(rules).DownloadRules(null);                                  // C# and VBNet
+            Factory.Client.ReceivedWithAnyArgs(properties).DownloadProperties(null, null);
+            Factory.Client.ReceivedWithAnyArgs(allLanguages).DownloadAllLanguages();
+            Factory.Client.ReceivedWithAnyArgs(qualityProfile).DownloadQualityProfile(null, null, null);    // C# and VBNet
+            Factory.Client.ReceivedWithAnyArgs(rules).DownloadRules(null);                                  // C# and VBNet
         }
 
         public void Dispose() =>

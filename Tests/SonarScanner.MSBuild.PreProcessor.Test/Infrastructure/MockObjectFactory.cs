@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -32,7 +32,7 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     private readonly List<string> calledMethods = [];
 
     public TestRuntime Runtime { get; } = new();
-    public SonarWebServerBase Server { get; set; } = MockSonarWebServer.Create();
+    public SonarQubeBase Client { get; set; } = MockSonarQube.Create();
     public IResolver JreResolver { get; } = Substitute.For<IResolver>();
     public IResolver EngineResolver { get; } = Substitute.For<IResolver>();
     public IResolver ScannerCliResolver { get; } = Substitute.For<IResolver>();
@@ -48,20 +48,20 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
     {
         serverProperties ??= [];
         serverProperties.Add("server.key", "server value 1");
-        Server.ServerVersion.Returns("2026.1");
-        Server.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
-        Server.DownloadAllLanguages().Returns(["cs", "vbnet", "another_plugin"]);
+        Client.ServerVersion.Returns("2026.1");
+        Client.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
+        Client.DownloadAllLanguages().Returns(["cs", "vbnet", "another_plugin"]);
         if (withDefaultRules)
         {
-            Server.DownloadRules("qp1").Returns([new SonarRule("csharpsquid", "cs.rule.id")]);
-            Server.DownloadRules("qp2").Returns([new SonarRule("vbnet", "vb.rule.id")]);
+            Client.DownloadRules("qp1").Returns([new SonarRule("csharpsquid", "cs.rule.id")]);
+            Client.DownloadRules("qp2").Returns([new SonarRule("vbnet", "vb.rule.id")]);
         }
     }
 
-    public Task<SonarWebServerBase> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null) =>
-        Task.FromResult(Server);
+    public Task<SonarQubeBase> CreateClient(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null) =>
+        Task.FromResult(Client);
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarWebServerBase server,
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarQubeBase client,
                                                                string localCacheTempPath,
                                                                BuildSettings teamBuildSettings,
                                                                IAnalysisPropertyProvider sonarProperties,
@@ -81,13 +81,13 @@ internal class MockObjectFactory : IPreprocessorObjectFactory
         return settings;
     }
 
-    public IResolver CreateJreResolver(SonarWebServerBase server, string sonarUserHome) =>
+    public IResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
         JreResolver;
 
-    public IResolver CreateEngineResolver(SonarWebServerBase server, string sonarUserHome) =>
+    public IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
         EngineResolver;
 
-    public IResolver CreateScannerCliResolver(SonarWebServerBase server, string sonarUserHome) =>
+    public IResolver CreateScannerCliResolver(SonarQubeBase client, string sonarUserHome) =>
         ScannerCliResolver;
 
     public void AssertMethodCalled(string methodName, int callCount) =>

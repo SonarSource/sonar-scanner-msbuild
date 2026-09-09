@@ -24,12 +24,11 @@ using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test;
+namespace SonarScanner.MSBuild.PreProcessor.SonarQubeClient.Test;
 
 [TestClass]
-public class SonarCloudWebServerTest
+public class SonarQubeCloudTest
 {
     private const string ProjectKey = "project-key";
     private const string ProjectBranch = "project-branch";
@@ -43,19 +42,19 @@ public class SonarCloudWebServerTest
     public async Task Create_LogsServerType()
     {
         var context = new Context();
-        await context.CreateServer();
+        await context.CreateClient();
         context.Logger.Should().HaveInfos("Using SonarCloud.");
     }
 
     [TestMethod]
     public async Task ServerVersion() =>
-        (await new Context().CreateServer()).ServerVersion.Should().Be("Cloud");
+        (await new Context().CreateClient()).ServerVersion.Should().Be("Cloud");
 
     [TestMethod]
     public async Task IsAllValid_Valid()
     {
         var context = new Context();
-        (await context.CreateServer()).Should().NotBeNull();
+        (await context.CreateClient()).Should().NotBeNull();
         context.Logger.Should().HaveDebugs("SonarCloud detected, skipping server version check.");
         context.Logger.Should().HaveDebugs("SonarCloud detected, skipping license check.");
     }
@@ -67,7 +66,7 @@ public class SonarCloudWebServerTest
     public async Task IsAllValid_WithoutOrganization(string organization)
     {
         var context = new Context(organization: organization);
-        (await context.CreateServer()).Should().BeNull();
+        (await context.CreateClient()).Should().BeNull();
         context.Logger.Should().HaveErrors(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!")
             .And.HaveWarningOnce("""
             In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
@@ -113,7 +112,7 @@ public class SonarCloudWebServerTest
                     }]
                 }
                 """)));
-        var result = await context.Server.DownloadProperties("comp", null);
+        var result = await context.Client.DownloadProperties("comp", null);
 
         result.Should().HaveCount(7);
         result["sonar.exclusions"].Should().Be("myfile,myfile2");
@@ -126,13 +125,13 @@ public class SonarCloudWebServerTest
 
     [TestMethod]
     public void DownloadProperties_NullProjectKey_Throws() =>
-        ((Action)(() => new Context().Server.DownloadProperties(null, null).GetAwaiter().GetResult())).Should()
+        ((Action)(() => new Context().Client.DownloadProperties(null, null).GetAwaiter().GetResult())).Should()
             .Throw<ArgumentNullException>()
             .And.ParamName.Should().Be("projectKey");
 
     [TestMethod]
     public async Task DownloadCache_NullArgument() =>
-        (await new Context().Server.Invoking(x => x.DownloadCache(null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("localSettings");
+        (await new Context().Client.Invoking(x => x.DownloadCache(null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("localSettings");
 
     [TestMethod]
     [DataRow("", "", "", "Incremental PR analysis: ProjectKey parameter was not provided.")]
@@ -142,7 +141,7 @@ public class SonarCloudWebServerTest
     public async Task DownloadCache_InvalidArguments(string projectKey, string branch, string token, string infoMessage)
     {
         var context = new Context();
-        var res = await context.Server.DownloadCache(CreateLocalSettings(projectKey, branch, Organization, token));
+        var res = await context.Client.DownloadCache(CreateLocalSettings(projectKey, branch, Organization, token));
         res.Should().BeEmpty();
         context.Logger.Should().HaveInfoOnce(infoMessage);
     }
@@ -161,7 +160,7 @@ public class SonarCloudWebServerTest
         var handler = MockHttpHandler(CacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, CacheBaseUrl);
 
-        await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, null, Organization, Token));
+        await context.Client.DownloadCache(CreateLocalSettings(ProjectKey, null, Organization, Token));
         context.Logger.Should().HaveInfos($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
         handler.Requests.Should().NotBeEmpty();
     }
@@ -180,7 +179,7 @@ public class SonarCloudWebServerTest
         var handler = MockHttpHandler(CacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, CacheBaseUrl);
 
-        await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
+        await context.Client.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
         context.Logger.Should().HaveInfoOnce("Downloading cache. Project key: project-key, branch: project-branch.");
         handler.Requests.Should().NotBeEmpty();
     }
@@ -195,7 +194,7 @@ public class SonarCloudWebServerTest
         var handler = MockHttpHandler(cacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, cacheBaseUrl);
 
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
+        var result = await context.Client.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
         result.Should().BeEmpty();
         context.Logger.Should().HaveDebugOnce($"Incremental PR Analysis: Requesting 'prepare_read' from {cacheFullUrl}");
         handler.Requests.Should().NotBeEmpty();
@@ -210,7 +209,7 @@ public class SonarCloudWebServerTest
         var handler = MockHttpHandler(CacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, CacheBaseUrl);
 
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token, tokenKey));
+        var result = await context.Client.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token, tokenKey));
         result.Should().ContainSingle();
         result.Single(x => x.Key == "key").Data.ToStringUtf8().Should().Be("value");
         context.Logger.Should().HaveInfos("Downloading cache. Project key: project-key, branch: project-branch.");
@@ -223,7 +222,7 @@ public class SonarCloudWebServerTest
         var handler = MockHttpHandler(CacheFullUrl, "irrelevant", HttpStatusCode.Forbidden);
         var context = new Context(handler, CacheBaseUrl);
 
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
+        var result = await context.Client.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
         result.Should().BeEmpty();
         context.Logger.Should().HaveDebugOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' did not respond successfully.");
         handler.Requests.Should().NotBeEmpty();
@@ -235,7 +234,7 @@ public class SonarCloudWebServerTest
         var handler = MockHttpHandler(CacheFullUrl, string.Empty);
         var context = new Context(handler, CacheBaseUrl);
 
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
+        var result = await context.Client.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
         result.Should().BeEmpty();
         context.Logger.Should().HaveDebugOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response was empty.");
         handler.Requests.Should().NotBeEmpty();
@@ -247,7 +246,7 @@ public class SonarCloudWebServerTest
         var handler = MockHttpHandler(CacheFullUrl, @"{ ""enabled"": ""false"", ""url"":""https://www.sonarsource.com"" }");
         var context = new Context(handler, CacheBaseUrl);
 
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
+        var result = await context.Client.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
         result.Should().BeEmpty();
         context.Logger.Should().HaveDebugOnce(
             "Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = False, Url = https://www.sonarsource.com }.");
@@ -260,7 +259,7 @@ public class SonarCloudWebServerTest
         var handler = MockHttpHandler(CacheFullUrl, @"{ ""enabled"": ""true"" }");
         var context = new Context(handler, CacheBaseUrl);
 
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
+        var result = await context.Client.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
         result.Should().BeEmpty();
         context.Logger.Should().HaveDebugOnce("Incremental PR analysis: an error occurred while retrieving the cache entries! 'prepare_read' response: { Enabled = True, Url =  }.");
         handler.Requests.Should().NotBeEmpty();
@@ -273,7 +272,7 @@ public class SonarCloudWebServerTest
         var handler = MockHttpHandler(CacheFullUrl, "https://www.ephemeralUrl.com", stream);
         var context = new Context(handler, CacheBaseUrl);
 
-        var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
+        var result = await context.Client.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch, Organization, Token));
         result.Should().BeEmpty();
         var warningDetails =
 #if NET
@@ -306,7 +305,7 @@ public class SonarCloudWebServerTest
                     }]
                 }
                 """);
-        var rules = await context.Server.DownloadRules("qp");
+        var rules = await context.Client.DownloadRules("qp");
         rules.Should().ContainSingle();
         rules[0].RepoKey.Should().Be("csharpsquid");
         rules[0].RuleKey.Should().Be("S2757");
@@ -322,7 +321,7 @@ public class SonarCloudWebServerTest
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StreamContent(responseStream) };
         var context = new Context(new HttpMessageHandlerMock((_, _) => Task.FromResult(response)));
 
-        var actual = await context.Server.DownloadJreAsync(CreateJreMetadata(new("http://localhost/path-to-jre")));
+        var actual = await context.Client.DownloadJreAsync(CreateJreMetadata(new("http://localhost/path-to-jre")));
         using var stream = new MemoryStream(); // actual is not a memory stream because of how HttpClient reads it from the handler.
         await actual.CopyToAsync(stream);
         stream.ToArray().Should().BeEquivalentTo([1, 2, 3]);
@@ -332,17 +331,17 @@ public class SonarCloudWebServerTest
 
     [TestMethod]
     public async Task DownloadJreAsync_DownloadThrows_Failure() =>
-        await new Context(new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new HttpRequestException()))).Server
+        await new Context(new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new HttpRequestException()))).Client
             .Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata(new("http://local"))))
             .Should().ThrowAsync<HttpRequestException>();
 
     [TestMethod]
     public async Task DownloadJreAsync_NullMetadata_Failure() =>
-        await new Context().Server.Invoking(async x => await x.DownloadJreAsync(null)).Should().ThrowAsync<NullReferenceException>();
+        await new Context().Client.Invoking(async x => await x.DownloadJreAsync(null)).Should().ThrowAsync<NullReferenceException>();
 
     [TestMethod]
     public async Task DownloadJreAsync_NullDownloadUrl_Failure() =>
-        await new Context().Server.Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata(null))).Should().ThrowAsync<AnalysisException>()
+        await new Context().Client.Invoking(async x => await x.DownloadJreAsync(CreateJreMetadata(null))).Should().ThrowAsync<AnalysisException>()
             .WithMessage("JreMetadata must contain a valid download URL.");
 
     [TestMethod]
@@ -352,7 +351,7 @@ public class SonarCloudWebServerTest
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StreamContent(responseStream) };
         var context = new Context(new HttpMessageHandlerMock((_, _) => Task.FromResult(response)));
 
-        var actual = await context.Server.DownloadEngineAsync(CreateEngineMetadata(new("http://localhost/path-to-engine")));
+        var actual = await context.Client.DownloadEngineAsync(CreateEngineMetadata(new("http://localhost/path-to-engine")));
         using var stream = new MemoryStream(); // actual is not a memory stream because of how HttpClient reads it from the handler.
         await actual.CopyToAsync(stream);
         stream.ToArray().Should().BeEquivalentTo([1, 2, 3]);
@@ -362,13 +361,13 @@ public class SonarCloudWebServerTest
 
     [TestMethod]
     public async Task DownloadEngineAsync_DownloadThrows_Failure() =>
-        await new Context(new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new HttpRequestException()))).Server
+        await new Context(new HttpMessageHandlerMock((_, _) => Task.FromException<HttpResponseMessage>(new HttpRequestException()))).Client
             .Invoking(async x => await x.DownloadEngineAsync(CreateEngineMetadata(new("http://localhost/path-to-engine"))))
             .Should().ThrowAsync<HttpRequestException>();
 
     [TestMethod]
     public async Task DownloadEngineAsync_NullDownloadUrl_Failure() =>
-        await new Context().Server.Invoking(async x => await x.DownloadEngineAsync(CreateEngineMetadata(null))).Should().ThrowAsync<AnalysisException>()
+        await new Context().Client.Invoking(async x => await x.DownloadEngineAsync(CreateEngineMetadata(null))).Should().ThrowAsync<AnalysisException>()
             .WithMessage("EngineMetadata must contain a valid download URL.");
 
     private static MemoryStream CreateCacheStream(IMessage message)
@@ -446,9 +445,9 @@ public class SonarCloudWebServerTest
         public readonly TestLogger Logger = new();
         private readonly HttpMessageHandlerMock handler;
         private readonly string organization;
-        private SonarCloudWebServer server;
+        private SonarQubeCloud client;
 
-        public SonarCloudWebServer Server => server ??= CreateServer().Result;
+        public SonarQubeCloud Client => client ??= CreateClient().Result;
 
         public Context(HttpMessageHandlerMock handler = null, string cacheBase = null, string organization = Organization)
         {
@@ -457,8 +456,8 @@ public class SonarCloudWebServerTest
             MockDownloaderServerSettings(cacheBase);
         }
 
-        public Task<SonarCloudWebServer> CreateServer() =>
-            SonarCloudWebServer.Create(WebDownloader, ApiDownloader, Logger, organization, HttpTimeout, handler);
+        public Task<SonarQubeCloud> CreateClient() =>
+            SonarQubeCloud.Create(WebDownloader, ApiDownloader, Logger, organization, HttpTimeout, handler);
 
         private void MockDownloaderServerSettings(string cacheBase)
         {

@@ -21,8 +21,8 @@
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReturnsExtensions;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 using SonarScanner.MSBuild.PreProcessor.Test;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution.Test;
 
@@ -38,7 +38,7 @@ public class EngineResolverTests
 
     private readonly EngineResolver resolver;
     private readonly TestRuntime runtime = new();
-    private readonly SonarWebServerBase server = MockSonarWebServer.Create();
+    private readonly SonarQubeBase client = MockSonarQube.Create();
     private readonly ProcessedArgs args = Substitute.For<ProcessedArgs>();
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
 
@@ -50,8 +50,8 @@ public class EngineResolverTests
     public EngineResolverTests()
     {
         args.EngineJarPath.ReturnsNull();
-        server.DownloadEngineMetadataAsync().Returns(metadata);
-        resolver = new EngineResolver(server, "sonarUserHome", runtime, checksum);
+        client.DownloadEngineMetadataAsync().Returns(metadata);
+        resolver = new EngineResolver(client, "sonarUserHome", runtime, checksum);
     }
 
     [TestMethod]
@@ -59,11 +59,11 @@ public class EngineResolverTests
     {
         args.EngineJarPath.Returns("local/path/to/engine.jar");
 
-        var result = await new EngineResolver(server, "sonarUserHome", runtime).ResolvePath(args);
+        var result = await new EngineResolver(client, "sonarUserHome", runtime).ResolvePath(args);
 
         result.Should().Be("local/path/to/engine.jar");
-        await server.DidNotReceive().DownloadEngineMetadataAsync();
-        await server.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
+        await client.DidNotReceive().DownloadEngineMetadataAsync();
+        await client.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "Using local sonar engine provided by sonar.scanner.engineJarPath=local/path/to/engine.jar");
@@ -75,13 +75,13 @@ public class EngineResolverTests
     [TestMethod]
     public async Task ResolveEngine_DownloadsEngineMetadataNull_LogsMessage()
     {
-        server.DownloadEngineMetadataAsync().Returns(Task.FromResult<EngineMetadata>(null));
+        client.DownloadEngineMetadataAsync().Returns(Task.FromResult<EngineMetadata>(null));
 
         var result = await resolver.ResolvePath(args);
 
         result.Should().BeNull();
-        await server.Received(2).DownloadEngineMetadataAsync();
-        await server.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
+        await client.Received(2).DownloadEngineMetadataAsync();
+        await client.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
         AssertDebugMessages(
             retry: true,
             "EngineResolver: Resolving Scanner Engine path.",
@@ -100,8 +100,8 @@ public class EngineResolverTests
         var result = await resolver.ResolvePath(args);
 
         result.Should().Be(CachedEnginePath);
-        await server.Received(1).DownloadEngineMetadataAsync();
-        await server.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
+        await client.Received(1).DownloadEngineMetadataAsync();
+        await client.DidNotReceiveWithAnyArgs().DownloadEngineAsync(null);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             $"The file was already downloaded from the server and stored at '{CachedEnginePath}'.",
@@ -120,7 +120,7 @@ public class EngineResolverTests
         using var computeHashStream = new MemoryStream();
 
         // mocks successful download from the server
-        server.DownloadEngineAsync(metadata).Returns(content);
+        client.DownloadEngineAsync(metadata).Returns(content);
         runtime.Directory.GetRandomFileName().Returns("tempFile.jar");
         checksum.ComputeHash(computeHashStream).Returns(ChecksumValue);
         runtime.File.Create(tempFile).Returns(new MemoryStream());
@@ -129,8 +129,8 @@ public class EngineResolverTests
         var result = await resolver.ResolvePath(args);
 
         result.Should().Be(CachedEnginePath);
-        await server.Received(1).DownloadEngineMetadataAsync();
-        await server.Received(1).DownloadEngineAsync(metadata);
+        await client.Received(1).DownloadEngineMetadataAsync();
+        await client.Received(1).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             $"Cache miss. Could not find '{CachedEnginePath}'.",
@@ -149,7 +149,7 @@ public class EngineResolverTests
         using var computeHashStream = new MemoryStream();
 
         // mocks failed and then successful download from the server
-        server.DownloadEngineAsync(metadata).Returns(x => throw new Exception("Reason"), x => content);
+        client.DownloadEngineAsync(metadata).Returns(x => throw new Exception("Reason"), x => content);
         runtime.Directory.GetRandomFileName().Returns("tempFile.jar");
         checksum.ComputeHash(computeHashStream).Returns(ChecksumValue);
         runtime.File.Create(tempFile).Returns(_ => new MemoryStream());
@@ -158,8 +158,8 @@ public class EngineResolverTests
         var result = await resolver.ResolvePath(args);
 
         result.Should().Be(CachedEnginePath);
-        await server.Received(2).DownloadEngineMetadataAsync();
-        await server.Received(2).DownloadEngineAsync(metadata);
+        await client.Received(2).DownloadEngineMetadataAsync();
+        await client.Received(2).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             $"Cache miss. Could not find '{CachedEnginePath}'.",
@@ -183,8 +183,8 @@ public class EngineResolverTests
         using var computeHashStream = new MemoryStream();
 
         // mocks failed and then successful metadata download from the server
-        server.DownloadEngineMetadataAsync().Returns(null, metadata);
-        server.DownloadEngineAsync(metadata).Returns(content);
+        client.DownloadEngineMetadataAsync().Returns(null, metadata);
+        client.DownloadEngineAsync(metadata).Returns(content);
         runtime.Directory.GetRandomFileName().Returns("tempFile.jar");
         checksum.ComputeHash(computeHashStream).Returns(ChecksumValue);
         runtime.File.Create(tempFile).Returns(_ => new MemoryStream());
@@ -193,8 +193,8 @@ public class EngineResolverTests
         var result = await resolver.ResolvePath(args);
 
         result.Should().Be(CachedEnginePath);
-        await server.Received(2).DownloadEngineMetadataAsync();
-        await server.Received(1).DownloadEngineAsync(metadata);
+        await client.Received(2).DownloadEngineMetadataAsync();
+        await client.Received(1).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             "EngineResolver: Resolving Scanner Engine path.",
             "EngineResolver: Metadata could not be retrieved.",
@@ -210,13 +210,13 @@ public class EngineResolverTests
     [TestMethod]
     public async Task ResolveEngine_EngineJarPathIsNull_DownloadsEngineMetadata_CacheMiss_DownloadError()
     {
-        server.DownloadEngineAsync(metadata).ThrowsAsync(new Exception("Reason"));
+        client.DownloadEngineAsync(metadata).ThrowsAsync(new Exception("Reason"));
 
         var result = await resolver.ResolvePath(args);
 
         result.Should().BeNull();
-        await server.Received(2).DownloadEngineMetadataAsync();
-        await server.Received(2).DownloadEngineAsync(metadata);
+        await client.Received(2).DownloadEngineMetadataAsync();
+        await client.Received(2).DownloadEngineAsync(metadata);
         AssertDebugMessages(
             retry: true,
             "EngineResolver: Resolving Scanner Engine path.",

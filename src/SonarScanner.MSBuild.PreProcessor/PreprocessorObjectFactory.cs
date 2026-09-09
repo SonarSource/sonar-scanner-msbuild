@@ -24,7 +24,7 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -41,7 +41,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
     public PreprocessorObjectFactory(IRuntime runtime) =>
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
-    public async Task<SonarWebServerBase> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
+    public async Task<SonarQubeBase> CreateClient(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
         var userName = args.SettingOrDefault(SonarProperties.SonarToken, null) ?? args.SettingOrDefault(SonarProperties.SonarUserName, null);
@@ -61,8 +61,8 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
         }
 
         return args.ServerInfo.IsSonarCloud
-            ? await SonarCloudWebServer.Create(webDownloader, apiDownloader, runtime.Logger, args.Organization, args.HttpTimeout)
-            : await SonarQubeWebServer.Create(webDownloader, apiDownloader, runtime, args.Organization);
+            ? await SonarQubeCloud.Create(webDownloader, apiDownloader, runtime.Logger, args.Organization, args.HttpTimeout)
+            : await SonarQubeServer.Create(webDownloader, apiDownloader, runtime, args.Organization);
 
         IDownloader CreateDownloader(string baseUrl) =>
             new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, runtime.Logger)
@@ -72,21 +72,21 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
                 .Build();
     }
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarWebServerBase server,
+    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarQubeBase client,
                                                                string localCacheTempPath,
                                                                BuildSettings teamBuildSettings,
                                                                IAnalysisPropertyProvider sonarProperties,
                                                                IEnumerable<SonarRule> rules,
                                                                string language) =>
-        new(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
+        new(new EmbeddedAnalyzerInstaller(client, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
 
-    public IResolver CreateJreResolver(SonarWebServerBase server, string sonarUserHome) =>
-        new JreResolver(server, ChecksumSha256.Instance, sonarUserHome, runtime);
+    public IResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
+        new JreResolver(client, ChecksumSha256.Instance, sonarUserHome, runtime);
 
-    public IResolver CreateEngineResolver(SonarWebServerBase server, string sonarUserHome) =>
-        new EngineResolver(server, sonarUserHome, runtime);
+    public IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
+        new EngineResolver(client, sonarUserHome, runtime);
 
-    public IResolver CreateScannerCliResolver(SonarWebServerBase server, string sonarUserHome) =>
+    public IResolver CreateScannerCliResolver(SonarQubeBase client, string sonarUserHome) =>
         new ScannerCliResolver(ChecksumSha256.Instance, sonarUserHome, runtime);
 
     private bool ValidateServerUrl(string serverUrl)

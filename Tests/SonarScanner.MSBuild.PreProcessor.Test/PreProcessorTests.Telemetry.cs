@@ -146,7 +146,7 @@ public partial class PreProcessorTests
         using var context = new Context(TestContext);
         if (serverProperties is not null)
         {
-            context.Factory.Server.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
+            context.Factory.Client.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
         }
         using var env = new EnvironmentVariableScope();
         foreach (var envVariable in environmentVariables)

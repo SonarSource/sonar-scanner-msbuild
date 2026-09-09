@@ -19,7 +19,7 @@
  */
 
 using System.IO.Compression;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 
@@ -41,13 +41,13 @@ namespace SonarScanner.MSBuild.PreProcessor.Roslyn;
 /// </remarks>
 public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 {
-    private readonly SonarWebServerBase server;
+    private readonly SonarQubeBase client;
     private readonly ILogger logger;
     private readonly PluginResourceCache cache;
 
-    public EmbeddedAnalyzerInstaller(SonarWebServerBase server, ILogger logger) : this(server, GetLocalCacheDirectory(), logger) { }
+    public EmbeddedAnalyzerInstaller(SonarQubeBase client, ILogger logger) : this(client, GetLocalCacheDirectory(), logger) { }
 
-    public EmbeddedAnalyzerInstaller(SonarWebServerBase server, string localCacheDirectory, ILogger logger)
+    public EmbeddedAnalyzerInstaller(SonarQubeBase client, string localCacheDirectory, ILogger logger)
     {
         if (string.IsNullOrWhiteSpace(localCacheDirectory))
         {
@@ -56,7 +56,7 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
             localCacheDirectory = GetLocalCacheDirectory();
         }
 
-        this.server = server ?? throw new ArgumentNullException(nameof(server));
+        this.client = client ?? throw new ArgumentNullException(nameof(client));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         this.logger.LogDebug(RoslynResources.EAI_LocalAnalyzerCache, localCacheDirectory);
@@ -139,7 +139,7 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 
         Directory.CreateDirectory(targetDir);
 
-        if (server.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result)
+        if (client.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result)
         {
             var targetFilePath = Path.Combine(targetDir, plugin.StaticResourceName);
 

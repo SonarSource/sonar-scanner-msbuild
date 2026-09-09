@@ -20,7 +20,7 @@
 
 using Google.Protobuf;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -28,7 +28,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 public class CacheProcessorTests
 {
     private TestLogger logger;
-    private SonarWebServerBase server;
+    private SonarQubeBase client;
 
     public TestContext TestContext { get; set; }
 
@@ -36,7 +36,7 @@ public class CacheProcessorTests
     public void Initialize()
     {
         logger = new();
-        server = MockSonarWebServer.Create();
+        client = MockSonarQube.Create();
     }
 
     [TestMethod]
@@ -44,11 +44,11 @@ public class CacheProcessorTests
     {
         var locals = CreateProcessedArgs();
         var builds = Substitute.For<IBuildSettings>();
-        ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, builds, logger))).Should().NotThrow();
-        ((Func<CacheProcessor>)(() => new CacheProcessor(null, locals, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("server");
-        ((Func<CacheProcessor>)(() => new CacheProcessor(server, null, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("localSettings");
-        ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, null, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("buildSettings");
-        ((Func<CacheProcessor>)(() => new CacheProcessor(server, locals, builds, null))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("logger");
+        ((Func<CacheProcessor>)(() => new CacheProcessor(client, locals, builds, logger))).Should().NotThrow();
+        ((Func<CacheProcessor>)(() => new CacheProcessor(null, locals, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("client");
+        ((Func<CacheProcessor>)(() => new CacheProcessor(client, null, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("localSettings");
+        ((Func<CacheProcessor>)(() => new CacheProcessor(client, locals, null, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("buildSettings");
+        ((Func<CacheProcessor>)(() => new CacheProcessor(client, locals, builds, null))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -100,7 +100,7 @@ public class CacheProcessorTests
         var buildSettings = Substitute.For<IBuildSettings>();
         buildSettings.SourcesDirectory.Returns(@"C:\Sources\Directory");
         buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
-        using var sut = new CacheProcessor(MockSonarWebServer.Create(), localSettings, buildSettings, logger);
+        using var sut = new CacheProcessor(MockSonarQube.Create(), localSettings, buildSettings, logger);
 
         sut.PullRequestCacheBasePath.Should().Be(Path.Combine(workingDirectory, "Custom"));
     }
@@ -151,7 +151,7 @@ public class CacheProcessorTests
     [TestMethod]
     public async Task Execute_PullRequest_NoBasePath()
     {
-        using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Substitute.For<IBuildSettings>(), logger);
+        using var sut = new CacheProcessor(client, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Substitute.For<IBuildSettings>(), logger);
         await sut.Execute();
 
         logger.Should().HaveInfoOnce("Cannot determine project base path. Incremental PR analysis is disabled.");
@@ -163,7 +163,7 @@ public class CacheProcessorTests
     {
         var settings = Substitute.For<IBuildSettings>();
         settings.SourcesDirectory.Returns(@"C:\Sources");
-        using var sut = new CacheProcessor(server, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
+        using var sut = new CacheProcessor(client, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
         await sut.Execute();
 
         logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
@@ -174,7 +174,7 @@ public class CacheProcessorTests
     public async Task Execute_PullRequest_CacheEmpty()
     {
         var context = new CacheContext(this);
-        context.Factory.Server.DownloadCache(null).ReturnsForAnyArgs([]);
+        context.Factory.Client.DownloadCache(null).ReturnsForAnyArgs([]);
         await context.Sut.Execute();
 
         logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
@@ -264,7 +264,7 @@ public class CacheProcessorTests
     }
 
     private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
-        new(server, CreateProcessedArgs(), buildSettings ?? Substitute.For<IBuildSettings>(), logger);
+        new(client, CreateProcessedArgs(), buildSettings ?? Substitute.For<IBuildSettings>(), logger);
 
     private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key") =>
         CreateProcessedArgs(logger, commandLineArgs);
@@ -316,7 +316,7 @@ public class CacheProcessorTests
             var settings = Substitute.For<IBuildSettings>();
             settings.SourcesDirectory.Returns(Root);
             settings.SonarConfigDirectory.Returns(Root);
-            Sut = new CacheProcessor(Factory.Server, CreateProcessedArgs(runtime.Logger, commandLineArgs), settings, runtime.Logger);
+            Sut = new CacheProcessor(Factory.Client, CreateProcessedArgs(runtime.Logger, commandLineArgs), settings, runtime.Logger);
             foreach (var (relativeFilePath, content) in fileData)
             {
                 var fullFilePath = Path.GetFullPath(CreateFile(Root, relativeFilePath, content, Encoding.UTF8));
@@ -327,7 +327,7 @@ public class CacheProcessorTests
                               Data = ByteString.CopyFrom(Sut.ContentHash(fullFilePath))
                           });
             }
-            Factory.Server.DownloadCache(null).ReturnsForAnyArgs(cache);
+            Factory.Client.DownloadCache(null).ReturnsForAnyArgs(cache);
             Sut.PullRequestCacheBasePath.Should().Be(Root, "Cache files must exist on expected path.");
         }
 

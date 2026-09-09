@@ -22,25 +22,24 @@ using Newtonsoft.Json.Linq;
 using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
 
-namespace SonarScanner.MSBuild.PreProcessor.Test;
+namespace SonarScanner.MSBuild.PreProcessor.SonarQubeClient.Test;
 
 [TestClass]
-public class SonarWebServerTest
+public class SonarQubeBaseTest
 {
     private const string ProjectKey = "project-key";
 
     private TestLogger logger;
     private IDownloader downloader;
-    private SonarWebServerStub sut;
+    private SonarQubeStub sut;
 
     [TestInitialize]
     public void Init()
     {
         logger = new();
         downloader = Substitute.For<IDownloader>();
-        sut = CreateServer();
+        sut = CreateClient();
     }
 
     [TestCleanup]
@@ -50,9 +49,9 @@ public class SonarWebServerTest
     [TestMethod]
     public void Ctor_Null_Throws()
     {
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(null, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
-        ((Func<SonarWebServerStub>)(() => new SonarWebServerStub(downloader, downloader, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        ((Func<SonarQubeStub>)(() => new SonarQubeStub(null, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
+        ((Func<SonarQubeStub>)(() => new SonarQubeStub(downloader, null, logger, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
+        ((Func<SonarQubeStub>)(() => new SonarQubeStub(downloader, downloader, null, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
     }
 
     [TestMethod]
@@ -83,7 +82,7 @@ public class SonarWebServerTest
         downloader
             .Download(WebUtils.EscapedUri("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)
             .Returns(Task.FromResult<string>(null));
-        Func<Task> act = async () => await CreateServer("ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
+        Func<Task> act = async () => await CreateClient("ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
         await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
         logger.Should().HaveErrors("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
@@ -105,7 +104,7 @@ public class SonarWebServerTest
         downloader
             .TryDownloadIfExists(qualityProfileUrl, Arg.Any<bool>())
             .Returns(Task.FromResult(downloadResult));
-        var result = await CreateServer(organization).DownloadQualityProfile(projectKey, branchName, language);
+        var result = await CreateClient(organization).DownloadQualityProfile(projectKey, branchName, language);
 
         result.Should().Be(profileKey);
     }
@@ -854,7 +853,7 @@ public class SonarWebServerTest
     }
 
     [TestMethod]
-    public async Task DownloadEngineMetadataAsync_SonarQubeServer_Success()
+    public async Task DownloadEngineMetadataAsync_Success()
     {
         downloader
             .Download(new("analysis/engine", UriKind.Relative)) // returns no downloadUrl
@@ -888,14 +887,14 @@ public class SonarWebServerTest
         languages.Should().BeEmpty();
     }
 
-    private SonarWebServerStub CreateServer(string organization = null) =>
+    private SonarQubeStub CreateClient(string organization = null) =>
         new(downloader, downloader, logger, organization);
 
-    private class SonarWebServerStub : SonarWebServerBase
+    private class SonarQubeStub : SonarQubeBase
     {
         public override string ServerVersion => throw new NotSupportedException();
 
-        public SonarWebServerStub(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization)
+        public SonarQubeStub(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization)
             : base(webDownloader, apiDownloader, logger, organization)
         { }
 

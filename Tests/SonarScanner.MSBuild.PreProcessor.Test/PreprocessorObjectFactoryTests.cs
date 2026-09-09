@@ -20,8 +20,7 @@
 
 #pragma warning disable S3994 // we are specifically testing string urls
 
-using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -33,20 +32,20 @@ public class PreprocessorObjectFactoryTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void CreateSonarWebServer_ThrowsOnInvalidInput()
+    public void CreateClient_ThrowsOnInvalidInput()
     {
         ((Func<PreprocessorObjectFactory>)(() => new PreprocessorObjectFactory(null))).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("runtime");
 
         var sut = new PreprocessorObjectFactory(runtime);
-        sut.Invoking(x => x.CreateSonarWebServer(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
+        sut.Invoking(x => x.CreateClient(null).Result).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("args");
     }
 
     [TestMethod]
-    public async Task CreateSonarWebService_InvalidHostUrl_ReturnNullAndLogErrors()
+    public async Task CreateClient_InvalidHostUrl_ReturnNullAndLogErrors()
     {
         var sut = new PreprocessorObjectFactory(runtime);
 
-        var result = await sut.CreateSonarWebServer(CreateValidArguments("http:/myhost:222"), Substitute.For<IDownloader>());
+        var result = await sut.CreateClient(CreateValidArguments("http:/myhost:222"), Substitute.For<IDownloader>());
 
         result.Should().BeNull();
         runtime.Logger.Should().HaveErrorOnce("The value provided for the host URL parameter (http:/myhost:222) is not valid. Please make sure that you have entered a valid URL and try again.")
@@ -54,11 +53,11 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
-    public async Task CreateSonarWebService_MissingUriScheme_ReturnNullAndLogErrors()
+    public async Task CreateClient_MissingUriScheme_ReturnNullAndLogErrors()
     {
         var sut = new PreprocessorObjectFactory(runtime);
 
-        var result = await sut.CreateSonarWebServer(CreateValidArguments("myhost:222"), Substitute.For<IDownloader>());
+        var result = await sut.CreateClient(CreateValidArguments("myhost:222"), Substitute.For<IDownloader>());
 
         result.Should().BeNull();
         runtime.Logger.Should().HaveErrorOnce("The URL (myhost:222) provided does not contain the scheme. Please include 'http://' or 'https://' at the beginning.")
@@ -66,12 +65,12 @@ public class PreprocessorObjectFactoryTests
     }
 
     [TestMethod]
-    [DataRow("https://sonarcloud.io", "8.0", typeof(SonarCloudWebServer))]
-    [DataRow("https://sonarcloud.io/", "8.0", typeof(SonarCloudWebServer))]
-    [DataRow("https://sonarcloud.io//", "8.0", typeof(SonarCloudWebServer))]
-    [DataRow("https://sonarcloud_other.io//", "26.1", typeof(SonarQubeWebServer))]
-    [DataRow("http://localhost:222", "26.1", typeof(SonarQubeWebServer))]
-    public async Task CreateSonarWebServer_CorrectServiceType(string hostUrl, string version, Type serviceType)
+    [DataRow("https://sonarcloud.io", "8.0", typeof(SonarQubeCloud))]
+    [DataRow("https://sonarcloud.io/", "8.0", typeof(SonarQubeCloud))]
+    [DataRow("https://sonarcloud.io//", "8.0", typeof(SonarQubeCloud))]
+    [DataRow("https://sonarcloud_other.io//", "26.1", typeof(SonarQubeServer))]
+    [DataRow("http://localhost:222", "26.1", typeof(SonarQubeServer))]
+    public async Task CreateClient_CorrectServiceType(string hostUrl, string version, Type serviceType)
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var downloader = Substitute.For<IDownloader>();
@@ -80,7 +79,7 @@ public class PreprocessorObjectFactoryTests
         downloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative))
             .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") }));
 
-        var service = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl), downloader, downloader);
+        var service = await sut.CreateClient(CreateValidArguments(hostUrl), downloader, downloader);
         service.Should().BeOfType(serviceType);
     }
 
@@ -88,29 +87,28 @@ public class PreprocessorObjectFactoryTests
     public void CreateJreResolver_Success()
     {
         var sut = new PreprocessorObjectFactory(runtime);
-        sut.CreateJreResolver(MockSonarWebServer.Create(), "sonarUserHome").Should().NotBeNull();
+        sut.CreateJreResolver(MockSonarQube.Create(), "sonarUserHome").Should().NotBeNull();
     }
 
     [TestMethod]
     public void CreateEngineResolver_Success() =>
-        new PreprocessorObjectFactory(runtime).CreateEngineResolver(MockSonarWebServer.Create(), "sonarUserHome").Should().NotBeNull();
+        new PreprocessorObjectFactory(runtime).CreateEngineResolver(MockSonarQube.Create(), "sonarUserHome").Should().NotBeNull();
 
     [TestMethod]
     public void CreateScannerCliResolver_Success() =>
-        new PreprocessorObjectFactory(runtime).CreateScannerCliResolver(MockSonarWebServer.Create(), "sonarUserHome").Should().NotBeNull();
+        new PreprocessorObjectFactory(runtime).CreateScannerCliResolver(MockSonarQube.Create(), "sonarUserHome").Should().NotBeNull();
 
     [DataRow(HttpStatusCode.Forbidden)]
     [DataRow(HttpStatusCode.Unauthorized)]
     [TestMethod]
-    public async Task CreateSonarWebService_WithFailedAuthentication_ReturnsNullAndLogsWarning(HttpStatusCode status)
+    public async Task CreateClient_WithFailedAuthentication_ReturnsNullAndLogsWarning(HttpStatusCode status)
     {
         var downloader = Substitute.For<IDownloader>();
         downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage(status));
         var sut = new PreprocessorObjectFactory(runtime);
 
-        var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: "org"), downloader);
-
-        server.Should().BeNull();
+        var client = await sut.CreateClient(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: "org"), downloader);
+        client.Should().BeNull();
         runtime.Logger.Warnings.Should().BeEquivalentTo(
             "Authentication with the server has failed.",
             """
@@ -125,17 +123,17 @@ public class PreprocessorObjectFactoryTests
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
-        sut.CreateRoslynAnalyzerProvider(MockSonarWebServer.Create(), "cache", settings, new ListPropertiesProvider(), [], "cs").Should().NotBeNull();
+        sut.CreateRoslynAnalyzerProvider(MockSonarQube.Create(), "cache", settings, new ListPropertiesProvider(), [], "cs").Should().NotBeNull();
     }
 
     [TestMethod]
-    public void CreateRoslynAnalyzerProvider_NullServer_ThrowsArgumentNullException()
+    public void CreateRoslynAnalyzerProvider_NullClient_ThrowsArgumentNullException()
     {
         var sut = new PreprocessorObjectFactory(runtime);
         var settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext));
         FluentActions.Invoking(() => sut.CreateRoslynAnalyzerProvider(null, "cache", settings, new ListPropertiesProvider(), [], "cs")).Should()
             .ThrowExactly<ArgumentNullException>()
-            .WithParameterName("server");
+            .WithParameterName("client");
     }
 
     private ProcessedArgs CreateValidArguments(string hostUrl = "http://myhost:222", string organization = "organization")
