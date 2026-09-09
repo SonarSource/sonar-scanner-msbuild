@@ -82,7 +82,6 @@ runs:
     # Inline wait: this public repo cannot resolve the private infra action.
     - name: Wait for Artifactory token federation
       if: runner.os != 'macOS' && inputs.sq-version != ''
-      timeout-minutes: 5
       shell: bash
       env:
         ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN }}
