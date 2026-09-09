@@ -911,6 +911,9 @@ public class SonarWebServerTest
         public override Task<Stream> DownloadJreAsync(JreMetadata metadata) =>
             throw new NotSupportedException();
 
+        protected override bool IsConfigurationValid() =>
+            throw new NotSupportedException();
+
         protected override bool IsServerVersionSupported() =>
             throw new NotSupportedException();
 

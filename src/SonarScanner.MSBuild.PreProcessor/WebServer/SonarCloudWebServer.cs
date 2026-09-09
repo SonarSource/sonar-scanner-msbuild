@@ -41,8 +41,6 @@ internal class SonarCloudWebServer : SonarWebServerBase
                                HttpMessageHandler handler = null)
         : base(webDownloader, apiDownloader, serverVersion, logger, organization)
     {
-        Contract.ThrowIfNullOrWhitespace(organization, nameof(organization));
-
         unauthenticatedClient = handler is null ? new HttpClient() : new HttpClient(handler, true);
         unauthenticatedClient.Timeout = httpTimeout;
         logger.LogInfo(Resources.MSG_UsingSonarCloud);
@@ -112,6 +110,20 @@ internal class SonarCloudWebServer : SonarWebServerBase
 
     protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
         new(json["total"].ToObject<int>(), json["ps"].ToObject<int>());
+
+    protected override bool IsConfigurationValid()
+    {
+        if (string.IsNullOrWhiteSpace(organization))
+        {
+            logger.LogError(Resources.ERR_MissingOrganization);
+            logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
 
     protected override bool IsServerVersionSupported()
     {

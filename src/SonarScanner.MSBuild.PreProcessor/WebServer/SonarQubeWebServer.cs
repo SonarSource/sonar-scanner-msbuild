@@ -86,6 +86,9 @@ internal class SonarQubeWebServer : SonarWebServerBase
     protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
         new(json["paging"]["total"].ToObject<int>(), json["paging"]["pageSize"].ToObject<int>());
 
+    protected override bool IsConfigurationValid() =>
+        true;
+
     protected override bool IsServerVersionSupported()
     {
         Version failHardBelowVersion;

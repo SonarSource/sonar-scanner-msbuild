@@ -153,24 +153,6 @@ public class PreprocessorObjectFactoryTests
     public void CreateScannerCliResolver_Success() =>
         new PreprocessorObjectFactory(runtime).CreateScannerCliResolver(MockSonarWebServer.Create(), "sonarUserHome").Should().NotBeNull();
 
-    [TestMethod]
-    public async Task CreateSonarWebService_WithoutOrganizationOnSonarCloud_ReturnsNullAndLogsAnErrorAndWarning()
-    {
-        var downloader = Substitute.For<IDownloader>();
-        downloader.Download(new("api/server/version", UriKind.Relative), Arg.Any<bool>()).Returns(Task.FromResult("8.0")); // SonarCloud
-        downloader.DownloadResource(Arg.Any<Uri>()).Returns(new HttpResponseMessage());
-        var sut = new PreprocessorObjectFactory(runtime);
-
-        var server = await sut.CreateSonarWebServer(CreateValidArguments(hostUrl: "https://sonarcloud.io", organization: null), downloader);
-
-        server.Should().BeNull();
-        runtime.Logger.Should().HaveErrorOnce(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!")
-            .And.HaveWarningOnce("""
-            In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-            If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
-            """);
-    }
-
     [DataRow(HttpStatusCode.Forbidden)]
     [DataRow(HttpStatusCode.Unauthorized)]
     [TestMethod]

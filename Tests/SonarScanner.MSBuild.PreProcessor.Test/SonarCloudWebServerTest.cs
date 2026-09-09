@@ -41,12 +41,6 @@ public class SonarCloudWebServerTest
     private static readonly TimeSpan HttpTimeout = TimeSpan.FromSeconds(42);
 
     [TestMethod]
-    public void Ctor_OrganizationNull_ShouldThrow() =>
-        ((Func<SonarCloudWebServer>)(() => new SonarCloudWebServer(Substitute.For<IDownloader>(), Substitute.For<IDownloader>(), Version, new TestLogger(), null, HttpTimeout)))
-            .Should().Throw<ArgumentNullException>()
-            .And.ParamName.Should().Be("organization");
-
-    [TestMethod]
     public void Ctor_LogsServerType()
     {
         var logger = new TestLogger();
@@ -55,12 +49,27 @@ public class SonarCloudWebServerTest
     }
 
     [TestMethod]
-    public async Task IsAllValid_AlwaysTrue()
+    public async Task IsAllValid_Valid()
     {
         var context = new Context();
         (await context.Server.IsAllValid()).Should().BeTrue();
         context.Logger.Should().HaveDebugs("SonarCloud detected, skipping server version check.");
         context.Logger.Should().HaveDebugs("SonarCloud detected, skipping license check.");
+    }
+
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow(" \t ")]
+    public async Task IsAllValid_WithoutOrganization(string organization)
+    {
+        var context = new Context(organization: organization);
+        (await context.Server.IsAllValid()).Should().BeFalse();
+        context.Logger.Should().HaveErrors(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!")
+            .And.HaveWarningOnce("""
+            In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
+            If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
+            """);
     }
 
     [TestMethod]
@@ -449,10 +458,10 @@ public class SonarCloudWebServerTest
 
         public SonarCloudWebServer Server => server.Value;
 
-        public Context(HttpMessageHandlerMock handler = null, string cacheBase = null)
+        public Context(HttpMessageHandlerMock handler = null, string cacheBase = null, string organization = Organization)
         {
             MockDownloaderServerSettings(cacheBase);
-            server = new Lazy<SonarCloudWebServer>(() => new SonarCloudWebServer(WebDownloader, ApiDownloader, Version, Logger, Organization, HttpTimeout, handler));
+            server = new Lazy<SonarCloudWebServer>(() => new SonarCloudWebServer(WebDownloader, ApiDownloader, Version, Logger, organization, HttpTimeout, handler));
         }
 
         private void MockDownloaderServerSettings(string cacheBase)

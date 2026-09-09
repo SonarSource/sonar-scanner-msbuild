@@ -35,16 +35,17 @@ public abstract class SonarWebServerBase : IDisposable
     protected readonly IDownloader webDownloader;
     protected readonly IDownloader apiDownloader;
     protected readonly Version serverVersion;
+    protected readonly string organization;
     protected readonly ILogger logger;
 
     private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
-    private readonly string organization;
     private bool disposed;
 
     public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
     public abstract Task<Stream> DownloadEngineAsync(EngineMetadata metadata);
     public abstract Task<Stream> DownloadJreAsync(JreMetadata metadata);
     protected abstract bool IsServerVersionSupported();
+    protected abstract bool IsConfigurationValid();
     protected abstract Task<bool> IsServerLicenseValid();
     protected abstract RuleSearchPaging ParseRuleSearchPaging(JObject json);
 
@@ -60,7 +61,8 @@ public abstract class SonarWebServerBase : IDisposable
     }
 
     public virtual async Task<bool> IsAllValid() =>
-        IsServerVersionSupported()
+        IsConfigurationValid()
+        && IsServerVersionSupported()
         && await IsServerLicenseValid();
 
     public virtual async Task<string> DownloadQualityProfile(string projectKey, string projectBranch, string language)
