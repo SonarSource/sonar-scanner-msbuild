@@ -155,7 +155,7 @@ public partial class PreProcessorTests
         }
 
         (await context.Execute(args)).Should().BeTrue();
-        var expectedTelemetryLocation = BuildSettings.SettingsFromEnvironment(new TestLogger()).SonarOutputDirectory;
+        var expectedTelemetryLocation = BuildSettings.CreateFromEnvironment(new TestLogger()).SonarOutputDirectory;
         context.Factory.Runtime.Telemetry.OutputPath.Should().Be(expectedTelemetryLocation);
         return context.Factory.Runtime.Telemetry;
     }

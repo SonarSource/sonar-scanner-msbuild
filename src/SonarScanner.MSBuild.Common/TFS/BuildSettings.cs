@@ -18,16 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.Interfaces;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
 /// Provides access to TeamBuild-specific settings and settings calculated from those settings.
 /// </summary>
-public class BuildSettings : IBuildSettings
+public class BuildSettings
 {
-    public static bool IsInTeamBuild => ReadBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
     public bool IsAzureDevOps { get; private set; }
     public string TfsUri { get; private set; }
     public string BuildUri { get; private set; }
@@ -61,25 +58,25 @@ public class BuildSettings : IBuildSettings
     /// <summary>
     /// Factory method to create and return a new set of team build settings calculated from environment variables.
     /// </summary>
-    public static BuildSettings SettingsFromEnvironment(ILogger logger)
+    public static BuildSettings CreateFromEnvironment(ILogger logger)
     {
-        var isAzDo = false;
-
-        if (IsInTeamBuild)
+        bool isAzDo;
+        if (ReadBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false))
         {
             // Work out which flavor of TeamBuild
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy)))
             {
-                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015)))
-                {
-                    isAzDo = true;
-                }
+                isAzDo = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015));
             }
             else
             {
                 logger.LogError(Resources.ERROR_TFSLegacyNotSupported);
                 return null;
             }
+        }
+        else
+        {
+            isAzDo = false;
         }
 
         var settings = isAzDo
@@ -111,22 +108,19 @@ public class BuildSettings : IBuildSettings
     }
 
     /// <summary>
-    /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="SettingsFromEnvironment(ILogger)"/> in product code.
+    /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="CreateFromEnvironment(ILogger)"/> in product code.
     /// </summary>
-    public static BuildSettings CreateSettingsForTesting(string analysisBaseDirectory, bool isAzDo = false)
+    public static BuildSettings CreateForTesting(string analysisBaseDirectory = null, bool isAzDo = false, string buildDirectory = null, string sourcesDirectory = null, string buildUri = null)
     {
-        if (string.IsNullOrWhiteSpace(analysisBaseDirectory))
-        {
-            throw new ArgumentNullException(nameof(analysisBaseDirectory));
-        }
-
-        var workingDirectory = Directory.GetParent(analysisBaseDirectory)?.FullName ?? throw new ArgumentException("Invalid analysis base directory");
+        var workingDirectory = string.IsNullOrEmpty(analysisBaseDirectory) ? null : Directory.GetParent(analysisBaseDirectory)?.FullName;
         return new BuildSettings
         {
             IsAzureDevOps = isAzDo,
             AnalysisBaseDirectory = analysisBaseDirectory,
             SonarScannerWorkingDirectory = workingDirectory,
-            SourcesDirectory = workingDirectory,
+            SourcesDirectory = sourcesDirectory ?? workingDirectory,
+            BuildDirectory = buildDirectory,
+            BuildUri = buildUri,
         };
     }
 

@@ -37,7 +37,7 @@ public class BuildVNextCoverageReportProcessorTests
     private readonly AnalysisConfig analysisConfig = new();
     private readonly TestRuntime runtime = new();
     private readonly MockReportConverter converter = new();
-    private readonly MockBuildSettings buildSettings = new();
+    private readonly BuildSettings buildSettings;
     private readonly string testDir;
     private readonly string testResultsDir;
     private readonly string coverageDir;
@@ -55,7 +55,7 @@ public class BuildVNextCoverageReportProcessorTests
         coverageDir = Path.Combine(testResultsDir, "dummy", "In");
         alternateCoverageDir = Path.Combine(testResultsDir, "alternate", "In");
         runtime.Directory.Exists(alternateCoverageDir).Returns(true);
-        buildSettings.BuildDirectory = testDir;
+        buildSettings = BuildSettings.CreateForTesting(null, true, testDir);
         sut = new BuildVNextCoverageReportProcessor(converter, runtime);
         environmentVariableScope.SetVariable(EnvironmentVariables.AgentTempDirectory, alternateCoverageDir);  // setup search fallback
     }

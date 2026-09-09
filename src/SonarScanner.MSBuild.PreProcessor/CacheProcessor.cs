@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.Interfaces;
-
 namespace SonarScanner.MSBuild.PreProcessor;
 
 public sealed class CacheProcessor : IDisposable
@@ -27,13 +25,13 @@ public sealed class CacheProcessor : IDisposable
     private readonly ILogger logger;
     private readonly SonarQubeBase client;
     private readonly ProcessedArgs localSettings;
-    private readonly IBuildSettings buildSettings;
+    private readonly BuildSettings buildSettings;
     private readonly HashAlgorithm sha256 = new SHA256CryptoServiceProvider();
 
     public string PullRequestCacheBasePath { get; }
     public string UnchangedFilesPath { get; private set; }
 
-    public CacheProcessor(SonarQubeBase client, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
+    public CacheProcessor(SonarQubeBase client, ProcessedArgs localSettings, BuildSettings buildSettings, ILogger logger)
     {
         this.client = client ?? throw new ArgumentNullException(nameof(client));
         this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));

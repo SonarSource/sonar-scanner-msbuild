@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.Shim;
 using SonarScanner.MSBuild.TFS;
 
@@ -50,7 +49,7 @@ public class PostProcessor
         this.coverageReportProcessor = coverageReportProcessor ?? throw new ArgumentNullException(nameof(coverageReportProcessor));
     }
 
-    public virtual bool Execute(string[] args, AnalysisConfig config, IBuildSettings settings)
+    public virtual bool Execute(string[] args, AnalysisConfig config, BuildSettings settings)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
         _ = config ?? throw new ArgumentNullException(nameof(config));
@@ -114,13 +113,9 @@ public class PostProcessor
         return result;
     }
 
-    private void LogStartupSettings(AnalysisConfig config, IBuildSettings settings)
+    private void LogStartupSettings(AnalysisConfig config, BuildSettings settings)
     {
-        var environmentMessage = settings.IsAzureDevOps switch
-        {
-            true => Resources.SETTINGS_InTeamBuild,
-            false => Resources.SETTINGS_NotInTeamBuild
-        };
+        var environmentMessage = settings.IsAzureDevOps ? Resources.SETTINGS_InTeamBuild : Resources.SETTINGS_NotInTeamBuild;
         runtime.LogDebug(Resources.MSG_LoadingConfig, config.FileName);
         runtime.LogDebug(environmentMessage);
         runtime.LogDebug(
@@ -133,7 +128,7 @@ public class PostProcessor
             settings.AnalysisConfigFilePath);
     }
 
-    private void DumpScannerEngineInput(IBuildSettings settings, ScannerEngineInput engineInput)
+    private void DumpScannerEngineInput(BuildSettings settings, ScannerEngineInput engineInput)
     {
         var path = Path.Combine(settings.SonarOutputDirectory, "ScannerEngineInput.json");
         var sanitizedOutput = engineInput.CloneWithoutSensitiveData().ToString();
@@ -145,7 +140,7 @@ public class PostProcessor
     /// <summary>
     /// Returns a boolean indicating whether the information in the environment variables matches that in the analysis config file to detect invalid Agent setup.
     /// </summary>
-    private bool CheckEnvironmentConsistency(AnalysisConfig config, IBuildSettings settings)
+    private bool CheckEnvironmentConsistency(AnalysisConfig config, BuildSettings settings)
     {
         // Currently we're only checking that the build Uris match as this is the most likely error - it probably means that an old analysis config file has been left behind somehow.
         // e.g. a build definition used to include analysis but has changed so that it is no longer an analysis build, but there is still an old analysis config on disc.
@@ -194,7 +189,7 @@ public class PostProcessor
         return true;
     }
 
-    private bool ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, AnalysisResult analysisResult)
+    private bool ProcessCoverageReport(AnalysisConfig config, BuildSettings settings, AnalysisResult analysisResult)
     {
 #if NETFRAMEWORK
         if (settings.IsAzureDevOps)

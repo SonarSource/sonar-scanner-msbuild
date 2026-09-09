@@ -46,25 +46,11 @@ public class BootstrapperSettings : IBootstrapperSettings
     private string CalculateTempDir()
     {
         runtime.LogDebug(Resources.MSG_UsingEnvVarToGetDirectory);
-        var rootDir = FirstEnvironmentVariable(EnvironmentVariables.BuildDirectoryLegacy, EnvironmentVariables.BuildDirectoryTfs2015);
+        var rootDir = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryTfs2015);
         if (string.IsNullOrWhiteSpace(rootDir))
         {
             rootDir = runtime.Directory.GetCurrentDirectory();
         }
         return Path.Combine(rootDir, RelativePathToTempDir);
-    }
-
-    private string FirstEnvironmentVariable(params string[] environmentVariables)
-    {
-        foreach (var name in environmentVariables)
-        {
-            var value = Environment.GetEnvironmentVariable(name);
-            if (!string.IsNullOrWhiteSpace(value))
-            {
-                runtime.LogDebug(Resources.MSG_UsingBuildEnvironmentVariable, name, value);
-                return value;
-            }
-        }
-        return null;
     }
 }

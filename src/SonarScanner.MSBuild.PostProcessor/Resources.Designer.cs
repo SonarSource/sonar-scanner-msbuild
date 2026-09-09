@@ -206,15 +206,6 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Legacy TeamBuild environment detected.
-        /// </summary>
-        internal static string SETTINGS_InLegacyTeamBuild {
-            get {
-                return ResourceManager.GetString("SETTINGS_InLegacyTeamBuild", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to TeamBuild environment detected.
         /// </summary>
         internal static string SETTINGS_InTeamBuild {

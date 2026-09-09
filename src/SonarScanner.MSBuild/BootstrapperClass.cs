@@ -141,8 +141,8 @@ public class BootstrapperClass
         }
 
         Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
-        var teamBuildSettings = BuildSettings.SettingsFromEnvironment(logger);
-        var config = GetAnalysisConfig(teamBuildSettings?.AnalysisConfigFilePath);
+        var buildSettings = BuildSettings.CreateFromEnvironment(logger);
+        var config = GetAnalysisConfig(buildSettings?.AnalysisConfigFilePath);
 
         bool succeeded;
         if (config is null)
@@ -152,7 +152,7 @@ public class BootstrapperClass
         else
         {
             var postProcessor = processorFactory.CreatePostProcessor();
-            succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
+            succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, buildSettings);
         }
 
         return succeeded ? SuccessCode : ErrorCode;

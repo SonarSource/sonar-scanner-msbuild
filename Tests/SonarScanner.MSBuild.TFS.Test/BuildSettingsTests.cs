@@ -24,12 +24,12 @@ namespace SonarScanner.MSBuild.TFS.Test;
 public class BuildSettingsTests
 {
     [TestMethod]
-    public void SettingsFromEnvironment_NoTFSVariable_NotTeamBuild()
+    public void CreateFromEnvironment_NoTfBuildVariable_IsNotAzureDevOps()
     {
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
 
-        var settings = BuildSettings.SettingsFromEnvironment(new TestRuntime().Logger);
+        var settings = BuildSettings.CreateFromEnvironment(new TestRuntime().Logger);
         CheckExpectedSettings(
             settings,
             false,
@@ -41,16 +41,14 @@ public class BuildSettingsTests
     }
 
     [TestMethod]
-    public void SettingsFromEnvironment_IncompleteTFSVariableSet_NotTeamBuild()
+    public void CreateFromEnvironment_NoTfBuildVariable_OtherTFSRelatedVariablesSet_IsNotAzureDevOps()
     {
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
         scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "build uri");
-        scope.SetVariable(EnvironmentVariables.TfsCollectionUriLegacy, "collection uri");
-        scope.SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "should be ignored");
         scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "should be ignored");
 
-        var settings = BuildSettings.SettingsFromEnvironment(new TestRuntime().Logger);
+        var settings = BuildSettings.CreateFromEnvironment(new TestRuntime().Logger);
         CheckExpectedSettings(
             settings,
             false,
@@ -62,81 +60,73 @@ public class BuildSettingsTests
     }
 
     [TestMethod]
-    public void SettingsFromEnvironment_InvalidTFSVariable_NotTeamBuild()
+    public void CreateFromEnvironment_InvalidTfBuildVariable_IsNotAzureDevOps()
     {
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
 
-        BuildSettings.SettingsFromEnvironment(new TestRuntime().Logger).IsAzureDevOps.Should().BeFalse();
+        BuildSettings.CreateFromEnvironment(new TestRuntime().Logger).IsAzureDevOps.Should().BeFalse();
     }
 
     [TestMethod]
-    public void SettingsFromEnvironment_TFSVariableFalse_NotTeamBuild()
+    public void CreateFromEnvironment_TfBuildVariableFalse_IsNotAzureDevOps()
     {
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false");
 
-        BuildSettings.SettingsFromEnvironment(new TestRuntime().Logger).IsAzureDevOps.Should().BeFalse();
+        BuildSettings.CreateFromEnvironment(new TestRuntime().Logger).IsAzureDevOps.Should().BeFalse();
     }
 
     [TestMethod]
-    public void SettingsFromEnvironment_TFSVariableTrue_TeamBuild()
+    public void CreateFromEnvironment_TfBuildVariableTrue_IsAzureDevOps()
     {
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
         scope.SetVariable(EnvironmentVariables.BuildUriTfs2015, "http://builduri");
-        scope.SetVariable(EnvironmentVariables.TfsCollectionUriTfs2015, "http://collectionUri");
-        scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "non-legacy team build");
-        scope.SetVariable(EnvironmentVariables.SourcesDirectoryTfs2015, @"c:\agent\_work\1");
 
-        var settings = BuildSettings.SettingsFromEnvironment(new TestRuntime().Logger);
-        settings.Should().NotBeNull("Failed to create the BuildSettings");
+        var settings = BuildSettings.CreateFromEnvironment(new TestRuntime().Logger);
+        settings.Should().NotBeNull();
         CheckExpectedSettings(
             settings,
             true,
             Directory.GetCurrentDirectory(),
             "http://builduri",
-            "http://collectionUri",
-            "non-legacy team build",
-            @"c:\agent\_work\1");
+            null,
+            null,
+            null);
     }
 
     [TestMethod]
-    public void SettingsFromEnvironment_TFSVariableTrue_BuildUriLegacySet_TeamBuildLegacy()
+    public void CreateFromEnvironment_TfBuildVariableTrue_BuildUriLegacySet_NotSupported()
     {
         using var scope = new EnvironmentVariableScope();
         scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
         scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "http://builduri");
-        scope.SetVariable(EnvironmentVariables.TfsCollectionUriLegacy, "http://collectionUri");
-        scope.SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "non-legacy team build");
-        scope.SetVariable(EnvironmentVariables.SourcesDirectoryLegacy, @"c:\agent\_work\1");
 
-        var logger = new TestRuntime().Logger;
-        var settings = BuildSettings.SettingsFromEnvironment(logger);
-        settings.Should().BeNull();
-        logger.Should().HaveErrorOnce("Team Foundation Server detected, which is not supported.");
+        var logger = new TestLogger();
+        BuildSettings.CreateFromEnvironment(logger).Should().BeNull();
+        logger.Should().HaveErrorOnce("Team Foundation Server detected, which is not supported by this version of Scanner for .NET. Use older version of the scanner.");
     }
 
-    private static void CheckExpectedSettings(
-        BuildSettings actual,
-        bool expectedIsAzureDevOps,
-        string expectedAnalysisDir,
-        string expectedBuildUri,
-        string expectedCollectionUri,
-        string expectedBuildDir,
-        string expectedSourcesDir)
+    private static void CheckExpectedSettings(BuildSettings actual,
+                                              bool expectedIsAzureDevOps,
+                                              string expectedAnalysisDir,
+                                              string expectedBuildUri,
+                                              string expectedCollectionUri,
+                                              string expectedBuildDir,
+                                              string expectedSourcesDir)
     {
-        actual.Should().NotBeNull("Returned settings should never be null");
+        actual.Should().NotBeNull();
 
-        actual.IsAzureDevOps.Should().Be(expectedIsAzureDevOps, "Unexpected build environment returned");
-        actual.AnalysisBaseDirectory.Should().Be(expectedAnalysisDir, "Unexpected analysis base directory returned");
-        actual.BuildDirectory.Should().Be(expectedBuildDir, "Unexpected build directory returned");
-        actual.BuildUri.Should().Be(expectedBuildUri, "Unexpected build uri returned");
-        actual.TfsUri.Should().Be(expectedCollectionUri, "Unexpected tfs uri returned");
+        actual.IsAzureDevOps.Should().Be(expectedIsAzureDevOps);
+        actual.AnalysisBaseDirectory.Should().Be(expectedAnalysisDir);
+        actual.BuildDirectory.Should().Be(expectedBuildDir);
+        actual.BuildUri.Should().Be(expectedBuildUri);
+        actual.TfsUri.Should().Be(expectedCollectionUri);
 
         if (actual.IsAzureDevOps)
         {
-            actual.SourcesDirectory.Should().Be(expectedSourcesDir, "Unexpected sources directory returned");
+            actual.SourcesDirectory.Should().Be(expectedSourcesDir);
         }
         else
         {
@@ -144,11 +134,11 @@ public class BuildSettingsTests
         }
 
         // Check the calculated values
-        actual.SonarConfigDirectory.Should().Be(Path.Combine(expectedAnalysisDir, "conf"), "Unexpected config dir");
-        actual.SonarOutputDirectory.Should().Be(Path.Combine(expectedAnalysisDir, "out"), "Unexpected output dir");
-        actual.SonarBinDirectory.Should().Be(Path.Combine(expectedAnalysisDir, "bin"), "Unexpected bin dir");
-        actual.AnalysisConfigFilePath.Should().Be(Path.Combine(expectedAnalysisDir, "conf", FileConstants.ConfigFileName), "Unexpected analysis file path");
+        actual.SonarConfigDirectory.Should().Be(Path.Combine(expectedAnalysisDir, "conf"));
+        actual.SonarOutputDirectory.Should().Be(Path.Combine(expectedAnalysisDir, "out"));
+        actual.SonarBinDirectory.Should().Be(Path.Combine(expectedAnalysisDir, "bin"));
+        actual.AnalysisConfigFilePath.Should().Be(Path.Combine(expectedAnalysisDir, "conf", FileConstants.ConfigFileName));
 
-        actual.SonarScannerWorkingDirectory.Should().Be(Directory.GetParent(expectedAnalysisDir)!.FullName, "Unexpected sonar-scanner working dir");
+        actual.SonarScannerWorkingDirectory.Should().Be(Directory.GetParent(expectedAnalysisDir)!.FullName);
     }
 }

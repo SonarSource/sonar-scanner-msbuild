@@ -42,12 +42,12 @@ public class PostProcessorTests
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly ScannerEngineInput scannerEngineInput;
     private readonly TestRuntime runtime;
-    private IBuildSettings settings;
+    private BuildSettings settings;
 
     public PostProcessorTests(TestContext testContext)
     {
         this.testContext = testContext;
-        settings = BuildSettings.CreateSettingsForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
+        settings = BuildSettings.CreateForTesting(TestUtils.CreateTestSpecificFolderWithSubPaths(testContext));
         Directory.CreateDirectory(settings.SonarOutputDirectory);
         config = new()
         {
@@ -386,11 +386,11 @@ public class PostProcessorTests
 
     [TestMethod]
     public void Execute_NullArgs_Throws() =>
-        sut.Invoking(x => x.Execute(null, new AnalysisConfig(), Substitute.For<IBuildSettings>())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
+        sut.Invoking(x => x.Execute(null, new AnalysisConfig(), BuildSettings.CreateForTesting())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
 
     [TestMethod]
     public void Execute_NullAnalysisConfig_Throws() =>
-        sut.Invoking(x => x.Execute([], null, Substitute.For<IBuildSettings>())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
+        sut.Invoking(x => x.Execute([], null, BuildSettings.CreateForTesting())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("config");
 
     [TestMethod]
     public void Execute_NullTeamBuildSettings_Throws() =>
@@ -466,10 +466,7 @@ public class PostProcessorTests
 
     private void SubstituteSettings(bool isAzDo)
     {
-        settings = Substitute.For<IBuildSettings>();
-        settings.IsAzureDevOps.Returns(isAzDo);
-        settings.BuildUri.Returns(config.GetBuildUri());
-        settings.AnalysisConfigFilePath.Returns("Path-to-SonarQubeAnalysisConfig.xml");
+        settings = BuildSettings.CreateForTesting(analysisBaseDirectory: "basedir", isAzDo: isAzDo, buildUri: config.GetBuildUri());
     }
 
     private static string PathCombineWithEscape(params string[] parts)
