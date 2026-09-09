@@ -257,7 +257,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
                 return ResourceManager.GetString("ERR_JavaExeNotFoundAtExpectedLocation", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to JreResolver: Download failure. {0}
         ///The analysis will continue with the Java runtime environment found in JAVA_HOME or on the PATH. If you already have a compatible Java version installed, please add either the parameter &quot;/d:sonar.scanner.skipJreProvisioning=true&quot; or &quot;/d:sonar.scanner.javaExePath=&lt;PATH&gt;&quot;..
@@ -267,7 +267,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
                 return ResourceManager.GetString("ERR_JreResolver_DownloadFailure", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Organization parameter (/o:&quot;&lt;organization&gt;&quot;) is required and needs to be provided!.
         /// </summary>
@@ -1144,15 +1144,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_SonarCloudDetected_SkipVersionCheck {
             get {
                 return ResourceManager.GetString("MSG_SonarCloudDetected_SkipVersionCheck", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Falling back to SonarScannerCLI to guarantee TFS Legacy support..
-        /// </summary>
-        internal static string MSG_SonarScannerCliFallbackForTfsLegacySupport {
-            get {
-                return ResourceManager.GetString("MSG_SonarScannerCliFallbackForTfsLegacySupport", resourceCulture);
             }
         }
         
