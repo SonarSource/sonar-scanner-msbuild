@@ -18,16 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
-public sealed class RuleSearchPaging
+namespace SonarScanner.MSBuild.PreProcessor.Test;
+
+public static class MockSonarQube
 {
-    public int Fetched { get; }
-    public int Total { get; }
-
-    public RuleSearchPaging(int total, int fetched)
-    {
-        Total = total;
-        Fetched = fetched;
-    }
+    public static SonarQubeBase Create() =>
+        Substitute.For<SonarQubeBase>(Substitute.For<IDownloader>(), Substitute.For<IDownloader>(), new TestLogger(), null);
 }

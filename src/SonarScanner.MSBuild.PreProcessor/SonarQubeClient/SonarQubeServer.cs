@@ -24,27 +24,27 @@ using SonarScanner.MSBuild.PreProcessor.EngineResolution;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
-namespace SonarScanner.MSBuild.PreProcessor.WebServer;
+namespace SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
-internal class SonarQubeWebServer : SonarWebServerBase
+internal class SonarQubeServer : SonarQubeBase
 {
     private readonly IRuntime runtime;
     private readonly Version serverVersion;
 
     public override string ServerVersion => serverVersion.ToString();
 
-    private SonarQubeWebServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
+    private SonarQubeServer(IDownloader webDownloader, IDownloader apiDownloader, Version serverVersion, IRuntime runtime, string organization)
         : base(webDownloader, apiDownloader, runtime.Logger, organization)
     {
         this.serverVersion = serverVersion;
         this.runtime = runtime;
     }
 
-    public static async Task<SonarQubeWebServer> Create(IDownloader webDownloader, IDownloader apiDownloader, IRuntime runtime, string organization)
+    public static async Task<SonarQubeServer> Create(IDownloader webDownloader, IDownloader apiDownloader, IRuntime runtime, string organization)
     {
         if (await LoadServerVersion(apiDownloader, runtime.Logger) is { } serverVersion)
         {
-            var ret = new SonarQubeWebServer(webDownloader, apiDownloader, serverVersion, runtime, organization);
+            var ret = new SonarQubeServer(webDownloader, apiDownloader, serverVersion, runtime, organization);
             runtime.LogInfo(Resources.MSG_UsingSonarQube, ret.ServerVersion);
             return await ret.IsAllValid() ? ret : null;     // No dispose for ret or downloaders for simplicity. The program ends soon.
         }

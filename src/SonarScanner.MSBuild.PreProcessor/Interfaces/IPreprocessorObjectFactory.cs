@@ -21,7 +21,7 @@
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -34,12 +34,12 @@ public interface IPreprocessorObjectFactory
     /// Creates the component that interacts with the Sonar server.
     /// </summary>
     /// <remarks>It is the responsibility of the caller to dispose of the server, if necessary.</remarks>
-    Task<SonarWebServerBase> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null);
+    Task<SonarQubeBase> CreateClient(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null);
 
     /// <summary>
     /// Creates the component that provisions the Roslyn analyzers.
     /// </summary>
-    RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarWebServerBase server,
+    RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarQubeBase client,
                                                         string localCacheTempPath,
                                                         BuildSettings teamBuildSettings,
                                                         IAnalysisPropertyProvider sonarProperties,
@@ -49,15 +49,15 @@ public interface IPreprocessorObjectFactory
     /// <summary>
     /// Creates the component that resolves the JRE path.
     /// </summary>
-    IResolver CreateJreResolver(SonarWebServerBase server, string sonarUserHome);
+    IResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome);
 
     /// <summary>
     /// Creates the component that resolves the Scanner Engine path.
     /// </summary>
-    IResolver CreateEngineResolver(SonarWebServerBase server, string sonarUserHome);
+    IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome);
 
     /// <summary>
     /// Creates the component that resolves the Scanner Engine path.
     /// </summary>
-    IResolver CreateScannerCliResolver(SonarWebServerBase server, string sonarUserHome);
+    IResolver CreateScannerCliResolver(SonarQubeBase client, string sonarUserHome);
 }

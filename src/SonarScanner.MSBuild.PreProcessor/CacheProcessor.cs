@@ -21,14 +21,14 @@
 using System.Security.Cryptography;
 using SonarScanner.MSBuild.Common.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Protobuf;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
 public sealed class CacheProcessor : IDisposable
 {
     private readonly ILogger logger;
-    private readonly SonarWebServerBase server;
+    private readonly SonarQubeBase client;
     private readonly ProcessedArgs localSettings;
     private readonly IBuildSettings buildSettings;
     private readonly HashAlgorithm sha256 = new SHA256CryptoServiceProvider();
@@ -36,9 +36,9 @@ public sealed class CacheProcessor : IDisposable
     public string PullRequestCacheBasePath { get; }
     public string UnchangedFilesPath { get; private set; }
 
-    public CacheProcessor(SonarWebServerBase server, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
+    public CacheProcessor(SonarQubeBase client, ProcessedArgs localSettings, IBuildSettings buildSettings, ILogger logger)
     {
-        this.server = server ?? throw new ArgumentNullException(nameof(server));
+        this.client = client ?? throw new ArgumentNullException(nameof(client));
         this.localSettings = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         this.buildSettings = buildSettings ?? throw new ArgumentNullException(nameof(buildSettings));
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -58,7 +58,7 @@ public sealed class CacheProcessor : IDisposable
         {
             logger.LogInfo(Resources.MSG_NoPullRequestCacheBasePath);
         }
-        if (await server.DownloadCache(localSettings) is { Count: > 0 } cache)
+        if (await client.DownloadCache(localSettings) is { Count: > 0 } cache)
         {
             logger.LogDebug(Resources.MSG_PullRequestCacheBasePath, PullRequestCacheBasePath);
             ProcessPullRequest(cache);
