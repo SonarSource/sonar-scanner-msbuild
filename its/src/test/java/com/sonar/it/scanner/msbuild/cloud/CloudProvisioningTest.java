@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild.sonarcloud;
+package com.sonar.it.scanner.msbuild.cloud;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.Property;
+import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
@@ -52,7 +52,7 @@ class CloudProvisioningTest {
     assertFalse(result.isSuccess());
     assertThat(result.getLogs()).contains(
       "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different." +
-      " Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+        " Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
   }
 
   @Test

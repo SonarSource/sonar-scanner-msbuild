@@ -4,7 +4,7 @@
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=coverage)](https://sonarcloud.io/component_measures?id=sonarscanner-msbuild&metric=coverage)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
-The SonarScanner for .NET is the recommended way to launch a SonarQube or SonarCloud analysis for [Clean Code](https://www.sonarsource.com/solutions/clean-code/) projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft.](https://www.sonarsource.com/blog/easy-analysis-of-visual-studio-solutions-with-the-sonarqube-scanner-for-msbuild/)
+The SonarScanner for .NET is the recommended way to launch a SonarQube analysis for [Clean Code](https://www.sonarsource.com/solutions/clean-code/) projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft.](https://www.sonarsource.com/blog/easy-analysis-of-visual-studio-solutions-with-the-sonarqube-scanner-for-msbuild/)
 
 SonarScanner for .NET is distributed as a
 
@@ -14,8 +14,8 @@ SonarScanner for .NET is distributed as a
 
 For more info please look at our documentation page
 
-* [On SonarQube](https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/)
-* [On SonarCloud](https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/)
+* [On SonarQube Server](https://docs.sonarqube.org/latest/analysis/scan/sonarscanner-for-msbuild/)
+* [On SonarQube Cloud](https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/sonarscanner-for-net/)
 
 and at our user guides
 

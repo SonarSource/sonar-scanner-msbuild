@@ -43,7 +43,7 @@ public class SonarQubeCloudTest
     {
         var context = new Context();
         await context.CreateClient();
-        context.Logger.Should().HaveInfos("Using SonarCloud.");
+        context.Logger.Should().HaveInfos("Using SonarQube Cloud.");
     }
 
     [TestMethod]
@@ -55,8 +55,8 @@ public class SonarQubeCloudTest
     {
         var context = new Context();
         (await context.CreateClient()).Should().NotBeNull();
-        context.Logger.Should().HaveDebugs("SonarCloud detected, skipping server version check.");
-        context.Logger.Should().HaveDebugs("SonarCloud detected, skipping license check.");
+        context.Logger.Should().HaveDebugs("SonarQube Cloud detected, skipping server version check.");
+        context.Logger.Should().HaveDebugs("SonarQube Cloud detected, skipping license check.");
     }
 
     [TestMethod]
@@ -70,7 +70,7 @@ public class SonarQubeCloudTest
         context.Logger.Should().HaveErrors(@"Organization parameter (/o:""<organization>"") is required and needs to be provided!")
             .And.HaveWarningOnce("""
             In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-            If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
+            If the intention was to connect to the local SonarQube Server instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
             """);
     }
 
@@ -286,7 +286,7 @@ public class SonarQubeCloudTest
     }
 
     [TestMethod]
-    public async Task DownloadRules_SonarCloud()
+    public async Task DownloadRules()
     {
         var context = new Context();
         context.WebDownloader

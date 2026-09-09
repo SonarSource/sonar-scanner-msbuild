@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /key:[SonarQube/SonarCloud project key].
+        ///   Looks up a localized string similar to /key:[SonarQube project key].
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectKey {
             get {
@@ -97,7 +97,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /name:[SonarQube/SonarCloud project name] - required for SonarQube &lt; 6.1.
+        ///   Looks up a localized string similar to /name:[SonarQube project name].
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectName {
             get {
@@ -106,7 +106,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /version:[SonarQube/SonarCloud project version] - required for SonarQube &lt; 6.1.
+        ///   Looks up a localized string similar to /version:[SonarQube project version].
         /// </summary>
         internal static string CmdLine_ArgDescription_ProjectVersion {
             get {
@@ -151,7 +151,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!.
+        ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the SonarQube server!.
         /// </summary>
         internal static string ERR_DotNetAnalyzersNotFound {
             get {
@@ -379,8 +379,8 @@ namespace SonarScanner.MSBuild.PreProcessor {
         
         /// <summary>
         ///   Looks up a localized string similar to Expecting at least the following command line argument:
-        ///- SonarQube/SonarCloud project key
-        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
+        ///- SonarQube project key
+        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the Scanner for .NET.
         ///Use &apos;/?&apos; or &apos;/h&apos; to see the help message..
         /// </summary>
         internal static string ERROR_InvalidCommandLineArgs {
@@ -521,6 +521,24 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_CheckingVersionSupported {
             get {
                 return ResourceManager.GetString("MSG_CheckingVersionSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Cloud detected, skipping license check..
+        /// </summary>
+        internal static string MSG_CloudDetected_SkipLicenseCheck {
+            get {
+                return ResourceManager.GetString("MSG_CloudDetected_SkipLicenseCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarQube Cloud detected, skipping server version check..
+        /// </summary>
+        internal static string MSG_CloudDetected_SkipVersionCheck {
+            get {
+                return ResourceManager.GetString("MSG_CloudDetected_SkipVersionCheck", resourceCulture);
             }
         }
         
@@ -1112,15 +1130,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarCloud detected, skipping license check..
-        /// </summary>
-        internal static string MSG_SonarCloudDetected_SkipLicenseCheck {
-            get {
-                return ResourceManager.GetString("MSG_SonarCloudDetected_SkipLicenseCheck", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarCloud detected, skipping server version check..
         /// </summary>
         internal static string MSG_SonarCloudDetected_SkipVersionCheck {
@@ -1193,20 +1202,20 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using SonarCloud..
-        /// </summary>
-        internal static string MSG_UsingSonarCloud {
-            get {
-                return ResourceManager.GetString("MSG_UsingSonarCloud", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Using SonarQube v{0}..
         /// </summary>
         internal static string MSG_UsingSonarQube {
             get {
                 return ResourceManager.GetString("MSG_UsingSonarQube", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using SonarQube Cloud..
+        /// </summary>
+        internal static string MSG_UsingSonarQubeCloud {
+            get {
+                return ResourceManager.GetString("MSG_UsingSonarQubeCloud", resourceCulture);
             }
         }
         
@@ -1347,7 +1356,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         
         /// <summary>
         ///   Looks up a localized string similar to In version 7 of the scanner, the default value for the sonar.host.url changed from &quot;http://localhost:9000&quot; to &quot;https://sonarcloud.io&quot;.
-        ///If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url=&quot;http://localhost:9000&quot;.
+        ///If the intention was to connect to the local SonarQube Server instance, please add the parameter: /d:sonar.host.url=&quot;http://localhost:9000&quot;.
         /// </summary>
         internal static string WARN_DefaultHostUrlChanged {
             get {

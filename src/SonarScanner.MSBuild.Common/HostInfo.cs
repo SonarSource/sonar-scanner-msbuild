@@ -22,7 +22,7 @@ namespace SonarScanner.MSBuild.Common;
 
 public abstract record HostInfo(string ServerUrl, string ApiBaseUrl)
 {
-    public abstract bool IsSonarCloud { get; }
+    public abstract bool IsCloud { get; }
     public string ServerUrl { get; } = ServerUrl;
     public string ApiBaseUrl { get; } = ApiBaseUrl;
 
@@ -31,7 +31,7 @@ public abstract record HostInfo(string ServerUrl, string ApiBaseUrl)
     {
         if (region is not null && (sonarHostUrl is not null || sonarcloudUrl is not null || apiBaseUrl is not null))
         {
-            logger.LogWarning(Resources.WARN_RegionIsOverriden, SonarProperties.Region, region, SonarProperties.HostUrl, SonarProperties.SonarcloudUrl, SonarProperties.ApiBaseUrl);
+            logger.LogWarning(Resources.WARN_RegionIsOverriden, SonarProperties.Region, region, SonarProperties.HostUrl, SonarProperties.SonarCloudUrl, SonarProperties.ApiBaseUrl);
         }
         var info = new { sonarHostUrl, sonarcloudUrl } switch
         {
@@ -48,7 +48,7 @@ public abstract record HostInfo(string ServerUrl, string ApiBaseUrl)
         {
             logger.LogDebug(Resources.MSG_ServerInfo_ServerUrlDetected, info.ServerUrl);
             logger.LogDebug(Resources.MSG_ServerInfo_ApiUrlDetected, info.ApiBaseUrl);
-            logger.LogDebug(Resources.MSG_ServerInfo_IsSonarCloudDetected, info.IsSonarCloud);
+            logger.LogDebug(Resources.MSG_ServerInfo_IsCloudDetected, info.IsCloud);
         }
 
         return info;
@@ -69,7 +69,7 @@ public abstract record HostInfo(string ServerUrl, string ApiBaseUrl)
 
 public record ServerHostInfo(string ServerUrl, string ApiBaseUrl) : HostInfo(ServerUrl, ApiBaseUrl)
 {
-    public override bool IsSonarCloud => false;
+    public override bool IsCloud => false;
 }
 
 public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) : HostInfo(ServerUrl, ApiBaseUrl)
@@ -79,7 +79,7 @@ public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) 
         new("https://sonarqube.us", "https://api.sonarqube.us", "us")
     ];
 
-    public override bool IsSonarCloud => true;
+    public override bool IsCloud => true;
     public string Region { get; } = Region;
 
     public static new CloudHostInfo FromProperties(ILogger logger, string sonarHostUrl, string sonarCloudUrl, string apiBaseUrl, string region)

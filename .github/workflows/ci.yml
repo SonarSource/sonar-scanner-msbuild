@@ -323,13 +323,13 @@ jobs:
         include:
           - scenario: LATEST_RELEASE
             sqVersion: LATEST_RELEASE
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             runsOn: sonar-s
           - scenario: Others
             testInclude: "**/others/*"
             runsOn: sonar-xs
           - scenario: Cloud
-            testInclude: "**/sonarcloud/*"
+            testInclude: "**/cloud/*"
             runsOn: sonar-xs
     steps:
       - name: Checkout
@@ -361,11 +361,11 @@ jobs:
         include:
           - scenario: LATEST_RELEASE
             sqVersion: LATEST_RELEASE
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
           - scenario: Others
             testInclude: "**/others/*"
           - scenario: Cloud
-            testInclude: "**/sonarcloud/*"
+            testInclude: "**/cloud/*"
     steps:
       - name: Setup Cloudflare WARP
         uses: SonarSource/gh-action_setup-cloudflare-warp@v1

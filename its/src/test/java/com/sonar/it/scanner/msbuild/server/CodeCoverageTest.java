@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild.sonarqube;
+package com.sonar.it.scanner.msbuild.server;
 
 import com.sonar.it.scanner.msbuild.utils.*;
 
@@ -31,7 +31,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.server.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 @ExtendWith({ServerTests.class, ContextExtension.class})

@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.TFS {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
+        ///   Looks up a localized string similar to Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the SonarQube server.
         ///Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine..
         /// </summary>
         internal static string CONV_ERROR_ConversionToolFailed {
@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The binary coverage file {0} could not be found. No coverage information will be uploaded to the Sonar server..
+        ///   Looks up a localized string similar to The binary coverage file {0} could not be found. No coverage information will be uploaded to the SonarQube server..
         /// </summary>
         internal static string CONV_ERROR_InputFileNotFound {
             get {

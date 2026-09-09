@@ -88,7 +88,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The arguments &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; are both set and are different. Please set either &apos;sonar.host.url&apos; for SonarQube or &apos;sonar.scanner.sonarcloudUrl&apos; for SonarCloud..
+        ///   Looks up a localized string similar to The arguments &apos;sonar.host.url&apos; and &apos;sonar.scanner.sonarcloudUrl&apos; are both set and are different. Please set either &apos;sonar.host.url&apos; for SonarQube or &apos;sonar.scanner.sonarcloudUrl&apos; for SonarQube Cloud..
         /// </summary>
         internal static string ERR_HostUrlDiffersFromSonarcloudUrl {
             get {
@@ -489,11 +489,11 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Is SonarCloud: {0}.
+        ///   Looks up a localized string similar to Is SonarQube Cloud: {0}.
         /// </summary>
-        internal static string MSG_ServerInfo_IsSonarCloudDetected {
+        internal static string MSG_ServerInfo_IsCloudDetected {
             get {
-                return ResourceManager.GetString("MSG_ServerInfo_IsSonarCloudDetected", resourceCulture);
+                return ResourceManager.GetString("MSG_ServerInfo_IsCloudDetected", resourceCulture);
             }
         }
         

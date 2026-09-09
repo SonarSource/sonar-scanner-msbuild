@@ -6,7 +6,7 @@ The community forum already has answers to many common questions/problems and is
 
 * Report a **false positive** with an analysis rule: [FP/FN reporting](https://community.sonarsource.com/c/bug/fp/7)
 
-* **Bug** reports and **support**: [SonarCloud](https://community.sonarsource.com/c/sc/9) or [SonarQube](https://community.sonarsource.com/c/sq/10)
+* **Bug** reports and **support**: [SonarQube Cloud](https://community.sonarsource.com/c/sc/9) or [SonarQube Server / Community Build](https://community.sonarsource.com/c/sq/10)
  
 * Suggest new **features**: [Product Manager for a Day](https://community.sonarsource.com/c/sq/pm-for-a-day-sq/38)
 

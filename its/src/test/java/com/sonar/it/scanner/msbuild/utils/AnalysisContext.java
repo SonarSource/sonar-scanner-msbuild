@@ -19,8 +19,8 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.it.scanner.msbuild.sonarcloud.CloudConstants;
-import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
+import com.sonar.it.scanner.msbuild.cloud.CloudConstants;
+import com.sonar.it.scanner.msbuild.server.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import java.nio.file.Path;
 import org.slf4j.Logger;

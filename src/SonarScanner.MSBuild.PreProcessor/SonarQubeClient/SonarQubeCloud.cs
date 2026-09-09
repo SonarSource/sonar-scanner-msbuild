@@ -47,7 +47,7 @@ internal class SonarQubeCloud : SonarQubeBase
     {
         var unauthenticatedClient = handler is null ? new HttpClient { Timeout = httpTimeout } : new HttpClient(handler, true) { Timeout = httpTimeout };
         var ret = new SonarQubeCloud(webDownloader, apiDownloader, logger, organization, unauthenticatedClient);
-        logger.LogInfo(Resources.MSG_UsingSonarCloud);
+        logger.LogInfo(Resources.MSG_UsingSonarQubeCloud);
         return await ret.IsAllValid() ? ret : null;     // No dispose for ret or downloaders for simplicity. The program ends soon.
     }
 
@@ -132,13 +132,13 @@ internal class SonarQubeCloud : SonarQubeBase
 
     protected override bool IsServerVersionSupported()
     {
-        logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipVersionCheck);
+        logger.LogDebug(Resources.MSG_CloudDetected_SkipVersionCheck);
         return true;
     }
 
     protected override Task<bool> IsServerLicenseValid()
     {
-        logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
+        logger.LogDebug(Resources.MSG_CloudDetected_SkipLicenseCheck);
         return Task.FromResult(true);
     }
 

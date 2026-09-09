@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild.sonarqube;
+package com.sonar.it.scanner.msbuild.server;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
@@ -47,7 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.server.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 

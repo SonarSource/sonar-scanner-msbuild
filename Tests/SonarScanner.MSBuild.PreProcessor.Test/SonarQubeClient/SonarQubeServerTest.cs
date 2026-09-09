@@ -55,7 +55,7 @@ public class SonarQubeServerTest
                 "SonarQube versions below 2025.1 or 25.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.",
                 """
                 In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-                If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
+                If the intention was to connect to the local SonarQube Server instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
                 """);
     }
 
@@ -71,7 +71,7 @@ public class SonarQubeServerTest
                 "SonarQube versions below 2025.1 or 25.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.",
                 """
                 In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-                If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
+                If the intention was to connect to the local SonarQube Server instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
                 """);
     }
 
