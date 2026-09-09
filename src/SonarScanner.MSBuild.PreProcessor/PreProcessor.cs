@@ -73,11 +73,13 @@ public class PreProcessor
         }
 
         using var server = await factory.CreateSonarWebServer(localSettings);
+        if (server is null)
+        {
+            return false;
+        }
         try
         {
-            if (server is null
-                || !server.IsServerVersionSupported()
-                || !await server.IsServerLicenseValid())
+            if (!await server.IsAllValid())
             {
                 return false;
             }

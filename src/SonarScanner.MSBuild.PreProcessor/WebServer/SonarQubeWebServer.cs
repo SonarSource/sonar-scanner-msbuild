@@ -37,69 +37,6 @@ internal class SonarQubeWebServer : SonarWebServerBase
         runtime.LogInfo(Resources.MSG_UsingSonarQube, serverVersion);
     }
 
-    public override bool IsServerVersionSupported()
-    {
-        Version failHardBelowVersion;
-        Version warningBelowVersion;
-        runtime.LogDebug(Resources.MSG_CheckingVersionSupported);
-        if (serverVersion.Major < 11 || serverVersion.Major >= 2025)    // Commercial editions 8.x, 9.x, 10.x, and 2025.1 onwards
-        {
-            failHardBelowVersion = new Version(2025, 1);
-            warningBelowVersion = new Version(2025, 4);
-        }
-        else // Community Edition 25.1 onwards
-        {
-            failHardBelowVersion = new Version(25, 1);
-            warningBelowVersion = new Version(26, 1);
-        }
-        if (serverVersion < failHardBelowVersion)
-        {
-            runtime.LogError(Resources.ERR_SonarQubeUnsupported, failHardBelowVersion.ToString());
-            return false;
-        }
-        else if (serverVersion < warningBelowVersion)
-        {
-            runtime.AnalysisWarnings.Log(Resources.WARN_UI_SonarQubeUnsupported);
-        }
-        return true;
-    }
-
-    public override async Task<bool> IsServerLicenseValid()
-    {
-        runtime.LogDebug(Resources.MSG_CheckingLicenseValidity);
-        var response = await webDownloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative));
-        if (response.StatusCode == HttpStatusCode.Unauthorized)
-        {
-            runtime.LogError(Resources.ERR_InvalidCredentials);
-            return false;
-        }
-
-        var json = JObject.Parse(await response.Content.ReadAsStringAsync());
-        if (response.StatusCode == HttpStatusCode.NotFound)
-        {
-            // On other editions than community, if a license was not set, the response is: {"errors":[{"msg":"License not found"}]} and http status code 404 (not found).
-            if (json["errors"]?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
-            {
-                runtime.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
-                return false;
-            }
-
-            // On community edition, the API is not present and any call to `api/editions/is_valid_license` will return {"errors":[{"msg":"Unknown url : /api/editions/is_valid_license"}]}.
-            runtime.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
-            return true;
-        }
-        else
-        {
-            if (json["isValidLicense"]?.ToObject<bool>() is true)
-            {
-                return true;
-            }
-
-            runtime.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
-            return false;
-        }
-    }
-
     public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
@@ -148,4 +85,67 @@ internal class SonarQubeWebServer : SonarWebServerBase
 
     protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
         new(json["paging"]["total"].ToObject<int>(), json["paging"]["pageSize"].ToObject<int>());
+
+    protected override bool IsServerVersionSupported()
+    {
+        Version failHardBelowVersion;
+        Version warningBelowVersion;
+        runtime.LogDebug(Resources.MSG_CheckingVersionSupported);
+        if (serverVersion.Major < 11 || serverVersion.Major >= 2025)    // Commercial editions 8.x, 9.x, 10.x, and 2025.1 onwards
+        {
+            failHardBelowVersion = new Version(2025, 1);
+            warningBelowVersion = new Version(2025, 4);
+        }
+        else // Community Edition 25.1 onwards
+        {
+            failHardBelowVersion = new Version(25, 1);
+            warningBelowVersion = new Version(26, 1);
+        }
+        if (serverVersion < failHardBelowVersion)
+        {
+            runtime.LogError(Resources.ERR_SonarQubeUnsupported, failHardBelowVersion.ToString());
+            return false;
+        }
+        else if (serverVersion < warningBelowVersion)
+        {
+            runtime.AnalysisWarnings.Log(Resources.WARN_UI_SonarQubeUnsupported);
+        }
+        return true;
+    }
+
+    protected override async Task<bool> IsServerLicenseValid()
+    {
+        runtime.LogDebug(Resources.MSG_CheckingLicenseValidity);
+        var response = await webDownloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative));
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            runtime.LogError(Resources.ERR_InvalidCredentials);
+            return false;
+        }
+
+        var json = JObject.Parse(await response.Content.ReadAsStringAsync());
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            // On other editions than community, if a license was not set, the response is: {"errors":[{"msg":"License not found"}]} and http status code 404 (not found).
+            if (json["errors"]?.Any(x => x["msg"]?.Value<string>() == "License not found") == true)
+            {
+                runtime.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
+                return false;
+            }
+
+            // On community edition, the API is not present and any call to `api/editions/is_valid_license` will return {"errors":[{"msg":"Unknown url : /api/editions/is_valid_license"}]}.
+            runtime.LogDebug(Resources.MSG_CE_Detected_LicenseValid);
+            return true;
+        }
+        else
+        {
+            if (json["isValidLicense"]?.ToObject<bool>() is true)
+            {
+                return true;
+            }
+
+            runtime.LogError(Resources.ERR_UnlicensedServer, webDownloader.BaseUrl);
+            return false;
+        }
+    }
 }

@@ -48,18 +48,6 @@ internal class SonarCloudWebServer : SonarWebServerBase
         logger.LogInfo(Resources.MSG_UsingSonarCloud);
     }
 
-    public override bool IsServerVersionSupported()
-    {
-        logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipVersionCheck);
-        return true;
-    }
-
-    public override Task<bool> IsServerLicenseValid()
-    {
-        logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
-        return Task.FromResult(true);
-    }
-
     public override async Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings)
     {
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
@@ -124,6 +112,18 @@ internal class SonarCloudWebServer : SonarWebServerBase
 
     protected override RuleSearchPaging ParseRuleSearchPaging(JObject json) =>
         new(json["total"].ToObject<int>(), json["ps"].ToObject<int>());
+
+    protected override bool IsServerVersionSupported()
+    {
+        logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipVersionCheck);
+        return true;
+    }
+
+    protected override Task<bool> IsServerLicenseValid()
+    {
+        logger.LogDebug(Resources.MSG_SonarCloudDetected_SkipLicenseCheck);
+        return Task.FromResult(true);
+    }
 
     protected override void Dispose(bool disposing)
     {

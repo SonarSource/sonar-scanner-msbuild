@@ -44,8 +44,8 @@ public abstract class SonarWebServerBase : IDisposable
     public abstract Task<IList<SensorCacheEntry>> DownloadCache(ProcessedArgs localSettings);
     public abstract Task<Stream> DownloadEngineAsync(EngineMetadata metadata);
     public abstract Task<Stream> DownloadJreAsync(JreMetadata metadata);
-    public abstract bool IsServerVersionSupported();
-    public abstract Task<bool> IsServerLicenseValid();
+    protected abstract bool IsServerVersionSupported();
+    protected abstract Task<bool> IsServerLicenseValid();
     protected abstract RuleSearchPaging ParseRuleSearchPaging(JObject json);
 
     public Version ServerVersion => serverVersion;
@@ -58,6 +58,10 @@ public abstract class SonarWebServerBase : IDisposable
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.organization = organization;
     }
+
+    public virtual async Task<bool> IsAllValid() =>
+        IsServerVersionSupported()
+        && await IsServerLicenseValid();
 
     public virtual async Task<string> DownloadQualityProfile(string projectKey, string projectBranch, string language)
     {

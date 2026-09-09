@@ -49,20 +49,20 @@ public class SonarQubeWebServerTest
     [DataRow("9.9.9.999")]
     [DataRow("10.9.9.999")]
     [DataRow("2025.0.9.999")]   // Fake number, as there are no hardfail commercial editions with 2025.x version (yet)
-    public void IsServerVersionSupported_FailHard_CommercialEdition(string sqVersion)
+    public async Task IsServerVersionSupported_FailHard_CommercialEdition(string sqVersion)
     {
         var context = new Context(sqVersion);
-        context.Server.IsServerVersionSupported().Should().BeFalse();
+        (await context.Server.IsAllValid()).Should().BeFalse();
         context.Runtime.Logger.Should().HaveErrors("SonarQube versions below 2025.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.");
     }
 
     [TestMethod]
     [DataRow("24.12.0.100206")]
     [DataRow("24.12.1.100206")]
-    public void IsServerVersionSupported_FailHard_CommunityEdition(string sqVersion)
+    public async Task IsServerVersionSupported_FailHard_CommunityEdition(string sqVersion)
     {
         var context = new Context(sqVersion);
-        context.Server.IsServerVersionSupported().Should().BeFalse();
+        (await context.Server.IsAllValid()).Should().BeFalse();
         context.Runtime.Logger.Should().HaveErrors("SonarQube versions below 25.1 are not supported anymore by the SonarScanner for .NET. Please upgrade your SonarQube version or use an older version of the scanner.");
     }
 
@@ -70,10 +70,10 @@ public class SonarQubeWebServerTest
     [DataRow("25.1.0.1121")]
     [DataRow("25.12.0.9999")]
     [DataRow("2025.1.8.123366")]
-    public void IsServerVersionSupported_OutOfSupport_LogWarning(string sqVersion)
+    public async Task IsServerVersionSupported_OutOfSupport_LogWarning(string sqVersion)
     {
         var context = new Context(sqVersion);
-        context.Server.IsServerVersionSupported().Should().BeTrue();
+        (await context.Server.IsAllValid()).Should().BeTrue();
         context.Runtime.AnalysisWarnings.Should().HaveMessage("You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.");
         context.Runtime.Logger.Should().HaveNoErrors();
     }
@@ -86,10 +86,10 @@ public class SonarQubeWebServerTest
     [DataRow("2026.1.0.111")]
     [DataRow("2027.1.0.111")]
     [DataRow("2028.1.0.111")]
-    public void IsServerVersionSupported_Supported_NoLogs(string sqVersion)
+    public async Task IsServerVersionSupported_Supported_NoLogs(string sqVersion)
     {
         var context = new Context(sqVersion);
-        context.Server.IsServerVersionSupported().Should().BeTrue();
+        (await context.Server.IsAllValid()).Should().BeTrue();
         context.Runtime.AnalysisWarnings.Should().HaveNoMessages();
         context.Runtime.Logger.Should().HaveNoErrors();
     }
@@ -103,9 +103,8 @@ public class SonarQubeWebServerTest
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(responseContent) };
         context.WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
         context.WebDownloader.BaseUrl.Returns(new Uri("host", UriKind.Relative));
-        var isValid = await context.Server.IsServerLicenseValid();
 
-        isValid.Should().BeFalse();
+        (await context.Server.IsAllValid()).Should().BeFalse();
         context.Runtime.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host")
             .And.HaveNoWarnings();
     }
@@ -114,11 +113,8 @@ public class SonarQubeWebServerTest
     public async Task IsServerLicenseValid_Commercial_AuthNotForced_LicenseIsValid()
     {
         var context = new Context();
-        var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") };
-        context.WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
-        var isValid = await context.Server.IsServerLicenseValid();
 
-        isValid.Should().BeTrue();
+        (await context.Server.IsAllValid()).Should().BeTrue();
         context.Runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
     }
@@ -128,9 +124,8 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         context.WebDownloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative)).Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.Unauthorized }));
-        var result = await context.Server.IsServerLicenseValid();
 
-        result.Should().BeFalse();
+        (await context.Server.IsAllValid()).Should().BeFalse();
         context.Runtime.Logger.Should().HaveErrorOnce("Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters.")
             .And.HaveNoWarnings();
     }
@@ -142,9 +137,8 @@ public class SonarQubeWebServerTest
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""License not found""}]}") };
         context.WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
         context.WebDownloader.BaseUrl.Returns(new Uri("host", UriKind.Relative));
-        var result = await context.Server.IsServerLicenseValid();
 
-        result.Should().BeFalse();
+        (await context.Server.IsAllValid()).Should().BeFalse();
         context.Runtime.Logger.Should().HaveErrorOnce("Your SonarQube instance seems to have an invalid license. Please check it. Server url: host")
             .And.HaveNoWarnings();
     }
@@ -155,9 +149,8 @@ public class SonarQubeWebServerTest
         var context = new Context();
         var response = new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound, Content = new StringContent(@"{""errors"":[{""msg"":""Unknown url: /api/editions/is_valid_license""}]}") };
         context.WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
-        var result = await context.Server.IsServerLicenseValid();
 
-        result.Should().BeTrue();
+        (await context.Server.IsAllValid()).Should().BeTrue();
         context.Runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
     }
@@ -168,9 +161,8 @@ public class SonarQubeWebServerTest
         var context = new Context();
         context.WebDownloader.DownloadResource(new("api/editions/is_valid_license", UriKind.Relative))
             .Returns(Task.FromResult(new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") }));
-        var isValid = await context.Server.IsServerLicenseValid();
 
-        isValid.Should().BeTrue();
+        (await context.Server.IsAllValid()).Should().BeTrue();
         await context.WebDownloader.Received().DownloadResource(new("api/editions/is_valid_license", UriKind.Relative));
     }
 
@@ -318,7 +310,7 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         using var environment = new EnvironmentVariableScope().SetVariable(variableName, "branch-42");
-        context.MockStreamWebDownload(new MemoryStream());
+        context.MockDownloadStream(new MemoryStream());
         await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, null));
 
         context.Runtime.Logger.Should().HaveInfos($"Incremental PR analysis: Automatically detected base branch 'branch-42' from CI Provider '{provider}'.");
@@ -335,7 +327,7 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         using var environment = new EnvironmentVariableScope().SetVariable(variableName, "wrong_branch");
-        context.MockStreamWebDownload(new MemoryStream());
+        context.MockDownloadStream(new MemoryStream());
         await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         context.Runtime.Logger.Should().HaveInfoOnce("Downloading cache. Project key: project-key, branch: project-branch.");
@@ -358,7 +350,7 @@ public class SonarQubeWebServerTest
     {
         var context = new Context();
         using var stream = CreateCacheStream(new SensorCacheEntry { Key = "key", Data = ByteString.CopyFromUtf8("value") });
-        context.MockStreamWebDownload(stream);
+        context.MockDownloadStream(stream);
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().ContainSingle();
@@ -370,7 +362,7 @@ public class SonarQubeWebServerTest
     public async Task DownloadCache_WhenDownloadStreamReturnsNull_ReturnsEmpty()
     {
         var context = new Context();
-        context.MockStreamWebDownload(null);
+        context.MockDownloadStream(null);
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
@@ -382,7 +374,7 @@ public class SonarQubeWebServerTest
     public async Task DownloadCache_WhenDownloadStreamReturnsEmpty_ReturnsEmpty()
     {
         var context = new Context();
-        context.MockStreamWebDownload(new MemoryStream());
+        context.MockDownloadStream(new MemoryStream());
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
@@ -407,7 +399,7 @@ public class SonarQubeWebServerTest
         var context = new Context();
         var stream = Substitute.For<Stream>();
         stream.Length.Returns(x => throw new InvalidOperationException());
-        context.MockStreamWebDownload(stream);
+        context.MockDownloadStream(stream);
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
@@ -419,7 +411,7 @@ public class SonarQubeWebServerTest
     public async Task DownloadCache_WhenCacheStreamDeserializeThrows_ReturnsEmptyAndLogsException()
     {
         var context = new Context();
-        context.MockStreamWebDownload(new MemoryStream([42, 42])); // this is a random byte array that fails deserialization
+        context.MockDownloadStream(new MemoryStream([42, 42])); // this is a random byte array that fails deserialization
         var result = await context.Server.DownloadCache(CreateLocalSettings(ProjectKey, ProjectBranch));
 
         result.Should().BeEmpty();
@@ -553,9 +545,11 @@ public class SonarQubeWebServerTest
         public Context(string version = "2026.1", string organization = null)
         {
             server = new Lazy<SonarQubeWebServer>(() => new SonarQubeWebServer(WebDownloader, ApiDownloader, new(version), Runtime, organization));
+            var response = new HttpResponseMessage { StatusCode = HttpStatusCode.OK, Content = new StringContent(@"{ ""isValidLicense"": true }") };
+            WebDownloader.DownloadResource(Arg.Any<Uri>()).Returns(Task.FromResult(response));
         }
 
-        public void MockStreamWebDownload(Stream stream) =>
+        public void MockDownloadStream(Stream stream) =>
             WebDownloader.DownloadStream(Arg.Any<Uri>()).Returns(Task.FromResult(stream));
     }
 }
