@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.TFS {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -89,6 +89,15 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The coverage attachment {0} is already Visual Studio Coverage XML, no conversion will be attempted..
+        /// </summary>
+        internal static string COVXML_DIAG_AlreadyXml_NoConversionAttempted {
+            get {
+                return ResourceManager.GetString("COVXML_DIAG_AlreadyXml_NoConversionAttempted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Found corresponding Binary-to-XML conversion output file for {0}, no conversion will be attempted..
         /// </summary>
         internal static string COVXML_DIAG_FileAlreadyExist_NoConversionAttempted {
@@ -103,6 +112,15 @@ namespace SonarScanner.MSBuild.TFS {
         internal static string COVXML_DIAG_SkippingCoverageCheckPropertyProvided {
             get {
                 return ResourceManager.GetString("COVXML_DIAG_SkippingCoverageCheckPropertyProvided", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The coverage attachment {0} is not in the Visual Studio Coverage XML format, it will not be uploaded..
+        /// </summary>
+        internal static string COVXML_WARN_UnsupportedXmlFormat {
+            get {
+                return ResourceManager.GetString("COVXML_WARN_UnsupportedXmlFormat", resourceCulture);
             }
         }
         

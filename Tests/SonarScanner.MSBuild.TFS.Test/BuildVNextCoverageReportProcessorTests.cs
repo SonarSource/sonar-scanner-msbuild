@@ -133,23 +133,23 @@ public class BuildVNextCoverageReportProcessorTests
         SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNull, trx: true, coverage: true, coverageContent: coverageContent);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Errors.Should().ContainSingle().Which                                // shouldn't throw
-            .StartsWith("Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).");
+        runtime.Logger.Should().HaveNoErrors();
+        runtime.Logger.InfoMessages.Should().ContainMatch("The coverage attachment *dummy.coverage is already Visual Studio Coverage XML, no conversion will be attempted.");
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
-        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);   // shouldn't be empty
+        additionalProperties.VsCoverageXmlReportsPaths.Should().ContainSingle(x => x.EndsWith(Path.Combine("TestResults", "dummy", "In", "dummy.coverage")));
         additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
 
     [TestMethod]
     [DataRow("<coverage line-rate=\"1.0\"><packages /></coverage>")]    // Cobertura
     [DataRow("<CoverageSession />")]                                    // OpenCover
-    public void ProcessCoverageReports_TrxAndCoverageFileFound_UnsupportedXmlFormat_DoesNotConvert_DoesNotUpload(string coverageContent)
+    public void ProcessCoverageReports_TrxAndCoverageFileFound_UnsupportedXmlFormat_DoesNotConvert_DoesNotWriteCoverageFilePathToPropertiesFile(string coverageContent)
     {
         SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNull, trx: true, coverage: true, coverageContent: coverageContent);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Errors.Should().ContainSingle().Which    // shouldn't throw
-            .StartsWith("Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).");
+        runtime.Logger.Should().HaveNoErrors();
+        runtime.Logger.Warnings.Should().ContainMatch("The coverage attachment *dummy.coverage is not in the Visual Studio Coverage XML format, it will not be uploaded.");
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
         additionalProperties.CoverageConversionPerformed.Should().BeFalse();
@@ -681,7 +681,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         var filePath = Path.Combine(path, fileName);
         runtime.File.Exists(filePath).Returns(true);
-        runtime.File.Open(filePath).Returns(new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
+        runtime.File.Open(filePath).Returns(_ => new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
         // some tests need the real file
         Directory.CreateDirectory(path);
         File.WriteAllText(filePath, fileContent);
