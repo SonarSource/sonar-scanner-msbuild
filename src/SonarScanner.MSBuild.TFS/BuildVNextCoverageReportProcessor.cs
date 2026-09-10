@@ -28,12 +28,10 @@ namespace SonarScanner.MSBuild.TFS;
 public class BuildVNextCoverageReportProcessor
 {
     private const string XmlReportFileExtension = "coveragexml";
-    private readonly ICoverageReportConverter converter;
     private readonly IRuntime runtime;
 
-    public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, IRuntime runtime)
+    public BuildVNextCoverageReportProcessor(IRuntime runtime)
     {
-        this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
     }
 

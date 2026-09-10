@@ -26,6 +26,7 @@ using static SonarScanner.MSBuild.TFS.BuildVNextCoverageReportProcessor;
 namespace SonarScanner.MSBuild.TFS.Test;
 
 [TestClass]
+[DoNotParallelize]
 public class BuildVNextCoverageReportProcessorTests
 {
     public enum Properties
@@ -38,7 +39,6 @@ public class BuildVNextCoverageReportProcessorTests
 
     private readonly AnalysisConfig analysisConfig = new();
     private readonly TestRuntime runtime = new();
-    private readonly ICoverageReportConverter converter = Substitute.For<ICoverageReportConverter>();
     private readonly BuildSettings buildSettings;
     private readonly string testDir;
     private readonly string testResultsDir;
@@ -60,7 +60,7 @@ public class BuildVNextCoverageReportProcessorTests
         alternateCoverageDir = Path.Combine(testResultsDir, "alternate", "In");
         runtime.Directory.Exists(alternateCoverageDir).Returns(true);
         buildSettings = BuildSettings.CreateForTesting(null, true, testDir);
-        sut = new BuildVNextCoverageReportProcessor(converter, runtime);
+        sut = new BuildVNextCoverageReportProcessor(runtime);
         environmentVariableScope.SetVariable(EnvironmentVariables.AgentTempDirectory, alternateCoverageDir);  // setup search fallback
     }
 
@@ -69,12 +69,8 @@ public class BuildVNextCoverageReportProcessorTests
         environmentVariableScope.Dispose();
 
     [TestMethod]
-    public void Constructor_ConverterIsNull_ThrowsNullArgumentException() =>
-        FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(null, runtime)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("converter");
-
-    [TestMethod]
     public void Constructor_LoggerIsNull_ThrowsNullArgumentException() =>
-        FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(converter, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+        FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
     // FIXME The tests belwo are broken beyond repair and need to be rewritten. https://sonarsource.atlassian.net/browse/SCAN4NET-1792
     [TestMethod]
@@ -430,7 +426,7 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void FindFallbackCoverageFiles_FilesLocatedCorrectly_Windows_Mac()
     {
-        sut = new BuildVNextCoverageReportProcessor(converter, new TestRuntime { Directory = DirectoryWrapper.Instance, File = FileWrapper.Instance }); // no file mocking, test actual search behavior
+        sut = new BuildVNextCoverageReportProcessor(new TestRuntime { Directory = DirectoryWrapper.Instance, File = FileWrapper.Instance }); // no file mocking, test actual search behavior
         var subDir = Path.Combine(alternateCoverageDir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
         TestUtils.CreateTextFile(alternateCoverageDir, "foo.coverageXXX", "1");              // wrong file extension
@@ -447,7 +443,7 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void FindFallbackCoverageFiles_FilesLocatedCorrectly_Linux()
     {
-        sut = new BuildVNextCoverageReportProcessor(converter, new TestRuntime { Directory = DirectoryWrapper.Instance, File = FileWrapper.Instance }); // no file mocking, test actual search behavior
+        sut = new BuildVNextCoverageReportProcessor(new TestRuntime { Directory = DirectoryWrapper.Instance, File = FileWrapper.Instance }); // no file mocking, test actual search behavior
         var subDir = Path.Combine(alternateCoverageDir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
         TestUtils.CreateTextFile(alternateCoverageDir, "foo.coverageXXX", "1");             // wrong file extension
@@ -467,7 +463,7 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     public void FindFallbackCoverageFiles_CalculatesAndDeDupesOnContentCorrectly()
     {
-        sut = new BuildVNextCoverageReportProcessor(converter, new TestRuntime { Directory = DirectoryWrapper.Instance, File = FileWrapper.Instance }); // no file mocking, test actual search behavior
+        sut = new BuildVNextCoverageReportProcessor(new TestRuntime { Directory = DirectoryWrapper.Instance, File = FileWrapper.Instance }); // no file mocking, test actual search behavior
         var subDir = Path.Combine(alternateCoverageDir, "subDir", "subDir2");
         Directory.CreateDirectory(subDir);
         var file1 = "file1.coverage";
