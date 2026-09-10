@@ -308,7 +308,7 @@ public static class TelemetryUtils
             return true;
         }
 
-        // Cobertura-related properties (e.g., sonar.cs.cobertura, sonar.cs.cobertura.reportPaths) - not supported yet but users are trying
+        // Cobertura-related properties (e.g., sonar.cs.cobertura, sonar.cs.cobertura.reportPaths)
         if (id.EndsWith(".cobertura", StringComparison.OrdinalIgnoreCase)
             || id.IndexOf(".cobertura.", StringComparison.OrdinalIgnoreCase) >= 0)
         {
