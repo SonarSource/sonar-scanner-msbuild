@@ -106,7 +106,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         sut.ProcessCoverageReports(analysisConfig, buildSettings);
         AssertUsesFallback();
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoErrors().And.HaveNoWarnings();
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
     }
 
@@ -118,10 +118,41 @@ public class BuildVNextCoverageReportProcessorTests
         CopySampleCoverageFile(coverageDir, "dummy.coverage");
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoErrors().And.HaveNoWarnings();
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
         additionalProperties.CoverageConversionPerformed.Should().BeTrue();
+    }
+
+    [TestMethod]
+    [DataRow("<results />")]
+    [DataRow("<?xml version=\"1.0\" encoding=\"utf-8\"?><results />")]
+    [DataRow("  \r\n<results />")]
+    public void ProcessCoverageReports_TrxAndCoverageFileFound_AlreadyXml_DoesNotConvert(string coverageContent)
+    {
+        SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNull, trx: true, coverage: true, coverageContent: coverageContent);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        runtime.Logger.Errors.Should().ContainSingle().Which                                // shouldn't throw
+            .StartsWith("Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).");
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);   // shouldn't be empty
+        additionalProperties.CoverageConversionPerformed.Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow("<coverage line-rate=\"1.0\"><packages /></coverage>")]    // Cobertura
+    [DataRow("<CoverageSession />")]                                    // OpenCover
+    public void ProcessCoverageReports_TrxAndCoverageFileFound_UnsupportedXmlFormat_DoesNotConvert_DoesNotUpload(string coverageContent)
+    {
+        SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNull, trx: true, coverage: true, coverageContent: coverageContent);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        runtime.Logger.Errors.Should().ContainSingle().Which    // shouldn't throw
+            .StartsWith("Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).");
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
+        additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
 
     [TestMethod]
@@ -132,7 +163,7 @@ public class BuildVNextCoverageReportProcessorTests
         CopySampleCoverageFile(coverageDir, "dummy.coverage");
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoErrors().And.HaveNoWarnings();
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
         additionalProperties.CoverageConversionPerformed.Should().BeTrue();
@@ -146,7 +177,7 @@ public class BuildVNextCoverageReportProcessorTests
         CopySampleCoverageFile(coverageDir, "dummy.coverage");
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoErrors().And.HaveNoWarnings();
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
         additionalProperties.CoverageConversionPerformed.Should().BeTrue();
@@ -160,7 +191,7 @@ public class BuildVNextCoverageReportProcessorTests
         CopySampleCoverageFile(coverageDir, "dummy.coverage");
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoErrors().And.HaveNoWarnings();
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
         additionalProperties.CoverageConversionPerformed.Should().BeTrue();
     }
@@ -172,7 +203,7 @@ public class BuildVNextCoverageReportProcessorTests
         SetupPropertiesAndFiles(properties, coverage: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoErrors().And.HaveNoWarnings();
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
         additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
@@ -185,7 +216,7 @@ public class BuildVNextCoverageReportProcessorTests
         SetupPropertiesAndFiles(properties, trx: true, coverage: true, coverageXml: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoErrors().And.HaveNoWarnings();
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties);
         additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
@@ -198,7 +229,7 @@ public class BuildVNextCoverageReportProcessorTests
         SetupPropertiesAndFiles(properties, trx: true, coverage: true, coverageXml: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Should().HaveNoErrors().And.HaveNoWarnings();
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
         additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
@@ -211,7 +242,8 @@ public class BuildVNextCoverageReportProcessorTests
         SetupPropertiesAndFiles(properties, trx: true, coverage: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Should().HaveNoWarnings();
+        runtime.Logger.Errors.Should().ContainSingle().Which
+            .StartsWith("Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).");
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
         additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
@@ -555,7 +587,7 @@ public class BuildVNextCoverageReportProcessorTests
         XDocument.Load(outputFilePath).Should().BeEquivalentTo(XDocument.Load(expectedOutputFilePath));
     }
 
-    private void SetupPropertiesAndFiles(Properties settings, bool trx = false, bool coverage = false, bool coverageXml = false, bool alternate = false, bool alternateXml = false)
+    private void SetupPropertiesAndFiles(Properties settings, bool trx = false, bool coverage = false, bool coverageXml = false, bool alternate = false, bool alternateXml = false, string coverageContent = "coverage")
     {
         analysisConfig.LocalSettings = settings switch
         {
@@ -587,7 +619,7 @@ public class BuildVNextCoverageReportProcessorTests
         }
         if (coverage)
         {
-            CreateFile(coverageDir, "dummy.coverage", "coverage");
+            CreateFile(coverageDir, "dummy.coverage", coverageContent);
         }
         if (coverageXml)
         {
