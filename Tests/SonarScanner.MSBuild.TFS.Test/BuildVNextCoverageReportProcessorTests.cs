@@ -80,7 +80,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         AssertUsesFallback(false);
-        runtime.Logger.Warnings.Should().ContainSingle().Which.StartsWith("None of the following coverage attachments could be found: dummy.coverage");
+        runtime.Logger.Warnings.Should().ContainSingle().Which.Should().StartWith("None of the following coverage attachments could be found: dummy.coverage");
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
     }
@@ -103,7 +103,7 @@ public class BuildVNextCoverageReportProcessorTests
         SetupPropertiesAndFiles(Properties.TestReportsPathsNotNull, trx: true);
 
         sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Warnings.Should().ContainSingle().Which.StartsWith("None of the following coverage attachments could be found: dummy.coverage");
+        runtime.Logger.Warnings.Should().ContainSingle().Which.Should().StartWith("None of the following coverage attachments could be found: dummy.coverage");
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
     }
 
@@ -256,8 +256,8 @@ public class BuildVNextCoverageReportProcessorTests
         SetupPropertiesAndFiles(properties, trx: true, coverage: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Errors.Should().ContainSingle().Which
-            .StartsWith("Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to SonarQube.");
+        runtime.Logger.Errors.Should().ContainSingle().Which.Should()
+            .StartWith("Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to SonarQube.");
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
         additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
