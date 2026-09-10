@@ -478,11 +478,11 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ConvertToXml_ConversionFailure_SuccessFalseAndErrorLogged()
+    public void ConvertToXml_ConversionFailure_False()
     {
         var context = new ConverterTestContext(TestContext);
         sut.ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse();
-        File.Exists(context.OutputFilePath).Should().BeFalse("Conversion failed");
+        File.Exists(context.OutputFilePath).Should().BeFalse();
         runtime.Logger.Should().HaveErrors($"""
             Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
             Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
@@ -491,29 +491,16 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ConvertToXml_FileConverterReturnsAnErrorCode_Fails()
-    {
-        var context = new ConverterTestContext(TestContext);
-        sut.ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
-        runtime.Logger.Should().HaveErrorOnce($"""
-            Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
-            Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
-            """);
-        File.Exists(context.OutputFilePath).Should().BeFalse("Not expecting the output file to exist");
-    }
-
-    [TestMethod]
-    public void ConvertToXml_InputFileDoesNotExists_Fails()
+    public void ConvertToXml_InputFileDoesNotExists_False()
     {
         var context = new ConverterTestContext(TestContext, fileContent: null);
-        sut.ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
-        runtime.Logger.Errors.Should().ContainSingle().Which.Should()
-            .Be($"The binary coverage file {context.InputFilePath} could not be found. No coverage information will be uploaded to the Sonar server.");
-        File.Exists(context.OutputFilePath).Should().BeFalse("Not expecting the output file to exist");
+        sut.ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse();
+        runtime.Logger.Should().HaveErrors($"The binary coverage file {context.InputFilePath} could not be found. No coverage information will be uploaded to the Sonar server.");
+        File.Exists(context.OutputFilePath).Should().BeFalse();
     }
 
     [TestMethod]
-    public void ConvertToXml_InputFileIsLocked_Fails()
+    public void ConvertToXml_InputFileIsLocked_False()
     {
         var context = new ConverterTestContext(TestContext);
         try
@@ -523,9 +510,12 @@ public class BuildVNextCoverageReportProcessorTests
             // AggregateException: One or more errors occurred.
             // CoverageFileException: Failed to open coverage file "C:\Fullpath\input.txt".
             // IOException: The process cannot access the file 'C:\Fullpath\input.txt' because it is being used by another process.
-            sut.ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse("Expecting the process to fail");
-            runtime.Logger.Errors.Should().ContainSingle().Which.Should().Match($"Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).*Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.");
-            File.Exists(context.OutputFilePath).Should().BeFalse("Not expecting the output file to exist");
+            sut.ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse();
+            runtime.Logger.Should().HaveErrors($"""
+                Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).
+                Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
+                """);
+            File.Exists(context.OutputFilePath).Should().BeFalse();
         }
         finally
         {
@@ -534,8 +524,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    // DeploymentItem does not work on Linux for relative files: https://github.com/microsoft/testfx/issues/1460
-    [DeploymentItem(@"Resources")] // Copy whole directory. Contains: Sample.coverage and Expected.xmlcoverage
+    [DeploymentItem(@"Resources")]
     public void ConvertToXml_ConvertsSampleFile()
     {
         var inputFilePath = Path.Combine(Environment.CurrentDirectory, "Sample.coverage");
@@ -549,12 +538,11 @@ public class BuildVNextCoverageReportProcessorTests
         File.Exists(outputFilePath).Should().BeTrue();
         // All tags and attributes must appear in actual and expected. Comments, whitespace, ordering, and the like is ignored in the assertion.
         XDocument.Load(outputFilePath).Should().BeEquivalentTo(XDocument.Load(expectedOutputFilePath));
-        runtime.Logger.DebugMessages.Should().ContainSingle().Which.Should().Match($"Converting coverage file '*Sample.coverage' to '*{nameof(ConvertToXml_ConvertsSampleFile)}.xmlcoverage'.");
+        runtime.Logger.Should().HaveDebugs($"Converting coverage file '{inputFilePath}' to '{outputFilePath}'.");
     }
 
     [TestMethod]
-    // DeploymentItem does not work on Linux for relative files: https://github.com/microsoft/testfx/issues/1460
-    [DeploymentItem(@"Resources")] // Copy whole directory. Contains: Sample.coverage and Expected.xmlcoverage
+    [DeploymentItem(@"Resources")]
     public void ConvertToXml_ProblematicCulture_ConvertsSampleFile()
     {
         var inputFilePath = Path.Combine(Environment.CurrentDirectory, "Sample.coverage");
@@ -676,13 +664,11 @@ public class BuildVNextCoverageReportProcessorTests
 
     private class ConverterTestContext
     {
-        public TestLogger Logger { get; }
         public string InputFilePath { get; }
         public string OutputFilePath { get; }
 
         public ConverterTestContext(TestContext testContext, string fileContent = "dummy input file", [CallerMemberName] string testMethodName = null)
         {
-            Logger = new TestLogger();
             var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
             InputFilePath = Path.Combine(testDir, $"input_{testMethodName}.txt");
             OutputFilePath = Path.Combine(testDir, "output.txt");
