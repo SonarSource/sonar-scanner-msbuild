@@ -71,8 +71,6 @@ internal static class TargetProperties
     public const string SonarQubeTestProject = "SonarQubeTestProject";
     public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
 
-    public const string MergedRulesetFullName = "MergedRulesetFullName";
-
     public const string SonarResolvedReferences = "SonarResolvedReferences";
 
     // SonarPrepareRazorProjectCodeAnalysis
@@ -86,16 +84,6 @@ internal static class TargetProperties
     public const string RazorSonarProjectInfo = "RazorSonarProjectInfo";
     public const string RazorSonarErrorLogExists = "RazorSonarErrorLogExists";
 
-    // Non-SonarQube constants
-    public const string ProjectGuid = "ProjectGuid";
-
-    public const string ProjectTypeGuids = "ProjectTypeGuids";
-
-    public const string RunCodeAnalysis = "RunCodeAnalysis";
-    public const string CodeAnalysisRuleset = "CodeAnalysisRuleSet";
-    public const string CodeAnalysisLogFile = "CodeAnalysisLogFile";
-
-    public const string AssemblyName = "AssemblyName";
 
     public const string RunAnalyzers = "RunAnalyzers";
     public const string RunAnalyzersDuringBuild = "RunAnalyzersDuringBuild";
@@ -103,20 +91,10 @@ internal static class TargetProperties
     public const string WarningsAsErrors = "WarningsAsErrors";
     public const string WarningLevel = "WarningLevel";
 
-    public const string IsInTeamBuild = "TF_Build"; // Common to legacy and non-legacy TeamBuilds
-    public const string ProjectName = "MSBuildProjectName";
-
-    public const string BuildingInsideVS = "BuildingInsideVisualStudio";
-
-    public const string CodePage = "CodePage";
-
     // Roslyn
     public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";
 
-    public const string TargetDir = "TargetDir"; // bin directory into which output will be dropped
-    public const string TargetFileName = "TargetFileName"; // filename and extension of the project being built
     public const string ErrorLog = "ErrorLog"; // file path to which the Roslyn error log should be written
-    public const string Language = "Language"; // Language of the project: normally "C#" or "VB"
     public const string AnalyzerItemType = "Analyzer";
     public const string AdditionalFilesItemType = "AdditionalFiles";
 
@@ -124,24 +102,6 @@ internal static class TargetProperties
     public const string SonarProjectConfigFilePath = "SonarProjectConfigFilePath";
     public const string ProjectSpecificOutDir = "ProjectSpecificOutDir";
     public const string ProjectSpecificConfDir = "ProjectSpecificConfDir";
-
-    // Legacy TeamBuild environment variables (XAML Builds)
-    public const string TfsCollectionUri_Legacy = "TF_BUILD_COLLECTIONURI";
-
-    public const string BuildUri_Legacy = "TF_BUILD_BUILDURI";
-    public const string BuildDirectory_Legacy = "TF_BUILD_BUILDDIRECTORY";
-
-    // TFS 2015 Environment variables
-    public const string TfsCollectionUri_TFS2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
-
-    public const string BuildUri_TFS2015 = "BUILD_BUILDURI";
-    public const string BuildDirectory_TFS2015 = "AGENT_BUILDDIRECTORY";
-
-    public const string MSBuildExtensionsPath = "MSBuildExtensionsPath";
-
-    public const string ItemType_Compile = "Compile";
-    public const string ItemType_Content = "Content";
-    public const string AutoGenMetadata = "AutoGen";
 
     // Telemetry
     public const string SonarTelemetryFilePath = "SonarTelemetryFilePath";
