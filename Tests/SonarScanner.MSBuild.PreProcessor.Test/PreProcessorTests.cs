@@ -357,11 +357,10 @@ public partial class PreProcessorTests
     {
         using var context = new Context(TestContext);
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
         scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "http://builduri");
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Runtime.Logger.Should().HaveErrors("Team Foundation Server detected, which is not supported by this version of Scanner for .NET. Use older version of the scanner.");
+        context.Factory.Runtime.Logger.Should().HaveErrors("Team Foundation Server detected, which is not supported by this version of SonarScanner for .NET. Use older version of the scanner.");
     }
 
     private static IEnumerable<string> CreateArgs(string organization = null, Dictionary<string, string> properties = null)
