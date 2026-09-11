@@ -66,7 +66,7 @@ public class TaskUtilitiesTests
     [TestMethod]
     public void TaskUtils_TryGetMissingConfig_NoError()
     {
-        ILogger logger = new TestLogger();
+        var logger = new TestLogger();
 
         // 1. Null -> no error
         var actual = TaskUtilities.TryGetConfig(null, logger);
@@ -108,7 +108,7 @@ public class TaskUtilitiesTests
 
         using (var lockingStream = File.OpenWrite(configFile))
         {
-            Task.Factory.StartNew(() =>
+            System.Threading.Tasks.Task.Factory.StartNew(() =>
                 {
                     System.Threading.Thread.Sleep(lockPeriodInMilliseconds);
                     lockingStream.Close();

@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Roslyn;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 internal class MockAnalyzerInstaller : IAnalyzerInstaller

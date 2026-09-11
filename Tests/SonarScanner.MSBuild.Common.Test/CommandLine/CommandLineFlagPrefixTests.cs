@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class CommandLineFlagPrefixTests
-{ 
+{
     #region Tests
 
     [TestMethod]

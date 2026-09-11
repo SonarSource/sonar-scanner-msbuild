@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.RegularExpressions;
-
-namespace SonarScanner.MSBuild.Common.Test.RegularExpressions;
+namespace SonarScanner.MSBuild.Common.RegularExpressions.Test;
 
 [TestClass]
 public class WildcardPatternMatcherTest

@@ -19,8 +19,6 @@
  */
 
 using System.Xml;
-using SonarScanner.MSBuild.PreProcessor.Roslyn;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
