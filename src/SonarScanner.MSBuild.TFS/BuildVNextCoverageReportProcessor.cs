@@ -20,6 +20,7 @@
 
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Xml;
 using Microsoft.CodeCoverage.IO;
 using Microsoft.CodeCoverage.IO.Exceptions;
 
@@ -28,6 +29,7 @@ namespace SonarScanner.MSBuild.TFS;
 public class BuildVNextCoverageReportProcessor
 {
     private const string XmlReportFileExtension = "coveragexml";
+    private const string VsCoverageXmlRootElementName = "results";
     private readonly IRuntime runtime;
 
     public BuildVNextCoverageReportProcessor(IRuntime runtime)
@@ -187,6 +189,20 @@ public class BuildVNextCoverageReportProcessor
         var conversionPerformed = false;
         foreach (var vsCoverageFilePath in vsCoverageFilePaths)
         {
+            if (ReadXmlRootElement(vsCoverageFilePath) is { } rootElementName)
+            {
+                if (rootElementName == VsCoverageXmlRootElementName)
+                {
+                    runtime.LogInfo(string.Format(Resources.COVXML_DIAG_AlreadyXml_NoConversionAttempted, vsCoverageFilePath));
+                    xmlFileNames.Add(vsCoverageFilePath);
+                }
+                else
+                {
+                    runtime.LogWarning(string.Format(Resources.COVXML_WARN_UnsupportedXmlFormat, vsCoverageFilePath));
+                }
+                continue;
+            }
+
             var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
             if (runtime.File.Exists(xmlFilePath))
             {
@@ -208,6 +224,24 @@ public class BuildVNextCoverageReportProcessor
         }
         vsCoverageXmlPaths = xmlFileNames;
         return conversionPerformed;
+    }
+
+    private string ReadXmlRootElement(string filePath)
+    {
+        using var stream = runtime.File.Open(filePath);
+        try
+        {
+            using var reader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore, XmlResolver = null });
+            if (reader.MoveToContent() == XmlNodeType.Element)
+            {
+                return reader.LocalName;
+            }
+        }
+        catch (XmlException)
+        {
+            // not xml
+        }
+        return null;
     }
 
     internal class FileWithContentHash
