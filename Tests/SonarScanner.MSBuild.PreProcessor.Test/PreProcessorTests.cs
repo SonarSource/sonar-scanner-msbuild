@@ -359,7 +359,6 @@ public partial class PreProcessorTests
     {
         using var context = new Context(TestContext);
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
         scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "http://builduri");
 
         (await context.Execute()).Should().BeFalse();

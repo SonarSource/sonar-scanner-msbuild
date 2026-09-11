@@ -144,17 +144,16 @@ public class BootstrapperClass
 
         Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
         var buildSettings = BuildSettings.CreateFromEnvironment(logger);
-        var config = GetAnalysisConfig(buildSettings?.AnalysisConfigFilePath);
 
         bool succeeded;
-        if (config is null)
-        {
-            succeeded = false;
-        }
-        else
+        if (LoadAnalysisConfig(buildSettings?.AnalysisConfigFilePath) is { } config)
         {
             var postProcessor = processorFactory.CreatePostProcessor();
             succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, buildSettings);
+        }
+        else
+        {
+            succeeded = false;
         }
 
         return succeeded ? SuccessCode : ErrorCode;
@@ -197,7 +196,7 @@ public class BootstrapperClass
     /// calculated from TeamBuild-specific environment variables.
     /// Returns null if the required environment variables are not available.
     /// </summary>
-    private AnalysisConfig GetAnalysisConfig(string configFilePath)
+    private AnalysisConfig LoadAnalysisConfig(string configFilePath)
     {
         AnalysisConfig config = null;
 

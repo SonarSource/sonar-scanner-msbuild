@@ -24,10 +24,10 @@ namespace SonarScanner.MSBuild.TFS.Test;
 public class BuildSettingsTests
 {
     [TestMethod]
-    public void CreateFromEnvironment_NoTfBuildVariable_IsNotAzureDevOps()
+    public void CreateFromEnvironment_NoBuildUri_IsNotAzureDevOps()
     {
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
+        scope.SetVariable(EnvironmentVariables.BuildUriTfs2015, null);
 
         var settings = BuildSettings.CreateFromEnvironment(new TestRuntime().Logger);
         CheckExpectedSettings(
@@ -41,11 +41,10 @@ public class BuildSettingsTests
     }
 
     [TestMethod]
-    public void CreateFromEnvironment_NoTfBuildVariable_OtherTFSRelatedVariablesSet_IsNotAzureDevOps()
+    public void CreateFromEnvironment_NoBuildUri_OtherTFSRelatedVariablesSet_IsNotAzureDevOps()
     {
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, null);
-        scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "build uri");
+        scope.SetVariable(EnvironmentVariables.BuildUriTfs2015, null);
         scope.SetVariable(EnvironmentVariables.BuildDirectoryTfs2015, "should be ignored");
 
         var settings = BuildSettings.CreateFromEnvironment(new TestRuntime().Logger);
@@ -60,28 +59,9 @@ public class BuildSettingsTests
     }
 
     [TestMethod]
-    public void CreateFromEnvironment_InvalidTfBuildVariable_IsNotAzureDevOps()
+    public void CreateFromEnvironment_BuildUriSet_IsAzureDevOps()
     {
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "wibble");
-
-        BuildSettings.CreateFromEnvironment(new TestRuntime().Logger).IsAzureDevOps.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void CreateFromEnvironment_TfBuildVariableFalse_IsNotAzureDevOps()
-    {
-        using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "false");
-
-        BuildSettings.CreateFromEnvironment(new TestRuntime().Logger).IsAzureDevOps.Should().BeFalse();
-    }
-
-    [TestMethod]
-    public void CreateFromEnvironment_TfBuildVariableTrue_IsAzureDevOps()
-    {
-        using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
         scope.SetVariable(EnvironmentVariables.BuildUriTfs2015, "http://builduri");
 
         var settings = BuildSettings.CreateFromEnvironment(new TestRuntime().Logger);
@@ -97,10 +77,9 @@ public class BuildSettingsTests
     }
 
     [TestMethod]
-    public void CreateFromEnvironment_TfBuildVariableTrue_BuildUriLegacySet_NotSupported()
+    public void CreateFromEnvironment_BuildUriLegacySet_NotSupported()
     {
         using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
         scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "http://builduri");
 
         var logger = new TestLogger();
