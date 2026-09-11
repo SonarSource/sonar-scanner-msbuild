@@ -1130,15 +1130,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarCloud detected, skipping server version check..
-        /// </summary>
-        internal static string MSG_SonarCloudDetected_SkipVersionCheck {
-            get {
-                return ResourceManager.GetString("MSG_SonarCloudDetected_SkipVersionCheck", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Starting to extract files from archive &apos;{0}&apos; to folder &apos;{1}&apos;..
         /// </summary>
         internal static string MSG_StartingArchiveExtraction {

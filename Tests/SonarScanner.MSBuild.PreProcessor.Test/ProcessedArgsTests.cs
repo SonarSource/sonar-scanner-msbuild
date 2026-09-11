@@ -253,7 +253,7 @@ public class ProcessedArgsTests
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Should().HaveNoWarnings()
             .And.HaveErrors("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
-            + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
+            + "Please set either 'sonar.host.url' for SonarQube Server or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
         sut.IsValid.Should().BeFalse();
     }
 
@@ -325,7 +325,7 @@ public class ProcessedArgsTests
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Should().HaveNoWarnings()
             .And.HaveErrors("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
-            + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
+            + "Please set either 'sonar.host.url' for SonarQube Server or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
         sut.IsValid.Should().BeFalse();
     }
 

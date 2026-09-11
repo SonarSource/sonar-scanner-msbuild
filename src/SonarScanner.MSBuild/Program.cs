@@ -64,7 +64,7 @@ public static class Program
                   {0} [begin|end] /key:project_key [/name:project_name] [/version:project_version] [/s:settings_file] [/d:sonar.login=token] [/d:sonar.{{property_name}}=value]
 
                   - When executing the 'BEGIN' step, at least the project key and the authentication token must be defined.
-                  - The authentication token should be provided through 'sonar.token' parameter on SonarQube or 'sonar.login' on SonarQube Cloud in both 'BEGIN' and 'END' steps.
+                  - The authentication token should be provided through 'sonar.token' parameter on SonarQube Server or 'sonar.login' on SonarQube Cloud in both 'BEGIN' and 'END' steps.
                     It should be the only provided parameter during the 'END' step. 'sonar.login' will soon be replaced with 'sonar.token' on SonarQube Cloud as well.
                   - A settings file can be used to define properties. If no settings file path is given, the file SonarQube.Analysis.xml
                     in the installation directory will be used. Note that any property defined from the command line overrides the

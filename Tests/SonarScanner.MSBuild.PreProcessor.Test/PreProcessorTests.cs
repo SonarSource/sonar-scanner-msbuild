@@ -87,7 +87,7 @@ public partial class PreProcessorTests
         context.Factory.Client.DownloadQualityProfile(null, null, null).ThrowsAsyncForAnyArgs(new WebException("Could not connect to remote server", WebExceptionStatus.ConnectFailure));
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Runtime.Logger.Should().HaveErrors("Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: http://host");
+        context.Factory.Runtime.Logger.Should().HaveErrors("Could not connect to SonarQube. Check that the URL is correct and that the server is available. URL: http://host");
     }
 
     [TestMethod]

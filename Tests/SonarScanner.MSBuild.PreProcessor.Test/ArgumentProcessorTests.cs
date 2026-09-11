@@ -59,7 +59,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_HostAndSonarcloudUrlError() =>
         CheckProcessingFails("/k:key", "/d:sonar.host.url=firstUrl", "/d:sonar.scanner.sonarcloudUrl=secondUrl").Logger
             .Should().HaveErrors("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
-            + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
+            + "Please set either 'sonar.host.url' for SonarQube Server or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
 
     [TestMethod]
     public void PreArgProc_DefaultHostUrl()

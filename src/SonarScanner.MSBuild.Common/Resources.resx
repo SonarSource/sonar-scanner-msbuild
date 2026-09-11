@@ -215,10 +215,10 @@
     <value>Execution failed. The specified executable does not exist: {0}</value>
   </data>
   <data name="ERROR_ConnectionFailed" xml:space="preserve">
-    <value>Could not connect to the SonarQube server. Check that the URL is correct and that the server is available. URL: {0}</value>
+    <value>Could not connect to SonarQube. Check that the URL is correct and that the server is available. URL: {0}</value>
   </data>
   <data name="ERROR_UrlNameResolutionFailed" xml:space="preserve">
-    <value>The name of the SonarQube server could not be resolved. Check the url is correct and that the server is available. Url: {0}</value>
+    <value>The name of the SonarQube instance could not be resolved. Check the url is correct and that the server is available. Url: {0}</value>
   </data>
   <data name="ERROR_CannotCreateEmptyDirectory" xml:space="preserve">
     <value>Failed to create an empty directory '{0}'. Please check that there are no open or read-only files in the directory and that you have the necessary read/write permissions.
@@ -240,7 +240,7 @@
     <value>sonar.verbose={0} was specified - setting the log verbosity to '{1}'</value>
   </data>
   <data name="ERROR_FileNotFound" xml:space="preserve">
-    <value>Could not find a file on the SonarQube server. URL: {0}</value>
+    <value>Could not find a file on SonarQube. URL: {0}</value>
   </data>
   <data name="ERROR_SettingsFileNotFound" xml:space="preserve">
     <value>The settings file could not be found</value>
@@ -252,7 +252,7 @@
     <value>Timed out after waiting {0} ms for process {1} to complete: it could not be terminated and might still be running.</value>
   </data>
   <data name="ERROR_UnauthorizedConnection" xml:space="preserve">
-    <value>Could not authorize while connecting to the SonarQube server. Check your credentials and try again.</value>
+    <value>Could not authorize while connecting to the SonarQube. Check your credentials and try again.</value>
   </data>
   <data name="ERROR_FailedParsePropertiesEnvVar" xml:space="preserve">
     <value>Failed to parse properties from the environment variable '{0}' because '{1}'.</value>
@@ -282,7 +282,7 @@
     <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set to an invalid value.</value>
   </data>
   <data name="ERR_HostUrlDiffersFromSonarcloudUrl" xml:space="preserve">
-    <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.</value>
+    <value>The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. Please set either 'sonar.host.url' for SonarQube Server or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.</value>
   </data>
   <data name="MSG_ServerInfo_ApiUrlDetected" xml:space="preserve">
     <value>Api Url: {0}</value>
