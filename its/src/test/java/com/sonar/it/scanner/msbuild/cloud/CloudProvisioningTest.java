@@ -52,7 +52,7 @@ class CloudProvisioningTest {
     assertFalse(result.isSuccess());
     assertThat(result.getLogs()).contains(
       "The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different." +
-        " Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
+        " Please set either 'sonar.host.url' for SonarQube Server or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
   }
 
   @Test
