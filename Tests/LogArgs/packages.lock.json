@@ -23,7 +23,7 @@
         "contentHash": "zvn9Mqs/ox/83cpYPignI8hJEM2A93s2HkHs8HYMOAQW0PkampyoErAiIyKxgTLqbbad29HX/shv/6LGSjPJNQ=="
       }
     },
-    "net9.0": {
+    "net10.0": {
       "SonarAnalyzer.CSharp.Styling": {
         "type": "Direct",
         "requested": "[10.33.0.1635, )",

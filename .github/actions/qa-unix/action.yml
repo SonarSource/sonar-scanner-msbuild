@@ -53,7 +53,7 @@ runs:
 
     - name: Build test pre-requisites
       shell: bash
-      run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net9.0 --self-contained -r ${{ inputs.rid }}
+      run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net10.0 --self-contained -r ${{ inputs.rid }}
 
     - name: Run UTs
       shell: bash
@@ -61,7 +61,7 @@ runs:
         IS_RELEASE_BRANCH: ${{ inputs.is-release-branch }}
       run: |
         unset LANGUAGE
-        dotnet test --framework net9.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ inputs.os-name }}" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
+        dotnet test --framework net10.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ inputs.os-name }}" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
 
     - name: Publish test results
       uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
