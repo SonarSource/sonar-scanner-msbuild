@@ -468,7 +468,7 @@ public class ProcessedArgsTests
     [DynamicData(nameof(ProcessedArgs_SourcesOrTests_Warning_DataSource), DynamicDataSourceType.Method)]
     public void ProcessedArgs_SourcesOrTests_Warning(params Property[] properties)
     {
-        var expectedMessage = "The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. "
+        var expectedMessage = "The sonar.sources and sonar.tests properties are not supported by the SonarScanner for .NET and are ignored. "
             + "They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, "
             + "sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.";
 

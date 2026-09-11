@@ -38,7 +38,7 @@ public class SonarQubeServerTest
         var context = new Context();
         await context.CreateClient();
         context.Runtime.Logger.Should().HaveDebugs("Fetching server version...");
-        context.Runtime.Logger.Should().HaveInfos("Using SonarQube v2026.1.");
+        context.Runtime.Logger.Should().HaveInfos("Using SonarQube 2026.1.");
     }
 
     [TestMethod]

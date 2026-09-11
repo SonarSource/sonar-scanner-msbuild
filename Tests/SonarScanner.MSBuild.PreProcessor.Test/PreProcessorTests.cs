@@ -50,7 +50,7 @@ public partial class PreProcessorTests
         factory.Runtime.Logger.Should().HaveErrors("""
             Expecting at least the following command line argument:
             - SonarQube project key
-            The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the Scanner for .NET.
+            The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarScanner for .NET.
             Use '/?' or '/h' to see the help message.
             """);
     }
@@ -275,7 +275,7 @@ public partial class PreProcessorTests
         context.Factory.Client.DownloadAllLanguages().Returns(["invalid_plugin"]);
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Runtime.Logger.Should().HaveErrors("Could not find any dotnet analyzer plugin on the SonarQube server!");
+        context.Factory.Runtime.Logger.Should().HaveErrors("Could not find any dotnet analyzer plugin on the SonarQube instance!");
     }
 
     [TestMethod]

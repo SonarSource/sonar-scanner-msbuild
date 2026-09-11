@@ -1,4 +1,4 @@
-﻿# Sonar Scanner for .NET
+﻿# SonarScanner for .NET
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=alert_status)](https://sonarcloud.io/dashboard?id=sonarscanner-msbuild)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=coverage)](https://sonarcloud.io/component_measures?id=sonarscanner-msbuild&metric=coverage)

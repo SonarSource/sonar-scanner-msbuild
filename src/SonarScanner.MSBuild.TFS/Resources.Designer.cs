@@ -70,7 +70,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the SonarQube server.
+        ///   Looks up a localized string similar to Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to SonarQube.
         ///Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine..
         /// </summary>
         internal static string CONV_ERROR_ConversionToolFailed {
@@ -80,7 +80,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The binary coverage file {0} could not be found. No coverage information will be uploaded to the SonarQube server..
+        ///   Looks up a localized string similar to The binary coverage file {0} could not be found. No coverage information will be uploaded to SonarQube..
         /// </summary>
         internal static string CONV_ERROR_InputFileNotFound {
             get {
@@ -305,7 +305,7 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the Scanner for .NET **.
+        ///   Looks up a localized string similar to ** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the SonarScanner for .NET **.
         /// </summary>
         internal static string WARN_XamlBuildDeprecated {
             get {

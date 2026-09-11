@@ -151,7 +151,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the SonarQube server!.
+        ///   Looks up a localized string similar to Could not find any dotnet analyzer plugin on the SonarQube instance!.
         /// </summary>
         internal static string ERR_DotNetAnalyzersNotFound {
             get {
@@ -380,7 +380,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         /// <summary>
         ///   Looks up a localized string similar to Expecting at least the following command line argument:
         ///- SonarQube project key
-        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the Scanner for .NET.
+        ///The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarScanner for .NET.
         ///Use &apos;/?&apos; or &apos;/h&apos; to see the help message..
         /// </summary>
         internal static string ERROR_InvalidCommandLineArgs {
@@ -822,7 +822,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Running the Scanner for .NET under Local System or Network Service account is not supported. Please, use a local or domain user account instead..
+        ///   Looks up a localized string similar to Running the SonarScanner for .NET under Local System or Network Service account is not supported. Please, use a local or domain user account instead..
         /// </summary>
         internal static string MSG_InstallTargetsLocalSystem {
             get {
@@ -1202,20 +1202,20 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using SonarQube v{0}..
-        /// </summary>
-        internal static string MSG_UsingSonarQube {
-            get {
-                return ResourceManager.GetString("MSG_UsingSonarQube", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Using SonarQube Cloud..
         /// </summary>
         internal static string MSG_UsingSonarQubeCloud {
             get {
                 return ResourceManager.GetString("MSG_UsingSonarQubeCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Using SonarQube {0}..
+        /// </summary>
+        internal static string MSG_UsingSonarQubeServer {
+            get {
+                return ResourceManager.GetString("MSG_UsingSonarQubeServer", resourceCulture);
             }
         }
         
@@ -1410,7 +1410,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties..
+        ///   Looks up a localized string similar to The sonar.sources and sonar.tests properties are not supported by the SonarScanner for .NET and are ignored. They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties..
         /// </summary>
         internal static string WARN_SourcesAndTestsDeprecated {
             get {

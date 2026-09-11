@@ -45,9 +45,9 @@ public static class Program
     {
         Utilities.LogAssemblyVersion(runtime.Logger, Resources.AssemblyDescription);
 #if NETFRAMEWORK
-        runtime.LogInfo("Using the .NET Framework version of the Scanner for .NET");
+        runtime.LogInfo("Using the .NET Framework version of the SonarScanner for .NET");
 #else
-        runtime.LogInfo("Using the .NET Core version of the Scanner for .NET");
+        runtime.LogInfo("Using the .NET Core version of the SonarScanner for .NET");
 #endif
 
         runtime.Logger.SuspendOutput();
