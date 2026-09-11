@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.Caching;
-
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
 public sealed record EngineMetadata(string Filename, string Sha256, Uri DownloadUrl)

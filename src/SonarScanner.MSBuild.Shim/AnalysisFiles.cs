@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.IO;
-
 namespace SonarScanner.MSBuild.Shim;
 
 public sealed class AnalysisFiles(ICollection<FileInfo> sources, ICollection<FileInfo> tests)

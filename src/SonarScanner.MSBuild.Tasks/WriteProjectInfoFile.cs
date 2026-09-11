@@ -20,8 +20,6 @@
 
 using System.Globalization;
 using System.Xml.Linq;
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild.Tasks;

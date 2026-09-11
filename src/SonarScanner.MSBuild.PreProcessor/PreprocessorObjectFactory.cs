@@ -18,13 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net;
-using SonarScanner.MSBuild.PreProcessor.EngineResolution;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 

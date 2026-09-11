@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.IO;
-using System.Security.Cryptography;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-
 namespace SonarScanner.MSBuild.PreProcessor;
 
 internal class ChecksumSha256 : IChecksum

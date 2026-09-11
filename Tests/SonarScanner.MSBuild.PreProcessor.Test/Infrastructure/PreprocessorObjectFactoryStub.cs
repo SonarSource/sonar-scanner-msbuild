@@ -19,7 +19,6 @@
  */
 
 using System.Runtime.CompilerServices;
-using SonarScanner.MSBuild.Common.TFS;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
