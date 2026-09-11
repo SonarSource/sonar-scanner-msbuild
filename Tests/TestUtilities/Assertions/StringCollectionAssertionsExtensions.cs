@@ -19,7 +19,6 @@
  */
 
 using FluentAssertions.Collections;
-using FluentAssertions.Execution;
 
 namespace TestUtilities.Assertions;
 

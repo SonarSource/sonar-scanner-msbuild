@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor.Test.Infrastructure;
-using SonarScanner.MSBuild.PreProcessor.Unpacking;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]

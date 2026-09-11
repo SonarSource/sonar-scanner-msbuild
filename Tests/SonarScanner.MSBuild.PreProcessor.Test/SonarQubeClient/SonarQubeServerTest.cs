@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Google.Protobuf;
-using NSubstitute.ExceptionExtensions;
-using SonarScanner.MSBuild.PreProcessor.EngineResolution;
-using SonarScanner.MSBuild.PreProcessor.JreResolution;
-using SonarScanner.MSBuild.PreProcessor.Protobuf;
-
 namespace SonarScanner.MSBuild.PreProcessor.SonarQubeClient.Test;
 
 [TestClass]
