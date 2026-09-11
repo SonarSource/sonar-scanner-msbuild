@@ -285,7 +285,7 @@ public class BootstrapperClassTests
             Substitute.For<IRuntime>(),
             Substitute.For<TargetsUninstaller>(Substitute.For<ILogger>()),
             Substitute.For<SonarProjectPropertiesValidator>(),
-            Substitute.For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), Substitute.For<IRuntime>()));
+            Substitute.For<BuildVNextCoverageReportProcessor>(Substitute.For<IRuntime>()));
         processorFactory = Substitute.For<IProcessorFactory>();
         preProcessor.Execute(Arg.Any<string[]>()).Returns(Task.FromResult(preProcessorOutcome));
         postProcessor.Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<BuildSettings>()).Returns(postProcessorOutcome);

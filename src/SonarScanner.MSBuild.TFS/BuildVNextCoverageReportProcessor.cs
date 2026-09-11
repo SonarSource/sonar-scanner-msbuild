@@ -18,19 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Globalization;
 using System.Security.Cryptography;
+using Microsoft.CodeCoverage.IO;
+using Microsoft.CodeCoverage.IO.Exceptions;
 
 namespace SonarScanner.MSBuild.TFS;
 
 public class BuildVNextCoverageReportProcessor
 {
     private const string XmlReportFileExtension = "coveragexml";
-    private readonly ICoverageReportConverter converter;
     private readonly IRuntime runtime;
 
-    public BuildVNextCoverageReportProcessor(ICoverageReportConverter converter, IRuntime runtime)
+    public BuildVNextCoverageReportProcessor(IRuntime runtime)
     {
-        this.converter = converter ?? throw new ArgumentNullException(nameof(converter));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
     }
 
@@ -122,6 +123,38 @@ public class BuildVNextCoverageReportProcessor
         return agentTempDirectory;
     }
 
+    internal /* for testing */ bool ConvertToXml(string inputFilePath, string outputFilePath)
+    {
+        if (string.IsNullOrWhiteSpace(inputFilePath))
+        {
+            throw new ArgumentNullException(nameof(inputFilePath));
+        }
+        if (string.IsNullOrWhiteSpace(outputFilePath))
+        {
+            throw new ArgumentNullException(nameof(outputFilePath));
+        }
+        if (!File.Exists(inputFilePath))
+        {
+            runtime.Logger.LogError(Resources.CONV_ERROR_InputFileNotFound, inputFilePath);
+            return false;
+        }
+
+        var util = new CoverageFileUtility();
+        try
+        {
+            // Temporary work around until https://github.com/microsoft/codecoverage/issues/63 is fixed
+            using var dummy = new ApplicationCultureInfo(CultureInfo.InvariantCulture);
+            runtime.Logger.LogDebug(Resources.CONV_DIAG_ConvertCoverageFile, inputFilePath, outputFilePath);
+            util.ConvertCoverageFile(path: inputFilePath, outputPath: outputFilePath, includeSkippedFunctions: false, includeSkippedModules: false);
+        }
+        catch (AggregateException aggregate) when (aggregate.InnerException is VanguardException)
+        {
+            runtime.Logger.LogError(Resources.CONV_ERROR_ConversionToolFailed, inputFilePath);
+            return false;
+        }
+        return true;
+    }
+
     private void LogDebugFileList(string headerMessage, string[] files)
     {
         runtime.LogDebug($"{headerMessage} count={files.Length}");
@@ -161,7 +194,7 @@ public class BuildVNextCoverageReportProcessor
             }
             else
             {
-                if (converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
+                if (ConvertToXml(vsCoverageFilePath, xmlFilePath))
                 {
                     conversionPerformed = true;
                 }
