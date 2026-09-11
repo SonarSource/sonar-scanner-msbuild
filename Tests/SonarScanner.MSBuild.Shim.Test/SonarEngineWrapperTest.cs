@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel;
-using System.Xml.Linq;
 
 namespace SonarScanner.MSBuild.Shim.Test;
 

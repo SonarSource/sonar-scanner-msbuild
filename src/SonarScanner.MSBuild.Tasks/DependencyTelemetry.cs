@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-
 namespace SonarScanner.MSBuild.Tasks;
 
 public sealed class DependencyTelemetry : Task

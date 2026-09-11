@@ -23,7 +23,18 @@
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
   </ItemGroup>
   <ItemGroup>
-    <Using Include="System.Threading.Tasks" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Caching" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.EngineResolution" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Interfaces" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.JreResolution" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Protobuf" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Roslyn.Model" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.SonarQubeClient" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Unpacking" />
+    <Using Include="System.IO.Compression" />
+    <Using Include="System.Net" />
+    <Using Include="System.Net.Http" />
+    <Using Include="System.Security.Cryptography" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">

@@ -29,6 +29,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="Microsoft.Build.Utilities" />
+    <Using Include="Microsoft.Build.Utilities.Task" Alias="Task" />
+    <Using Include="Microsoft.Build.Framework" />
+    <Using Include="SonarScanner.MSBuild.Common.ILogger" Alias="ILogger" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

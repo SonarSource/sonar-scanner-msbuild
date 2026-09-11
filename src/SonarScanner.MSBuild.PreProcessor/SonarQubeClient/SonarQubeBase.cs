@@ -20,10 +20,6 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SonarScanner.MSBuild.PreProcessor.EngineResolution;
-using SonarScanner.MSBuild.PreProcessor.JreResolution;
-using SonarScanner.MSBuild.PreProcessor.Protobuf;
-using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
 
 namespace SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 

@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.PreProcessor.JreResolution;
-
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 /// <summary>

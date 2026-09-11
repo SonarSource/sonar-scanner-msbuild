@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO;
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.Tasks;
 
 /// <summary>
