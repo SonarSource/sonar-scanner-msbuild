@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.PostProcessor {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -192,51 +192,6 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Creating a summary markdown file....
-        /// </summary>
-        internal static string Report_CreatingSummaryMarkdown {
-            get {
-                return ResourceManager.GetString("Report_CreatingSummaryMarkdown", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Analysis failed for SonarQube project {0}.
-        /// </summary>
-        internal static string Report_MdSummaryAnalysisFailed {
-            get {
-                return ResourceManager.GetString("Report_MdSummaryAnalysisFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Analysis succeeded for SonarQube project {0} [Analysis results]({1}).
-        /// </summary>
-        internal static string Report_MdSummaryAnalysisSucceeded {
-            get {
-                return ResourceManager.GetString("Report_MdSummaryAnalysisSucceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to - Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}.
-        /// </summary>
-        internal static string Report_MdSummaryInvalidSkippedAndExcludedMessage {
-            get {
-                return ResourceManager.GetString("Report_MdSummaryInvalidSkippedAndExcludedMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to - Product projects: {0}, test projects: {1}.
-        /// </summary>
-        internal static string Report_MdSummaryProductAndTestMessage {
-            get {
-                return ResourceManager.GetString("Report_MdSummaryProductAndTestMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Analysis base directory: {0}
         ///Build directory: {1}
         ///Bin directory: {2}
@@ -274,15 +229,6 @@ namespace SonarScanner.MSBuild.PostProcessor {
         internal static string SETTINGS_NotInTeamBuild {
             get {
                 return ResourceManager.GetString("SETTINGS_NotInTeamBuild", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot process the code coverage information. Look at the previous warnings for details..
-        /// </summary>
-        internal static string WARN_CannotProcessCoverage {
-            get {
-                return ResourceManager.GetString("WARN_CannotProcessCoverage", resourceCulture);
             }
         }
     }

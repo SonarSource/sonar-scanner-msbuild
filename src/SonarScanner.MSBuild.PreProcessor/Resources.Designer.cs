@@ -232,15 +232,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The java executable in the Java runtime environment cache could not be found at the expected location &apos;{0}&apos;..
-        /// </summary>
-        internal static string ERR_JavaExeNotFoundAtExpectedLocation {
-            get {
-                return ResourceManager.GetString("ERR_JavaExeNotFoundAtExpectedLocation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to JreResolver: Download failure. {0}
         ///The analysis will continue with the Java runtime environment found in JAVA_HOME or on the PATH. If you already have a compatible Java version installed, please add either the parameter &quot;/d:sonar.scanner.skipJreProvisioning=true&quot; or &quot;/d:sonar.scanner.javaExePath=&lt;PATH&gt;&quot;..
         /// </summary>
@@ -458,15 +449,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERROR_Organization_Provided_In_SonarQubeAnalysis_file {
             get {
                 return ResourceManager.GetString("ERROR_Organization_Provided_In_SonarQubeAnalysis_file", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The arguments &apos;sonar.sources&apos; and &apos;sonar.tests&apos; are not supported. Please remove them and invoke the scanner again..
-        /// </summary>
-        internal static string ERROR_SonarSourcesAndTestsNotSupported {
-            get {
-                return ResourceManager.GetString("ERROR_SonarSourcesAndTestsNotSupported", resourceCulture);
             }
         }
         
@@ -777,15 +759,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generating rulesets....
-        /// </summary>
-        internal static string MSG_GeneratingRulesets {
-            get {
-                return ResourceManager.GetString("MSG_GeneratingRulesets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Installed {0} to {1}.
         /// </summary>
         internal static string MSG_InstallTargets_Copy {
@@ -818,15 +791,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string MSG_InstallTargets_UpToDate {
             get {
                 return ResourceManager.GetString("MSG_InstallTargets_UpToDate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Running the SonarScanner for .NET under Local System or Network Service account is not supported. Please, use a local or domain user account instead..
-        /// </summary>
-        internal static string MSG_InstallTargetsLocalSystem {
-            get {
-                return ResourceManager.GetString("MSG_InstallTargetsLocalSystem", resourceCulture);
             }
         }
         
@@ -1031,15 +995,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Incremental PR analysis: Organization parameter was not provided..
-        /// </summary>
-        internal static string MSG_Processing_PullRequest_NoOrganization {
-            get {
-                return ResourceManager.GetString("MSG_Processing_PullRequest_NoOrganization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Incremental PR analysis: ProjectKey parameter was not provided..
         /// </summary>
         internal static string MSG_Processing_PullRequest_NoProjectKey {
@@ -1220,15 +1175,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Roslyn profile exporter returned an AdditionalFile that does not specify a file name. The AdditionalFile will be ignored..
-        /// </summary>
-        internal static string RAP_AdditionalFileNameMustBeSpecified {
-            get {
-                return ResourceManager.GetString("RAP_AdditionalFileNameMustBeSpecified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No active rules for {0}.
         /// </summary>
         internal static string RAP_NoActiveRules {
@@ -1247,65 +1193,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No analyzer assemblies were specified for rule repository {0} in language {1}.
-        /// </summary>
-        internal static string RAP_NoAssembliesForRepo {
-            get {
-                return ResourceManager.GetString("RAP_NoAssembliesForRepo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No plugins found for language {0} with rulesets for Roslyn analyzer.
-        /// </summary>
-        internal static string RAP_NoPluginInstalled {
-            get {
-                return ResourceManager.GetString("RAP_NoPluginInstalled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not obtain a {0} profile for project &apos;{1}&apos;.
-        /// </summary>
-        internal static string RAP_NoProfileForProject {
-            get {
-                return ResourceManager.GetString("RAP_NoProfileForProject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No quality profile defined for language {0} and project {1}.
         /// </summary>
         internal static string RAP_NoQualityProfile {
             get {
                 return ResourceManager.GetString("RAP_NoQualityProfile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The exported profile does not contain a ruleset.
-        /// </summary>
-        internal static string RAP_ProfileDoesNotContainRuleset {
-            get {
-                return ResourceManager.GetString("RAP_ProfileDoesNotContainRuleset", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Found profile export &apos;{0}&apos; for project &apos;{1}&apos;.
-        /// </summary>
-        internal static string RAP_ProfileExportFound {
-            get {
-                return ResourceManager.GetString("RAP_ProfileExportFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not find profile export &apos;{0}&apos; for project &apos;{1}&apos;.
-        /// </summary>
-        internal static string RAP_ProfileExportNotFound {
-            get {
-                return ResourceManager.GetString("RAP_ProfileExportNotFound", resourceCulture);
             }
         }
         

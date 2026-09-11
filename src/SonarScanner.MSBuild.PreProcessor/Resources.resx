@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -237,12 +237,6 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_Forbidden_BrowsePermission" xml:space="preserve">
     <value>To analyze private projects make sure the scanner user has 'Browse' permission.</value>
   </data>
-  <data name="MSG_GeneratingRulesets" xml:space="preserve">
-    <value>Generating rulesets...</value>
-  </data>
-  <data name="MSG_InstallTargetsLocalSystem" xml:space="preserve">
-    <value>Running the SonarScanner for .NET under Local System or Network Service account is not supported. Please, use a local or domain user account instead.</value>
-  </data>
   <data name="MSG_InstallTargets_Copy" xml:space="preserve">
     <value>Installed {0} to {1}</value>
   </data>
@@ -267,35 +261,14 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="RAP_AdditionalFileAlreadyExists" xml:space="preserve">
     <value>A Roslyn analyzer "additional file" named "{0}" already exists at {1}. The existing file will not be overwritten.</value>
   </data>
-  <data name="RAP_AdditionalFileNameMustBeSpecified" xml:space="preserve">
-    <value>The Roslyn profile exporter returned an AdditionalFile that does not specify a file name. The AdditionalFile will be ignored.</value>
-  </data>
   <data name="RAP_NoActiveRules" xml:space="preserve">
     <value>No active rules for {0}</value>
   </data>
   <data name="RAP_NoAnalyzerPluginsSpecified" xml:space="preserve">
     <value>No Roslyn analyzer plugins were specified so no Roslyn analyzers will be run for {0}</value>
   </data>
-  <data name="RAP_NoAssembliesForRepo" xml:space="preserve">
-    <value>No analyzer assemblies were specified for rule repository {0} in language {1}</value>
-  </data>
-  <data name="RAP_NoPluginInstalled" xml:space="preserve">
-    <value>No plugins found for language {0} with rulesets for Roslyn analyzer</value>
-  </data>
-  <data name="RAP_NoProfileForProject" xml:space="preserve">
-    <value>Could not obtain a {0} profile for project '{1}'</value>
-  </data>
   <data name="RAP_NoQualityProfile" xml:space="preserve">
     <value>No quality profile defined for language {0} and project {1}</value>
-  </data>
-  <data name="RAP_ProfileDoesNotContainRuleset" xml:space="preserve">
-    <value>The exported profile does not contain a ruleset</value>
-  </data>
-  <data name="RAP_ProfileExportFound" xml:space="preserve">
-    <value>Found profile export '{0}' for project '{1}'</value>
-  </data>
-  <data name="RAP_ProfileExportNotFound" xml:space="preserve">
-    <value>Could not find profile export '{0}' for project '{1}'</value>
   </data>
   <data name="RAP_ProvisioningAnalyzerAssemblies" xml:space="preserve">
     <value>Provisioning analyzer assemblies for {0}...</value>
@@ -332,9 +305,6 @@ Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="MSG_Processing_PullRequest_NoCacheBaseUrl" xml:space="preserve">
     <value>Incremental PR analysis: CacheBaseUrl was not successfully retrieved.</value>
-  </data>
-  <data name="MSG_Processing_PullRequest_NoOrganization" xml:space="preserve">
-    <value>Incremental PR analysis: Organization parameter was not provided.</value>
   </data>
   <data name="MSG_Processing_PullRequest_NoProjectKey" xml:space="preserve">
     <value>Incremental PR analysis: ProjectKey parameter was not provided.</value>
@@ -436,9 +406,6 @@ The analysis will continue with the Java runtime environment found in JAVA_HOME 
   <data name="MSG_DirectoryCouldNotBeCreated" xml:space="preserve">
     <value>The directory '{0}' could not be created.</value>
   </data>
-  <data name="ERR_JavaExeNotFoundAtExpectedLocation" xml:space="preserve">
-    <value>The java executable in the Java runtime environment cache could not be found at the expected location '{0}'.</value>
-  </data>
   <data name="WARN_DefaultHostUrlChanged" xml:space="preserve">
     <value>In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
 If the intention was to connect to the local SonarQube Server instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"</value>
@@ -459,9 +426,6 @@ If you already have a compatible Java version installed, please add either the p
   </data>
   <data name="ERROR_InvalidScanAllAnalysis" xml:space="preserve">
     <value>The argument 'sonar.scanner.scanAll' has an invalid value. Please ensure it is set to either 'true' or 'false'.</value>
-  </data>
-  <data name="ERROR_SonarSourcesAndTestsNotSupported" xml:space="preserve">
-    <value>The arguments 'sonar.sources' and 'sonar.tests' are not supported. Please remove them and invoke the scanner again.</value>
   </data>
   <data name="WARN_UI_SonarQubeUnsupported" xml:space="preserve">
     <value>You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.</value>

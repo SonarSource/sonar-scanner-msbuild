@@ -97,15 +97,6 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No analysis settings were found in the config file for the current language: {0}.
-        /// </summary>
-        internal static string AnalyzerSettings_NoSettingsFoundForCurrentLanguage {
-            get {
-                return ResourceManager.GetString("AnalyzerSettings_NoSettingsFoundForCurrentLanguage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Analyzer settings for language {0} have not been specified in the analysis config file..
         /// </summary>
         internal static string AnalyzerSettings_NotSpecifiedInConfig {
@@ -115,38 +106,11 @@ namespace SonarScanner.MSBuild.Tasks {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Supplied ruleset path is not rooted: &apos;{0}&apos;.
-        /// </summary>
-        internal static string AnalyzerSettings_OriginalRulesetIsNotRooted {
-            get {
-                return ResourceManager.GetString("AnalyzerSettings_OriginalRulesetIsNotRooted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Supplied ruleset path is rooted: &apos;{0}&apos;.
-        /// </summary>
-        internal static string AnalyzerSettings_OriginalRulesetIsRooted {
-            get {
-                return ResourceManager.GetString("AnalyzerSettings_OriginalRulesetIsRooted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Original ruleset not specified. Using generated ruleset at &apos;{0}&apos;.
         /// </summary>
         internal static string AnalyzerSettings_OriginalRulesetNotSpecified {
             get {
                 return ResourceManager.GetString("AnalyzerSettings_OriginalRulesetNotSpecified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Removing duplicate analyzers: {0}.
-        /// </summary>
-        internal static string AnalyzerSettings_RemovingDuplicateAnalyzers {
-            get {
-                return ResourceManager.GetString("AnalyzerSettings_RemovingDuplicateAnalyzers", resourceCulture);
             }
         }
         
@@ -240,24 +204,6 @@ namespace SonarScanner.MSBuild.Tasks {
         internal static string IsTest_UsingRegExFromConfig {
             get {
                 return ResourceManager.GetString("IsTest_UsingRegExFromConfig", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Moving directory {0} to {1}..
-        /// </summary>
-        internal static string MoveDirectory_FromTo {
-            get {
-                return ResourceManager.GetString("MoveDirectory_FromTo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The source directory is invalid..
-        /// </summary>
-        internal static string MoveDirectory_InvalidSourceDirectory {
-            get {
-                return ResourceManager.GetString("MoveDirectory_InvalidSourceDirectory", resourceCulture);
             }
         }
         
