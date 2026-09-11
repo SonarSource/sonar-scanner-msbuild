@@ -23,8 +23,8 @@ namespace SonarScanner.MSBuild.Tasks.IntegrationTest;
 internal static class TargetConstants
 {
     // Target file names
-    public const string AnalysisTargetFile = TestUtilities.TestUtils.AnalysisTargetFile;
-    public const string ImportsBeforeFile = TestUtilities.TestUtils.ImportsBeforeFile;
+    public const string AnalysisTargetFile = TestUtils.AnalysisTargetFile;
+    public const string ImportsBeforeFile = TestUtils.ImportsBeforeFile;
 
     // MsBuild
     public const string BeforeCompile = "BeforeCompile";
@@ -45,7 +45,6 @@ internal static class TargetConstants
 
     // Roslyn
     public const string SonarOverrideRunAnalyzers = "SonarOverrideRunAnalyzers";
-    public const string MergeResultSetsTask = "MergeRuleSets";
     public const string OverrideRoslynAnalysis = "OverrideRoslynCodeAnalysisProperties";
     public const string ResolveCodeAnalysisRuleSet = "ResolveCodeAnalysisRuleSet";
     public const string SetRoslynAnalysisProperties = "SetRoslynCodeAnalysisProperties";
@@ -60,17 +59,11 @@ internal static class TargetProperties
 {
     // SonarQube Integration constants
     public const string SonarQubeTargetFilePath = "SonarQubeTargetFilePath";
-
     public const string SonarQubeTargetsPath = "SonarQubeTargetsPath";
-
     public const string SonarQubeConfigPath = "SonarQubeConfigPath";
     public const string SonarQubeOutputPath = "SonarQubeOutputPath";
-    public const string SonarQubeTempPath = "SonarQubeTempPath";
-    public const string SonarBuildTasksAssemblyFile = "SonarQubeBuildTasksAssemblyFile";
-
     public const string SonarQubeTestProject = "SonarQubeTestProject";
     public const string SonarQubeExcludeMetadata = "SonarQubeExclude";
-
     public const string SonarResolvedReferences = "SonarResolvedReferences";
 
     // SonarPrepareRazorProjectCodeAnalysis
@@ -83,8 +76,6 @@ internal static class TargetProperties
     public const string RazorSonarProjectSpecificOutDir = "RazorSonarProjectSpecificOutDir";
     public const string RazorSonarProjectInfo = "RazorSonarProjectInfo";
     public const string RazorSonarErrorLogExists = "RazorSonarErrorLogExists";
-
-
     public const string RunAnalyzers = "RunAnalyzers";
     public const string RunAnalyzersDuringBuild = "RunAnalyzersDuringBuild";
     public const string TreatWarningsAsErrors = "TreatWarningsAsErrors";
@@ -93,11 +84,9 @@ internal static class TargetProperties
 
     // Roslyn
     public const string ResolvedCodeAnalysisRuleset = "ResolvedCodeAnalysisRuleSet";
-
     public const string ErrorLog = "ErrorLog"; // file path to which the Roslyn error log should be written
     public const string AnalyzerItemType = "Analyzer";
     public const string AdditionalFilesItemType = "AdditionalFiles";
-
     public const string SonarProjectOutFolderFilePath = "SonarProjectOutFolderFilePath";
     public const string SonarProjectConfigFilePath = "SonarProjectConfigFilePath";
     public const string ProjectSpecificOutDir = "ProjectSpecificOutDir";
