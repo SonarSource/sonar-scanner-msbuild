@@ -21,9 +21,9 @@
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
-/// Data class to describe the analysis settings for a single SonarQube project
+/// Data class to describe the analysis settings for a single SonarQube project.
 /// </summary>
-/// <remarks>The class is XML-serializable</remarks>
+/// <remarks>The class is XML-serializable.</remarks>
 [XmlRoot(Namespace = XmlNamespace)]
 public class AnalysisConfig
 {
@@ -36,7 +36,7 @@ public class AnalysisConfig
     public string SonarBinDir { get; set; }
 
     /// <summary>
-    /// The working directory as perceived by the user, i.e. the current directory for command line builds
+    /// The working directory as perceived by the user, i.e. the current directory for command line builds.
     /// </summary>
     /// <remarks>Users expect to specify paths relative to the working directory and not to the location of the sonar-scanner program.
     ///  See https://jira.sonarsource.com/browse/SONARMSBRU-100 for details.</remarks>
@@ -95,33 +95,29 @@ public class AnalysisConfig
     public string SonarProjectName { get; set; }
 
     /// <summary>
-    /// List of additional configuration-related settings
-    /// e.g. the build system identifier, if appropriate.
+    /// List of additional configuration-related settings e.g. the build system identifier, if appropriate.
     /// </summary>
     /// <remarks>These settings will not be supplied to the sonar-scanner.</remarks>
     public List<ConfigSetting> AdditionalConfig { get; set; }
 
     /// <summary>
-    /// List of analysis settings inherited from the SonarQube server
+    /// List of analysis settings inherited from the SonarQube instance.
     /// </summary>
     public AnalysisProperties ServerSettings { get; set; }
 
     /// <summary>
-    /// List of analysis settings supplied locally (either on the
-    /// command line, in a file or through the scanner environment variable)
+    /// List of analysis settings supplied locally (either on the command line, in a file or through the scanner environment variable).
     /// </summary>
     public AnalysisProperties LocalSettings { get; set; }
 
     /// <summary>
-    /// List of analysis settings supplied locally (on the
-    /// command line) that has to be passed to the scanner through
-    /// the SONAR_SCANNER_OPTS environment variable
-    /// <see href="https://github.com/SonarSource/sonar-scanner-cli/blob/7d791c2465384b71465a6c05d23174fefdbfa213/src/main/assembly/bin/sonar-scanner.bat#L72C65-L72C73">sonar-scanner.bat</see>
+    /// List of analysis settings supplied locally (on the command line) that has to be passed to the scanner through the SONAR_SCANNER_OPTS environment variable
+    /// <see href="https://github.com/SonarSource/sonar-scanner-cli/blob/7d791c2465384b71465a6c05d23174fefdbfa213/src/main/assembly/bin/sonar-scanner.bat#L72C65-L72C73">sonar-scanner.bat</see>.
     /// </summary>
     public AnalysisProperties ScannerOptsSettings { get; } = [];
 
     /// <summary>
-    /// Configuration for Roslyn analyzers
+    /// Configuration for Roslyn analyzers.
     /// </summary>
     public List<AnalyzerSettings> AnalyzersSettings { get; set; }
 

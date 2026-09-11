@@ -20,9 +20,6 @@
 
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-#if NETFRAMEWORK
-using SonarScanner.MSBuild.Common.TFS;
-#endif
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -149,7 +146,6 @@ public class ProcessedArgs
         IAnalysisPropertyProvider cmdLineProperties,
         IAnalysisPropertyProvider globalFileProperties,
         IAnalysisPropertyProvider scannerEnvProperties,
-        BuildSettings buildSettings,
         IRuntime runtime)
     {
         IsValid = true;
@@ -174,7 +170,7 @@ public class ProcessedArgs
         IsValid &= CheckOrganizationValidity();
         AggregateProperties = new AggregatePropertiesProvider(cmdLineProperties, globalFileProperties, ScannerEnvProperties);
         AggregateProperties.TryGetValue(SonarProperties.HostUrl, out var sonarHostUrl); // Used for SQ and may also be set to https://SonarCloud.io
-        AggregateProperties.TryGetValue(SonarProperties.SonarcloudUrl, out var sonarcloudUrl);
+        AggregateProperties.TryGetValue(SonarProperties.SonarCloudUrl, out var sonarcloudUrl);
         AggregateProperties.TryGetValue(SonarProperties.Region, out var region);
         AggregateProperties.TryGetValue(SonarProperties.ApiBaseUrl, out var apiBaseUrl);
 
@@ -240,15 +236,6 @@ public class ProcessedArgs
         else
         {
             UseSonarScannerCli = false;
-#if NETFRAMEWORK
-            // If the TFS legacy coverage processor is called, we cannot use the scanner engine because it writes information to the properties file,
-            // which would be missing from the ScannerEngineInput.
-            if (buildSettings?.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
-            {
-                UseSonarScannerCli = true;
-                runtime.LogDebug(Resources.MSG_SonarScannerCliFallbackForTfsLegacySupport);
-            }
-#endif
         }
 
         if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))

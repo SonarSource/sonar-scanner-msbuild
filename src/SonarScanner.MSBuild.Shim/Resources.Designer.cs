@@ -19,7 +19,7 @@ namespace SonarScanner.MSBuild.Shim {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -159,15 +159,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The TFS Processor did not complete successfully.
-        /// </summary>
-        internal static string ERR_TFSProcessorExecutionFailed {
-            get {
-                return ResourceManager.GetString("ERR_TFSProcessorExecutionFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
         /// </summary>
         internal static string MSG_GeneratingProjectProperties {
@@ -231,7 +222,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Starting with Scanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. The path may be relative (to the directory from which the analys [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to Starting with SonarScanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. The path may be relative (to the directory from which the a [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string MSG_ProjectBaseDirChange {
             get {
@@ -371,24 +362,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_SonarScannerHomeIsSet {
             get {
                 return ResourceManager.GetString("MSG_SonarScannerHomeIsSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Calling the TFS Processor executable....
-        /// </summary>
-        internal static string MSG_TFSProcessorCalling {
-            get {
-                return ResourceManager.GetString("MSG_TFSProcessorCalling", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The TFS Processor has finished.
-        /// </summary>
-        internal static string MSG_TFSProcessorCompleted {
-            get {
-                return ResourceManager.GetString("MSG_TFSProcessorCompleted", resourceCulture);
             }
         }
         

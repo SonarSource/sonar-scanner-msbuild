@@ -24,7 +24,7 @@ using SonarScanner.MSBuild.PreProcessor.Interfaces;
 using SonarScanner.MSBuild.PreProcessor.JreResolution;
 using SonarScanner.MSBuild.PreProcessor.Roslyn;
 using SonarScanner.MSBuild.PreProcessor.Roslyn.Model;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -34,14 +34,14 @@ namespace SonarScanner.MSBuild.PreProcessor;
 /// <remarks>
 /// Note: the factory is stateful and expects objects to be requested in the order they are used.
 /// </remarks>
-public class PreprocessorObjectFactory : IPreprocessorObjectFactory
+public class PreprocessorObjectFactory
 {
     private readonly IRuntime runtime;
 
     public PreprocessorObjectFactory(IRuntime runtime) =>
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
-    public async Task<SonarWebServerBase> CreateSonarWebServer(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
+    public virtual async Task<SonarQubeBase> CreateClient(ProcessedArgs args, IDownloader webDownloader = null, IDownloader apiDownloader = null)
     {
         _ = args ?? throw new ArgumentNullException(nameof(args));
         var userName = args.SettingOrDefault(SonarProperties.SonarToken, null) ?? args.SettingOrDefault(SonarProperties.SonarUserName, null);
@@ -60,14 +60,9 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             return null;
         }
 
-        var serverVersion = await QueryServerVersion(apiDownloader, webDownloader);
-        if (!ValidateServerVersion(args.ServerInfo, serverVersion))
-        {
-            return null;
-        }
-        return args.ServerInfo.IsSonarCloud
-            ? await SonarCloudWebServer.Create(webDownloader, apiDownloader, serverVersion, runtime.Logger, args.Organization, args.HttpTimeout)
-            : await SonarQubeWebServer.Create(webDownloader, apiDownloader, serverVersion, runtime, args.Organization);
+        return args.ServerInfo.IsCloud
+            ? await SonarQubeCloud.Create(webDownloader, apiDownloader, runtime, args.Organization, args.HttpTimeout)
+            : await SonarQubeServer.Create(webDownloader, apiDownloader, runtime, args.Organization);
 
         IDownloader CreateDownloader(string baseUrl) =>
             new WebClientDownloaderBuilder(baseUrl, args.HttpTimeout, runtime.Logger)
@@ -77,21 +72,21 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
                 .Build();
     }
 
-    public RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarWebServerBase server,
-                                                               string localCacheTempPath,
-                                                               BuildSettings teamBuildSettings,
-                                                               IAnalysisPropertyProvider sonarProperties,
-                                                               IEnumerable<SonarRule> rules,
-                                                               string language) =>
-        new(new EmbeddedAnalyzerInstaller(server, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
+    public virtual RoslynAnalyzerProvider CreateRoslynAnalyzerProvider(SonarQubeBase client,
+                                                                       string localCacheTempPath,
+                                                                       BuildSettings teamBuildSettings,
+                                                                       IAnalysisPropertyProvider sonarProperties,
+                                                                       IEnumerable<SonarRule> rules,
+                                                                       string language) =>
+        new(new EmbeddedAnalyzerInstaller(client, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
 
-    public IResolver CreateJreResolver(SonarWebServerBase server, string sonarUserHome) =>
-        new JreResolver(server, ChecksumSha256.Instance, sonarUserHome, runtime);
+    public virtual IResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
+        new JreResolver(client, ChecksumSha256.Instance, sonarUserHome, runtime);
 
-    public IResolver CreateEngineResolver(SonarWebServerBase server, string sonarUserHome) =>
-        new EngineResolver(server, sonarUserHome, runtime);
+    public virtual IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
+        new EngineResolver(client, sonarUserHome, runtime);
 
-    public IResolver CreateScannerCliResolver(SonarWebServerBase server, string sonarUserHome) =>
+    public virtual IResolver CreateScannerCliResolver(SonarQubeBase client, string sonarUserHome) =>
         new ScannerCliResolver(ChecksumSha256.Instance, sonarUserHome, runtime);
 
     private bool ValidateServerUrl(string serverUrl)
@@ -112,52 +107,6 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             return false;
         }
         return true;
-    }
-
-    private bool ValidateServerVersion(HostInfo serverInfo, Version serverVersion)
-    {
-        if (serverVersion is null)
-        {
-            return false;
-        }
-        // Make sure the server is the one we detected from the user settings
-        else if (SonarProduct.IsSonarCloud(serverVersion) != serverInfo.IsSonarCloud)
-        {
-            var errorMessage = serverInfo.IsSonarCloud
-                ? Resources.ERR_DetectedErroneouslySonarCloud
-                : Resources.ERR_DetectedErroneouslySonarQube;
-            runtime.LogError(errorMessage);
-            return false;
-        }
-        return true;
-    }
-
-    private async Task<Version> QueryServerVersion(IDownloader downloader, IDownloader fallback)
-    {
-        runtime.LogDebug(Resources.MSG_FetchingVersion);
-
-        try
-        {
-            return await QueryVersion(downloader, "analysis/version", LoggerVerbosity.Debug);
-        }
-        catch
-        {
-            try
-            {
-                return await QueryVersion(fallback, "api/server/version", LoggerVerbosity.Info);
-            }
-            catch
-            {
-                runtime.LogError(Resources.ERR_ErrorWhenQueryingServerVersion);
-                return null;
-            }
-        }
-
-        static async Task<Version> QueryVersion(IDownloader downloader, string path, LoggerVerbosity failureVerbosity)
-        {
-            var contents = await downloader.Download(new(path, UriKind.Relative), failureVerbosity: failureVerbosity);
-            return new Version(contents.Split('-')[0]);
-        }
     }
 
     /// <summary>

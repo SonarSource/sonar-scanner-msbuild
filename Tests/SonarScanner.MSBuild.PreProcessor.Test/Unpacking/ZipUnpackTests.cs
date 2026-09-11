@@ -39,14 +39,18 @@ public class ZipUnpackTests
         //  └── Sub2
         //      └── Sample.txt
         const string sampleZipFile = """
-            UEsDBBQAAAAAAPGQ41gAAAAAAAAAAAAAAAAFAAAATWFpbi9QSwMEFAAAAAAA7JDjWAAAAAAAAAAAAAAAAAoAAABNYWluL1N1YjEvUEsDBBQAAAAAAPiQ41gA
-            AAAAAAAAAAAAAAAKAAAATWFpbi9TdWIyL1BLAwQUAAIACADWUxlbvibrvYYAAACyAAAAFAAAAE1haW4vU3ViMi9TYW1wbGUudHh0JY1BDsIwDATvSPxhX1D+
-            QMURJNR+wE0MDXJtFCeq+nvSclyNdmacGYMp5SGQKme8LKN73EYkR2kwc7BlYY0csdKGYhCqGmbQ//isE8Py+XSsXqxGkJJs3gy7rRcmRW+R8c324VD84ia1
-            JFNH9aRv3IdrTRIPT7SiXLBnSZvLW2k6aDGT7gdQSwECPwAUAAAAAADxkONYAAAAAAAAAAAAAAAABQAkAAAAAAAAABAAAAAAAAAATWFpbi8KACAAAAAAAAEA
-            GADMFHscY83aAcwUexxjzdoB2VjYEmPN2gFQSwECPwAUAAAAAADskONYAAAAAAAAAAAAAAAACgAkAAAAAAAAABAAAAAjAAAATWFpbi9TdWIxLwoAIAAAAAAA
-            AQAYAB1hZhdjzdoBHWFmF2PN2gEdYWYXY83aAVBLAQI/ABQAAAAAAPiQ41gAAAAAAAAAAAAAAAAKACQAAAAAAAAAEAAAAEsAAABNYWluL1N1YjIvCgAgAAAA
-            AAABABgA5yGzJWPN2gHnIbMlY83aAQ3/9RpjzdoBUEsBAhQAFAACAAgA1lMZW74m672GAAAAsgAAABQAAAAAAAAAAQAgAAAAcwAAAE1haW4vU3ViMi9TYW1w
-            bGUudHh0UEsFBgAAAAAEAAQAUQEAACsBAAAAAA==
+            UEsDBBQAAAAAAPGQ41gAAAAAAAAAAAAAAAAFAAAATWFpbi9QSwMEFAAAAAAA7JDjWAAAAAAAAAAA
+            AAAAAAoAAABNYWluL1N1YjEvUEsDBBQAAAAAAPiQ41gAAAAAAAAAAAAAAAAKAAAATWFpbi9TdWIy
+            L1BLAwQUAAIACABJfildvqNdq4EAAACkAAAAFAAAAE1haW4vU3ViMi9TYW1wbGUudHh0Jc1BDsIw
+            DETRfaXeYU5Q7kDFEiTUXsBNDA1KbRQ7Qr09Kay/3sy8MiYVKlMgES54aMFwu8xIBm+xcNBtY4kc
+            8aEdrshUJaygP7zXhfuOhPJuzRx+zEyCUSPjXfTFwe1kmqsnFUO1JE9cp3NNOUJL30V1YcdxRBJB
+            1raXX3XVPHwBUEsBAj8AFAAAAAAA8ZDjWAAAAAAAAAAAAAAAAAUAJAAAAAAAAAAQAAAAAAAAAE1h
+            aW4vCgAgAAAAAAABABgAzBR7HGPN2gHMFHscY83aAdlY2BJjzdoBUEsBAj8AFAAAAAAA7JDjWAAA
+            AAAAAAAAAAAAAAoAJAAAAAAAAAAQAAAAIwAAAE1haW4vU3ViMS8KACAAAAAAAAEAGAAdYWYXY83a
+            AR1hZhdjzdoBHWFmF2PN2gFQSwECPwAUAAAAAAD4kONYAAAAAAAAAAAAAAAACgAkAAAAAAAAABAA
+            AABLAAAATWFpbi9TdWIyLwoAIAAAAAAAAQAYAOchsyVjzdoB5yGzJWPN2gEN//UaY83aAVBLAQIU
+            ABQAAgAIAEl+KV2+o12rgQAAAKQAAAAUAAAAAAAAAAEAIAAAAHMAAABNYWluL1N1YjIvU2FtcGxl
+            LnR4dFBLBQYAAAAABAAEAFEBAAAmAQAAAAA=
             """;
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         var main = Path.Combine(baseDirectory, "Main");
@@ -64,8 +68,8 @@ public class ZipUnpackTests
             File.Exists(sampleTxt).Should().BeTrue();
             var content = File.ReadAllText(sampleTxt);
             content.Should().Be("""
-                    The SonarScanner for .NET is the recommended way to launch a SonarQube or
-                    SonarCloud analysis for Clean Code projects/solutions using MSBuild or
+                    The SonarScanner for .NET is the recommended way to launch a SonarQube
+                    analysis for Clean Code projects/solutions using MSBuild or
                     dotnet command as a build tool.
                     """
                 .ToWindowsLineEndings());

@@ -20,7 +20,7 @@
 
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
@@ -28,17 +28,17 @@ public class EngineResolver : IResolver
 {
     private const string ScannerEngine = "Scanner Engine";
 
-    private readonly SonarWebServerBase server;
+    private readonly SonarQubeBase client;
     private readonly IRuntime runtime;
     private readonly IChecksum checksum;
     private readonly string sonarUserHome;
 
-    public EngineResolver(SonarWebServerBase server,
+    public EngineResolver(SonarQubeBase client,
                           string sonarUserHome,
                           IRuntime runtime,
                           IChecksum checksum = null)
     {
-        this.server = server;
+        this.client = client;
         this.sonarUserHome = sonarUserHome;
         this.runtime = runtime;
         this.checksum = checksum ?? ChecksumSha256.Instance;
@@ -69,7 +69,7 @@ public class EngineResolver : IResolver
 
     private async Task<string> ResolveEnginePath()
     {
-        var metadata = await server.DownloadEngineMetadataAsync();
+        var metadata = await client.DownloadEngineMetadataAsync();
         if (metadata is null)
         {
             runtime.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
@@ -77,7 +77,7 @@ public class EngineResolver : IResolver
             return null;
         }
         var downloader = new CachedDownloader(runtime, checksum, metadata.ToDescriptor(), sonarUserHome);
-        switch (await downloader.DownloadFileAsync(() => server.DownloadEngineAsync(metadata)))
+        switch (await downloader.DownloadFileAsync(() => client.DownloadEngineAsync(metadata)))
         {
             case Downloaded success:
                 runtime.LogDebug(Resources.MSG_Resolver_DownloadSuccess, nameof(EngineResolver), ScannerEngine, success.FilePath);

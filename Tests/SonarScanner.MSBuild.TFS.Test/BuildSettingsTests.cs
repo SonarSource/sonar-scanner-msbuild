@@ -65,66 +65,6 @@ public class BuildSettingsTests
     }
 
     [TestMethod]
-    public void TBSettings_SkipLegacyCodeCoverage()
-    {
-        // 0. Setup
-        bool result;
-
-        // 1. Env var not set
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, null);
-            result = BuildSettings.SkipLegacyCodeCoverageProcessing;
-            result.Should().BeFalse();
-        }
-
-        // 2. Env var set to a non-boolean -> false
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "wibble");
-            result = BuildSettings.SkipLegacyCodeCoverageProcessing;
-            result.Should().BeFalse();
-        }
-
-        // 3. Env var set to false -> false
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "false");
-            result = BuildSettings.SkipLegacyCodeCoverageProcessing;
-            result.Should().BeFalse();
-        }
-
-        // 4. Env var set to true -> true
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "TRUE");
-            result = BuildSettings.SkipLegacyCodeCoverageProcessing;
-            result.Should().BeTrue();
-        }
-    }
-
-    [TestMethod]
-    public void TBSettings_LegacyCodeCoverageTimeout()
-    {
-        // 0. Setup - none
-
-        // 1. Env var not set
-        CheckExpectedTimeoutReturned(null, BuildSettings.DefaultLegacyCodeCoverageTimeout);
-
-        // 2. Env var set to a non-integer -> default
-        CheckExpectedTimeoutReturned("blah blah", BuildSettings.DefaultLegacyCodeCoverageTimeout);
-
-        // 3. Env var set to a non-integer number -> default
-        CheckExpectedTimeoutReturned("-123.456", BuildSettings.DefaultLegacyCodeCoverageTimeout);
-
-        // 4. Env var set to a positive integer -> returnd
-        CheckExpectedTimeoutReturned("987654321", 987654321);
-
-        // 5. Env var set to a negative integer -> returnd
-        CheckExpectedTimeoutReturned("-123", -123);
-    }
-
-    [TestMethod]
     public void TBSettings_NotTeamBuild()
     {
         // 0. Setup
@@ -171,39 +111,7 @@ public class BuildSettingsTests
     }
 
     [TestMethod]
-    public void TBSettings_LegacyTeamBuild()
-    {
-        // Arrange
-        BuildSettings settings;
-
-        using (var scope = new EnvironmentVariableScope())
-        {
-            scope.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "TRUE");
-            scope.SetVariable(EnvironmentVariables.BuildUriLegacy, "http://legacybuilduri");
-            scope.SetVariable(EnvironmentVariables.TfsCollectionUriLegacy, "http://legacycollectionUri");
-            scope.SetVariable(EnvironmentVariables.BuildDirectoryLegacy, "legacy build dir");
-            scope.SetVariable(EnvironmentVariables.SourcesDirectoryLegacy, @"c:\build\1234");
-
-            // Act
-            settings = BuildSettings.GetSettingsFromEnvironment();
-        }
-
-        // Assert
-        settings.Should().NotBeNull("Failed to create the BuildSettings");
-
-        // Check the environment properties
-        CheckExpectedSettings(
-            settings,
-            BuildEnvironment.LegacyTeamBuild,
-            Directory.GetCurrentDirectory(),
-            "http://legacybuilduri",
-            "http://legacycollectionUri",
-            "legacy build dir",
-            @"c:\build\1234");
-    }
-
-    [TestMethod]
-    public void TBSettings_NonLegacyTeamBuild()
+    public void TBSettings_TeamBuild()
     {
         // Arrange
         BuildSettings settings;
@@ -267,13 +175,5 @@ public class BuildSettingsTests
         actual.AnalysisConfigFilePath.Should().Be(Path.Combine(expectedAnalysisDir, "conf", FileConstants.ConfigFileName), "Unexpected analysis file path");
 
         actual.SonarScannerWorkingDirectory.Should().Be(Directory.GetParent(expectedAnalysisDir)!.FullName, "Unexpected sonar-scanner working dir");
-    }
-
-    private static void CheckExpectedTimeoutReturned(string envValue, int expected)
-    {
-        using var scope = new EnvironmentVariableScope();
-        scope.SetVariable(EnvironmentVariables.LegacyCodeCoverageTimeoutInMs, envValue);
-        var result = BuildSettings.LegacyCodeCoverageProcessingTimeout;
-        result.Should().Be(expected, "Unexpected timeout value returned. Environment value: {0}", envValue);
     }
 }

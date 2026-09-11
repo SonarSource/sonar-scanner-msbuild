@@ -75,7 +75,7 @@ public class PropertiesWriterTest
     {
         var propertiesWriter = new PropertiesWriter(new AnalysisConfig());
         propertiesWriter.WriteGlobalSettings([
-            new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
+            new(SonarProperties.SonarCloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
         ]);
         propertiesWriter.Flush().Should().BeIgnoringLineEndings("""

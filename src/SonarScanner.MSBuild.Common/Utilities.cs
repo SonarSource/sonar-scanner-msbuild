@@ -167,8 +167,7 @@ public static class Utilities
     }
 
     /// <summary>
-    /// Common logic for handling web exceptions when connecting to the SonarQube server. Common exceptions
-    /// are handled by logging user friendly errors.
+    /// Common logic for handling web exceptions when connecting to SonarQube. Common exceptions are handled by logging user friendly errors.
     /// </summary>
     /// <returns>True if the exception was handled</returns>
     //TODO: change this to reflect new Http Exceptions.

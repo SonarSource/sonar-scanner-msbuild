@@ -28,7 +28,7 @@ jobs:
         include:
           - scenario: LTA-2025-1
             sqVersion: "LATEST_RELEASE[2025.1]"
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_17_X64
             cfamilyVersion: "6.62.0.78645"          # Bundled version with SQ 2025.1
@@ -50,7 +50,7 @@ jobs:
             xmlVersion: "2.12.0.5749"               # Bundled version with SQ 2025.1
           - scenario: LTA-2025-4
             sqVersion: "LATEST_RELEASE[2025.4]"
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_21_X64
             cfamilyVersion: "6.70.1.93088"          # Bundled version with SQ 2025.4
@@ -71,7 +71,7 @@ jobs:
             xmlVersion: "2.13.1.6351"               # Bundled version with SQ 2025.4
           - scenario: LTA-2026-1
             sqVersion: "LATEST_RELEASE[2026.1]"
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_21_X64
             cfamilyVersion: "6.77.0.95488"          # Bundled version with SQ 2026.1
@@ -90,33 +90,33 @@ jobs:
             tsqlVersion: "1.16.1.9133"              # Bundled version with SQ 2026.1
             xmlVersion: "2.15.0.7513"               # Bundled version with SQ 2026.1
           - scenario: LATEST_RELEASE
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_MsBuild15
             sqVersion: DEV
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_15_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_MsBuild16
             sqVersion: DEV
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_16_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_MsBuild17
             sqVersion: DEV
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_17_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_MsBuild18
             sqVersion: DEV
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_Community
             sqVersion: DEV
             sqEdition: COMMUNITY
-            testInclude: "**/sonarqube/*"
+            testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_21_X64
             cfamilyVersion: "NONE"                  # Commercial plugin
@@ -127,7 +127,7 @@ jobs:
             rubyVersion: "NONE"                     # Not-Commercial, but only required when the DRE plugin is installed
             tsqlVersion: "NONE"                     # Commercial plugin
           - scenario: Cloud
-            testInclude: "**/sonarcloud/*"
+            testInclude: "**/cloud/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_21_X64
           - scenario: Others
@@ -188,9 +188,9 @@ jobs:
         with:
           probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-builds&v=*"
 
-      # MultiLanguageTest needs npm, and only runs as part of the **/sonarqube/* legs.
+      # MultiLanguageTest needs npm, and only runs as part of the **/server/* legs.
       - name: Set npm registry to Repox
-        if: matrix.testInclude == '**/sonarqube/*'
+        if: matrix.testInclude == '**/server/*'
         shell: bash
         env:
           ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}

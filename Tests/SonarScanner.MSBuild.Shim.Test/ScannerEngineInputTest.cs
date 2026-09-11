@@ -76,7 +76,7 @@ public class ScannerEngineInputTest
     {
         var sut = new ScannerEngineInput(new AnalysisConfig());
         sut.AddUserSettings(new ListPropertiesProvider([
-            new(SonarProperties.SonarcloudUrl, "http://SonarcloudUrl.org"),
+            new(SonarProperties.SonarCloudUrl, "http://SonarcloudUrl.org"),
             new(SonarProperties.HostUrl, "http://HostUrl.org"),
         ]));
         sut.ToString().Should().BeIgnoringLineEndings($$"""

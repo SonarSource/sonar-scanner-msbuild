@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.TFS;
 using Path = System.IO.Path;
 
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Test;
@@ -78,7 +77,7 @@ public class AnalysisConfigGeneratorTests
         var additionalSettings = new Dictionary<string, string> { { "UnchangedFilesPath", @"f:\UnchangedFiles.txt" } };
         Directory.CreateDirectory(localSettings.SonarConfigDirectory); // config directory needs to exist
 
-        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, localSettings, additionalSettings, serverSettings, analyzersSettings, "9.9", null, null, null, runtime);
+        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, localSettings, additionalSettings, serverSettings, analyzersSettings, "2026.1", null, null, null, runtime);
 
         AssertConfigFileExists(actualConfig);
         runtime.Logger.Should().HaveNoErrors()
@@ -125,7 +124,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, null, runtime);
+        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "2026.1", null, null, null, runtime);
 
         AssertConfigFileExists(actualConfig);
         runtime.Logger.Should().HaveNoErrors()
@@ -142,50 +141,6 @@ public class AnalysisConfigGeneratorTests
         actualConfig.ScanAllAnalysis.Should().BeFalse();
         actualConfig.UseSonarScannerCli.Should().BeTrue();
         AssertExpectedLocalSetting(SonarProperties.Organization, "organization", actualConfig);
-    }
-
-    [TestMethod]
-    public void AnalysisConfGen_LegacyTeamBuildContext_UseScannerCliFallback()
-    {
-        var runtime = new TestRuntime();
-        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        // Set the build environment to TFS Legacy. This forces the AnalysisConfig.UseSonarScannerCli property to be set to true
-        var settings = BuildSettings.CreateSettingsForTesting(analysisDir, BuildEnvironment.LegacyTeamBuild);
-        var args = CreateProcessedArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, runtime, settings);
-
-        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, null, runtime);
-
-        AssertConfigFileExists(actualConfig);
-        runtime.Logger.Should()
-            .HaveNoErrors()
-            .And.HaveNoWarnings();
-#if NETFRAMEWORK
-        runtime.Logger.Should().HaveDebugs("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
-        actualConfig.UseSonarScannerCli.Should().BeTrue();
-#else
-        runtime.Logger.Should().NotHaveDebug("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
-        actualConfig.UseSonarScannerCli.Should().BeFalse();
-#endif
-    }
-
-    [TestMethod]
-    public void AnalysisConfGen_LegacyTeamBuildContext_UserSettingTakesPrecedence()
-    {
-        var runtime = new TestRuntime();
-        var analysisDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        // Set the build environment to TFS Legacy. This forces the AnalysisConfig.UseSonarScannerCli property to be set to true
-        var settings = BuildSettings.CreateSettingsForTesting(analysisDir, BuildEnvironment.LegacyTeamBuild);
-        // Explicit set sonar.scanner.useSonarScannerCLI argument to false. This overrides the TFS Legacy context which would set it to true.
-        var args = CreateProcessedArgs(new ListPropertiesProvider { { SonarProperties.UseSonarScannerCLI, "false" } }, EmptyPropertyProvider.Instance, runtime, settings);
-
-        var actualConfig = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, null, runtime);
-
-        AssertConfigFileExists(actualConfig);
-        runtime.Logger.Should()
-            .HaveNoErrors()
-            .And.HaveNoWarnings()
-            .And.NotHaveDebug("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
-        actualConfig.UseSonarScannerCli.Should().BeFalse();
     }
 
     [TestMethod]
@@ -231,7 +186,7 @@ public class AnalysisConfigGeneratorTests
         var settings = BuildSettings.CreateSettingsForTesting(analysisDir);
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverProperties, [], "9.9", null, null, null, runtime);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], serverProperties, [], "2026.1", null, null, null, runtime);
 
         AssertConfigFileExists(config);
         runtime.Logger.Should().HaveNoErrors()
@@ -263,7 +218,7 @@ public class AnalysisConfigGeneratorTests
         var runtime = new TestRuntime();
         var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, runtime);
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, null, runtime);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "2026.1", null, null, null, runtime);
 
         AssertConfigFileExists(config);
         config.HasBeginStepCommandLineCredentials.Should().BeTrue();
@@ -280,7 +235,7 @@ public class AnalysisConfigGeneratorTests
         var runtime = new TestRuntime();
         var args = CreateProcessedArgs(cmdLineArgs, EmptyPropertyProvider.Instance, runtime);
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, null, runtime);
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "2026.1", null, null, null, runtime);
 
         AssertConfigFileExists(config);
         config.HasBeginStepCommandLineCredentials.Should().BeTrue();
@@ -294,7 +249,7 @@ public class AnalysisConfigGeneratorTests
         var args = CreateProcessedArgs();
         Directory.CreateDirectory(settings.SonarConfigDirectory); // config directory needs to exist
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, null, new TestRuntime());
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "2026.1", null, null, null, new TestRuntime());
 
         AssertConfigFileExists(config);
         config.HasBeginStepCommandLineCredentials.Should().BeFalse();
@@ -648,7 +603,7 @@ public class AnalysisConfigGeneratorTests
         AddIfNotEmpty(propertiesProvider, "sonar.scanner.truststorePassword", "password");
         var args = CreateProcessedArgs(propertiesProvider);
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, null, new TestRuntime());
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "2026.1", null, null, null, new TestRuntime());
 
         AssertExpectedScannerOptsSettings("javax.net.ssl.trustStore", "\"C:/path/to/truststore.pfx\"", config);
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
@@ -669,7 +624,7 @@ public class AnalysisConfigGeneratorTests
         propertiesProvider.AddProperty("sonar.scanner.truststorePassword", null);
         var args = CreateProcessedArgs(propertiesProvider);
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, null, new TestRuntime());
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "2026.1", null, null, null, new TestRuntime());
         config.ScannerOptsSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new { Id = "javax.net.ssl.trustStoreType", Value = "Windows-ROOT" });
 
         Property.TryGetProperty("javax.net.ssl.trustStore", config.LocalSettings, out _).Should().BeFalse();
@@ -690,7 +645,7 @@ public class AnalysisConfigGeneratorTests
         var propertiesProvider = new ListPropertiesProvider([new Property(id, value)]);
         var args = CreateProcessedArgs(propertiesProvider);
 
-        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "9.9", null, null, null, new TestRuntime());
+        var config = AnalysisConfigGenerator.GenerateFile(args, settings, [], EmptyProperties, [], "2026.1", null, null, null, new TestRuntime());
 
         AssertExpectedLocalSetting(id, value, config);
     }
@@ -747,18 +702,12 @@ public class AnalysisConfigGeneratorTests
         }
     }
 
-    private static ProcessedArgs CreateProcessedArgs() =>
-        CreateProcessedArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, new TestRuntime(), null);
-
-    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties) =>
-        CreateProcessedArgs(cmdLineProperties, EmptyPropertyProvider.Instance, new TestRuntime(), null);
-
-    private static ProcessedArgs CreateProcessedArgs(
-        IAnalysisPropertyProvider cmdLineProperties,
-        IAnalysisPropertyProvider globalFileProperties,
-        IRuntime runtime,
-        BuildSettings buildSettings = null) =>
-        new(
+    private static ProcessedArgs CreateProcessedArgs(IAnalysisPropertyProvider cmdLineProperties = null, IAnalysisPropertyProvider globalFileProperties = null, IRuntime runtime = null)
+    {
+        cmdLineProperties ??= EmptyPropertyProvider.Instance;
+        globalFileProperties ??= EmptyPropertyProvider.Instance;
+        runtime ??= new TestRuntime();
+        return new(
             "valid.key",
             "valid.name",
             "1.0",
@@ -767,6 +716,6 @@ public class AnalysisConfigGeneratorTests
             cmdLineProperties,
             globalFileProperties,
             EmptyPropertyProvider.Instance,
-            buildSettings,
             runtime);
+    }
 }

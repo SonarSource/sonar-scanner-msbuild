@@ -76,7 +76,6 @@ public class ProcessedArgsTests
                     cmdLineProperties: null,
                     EmptyPropertyProvider.Instance,
                     EmptyPropertyProvider.Instance,
-                    buildSettings: null,
                     runtime))
             .Should().Throw<ArgumentNullException>()
             .WithParameterName("cmdLineProperties");
@@ -93,7 +92,6 @@ public class ProcessedArgsTests
                     EmptyPropertyProvider.Instance,
                     globalFileProperties: null,
                     EmptyPropertyProvider.Instance,
-                    buildSettings: null,
                     runtime))
             .Should().Throw<ArgumentNullException>()
             .WithParameterName("globalFileProperties");
@@ -110,7 +108,6 @@ public class ProcessedArgsTests
                     EmptyPropertyProvider.Instance,
                     EmptyPropertyProvider.Instance,
                     scannerEnvProperties: null,
-                    buildSettings: null,
                     runtime))
             .Should().Throw<ArgumentNullException>()
             .WithParameterName("scannerEnvProperties");
@@ -211,7 +208,7 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "http://host")]));
 
         sut.ServerInfo.Should().NotBeNull();
-        sut.ServerInfo.IsSonarCloud.Should().BeFalse();
+        sut.ServerInfo.IsCloud.Should().BeFalse();
         sut.ServerInfo.ServerUrl.Should().Be("http://host");
         runtime.Logger.Should().HaveNoWarnings()
             .And.HaveNoErrors();
@@ -221,10 +218,10 @@ public class ProcessedArgsTests
     [TestMethod]
     public void ProcessedArgs_HostUrl_SonarCloudUrl_SonarCloudUrlSet()
     {
-        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy")]));
+        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.SonarCloudUrl, "https://sonarcloud.proxy")]));
 
         sut.ServerInfo.Should().NotBeNull();
-        sut.ServerInfo.IsSonarCloud.Should().BeTrue();
+        sut.ServerInfo.IsCloud.Should().BeTrue();
         sut.ServerInfo.ServerUrl.Should().Be("https://sonarcloud.proxy");
         runtime.Logger.Should().HaveNoWarnings()
             .And.HaveNoErrors();
@@ -235,11 +232,11 @@ public class ProcessedArgsTests
     public void ProcessedArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlAreIdentical()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([
-            new Property(SonarProperties.HostUrl, "https://sonarcloud.proxy"), new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.proxy")
+            new Property(SonarProperties.HostUrl, "https://sonarcloud.proxy"), new Property(SonarProperties.SonarCloudUrl, "https://sonarcloud.proxy")
         ]));
 
         sut.ServerInfo.Should().NotBeNull();
-        sut.ServerInfo.IsSonarCloud.Should().BeTrue();
+        sut.ServerInfo.IsCloud.Should().BeTrue();
         sut.ServerInfo.ServerUrl.Should().Be("https://sonarcloud.proxy");
         runtime.Logger.Should().HaveWarnings("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set. Please set only 'sonar.scanner.sonarcloudUrl'.")
             .And.HaveNoErrors();
@@ -250,13 +247,13 @@ public class ProcessedArgsTests
     public void ProcessedArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlDiffer()
     {
         var sut = CreateDefaultArgs(new ListPropertiesProvider([
-            new Property(SonarProperties.HostUrl, "https://someHost.com"), new Property(SonarProperties.SonarcloudUrl, "https://someOtherHost.org")
+            new Property(SonarProperties.HostUrl, "https://someHost.com"), new Property(SonarProperties.SonarCloudUrl, "https://someOtherHost.org")
         ]));
 
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Should().HaveNoWarnings()
             .And.HaveErrors("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
-            + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+            + "Please set either 'sonar.host.url' for SonarQube Server or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
         sut.IsValid.Should().BeFalse();
     }
 
@@ -265,7 +262,7 @@ public class ProcessedArgsTests
     [DataRow("   ")]
     public void ProcessedArgs_HostUrl_SonarCloudUrl_HostUrlAndSonarcloudUrlEmpty(string empty)
     {
-        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, empty), new Property(SonarProperties.SonarcloudUrl, empty),]));
+        var sut = CreateDefaultArgs(new ListPropertiesProvider([new Property(SonarProperties.HostUrl, empty), new Property(SonarProperties.SonarCloudUrl, empty),]));
 
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Should().HaveNoWarnings()
@@ -279,7 +276,7 @@ public class ProcessedArgsTests
         var sut = CreateDefaultArgs(EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance, EmptyPropertyProvider.Instance);
 
         sut.ServerInfo.Should().NotBeNull();
-        sut.ServerInfo.IsSonarCloud.Should().BeTrue();
+        sut.ServerInfo.IsCloud.Should().BeTrue();
         sut.ServerInfo.ServerUrl.Should().Be("https://sonarcloud.io");
         runtime.Logger.Should().HaveNoWarnings()
             .And.HaveNoErrors();
@@ -308,7 +305,7 @@ public class ProcessedArgsTests
         {
             ServerInfo = new
             {
-                IsSonarCloud = true,
+                IsCloud = true,
                 ServerUrl = hostUrl,
                 ApiBaseUrl = expectedApiBaseUrl,
                 Region = expectedRegion,
@@ -323,12 +320,12 @@ public class ProcessedArgsTests
     {
         var sut = CreateDefaultArgs(
             new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "https://localhost")]),
-            new ListPropertiesProvider([new Property(SonarProperties.SonarcloudUrl, "https://sonarcloud.io")]));
+            new ListPropertiesProvider([new Property(SonarProperties.SonarCloudUrl, "https://sonarcloud.io")]));
 
         sut.ServerInfo.Should().BeNull();
         runtime.Logger.Should().HaveNoWarnings()
             .And.HaveErrors("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
-            + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+            + "Please set either 'sonar.host.url' for SonarQube Server or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
         sut.IsValid.Should().BeFalse();
     }
 
@@ -359,11 +356,10 @@ public class ProcessedArgsTests
             organization: null,
             installLoaderTargets: false,
             cmdLineProperties: invalidHost
-            ? new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "hostUrl"), new Property(SonarProperties.SonarcloudUrl, "SonarcloudUrl")])
+            ? new ListPropertiesProvider([new Property(SonarProperties.HostUrl, "hostUrl"), new Property(SonarProperties.SonarCloudUrl, "SonarcloudUrl")])
             : EmptyPropertyProvider.Instance,
             globalFileProperties: invalidOrganization ? new ListPropertiesProvider([new Property(SonarProperties.Organization, "organization")]) : EmptyPropertyProvider.Instance,
             scannerEnvProperties: new ListPropertiesProvider([new Property(SonarProperties.UserHome, "NotADirectory")]),
-            buildSettings: null,
             runtime);
         runtime.Logger.Errors.Should().HaveCount(errors);
         sut.IsValid.Should().Be(errors == 0);
@@ -472,7 +468,7 @@ public class ProcessedArgsTests
     [DynamicData(nameof(ProcessedArgs_SourcesOrTests_Warning_DataSource), DynamicDataSourceType.Method)]
     public void ProcessedArgs_SourcesOrTests_Warning(params Property[] properties)
     {
-        var expectedMessage = "The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. "
+        var expectedMessage = "The sonar.sources and sonar.tests properties are not supported by the SonarScanner for .NET and are ignored. "
             + "They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, "
             + "sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.";
 
@@ -482,38 +478,6 @@ public class ProcessedArgsTests
         runtime.Logger.Should().HaveNoErrors()
             .And.HaveWarningOnce(expectedMessage);
         runtime.AnalysisWarnings.Messages.Should().ContainSingle(expectedMessage);
-    }
-
-    [TestMethod]
-    public void ProcessedArgs_TfsLegacy_SetUseCliTrue()
-    {
-        using var env = new EnvironmentVariableScope();
-        env.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "true");
-        env.SetVariable(EnvironmentVariables.BuildUriLegacy, "legacy build uri");
-        var sut = CreateDefaultArgs(buildSettings: BuildSettings.GetSettingsFromEnvironment());
-        sut.IsValid.Should().BeTrue();
-#if NETFRAMEWORK
-        sut.UseSonarScannerCli.Should().BeTrue();
-        runtime.Logger.Should().HaveDebugs("Falling back to SonarScannerCLI to guarantee TFS Legacy support.");
-#else
-        sut.UseSonarScannerCli.Should().BeFalse();
-#endif
-        runtime.Logger.Should().HaveNoWarnings()
-            .And.HaveNoErrors();
-    }
-
-    [TestMethod]
-    public void ProcessedArgs_TfsLegacy_SkipCodeCoverage_SetUseCliFalse()
-    {
-        using var env = new EnvironmentVariableScope();
-        env.SetVariable(EnvironmentVariables.IsInTeamFoundationBuild, "true");
-        env.SetVariable(EnvironmentVariables.BuildUriLegacy, "legacy build uri");
-        env.SetVariable(EnvironmentVariables.SkipLegacyCodeCoverage, "true");
-        var sut = CreateDefaultArgs(buildSettings: BuildSettings.GetSettingsFromEnvironment());
-        sut.IsValid.Should().BeTrue();
-        sut.UseSonarScannerCli.Should().BeFalse();
-        runtime.Logger.Should().HaveNoWarnings()
-            .And.HaveNoErrors();
     }
 
     private static IEnumerable<object[]> ProcessedArgs_SourcesOrTests_Warning_DataSource() =>
@@ -526,7 +490,6 @@ public class ProcessedArgsTests
     private ProcessedArgs CreateDefaultArgs(IAnalysisPropertyProvider cmdLineProperties = null,
                                             IAnalysisPropertyProvider globalFileProperties = null,
                                             IAnalysisPropertyProvider scannerEnvProperties = null,
-                                            BuildSettings buildSettings = null,
                                             string key = "key",
                                             string organization = "organization") =>
         new(
@@ -538,7 +501,6 @@ public class ProcessedArgsTests
             cmdLineProperties: cmdLineProperties ?? EmptyPropertyProvider.Instance,
             globalFileProperties: globalFileProperties ?? EmptyPropertyProvider.Instance,
             scannerEnvProperties: scannerEnvProperties ?? EmptyPropertyProvider.Instance,
-            buildSettings: buildSettings,
             runtime);
 
     private static void AssertExpectedValue(string key, string expectedValue, ProcessedArgs args)

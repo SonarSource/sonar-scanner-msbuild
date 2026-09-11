@@ -42,16 +42,6 @@ public static class EnvironmentVariables
     public const string JavaHomeVariableName = "JAVA_HOME";
     public const string SonarUserHome = "SONAR_USER_HOME";
 
-    /// <summary>
-    /// Name of the environment variable that specifies whether the processing of code coverage reports in legacy TeamBuild cases should be skipped.
-    /// </summary>
-    public const string SkipLegacyCodeCoverage = "SQ_SkipLegacyCodeCoverage";
-
-    /// <summary>
-    /// Name of the environment variable that specifies how long to spend attempting to retrieve code coverage reports in legacy TeamBuild cases.
-    /// </summary>
-    public const string LegacyCodeCoverageTimeoutInMs = "SQ_LegacyCodeCoverageInMs";
-
     public const string AgentTempDirectory = "AGENT_TEMPDIRECTORY";
 
     public const string IsInTeamFoundationBuild = "TF_BUILD"; // Common to legacy and non-legacy TeamBuilds

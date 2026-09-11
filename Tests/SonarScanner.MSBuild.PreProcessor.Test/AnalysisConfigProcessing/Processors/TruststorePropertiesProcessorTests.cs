@@ -115,7 +115,7 @@ public class TruststorePropertiesProcessorTests
     [DataRow(null, "https://sonarqube-staging.us", null)]
     [DataRow(null, "https://test.sonarcloud.io", null)]
     [DataRow(null, null, "us")]
-    public void Update_TrustStoreProperties_SonarCloud_Mapped(string hostUrl, string sonarCloudUrl, string region)
+    public void Update_TrustStoreProperties_Cloud_Mapped(string hostUrl, string sonarCloudUrl, string region)
     {
         var cmdLineArgs = new ListPropertiesProvider();
         var truststorePath = Path.Combine("C:/", "path", "to", "truststore.pfx");
@@ -127,7 +127,7 @@ public class TruststorePropertiesProcessorTests
         }
         if (sonarCloudUrl is not null)
         {
-            cmdLineArgs.AddProperty(SonarProperties.SonarcloudUrl, sonarCloudUrl);
+            cmdLineArgs.AddProperty(SonarProperties.SonarCloudUrl, sonarCloudUrl);
         }
         if (region is not null)
         {
@@ -511,6 +511,5 @@ public class TruststorePropertiesProcessorTests
             cmdLineProvider ?? EmptyPropertyProvider.Instance,
             Substitute.For<IAnalysisPropertyProvider>(),
             EmptyPropertyProvider.Instance,
-            null,
             new TestRuntime { File = fileWrapper ?? Substitute.For<IFileWrapper>() });
 }

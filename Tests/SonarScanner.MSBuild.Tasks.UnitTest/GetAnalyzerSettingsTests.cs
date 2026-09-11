@@ -59,13 +59,11 @@ public class GetAnalyzerSettingsTests
     }
 
     [TestMethod]
-    [DataRow("7.3", DisplayName = "Legacy")]
-    [DataRow("7.4")]
-    public void ConfigExists_NoLanguage_SettingsOverwritten(string sonarQubeVersion)
+    public void ConfigExists_NoLanguage_SettingsOverwritten()
     {
         var config = new AnalysisConfig
         {
-            SonarQubeVersion = sonarQubeVersion,
+            SonarQubeVersion = "2026.1",
             AnalyzersSettings =
             [
                 new AnalyzerSettings
@@ -88,70 +86,6 @@ public class GetAnalyzerSettingsTests
         testSubject.RuleSetFilePath.Should().BeNull();
         testSubject.AnalyzerFilePaths.Should().BeNull();
         testSubject.AdditionalFilePaths.Should().BeEquivalentTo("original.should.be.preserved.txt");
-    }
-
-    // SONARMSBRU-216: non-assembly files should be filtered out
-    [TestMethod]
-    public void ConfigExists_Legacy_SettingsOverwritten()
-    {
-        var filesInConfig = new List<AnalyzerPlugin>
-        {
-            CreateAnalyzerPlugin(Path.Combine(DriveRoot(), "analyzer1.dll")),
-            CreateAnalyzerPlugin(
-                Path.Combine(DriveRoot(), "not_an_assembly.exe"),
-                Path.Combine(DriveRoot(), "not_an_assembly.zip"),
-                Path.Combine(DriveRoot(), "not_an_assembly.txt"),
-                Path.Combine(DriveRoot("d"), "analyzer2.dll")),
-            CreateAnalyzerPlugin(
-                Path.Combine(DriveRoot(), "not_an_assembly.dll.foo"),
-                Path.Combine(DriveRoot(), "not_an_assembly.winmd")),
-            CreateAnalyzerPlugin(Path.Combine(DriveRoot("e"), "analyzer3.dll"))
-        };
-        var config = new AnalysisConfig
-        {
-            SonarQubeHostUrl = "http://sonarqube.com",
-            SonarQubeVersion = "7.3",
-            ServerSettings =
-            [
-                // Setting should be ignored
-                new("sonar.cs.roslyn.ignoreIssues", "true")
-            ],
-            AnalyzersSettings =
-            [
-                new AnalyzerSettings
-                {
-                    Language = "cs",
-                    RulesetPath = Path.Combine(DriveRoot("f"), "yyy.ruleset"),
-                    AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = [Path.Combine(DriveRoot(), "add1.txt"), Path.Combine(DriveRoot("d"), "add2.txt"), Path.Combine(DriveRoot("e"), "subdir", "add3.txt")]
-                },
-
-                new AnalyzerSettings
-                {
-                    Language = "cobol",
-                    RulesetPath = Path.Combine(DriveRoot("f"), "xxx.ruleset"),
-                    AnalyzerPlugins = filesInConfig,
-                    AdditionalFilePaths = [Path.Combine(DriveRoot("e"), "cobol", "add1.txt"), Path.Combine(DriveRoot("d"), "cobol", "add2.txt")]
-                }
-            ]
-        };
-        var testSubject = CreateConfiguredTestSubject(config, "cs", TestContext);
-        testSubject.OriginalAdditionalFiles =
-        [
-            "original.should.be.preserved.txt",
-            Path.Combine("original.should.be.removed", "add2.txt"),
-            Path.Combine(DriveRoot("e"), "foo", "should.be.removed", "add3.txt")
-        ];
-
-        ExecuteAndCheckSuccess(testSubject);
-
-        testSubject.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot("f"), "yyy.ruleset"));
-        testSubject.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine(DriveRoot(), "analyzer1.dll"), Path.Combine(DriveRoot("d"), "analyzer2.dll"), Path.Combine(DriveRoot("e"), "analyzer3.dll"));
-        testSubject.AdditionalFilePaths.Should().BeEquivalentTo(
-            Path.Combine(DriveRoot(), "add1.txt"),
-            Path.Combine(DriveRoot("d"), "add2.txt"),
-            Path.Combine(DriveRoot("e"), "subdir", "add3.txt"),
-            "original.should.be.preserved.txt");
     }
 
     // Expecting both the additional files and the analyzers to be merged
@@ -183,7 +117,7 @@ public class GetAnalyzerSettingsTests
 
         var config = new AnalysisConfig
         {
-            SonarQubeVersion = "7.4",
+            SonarQubeVersion = "2026.1",
             ServerSettings = [new("sonar.cs.roslyn.ignoreIssues", "false")],
             AnalyzersSettings =
             [
@@ -246,7 +180,7 @@ public class GetAnalyzerSettingsTests
         var alwaysPresentAnalyzers = new[] { $"sonar.{language}", "Google.Protobuf" };
         var expectedAnalyzers = alwaysPresentAnalyzers.Concat(additionalDlls).Select(x => Path.Combine(DriveRoot(), $"{x}.dll"));
 
-        var sut = Execute_ConfigExists("2026.1", language, false, null);
+        var sut = Execute_ConfigExists(language, false, null);
         sut.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-normal.ruleset"));
         sut.AnalyzerFilePaths.Should().BeEquivalentTo(expectedAnalyzers);
         sut.AdditionalFilePaths.Should().BeEquivalentTo(
@@ -256,15 +190,13 @@ public class GetAnalyzerSettingsTests
     }
 
     [TestMethod]
-    [DataRow("8.0.0.18955", "cs", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
-    [DataRow("8.9", "cs", "true", DisplayName = "SQ 8.9 - needs exclusion parameter CS")]
-    [DataRow("9.0", "cs", "TRUE", DisplayName = "SQ 9.0 - needs exclusion parameter CS")]
-    [DataRow("10.0", "cs", "tRUE", DisplayName = "SQ 10.0 - needs exclusion parameter CS")]
-    [DataRow("8.0.0.18955", "vbnet", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
-    [DataRow("8.9", "vbnet", "true", DisplayName = "SQ 8.9 - needs exclusion parameter VB")]
-    public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string excludeTestProject)
+    [DataRow("cs", "true")]
+    [DataRow("cs", "TRUE")]
+    [DataRow("cs", "tRUE")]
+    [DataRow("vbnet", "true")]
+    public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string language, string excludeTestProject)
     {
-        var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
+        var executedTask = Execute_ConfigExists(language, true, excludeTestProject);
 
         executedTask.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-deactivated.ruleset"));
         executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(Path.Combine(DriveRoot(), $"sonar.{language}.dll"), Path.Combine(DriveRoot(), "Google.Protobuf.dll"));
@@ -272,19 +204,17 @@ public class GetAnalyzerSettingsTests
     }
 
     [TestMethod]
-    [DataRow("8.0.0.18955", "cs", null, DisplayName = "SonarCloud build version CS")]
-    [DataRow("8.9", "cs", null)]
-    [DataRow("8.9", "cs", "false")]
-    [DataRow("9.0", "cs", "FALSE")]
-    [DataRow("10.0", "cs", "UnexpectedParamValue")]
-    [DataRow("8.0.0.18955", "vbnet", null, DisplayName = "SonarCloud build version VB")]
-    [DataRow("8.9", "vbnet", null)]
-    [DataRow("8.9", "vbnet", "false")]
-    [DataRow("9.0", "vbnet", "FALSE")]
-    [DataRow("10.0", "vbnet", "UnexpectedParamValue")]
-    public void ConfigExists_ForTestProject_SonarAnalyzersAndConfigurationMergedWithUserProvided(string sonarQubeVersion, string language, string excludeTestProject)
+    [DataRow("cs", null)]
+    [DataRow("cs", "false")]
+    [DataRow("cs", "FALSE")]
+    [DataRow("cs", "UnexpectedParamValue")]
+    [DataRow("vbnet", null)]
+    [DataRow("vbnet", "false")]
+    [DataRow("vbnet", "FALSE")]
+    [DataRow("vbnet", "UnexpectedParamValue")]
+    public void ConfigExists_ForTestProject_SonarAnalyzersAndConfigurationMergedWithUserProvided(string language, string excludeTestProject)
     {
-        var executedTask = Execute_ConfigExists(sonarQubeVersion, language, true, excludeTestProject);
+        var executedTask = Execute_ConfigExists(language, true, excludeTestProject);
 
         executedTask.RuleSetFilePath.Should().Be(Path.Combine(DriveRoot(), $"{language}-normal.ruleset"));
         executedTask.AnalyzerFilePaths.Should().BeEquivalentTo(
@@ -303,7 +233,7 @@ public class GetAnalyzerSettingsTests
     [TestMethod]
     public void ConfigExists_ForTestProject_WhenUnknownLanguage_SonarAnalyzersAndConfigurationUsed()
     {
-        var executedTask = Execute_ConfigExists("7.4", "unknownLang", true, null);
+        var executedTask = Execute_ConfigExists("unknownLang", true, null);
 
         executedTask.RuleSetFilePath.Should().BeNull();
         executedTask.AnalyzerFilePaths.Should().BeNull();
@@ -315,7 +245,7 @@ public class GetAnalyzerSettingsTests
     {
         var config = new AnalysisConfig
         {
-            SonarQubeVersion = "7.4",
+            SonarQubeVersion = "2026.1",
             AnalyzersSettings =
             [
                 new AnalyzerSettings
@@ -398,13 +328,13 @@ public class GetAnalyzerSettingsTests
         CheckExpectedDiagnosticLevel(actualRuleset, "LocalOnlyRule", MSCA.ReportDiagnostic.Error);
     }
 
-    private GetAnalyzerSettings Execute_ConfigExists(string sonarQubeVersion, string language, bool isTestProject, string excludeTestProject)
+    private GetAnalyzerSettings Execute_ConfigExists(string language, bool isTestProject, string excludeTestProject)
     {
         // Want to test the behaviour with old and new SQ version. Expecting the same results in each case.
         var config = new AnalysisConfig
         {
-            SonarQubeVersion = sonarQubeVersion,
-            SonarQubeHostUrl = "http://localhost:9000", // If any SQ 8.0 version is passed (other than 8.0.0.29455), this will be classified as SonarCloud
+            SonarQubeVersion = "2026.1",
+            SonarQubeHostUrl = "http://localhost:9000",
             ServerSettings =
             [
                 // Server settings should be ignored. "true" value should break existing tests.
@@ -490,7 +420,7 @@ public class GetAnalyzerSettingsTests
     private static AnalysisConfig CreateMergingAnalysisConfig(string language, string qpRulesetFilePath) =>
         new()
         {
-            SonarQubeVersion = "7.4",
+            SonarQubeVersion = "2026.1",
             ServerSettings = [new($"sonar.{language}.roslyn.ignoreIssues", "false")],
             AnalyzersSettings =
             [

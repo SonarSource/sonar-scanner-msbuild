@@ -32,7 +32,6 @@ public class PostProcessor
     private readonly IRuntime runtime;
     private readonly TargetsUninstaller targetUninstaller;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
-    private readonly TfsProcessorWrapper tfsProcessor;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
 
     private ScannerEngineInputGenerator scannerEngineInputGenerator;
@@ -41,7 +40,6 @@ public class PostProcessor
                          SonarEngineWrapper sonarEngine,
                          IRuntime runtime,
                          TargetsUninstaller targetUninstaller,
-                         TfsProcessorWrapper tfsProcessor,
                          SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
                          BuildVNextCoverageReportProcessor coverageReportProcessor)
     {
@@ -49,7 +47,6 @@ public class PostProcessor
         this.sonarEngine = sonarEngine ?? throw new ArgumentNullException(nameof(sonarEngine));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
-        this.tfsProcessor = tfsProcessor ?? throw new ArgumentNullException(nameof(tfsProcessor));
         this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
         this.coverageReportProcessor = coverageReportProcessor ?? throw new ArgumentNullException(nameof(coverageReportProcessor));
     }
@@ -88,14 +85,12 @@ public class PostProcessor
             {
                 DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
                 // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
-                runtime.Telemetry[TelemetryKeys.EndstepLegacyTFS] = IsTfsProcessorCalled(settings);
                 runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = coverageConversionPerformed;
                 runtime.Telemetry.Write(settings.SonarOutputDirectory);
                 result = config.UseSonarScannerCli || config.EngineJarPath is null
                     ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)
                     : InvokeScannerEngine(cmdLineArgs, config, analysisResult.ScannerEngineInput);
             }
-            ProcessSummaryReportBuilder(config, settings, analysisResult, result);
             return result;
         }
     }
@@ -119,18 +114,6 @@ public class PostProcessor
         }
         return result;
     }
-
-    private static string IsTfsProcessorCalled(IBuildSettings settings) =>
-        // We need to know IsTfsProcessorCalled? before we call the scanner/engine because telemetry needs to be complete before that call.
-        // tfsProcessor.Execute is called in ProcessSummaryReportBuilder (called after the scanner/engine invocation) if NETFRAMEWORK and BuildEnvironment.LegacyTeamBuild and also in
-        // ProcessCoverageReport (before the scanner/engine invocation and only if !BuildSettings.SkipLegacyCodeCoverageProcessing).
-        // We are interested if either of the calls happened and therefore we assume ProcessSummaryReportBuilder will happen after the scanner/engine invocation
-        // and BuildSettings.SkipLegacyCodeCoverageProcessing is ignored for telemetry.
-#if NETFRAMEWORK
-        settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild ? TelemetryValues.EndstepLegacyTFS.Called : TelemetryValues.EndstepLegacyTFS.NotCalled;
-#else
-        TelemetryValues.EndstepLegacyTFS.NotCalled;
-#endif
 
     private void LogStartupSettings(AnalysisConfig config, IBuildSettings settings)
     {
@@ -214,20 +197,6 @@ public class PostProcessor
         return true;
     }
 
-    private void ProcessSummaryReportBuilder(AnalysisConfig config, IBuildSettings settings, AnalysisResult analysisResult, bool ranToCompletion)
-    {
-#if NETFRAMEWORK
-        if (settings.BuildEnvironment == BuildEnvironment.LegacyTeamBuild)
-        {
-            runtime.Logger.IncludeTimestamp = false;
-            tfsProcessor.Execute(
-                config,
-                ["SummaryReportBuilder", Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath, ranToCompletion.ToString()]);
-            runtime.Logger.IncludeTimestamp = true;
-        }
-#endif
-    }
-
     private bool ProcessCoverageReport(AnalysisConfig config, IBuildSettings settings, AnalysisResult analysisResult)
     {
 #if NETFRAMEWORK
@@ -240,14 +209,6 @@ public class PostProcessor
             analysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
             analysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
             return additionalProperties.CoverageConversionPerformed;
-        }
-        else if (settings.BuildEnvironment is BuildEnvironment.LegacyTeamBuild && !BuildSettings.SkipLegacyCodeCoverageProcessing)
-        {
-            runtime.LogInfo(Resources.MSG_TFSLegacyProcessorCalled);
-            runtime.Logger.IncludeTimestamp = false;
-            var result = tfsProcessor.Execute(config, ["ConvertCoverage", Path.Combine(config.SonarConfigDir, FileConstants.ConfigFileName), analysisResult.FullPropertiesFilePath]);
-            runtime.Logger.IncludeTimestamp = true;
-            return result;
         }
 #endif
         return false;

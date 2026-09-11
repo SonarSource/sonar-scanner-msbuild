@@ -19,7 +19,7 @@
  */
 package com.sonar.it.scanner.msbuild.utils;
 
-import com.sonar.it.scanner.msbuild.sonarcloud.CloudUtils;
+import com.sonar.it.scanner.msbuild.cloud.CloudUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import com.sonar.orchestrator.server.SynchronousAnalyzer;

@@ -146,7 +146,7 @@ public partial class PreProcessorTests
         using var context = new Context(TestContext);
         if (serverProperties is not null)
         {
-            context.Factory.Server.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
+            context.Factory.Client.DownloadProperties(null, null).ReturnsForAnyArgs(serverProperties);
         }
         using var env = new EnvironmentVariableScope();
         foreach (var envVariable in environmentVariables)
@@ -155,7 +155,7 @@ public partial class PreProcessorTests
         }
 
         (await context.Execute(args)).Should().BeTrue();
-        var expectedTelemetryLocation = context.Factory.ReadSettings().SonarOutputDirectory;
+        var expectedTelemetryLocation = BuildSettings.GetSettingsFromEnvironment().SonarOutputDirectory;
         context.Factory.Runtime.Telemetry.OutputPath.Should().Be(expectedTelemetryLocation);
         return context.Factory.Runtime.Telemetry;
     }

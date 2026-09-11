@@ -20,7 +20,7 @@
 
 using System.Net;
 using SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 
@@ -31,10 +31,10 @@ public class PreProcessor
 
     private static readonly string[] Languages = [CSharpLanguage, VBNetLanguage];
 
-    private readonly IPreprocessorObjectFactory factory;
+    private readonly PreprocessorObjectFactory factory;
     private readonly IRuntime runtime;
 
-    public PreProcessor(IPreprocessorObjectFactory factory, IRuntime runtime)
+    public PreProcessor(PreprocessorObjectFactory factory, IRuntime runtime)
     {
         this.factory = factory ?? throw new ArgumentNullException(nameof(factory));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
@@ -44,7 +44,7 @@ public class PreProcessor
     {
         runtime.Logger.SuspendOutput(); // Wait for the correct verbosity to be calculated
         var buildSettings = BuildSettings.GetSettingsFromEnvironment();
-        var processedArgs = ArgumentProcessor.TryProcessArgs(args, buildSettings, runtime);
+        var processedArgs = ArgumentProcessor.TryProcessArgs(args, runtime);
 
         if (processedArgs is null)
         {
@@ -72,33 +72,33 @@ public class PreProcessor
             return false;
         }
 
-        using var server = await factory.CreateSonarWebServer(localSettings);
-        if (server is null)
+        using var client = await factory.CreateClient(localSettings);
+        if (client is null)
         {
             return false;
         }
-        runtime.Telemetry[TelemetryKeys.ServerInfoVersion] = server.ServerVersion.ToString();
+        runtime.Telemetry[TelemetryKeys.ServerInfoVersion] = client.ServerVersion;
 
-        var jreResolver = factory.CreateJreResolver(server, localSettings.UserHome);
+        var jreResolver = factory.CreateJreResolver(client, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
 
-        var scannerEngineJarPath = localSettings.UseSonarScannerCli ? null : await factory.CreateEngineResolver(server, localSettings.UserHome).ResolvePath(localSettings);
+        var scannerEngineJarPath = localSettings.UseSonarScannerCli ? null : await factory.CreateEngineResolver(client, localSettings.UserHome).ResolvePath(localSettings);
 
-        var scannerCliPath = scannerEngineJarPath is null ? await factory.CreateScannerCliResolver(server, localSettings.UserHome).ResolvePath(localSettings) : null;
+        var scannerCliPath = scannerEngineJarPath is null ? await factory.CreateScannerCliResolver(client, localSettings.UserHome).ResolvePath(localSettings) : null;
         if (scannerEngineJarPath is null && scannerCliPath is null)
         {
             runtime.LogError(Resources.ERR_ScannerCliDownloadFailed);
             return false;
         }
 
-        var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(server, localSettings, buildSettings);
+        var argumentsAndRuleSets = await FetchArgumentsAndRuleSets(client, localSettings, buildSettings);
         if (!argumentsAndRuleSets.IsSuccess)
         {
             return false;
         }
         Debug.Assert(argumentsAndRuleSets.AnalyzersSettings is not null, "Not expecting the analyzers settings to be null");
 
-        using var cache = new CacheProcessor(server, localSettings, buildSettings, runtime.Logger);
+        using var cache = new CacheProcessor(client, localSettings, buildSettings, runtime.Logger);
         await cache.Execute();
         var additionalSettings = new Dictionary<string, string>
         {
@@ -111,7 +111,7 @@ public class PreProcessor
             additionalSettings,
             argumentsAndRuleSets.ServerSettings,
             argumentsAndRuleSets.AnalyzersSettings,
-            server.ServerVersion.ToString(),
+            client.ServerVersion,
             resolvedJavaExePath,
             scannerEngineJarPath,
             scannerCliPath,
@@ -140,7 +140,7 @@ public class PreProcessor
         }
     }
 
-    private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(SonarWebServerBase server, ProcessedArgs args, BuildSettings settings)
+    private async Task<ArgumentsAndRuleSets> FetchArgumentsAndRuleSets(SonarQubeBase client, ProcessedArgs args, BuildSettings settings)
     {
         var argumentsAndRuleSets = new ArgumentsAndRuleSets();
 
@@ -149,7 +149,7 @@ public class PreProcessor
             runtime.LogInfo(Resources.MSG_FetchingAnalysisConfiguration);
 
             args.TryGetSetting(SonarProperties.ProjectBranch, out var projectBranch);
-            argumentsAndRuleSets.ServerSettings = await server.DownloadProperties(args.ProjectKey, projectBranch);
+            argumentsAndRuleSets.ServerSettings = await client.DownloadProperties(args.ProjectKey, projectBranch);
 
             // Use the aggregate of local and server properties when generating the analyzer configuration
             // See bug 699: https://github.com/SonarSource/sonar-scanner-msbuild/issues/699
@@ -157,7 +157,7 @@ public class PreProcessor
             var allProperties = new AggregatePropertiesProvider(args.AggregateProperties, serverProperties);
             TelemetryUtils.AddTelemetry(runtime.Telemetry, allProperties);
 
-            var availableLanguages = await server.DownloadAllLanguages();
+            var availableLanguages = await client.DownloadAllLanguages();
             var knownLanguages = Languages.Where(availableLanguages.Contains).ToList();
             if (knownLanguages.Count == 0)
             {
@@ -168,14 +168,14 @@ public class PreProcessor
 
             foreach (var language in knownLanguages)
             {
-                var qualityProfile = await server.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
+                var qualityProfile = await client.DownloadQualityProfile(args.ProjectKey, projectBranch, language);
                 if (qualityProfile is null)
                 {
                     runtime.LogDebug(Resources.RAP_NoQualityProfile, language, args.ProjectKey);
                     continue;
                 }
 
-                var rules = await server.DownloadRules(qualityProfile);
+                var rules = await client.DownloadRules(qualityProfile);
                 if (!rules.Any(x => x.IsActive))
                 {
                     runtime.LogDebug(Resources.RAP_NoActiveRules, language);
@@ -185,7 +185,7 @@ public class PreProcessor
                 // It is null if the processing of server settings and active rules resulted in an empty ruleset
                 var localCacheTempPath = args.SettingOrDefault(SonarProperties.PluginCacheDirectory, string.Empty);
 
-                var analyzerProvider = factory.CreateRoslynAnalyzerProvider(server, localCacheTempPath, settings, allProperties, rules, language);
+                var analyzerProvider = factory.CreateRoslynAnalyzerProvider(client, localCacheTempPath, settings, allProperties, rules, language);
                 if (analyzerProvider.SetupAnalyzer() is { } analyzerSettings)
                 {
                     argumentsAndRuleSets.AnalyzersSettings.Add(analyzerSettings);

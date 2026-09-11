@@ -20,27 +20,27 @@
 
 using SonarScanner.MSBuild.PreProcessor.Caching;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution;
 
 // https://xtranet-sonarsource.atlassian.net/wiki/spaces/LANG/pages/3155001372/Scanner+Bootstrapping
 public class JreResolver : IResolver
 {
-    private readonly SonarWebServerBase server;
+    private readonly SonarQubeBase client;
     private readonly UnpackerFactory unpackerFactory;
     private readonly IChecksum checksum;
     private readonly string sonarUserHome;
     private readonly IRuntime runtime;
 
-    public JreResolver(SonarWebServerBase server,
+    public JreResolver(SonarQubeBase client,
                        IChecksum checksum,
                        string sonarUserHome,
                        IRuntime runtime,
                        UnpackerFactory unpackerFactory = null)
     {
-        this.server = server;
+        this.client = client;
         this.checksum = checksum;
         this.sonarUserHome = sonarUserHome;
         this.runtime = runtime;
@@ -91,7 +91,7 @@ public class JreResolver : IResolver
 
     private async Task<DownloadResult> DownloadJre(ProcessedArgs args)
     {
-        var metadata = await server.DownloadJreMetadataAsync(args.OperatingSystem, args.Architecture);
+        var metadata = await client.DownloadJreMetadataAsync(args.OperatingSystem, args.Architecture);
         if (metadata is null)
         {
             runtime.LogDebug(Resources.MSG_Resolver_MetadataFailure, nameof(JreResolver));
@@ -105,7 +105,7 @@ public class JreResolver : IResolver
 
     private async Task<DownloadResult> DownloadJre(ArchiveDownloader archiveDownloader, JreMetadata metadata)
     {
-        var result = await archiveDownloader.DownloadAsync(() => server.DownloadJreAsync(metadata));
+        var result = await archiveDownloader.DownloadAsync(() => client.DownloadJreAsync(metadata));
         switch (result)
         {
             case CacheHit cacheHit:

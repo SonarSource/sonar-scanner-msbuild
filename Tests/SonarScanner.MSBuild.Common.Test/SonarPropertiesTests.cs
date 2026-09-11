@@ -44,7 +44,7 @@ public class SonarPropertiesTests
         SonarProperties.EngineJarPath,
         SonarProperties.UseSonarScannerCLI,
         SonarProperties.HostUrl,
-        SonarProperties.SonarcloudUrl,
+        SonarProperties.SonarCloudUrl,
         SonarProperties.ApiBaseUrl,
         SonarProperties.ConnectTimeout,
         SonarProperties.SocketTimeout,

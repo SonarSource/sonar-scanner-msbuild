@@ -10,10 +10,10 @@ if ($TestToRun -eq "IT") {
     Set-Location -Path "$PSScriptRoot/../its"
     # Run Maven with the specified test include pattern
     $testIncludes = @(
-        "**/sonarqube/ScannerTest*",
-        "**/sonarqube/SslTest*",
-        "**/sonarqube/JreProvisioningTest*",
-        "**/sonarcloud/*"
+        "**/server/ScannerTest*",
+        "**/servere/SslTest*",
+        "**/server/JreProvisioningTest*",
+        "**/cloud/*"
     )
     $testIncludeParam = $testIncludes -join ','
 
@@ -54,7 +54,7 @@ if ($TestToRun -eq "IT") {
     Write-Host "Building tests projects..."
     foreach ($testProject in $testProjects) {
         Write-Host "Building $testProject..."
-        $buildOutput = dotnet build $testProject --verbosity quiet --framework net9.0  2>&1
+        $buildOutput = dotnet build $testProject --verbosity quiet --framework net10.0  2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Build failed for $testProject. Exiting..."
             Write-Host "Error details:" -ForegroundColor Red
@@ -64,5 +64,5 @@ if ($TestToRun -eq "IT") {
     }
 
     Write-Host "Running tests with filter: $TestFilter"
-    dotnet test --no-build --framework net9.0 --logger "console;verbosity=minimal" --filter "$TestFilter" --results-directory "/tmp/TestResults"
+    dotnet test --no-build --framework net10.0 --logger "console;verbosity=minimal" --filter "$TestFilter" --results-directory "/tmp/TestResults"
 }

@@ -20,9 +20,9 @@
 
 using NSubstitute.ExceptionExtensions;
 using SonarScanner.MSBuild.PreProcessor.Interfaces;
+using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 using SonarScanner.MSBuild.PreProcessor.Test;
 using SonarScanner.MSBuild.PreProcessor.Unpacking;
-using SonarScanner.MSBuild.PreProcessor.WebServer;
 
 namespace SonarScanner.MSBuild.PreProcessor.JreResolution.Test;
 
@@ -42,7 +42,7 @@ public class JreResolverTests
     private readonly IChecksum checksum = Substitute.For<IChecksum>();
 
     private ListPropertiesProvider provider;
-    private SonarWebServerBase server;
+    private SonarQubeBase client;
     private JreResolver sut;
     private TestRuntime runtime;
 
@@ -51,11 +51,11 @@ public class JreResolverTests
     {
         provider = [];
         provider.AddProperty("sonar.scanner.os", "linux");
-        server = MockSonarWebServer.Create();
-        server.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(metadata);
+        client = MockSonarQube.Create();
+        client.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(metadata);
         runtime = new();
 
-        sut = new JreResolver(server, checksum, SonarUserHome, runtime, Substitute.For<UnpackerFactory>(runtime));
+        sut = new JreResolver(client, checksum, SonarUserHome, runtime, Substitute.For<UnpackerFactory>(runtime));
     }
 
     [TestMethod]
@@ -129,7 +129,7 @@ public class JreResolverTests
     [TestMethod]
     public async Task ResolveJrePath_MetadataNotFound()
     {
-        server
+        client
             .DownloadJreMetadataAsync(Arg.Any<string>(), Arg.Any<string>())
             .Returns(Task.FromResult<JreMetadata>(null));
 
@@ -171,7 +171,7 @@ public class JreResolverTests
         using var computeHashStream = new MemoryStream();
 
         // mocks successful download from the server, and unpacking of the jre.
-        server.DownloadJreAsync(metadata).Returns(content);
+        client.DownloadJreAsync(metadata).Returns(content);
         runtime.Directory.GetRandomFileName().Returns("tempFile.zip");
         runtime.File.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
         runtime.File.Create(tempArchive).Returns(new MemoryStream());
@@ -216,7 +216,7 @@ public class JreResolverTests
 
         var res = await sut.ResolvePath(Args());
 
-        await server.DidNotReceive().DownloadJreAsync(Arg.Any<JreMetadata>());
+        await client.DidNotReceive().DownloadJreAsync(Arg.Any<JreMetadata>());
         res.Should().Be(ExtractedJavaPath);
         runtime.Logger.Should().HaveInfos("""
             The JRE provisioning is a time consuming operation.
@@ -268,7 +268,7 @@ public class JreResolverTests
     public async Task ResolveJrePath_DownloadFailure_ThenMetadataFailureOnRetry_ReportsTheDownloadFailure()
     {
         // The retry does not get as far as downloading, so the failure of the first attempt is the only one that explains anything.
-        server.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(metadata, (JreMetadata)null);
+        client.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(metadata, (JreMetadata)null);
         runtime.File.Create(Arg.Any<string>()).Throws(new IOException("JRE download failed"));
 
         var res = await sut.ResolvePath(Args());
@@ -290,7 +290,7 @@ public class JreResolverTests
         using var computeHashStream = new MemoryStream();
 
         // mocks failed and then successful download from the server
-        server.DownloadJreAsync(metadata).Returns(_ => throw new Exception("Reason"), _ => content);
+        client.DownloadJreAsync(metadata).Returns(_ => throw new Exception("Reason"), _ => content);
         runtime.Directory.GetRandomFileName().Returns("tempFile.zip");
         runtime.File.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
         runtime.File.Create(tempArchive).Returns(_ => new MemoryStream());
@@ -306,8 +306,8 @@ public class JreResolverTests
             JRE provisioned: filename.tar.gz.
             If you already have a compatible Java version installed, please add either the parameter "/d:sonar.scanner.skipJreProvisioning=true" or "/d:sonar.scanner.javaExePath=<PATH>".
             """);
-        await server.ReceivedWithAnyArgs(2).DownloadJreMetadataAsync(null, null);
-        await server.Received(2).DownloadJreAsync(metadata);
+        await client.ReceivedWithAnyArgs(2).DownloadJreMetadataAsync(null, null);
+        await client.Received(2).DownloadJreAsync(metadata);
         AssertDebugMessages(
             "JreResolver: Resolving JRE path.",
             $"Cache miss. Could not find '{ExtractedJavaPath}'.",
@@ -336,8 +336,8 @@ public class JreResolverTests
         using var computeHashStream = new MemoryStream();
 
         // mocks failed and then successful metadata download from the server
-        server.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(null, metadata);
-        server.DownloadJreAsync(metadata).Returns(content);
+        client.DownloadJreMetadataAsync(null, null).ReturnsForAnyArgs(null, metadata);
+        client.DownloadJreAsync(metadata).Returns(content);
         runtime.Directory.GetRandomFileName().Returns("tempFile.zip");
         runtime.File.Exists(Path.Combine(tempArchive, JavaExePath)).Returns(true); // the temp file created during the download, not the file within the cache
         runtime.File.Create(tempArchive).Returns(x => new MemoryStream());
@@ -347,8 +347,8 @@ public class JreResolverTests
         var res = await sut.ResolvePath(Args());
 
         res.Should().Be(ExtractedJavaPath);
-        await server.ReceivedWithAnyArgs(2).DownloadJreMetadataAsync(null, null);
-        await server.Received(1).DownloadJreAsync(metadata);
+        await client.ReceivedWithAnyArgs(2).DownloadJreMetadataAsync(null, null);
+        await client.Received(1).DownloadJreAsync(metadata);
         runtime.Logger.Should().HaveInfos("""
             The JRE provisioning is a time consuming operation.
             JRE provisioned: filename.tar.gz.

@@ -74,7 +74,7 @@ public class SonarScannerWrapper
             EnvironmentVariables = envVarsDictionary
         };
 
-        // Note that the Sonar Scanner may write warnings to stderr so
+        // Note that the Scanner Engine may write warnings to stderr so
         // we should only rely on the exit code when deciding if it ran successfully.
         var result = runner.Execute(scannerArgs);
         if (result.Succeeded)
