@@ -172,7 +172,7 @@ jobs:
       # Local composite: this public repo cannot resolve the private
       # sonarsource-infra-artifactory action. Only **/sonarqube/* legs download a zip.
       - name: Wait for Artifactory token federation (releases)
-        if: matrix.testInclude == '**/sonarqube/*'
+        if: matrix.testInclude == '**/server/*'
         timeout-minutes: 5
         uses: ./.github/actions/wait-for-artifactory-token-federation
         env:
@@ -180,7 +180,7 @@ jobs:
         with:
           probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-releases&v=*"
       - name: Wait for Artifactory token federation (builds)
-        if: matrix.testInclude == '**/sonarqube/*'
+        if: matrix.testInclude == '**/server/*'
         timeout-minutes: 5
         uses: ./.github/actions/wait-for-artifactory-token-federation
         env:
