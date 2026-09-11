@@ -19,7 +19,6 @@
  */
 
 using SonarScanner.MSBuild.Shim;
-using SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 
 namespace SonarScanner.MSBuild.Tasks.IntegrationTest.E2ETests;
 

@@ -20,6 +20,10 @@
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Using Include="SonarScanner.MSBuild.Tasks.IntegrationTest" />
+    <Using Include="SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

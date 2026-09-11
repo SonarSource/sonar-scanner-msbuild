@@ -19,7 +19,6 @@
  */
 
 using SonarScanner.MSBuild.Tasks;
-using SonarScanner.MSBuild.Tasks.IntegrationTest;
 
 namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;
 

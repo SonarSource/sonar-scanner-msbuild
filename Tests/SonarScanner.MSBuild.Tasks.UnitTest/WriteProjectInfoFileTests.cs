@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
 using Task = Microsoft.Build.Utilities.Task;
 
 namespace SonarScanner.MSBuild.Tasks.UnitTest;

@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Compression;
-using SonarScanner.MSBuild.PreProcessor.Roslyn;
-using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
