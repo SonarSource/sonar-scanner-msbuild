@@ -130,9 +130,6 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="COVXML_DIAG_FileAlreadyExist_NoConversionAttempted" xml:space="preserve">
     <value>Found corresponding Binary-to-XML conversion output file for {0}, no conversion will be attempted.</value>
   </data>
-  <data name="COVXML_DIAG_SkippingCoverageCheckPropertyProvided" xml:space="preserve">
-    <value>Property 'sonar.cs.vscoveragexml.reportsPaths' provided, skipping the search for coveragexml file in default folders...</value>
-  </data>
   <data name="EX_CoverageReportProcessorNotInitialized" xml:space="preserve">
     <value>The Coverage Report Processor was not initialized before use.</value>
   </data>
@@ -189,9 +186,6 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   </data>
   <data name="TRX_DIAG_TrxFilesFound" xml:space="preserve">
     <value>The following test results files were found: {0}</value>
-  </data>
-  <data name="TRX_WARN_CoverageAttachmentsNotFound" xml:space="preserve">
-    <value>None of the attached coverage reports exist on disk</value>
   </data>
   <data name="TRX_WARN_InvalidConstructedCoveragePath" xml:space="preserve">
     <value>None of the following coverage attachments could be found: {0}. Trx file: {1}</value>
