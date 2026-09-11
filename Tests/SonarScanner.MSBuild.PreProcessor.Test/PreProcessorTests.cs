@@ -19,6 +19,7 @@
  */
 
 using NSubstitute.ExceptionExtensions;
+using SonarScanner.MSBuild.Common.TFS;
 
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
@@ -411,7 +412,7 @@ public partial class PreProcessorTests
 
         public void AssertDirectoriesCreated()
         {
-            var settings = Factory.ReadSettings();
+            var settings = ReadSettings();
             AssertDirectoryExists(settings.AnalysisBaseDirectory);
             AssertDirectoryExists(settings.SonarConfigDirectory);
             AssertDirectoryExists(settings.SonarOutputDirectory);
@@ -424,7 +425,7 @@ public partial class PreProcessorTests
 
         public AnalysisConfig AssertAnalysisConfig(int numAnalyzers)
         {
-            var filePath = Factory.ReadSettings().AnalysisConfigFilePath;
+            var filePath = ReadSettings().AnalysisConfigFilePath;
             Factory.Runtime.Logger.Should().HaveNoErrors();
             Factory.Runtime.Logger.AssertVerbosity(LoggerVerbosity.Debug);
 
@@ -444,7 +445,7 @@ public partial class PreProcessorTests
         }
 
         public void AssertAnalysisConfigPathInSonarConfigDirectory() =>
-            Directory.GetFiles(Factory.ReadSettings().SonarConfigDirectory).Select(Path.GetFileName)
+            Directory.GetFiles(ReadSettings().SonarConfigDirectory).Select(Path.GetFileName)
                 .Should().BeEquivalentTo("SonarQubeAnalysisConfig.xml");
 
         public void AssertDownloadMethodsCalled(int properties, int allLanguages, int qualityProfile, int rules)
@@ -467,5 +468,13 @@ public partial class PreProcessorTests
 
         private static void AssertDirectoryExists(string path) =>
             Directory.Exists(path).Should().BeTrue();
+
+        private static BuildSettings ReadSettings()
+        {
+            var settings = BuildSettings.GetSettingsFromEnvironment();
+            settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
+            settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
+            return settings;
+        }
     }
 }

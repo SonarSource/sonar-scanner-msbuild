@@ -71,14 +71,6 @@ internal class PreprocessorObjectFactoryStub : PreprocessorObjectFactory
         return AnalyzerProvider = new(teamBuildSettings, sonarProperties, rules, language) { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
     }
 
-    public BuildSettings ReadSettings()
-    {
-        var settings = BuildSettings.GetSettingsFromEnvironment();
-        settings.Should().NotBeNull("Test setup error: TFS environment variables have not been set correctly");
-        settings.BuildEnvironment.Should().Be(BuildEnvironment.NotTeamBuild, "Test setup error: build environment was not set correctly");
-        return settings;
-    }
-
     public override IResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
         JreResolver;
 
