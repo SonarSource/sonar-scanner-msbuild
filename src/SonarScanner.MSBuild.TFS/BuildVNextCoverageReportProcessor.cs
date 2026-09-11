@@ -40,7 +40,6 @@ public class BuildVNextCoverageReportProcessor
     {
         runtime.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
         string[] vsTestReportsPaths = null;
-        string[] vsCoverageXmlReportsPaths = null;
         var trxFilePaths = new TrxFileReader(runtime).FindTrxFiles(settings.BuildDirectory);
 
         if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, runtime.Logger) is null)
@@ -55,13 +54,10 @@ public class BuildVNextCoverageReportProcessor
             runtime.LogInfo(Resources.TRX_DIAG_SkippingCoverageCheckPropertyProvided);
         }
 
-        var vsCoverageFilePaths = FindVsCoverageFiles(trxFilePaths, disableFallback: vsTestReportsPaths is not null);
-        var conversionPerformed = ConvertCoverageReports(vsCoverageFilePaths, out var coverageReportPaths);
-        if (coverageReportPaths.Any()
-            && config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, runtime.Logger) is null)
-        {
-            vsCoverageXmlReportsPaths = coverageReportPaths.ToArray();
-        }
+        var conversionPerformed = false;
+        var vsCoverageXmlReportsPaths = config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, runtime.Logger) is null
+            ? []
+            : ConvertCoverageReports(trxFilePaths, disableFallback: vsTestReportsPaths is not null, out conversionPerformed);
         return new(vsTestReportsPaths, vsCoverageXmlReportsPaths, conversionPerformed);
     }
 
@@ -148,33 +144,28 @@ public class BuildVNextCoverageReportProcessor
         }
     }
 
-    private bool ConvertCoverageReports(IEnumerable<string> vsCoverageFilePaths, out IEnumerable<string> vsCoverageXmlPaths)
+    private string[] ConvertCoverageReports(IEnumerable<string> trxFilePaths, bool disableFallback, out bool conversionPerformed)
     {
         var xmlFileNames = new List<string>();
-        var conversionPerformed = false;
-        foreach (var vsCoverageFilePath in vsCoverageFilePaths)
+        conversionPerformed = false;
+        foreach (var vsCoverageFilePath in FindVsCoverageFiles(trxFilePaths, disableFallback))
         {
             var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
             if (runtime.File.Exists(xmlFilePath))
             {
                 runtime.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
             }
+            else if (converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
+            {
+                conversionPerformed = true;
+            }
             else
             {
-                if (converter.ConvertToXml(vsCoverageFilePath, xmlFilePath))
-                {
-                    conversionPerformed = true;
-                }
-                else
-                {
-                    vsCoverageXmlPaths = [];
-                    return conversionPerformed;
-                }
+                return [];
             }
             xmlFileNames.Add(xmlFilePath);
         }
-        vsCoverageXmlPaths = xmlFileNames;
-        return conversionPerformed;
+        return xmlFileNames.ToArray();
     }
 
     internal class FileWithContentHash
