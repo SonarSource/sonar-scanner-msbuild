@@ -44,14 +44,7 @@ public static class EnvironmentVariables
 
     public const string AgentTempDirectory = "AGENT_TEMPDIRECTORY";
 
-    public const string IsInTeamFoundationBuild = "TF_BUILD"; // Common to legacy and non-legacy TeamBuilds
-
-    // Legacy TeamBuild environment variables (XAML Builds)
-    public const string TfsCollectionUriLegacy = "TF_BUILD_COLLECTIONURI";
-
     public const string BuildUriLegacy = "TF_BUILD_BUILDURI";
-    public const string BuildDirectoryLegacy = "TF_BUILD_BUILDDIRECTORY";       // Legacy TeamBuild directory (TFS2013 and earlier)
-    public const string SourcesDirectoryLegacy = "TF_BUILD_SOURCESDIRECTORY";
 
     // TFS 2015 (TFS Build) Environment variables
     public const string TfsCollectionUriTfs2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";

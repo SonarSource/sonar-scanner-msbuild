@@ -18,18 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Common.Interfaces;
-using SonarScanner.MSBuild.Common.TFS;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
 /// Provides access to TeamBuild-specific settings and settings calculated from those settings.
 /// </summary>
-public class BuildSettings : IBuildSettings
+public class BuildSettings
 {
-    public static bool IsInTeamBuild => ReadBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false);
-    public BuildEnvironment BuildEnvironment { get; private set; }
+    public bool IsAzureDevOps { get; private set; }
     public string TfsUri { get; private set; }
     public string BuildUri { get; private set; }
     public string SourcesDirectory { get; private set; }
@@ -62,96 +58,59 @@ public class BuildSettings : IBuildSettings
     /// <summary>
     /// Factory method to create and return a new set of team build settings calculated from environment variables.
     /// </summary>
-    public static BuildSettings GetSettingsFromEnvironment()
+    public static BuildSettings CreateFromEnvironment(ILogger logger)
     {
-        var env = GetBuildEnvironment();
-        var settings = env switch
+        bool isAzDo;
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015)))
         {
-            BuildEnvironment.LegacyTeamBuild => new BuildSettings
-            {
-                BuildEnvironment = env,
-                BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy),
-                TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriLegacy),
-                BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryLegacy),
-                SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectoryLegacy),
-            },
-            BuildEnvironment.TeamBuild => new BuildSettings
-            {
-                BuildEnvironment = env,
-                BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015),
-                TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
-                BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryTfs2015),
-                SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
-                CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
-            },
-            _ => new BuildSettings
-            {
-                BuildEnvironment = env,
-                // there's no reliable of way of finding the SourcesDirectory, except after the build
-                CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
-            }
+            isAzDo = true;
+        }
+        else if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy)))
+        {
+            isAzDo = false;
+        }
+        else
+        {
+            logger.LogError(Resources.ERROR_TFSLegacyNotSupported);
+            return null;
+        }
+
+        var settings = new BuildSettings
+        {
+            IsAzureDevOps = isAzDo,
+            BuildUri = ReadEnvVariable(isAzDo, EnvironmentVariables.BuildUriTfs2015),
+            TfsUri = ReadEnvVariable(isAzDo, EnvironmentVariables.TfsCollectionUriTfs2015),
+            BuildDirectory = ReadEnvVariable(isAzDo, EnvironmentVariables.BuildDirectoryTfs2015),
+            SourcesDirectory = ReadEnvVariable(isAzDo, EnvironmentVariables.SourcesDirectoryTfs2015),
+            CoverageToolUserSuppliedPath = ReadEnvVariable(isAzDo, EnvironmentVariables.VsTestToolCustomInstall),
+            // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
+            AnalysisBaseDirectory = Directory.GetCurrentDirectory(),
+            // https://jira.sonarsource.com/browse/SONARMSBRU-100 the sonar-scanner should be able to locate files such as the resharper output
+            // via relative paths, at least in the msbuild scenario, so the working directory should be The directory from which the user issued the command
+            // Note that this will not work for TFS Build / XAML Build as the sources directory is more difficult to compute
+            SonarScannerWorkingDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName
         };
-
-        // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
-        settings.AnalysisBaseDirectory = Directory.GetCurrentDirectory();
-
-        // https://jira.sonarsource.com/browse/SONARMSBRU-100 the sonar-scanner should be able to locate files such as the resharper output
-        // via relative paths, at least in the msbuild scenario, so the working directory should be The directory from which the user issued the command
-        // Note that this will not work for TFS Build / XAML Build as the sources directory is more difficult to compute
-        settings.SonarScannerWorkingDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
 
         return settings;
     }
 
     /// <summary>
-    /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="GetSettingsFromEnvironment(ILogger)"/> in product code.
+    /// Creates and returns settings for a non-TeamBuild environment - for testing purposes. Use <see cref="CreateFromEnvironment(ILogger)"/> in product code.
     /// </summary>
-    public static BuildSettings CreateSettingsForTesting(string analysisBaseDirectory, BuildEnvironment buildEnvironment = BuildEnvironment.NotTeamBuild)
+    public static BuildSettings CreateForTesting(string analysisBaseDirectory = null, bool isAzDo = false, string buildDirectory = null, string sourcesDirectory = null, string buildUri = null)
     {
-        if (string.IsNullOrWhiteSpace(analysisBaseDirectory))
-        {
-            throw new ArgumentNullException(nameof(analysisBaseDirectory));
-        }
-
-        var workingDirectory = Directory.GetParent(analysisBaseDirectory)?.FullName ?? throw new ArgumentException("Invalid analysis base directory");
+        var workingDirectory = string.IsNullOrEmpty(analysisBaseDirectory) ? null : Directory.GetParent(analysisBaseDirectory)?.FullName;
         return new BuildSettings
         {
-            BuildEnvironment = buildEnvironment,
+            IsAzureDevOps = isAzDo,
             AnalysisBaseDirectory = analysisBaseDirectory,
             SonarScannerWorkingDirectory = workingDirectory,
-            SourcesDirectory = workingDirectory,
+            SourcesDirectory = sourcesDirectory ?? workingDirectory,
+            BuildDirectory = buildDirectory,
+            BuildUri = buildUri,
         };
     }
 
-    /// <summary>
-    /// Returns the type of the current build environment: not under TeamBuild, legacy TeamBuild, "new" TeamBuild.
-    /// </summary>
-    private static BuildEnvironment GetBuildEnvironment()
-    {
-        var env = BuildEnvironment.NotTeamBuild;
-
-        if (IsInTeamBuild)
-        {
-            // Work out which flavor of TeamBuild
-            var buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy);
-            if (string.IsNullOrEmpty(buildUri))
-            {
-                buildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015);
-                if (!string.IsNullOrEmpty(buildUri))
-                {
-                    env = BuildEnvironment.TeamBuild;
-                }
-            }
-            else
-            {
-                env = BuildEnvironment.LegacyTeamBuild;
-            }
-        }
-        return env;
-    }
-
-    private static bool ReadBoolEnvironmentVariable(string envVar, bool defaultValue) =>
-        Environment.GetEnvironmentVariable(envVar) is { } value && bool.TryParse(value, out var result)
-            ? result
-            : defaultValue;
+    private static string ReadEnvVariable(bool isAzDo, string variableName) =>
+        isAzDo ? Environment.GetEnvironmentVariable(variableName) : null;
 }
