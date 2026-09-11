@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 public abstract class AnalysisConfigProcessorBase(ProcessedArgs localSettings, IDictionary<string, string> serverProperties) : IAnalysisConfigProcessor

@@ -18,10 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Text.RegularExpressions;
-using SonarScanner.MSBuild.Common;
-
 namespace SonarScanner.MSBuild;
 
 public static class StringExtensions

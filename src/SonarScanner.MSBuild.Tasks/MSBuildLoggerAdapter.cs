@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.Build.Utilities;
+using LoggerVerbosity = SonarScanner.MSBuild.Common.LoggerVerbosity;
 
 namespace SonarScanner.MSBuild.Tasks;
 
