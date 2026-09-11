@@ -61,7 +61,7 @@ public class PreprocessorObjectFactory
         }
 
         return args.ServerInfo.IsCloud
-            ? await SonarQubeCloud.Create(webDownloader, apiDownloader, runtime.Logger, args.Organization, args.HttpTimeout)
+            ? await SonarQubeCloud.Create(webDownloader, apiDownloader, runtime, args.Organization, args.HttpTimeout)
             : await SonarQubeServer.Create(webDownloader, apiDownloader, runtime, args.Organization);
 
         IDownloader CreateDownloader(string baseUrl) =>

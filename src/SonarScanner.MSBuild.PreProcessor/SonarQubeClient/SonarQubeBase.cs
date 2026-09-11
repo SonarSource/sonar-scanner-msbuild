@@ -35,7 +35,7 @@ public abstract class SonarQubeBase : IDisposable
     protected readonly IDownloader webDownloader;
     protected readonly IDownloader apiDownloader;
     protected readonly string organization;
-    protected readonly ILogger logger;
+    protected readonly IRuntime runtime;
 
     private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
     private bool disposed;
@@ -49,11 +49,11 @@ public abstract class SonarQubeBase : IDisposable
     protected abstract Task<bool> IsServerLicenseValid();
     protected abstract RuleSearchPaging ParseRuleSearchPaging(JObject json);
 
-    protected SonarQubeBase(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization)
+    protected SonarQubeBase(IDownloader webDownloader, IDownloader apiDownloader, IRuntime runtime, string organization)
     {
         this.webDownloader = webDownloader ?? throw new ArgumentNullException(nameof(webDownloader));
         this.apiDownloader = apiDownloader ?? throw new ArgumentNullException(nameof(apiDownloader));
-        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.organization = organization;
     }
 
@@ -61,7 +61,7 @@ public abstract class SonarQubeBase : IDisposable
     {
         var component = ComponentIdentifier(projectKey, projectBranch);
         var uri = AddOrganization(WebUtils.EscapedUri("api/qualityprofiles/search?project={0}", component));
-        logger.LogDebug(Resources.MSG_FetchingQualityProfile, component);
+        runtime.LogDebug(Resources.MSG_FetchingQualityProfile, component);
 
         var result = await webDownloader.TryDownloadIfExists(uri);
         var contents = result.Item2;
@@ -71,7 +71,7 @@ public abstract class SonarQubeBase : IDisposable
             contents = await webDownloader.Download(uri);
             if (contents is null)
             {
-                logger.LogError(Resources.ERROR_DownloadingQualityProfileFailed);
+                runtime.LogError(Resources.ERROR_DownloadingQualityProfileFailed);
                 throw new AnalysisException(Resources.ERROR_DownloadingQualityProfileFailed);
             }
         }
@@ -88,7 +88,7 @@ public abstract class SonarQubeBase : IDisposable
         while (fetched < total && fetched < limit)
         {
             var uri = WebUtils.EscapedUri("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile={0}&p={1}", qProfile, page.ToString());
-            logger.LogDebug(Resources.MSG_FetchingRules, qProfile);
+            runtime.LogDebug(Resources.MSG_FetchingRules, qProfile);
 
             var contents = await webDownloader.Download(uri);
             var json = JObject.Parse(contents);
@@ -121,7 +121,7 @@ public abstract class SonarQubeBase : IDisposable
         var uri = WebUtils.EscapedUri("static/{0}/{1}", pluginKey, embeddedFileName);
         var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
 
-        logger.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, targetDirectory);
+        runtime.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, targetDirectory);
         return await webDownloader.TryDownloadFileIfExists(uri, targetFilePath);
     }
 
@@ -140,8 +140,8 @@ public abstract class SonarQubeBase : IDisposable
         }
         catch (Exception e)
         {
-            logger.LogWarning(Resources.WARN_JreMetadataNotRetrieved, uri, e.MessageChain());
-            logger.LogDebug(e.ToString());
+            runtime.LogWarning(Resources.WARN_JreMetadataNotRetrieved, uri, e.MessageChain());
+            runtime.LogDebug(e.ToString());
             return null;
         }
     }
@@ -155,8 +155,8 @@ public abstract class SonarQubeBase : IDisposable
         }
         catch (Exception e)
         {
-            logger.LogWarning(Resources.WARN_EngineMetadataNotRetrieved, api, e.MessageChain());
-            logger.LogDebug(e.ToString());
+            runtime.LogWarning(Resources.WARN_EngineMetadataNotRetrieved, api, e.MessageChain());
+            runtime.LogDebug(e.ToString());
             return null;
         }
     }
@@ -200,8 +200,8 @@ public abstract class SonarQubeBase : IDisposable
         }
         catch (Exception ex)
         {
-            logger.LogError(ex.Message);
-            logger.LogDebug(ex.StackTrace);
+            runtime.LogError(ex.Message);
+            runtime.LogDebug(ex.StackTrace);
             return false;
         }
     }
@@ -214,7 +214,7 @@ public abstract class SonarQubeBase : IDisposable
             var value = settings[TestProjectPattern];
             if (value != OldDefaultProjectTestPattern)
             {
-                logger.LogWarning(Resources.WARN_TestProjectPattern, TestProjectPattern);
+                runtime.LogWarning(Resources.WARN_TestProjectPattern, TestProjectPattern);
             }
             settings["sonar.msbuild.testProjectPattern"] = value;
             settings.Remove(TestProjectPattern);
@@ -231,7 +231,7 @@ public abstract class SonarQubeBase : IDisposable
         if (AutomaticBaseBranchDetection.Current() is { } ciProperty)
         {
             branch = ciProperty.Value;
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_AutomaticBranchDetection, ciProperty.Value, ciProperty.Provider);
+            runtime.LogInfo(Resources.MSG_Processing_PullRequest_AutomaticBranchDetection, ciProperty.Value, ciProperty.Provider);
             return true;
         }
         return false;
@@ -259,13 +259,13 @@ public abstract class SonarQubeBase : IDisposable
         }
         else
         {
-            logger.LogDebug(Resources.MSG_FetchingProjectProperties, component);
+            runtime.LogDebug(Resources.MSG_FetchingProjectProperties, component);
             var uri = WebUtils.EscapedUri("api/settings/values?component={0}", component);
             var projectFound = await webDownloader.TryDownloadIfExists(uri, true);
             var contents = projectFound.Item2;
             if (projectFound is { Item1: false })
             {
-                logger.LogDebug("No settings for project {0}. Getting global settings...", component);
+                runtime.LogDebug("No settings for project {0}. Getting global settings...", component);
                 contents = await webDownloader.Download(new("api/settings/values", UriKind.Relative));
             }
             result = ParseSettingsResponse(contents);

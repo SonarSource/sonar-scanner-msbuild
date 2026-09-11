@@ -34,20 +34,20 @@ internal class SonarQubeCloud : SonarQubeBase
 
     public override string ServerVersion => "Cloud";    // Well-known value recognized by the analyzer
 
-    private SonarQubeCloud(IDownloader webDownloader, IDownloader apiDownloader, ILogger logger, string organization, HttpClient unauthenticatedClient)
-        : base(webDownloader, apiDownloader, logger, organization) =>
+    private SonarQubeCloud(IDownloader webDownloader, IDownloader apiDownloader, IRuntime runtime, string organization, HttpClient unauthenticatedClient)
+        : base(webDownloader, apiDownloader, runtime, organization) =>
         this.unauthenticatedClient = unauthenticatedClient;
 
     public static async Task<SonarQubeCloud> Create(IDownloader webDownloader,
                                                     IDownloader apiDownloader,
-                                                    ILogger logger,
+                                                    IRuntime runtime,
                                                     string organization,
                                                     TimeSpan httpTimeout,
                                                     HttpMessageHandler handler = null)
     {
         var unauthenticatedClient = handler is null ? new HttpClient { Timeout = httpTimeout } : new HttpClient(handler, true) { Timeout = httpTimeout };
-        var ret = new SonarQubeCloud(webDownloader, apiDownloader, logger, organization, unauthenticatedClient);
-        logger.LogInfo(Resources.MSG_UsingSonarQubeCloud);
+        var ret = new SonarQubeCloud(webDownloader, apiDownloader, runtime, organization, unauthenticatedClient);
+        runtime.LogInfo(Resources.MSG_UsingSonarQubeCloud);
         return await ret.IsAllValid() ? ret : null;     // No dispose for ret or downloaders for simplicity. The program ends soon.
     }
 
@@ -56,12 +56,12 @@ internal class SonarQubeCloud : SonarQubeBase
         _ = localSettings ?? throw new ArgumentNullException(nameof(localSettings));
         if (string.IsNullOrWhiteSpace(localSettings.ProjectKey))
         {
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
+            runtime.LogInfo(Resources.MSG_Processing_PullRequest_NoProjectKey);
             return [];
         }
         if (!TryGetBaseBranch(localSettings, out var branch))
         {
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
+            runtime.LogInfo(Resources.MSG_Processing_PullRequest_NoBranch);
             return [];
         }
         if (AuthToken(localSettings) is { } token)
@@ -69,13 +69,13 @@ internal class SonarQubeCloud : SonarQubeBase
             var serverSettings = await DownloadProperties(localSettings.ProjectKey, branch);
             if (!serverSettings.TryGetValue(SonarProperties.CacheBaseUrl, out var cacheBaseUrl))
             {
-                logger.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
+                runtime.LogInfo(Resources.MSG_Processing_PullRequest_NoCacheBaseUrl);
                 return [];
             }
 
             try
             {
-                logger.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
+                runtime.LogInfo(Resources.MSG_DownloadingCache, localSettings.ProjectKey, branch);
                 var ephemeralUrl = await DownloadEphemeralUrl(localSettings.Organization, localSettings.ProjectKey, branch, token, cacheBaseUrl);
                 if (ephemeralUrl is null)
                 {
@@ -86,14 +86,14 @@ internal class SonarQubeCloud : SonarQubeBase
             }
             catch (Exception e)
             {
-                logger.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
-                logger.LogDebug(e.ToString());
+                runtime.LogWarning(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, e.Message);
+                runtime.LogDebug(e.ToString());
                 return [];
             }
         }
         else
         {
-            logger.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
+            runtime.LogInfo(Resources.MSG_Processing_PullRequest_NoToken);
             return [];
         }
     }
@@ -102,14 +102,14 @@ internal class SonarQubeCloud : SonarQubeBase
     public override async Task<Stream> DownloadJreAsync(JreMetadata metadata)
     {
         _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(JreMetadata)} must contain a valid download URL.");
-        logger.LogDebug(Resources.MSG_JreDownloadUri, metadata.DownloadUrl);
+        runtime.LogDebug(Resources.MSG_JreDownloadUri, metadata.DownloadUrl);
         return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
     }
 
     public override async Task<Stream> DownloadEngineAsync(EngineMetadata metadata)
     {
         _ = metadata.DownloadUrl ?? throw new AnalysisException($"{nameof(EngineMetadata)} must contain a valid download URL.");
-        logger.LogDebug(Resources.MSG_EngineDownloadUri, metadata.DownloadUrl);
+        runtime.LogDebug(Resources.MSG_EngineDownloadUri, metadata.DownloadUrl);
         return await unauthenticatedClient.GetStreamAsync(metadata.DownloadUrl);
     }
 
@@ -120,8 +120,8 @@ internal class SonarQubeCloud : SonarQubeBase
     {
         if (string.IsNullOrWhiteSpace(organization))
         {
-            logger.LogError(Resources.ERR_MissingOrganization);
-            logger.LogWarning(Resources.WARN_DefaultHostUrlChanged);
+            runtime.LogError(Resources.ERR_MissingOrganization);
+            runtime.LogWarning(Resources.WARN_DefaultHostUrlChanged);
             return false;
         }
         else
@@ -132,13 +132,13 @@ internal class SonarQubeCloud : SonarQubeBase
 
     protected override bool IsServerVersionSupported()
     {
-        logger.LogDebug(Resources.MSG_CloudDetected_SkipVersionCheck);
+        runtime.LogDebug(Resources.MSG_CloudDetected_SkipVersionCheck);
         return true;
     }
 
     protected override Task<bool> IsServerLicenseValid()
     {
-        logger.LogDebug(Resources.MSG_CloudDetected_SkipLicenseCheck);
+        runtime.LogDebug(Resources.MSG_CloudDetected_SkipLicenseCheck);
         return Task.FromResult(true);
     }
 
@@ -157,24 +157,24 @@ internal class SonarQubeCloud : SonarQubeBase
         var uri = new Uri(WebUtils.CreateUri(cacheBaseUrl), WebUtils.EscapedUri("sensor-cache/prepare-read?organization={0}&project={1}&branch={2}", organization, projectKey, branch));
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         request.Headers.Add("Authorization", $"Bearer {token}");
-        logger.LogDebug(Resources.MSG_Processing_PullRequest_RequestPrepareRead, uri);
+        runtime.LogDebug(Resources.MSG_Processing_PullRequest_RequestPrepareRead, uri);
 
         using var response = await unauthenticatedClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' did not respond successfully.");
+            runtime.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' did not respond successfully.");
             return null;
         }
         var content = await response.Content.ReadAsStringAsync();
         if (string.IsNullOrWhiteSpace(content))
         {
-            logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' response was empty.");
+            runtime.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, "'prepare_read' response was empty.");
             return null;
         }
         var deserialized = JsonConvert.DeserializeAnonymousType(content, new { Enabled = false, Url = string.Empty });
         if (!deserialized.Enabled || string.IsNullOrWhiteSpace(deserialized.Url))
         {
-            logger.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, $"'prepare_read' response: {deserialized}.");
+            runtime.LogDebug(Resources.WARN_IncrementalPRCacheEntryRetrieval_Error, $"'prepare_read' response: {deserialized}.");
             return null;
         }
 
