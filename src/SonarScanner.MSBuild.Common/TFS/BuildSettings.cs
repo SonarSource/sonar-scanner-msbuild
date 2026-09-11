@@ -61,48 +61,35 @@ public class BuildSettings
     public static BuildSettings CreateFromEnvironment(ILogger logger)
     {
         bool isAzDo;
-        if (ReadBoolEnvironmentVariable(EnvironmentVariables.IsInTeamFoundationBuild, false))
+        if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015)))
         {
-            // Work out which flavor of TeamBuild
-            if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy)))
-            {
-                isAzDo = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015));
-            }
-            else
-            {
-                logger.LogError(Resources.ERROR_TFSLegacyNotSupported);
-                return null;
-            }
+            isAzDo = true;
         }
-        else
+        else if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriLegacy)))
         {
             isAzDo = false;
         }
+        else
+        {
+            logger.LogError(Resources.ERROR_TFSLegacyNotSupported);
+            return null;
+        }
 
-        var settings = isAzDo
-            ? new BuildSettings
-            {
-                IsAzureDevOps = true,
-                BuildUri = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildUriTfs2015),
-                TfsUri = Environment.GetEnvironmentVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
-                BuildDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.BuildDirectoryTfs2015),
-                SourcesDirectory = Environment.GetEnvironmentVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
-                CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
-            }
-            : new BuildSettings
-            {
-                IsAzureDevOps = false,
-                // there's no reliable of way of finding the SourcesDirectory, except after the build
-                CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall)
-            };
-
-        // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
-        settings.AnalysisBaseDirectory = Directory.GetCurrentDirectory();
-
-        // https://jira.sonarsource.com/browse/SONARMSBRU-100 the sonar-scanner should be able to locate files such as the resharper output
-        // via relative paths, at least in the msbuild scenario, so the working directory should be The directory from which the user issued the command
-        // Note that this will not work for TFS Build / XAML Build as the sources directory is more difficult to compute
-        settings.SonarScannerWorkingDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+        var settings = new BuildSettings
+        {
+            IsAzureDevOps = isAzDo,
+            BuildUri = ReadEnvVariable(isAzDo, EnvironmentVariables.BuildUriTfs2015),
+            TfsUri = ReadEnvVariable(isAzDo, EnvironmentVariables.TfsCollectionUriTfs2015),
+            BuildDirectory = ReadEnvVariable(isAzDo, EnvironmentVariables.BuildDirectoryTfs2015),
+            SourcesDirectory = ReadEnvVariable(isAzDo, EnvironmentVariables.SourcesDirectoryTfs2015),
+            CoverageToolUserSuppliedPath = ReadEnvVariable(isAzDo, EnvironmentVariables.VsTestToolCustomInstall),
+            // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
+            AnalysisBaseDirectory = Directory.GetCurrentDirectory(),
+            // https://jira.sonarsource.com/browse/SONARMSBRU-100 the sonar-scanner should be able to locate files such as the resharper output
+            // via relative paths, at least in the msbuild scenario, so the working directory should be The directory from which the user issued the command
+            // Note that this will not work for TFS Build / XAML Build as the sources directory is more difficult to compute
+            SonarScannerWorkingDirectory = Directory.GetParent(Directory.GetCurrentDirectory()).FullName
+        };
 
         return settings;
     }
@@ -124,8 +111,6 @@ public class BuildSettings
         };
     }
 
-    private static bool ReadBoolEnvironmentVariable(string envVar, bool defaultValue) =>
-        Environment.GetEnvironmentVariable(envVar) is { } value && bool.TryParse(value, out var result)
-            ? result
-            : defaultValue;
+    private static string ReadEnvVariable(bool isAzDo, string variableName) =>
+        isAzDo ? Environment.GetEnvironmentVariable(variableName) : null;
 }

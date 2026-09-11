@@ -278,7 +278,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Team Foundation Server detected, which is not supported by this version of Scanner for .NET. Use older version of the scanner..
+        ///   Looks up a localized string similar to Team Foundation Server detected, which is not supported by this version of SonarScanner for .NET. Use older version of the scanner..
         /// </summary>
         internal static string ERROR_TFSLegacyNotSupported {
             get {
