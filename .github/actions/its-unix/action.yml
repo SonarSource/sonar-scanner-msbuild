@@ -76,6 +76,29 @@ runs:
         artifactory-reader-role: private-reader
         working-directory: its
 
+    # GitHub-hosted macOS cannot reach the internal Edge node (same split as
+    # sonar-dataflow-bug-detection). Linux self-hosted runners can. Only legs
+    # that boot a local SonarQube (i.e. have sq-version) download distributions.
+    # Local composite: this public repo cannot resolve the private
+    # sonarsource-infra-artifactory action. Probe releases then builds —
+    # DEV zips live in sonarsource-builds; federation can 200 one repo and 401 the other.
+    - name: Wait for Artifactory token federation (releases)
+      if: runner.os != 'macOS' && inputs.sq-version != ''
+      uses: ./.github/actions/wait-for-artifactory-token-federation
+      env:
+        ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN }}
+      with:
+        artifactory-url: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
+        probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-releases&v=*"
+    - name: Wait for Artifactory token federation (builds)
+      if: runner.os != 'macOS' && inputs.sq-version != ''
+      uses: ./.github/actions/wait-for-artifactory-token-federation
+      env:
+        ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN }}
+      with:
+        artifactory-url: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
+        probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-builds&v=*"
+
     - name: Run Maven ITs
       env:
         MAVEN_OPTS: -Xmx3072m
@@ -83,6 +106,7 @@ runs:
         SQ_VERSION: ${{ inputs.sq-version }}
         SQ_EDITION: DEVELOPER
         ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
+        ORCHESTRATOR_ARTIFACTORY_URL: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
         SONARCLOUD_PROJECT_TOKEN: ${{ inputs.sonarcloud-project-token }}
         SONARCLOUD_URL: https://sc-staging.io/
