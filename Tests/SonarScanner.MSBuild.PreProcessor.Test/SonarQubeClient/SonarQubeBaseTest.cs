@@ -78,7 +78,7 @@ public class SonarQubeBaseTest
         downloader
             .TryDownloadIfExists(WebUtils.EscapedUri("api/qualityprofiles/search?project={0}&organization=ThisIsInvalidValue", ProjectKey), false)
             .Returns(Task.FromResult(Tuple.Create(false, (string)null)));
-        // SonarCloud returns 404, WebClientDownloader returns null
+        // SonarQube Cloud returns 404, WebClientDownloader returns null
         downloader
             .Download(WebUtils.EscapedUri("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)
             .Returns(Task.FromResult<string>(null));

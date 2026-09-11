@@ -45,7 +45,7 @@ internal class SonarQubeServer : SonarQubeBase
         if (await LoadServerVersion(apiDownloader, runtime.Logger) is { } serverVersion)
         {
             var ret = new SonarQubeServer(webDownloader, apiDownloader, serverVersion, runtime, organization);
-            runtime.LogInfo(Resources.MSG_UsingSonarQube, ret.ServerVersion);
+            runtime.LogInfo(Resources.MSG_UsingSonarQubeServer, ret.ServerVersion);
             return await ret.IsAllValid() ? ret : null;     // No dispose for ret or downloaders for simplicity. The program ends soon.
         }
         else

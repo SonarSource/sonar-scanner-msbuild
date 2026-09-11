@@ -20,7 +20,7 @@
 package com.sonar.it.scanner.msbuild.utils;
 
 import com.google.gson.Gson;
-import com.sonar.it.scanner.msbuild.sonarqube.ServerTests;
+import com.sonar.it.scanner.msbuild.server.ServerTests;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
 import java.io.File;
@@ -39,7 +39,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.internal.apachecommons.lang3.StringUtils;
 import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues;

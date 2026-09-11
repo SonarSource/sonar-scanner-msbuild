@@ -10,10 +10,10 @@ if ($TestToRun -eq "IT") {
     Set-Location -Path "$PSScriptRoot/../its"
     # Run Maven with the specified test include pattern
     $testIncludes = @(
-        "**/sonarqube/ScannerTest*",
-        "**/sonarqube/SslTest*",
-        "**/sonarqube/JreProvisioningTest*",
-        "**/sonarcloud/*"
+        "**/server/ScannerTest*",
+        "**/servere/SslTest*",
+        "**/server/JreProvisioningTest*",
+        "**/cloud/*"
     )
     $testIncludeParam = $testIncludes -join ','
 

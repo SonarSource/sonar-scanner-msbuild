@@ -127,13 +127,13 @@
     <value>/organization:[Organization to which the project belongs]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectKey" xml:space="preserve">
-    <value>/key:[SonarQube/SonarCloud project key]</value>
+    <value>/key:[SonarQube project key]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectName" xml:space="preserve">
-    <value>/name:[SonarQube/SonarCloud project name] - required for SonarQube &lt; 6.1</value>
+    <value>/name:[SonarQube project name]</value>
   </data>
   <data name="CmdLine_ArgDescription_ProjectVersion" xml:space="preserve">
-    <value>/version:[SonarQube/SonarCloud project version] - required for SonarQube &lt; 6.1</value>
+    <value>/version:[SonarQube project version]</value>
   </data>
   <data name="ERROR_CmdLine_InvalidInstallTargetsValue" xml:space="preserve">
     <value>Invalid value for /install: {0}. Valid values are "true" or "false".</value>
@@ -146,8 +146,8 @@
   </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expecting at least the following command line argument:
-- SonarQube/SonarCloud project key
-The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarQube Scanner for .NET.
+- SonarQube project key
+The full path to a settings file can also be supplied. If it is not supplied, the exe will attempt to locate a default settings file in the same directory as the SonarScanner for .NET.
 Use '/?' or '/h' to see the help message.</value>
   </data>
   <data name="ERROR_InvalidProjectKeyArg" xml:space="preserve">
@@ -195,11 +195,11 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_Downloading" xml:space="preserve">
     <value>Downloading from {0}...</value>
   </data>
-  <data name="MSG_UsingSonarCloud" xml:space="preserve">
-    <value>Using SonarCloud.</value>
+  <data name="MSG_UsingSonarQubeCloud" xml:space="preserve">
+    <value>Using SonarQube Cloud.</value>
   </data>
-  <data name="MSG_UsingSonarQube" xml:space="preserve">
-    <value>Using SonarQube v{0}.</value>
+  <data name="MSG_UsingSonarQubeServer" xml:space="preserve">
+    <value>Using SonarQube {0}.</value>
   </data>
   <data name="MSG_ResponseReceived" xml:space="preserve">
     <value>Response received from {0}...</value>
@@ -241,7 +241,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Generating rulesets...</value>
   </data>
   <data name="MSG_InstallTargetsLocalSystem" xml:space="preserve">
-    <value>Running the Scanner for .NET under Local System or Network Service account is not supported. Please, use a local or domain user account instead.</value>
+    <value>Running the SonarScanner for .NET under Local System or Network Service account is not supported. Please, use a local or domain user account instead.</value>
   </data>
   <data name="MSG_InstallTargets_Copy" xml:space="preserve">
     <value>Installed {0} to {1}</value>
@@ -258,8 +258,8 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_NotCopyingTargets" xml:space="preserve">
     <value>Skipping installing the ImportsBefore targets file.</value>
   </data>
-  <data name="MSG_SonarCloudDetected_SkipLicenseCheck" xml:space="preserve">
-    <value>SonarCloud detected, skipping license check.</value>
+  <data name="MSG_CloudDetected_SkipLicenseCheck" xml:space="preserve">
+    <value>SonarQube Cloud detected, skipping license check.</value>
   </data>
   <data name="MSG_UpdatingMSBuildTargets" xml:space="preserve">
     <value>Updating build integration targets...</value>
@@ -354,11 +354,11 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="MSG_CheckingVersionSupported" xml:space="preserve">
     <value>Checking if the server version is supported...</value>
   </data>
-  <data name="MSG_SonarCloudDetected_SkipVersionCheck" xml:space="preserve">
-    <value>SonarCloud detected, skipping server version check.</value>
+  <data name="MSG_CloudDetected_SkipVersionCheck" xml:space="preserve">
+    <value>SonarQube Cloud detected, skipping server version check.</value>
   </data>
   <data name="ERR_DotNetAnalyzersNotFound" xml:space="preserve">
-    <value>Could not find any dotnet analyzer plugin on the server (SonarQube/SonarCloud)!</value>
+    <value>Could not find any dotnet analyzer plugin on the SonarQube instance!</value>
   </data>
   <data name="ERROR_InvalidJavaExePath" xml:space="preserve">
     <value>The argument 'sonar.scanner.javaExePath' contains an invalid path. Please make sure the path is correctly pointing to the java executable.</value>
@@ -441,7 +441,7 @@ The analysis will continue with the Java runtime environment found in JAVA_HOME 
   </data>
   <data name="WARN_DefaultHostUrlChanged" xml:space="preserve">
     <value>In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"</value>
+If the intention was to connect to the local SonarQube Server instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"</value>
   </data>
   <data name="WARN_AuthenticationFailed" xml:space="preserve">
     <value>Authentication with the server has failed.</value>
@@ -467,7 +467,7 @@ If you already have a compatible Java version installed, please add either the p
     <value>You're using an unsupported version of SonarQube. The next major version release of SonarScanner for .NET will not work with this version. Please upgrade to a newer SonarQube version.</value>
   </data>
   <data name="WARN_SourcesAndTestsDeprecated" xml:space="preserve">
-    <value>The sonar.sources and sonar.tests properties are not supported by the Scanner for .NET and are ignored. They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.</value>
+    <value>The sonar.sources and sonar.tests properties are not supported by the SonarScanner for .NET and are ignored. They are automatically computed based on your repository. You can fine-tune the analysis and exclude some files by using the sonar.exclusions, sonar.inclusions, sonar.test.exclusions, and sonar.test.inclusions properties.</value>
   </data>
   <data name="ERR_TruststorePasswordWithoutTruststorePath" xml:space="preserve">
     <value>'sonar.scanner.truststorePath' must be specified when 'sonar.scanner.truststorePassword' is provided.</value>

@@ -38,7 +38,7 @@ public class TelemetryUtilsTests
     // Excluded
     [DataRow(SonarProperties.HostUrl, "secret")]
     [DataRow(SonarProperties.ApiBaseUrl, "secret")]
-    [DataRow(SonarProperties.SonarcloudUrl, "secret")]
+    [DataRow(SonarProperties.SonarCloudUrl, "secret")]
     [DataRow(SonarProperties.Region, "secret")]
     // File paths
     [DataRow(SonarProperties.ClientCertPath, "path/to/cert.pfx", "dotnetenterprise.s4net.params.sonar_clientcert_path.source=CLI", "dotnetenterprise.s4net.params.sonar_clientcert_path.value=.pfx")]

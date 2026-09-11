@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild.sonarcloud;
+package com.sonar.it.scanner.msbuild.cloud;
 
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
@@ -45,9 +45,9 @@ class CloudRegionTest {
     assertThat(result.getLogs()).contains(
       "Server Url: https://sonarqube.us",
       "Api Url: https://api.sonarqube.us",
-      "Is SonarCloud: True",
+      "Is SonarQube Cloud: True",
       "Downloading from https://sonarqube.us/api/settings/values?component=unknown",
-      "Using SonarCloud.",
+      "Using SonarQube Cloud.",
       "Downloading from https://sonarqube.us/api/settings/values?component=" + ContextExtension.currentTestName() + "...",
       "Cannot download quality profile. Check scanner arguments and the reported URL for more information.",
       "Pre-processing failed. Exit code: 1");

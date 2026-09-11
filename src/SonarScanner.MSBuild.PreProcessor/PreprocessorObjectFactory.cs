@@ -60,7 +60,7 @@ public class PreprocessorObjectFactory : IPreprocessorObjectFactory
             return null;
         }
 
-        return args.ServerInfo.IsSonarCloud
+        return args.ServerInfo.IsCloud
             ? await SonarQubeCloud.Create(webDownloader, apiDownloader, runtime.Logger, args.Organization, args.HttpTimeout)
             : await SonarQubeServer.Create(webDownloader, apiDownloader, runtime, args.Organization);
 

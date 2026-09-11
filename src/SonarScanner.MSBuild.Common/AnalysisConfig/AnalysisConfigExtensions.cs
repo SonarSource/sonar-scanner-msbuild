@@ -18,31 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
-/// Extension methods for <see cref="AnalysisConfig"/>
+/// Extension methods for <see cref="AnalysisConfig"/>.
 /// </summary>
 public static class ConfigSettingsExtensions
 {
     /// <summary>
-    /// The key for the setting that holds the path to a settings file
+    /// The key for the setting that holds the path to a settings file.
     /// </summary>
     private const string SettingsFileKey = "settings.file.path";
 
     #region Public methods
 
     /// <summary>
-    /// Returns the value of the specified config setting, or the supplied default value if the setting could not be found
+    /// Returns the value of the specified config setting, or the supplied default value if the setting could not be found.
     /// </summary>
     public static string GetConfigValue(this AnalysisConfig config, string settingId, string defaultValue)
     {
-        if (config == null)
+        if (config is null)
         {
             throw new ArgumentNullException(nameof(config));
         }
@@ -71,7 +66,7 @@ public static class ConfigSettingsExtensions
 
     /// <summary>
     /// Returns a provider containing the analysis settings coming from all providers (analysis config file, environment, settings file).
-    /// Optionally includes settings downloaded from the SonarQube server.
+    /// Optionally includes settings downloaded from the SonarQube instance.
     /// </summary>
     /// <remarks>This could include settings imported from a settings file</remarks>
     public static IAnalysisPropertyProvider AnalysisSettings(this AnalysisConfig config, bool includeServerSettings, ILogger logger)

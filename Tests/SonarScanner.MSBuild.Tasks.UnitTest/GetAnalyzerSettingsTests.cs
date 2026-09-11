@@ -256,11 +256,9 @@ public class GetAnalyzerSettingsTests
     }
 
     [TestMethod]
-    [DataRow("8.0.0.18955", "cs", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
     [DataRow("8.9", "cs", "true", DisplayName = "SQ 8.9 - needs exclusion parameter CS")]
     [DataRow("9.0", "cs", "TRUE", DisplayName = "SQ 9.0 - needs exclusion parameter CS")]
     [DataRow("10.0", "cs", "tRUE", DisplayName = "SQ 10.0 - needs exclusion parameter CS")]
-    [DataRow("8.0.0.18955", "vbnet", "true", DisplayName = "SonarCloud build version - needs exclusion parameter CS")]
     [DataRow("8.9", "vbnet", "true", DisplayName = "SQ 8.9 - needs exclusion parameter VB")]
     public void ConfigExists_ForTestProject_WhenExcluded_DeactivatedSonarAnalyzerSettingsUsed(string sonarQubeVersion, string language, string excludeTestProject)
     {
@@ -272,12 +270,10 @@ public class GetAnalyzerSettingsTests
     }
 
     [TestMethod]
-    [DataRow("8.0.0.18955", "cs", null, DisplayName = "SonarCloud build version CS")]
     [DataRow("8.9", "cs", null)]
     [DataRow("8.9", "cs", "false")]
     [DataRow("9.0", "cs", "FALSE")]
     [DataRow("10.0", "cs", "UnexpectedParamValue")]
-    [DataRow("8.0.0.18955", "vbnet", null, DisplayName = "SonarCloud build version VB")]
     [DataRow("8.9", "vbnet", null)]
     [DataRow("8.9", "vbnet", "false")]
     [DataRow("9.0", "vbnet", "FALSE")]
@@ -404,7 +400,7 @@ public class GetAnalyzerSettingsTests
         var config = new AnalysisConfig
         {
             SonarQubeVersion = sonarQubeVersion,
-            SonarQubeHostUrl = "http://localhost:9000", // If any SQ 8.0 version is passed (other than 8.0.0.29455), this will be classified as SonarCloud
+            SonarQubeHostUrl = "http://localhost:9000", // If any SQ 8.0 version is passed (other than 8.0.0.29455), this will be classified as SonarQube Cloud
             ServerSettings =
             [
                 // Server settings should be ignored. "true" value should break existing tests.

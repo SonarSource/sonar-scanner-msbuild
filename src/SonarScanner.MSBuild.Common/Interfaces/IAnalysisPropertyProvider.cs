@@ -23,7 +23,7 @@ namespace SonarScanner.MSBuild.Common;
 /// <summary>
 /// Provides analysis property properties
 /// </summary>
-/// <remarks>The properties could come from different sources e.g. a file, command line arguments, the SonarQube server</remarks>
+/// <remarks>The properties could come from different sources e.g. a file, command line arguments, the SonarQube instance.</remarks>
 public interface IAnalysisPropertyProvider
 {
     PropertyProviderKind ProviderType { get; }

@@ -27,10 +27,10 @@ namespace SonarScanner.MSBuild.Common;
 /// </summary>
 public static class SonarProperties
 {
-    // SonarCloud server settings
+    // SonarQube Cloud server settings
     public const string CacheBaseUrl = "sonar.sensor.cache.baseUrl";
 
-    // SonarQube server settings
+    // SonarQube Server settings
     public const string HostUrl = "sonar.host.url";
 
     public const string JavaExePath = "sonar.scanner.javaExePath";
@@ -41,7 +41,7 @@ public static class SonarProperties
     public const string SonarUserName = "sonar.login"; // Deprecated by SonarQube
     public const string SonarPassword = "sonar.password"; // Deprecated by SonarQube
 
-    public const string SonarcloudUrl = "sonar.scanner.sonarcloudUrl";
+    public const string SonarCloudUrl = "sonar.scanner.sonarcloudUrl";
     public const string ApiBaseUrl = "sonar.scanner.apiBaseUrl";
     public const string OperatingSystem = "sonar.scanner.os";
     public const string Architecture = "sonar.scanner.arch";

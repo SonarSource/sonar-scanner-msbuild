@@ -113,7 +113,7 @@ public class PreprocessorObjectFactoryTests
             "Authentication with the server has failed.",
             """
             In version 7 of the scanner, the default value for the sonar.host.url changed from "http://localhost:9000" to "https://sonarcloud.io".
-            If the intention was to connect to the local SonarQube instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
+            If the intention was to connect to the local SonarQube Server instance, please add the parameter: /d:sonar.host.url="http://localhost:9000"
             """
                 .ToUnixLineEndings());
     }

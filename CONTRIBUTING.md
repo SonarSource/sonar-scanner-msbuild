@@ -1,4 +1,4 @@
-# Contributing to Sonar Scanner for .NET
+# Contributing to SonarScanner for .NET
 
 There are many ways you can contribute to the SonarScanner for .NET project, some very easy and others more
 involved. We want to be friendly and welcoming to all potential contributors, so we ask that everyone involved abide
@@ -50,9 +50,9 @@ You can run the Unit Tests via the Test Explorer of Visual Studio.
 1. Open the `PATH_TO_CLONED_REPOSITORY\its` directory using your favorite IDE for Java (e.g. IntelliJ IDEA Community Edition)
 1. Run the ITs
 
-#### SonarCloud ITs prerequisites
+#### SonarQube Cloud ITs prerequisites
 
-In order to be able to run the ITs for SonarCloud the following environment variables need to be set:
+In order to be able to run the ITs for SonarQube Cloud the following environment variables need to be set:
 - SONARCLOUD_URL
 - SONARCLOUD_ORGANIZATION
 - SONARCLOUD_PROJECT_TOKEN

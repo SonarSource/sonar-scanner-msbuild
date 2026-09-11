@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package com.sonar.it.scanner.msbuild.sonarqube;
+package com.sonar.it.scanner.msbuild.server;
 
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
@@ -43,7 +43,7 @@ import org.sonarqube.ws.Ce;
 import org.sonarqube.ws.Components;
 import org.sonarqube.ws.Issues.Issue;
 
-import static com.sonar.it.scanner.msbuild.sonarqube.ServerTests.ORCHESTRATOR;
+import static com.sonar.it.scanner.msbuild.server.ServerTests.ORCHESTRATOR;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 

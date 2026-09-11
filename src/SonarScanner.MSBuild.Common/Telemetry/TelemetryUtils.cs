@@ -79,7 +79,7 @@ public static class TelemetryUtils
             serverUrl = serverInfo.ServerUrl == "http://localhost:9000" ? TelemetryValues.ServerInfoServerUrl.Localhost : TelemetryValues.ServerInfoServerUrl.CustomUrl;
         }
 
-        telemetry[TelemetryKeys.ServerInfoProduct] = serverInfo.IsSonarCloud ? TelemetryValues.Product.Cloud : TelemetryValues.Product.Server;
+        telemetry[TelemetryKeys.ServerInfoProduct] = serverInfo.IsCloud ? TelemetryValues.Product.Cloud : TelemetryValues.Product.Server;
         telemetry[TelemetryKeys.ServerInfoServerUrl] = serverUrl;
     }
 
@@ -106,7 +106,7 @@ public static class TelemetryUtils
             // Should be extracted from ServerInfo
             || property.IsKey(SonarProperties.HostUrl)
             || property.IsKey(SonarProperties.ApiBaseUrl)
-            || property.IsKey(SonarProperties.SonarcloudUrl)
+            || property.IsKey(SonarProperties.SonarCloudUrl)
             || property.IsKey(SonarProperties.Region))
         {
             return [];

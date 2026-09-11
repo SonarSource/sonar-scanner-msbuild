@@ -42,31 +42,31 @@ public class ArgumentProcessorTests
         "key".Should().Be(args.ProjectKey);
         args.ServerInfo.Should().NotBeNull();
         args.ServerInfo.ServerUrl.Should().Be("myurl");
-        args.ServerInfo.IsSonarCloud.Should().Be(false);
+        args.ServerInfo.IsCloud.Should().Be(false);
     }
 
     [TestMethod]
     public void PreArgProc_NoArguments_ProcessingFails() =>
-        CheckProcessingFails().Logger.Should().HaveErrorOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]")
+        CheckProcessingFails().Logger.Should().HaveErrorOnce("A required argument is missing: /key:[SonarQube project key]")
             .And.HaveErrors(1);
 
     [TestMethod]
     public void PreArgProc_KeyHasNoValue_ProcessingFails() =>
-        CheckProcessingFails("/key:").Logger.Should().HaveErrorOnce("A required argument is missing: /key:[SonarQube/SonarCloud project key]")
+        CheckProcessingFails("/key:").Logger.Should().HaveErrorOnce("A required argument is missing: /key:[SonarQube project key]")
             .And.HaveErrors(1);
 
     [TestMethod]
     public void PreArgProc_HostAndSonarcloudUrlError() =>
         CheckProcessingFails("/k:key", "/d:sonar.host.url=firstUrl", "/d:sonar.scanner.sonarcloudUrl=secondUrl").Logger
             .Should().HaveErrors("The arguments 'sonar.host.url' and 'sonar.scanner.sonarcloudUrl' are both set and are different. "
-            + "Please set either 'sonar.host.url' for SonarQube or 'sonar.scanner.sonarcloudUrl' for SonarCloud.");
+            + "Please set either 'sonar.host.url' for SonarQube Server or 'sonar.scanner.sonarcloudUrl' for SonarQube Cloud.");
 
     [TestMethod]
     public void PreArgProc_DefaultHostUrl()
     {
         var args = CheckProcessingSucceeds("/k:key");
         args.ServerInfo.Should().NotBeNull();
-        args.ServerInfo.IsSonarCloud.Should().BeTrue();
+        args.ServerInfo.IsCloud.Should().BeTrue();
         args.ServerInfo.ServerUrl.Should().Be("https://sonarcloud.io");
     }
 
@@ -78,7 +78,7 @@ public class ArgumentProcessorTests
         runtime.Logger.Should().HaveDebugs(
             "Server Url: https://sonarcloud.io",
             "Api Url: test",
-            "Is SonarCloud: True");
+            "Is SonarQube Cloud: True");
     }
 
     [TestMethod]
@@ -86,7 +86,7 @@ public class ArgumentProcessorTests
     [DataRow("https://sonarcloud.io")]
     [DataRow("https://sonar-test.io")]
     [DataRow("https://www.sonarcloud.io")]
-    public void PreArgProc_ApiBaseUrl_NotSet_SonarCloudDefault(string sonarcloudUrl)
+    public void PreArgProc_ApiBaseUrl_NotSet_CloudDefault(string sonarcloudUrl)
     {
         var runtime = new TestRuntime();
         CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.scanner.sonarcloudUrl={sonarcloudUrl}").ServerInfo.ApiBaseUrl
@@ -94,7 +94,7 @@ public class ArgumentProcessorTests
         runtime.Logger.Should().HaveDebugs(
             $"Server Url: {sonarcloudUrl}",
             "Api Url: https://api.sonarcloud.io",
-            "Is SonarCloud: True");
+            "Is SonarQube Cloud: True");
     }
 
     [TestMethod]
@@ -111,7 +111,7 @@ public class ArgumentProcessorTests
         runtime.Logger.Should().HaveDebugs(
             $"Server Url: {hostUri}",
             $"Api Url: {expectedApiUri}",
-            "Is SonarCloud: False");
+            "Is SonarQube Cloud: False");
     }
 
     [TestMethod]
@@ -127,7 +127,7 @@ public class ArgumentProcessorTests
         runtime.Logger.Should().HaveDebugs(
             "Server Url: https://sonarqube.us",
             "Api Url: https://api.sonarqube.us",
-            "Is SonarCloud: True");
+            "Is SonarQube Cloud: True");
     }
 
     [TestMethod]
@@ -141,7 +141,7 @@ public class ArgumentProcessorTests
         runtime.Logger.Should().HaveDebugs(
             "Server Url: https://sonarcloud.io",
             "Api Url: https://api.sonarcloud.io",
-            "Is SonarCloud: True");
+            "Is SonarQube Cloud: True");
     }
 
     [TestMethod]
@@ -209,16 +209,16 @@ public class ArgumentProcessorTests
                 "/k:key",
                 .. region is null ? Array.Empty<string>() : [$"/d:{SonarProperties.Region}={region}"],
                 .. hostOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.HostUrl}={hostOverride}"],
-                .. sonarClourUrlOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.SonarcloudUrl}={sonarClourUrlOverride}"],
+                .. sonarClourUrlOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.SonarCloudUrl}={sonarClourUrlOverride}"],
                 .. apiOverride is null ? Array.Empty<string>() : [$"/d:{SonarProperties.ApiBaseUrl}={apiOverride}"],
             ]);
 
         args.ServerInfo.Should().BeOfType(expectedHostInfoType);
-        args.ServerInfo.Should().BeEquivalentTo(new { ServerUrl = expectedHostUri, ApiBaseUrl = expectedApiUri, IsSonarCloud = expectedHostInfoType == typeof(CloudHostInfo) });
+        args.ServerInfo.Should().BeEquivalentTo(new { ServerUrl = expectedHostUri, ApiBaseUrl = expectedApiUri, IsCloud = expectedHostInfoType == typeof(CloudHostInfo) });
         runtime.Logger.Should().HaveDebugs(
             $"Server Url: {expectedHostUri}",
             $"Api Url: {expectedApiUri}",
-            $"Is SonarCloud: {args.ServerInfo.IsSonarCloud}");
+            $"Is SonarQube Cloud: {args.ServerInfo.IsCloud}");
         runtime.Logger.Warnings.Should().BeEquivalentTo(expectedWarnings);
     }
 
