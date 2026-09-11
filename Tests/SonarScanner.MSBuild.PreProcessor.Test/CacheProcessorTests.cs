@@ -27,7 +27,7 @@ namespace SonarScanner.MSBuild.PreProcessor.Test;
 [TestClass]
 public class CacheProcessorTests
 {
-    private TestLogger logger;
+    private TestRuntime runtime;
     private SonarQubeBase client;
 
     public TestContext TestContext { get; set; }
@@ -35,7 +35,7 @@ public class CacheProcessorTests
     [TestInitialize]
     public void Initialize()
     {
-        logger = new();
+        runtime = new();
         client = MockSonarQube.Create();
     }
 
@@ -44,10 +44,10 @@ public class CacheProcessorTests
     {
         var locals = CreateProcessedArgs();
         var builds = Substitute.For<IBuildSettings>();
-        ((Func<CacheProcessor>)(() => new CacheProcessor(client, locals, builds, logger))).Should().NotThrow();
-        ((Func<CacheProcessor>)(() => new CacheProcessor(null, locals, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("client");
-        ((Func<CacheProcessor>)(() => new CacheProcessor(client, null, builds, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("localSettings");
-        ((Func<CacheProcessor>)(() => new CacheProcessor(client, locals, null, logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("buildSettings");
+        ((Func<CacheProcessor>)(() => new CacheProcessor(client, locals, builds, runtime.Logger))).Should().NotThrow();
+        ((Func<CacheProcessor>)(() => new CacheProcessor(null, locals, builds, runtime.Logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("client");
+        ((Func<CacheProcessor>)(() => new CacheProcessor(client, null, builds, runtime.Logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("localSettings");
+        ((Func<CacheProcessor>)(() => new CacheProcessor(client, locals, null, runtime.Logger))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("buildSettings");
         ((Func<CacheProcessor>)(() => new CacheProcessor(client, locals, builds, null))).Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("logger");
     }
 
@@ -96,11 +96,11 @@ public class CacheProcessorTests
     {
         var workingDirectory = TestContext.ResultsDirectory;
         using var scope = new WorkingDirectoryScope(workingDirectory);
-        var localSettings = ArgumentProcessor.TryProcessArgs(["/k:key", "/d:sonar.projectBaseDir=Custom"], new TestRuntime { Logger = logger });
+        var localSettings = ArgumentProcessor.TryProcessArgs(["/k:key", "/d:sonar.projectBaseDir=Custom"], runtime);
         var buildSettings = Substitute.For<IBuildSettings>();
         buildSettings.SourcesDirectory.Returns(@"C:\Sources\Directory");
         buildSettings.SonarScannerWorkingDirectory.Returns(@"C:\SonarScanner\WorkingDirectory");
-        using var sut = new CacheProcessor(MockSonarQube.Create(), localSettings, buildSettings, logger);
+        using var sut = new CacheProcessor(MockSonarQube.Create(), localSettings, buildSettings, runtime.Logger);
 
         sut.PullRequestCacheBasePath.Should().Be(Path.Combine(workingDirectory, "Custom"));
     }
@@ -151,10 +151,10 @@ public class CacheProcessorTests
     [TestMethod]
     public async Task Execute_PullRequest_NoBasePath()
     {
-        using var sut = new CacheProcessor(client, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Substitute.For<IBuildSettings>(), logger);
+        using var sut = new CacheProcessor(client, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=master"), Substitute.For<IBuildSettings>(), runtime.Logger);
         await sut.Execute();
 
-        logger.Should().HaveInfoOnce("Cannot determine project base path. Incremental PR analysis is disabled.");
+        runtime.Logger.Should().HaveInfoOnce("Cannot determine project base path. Incremental PR analysis is disabled.");
         sut.UnchangedFilesPath.Should().BeNull();
     }
 
@@ -163,10 +163,10 @@ public class CacheProcessorTests
     {
         var settings = Substitute.For<IBuildSettings>();
         settings.SourcesDirectory.Returns(@"C:\Sources");
-        using var sut = new CacheProcessor(client, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, logger);
+        using var sut = new CacheProcessor(client, CreateProcessedArgs("/k:key /d:sonar.pullrequest.base=TARGET_BRANCH"), settings, runtime.Logger);
         await sut.Execute();
 
-        logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
+        runtime.Logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
         sut.UnchangedFilesPath.Should().BeNull();
     }
 
@@ -177,7 +177,7 @@ public class CacheProcessorTests
         context.Factory.Client.DownloadCache(null).ReturnsForAnyArgs([]);
         await context.Sut.Execute();
 
-        logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
+        runtime.Logger.Should().HaveInfos("Cache data is empty. A full analysis will be performed.");
         context.Sut.UnchangedFilesPath.Should().BeNull();
     }
 
@@ -187,7 +187,7 @@ public class CacheProcessorTests
         var context = new CacheContext(this, "/k:key /d:sonar.pullrequest.base=TARGET_BRANCH");
         await context.Sut.Execute();
 
-        logger.Should().HaveDebugs($"Using cache base path: {context.Root}");
+        runtime.Logger.Should().HaveDebugs($"Using cache base path: {context.Root}");
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
     }
 
@@ -198,7 +198,7 @@ public class CacheProcessorTests
         sut.ProcessPullRequest(Array.Empty<SensorCacheEntry>());
 
         sut.UnchangedFilesPath.Should().BeNull();
-        logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 0 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 0 are unchanged.");
     }
 
     [TestMethod]
@@ -212,7 +212,7 @@ public class CacheProcessorTests
         context.ProcessPullRequest();
 
         context.Sut.UnchangedFilesPath.Should().BeNull();
-        logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 3 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 3 are unchanged.");
     }
 
     [TestMethod]
@@ -223,7 +223,7 @@ public class CacheProcessorTests
 
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths);
-        logger.Should().HaveInfos("Incremental PR analysis: 3 files out of 3 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 3 files out of 3 are unchanged.");
     }
 
     [TestMethod]
@@ -237,7 +237,7 @@ public class CacheProcessorTests
 
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths[1]);  // Only a single file was not modified
-        logger.Should().HaveInfos("Incremental PR analysis: 1 files out of 3 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 1 files out of 3 are unchanged.");
     }
 
     [TestMethod]
@@ -260,20 +260,17 @@ public class CacheProcessorTests
         sut.ProcessPullRequest(cache);
 
         sut.UnchangedFilesPath.Should().BeNull();
-        logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 7 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 7 are unchanged.");
     }
 
     private CacheProcessor CreateSut(IBuildSettings buildSettings = null) =>
-        new(client, CreateProcessedArgs(), buildSettings ?? Substitute.For<IBuildSettings>(), logger);
+        new(client, CreateProcessedArgs(), buildSettings ?? Substitute.For<IBuildSettings>(), runtime.Logger);
 
-    private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key") =>
-        CreateProcessedArgs(logger, commandLineArgs);
-
-    private static ProcessedArgs CreateProcessedArgs(TestLogger logger, string commandLineArgs = "/k:key")
+    private ProcessedArgs CreateProcessedArgs(string commandLineArgs = "/k:key")
     {
         // When CI is run for a PR, AzureDevOps extension sets this to the actual PR analysis of S4NET project.
         using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", null);
-        var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), new TestRuntime { Logger = logger });
+        var processedArgs = ArgumentProcessor.TryProcessArgs(commandLineArgs.Split(' '), runtime);
         processedArgs.Should().NotBeNull();
         return processedArgs;
     }
@@ -293,7 +290,7 @@ public class CacheProcessorTests
     {
         public readonly string Root;
         public readonly List<string> Paths = [];
-        public readonly MockObjectFactory Factory;
+        public readonly PreprocessorObjectFactoryStub Factory;
         public readonly CacheProcessor Sut;
 
         private readonly List<SensorCacheEntry> cache = [];
@@ -311,12 +308,11 @@ public class CacheProcessorTests
                 new("File3.vb", "' Hello World!")
             ];
             Root = TestUtils.CreateTestSpecificFolderWithSubPaths(owner.TestContext);
-            var runtime = new TestRuntime { Logger = owner.logger };
-            Factory = new MockObjectFactory(runtime);
+            Factory = new PreprocessorObjectFactoryStub(owner.runtime);
             var settings = Substitute.For<IBuildSettings>();
             settings.SourcesDirectory.Returns(Root);
             settings.SonarConfigDirectory.Returns(Root);
-            Sut = new CacheProcessor(Factory.Client, CreateProcessedArgs(runtime.Logger, commandLineArgs), settings, runtime.Logger);
+            Sut = new CacheProcessor(Factory.Client, owner.CreateProcessedArgs(commandLineArgs), settings, owner.runtime.Logger);
             foreach (var (relativeFilePath, content) in fileData)
             {
                 var fullFilePath = Path.GetFullPath(CreateFile(Root, relativeFilePath, content, Encoding.UTF8));
