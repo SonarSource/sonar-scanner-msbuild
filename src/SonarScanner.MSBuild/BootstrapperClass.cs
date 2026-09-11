@@ -18,14 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using SonarScanner.MSBuild.Common;
-using SonarScanner.MSBuild.Common.Interfaces;
 
 namespace SonarScanner.MSBuild;
 
@@ -40,7 +33,7 @@ public class BootstrapperClass
     private readonly Func<string, Version> getAssemblyVersionFunc;
 
     public BootstrapperClass(IProcessorFactory processorFactory, IBootstrapperSettings bootstrapSettings, ILogger logger)
-        : this(processorFactory, bootstrapSettings, logger, assemblyPath => AssemblyName.GetAssemblyName(assemblyPath).Version)
+        : this(processorFactory, bootstrapSettings, logger, x => AssemblyName.GetAssemblyName(x).Version)
     {
     }
 
@@ -54,7 +47,7 @@ public class BootstrapperClass
         this.logger = logger;
         this.getAssemblyVersionFunc = getAssemblyVersionFunc;
 
-        Debug.Assert(this.bootstrapSettings != null, "Bootstrapper settings should not be null");
+        Debug.Assert(this.bootstrapSettings is not null, "Bootstrapper settings should not be null");
     }
 
     /// <summary>
@@ -150,31 +143,30 @@ public class BootstrapperClass
         }
 
         Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
-        IBuildSettings teamBuildSettings = BuildSettings.GetSettingsFromEnvironment();
-        var config = GetAnalysisConfig(teamBuildSettings.AnalysisConfigFilePath);
+        var buildSettings = BuildSettings.CreateFromEnvironment(logger);
 
         bool succeeded;
-        if (config == null)
+        if (LoadAnalysisConfig(buildSettings?.AnalysisConfigFilePath) is { } config)
         {
-            succeeded = false;
+            var postProcessor = processorFactory.CreatePostProcessor();
+            succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, buildSettings);
         }
         else
         {
-            var postProcessor = processorFactory.CreatePostProcessor();
-            succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, teamBuildSettings);
+            succeeded = false;
         }
 
         return succeeded ? SuccessCode : ErrorCode;
     }
 
     /// <summary>
-    /// Copies DLLs needed by the targets file that is loaded by MSBuild to the project's .sonarqube directory
+    /// Copies DLLs needed by the targets file that is loaded by MSBuild to the project's .sonarqube directory.
     /// </summary>
     private bool CopyDlls()
     {
         var binDirPath = Path.Combine(bootstrapSettings.TempDirectory, "bin");
         Directory.CreateDirectory(binDirPath);
-        string[] dllsToCopy = { "SonarScanner.MSBuild.Common.dll", "SonarScanner.MSBuild.Tasks.dll", "Newtonsoft.Json.dll" };
+        string[] dllsToCopy = ["SonarScanner.MSBuild.Common.dll", "SonarScanner.MSBuild.Tasks.dll", "Newtonsoft.Json.dll"];
 
         foreach (var dll in dllsToCopy)
         {
@@ -204,18 +196,18 @@ public class BootstrapperClass
     /// calculated from TeamBuild-specific environment variables.
     /// Returns null if the required environment variables are not available.
     /// </summary>
-    private AnalysisConfig GetAnalysisConfig(string configFilePath)
+    private AnalysisConfig LoadAnalysisConfig(string configFilePath)
     {
         AnalysisConfig config = null;
 
-        if (configFilePath != null)
+        if (configFilePath is not null)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(configFilePath), "Expecting the analysis config file path to be set");
 
             if (File.Exists(configFilePath))
             {
                 config = AnalysisConfig.Load(configFilePath);
-                config.LocalSettings = config.LocalSettings ?? new AnalysisProperties();
+                config.LocalSettings ??= [];
             }
             else
             {

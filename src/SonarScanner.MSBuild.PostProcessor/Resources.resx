@@ -170,9 +170,6 @@ Expected location: {0}</value>
   <data name="Report_MdSummaryProductAndTestMessage" xml:space="preserve">
     <value>- Product projects: {0}, test projects: {1}</value>
   </data>
-  <data name="SETTINGS_InLegacyTeamBuild" xml:space="preserve">
-    <value>Legacy TeamBuild environment detected</value>
-  </data>
   <data name="SETTINGS_InTeamBuild" xml:space="preserve">
     <value>TeamBuild environment detected</value>
   </data>
