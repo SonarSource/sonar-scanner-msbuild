@@ -1,5 +1,12 @@
 ﻿<Project Sdk='Microsoft.NET.Sdk'>
 
+  <!-- Isolate this generated sample project from the repository's own Directory.Build.props/targets (e.g. Tests/Directory.Build.targets),
+       which would otherwise inject test-only PackageReferences and global usings into what is meant to be a standalone consumer project. -->
+  <PropertyGroup>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
+  </PropertyGroup>
+
   <!-- Test-specific XML snippet -->
   {0}
 
