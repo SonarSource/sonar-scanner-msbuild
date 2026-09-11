@@ -169,16 +169,24 @@ jobs:
           path: Packaging/Binaries
 
       # WarpBuild Windows can reach Edge (same pattern as sonar-security plugin ITs).
-      # Inline wait: this public repo cannot resolve the private infra action.
-      # Only the **/sonarqube/* legs download a SonarQube distribution from Edge.
-      - name: Wait for Artifactory token federation
+      # Local composite: this public repo cannot resolve the private
+      # sonarsource-infra-artifactory action. Only **/sonarqube/* legs download a zip.
+      - name: Wait for Artifactory token federation (releases)
         if: matrix.testInclude == '**/sonarqube/*'
         timeout-minutes: 5
-        shell: bash
+        uses: ./.github/actions/wait-for-artifactory-token-federation
         env:
           ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN || fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
-          ARTIFACTORY_URL: https://repox-internal.dev.sonar.build/artifactory
-        run: bash scripts/wait-for-artifactory-token-federation.sh
+        with:
+          probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-releases&v=*"
+      - name: Wait for Artifactory token federation (builds)
+        if: matrix.testInclude == '**/sonarqube/*'
+        timeout-minutes: 5
+        uses: ./.github/actions/wait-for-artifactory-token-federation
+        env:
+          ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN || fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
+        with:
+          probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-builds&v=*"
 
       # MultiLanguageTest needs npm, and only runs as part of the **/sonarqube/* legs.
       - name: Set npm registry to Repox
