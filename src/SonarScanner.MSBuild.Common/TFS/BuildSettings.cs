@@ -78,11 +78,12 @@ public class BuildSettings
         var settings = new BuildSettings
         {
             IsAzureDevOps = isAzDo,
-            BuildUri = ReadEnvVariable(isAzDo, EnvironmentVariables.BuildUriTfs2015),
-            TfsUri = ReadEnvVariable(isAzDo, EnvironmentVariables.TfsCollectionUriTfs2015),
-            BuildDirectory = ReadEnvVariable(isAzDo, EnvironmentVariables.BuildDirectoryTfs2015),
-            SourcesDirectory = ReadEnvVariable(isAzDo, EnvironmentVariables.SourcesDirectoryTfs2015),
-            CoverageToolUserSuppliedPath = ReadEnvVariable(isAzDo, EnvironmentVariables.VsTestToolCustomInstall),
+            BuildUri = ReadEnvVariable(EnvironmentVariables.BuildUriTfs2015),
+            TfsUri = ReadEnvVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
+            BuildDirectory = ReadEnvVariable(EnvironmentVariables.BuildDirectoryTfs2015),
+            SourcesDirectory = ReadEnvVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
+            // there's no reliable of way of finding the SourcesDirectory, except after the build
+            CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall),
             // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
             AnalysisBaseDirectory = Directory.GetCurrentDirectory(),
             // https://jira.sonarsource.com/browse/SONARMSBRU-100 the sonar-scanner should be able to locate files such as the resharper output
@@ -92,6 +93,9 @@ public class BuildSettings
         };
 
         return settings;
+
+        string ReadEnvVariable(string variableName) =>
+            isAzDo ? Environment.GetEnvironmentVariable(variableName) : null;
     }
 
     /// <summary>
@@ -110,7 +114,4 @@ public class BuildSettings
             BuildUri = buildUri,
         };
     }
-
-    private static string ReadEnvVariable(bool isAzDo, string variableName) =>
-        isAzDo ? Environment.GetEnvironmentVariable(variableName) : null;
 }

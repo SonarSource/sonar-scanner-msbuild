@@ -143,18 +143,15 @@ public class BootstrapperClass
         Directory.SetCurrentDirectory(bootstrapSettings.TempDirectory);
         var buildSettings = BuildSettings.CreateFromEnvironment(logger);
 
-        bool succeeded;
         if (LoadAnalysisConfig(buildSettings?.AnalysisConfigFilePath) is { } config)
         {
             var postProcessor = processorFactory.CreatePostProcessor();
-            succeeded = postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, buildSettings);
+            return postProcessor.Execute(bootstrapSettings.ChildCmdLineArgs.ToArray(), config, buildSettings) ? SuccessCode : ErrorCode;
         }
         else
         {
-            succeeded = false;
+            return ErrorCode;
         }
-
-        return succeeded ? SuccessCode : ErrorCode;
     }
 
     /// <summary>
