@@ -166,8 +166,7 @@ public class BuildVNextCoverageReportProcessorTests
         CreateTrxFile("notbinary.xml");
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        runtime.Logger.Errors.Should().ContainSingle().Which                                // shouldn't throw
-            .StartsWith("Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to the server (SonarQube/SonarCloud).");
+        runtime.Logger.Should().HaveNoErrors().And.HaveNoWarnings();
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
         additionalProperties.CoverageConversionPerformed.Should().BeFalse();
