@@ -86,7 +86,7 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_TrxFileFound_CoverageXmlReportsPathsProvided_WritesPropertiesFile_DoesAttemptConversion()
+    public void ProcessCoverageReports_TrxFileFound_CoverageXmlReportsPathsProvided_WritesPropertiesFile_DoesNotAttemptConversion()
     {
         SetupPropertiesAndFiles(Properties.CoverageXmlReportsPathsNotNull, trx: true);
 
@@ -510,15 +510,6 @@ public class BuildVNextCoverageReportProcessorTests
             .Should().BeFalse();
 
     [TestMethod]
-    public void ConvertToXml_InvalidArgs_Throws()
-    {
-        sut.Invoking(x => x.ConvertToXml(null, "dummypath")).Should().Throw<ArgumentNullException>().WithParameterName("inputFilePath");
-        sut.Invoking(x => x.ConvertToXml("\t\n", "dummypath")).Should().Throw<ArgumentNullException>().WithParameterName("inputFilePath");
-        sut.Invoking(x => x.ConvertToXml("dummypath", null)).Should().Throw<ArgumentNullException>().WithParameterName("outputFilePath");
-        sut.Invoking(x => x.ConvertToXml("dummypath", "   ")).Should().Throw<ArgumentNullException>().WithParameterName("outputFilePath");
-    }
-
-    [TestMethod]
     public void ConvertToXml_ConversionFailure_False()
     {
         var context = new ConverterTestContext(TestContext);
@@ -532,36 +523,20 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ConvertToXml_InputFileDoesNotExists_False()
-    {
-        var context = new ConverterTestContext(TestContext, fileContent: null);
-        sut.ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse();
-        runtime.Logger.Should().HaveErrors($"The binary coverage file {context.InputFilePath} could not be found. No coverage information will be uploaded to the Sonar server.");
-        File.Exists(context.OutputFilePath).Should().BeFalse();
-    }
-
-    [TestMethod]
     public void ConvertToXml_InputFileIsLocked_False()
     {
         var context = new ConverterTestContext(TestContext);
-        try
-        {
-            using var fs = new FileStream(context.InputFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None); // lock the file with FileShare.None
-            // FileShare.None will cause nested inner exceptions: AggregateException -> CoverageFileException -> IOException with messages
-            // AggregateException: One or more errors occurred.
-            // CoverageFileException: Failed to open coverage file "C:\Fullpath\input.txt".
-            // IOException: The process cannot access the file 'C:\Fullpath\input.txt' because it is being used by another process.
-            sut.ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse();
-            runtime.Logger.Should().HaveErrors($"""
-                Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to SonarQube.
-                Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
-                """);
-            File.Exists(context.OutputFilePath).Should().BeFalse();
-        }
-        finally
-        {
-            File.Delete(context.InputFilePath);
-        }
+        using var fs = new FileStream(context.InputFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None); // lock the file with FileShare.None
+        // FileShare.None will cause nested inner exceptions: AggregateException -> CoverageFileException -> IOException with messages
+        // AggregateException: One or more errors occurred.
+        // CoverageFileException: Failed to open coverage file "C:\Fullpath\input.txt".
+        // IOException: The process cannot access the file 'C:\Fullpath\input.txt' because it is being used by another process.
+        sut.ConvertToXml(context.InputFilePath, context.OutputFilePath).Should().BeFalse();
+        runtime.Logger.Should().HaveErrors($"""
+            Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to SonarQube.
+            Check that the downloaded code coverage file ({context.InputFilePath}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
+            """);
+        File.Exists(context.OutputFilePath).Should().BeFalse();
     }
 
     [TestMethod]
@@ -593,7 +568,7 @@ public class BuildVNextCoverageReportProcessorTests
         File.Exists(inputFilePath).Should().BeTrue();
         File.Exists(outputFilePath).Should().BeFalse();
         File.Exists(expectedOutputFilePath).Should().BeTrue();
-        using var _ = new ApplicationCultureInfo(CultureInfo.GetCultureInfo("de-DE")); // Serializes block_coverage="33.33" as block_coverage="33,33"
+        using var scope = new ApplicationCultureInfo(CultureInfo.GetCultureInfo("de-DE")); // Serializes block_coverage="33.33" as block_coverage="33,33"
         sut.ConvertToXml(inputFilePath, outputFilePath).Should().BeTrue();
         File.Exists(outputFilePath).Should().BeTrue();
         // All tags and attributes must appear in actual and expected. Comments, whitespace, ordering, and the like is ignored in the assertion.

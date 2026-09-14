@@ -121,20 +121,6 @@ public class BuildVNextCoverageReportProcessor
 
     internal /* for testing */ bool ConvertToXml(string inputFilePath, string outputFilePath)
     {
-        if (string.IsNullOrWhiteSpace(inputFilePath))
-        {
-            throw new ArgumentNullException(nameof(inputFilePath));
-        }
-        if (string.IsNullOrWhiteSpace(outputFilePath))
-        {
-            throw new ArgumentNullException(nameof(outputFilePath));
-        }
-        if (!File.Exists(inputFilePath))
-        {
-            runtime.Logger.LogError(Resources.CONV_ERROR_InputFileNotFound, inputFilePath);
-            return false;
-        }
-
         var util = new CoverageFileUtility();
         try
         {
@@ -187,16 +173,21 @@ public class BuildVNextCoverageReportProcessor
             if (runtime.File.Exists(xmlFilePath))
             {
                 runtime.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
+                xmlFileNames.Add(xmlFilePath);
+            }
+            else if (!File.Exists(vsCoverageFilePath))
+            {
+                runtime.Logger.LogError(Resources.CONV_ERROR_InputFileNotFound, vsCoverageFilePath);
             }
             else if (ConvertToXml(vsCoverageFilePath, xmlFilePath))
             {
                 conversionPerformed = true;
+                xmlFileNames.Add(xmlFilePath);
             }
             else
             {
                 return [];
             }
-            xmlFileNames.Add(xmlFilePath);
         }
         return xmlFileNames.ToArray();
     }
