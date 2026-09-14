@@ -78,10 +78,10 @@ public class BuildSettings
         var settings = new BuildSettings
         {
             IsAzureDevOps = isAzDo,
-            BuildUri = ReadEnvVariable(EnvironmentVariables.BuildUriTfs2015),
-            TfsUri = ReadEnvVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
-            BuildDirectory = ReadEnvVariable(EnvironmentVariables.BuildDirectoryTfs2015),
-            SourcesDirectory = ReadEnvVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
+            BuildUri = ReadAzDoVariable(EnvironmentVariables.BuildUriTfs2015),
+            TfsUri = ReadAzDoVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
+            BuildDirectory = ReadAzDoVariable(EnvironmentVariables.BuildDirectoryTfs2015),
+            SourcesDirectory = ReadAzDoVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
             // there's no reliable of way of finding the SourcesDirectory, except after the build
             CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall),
             // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
@@ -94,7 +94,7 @@ public class BuildSettings
 
         return settings;
 
-        string ReadEnvVariable(string variableName) =>
+        string ReadAzDoVariable(string variableName) =>
             isAzDo ? Environment.GetEnvironmentVariable(variableName) : null;
     }
 
