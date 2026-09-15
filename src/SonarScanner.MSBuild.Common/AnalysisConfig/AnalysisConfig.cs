@@ -182,20 +182,9 @@ public class AnalysisConfig
 
     public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
     {
-        if (settingName == null)
-        {
-            throw new ArgumentNullException(nameof(settingName));
-        }
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
-        if (CreatePropertyProvider(includeServerSettings, logger).TryGetValue(settingName, out var value))
-        {
-            return value;
-        }
-        return defaultValue;
+        _ = settingName ?? throw new ArgumentNullException(nameof(settingName));
+        _ = logger ?? throw new ArgumentNullException(nameof(logger));
+        return CreatePropertyProvider(includeServerSettings, logger).TryGetValue(settingName, out var value) ? value : defaultValue;
     }
 
     /// <summary>
