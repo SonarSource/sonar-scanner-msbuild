@@ -206,7 +206,7 @@ public class AdditionalFilesService
 
     private IEnumerable<string> AllPropertyValues(AnalysisConfig config, IReadOnlyList<string> ids) =>
         ids
-            .Select(x => config.GetSettingOrDefault(x, true, null, runtime.Logger))
+            .Select(x => config.ReadSetting(x, true, null, runtime.Logger))
             .Where(x => x is not null)
             .SelectMany(x => x.Split(Comma, StringSplitOptions.RemoveEmptyEntries));
 

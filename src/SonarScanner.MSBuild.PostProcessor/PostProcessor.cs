@@ -62,7 +62,7 @@ public class PostProcessor
             runtime.Logger.ResumeOutput();
             return false;   // logging already done
         }
-        runtime.Logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.AnalysisSettings(true, runtime.Logger), runtime.Logger);
+        runtime.Logger.Verbosity = VerbosityCalculator.ComputeVerbosity(config.CreatePropertyProvider(true, runtime.Logger), runtime.Logger);
         runtime.Logger.ResumeOutput();
         LogStartupSettings(config, settings);
         if (!CheckCredentialsInCommandLineArgs(config, cmdLineArgs) || !CheckEnvironmentConsistency(config, settings))
@@ -149,7 +149,7 @@ public class PostProcessor
             return true;
         }
 
-        var configUri = config.GetBuildUri();
+        var configUri = config.ReadBuildUri();
         var environmentUri = settings.BuildUri;
         if (string.Equals(configUri, environmentUri, StringComparison.OrdinalIgnoreCase))
         {

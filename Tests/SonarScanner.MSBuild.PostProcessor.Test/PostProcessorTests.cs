@@ -466,7 +466,7 @@ public class PostProcessorTests
 
     private void SubstituteSettings(bool isAzDo)
     {
-        settings = BuildSettings.CreateForTesting(analysisBaseDirectory: "basedir", isAzDo: isAzDo, buildUri: config.GetBuildUri());
+        settings = BuildSettings.CreateForTesting(analysisBaseDirectory: "basedir", isAzDo: isAzDo, buildUri: config.ReadBuildUri());
     }
 
     private static string PathCombineWithEscape(params string[] parts)
