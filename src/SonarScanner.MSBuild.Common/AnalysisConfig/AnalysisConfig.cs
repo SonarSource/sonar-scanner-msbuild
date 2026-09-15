@@ -50,7 +50,7 @@ public class AnalysisConfig
     public string SourcesDirectory { get; set; }
 
     /// <summary>
-    /// The Java exe path to be used by the end step to call the scanner cli or engine.
+    /// The Java exe path to be used by the end step to call the scanner engine.
     /// </summary>
     public string JavaExePath { get; set; }
 
@@ -63,11 +63,6 @@ public class AnalysisConfig
     /// The path to the SonarScanner Cli.
     /// </summary>
     public string SonarScannerCliPath { get; set; }
-
-    /// <summary>
-    /// Use the SonarScanner CLI instead of the engine jar.
-    /// </summary>
-    public bool UseSonarScannerCli { get; set; }
 
     /// <summary>
     /// The option that enables or disables multi-language analysis.
