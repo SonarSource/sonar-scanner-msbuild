@@ -590,7 +590,7 @@ public class BuildVNextCoverageReportProcessorTests
         XDocument.Load(outputFilePath).Should().BeEquivalentTo(XDocument.Load(expectedOutputFilePath));
     }
 
-    private void SetupPropertiesAndFiles(Properties settings, bool trx = false, bool coverage = false, bool coverageXml = false, bool alternate = false, bool alternateXml = false, string coverageContent = "coverage")
+    private void SetupPropertiesAndFiles(Properties settings, bool trx = false, bool coverage = false, bool coverageXml = false, bool alternate = false, bool alternateXml = false)
     {
         analysisConfig.LocalSettings = settings switch
         {
@@ -606,7 +606,7 @@ public class BuildVNextCoverageReportProcessorTests
         }
         if (coverage)
         {
-            CreateFile(coverageDir, "dummy.coverage", coverageContent);
+            CreateFile(coverageDir, "dummy.coverage", "coverage");
         }
         if (coverageXml)
         {
