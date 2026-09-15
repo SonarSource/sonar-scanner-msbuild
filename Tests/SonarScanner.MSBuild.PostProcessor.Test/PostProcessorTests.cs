@@ -63,7 +63,7 @@ public class PostProcessorTests
         targetsUninstaller = Substitute.For<TargetsUninstaller>(runtime.Logger);
         sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         coverageReportProcessor = Substitute
-            .For<BuildVNextCoverageReportProcessor>(Substitute.For<ICoverageReportConverter>(), runtime);
+            .For<BuildVNextCoverageReportProcessor>(runtime);
         coverageReportProcessor.ProcessCoverageReports(null, null).ReturnsForAnyArgs(new AdditionalProperties([@"VS\Test\Path"], [@"VS\XML\Coverage\Path"], coverageConversionPerformed: true));
         scannerEngineInput = new ScannerEngineInput(config);
         sut = new PostProcessor(
