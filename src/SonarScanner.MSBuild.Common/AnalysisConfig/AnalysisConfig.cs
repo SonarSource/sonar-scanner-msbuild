@@ -154,23 +154,11 @@ public class AnalysisConfig
     public void SetBuildUri(string uri) =>
         SetAdditionalSetting(BuildUriSettingId, uri);
 
-    public string ReadSettingsFilePath()
-    {
-        if (FindAdditionalSetting(SettingsFileKey) is { } setting)
-        {
-            return setting.Value;
-        }
-        return null;
-    }
+    public string ReadSettingsFilePath() =>
+        ReadAdditionalSetting(SettingsFileKey, null);
 
-    public void SetSettingsFilePath(string fileName)
-    {
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            throw new ArgumentNullException(nameof(fileName));
-        }
+    public void SetSettingsFilePath(string fileName) =>
         SetAdditionalSetting(SettingsFileKey, fileName);
-    }
 
     public string ReadAdditionalSetting(string settingId, string defaultValue)
     {
