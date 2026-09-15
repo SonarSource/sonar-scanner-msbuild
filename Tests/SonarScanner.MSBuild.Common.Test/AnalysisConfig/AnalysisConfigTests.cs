@@ -291,6 +291,7 @@ public class AnalysisConfigTests
         // Update
         config.SetAdditionalSetting("id1", "value2");
         config.ReadAdditionalSetting("id1", "XXX").Should().Be("value2", "Unexpected config value returned");
+        config.AdditionalConfig.Should().ContainSingle();
     }
 
     [TestMethod]

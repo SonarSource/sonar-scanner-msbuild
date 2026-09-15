@@ -169,7 +169,7 @@ public class AnalysisConfig
         {
             throw new ArgumentNullException(nameof(fileName));
         }
-        SetAdditionalSettingDuplicateToRemove(SettingsFileKey, fileName);
+        SetAdditionalSetting(SettingsFileKey, fileName);
     }
 
     public string ReadAdditionalSetting(string settingId, string defaultValue)
@@ -191,7 +191,16 @@ public class AnalysisConfig
 
     public void SetAdditionalSetting(string settingId, string value)
     {
-        SetAdditionalSettingDuplicateToRemove(settingId, value);
+        Contract.ThrowIfNullOrWhitespace(settingId, nameof(settingId));
+        if (FindAdditionalSetting(settingId) is { } setting)
+        {
+            setting.Value = value;
+        }
+        else
+        {
+            AdditionalConfig ??= [];
+            AdditionalConfig.Add(new ConfigSetting() { Id = settingId, Value = value });
+        }
     }
 
     public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
@@ -257,31 +266,4 @@ public class AnalysisConfig
 
     private ConfigSetting FindAdditionalSetting(string settingId) =>
         AdditionalConfig?.FirstOrDefault(x => ConfigSetting.SettingKeyComparer.Equals(settingId, x.Id));
-
-    private void SetAdditionalSettingDuplicateToRemove(string settingId, string value)
-    {
-        if (string.IsNullOrWhiteSpace(settingId))
-        {
-            throw new ArgumentNullException(nameof(settingId));
-        }
-
-        if (FindAdditionalSetting(settingId) is { } setting)
-        {
-            setting.Value = value;
-        }
-        else
-        {
-            setting = new ConfigSetting()
-            {
-                Id = settingId,
-                Value = value
-            };
-        }
-
-        if (AdditionalConfig == null)
-        {
-            AdditionalConfig = new System.Collections.Generic.List<ConfigSetting>();
-        }
-        AdditionalConfig.Add(setting);
-    }
 }
