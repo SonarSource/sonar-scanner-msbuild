@@ -19,7 +19,6 @@
  */
 
 using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
 
 namespace SonarScanner.MSBuild.Common.RegularExpressions;
 

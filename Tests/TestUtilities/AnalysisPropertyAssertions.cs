@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using SonarScanner.MSBuild.Common;
-
 namespace TestUtilities;
 
 public static class AnalysisPropertyAssertions

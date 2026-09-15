@@ -18,10 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Security.Cryptography;
 using SonarScanner.MSBuild.Common.Interfaces;
-using SonarScanner.MSBuild.PreProcessor.Protobuf;
-using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
 
 namespace SonarScanner.MSBuild.PreProcessor;
 

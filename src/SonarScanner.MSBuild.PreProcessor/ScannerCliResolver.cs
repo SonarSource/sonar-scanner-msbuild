@@ -18,11 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net.Http;
-using SonarScanner.MSBuild.PreProcessor.Caching;
-using SonarScanner.MSBuild.PreProcessor.Interfaces;
-using SonarScanner.MSBuild.PreProcessor.Unpacking;
-
 namespace SonarScanner.MSBuild.PreProcessor;
 
 public class ScannerCliResolver : IResolver

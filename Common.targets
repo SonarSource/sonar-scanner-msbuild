@@ -41,6 +41,7 @@
     <Using Include="System.Linq" />
     <Using Include="System.Reflection" />
     <Using Include="System.Text" />
+    <Using Include="System.Threading.Tasks" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
