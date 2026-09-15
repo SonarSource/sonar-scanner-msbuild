@@ -1987,8 +1987,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
-          "SonarScanner.MSBuild.Common": "[12.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[12.0.0, )"
+          "SonarScanner.MSBuild.Common": "[12.0.0, )"
         }
       },
       "testutilities": {
@@ -3799,8 +3798,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.CodeCoverage.IO": "[17.7.0, )",
-          "SonarScanner.MSBuild.Common": "[12.0.0, )",
-          "SonarScanner.MSBuild.Shim": "[12.0.0, )"
+          "SonarScanner.MSBuild.Common": "[12.0.0, )"
         }
       },
       "testutilities": {
