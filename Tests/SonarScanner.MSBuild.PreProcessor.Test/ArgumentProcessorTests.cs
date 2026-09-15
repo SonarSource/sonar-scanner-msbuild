@@ -19,9 +19,6 @@
  */
 #pragma warning disable S3994 // we are specifically testing string urls
 
-using System.Runtime.InteropServices;
-using NSubstitute.ExceptionExtensions;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]

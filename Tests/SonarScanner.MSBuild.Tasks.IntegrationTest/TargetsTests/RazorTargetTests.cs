@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using SonarScanner.MSBuild.Tasks.IntegrationTest;
-using SonarScanner.MSBuild.Tasks.IntegrationTest.TargetsTests;
 using static TestUtilities.TestUtils;
 
 namespace SonarScanner.Integration.Tasks.IntegrationTests.TargetsTests;

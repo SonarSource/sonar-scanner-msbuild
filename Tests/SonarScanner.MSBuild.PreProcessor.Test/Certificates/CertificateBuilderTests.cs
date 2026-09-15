@@ -18,13 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Net.Security;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography.X509Certificates;
-using TestUtilities.Certificates;
-using WireMock.RequestBuilders;
-using WireMock.ResponseBuilders;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test.Certificates;
 
 [TestClass]

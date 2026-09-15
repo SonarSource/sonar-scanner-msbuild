@@ -19,9 +19,6 @@
  */
 
 using Newtonsoft.Json.Linq;
-using SonarScanner.MSBuild.PreProcessor.EngineResolution;
-using SonarScanner.MSBuild.PreProcessor.JreResolution;
-using SonarScanner.MSBuild.PreProcessor.Protobuf;
 
 namespace SonarScanner.MSBuild.PreProcessor.SonarQubeClient.Test;
 

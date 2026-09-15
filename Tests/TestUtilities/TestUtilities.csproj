@@ -16,4 +16,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Common\SonarScanner.MSBuild.Common.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Using Include="FluentAssertions.Execution" />
+    <Using Include="FluentAssertions.Primitives" />
+    <Using Include="System.Runtime.InteropServices" />
+  </ItemGroup>
 </Project>

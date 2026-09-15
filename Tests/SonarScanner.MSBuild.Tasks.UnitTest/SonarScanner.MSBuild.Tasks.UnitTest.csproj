@@ -10,4 +10,8 @@
     <ProjectReference Include="..\..\src\SonarScanner.MSBuild.Tasks\SonarScanner.MSBuild.Tasks.csproj" />
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Using Include="Microsoft.Build.Framework" />
+    <Using Include="Microsoft.Build.Utilities" />
+  </ItemGroup>
 </Project>

@@ -19,7 +19,6 @@
  */
 
 using System.Collections;
-using Microsoft.Build.Framework;
 
 namespace SonarScanner.MSBuild.Tasks.UnitTest;
 

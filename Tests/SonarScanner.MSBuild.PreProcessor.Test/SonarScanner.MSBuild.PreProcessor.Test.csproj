@@ -13,7 +13,28 @@
     <ProjectReference Include="..\TestUtilities\TestUtilities.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Using Include="Google.Protobuf" />
     <Using Include="NSubstitute" />
+    <Using Include="NSubstitute.ExceptionExtensions" />
+    <Using Include="NSubstitute.ReturnsExtensions" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.EngineResolution" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Interfaces" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.JreResolution" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Protobuf" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Roslyn" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Roslyn.Model" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.SonarQubeClient" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Test.Infrastructure" />
+    <Using Include="SonarScanner.MSBuild.PreProcessor.Unpacking" />
+    <Using Include="System.IO.Compression" />
+    <Using Include="System.Net.Security" />
+    <Using Include="System.Runtime.InteropServices" />
+    <Using Include="System.Security.Cryptography" />
+    <Using Include="System.Security.Cryptography.X509Certificates" />
+    <Using Include="TestUtilities.Certificates" />
+    <Using Include="WireMock.RequestBuilders" />
+    <Using Include="WireMock.ResponseBuilders" />
+    <Using Include="WireMock.Server" />
   </ItemGroup>
   <ItemGroup>
     <None Include="certtestsonar.pem">

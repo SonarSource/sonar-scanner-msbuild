@@ -20,8 +20,6 @@
 
 #pragma warning disable S3994 // we are specifically testing string urls
 
-using SonarScanner.MSBuild.PreProcessor.SonarQubeClient;
-
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
