@@ -154,6 +154,24 @@ public class AnalysisConfig
     public void SetBuildUri(string uri) =>
         SetAdditionalSetting(BuildUriSettingId, uri);
 
+    public string ReadSettingsFilePath()
+    {
+        if (FindAdditionalSetting(SettingsFileKey, out var setting))
+        {
+            return setting.Value;
+        }
+        return null;
+    }
+
+    public void SetSettingsFilePath(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentNullException(nameof(fileName));
+        }
+        SetAdditionalSettingDuplicateToRemove(SettingsFileKey, fileName);
+    }
+
     public string ReadAdditionalSetting(string settingId, string defaultValue)
     {
         if (string.IsNullOrWhiteSpace(settingId))
@@ -174,6 +192,24 @@ public class AnalysisConfig
     public void SetAdditionalSetting(string settingId, string value)
     {
         SetAdditionalSettingDuplicateToRemove(settingId, value);
+    }
+
+    public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
+    {
+        if (settingName == null)
+        {
+            throw new ArgumentNullException(nameof(settingName));
+        }
+        if (logger == null)
+        {
+            throw new ArgumentNullException(nameof(logger));
+        }
+
+        if (CreatePropertyProvider(includeServerSettings, logger).TryGetValue(settingName, out var value))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     /// <summary>
@@ -217,42 +253,6 @@ public class AnalysisConfig
             1 => providers[0],
             _ => new AggregatePropertiesProvider(providers.ToArray()),
         };
-    }
-
-    public void SetSettingsFilePath(string fileName)
-    {
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            throw new ArgumentNullException(nameof(fileName));
-        }
-        SetAdditionalSettingDuplicateToRemove(SettingsFileKey, fileName);
-    }
-
-    public string ReadSettingsFilePath()
-    {
-        if (FindAdditionalSetting(SettingsFileKey, out var setting))
-        {
-            return setting.Value;
-        }
-        return null;
-    }
-
-    public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
-    {
-        if (settingName == null)
-        {
-            throw new ArgumentNullException(nameof(settingName));
-        }
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
-        if (CreatePropertyProvider(includeServerSettings, logger).TryGetValue(settingName, out var value))
-        {
-            return value;
-        }
-        return defaultValue;
     }
 
     private bool FindAdditionalSetting(string settingId, out ConfigSetting result)
