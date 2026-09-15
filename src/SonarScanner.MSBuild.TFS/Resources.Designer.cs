@@ -80,15 +80,6 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The binary coverage file {0} could not be found. No coverage information will be uploaded to SonarQube..
-        /// </summary>
-        internal static string CONV_ERROR_InputFileNotFound {
-            get {
-                return ResourceManager.GetString("CONV_ERROR_InputFileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Found corresponding Binary-to-XML conversion output file for {0}, no conversion will be attempted..
         /// </summary>
         internal static string COVXML_DIAG_FileAlreadyExist_NoConversionAttempted {
