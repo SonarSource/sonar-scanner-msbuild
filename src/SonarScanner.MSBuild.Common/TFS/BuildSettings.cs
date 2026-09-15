@@ -26,7 +26,6 @@ namespace SonarScanner.MSBuild.Common;
 public class BuildSettings
 {
     public bool IsAzureDevOps { get; private set; }
-    public string TfsUri { get; private set; }
     public string BuildUri { get; private set; }
     public string SourcesDirectory { get; private set; }
     public string CoverageToolUserSuppliedPath { get; private set; }
@@ -79,7 +78,6 @@ public class BuildSettings
         {
             IsAzureDevOps = isAzDo,
             BuildUri = ReadAzDoVariable(EnvironmentVariables.BuildUriTfs2015),
-            TfsUri = ReadAzDoVariable(EnvironmentVariables.TfsCollectionUriTfs2015),
             BuildDirectory = ReadAzDoVariable(EnvironmentVariables.BuildDirectoryTfs2015),
             SourcesDirectory = ReadAzDoVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
             // there's no reliable of way of finding the SourcesDirectory, except after the build

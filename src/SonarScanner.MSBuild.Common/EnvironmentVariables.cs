@@ -46,9 +46,6 @@ public static class EnvironmentVariables
 
     public const string BuildUriLegacy = "TF_BUILD_BUILDURI";
 
-    // TFS 2015 (TFS Build) Environment variables
-    public const string TfsCollectionUriTfs2015 = "SYSTEM_TEAMFOUNDATIONCOLLECTIONURI";
-
     public const string BuildUriTfs2015 = "BUILD_BUILDURI";
     public const string BuildDirectoryTfs2015 = "AGENT_BUILDDIRECTORY";         // TeamBuild 2015 and later build directory
     public const string SourcesDirectoryTfs2015 = "BUILD_SOURCESDIRECTORY";
