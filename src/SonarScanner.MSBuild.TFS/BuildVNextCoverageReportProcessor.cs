@@ -184,10 +184,6 @@ public class BuildVNextCoverageReportProcessor
                 conversionPerformed = true;
                 xmlFileNames.Add(xmlFilePath);
             }
-            else
-            {
-                return [];
-            }
         }
         return xmlFileNames.ToArray();
     }
