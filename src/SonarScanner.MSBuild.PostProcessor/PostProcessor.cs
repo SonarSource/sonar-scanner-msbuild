@@ -25,7 +25,6 @@ namespace SonarScanner.MSBuild.PostProcessor;
 
 public class PostProcessor
 {
-    private readonly SonarScannerWrapper sonarScanner;
     private readonly SonarEngineWrapper sonarEngine;
     private readonly IRuntime runtime;
     private readonly TargetsUninstaller targetUninstaller;
@@ -34,14 +33,12 @@ public class PostProcessor
 
     private ScannerEngineInputGenerator scannerEngineInputGenerator;
 
-    public PostProcessor(SonarScannerWrapper sonarScanner,
-                         SonarEngineWrapper sonarEngine,
+    public PostProcessor(SonarEngineWrapper sonarEngine,
                          IRuntime runtime,
                          TargetsUninstaller targetUninstaller,
                          SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
                          BuildVNextCoverageReportProcessor coverageReportProcessor)
     {
-        this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
         this.sonarEngine = sonarEngine ?? throw new ArgumentNullException(nameof(sonarEngine));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
@@ -75,21 +72,17 @@ public class PostProcessor
         {
             return false;
         }
+        else if (analysisResult.RanToCompletion && config.EngineJarPath is not null)
+        {
+            DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
+            // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
+            runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = ProcessCoverageReport(config, settings, analysisResult);
+            runtime.Telemetry.Write(settings.SonarOutputDirectory);
+            return sonarEngine.Execute(config, analysisResult.ScannerEngineInput.ToString(), cmdLineArgs);
+        }
         else
         {
-            var coverageConversionPerformed = ProcessCoverageReport(config, settings, analysisResult);
-            var result = false;
-            if (analysisResult.RanToCompletion)
-            {
-                DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
-                // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
-                runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = coverageConversionPerformed;
-                runtime.Telemetry.Write(settings.SonarOutputDirectory);
-                result = config.UseSonarScannerCli || config.EngineJarPath is null
-                    ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)
-                    : InvokeScannerEngine(cmdLineArgs, config, analysisResult.ScannerEngineInput);
-            }
-            return result;
+            return false;
         }
     }
 
@@ -217,15 +210,4 @@ public class PostProcessor
     }
 
 #endif
-
-    private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, string propertiesFilePath)
-    {
-        runtime.Logger.IncludeTimestamp = false;
-        var result = sonarScanner.Execute(config, cmdLineArgs, propertiesFilePath);
-        runtime.Logger.IncludeTimestamp = true;
-        return result;
-    }
-
-    private bool InvokeScannerEngine(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, ScannerEngineInput input) =>
-        sonarEngine.Execute(config, input.ToString(), cmdLineArgs);
 }

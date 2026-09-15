@@ -36,7 +36,6 @@ public class PostProcessorTests
     private readonly TestContext testContext;
     private readonly TargetsUninstaller targetsUninstaller;
     private readonly AnalysisConfig config;
-    private readonly SonarScannerWrapper scanner;
     private readonly SonarEngineWrapper engine;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
     private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
@@ -53,11 +52,10 @@ public class PostProcessorTests
         {
             SonarOutputDir = settings.SonarOutputDirectory,
             SonarConfigDir = settings.SonarConfigDirectory,
+            EngineJarPath = "engine.jar"
         };
         config.SetBuildUri("http://test-build-uri");
         runtime = new();
-        scanner = Substitute.For<SonarScannerWrapper>(runtime);
-        scanner.Execute(null, null, null).ReturnsForAnyArgs(true);
         engine = Substitute.For<SonarEngineWrapper>(runtime, Substitute.For<IProcessRunner>());
         engine.Execute(null, null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(runtime.Logger);
@@ -67,7 +65,6 @@ public class PostProcessorTests
         coverageReportProcessor.ProcessCoverageReports(null, null).ReturnsForAnyArgs(new AdditionalProperties([@"VS\Test\Path"], [@"VS\XML\Coverage\Path"], coverageConversionPerformed: true));
         scannerEngineInput = new ScannerEngineInput(config);
         sut = new PostProcessor(
-            scanner,
             engine,
             runtime,
             targetsUninstaller,
@@ -78,24 +75,22 @@ public class PostProcessorTests
     [TestMethod]
     public void Constructor_NullArguments_ThrowsArgumentNullException()
     {
-        var scnr = scanner;
         var engn = engine;
         var rntm = runtime;
         var tuin = targetsUninstaller;
         var sppv = Substitute.For<SonarProjectPropertiesValidator>();
-        Invoking(() => new PostProcessor(null, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarScanner");
-        Invoking(() => new PostProcessor(scnr, null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarEngine");
-        Invoking(() => new PostProcessor(scnr, engn, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
-        Invoking(() => new PostProcessor(scnr, engn, rntm, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
-        Invoking(() => new PostProcessor(scnr, engn, rntm, tuin, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarProjectPropertiesValidator");
-        Invoking(() => new PostProcessor(scnr, engn, rntm, tuin, sppv, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
+        Invoking(() => new PostProcessor(null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarEngine");
+        Invoking(() => new PostProcessor(engn, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
+        Invoking(() => new PostProcessor(engn, rntm, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
+        Invoking(() => new PostProcessor(engn, rntm, tuin, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarProjectPropertiesValidator");
+        Invoking(() => new PostProcessor(engn, rntm, tuin, sppv, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
     }
 
     [TestMethod]
     public void PostProc_NoProjectsToAnalyze_NoExecutionTriggered()
     {
         Execute(withProject: false).Should().BeFalse("Expecting post-processor to have failed");
-        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
         runtime.AnalysisWarnings.Should().HaveNoMessages();
@@ -105,13 +100,13 @@ public class PostProcessorTests
     [TestMethod]
     public void PostProc_ExecutionSucceedsWithErrorLogs()
     {
-        scanner.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => runtime.LogError("Errors"));
+        engine.WhenForAnyArgs(x => x.Execute(null, null, null)).Do(x => runtime.LogError("Errors"));
 
         Execute().Should().BeTrue("Expecting post-processor to have succeeded");
-        scanner.Received().Execute(
+        engine.Received().Execute(
             config,
-            Arg.Is<IAnalysisPropertyProvider>(x => !x.GetAllProperties().Any()),
-            Arg.Any<string>());
+            Arg.Any<string>(),
+            Arg.Is<IAnalysisPropertyProvider>(x => !x.GetAllProperties().Any()));
         runtime.Logger.Should().HaveErrors(1)
             .And.HaveNoWarnings();
         VerifyTargetsUninstaller();
@@ -128,7 +123,7 @@ public class PostProcessorTests
     public void PostProc_FailsOnInvalidArgs()
     {
         Execute("/d:sonar.foo=bar").Should().BeFalse("Expecting post-processor to have failed");
-        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         runtime.Logger.Should().HaveErrors(1)
             .And.HaveNoWarnings();
         VerifyTargetsUninstaller();
@@ -153,10 +148,10 @@ public class PostProcessorTests
         scannerEngineInput.Add("sonar", "unsafe.value", "This value contains sensitive sonar.token and should be sanitized in the file dump");
 
         Execute(suppliedArgs).Should().BeTrue("Expecting post-processor to have succeeded");
-        scanner.Received().Execute(
+        engine.Received().Execute(
             config,
-            Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)),
-            Arg.Any<string>());
+            Arg.Any<string>(),
+            Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)));
 
         var expectedScannerEngineInput = $$"""
             {
@@ -188,12 +183,10 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineCredentials = true;
         config.EngineJarPath = "engine.jar";
-        config.UseSonarScannerCli = false;
         scannerEngineInput.Add("sonar", "unsafe.value", "Sensitive data"); // Sensitive data is safe to pass via StdIn
 
         Execute(["/d:sonar.token=token"]).Should().BeTrue("Expecting post-processor to have succeeded");
 
-        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         engine.Received(1).Execute(
             config,
             $$"""
@@ -225,12 +218,10 @@ public class PostProcessorTests
     {
         config.HasBeginStepCommandLineCredentials = true;
         config.EngineJarPath = "engine.jar";
-        config.UseSonarScannerCli = false;
         engine.Execute(null, null, null).ReturnsForAnyArgs(false);
 
         Execute(["/d:sonar.token=token"]).Should().BeFalse("Expecting post-processor to fail");
 
-        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         engine.Received(1).Execute(
             config,
             $$"""
@@ -260,7 +251,7 @@ public class PostProcessorTests
 
         Execute().Should().BeFalse();
         runtime.Logger.Should().HaveErrors(CredentialsErrorMessage);
-        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
 
@@ -271,7 +262,7 @@ public class PostProcessorTests
 
         Execute().Should().BeFalse();
         runtime.Logger.Should().HaveErrors(TruststorePasswordErrorMessage);
-        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
 
@@ -329,7 +320,7 @@ public class PostProcessorTests
 
         Execute($"/d:{truststorePasswordProperty}").Should().BeFalse();
         runtime.Logger.Should().HaveErrors($"The format of the analysis property {truststorePasswordProperty} is invalid");
-        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
 
@@ -341,7 +332,7 @@ public class PostProcessorTests
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Dsonar.scanner.truststorePassword");
 
         Execute().Should().BeFalse();
-        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
 
@@ -350,7 +341,7 @@ public class PostProcessorTests
     {
         Execute("/d:sonar.token=foo").Should().BeFalse();
         runtime.Logger.Should().HaveErrors(CredentialsErrorMessage);
-        scanner.DidNotReceiveWithAnyArgs().Execute(null, null, null);
+        engine.DidNotReceiveWithAnyArgs().Execute(null, null, null);
         VerifyTargetsUninstaller();
     }
 

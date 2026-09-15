@@ -25,22 +25,16 @@ import java.util.regex.Pattern;
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 
 public final class ProvisioningAssertions {
-  public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, String oldJavaHome, Boolean isCloud, Boolean useSonarScannerCLI) {
-    assertCacheMissBeginStep(result.begin(), sqApiUrl, userHome, isCloud, useSonarScannerCLI);
+  public static void cacheMissAssertions(AnalysisResult result, String sqApiUrl, String userHome, Boolean isCloud) {
+    assertCacheMissBeginStep(result.begin(), sqApiUrl, userHome, isCloud);
 
     var endLogs = result.end().getLogs();
 
     var cacheFolderPattern = ".+[\\\\/]cache[\\\\/].+";
-    if (useSonarScannerCLI) {
-      var escapedOldJavaHome = Pattern.quote(oldJavaHome);
-      TestUtils.matchesSingleLine(endLogs, "Setting the JAVA_HOME for the scanner cli to " + cacheFolderPattern);
-      TestUtils.matchesSingleLine(endLogs, "Overwriting the value of environment variable 'JAVA_HOME'. Old value: " + escapedOldJavaHome + ", new value: " + cacheFolderPattern);
-    } else {
-      TestUtils.matchesSingleLine(endLogs, "Using Java found in Analysis Config: " + cacheFolderPattern + "_extracted.+java(\\.exe|)");
-    }
+    TestUtils.matchesSingleLine(endLogs, "Using Java found in Analysis Config: " + cacheFolderPattern + "_extracted.+java(\\.exe|)");
   }
 
-  public static void assertCacheMissBeginStep(BuildResult begin, String sqApiUrl, String userHome, Boolean isCloud, Boolean useSonarScannerCLI) {
+  public static void assertCacheMissBeginStep(BuildResult begin, String sqApiUrl, String userHome, Boolean isCloud) {
     var os = OSPlatform.current().name().toLowerCase();
     var arch = OSPlatform.currentArchitecture().toLowerCase();
     var cacheFolderPattern = Pattern.quote(userHome) + "[\\\\/]cache.+";
@@ -66,15 +60,13 @@ public final class ProvisioningAssertions {
     TestUtils.matchesSingleLine(beginLogs, "Moving extracted files from '" + cacheFolderPattern + "' to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "The archive was successfully extracted to '" + cacheFolderPattern + "_extracted'");
     TestUtils.matchesSingleLine(beginLogs, "JreResolver: Download success. JRE can be found at '" + cacheFolderPattern + "_extracted.+java(?:\\.exe)?'");
-    if (!useSonarScannerCLI) {
-      assertThat(beginLogs).contains(
-        "EngineResolver: Resolving Scanner Engine path.",
-        "Downloading from " + sqApiUrl + "/analysis/engine...",
-        "Response received from " + sqApiUrl + "/analysis/engine...",
-        "Cache miss. Could not find '");  // + file path to scanner engine
-      TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
-      TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern + "scanner.+\\.jar'"); // flexible assertion to avoid breaking on file name changes
-    }
+    assertThat(beginLogs).contains(
+      "EngineResolver: Resolving Scanner Engine path.",
+      "Downloading from " + sqApiUrl + "/analysis/engine...",
+      "Response received from " + sqApiUrl + "/analysis/engine...",
+      "Cache miss. Could not find '");  // + file path to scanner engine
+    TestUtils.matchesSingleLine(beginLogs, "Downloading Scanner Engine from " + engineUrlPattern);
+    TestUtils.matchesSingleLine(beginLogs, "EngineResolver: Download success. Scanner Engine can be found at '" + cacheFolderPattern + "scanner.+\\.jar'"); // flexible assertion to avoid breaking on file name changes
   }
 
   public static void cacheHitAssertions(BuildResult secondBegin, String userHome) {

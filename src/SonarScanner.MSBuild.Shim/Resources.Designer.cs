@@ -141,24 +141,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The SonarScanner CLI is needed to finish the analysis, but could not be found. {0}.
-        /// </summary>
-        internal static string ERR_SonarScannerCliNotFound {
-            get {
-                return ResourceManager.GetString("ERR_SonarScannerCliNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The SonarScanner did not complete successfully.
-        /// </summary>
-        internal static string ERR_SonarScannerExecutionFailed {
-            get {
-                return ResourceManager.GetString("ERR_SonarScannerExecutionFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
         /// </summary>
         internal static string MSG_GeneratingProjectProperties {
@@ -299,69 +281,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_SettingAnalysisProperty {
             get {
                 return ResourceManager.GetString("MSG_SettingAnalysisProperty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Setting the JAVA_HOME for the scanner cli to {0}..
-        /// </summary>
-        internal static string MSG_SettingJavaHomeEnvironmentVariable {
-            get {
-                return ResourceManager.GetString("MSG_SettingJavaHomeEnvironmentVariable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Setting the JAVA_HOME for the scanner cli failed. `sonar.scanner.javaExePath` is `{0}`. {1}.
-        /// </summary>
-        internal static string MSG_SettingJavaHomeEnvironmentVariableFailed {
-            get {
-                return ResourceManager.GetString("MSG_SettingJavaHomeEnvironmentVariableFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The path &apos;{0}&apos; to the SonarScanner CLI is invalid. The file does not exists..
-        /// </summary>
-        internal static string MSG_SonarCliPath_FileNotFound {
-            get {
-                return ResourceManager.GetString("MSG_SonarCliPath_FileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Calling the SonarScanner CLI....
-        /// </summary>
-        internal static string MSG_SonarScannerCalling {
-            get {
-                return ResourceManager.GetString("MSG_SonarScannerCalling", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The path to the SonarScanner CLI wasn&apos;t set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step..
-        /// </summary>
-        internal static string MSG_SonarScannerCliPath_Missing {
-            get {
-                return ResourceManager.GetString("MSG_SonarScannerCliPath_Missing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The SonarScanner CLI has finished.
-        /// </summary>
-        internal static string MSG_SonarScannerCompleted {
-            get {
-                return ResourceManager.GetString("MSG_SonarScannerCompleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The SONAR_SCANNER_HOME environment variable is not required and will be ignored..
-        /// </summary>
-        internal static string MSG_SonarScannerHomeIsSet {
-            get {
-                return ResourceManager.GetString("MSG_SonarScannerHomeIsSet", resourceCulture);
             }
         }
         
