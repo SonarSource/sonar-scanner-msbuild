@@ -72,6 +72,7 @@ public class BuildVNextCoverageReportProcessorTests
     public void Constructor_LoggerIsNull_ThrowsNullArgumentException() =>
         FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(converter, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
+    // FIXME The tests belwo are broken beyond repair and need to be rewritten. https://sonarsource.atlassian.net/browse/SCAN4NET-1792
     [TestMethod]
     public void ProcessCoverageReports_TrxFileFound_WritesPropertiesFile()
     {
