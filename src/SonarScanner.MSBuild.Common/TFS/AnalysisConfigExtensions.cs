@@ -26,17 +26,10 @@ namespace SonarScanner.MSBuild.Common;
 public static class AnalysisConfigExtensions
 {
     private const string BuildUriSettingId = "BuildUri";
-    private const string VsCoverageConverterToolPathId = "VsCoverageConverterToolPath";
 
     public static string GetBuildUri(this AnalysisConfig config) =>
         config.GetConfigValue(BuildUriSettingId, null);
 
     public static void SetBuildUri(this AnalysisConfig config, string uri) =>
         config.SetConfigValue(BuildUriSettingId, uri);
-
-    public static void SetVsCoverageConverterToolPath(this AnalysisConfig config, string path) =>
-        config.SetConfigValue(VsCoverageConverterToolPathId, path);
-
-    public static string GetVsCoverageConverterToolPath(this AnalysisConfig config) =>
-        config.GetConfigValue(VsCoverageConverterToolPathId, null);
 }
