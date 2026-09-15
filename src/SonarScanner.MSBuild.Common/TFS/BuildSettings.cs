@@ -28,7 +28,6 @@ public class BuildSettings
     public bool IsAzureDevOps { get; private set; }
     public string BuildUri { get; private set; }
     public string SourcesDirectory { get; private set; }
-    public string CoverageToolUserSuppliedPath { get; private set; }
     public string SonarConfigDirectory => Path.Combine(AnalysisBaseDirectory, "conf");
     public string SonarOutputDirectory => Path.Combine(AnalysisBaseDirectory, "out");
     public string SonarBinDirectory => Path.Combine(AnalysisBaseDirectory, "bin");
@@ -80,8 +79,6 @@ public class BuildSettings
             BuildUri = ReadAzDoVariable(EnvironmentVariables.BuildUriTfs2015),
             BuildDirectory = ReadAzDoVariable(EnvironmentVariables.BuildDirectoryTfs2015),
             SourcesDirectory = ReadAzDoVariable(EnvironmentVariables.SourcesDirectoryTfs2015),
-            // there's no reliable of way of finding the SourcesDirectory, except after the build
-            CoverageToolUserSuppliedPath = Environment.GetEnvironmentVariable(EnvironmentVariables.VsTestToolCustomInstall),
             // We expect the bootstrapper to have set the WorkingDir of the processors to be the temp dir (i.e. .sonarqube)
             AnalysisBaseDirectory = Directory.GetCurrentDirectory(),
             // https://jira.sonarsource.com/browse/SONARMSBRU-100 the sonar-scanner should be able to locate files such as the resharper output
