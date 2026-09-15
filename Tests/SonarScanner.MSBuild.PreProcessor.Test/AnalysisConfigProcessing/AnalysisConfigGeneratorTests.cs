@@ -113,7 +113,6 @@ public class AnalysisConfigGeneratorTests
             new(SonarProperties.HostUrl, "http://myserver"),
             new("file.only", "file value"),
             new(SonarProperties.ScanAllAnalysis, "false"),
-            new(SonarProperties.UseSonarScannerCLI, "true"),
         };
         var settingsFilePath = Path.Combine(analysisDir, "settings.txt");
         fileProperties.Save(settingsFilePath);

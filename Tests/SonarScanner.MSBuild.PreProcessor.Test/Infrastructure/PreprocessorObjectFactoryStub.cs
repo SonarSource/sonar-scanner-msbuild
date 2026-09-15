@@ -30,7 +30,6 @@ internal class PreprocessorObjectFactoryStub : PreprocessorObjectFactory
     public SonarQubeBase Client { get; set; } = MockSonarQube.Create();
     public IResolver JreResolver { get; } = Substitute.For<IResolver>();
     public IResolver EngineResolver { get; } = Substitute.For<IResolver>();
-    public IResolver ScannerCliResolver { get; } = Substitute.For<IResolver>();
     public string PluginCachePath { get; private set; }
     public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
 
@@ -71,9 +70,6 @@ internal class PreprocessorObjectFactoryStub : PreprocessorObjectFactory
 
     public override IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
         EngineResolver;
-
-    public override IResolver CreateScannerCliResolver(SonarQubeBase client, string sonarUserHome) =>
-        ScannerCliResolver;
 
     public void AssertMethodCalled(string methodName, int callCount) =>
         calledMethods.Count(x => x == methodName).Should().Be(callCount, "Method was not called the expected number of times");
