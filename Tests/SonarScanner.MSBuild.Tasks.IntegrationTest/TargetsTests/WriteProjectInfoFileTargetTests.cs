@@ -27,7 +27,6 @@ public class WriteProjectInfoFileTargetTests
                     <SonarQubeConfigPath>PROJECT_DIRECTORY_PATH</SonarQubeConfigPath>
                     <SonarQubeTempPath>PROJECT_DIRECTORY_PATH</SonarQubeTempPath>
                     <SonarQubeOutputPath>SQ_OUTPUT_PATH</SonarQubeOutputPath>
-                    <TF_BUILD_BUILDDIRECTORY />
                     <AGENT_BUILDDIRECTORY />
         """;
 

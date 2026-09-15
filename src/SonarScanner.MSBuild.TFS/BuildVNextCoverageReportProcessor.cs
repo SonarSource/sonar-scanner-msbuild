@@ -36,7 +36,7 @@ public class BuildVNextCoverageReportProcessor
 
     // ToDo: SCAN4NET-786 Test report discovery is flawed
     // ToDo: SCAN4NET-787 Coverage fallback should be in AzDo Extension
-    public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, IBuildSettings settings)
+    public virtual AdditionalProperties ProcessCoverageReports(AnalysisConfig config, BuildSettings settings)
     {
         runtime.LogInfo(Resources.PROC_DIAG_FetchingCoverageReportInfoFromServer);
         string[] vsTestReportsPaths = null;

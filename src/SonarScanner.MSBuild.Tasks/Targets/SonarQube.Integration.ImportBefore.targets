@@ -4,10 +4,8 @@
   <!-- Compute the SonarQube analysis temporary directory -->
   <!-- **************************************************************************** -->
   <PropertyGroup Condition=" $(SonarQubeTempPath) == '' ">
-    <!-- TFS 2013 -->
-    <SonarQubeBuildDirectory>$(TF_BUILD_BUILDDIRECTORY)</SonarQubeBuildDirectory>
     <!-- TFS 2015 -->
-    <SonarQubeBuildDirectory Condition=" $(SonarQubeBuildDirectory) == '' ">$(AGENT_BUILDDIRECTORY)</SonarQubeBuildDirectory>
+    <SonarQubeBuildDirectory>$(AGENT_BUILDDIRECTORY)</SonarQubeBuildDirectory>
     <!-- Command line -->
     <SonarQubeBuildDirectory Condition=" $(SonarQubeBuildDirectory) == '' ">$(MSBuildStartupDirectory)</SonarQubeBuildDirectory>
     <SonarQubeTempPath Condition=" $(SonarQubeBuildDirectory) != '' AND Exists('$(SonarQubeBuildDirectory)\.sonarqube\conf\SonarQubeAnalysisConfig.xml') ">$(SonarQubeBuildDirectory)\.sonarqube</SonarQubeTempPath>
