@@ -98,15 +98,6 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Property &apos;sonar.cs.vscoveragexml.reportsPaths&apos; provided, skipping the search for coveragexml file in default folders....
-        /// </summary>
-        internal static string COVXML_DIAG_SkippingCoverageCheckPropertyProvided {
-            get {
-                return ResourceManager.GetString("COVXML_DIAG_SkippingCoverageCheckPropertyProvided", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The Coverage Report Processor was not initialized before use..
         /// </summary>
         internal static string EX_CoverageReportProcessorNotInitialized {
@@ -274,15 +265,6 @@ namespace SonarScanner.MSBuild.TFS {
         internal static string TRX_DIAG_TrxFilesFound {
             get {
                 return ResourceManager.GetString("TRX_DIAG_TrxFilesFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to None of the attached coverage reports exist on disk.
-        /// </summary>
-        internal static string TRX_WARN_CoverageAttachmentsNotFound {
-            get {
-                return ResourceManager.GetString("TRX_WARN_CoverageAttachmentsNotFound", resourceCulture);
             }
         }
         

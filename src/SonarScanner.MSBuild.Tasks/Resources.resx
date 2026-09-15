@@ -171,20 +171,8 @@ Error: {1}</value>
   <data name="AnalyzerSettings_OriginalRulesetNotSpecified" xml:space="preserve">
     <value>Original ruleset not specified. Using generated ruleset at '{0}'</value>
   </data>
-  <data name="AnalyzerSettings_NoSettingsFoundForCurrentLanguage" xml:space="preserve">
-    <value>No analysis settings were found in the config file for the current language: {0}</value>
-  </data>
   <data name="AnalyzerSettings_RemovingDuplicateFiles" xml:space="preserve">
     <value>Removing duplicate files: {0}</value>
-  </data>
-  <data name="AnalyzerSettings_RemovingDuplicateAnalyzers" xml:space="preserve">
-    <value>Removing duplicate analyzers: {0}</value>
-  </data>
-  <data name="AnalyzerSettings_OriginalRulesetIsNotRooted" xml:space="preserve">
-    <value>Supplied ruleset path is not rooted: '{0}'</value>
-  </data>
-  <data name="AnalyzerSettings_OriginalRulesetIsRooted" xml:space="preserve">
-    <value>Supplied ruleset path is rooted: '{0}'</value>
   </data>
   <data name="AnalyzerSettings_ResolvedRulesetFound" xml:space="preserve">
     <value>Found ruleset file: '{0}'</value>
@@ -218,11 +206,5 @@ Error: {1}</value>
   </data>
   <data name="IsTest_NoTestReference" xml:space="preserve">
     <value>No test reference was found for the current project.</value>
-  </data>
-  <data name="MoveDirectory_InvalidSourceDirectory" xml:space="preserve">
-    <value>The source directory is invalid.</value>
-  </data>
-  <data name="MoveDirectory_FromTo" xml:space="preserve">
-    <value>Moving directory {0} to {1}.</value>
   </data>
 </root>
