@@ -146,7 +146,7 @@ public class AnalysisConfig
 
     public string ReadSettingsFilePath()
     {
-        if (FindAdditionalSetting(SettingsFileKey, out var setting))
+        if (FindAdditionalSetting(SettingsFileKey) is { } setting)
         {
             return setting.Value;
         }
@@ -171,7 +171,7 @@ public class AnalysisConfig
 
         var result = defaultValue;
 
-        if (FindAdditionalSetting(settingId, out var setting))
+        if (FindAdditionalSetting(settingId) is { } setting)
         {
             result = setting.Value;
         }
@@ -245,18 +245,8 @@ public class AnalysisConfig
         };
     }
 
-    private bool FindAdditionalSetting(string settingId, out ConfigSetting result)
-    {
-        Debug.Assert(!string.IsNullOrWhiteSpace(settingId), "Setting id should not be null/empty");
-
-        result = null;
-
-        if (AdditionalConfig != null)
-        {
-            result = AdditionalConfig.FirstOrDefault(ar => ConfigSetting.SettingKeyComparer.Equals(settingId, ar.Id));
-        }
-        return result != null;
-    }
+    private ConfigSetting FindAdditionalSetting(string settingId) =>
+        AdditionalConfig?.FirstOrDefault(x => ConfigSetting.SettingKeyComparer.Equals(settingId, x.Id));
 
     private void SetAdditionalSettingDuplicateToRemove(string settingId, string value)
     {
@@ -265,7 +255,7 @@ public class AnalysisConfig
             throw new ArgumentNullException(nameof(settingId));
         }
 
-        if (FindAdditionalSetting(settingId, out var setting))
+        if (FindAdditionalSetting(settingId) is { } setting)
         {
             setting.Value = value;
         }
