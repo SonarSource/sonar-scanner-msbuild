@@ -25,8 +25,6 @@ public class AnalysisConfigTests
 {
     public TestContext TestContext { get; set; }
 
-    #region Tests
-
     [TestMethod]
     public void AnalysisConfig_Serialization_InvalidFileName()
     {
@@ -239,9 +237,241 @@ public class AnalysisConfigTests
         AssertExpectedValues(expected, actual);
     }
 
-    #endregion Tests
+    [TestMethod]
+    public void GetConfigValue_WhenSettingIdIsNull_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.GetConfigValue(null, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
 
-    #region Helper methods
+    [TestMethod]
+    public void GetConfigValue_WhenSettingIdIsEmpty_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.GetConfigValue(string.Empty, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
+
+    [TestMethod]
+    public void GetConfigValue_WhenSettingIdIsWhitespace_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.GetConfigValue("   ", "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
+
+    [TestMethod]
+    public void AnalysisSettings_WhenLoggerIsNull_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.AnalysisSettings(false, null)).Should().Throw<ArgumentNullException>().WithParameterName("logger");
+
+    [TestMethod]
+    public void SetSettingsFilePath_WhenFileNameIsNull_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.SetSettingsFilePath(null)).Should().Throw<ArgumentNullException>().WithParameterName("fileName");
+
+    [TestMethod]
+    public void SetSettingsFilePath_WhenFileNameIsEmpty_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.SetSettingsFilePath(string.Empty)).Should().Throw<ArgumentNullException>().WithParameterName("fileName");
+
+    [TestMethod]
+    public void SetSettingsFilePath_WhenFileNameIsWhitespace_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.SetSettingsFilePath("   ")).Should().Throw<ArgumentNullException>().WithParameterName("fileName");
+
+    [TestMethod]
+    public void SetConfigValue_WhenSettingIdIsNull_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.SetConfigValue(null, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
+
+    [TestMethod]
+    public void SetConfigValue_WhenSettingIdIsEmpty_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.SetConfigValue(string.Empty, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
+
+    [TestMethod]
+    public void SetConfigValue_WhenSettingIdIsWhitespace_ThrowsArgumentNullException() =>
+        new AnalysisConfig().Invoking(x => x.SetConfigValue("   ", "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
+
+    [TestMethod]
+    [Description("Checks the extension methods for getting and setting values")]
+    public void GetAndSet()
+    {
+        var config = new AnalysisConfig();
+        var result = config.GetConfigValue("missing", "123");
+        result.Should().Be("123", "Unexpected config value returned");
+
+        // Add new
+        config.SetConfigValue("id1", "value1");
+        config.GetConfigValue("id1", "XXX").Should().Be("value1", "Unexpected config value returned");
+
+        // Update
+        config.SetConfigValue("id1", "value2");
+        config.GetConfigValue("id1", "XXX").Should().Be("value2", "Unexpected config value returned");
+    }
+
+    [TestMethod]
+    public void AnalysisSettings_LocalOnly()
+    {
+        // Check that local settings are always retrieved by AnalysisSettings
+        var logger = new TestLogger();
+        var config = new AnalysisConfig
+        {
+            LocalSettings = [
+                new("local.1", "local.value.1"),
+                new("local.2", "local.value.2")
+            ]
+        };
+
+        // Local only
+        var localProperties = config.AnalysisSettings(false, logger);
+        localProperties.AssertExpectedPropertyCount(2);
+        localProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
+        localProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
+
+        // Local and server
+        var allProperties = config.AnalysisSettings(true, logger);
+        allProperties.AssertExpectedPropertyCount(2);
+        allProperties.AssertExpectedPropertyValue("local.1", "local.value.1");
+        allProperties.AssertExpectedPropertyValue("local.2", "local.value.2");
+    }
+
+    [TestMethod]
+    public void AnalysisSettings_ServerOnly()
+    {
+        // Check that local settings are only retrieved by AnalysisSettings if includeServerSettings is true
+        var logger = new TestLogger();
+        var config = new AnalysisConfig
+        {
+            ServerSettings = [
+                new("server.1", "server.value.1"),
+                new("server.2", "server.value.2")
+            ]
+        };
+
+        // Local only
+        var localProperties = config.AnalysisSettings(false, logger);
+        localProperties.AssertExpectedPropertyCount(0);
+
+        localProperties.AssertPropertyDoesNotExist("server.1");
+        localProperties.AssertPropertyDoesNotExist("server.2");
+
+        // Local and server
+        var allProperties = config.AnalysisSettings(true, logger);
+        allProperties.AssertExpectedPropertyCount(2);
+        allProperties.AssertExpectedPropertyValue("server.1", "server.value.1");
+        allProperties.AssertExpectedPropertyValue("server.2", "server.value.2");
+    }
+
+    [TestMethod]
+    public void AnalysisSettings_FileSettings()
+    {
+        // Check that file settings are always retrieved by AnalysisSettings and that the file name config property is set and retrieved correctly
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var logger = new TestLogger();
+        var config = new AnalysisConfig();
+        var fileSettings = new AnalysisProperties
+        {
+            new("file.1", "file.value.1"),
+            new("file.2", "file.value.2")
+        };
+        var settingsFilePath = Path.Combine(testDir, "settings.txt");
+        fileSettings.Save(settingsFilePath);
+        config.GetSettingsFilePath().Should().BeNull("Expecting the settings file path to be null");
+        config.SetSettingsFilePath(settingsFilePath);
+        config.GetSettingsFilePath().Should().Be(settingsFilePath, "Unexpected settings file path value returned");
+
+        // Check file properties are retrieved
+        var provider = config.AnalysisSettings(false, logger);
+        provider.AssertExpectedPropertyCount(2);
+        provider.AssertExpectedPropertyValue("file.1", "file.value.1");
+        provider.AssertExpectedPropertyValue("file.2", "file.value.2");
+    }
+
+    [TestMethod]
+    public void AnalysisSettings_Precedence()
+    {
+        // Expected precedence: local -> file -> server
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var config = new AnalysisConfig();
+        var logger = new TestLogger();
+        var fileSettings = new AnalysisProperties
+        {
+            new("file.1", "file.value.1"),
+            new("shared.property", "shared value from file - should never be returned"),
+            new("shared.property2", "shared value 2 from file")
+        };
+        var settingsFilePath = Path.Combine(testDir, "settings.txt");
+        fileSettings.Save(settingsFilePath);
+        config.SetSettingsFilePath(settingsFilePath);
+        config.LocalSettings = [
+            new("local.1", "local.value.1"),
+            new("local.2", "local.value.2"),
+            new("shared.property", "shared value from local")
+        ];
+        config.ServerSettings = [
+            new("server.1", "server.value.1"),
+            new("server.2", "server.value.2"),
+            new("shared.property", "shared value from server - should never be returned"),
+            new("shared.property2", "shared value 2 from server - should never be returned")
+        ];
+
+        // Precedence - local should win over file
+        var provider = config.AnalysisSettings(false, logger);
+        provider.AssertExpectedPropertyCount(5);
+        provider.AssertExpectedPropertyValue("local.1", "local.value.1");
+        provider.AssertExpectedPropertyValue("local.2", "local.value.2");
+        provider.AssertExpectedPropertyValue("file.1", "file.value.1");
+        provider.AssertExpectedPropertyValue("shared.property", "shared value from local");
+        provider.AssertExpectedPropertyValue("shared.property2", "shared value 2 from file");
+
+        provider.AssertPropertyDoesNotExist("server.1");
+        provider.AssertPropertyDoesNotExist("server.2");
+
+        // Server and non-server
+        provider = config.AnalysisSettings(true, logger);
+        provider.AssertExpectedPropertyCount(7);
+        provider.AssertExpectedPropertyValue("local.1", "local.value.1");
+        provider.AssertExpectedPropertyValue("local.2", "local.value.2");
+        provider.AssertExpectedPropertyValue("file.1", "file.value.1");
+        provider.AssertExpectedPropertyValue("shared.property", "shared value from local");
+        provider.AssertExpectedPropertyValue("shared.property2", "shared value 2 from file");
+        provider.AssertExpectedPropertyValue("server.1", "server.value.1");
+        provider.AssertExpectedPropertyValue("server.2", "server.value.2");
+    }
+
+    [TestMethod]
+    public void AnalysisSettings_NoSettings()
+    {
+        var logger = new TestLogger();
+        var config = new AnalysisConfig();
+        using var scope = new EnvironmentVariableScope().SetVariable("SONARQUBE_SCANNER_PARAMS", "Invalid Json to prevent provider SONARQUBE_SCANNER_PARAMS from being created");
+
+        // No server settings
+        var provider = config.AnalysisSettings(false, logger);
+        provider.Should().NotBeNull("Returned provider should not be null");
+        provider.AssertExpectedPropertyCount(0);
+
+        // With server settings
+        provider = config.AnalysisSettings(true, logger);
+        provider.Should().NotBeNull("Returned provider should not be null");
+        provider.AssertExpectedPropertyCount(0);
+    }
+
+    [TestMethod]
+    public void GetSettingOrDefault_InvalidArgs_Throw()
+    {
+        var sut = new AnalysisConfig();
+        var logger = new TestLogger();
+        sut.Invoking(x => x.GetSettingOrDefault(null, true, "value", logger)).Should().Throw<ArgumentNullException>().WithParameterName("settingName");
+        sut.Invoking(x => x.GetSettingOrDefault("any", true, "value", null)).Should().Throw<ArgumentNullException>().WithParameterName("logger");
+    }
+
+    [TestMethod]
+    public void GetSettingOrDefault_NoSetting_DefaultIsReturned()
+    {
+        var sut = new AnalysisConfig { ServerSettings = new AnalysisProperties { new("id", "value") } };
+        var logger = new TestLogger();
+        sut.GetSettingOrDefault("missing", true, "default", logger).Should().Be("default");
+        sut.GetSettingOrDefault("missing", true, null, logger).Should().BeNull();
+        sut.GetSettingOrDefault("ID", true, "default", logger).Should().Be("default");
+        sut.GetSettingOrDefault("id", false, "default", logger).Should().Be("default");
+    }
+
+    [TestMethod]
+    public void GetSettingOrDefault_SettingExists_ValueIsReturned()
+    {
+        var sut = new AnalysisConfig
+        {
+            ServerSettings = new AnalysisProperties { new("id1", "server value") },
+            LocalSettings = new AnalysisProperties { new("id1", "local value") }
+        };
+        sut.GetSettingOrDefault("id1", true, "local value", new TestLogger()).Should().Be("local value", "Local value should take precedence");
+    }
 
     private void SaveAndReloadConfig(AnalysisConfig original, string outputFileName)
     {
@@ -322,6 +552,4 @@ public class AnalysisConfigTests
             actual.AdditionalFilePaths.Should().BeEquivalentTo(expected.AdditionalFilePaths, "Additional file paths do not match");
         }
     }
-
-    #endregion Helper methods
 }

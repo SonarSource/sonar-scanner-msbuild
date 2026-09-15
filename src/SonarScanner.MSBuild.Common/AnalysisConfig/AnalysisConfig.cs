@@ -24,10 +24,11 @@ namespace SonarScanner.MSBuild.Common;
 /// Data class to describe the analysis settings for a single SonarQube project.
 /// </summary>
 /// <remarks>The class is XML-serializable.</remarks>
-[XmlRoot(Namespace = XmlNamespace)]
+[XmlRoot(Namespace = ProjectInfo.XmlNamespace)]
 public class AnalysisConfig
 {
-    public const string XmlNamespace = ProjectInfo.XmlNamespace;
+    private const string SettingsFileKey = "settings.file.path";
+    private const string BuildUriSettingId = "BuildUri";
 
     public string SonarConfigDir { get; set; }
 
@@ -145,5 +146,152 @@ public class AnalysisConfig
         var model = Serializer.LoadModel<AnalysisConfig>(fileName);
         model.FileName = fileName;
         return model;
+    }
+
+    public string GetBuildUri() =>
+        GetConfigValue(BuildUriSettingId, null);
+
+    public void SetBuildUri(string uri) =>
+        SetConfigValue(BuildUriSettingId, uri);
+
+    public string GetConfigValue(string settingId, string defaultValue)
+    {
+        if (string.IsNullOrWhiteSpace(settingId))
+        {
+            throw new ArgumentNullException(nameof(settingId));
+        }
+
+        var result = defaultValue;
+
+        if (TryGetConfigSetting(settingId, out var setting))
+        {
+            result = setting.Value;
+        }
+
+        return result;
+    }
+
+    public void SetConfigValue(string settingId, string value)
+    {
+        SetValue(settingId, value);
+    }
+
+    /// <summary>
+    /// Returns a provider containing the analysis settings coming from all providers (analysis config file, environment, settings file).
+    /// </summary>
+    public IAnalysisPropertyProvider AnalysisSettings(bool includeServerSettings, ILogger logger)
+    {
+        _ = logger ?? throw new ArgumentNullException(nameof(logger));
+        var providers = new List<IAnalysisPropertyProvider>();
+        // Note: the order in which the providers are added determines the precedence
+
+        // Add local settings
+        if (LocalSettings is not null)
+        {
+            providers.Add(new ListPropertiesProvider(LocalSettings));
+        }
+
+        // Add file settings
+        var settingsFilePath = GetSettingsFilePath();
+        if (settingsFilePath is not null)
+        {
+            var fileProvider = new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath));
+            providers.Add(fileProvider);
+        }
+
+        // Add scanner environment settings
+        if (EnvScannerPropertiesProvider.TryCreateProvider(logger, out var envProvider))
+        {
+            providers.Add(envProvider);
+        }
+
+        // Add server settings
+        if (includeServerSettings && ServerSettings is not null)
+        {
+            providers.Add(new ListPropertiesProvider(ServerSettings));
+        }
+
+        return providers.Count switch
+        {
+            0 => EmptyPropertyProvider.Instance,
+            1 => providers[0],
+            _ => new AggregatePropertiesProvider(providers.ToArray()),
+        };
+    }
+
+    public void SetSettingsFilePath(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            throw new ArgumentNullException(nameof(fileName));
+        }
+        SetValue(SettingsFileKey, fileName);
+    }
+
+    public string GetSettingsFilePath()
+    {
+        if (TryGetConfigSetting(SettingsFileKey, out var setting))
+        {
+            return setting.Value;
+        }
+        return null;
+    }
+
+    public string GetSettingOrDefault(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
+    {
+        if (settingName == null)
+        {
+            throw new ArgumentNullException(nameof(settingName));
+        }
+        if (logger == null)
+        {
+            throw new ArgumentNullException(nameof(logger));
+        }
+
+        if (AnalysisSettings(includeServerSettings, logger).TryGetValue(settingName, out var value))
+        {
+            return value;
+        }
+        return defaultValue;
+    }
+
+    private bool TryGetConfigSetting(string settingId, out ConfigSetting result)
+    {
+        Debug.Assert(!string.IsNullOrWhiteSpace(settingId), "Setting id should not be null/empty");
+
+        result = null;
+
+        if (AdditionalConfig != null)
+        {
+            result = AdditionalConfig.FirstOrDefault(ar => ConfigSetting.SettingKeyComparer.Equals(settingId, ar.Id));
+        }
+        return result != null;
+    }
+
+    private void SetValue(string settingId, string value)
+    {
+        if (string.IsNullOrWhiteSpace(settingId))
+        {
+            throw new ArgumentNullException(nameof(settingId));
+        }
+
+        if (TryGetConfigSetting(settingId, out var setting))
+        {
+            setting.Value = value;
+        }
+        else
+        {
+            setting = new ConfigSetting()
+            {
+                Id = settingId,
+                Value = value
+            };
+        }
+
+        if (AdditionalConfig == null)
+        {
+            AdditionalConfig = new System.Collections.Generic.List<ConfigSetting>();
+        }
+        AdditionalConfig.Add(setting);
     }
 }
