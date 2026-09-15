@@ -99,17 +99,17 @@ public class AnalysisConfig
     /// List of additional configuration-related settings e.g. the build system identifier, if appropriate.
     /// </summary>
     /// <remarks>These settings will not be supplied to the sonar-scanner.</remarks>
-    public List<ConfigSetting> AdditionalConfig { get; set; }
+    public List<ConfigSetting> AdditionalConfig { get; set; } = [];
 
     /// <summary>
     /// List of analysis settings inherited from the SonarQube instance.
     /// </summary>
-    public AnalysisProperties ServerSettings { get; set; }
+    public AnalysisProperties ServerSettings { get; set; } = [];
 
     /// <summary>
     /// List of analysis settings supplied locally (either on the command line, in a file or through the scanner environment variable).
     /// </summary>
-    public AnalysisProperties LocalSettings { get; set; }
+    public AnalysisProperties LocalSettings { get; set; } = [];
 
     /// <summary>
     /// List of analysis settings supplied locally (on the command line) that has to be passed to the scanner through the SONAR_SCANNER_OPTS environment variable
@@ -120,7 +120,7 @@ public class AnalysisConfig
     /// <summary>
     /// Configuration for Roslyn analyzers.
     /// </summary>
-    public List<AnalyzerSettings> AnalyzersSettings { get; set; }
+    public List<AnalyzerSettings> AnalyzersSettings { get; set; } = [];
 
     [XmlIgnore]
     public string FileName { get; private set; }
@@ -175,8 +175,7 @@ public class AnalysisConfig
         }
         else
         {
-            AdditionalConfig ??= [];
-            AdditionalConfig.Add(new ConfigSetting() { Id = settingId, Value = value });
+            AdditionalConfig.Add(new ConfigSetting { Id = settingId, Value = value });
         }
     }
 
@@ -194,7 +193,7 @@ public class AnalysisConfig
     {
         _ = logger ?? throw new ArgumentNullException(nameof(logger));
         var providers = new List<IAnalysisPropertyProvider>();
-        if (LocalSettings is not null)
+        if (LocalSettings is { Count: > 0 })
         {
             providers.Add(new ListPropertiesProvider(LocalSettings));
         }
@@ -206,7 +205,7 @@ public class AnalysisConfig
         {
             providers.Add(envProvider);
         }
-        if (includeServerSettings && ServerSettings is not null)
+        if (includeServerSettings && ServerSettings is { Count: > 0 })
         {
             providers.Add(new ListPropertiesProvider(ServerSettings));
         }
