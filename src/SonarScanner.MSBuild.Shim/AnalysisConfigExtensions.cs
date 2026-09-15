@@ -32,7 +32,7 @@ public static class AnalysisConfigExtensions
         var properties = new AnalysisProperties();
 
         properties.AddRange(
-            config.AnalysisSettings(includeServerSettings: false, logger)
+            config.CreatePropertyProvider(includeServerSettings: false, logger)
                 .GetAllProperties()
                 .Where(p => !p.ContainsSensitiveData()));
 

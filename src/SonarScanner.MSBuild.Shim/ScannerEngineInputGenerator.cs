@@ -173,7 +173,7 @@ public class ScannerEngineInputGenerator
         }
         legacyWriter.WriteGlobalSettings(analysisProperties);
 
-        var sensitiveArgsFromSettingsFile = analysisConfig.AnalysisSettings(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
+        var sensitiveArgsFromSettingsFile = analysisConfig.CreatePropertyProvider(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
         engineInput.AddUserSettings(new AggregatePropertiesProvider(cmdLineArgs, new ListPropertiesProvider(sensitiveArgsFromSettingsFile), new ListPropertiesProvider(analysisProperties)));
         return true;
     }
@@ -188,7 +188,7 @@ public class ScannerEngineInputGenerator
     /// </summary>
     internal DirectoryInfo ComputeProjectBaseDir(IList<DirectoryInfo> projectPaths)
     {
-        var projectBaseDir = analysisConfig.GetSettingOrDefault(SonarProperties.ProjectBaseDir, includeServerSettings: true, defaultValue: null, runtime.Logger);
+        var projectBaseDir = analysisConfig.ReadSetting(SonarProperties.ProjectBaseDir, includeServerSettings: true, defaultValue: null, runtime.Logger);
         if (!string.IsNullOrWhiteSpace(projectBaseDir))
         {
             var baseDirectory = new DirectoryInfo(projectBaseDir);

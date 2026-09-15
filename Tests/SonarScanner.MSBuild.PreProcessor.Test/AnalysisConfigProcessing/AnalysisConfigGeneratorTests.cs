@@ -91,8 +91,8 @@ public class AnalysisConfigGeneratorTests
         actualConfig.SonarConfigDir.Should().Be(localSettings.SonarConfigDirectory);
         actualConfig.SonarOutputDir.Should().Be(localSettings.SonarOutputDirectory);
         actualConfig.SonarScannerWorkingDirectory.Should().Be(localSettings.SonarScannerWorkingDirectory);
-        actualConfig.GetConfigValue("UnchangedFilesPath", null).Should().Be(@"f:\UnchangedFiles.txt");
-        actualConfig.GetBuildUri().Should().Be(localSettings.BuildUri);
+        actualConfig.ReadAdditionalSetting("UnchangedFilesPath", null).Should().Be(@"f:\UnchangedFiles.txt");
+        actualConfig.ReadBuildUri().Should().Be(localSettings.BuildUri);
         actualConfig.ServerSettings.Should().NotBeNull();
         actualConfig.AnalyzersSettings.Should().HaveElementAt(0, analyzerSettings);
         actualConfig.ScanAllAnalysis.Should().BeTrue();
@@ -129,7 +129,7 @@ public class AnalysisConfigGeneratorTests
         runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
 
-        var actualSettingsFilePath = actualConfig.GetSettingsFilePath();
+        var actualSettingsFilePath = actualConfig.ReadSettingsFilePath();
         actualSettingsFilePath.Should().Be(settingsFilePath);
 
         // Check the file setting value do not appear in the config file

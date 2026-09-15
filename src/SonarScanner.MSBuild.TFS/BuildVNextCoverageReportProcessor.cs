@@ -43,7 +43,7 @@ public class BuildVNextCoverageReportProcessor
         string[] vsTestReportsPaths = null;
         var trxFilePaths = new TrxFileReader(runtime).FindTrxFiles(settings.BuildDirectory);
 
-        if (config.GetSettingOrDefault(SonarProperties.VsTestReportsPaths, true, null, runtime.Logger) is null)
+        if (config.ReadSetting(SonarProperties.VsTestReportsPaths, true, null, runtime.Logger) is null)
         {
             if (trxFilePaths.Any())
             {
@@ -56,7 +56,7 @@ public class BuildVNextCoverageReportProcessor
         }
 
         var conversionPerformed = false;
-        var vsCoverageXmlReportsPaths = config.GetSettingOrDefault(SonarProperties.VsCoverageXmlReportsPaths, true, null, runtime.Logger) is null
+        var vsCoverageXmlReportsPaths = config.ReadSetting(SonarProperties.VsCoverageXmlReportsPaths, true, null, runtime.Logger) is null
             ? ConvertCoverageReports(trxFilePaths, disableFallback: vsTestReportsPaths is not null, out conversionPerformed)
             : [];
         return new(vsTestReportsPaths, vsCoverageXmlReportsPaths.Any() ? vsCoverageXmlReportsPaths : null, conversionPerformed);

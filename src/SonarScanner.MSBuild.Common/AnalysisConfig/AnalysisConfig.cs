@@ -148,13 +148,13 @@ public class AnalysisConfig
         return model;
     }
 
-    public string GetBuildUri() =>
-        GetConfigValue(BuildUriSettingId, null);
+    public string ReadBuildUri() =>
+        ReadAdditionalSetting(BuildUriSettingId, null);
 
     public void SetBuildUri(string uri) =>
-        SetConfigValue(BuildUriSettingId, uri);
+        SetAdditionalSetting(BuildUriSettingId, uri);
 
-    public string GetConfigValue(string settingId, string defaultValue)
+    public string ReadAdditionalSetting(string settingId, string defaultValue)
     {
         if (string.IsNullOrWhiteSpace(settingId))
         {
@@ -163,7 +163,7 @@ public class AnalysisConfig
 
         var result = defaultValue;
 
-        if (TryGetConfigSetting(settingId, out var setting))
+        if (FindAdditionalSetting(settingId, out var setting))
         {
             result = setting.Value;
         }
@@ -171,15 +171,15 @@ public class AnalysisConfig
         return result;
     }
 
-    public void SetConfigValue(string settingId, string value)
+    public void SetAdditionalSetting(string settingId, string value)
     {
-        SetValue(settingId, value);
+        SetAdditionalSettingDuplicateToRemove(settingId, value);
     }
 
     /// <summary>
     /// Returns a provider containing the analysis settings coming from all providers (analysis config file, environment, settings file).
     /// </summary>
-    public IAnalysisPropertyProvider AnalysisSettings(bool includeServerSettings, ILogger logger)
+    public IAnalysisPropertyProvider CreatePropertyProvider(bool includeServerSettings, ILogger logger)
     {
         _ = logger ?? throw new ArgumentNullException(nameof(logger));
         var providers = new List<IAnalysisPropertyProvider>();
@@ -192,7 +192,7 @@ public class AnalysisConfig
         }
 
         // Add file settings
-        var settingsFilePath = GetSettingsFilePath();
+        var settingsFilePath = ReadSettingsFilePath();
         if (settingsFilePath is not null)
         {
             var fileProvider = new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath));
@@ -225,19 +225,19 @@ public class AnalysisConfig
         {
             throw new ArgumentNullException(nameof(fileName));
         }
-        SetValue(SettingsFileKey, fileName);
+        SetAdditionalSettingDuplicateToRemove(SettingsFileKey, fileName);
     }
 
-    public string GetSettingsFilePath()
+    public string ReadSettingsFilePath()
     {
-        if (TryGetConfigSetting(SettingsFileKey, out var setting))
+        if (FindAdditionalSetting(SettingsFileKey, out var setting))
         {
             return setting.Value;
         }
         return null;
     }
 
-    public string GetSettingOrDefault(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
+    public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
     {
         if (settingName == null)
         {
@@ -248,14 +248,14 @@ public class AnalysisConfig
             throw new ArgumentNullException(nameof(logger));
         }
 
-        if (AnalysisSettings(includeServerSettings, logger).TryGetValue(settingName, out var value))
+        if (CreatePropertyProvider(includeServerSettings, logger).TryGetValue(settingName, out var value))
         {
             return value;
         }
         return defaultValue;
     }
 
-    private bool TryGetConfigSetting(string settingId, out ConfigSetting result)
+    private bool FindAdditionalSetting(string settingId, out ConfigSetting result)
     {
         Debug.Assert(!string.IsNullOrWhiteSpace(settingId), "Setting id should not be null/empty");
 
@@ -268,14 +268,14 @@ public class AnalysisConfig
         return result != null;
     }
 
-    private void SetValue(string settingId, string value)
+    private void SetAdditionalSettingDuplicateToRemove(string settingId, string value)
     {
         if (string.IsNullOrWhiteSpace(settingId))
         {
             throw new ArgumentNullException(nameof(settingId));
         }
 
-        if (TryGetConfigSetting(settingId, out var setting))
+        if (FindAdditionalSetting(settingId, out var setting))
         {
             setting.Value = value;
         }

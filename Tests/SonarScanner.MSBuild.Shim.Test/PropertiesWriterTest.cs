@@ -373,7 +373,7 @@ public class PropertiesWriterTest
             SonarProjectVersion = "4.2",
             SonarOutputDir = @"C:\OutpuDir",
         };
-        config.SetConfigValue(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
+        config.SetAdditionalSetting(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
         var writer = new PropertiesWriter(config);
         writer.WriteSonarProjectInfo(new DirectoryInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectBaseDir")));
 
