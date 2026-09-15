@@ -84,12 +84,10 @@ public class PreProcessor
         var jreResolver = factory.CreateJreResolver(client, localSettings.UserHome);
         var resolvedJavaExePath = await jreResolver.ResolvePath(localSettings);
 
-        var scannerEngineJarPath = localSettings.UseSonarScannerCli ? null : await factory.CreateEngineResolver(client, localSettings.UserHome).ResolvePath(localSettings);
-
-        var scannerCliPath = scannerEngineJarPath is null ? await factory.CreateScannerCliResolver(client, localSettings.UserHome).ResolvePath(localSettings) : null;
-        if (scannerEngineJarPath is null && scannerCliPath is null)
+        var scannerEngineJarPath = await factory.CreateEngineResolver(client, localSettings.UserHome).ResolvePath(localSettings);
+        if (scannerEngineJarPath is null)
         {
-            runtime.LogError(Resources.ERR_ScannerCliDownloadFailed);
+            runtime.LogError(Resources.ERR_ScannerEngineDownloadFailed);
             return false;
         }
 
@@ -116,7 +114,7 @@ public class PreProcessor
             client.ServerVersion,
             resolvedJavaExePath,
             scannerEngineJarPath,
-            scannerCliPath,
+            null,   // delete in SCAN4NET-1782
             runtime);
 
         runtime.AnalysisWarnings.Write(buildSettings.SonarOutputDirectory); // Create the analysis warnings file to be picked up the plugin
