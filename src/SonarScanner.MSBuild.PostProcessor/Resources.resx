@@ -172,9 +172,6 @@ Config file: {5}</value>
   <data name="MSG_ConvertingCoverageReports" xml:space="preserve">
     <value>Converting coverage reports.</value>
   </data>
-  <data name="MSG_TFSLegacyProcessorCalled" xml:space="preserve">
-    <value>Calling legacy TFS processor.</value>
-  </data>
   <data name="MSG_WritingScannerEngineInput" xml:space="preserve">
     <value>Writing Scanner Engine Input to {0}</value>
   </data>
