@@ -152,19 +152,8 @@ public class AnalysisConfig
 
     public string ReadAdditionalSetting(string settingId, string defaultValue)
     {
-        if (string.IsNullOrWhiteSpace(settingId))
-        {
-            throw new ArgumentNullException(nameof(settingId));
-        }
-
-        var result = defaultValue;
-
-        if (FindAdditionalSetting(settingId) is { } setting)
-        {
-            result = setting.Value;
-        }
-
-        return result;
+        Contract.ThrowIfNullOrWhitespace(settingId, nameof(settingId));
+        return FindAdditionalSetting(settingId)?.Value ?? defaultValue;
     }
 
     public void SetAdditionalSetting(string settingId, string value)
