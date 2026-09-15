@@ -72,12 +72,11 @@ public class BuildVNextCoverageReportProcessorTests
     public void Constructor_LoggerIsNull_ThrowsNullArgumentException() =>
         FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(converter, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
+    // FIXME The tests belwo are broken beyond repair and need to be rewritten. https://sonarsource.atlassian.net/browse/SCAN4NET-1792
     [TestMethod]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
-    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
-    public void ProcessCoverageReports_TrxFileFound_WritesPropertiesFile(Properties properties)
+    public void ProcessCoverageReports_TrxFileFound_WritesPropertiesFile()
     {
-        SetupPropertiesAndFiles(properties, trx: true);
+        SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNull, trx: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         AssertUsesFallback(false);
@@ -87,11 +86,21 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [DataRow(Properties.TestReportsPathsNotNull)]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
-    public void ProcessCoverageReports_TrxFileFound_TestReportsPathsProvided_DoesNotWritePropertiesFile(Properties properties)
+    public void ProcessCoverageReports_TrxFileFound_CoverageXmlReportsPathsProvided_WritesPropertiesFile_DoesAttemptConversion()
     {
-        SetupPropertiesAndFiles(properties, trx: true);
+        SetupPropertiesAndFiles(Properties.CoverageXmlReportsPathsNotNull, trx: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        AssertFallbackPathNotReached();
+        runtime.Logger.Should().HaveNoWarnings();
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_TrxFileFound_TestReportsPathsProvided_DoesNotWritePropertiesFile()
+    {
+        SetupPropertiesAndFiles(Properties.TestReportsPathsNotNull, trx: true);
 
         sut.ProcessCoverageReports(analysisConfig, buildSettings);
         runtime.Logger.Warnings.Should().ContainSingle().Which.StartsWith("None of the following coverage attachments could be found: dummy.coverage");
@@ -99,13 +108,38 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [CombinatorialData]
+    public void ProcessCoverageReports_TrxFileFound_TestAndCoverageXmlReportsPathsProvided_DoesNotWritePropertiesFile_DoesNotAttemptConversion()
+    {
+        SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNotNull, trx: true);
+
+        sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        AssertFallbackPathNotReached();
+        runtime.Logger.Should().HaveNoWarnings();
+        runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
+    [DataRow(Properties.TestReportsPathsNotNull)]
     public void ProcessCoverageReports_NoTrxFilesFound_DoesNotWritePropertiesFile(Properties properties)
     {
         SetupPropertiesAndFiles(properties);
 
         sut.ProcessCoverageReports(analysisConfig, buildSettings);
         AssertUsesFallback();
+        runtime.Logger.Should().HaveNoWarnings();
+        runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
+    }
+
+    [TestMethod]
+    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
+    public void ProcessCoverageReports_NoTrxFilesFound_CoverageXmlReportsPathsProvided_DoesNotWritePropertiesFile(Properties properties)
+    {
+        SetupPropertiesAndFiles(properties);
+
+        sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        AssertFallbackPathNotReached();
         runtime.Logger.Should().HaveNoWarnings();
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
     }
@@ -137,28 +171,28 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_TrxAndCoverageFileFound_CoverageXmlReportsPathsProvided_Converts_DoesNotWriteCoverageXmlReportsPathsToPropertiesFile()
+    public void ProcessCoverageReports_TrxAndCoverageFileFound_CoverageXmlReportsPathsProvided_DoesNotAttemptConversion_DoesNotWriteCoverageXmlReportsPathsToPropertiesFile()
     {
         SetupPropertiesAndFiles(Properties.CoverageXmlReportsPathsNotNull, trx: true, coverage: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        converter.AssertExpectedNumberOfConversions(1);
+        converter.AssertExpectedNumberOfConversions(0);
         runtime.Logger.Should().HaveNoWarnings();
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
-        additionalProperties.CoverageConversionPerformed.Should().BeTrue();
+        additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_TrxAndCoverageFileFound_TestReportsAndCoverageXmlPathsProvided_Converts_DoesNotWritePropertiesFile()
+    public void ProcessCoverageReports_TrxAndCoverageFileFound_TestReportsAndCoverageXmlPathsProvided_DoesNotAttemptConversion_DoesNotWritePropertiesFile()
     {
         SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNotNull, trx: true, coverage: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        converter.AssertExpectedNumberOfConversions(1);
+        converter.AssertExpectedNumberOfConversions(0);
         runtime.Logger.Should().HaveNoWarnings();
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
-        additionalProperties.CoverageConversionPerformed.Should().BeTrue();
+        additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
 
     [TestMethod]
@@ -203,7 +237,8 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [CombinatorialData]
+    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
+    [DataRow(Properties.TestReportsPathsNotNull)]
     public void ProcessCoverageReports_ConversionFails_ReturnsTrue(Properties properties)
     {
         SetupPropertiesAndFiles(properties, trx: true, coverage: true);
@@ -234,23 +269,21 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
     [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
-    public void ProcessCoverageReports_NoTrxFilesFound_AlternateCoverageFilesFound_VsCoverageXmlReportsPathsProvided_Converts_DoesNotWritePropertiesFile(Properties properties)
+    public void ProcessCoverageReports_NoTrxFilesFound_AlternateCoverageFilesFound_CoverageXmlReportsPathsProvided_DoesNotAttemptConversion_DoesNotWritePropertiesFile(Properties properties)
     {
         SetupPropertiesAndFiles(properties, alternate: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        AssertUsesFallback();
-        converter.AssertExpectedNumberOfConversions(1);
+        AssertFallbackPathNotReached();
+        converter.AssertExpectedNumberOfConversions(0);
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
-        additionalProperties.CoverageConversionPerformed.Should().BeTrue();
+        additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
 
     [TestMethod]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNull)]
-    [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
-    public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_DoesNotUseFallback(Properties properties)
+    public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_DoesNotUseFallback()
     {
-        SetupPropertiesAndFiles(properties, trx: true, alternate: true);
+        SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNull, trx: true, alternate: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(0);
@@ -260,17 +293,39 @@ public class BuildVNextCoverageReportProcessorTests
     }
 
     [TestMethod]
-    [DataRow(Properties.TestReportsPathsNotNull)]
-    [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
-    public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_TestReportsPathsProvided_UsesFallback_Converts(Properties properties)
+    public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_CoverageXmlReportsPathsProvided_DoesNotAttemptConversion()
     {
-        SetupPropertiesAndFiles(properties, trx: true, alternate: true);
+        SetupPropertiesAndFiles(Properties.CoverageXmlReportsPathsNotNull, trx: true, alternate: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(0);
+        AssertFallbackPathNotReached();
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties);
+        AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_TestReportsPathsProvided_UsesFallback_Converts()
+    {
+        SetupPropertiesAndFiles(Properties.TestReportsPathsNotNull, trx: true, alternate: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertExpectedNumberOfConversions(1);
         AssertUsesFallback();
         AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
         additionalProperties.CoverageConversionPerformed.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_TrxAndAlternateCoverageFileFound_TestAndCoverageXmlReportsPathsProvided_DoesNotAttemptConversion()
+    {
+        SetupPropertiesAndFiles(Properties.TestAndCoverageXmlReportsPathsNotNull, trx: true, alternate: true);
+
+        var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        converter.AssertExpectedNumberOfConversions(0);
+        AssertFallbackPathNotReached();
+        AssertPropertiesFileContainsTestReportsPaths(additionalProperties, false);
+        additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
 
     [TestMethod]
@@ -290,16 +345,16 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
     [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
-    public void ProcessCoverageReports_TrxAndCoverageAndAlternateCoverageFileFound_CoverageXmlReportsPathsProvided_Converts_DoesNotUseFallback_DoesNotWriteCoverageXmlReportsPathsToPropertiesFile(
+    public void ProcessCoverageReports_TrxAndCoverageAndAlternateCoverageFileFound_CoverageXmlReportsPathsProvided_DoesNotAttemptConversion_DoesNotUseFallback_DoesNotWriteCoverageXmlReportsPathsToPropertiesFile(
         Properties properties)
     {
         SetupPropertiesAndFiles(properties, true, coverage: true, alternate: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        converter.AssertExpectedNumberOfConversions(1);
-        AssertUsesFallback(false);
+        converter.AssertExpectedNumberOfConversions(0);
+        AssertFallbackPathNotReached();
         AssertPropertiesFileContainsCoverageXmlReportsPaths(additionalProperties, false);
-        additionalProperties.CoverageConversionPerformed.Should().BeTrue();
+        additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
 
     [TestMethod]
@@ -320,14 +375,14 @@ public class BuildVNextCoverageReportProcessorTests
     [TestMethod]
     [DataRow(Properties.CoverageXmlReportsPathsNotNull)]
     [DataRow(Properties.TestAndCoverageXmlReportsPathsNotNull)]
-    public void ProcessCoverageReports_AlternateCoverageFileFound_CoverageXmlFileAlreadyPresent_CoverageXmlReportsPathsProvided_DoesNotConvert_UsesFallback_DoesNotWritePropertiesFile(
+    public void ProcessCoverageReports_AlternateCoverageFileFound_CoverageXmlFileAlreadyPresent_CoverageXmlReportsPathsProvided_DoesNotAttemptConversion_DoesNotWritePropertiesFile(
         Properties properties)
     {
         SetupPropertiesAndFiles(properties, alternate: true, alternateXml: true);
 
         var additionalProperties = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         converter.AssertConvertNotCalled();
-        AssertUsesFallback();
+        AssertFallbackPathNotReached();
         runtime.File.DidNotReceiveWithAnyArgs().AppendAllText(null, null);
         additionalProperties.CoverageConversionPerformed.Should().BeFalse();
     }
@@ -550,6 +605,10 @@ public class BuildVNextCoverageReportProcessorTests
                 .And.HaveDebugs("Not using the fallback mechanism to detect binary coverage files.");
         }
     }
+
+    private void AssertFallbackPathNotReached() =>
+        runtime.Logger.Should().NotHaveInfo(Resources.TRX_DIAG_NoCoverageFilesFound)
+            .And.NotHaveDebug(Resources.TRX_DIAG_NotUsingFallback);
 
     private void CreateFile(string path, string fileName, string fileContent = "")
     {
