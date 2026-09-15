@@ -36,7 +36,6 @@ public class BuildSettingsTests
             Directory.GetCurrentDirectory(),
             null,
             null,
-            null,
             null);
     }
 
@@ -52,7 +51,6 @@ public class BuildSettingsTests
             settings,
             false,
             Directory.GetCurrentDirectory(),
-            null,
             null,
             null,
             null);
@@ -72,7 +70,6 @@ public class BuildSettingsTests
             Directory.GetCurrentDirectory(),
             "http://builduri",
             null,
-            null,
             null);
     }
 
@@ -91,7 +88,6 @@ public class BuildSettingsTests
                                               bool expectedIsAzureDevOps,
                                               string expectedAnalysisDir,
                                               string expectedBuildUri,
-                                              string expectedCollectionUri,
                                               string expectedBuildDir,
                                               string expectedSourcesDir)
     {
@@ -101,7 +97,6 @@ public class BuildSettingsTests
         actual.AnalysisBaseDirectory.Should().Be(expectedAnalysisDir);
         actual.BuildDirectory.Should().Be(expectedBuildDir);
         actual.BuildUri.Should().Be(expectedBuildUri);
-        actual.TfsUri.Should().Be(expectedCollectionUri);
 
         if (actual.IsAzureDevOps)
         {

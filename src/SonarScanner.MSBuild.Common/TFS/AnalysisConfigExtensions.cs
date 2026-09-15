@@ -25,15 +25,8 @@ namespace SonarScanner.MSBuild.Common;
 /// </summary>
 public static class AnalysisConfigExtensions
 {
-    private const string TfsUriSettingId = "TfsUri";
     private const string BuildUriSettingId = "BuildUri";
     private const string VsCoverageConverterToolPathId = "VsCoverageConverterToolPath";
-
-    public static string GetTfsUri(this AnalysisConfig config) =>
-        config.GetConfigValue(TfsUriSettingId, null);
-
-    public static void SetTfsUri(this AnalysisConfig config, string uri) =>
-        config.SetConfigValue(TfsUriSettingId, uri);
 
     public static string GetBuildUri(this AnalysisConfig config) =>
         config.GetConfigValue(BuildUriSettingId, null);

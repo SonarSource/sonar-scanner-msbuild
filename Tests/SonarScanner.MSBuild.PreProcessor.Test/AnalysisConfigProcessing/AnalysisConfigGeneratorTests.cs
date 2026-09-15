@@ -93,7 +93,6 @@ public class AnalysisConfigGeneratorTests
         actualConfig.SonarScannerWorkingDirectory.Should().Be(localSettings.SonarScannerWorkingDirectory);
         actualConfig.GetConfigValue("UnchangedFilesPath", null).Should().Be(@"f:\UnchangedFiles.txt");
         actualConfig.GetBuildUri().Should().Be(localSettings.BuildUri);
-        actualConfig.GetTfsUri().Should().Be(localSettings.TfsUri);
         actualConfig.ServerSettings.Should().NotBeNull();
         actualConfig.AnalyzersSettings.Should().HaveElementAt(0, analyzerSettings);
         actualConfig.ScanAllAnalysis.Should().BeTrue();
