@@ -26,39 +26,26 @@ public class AnalysisConfigTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void AnalysisConfig_Serialization_InvalidFileName()
-    {
-        // 0. Setup
-        var config = new AnalysisConfig();
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow(" ")]
+    [DataRow("\r\t ")]
+    public void Save_InvalidFileName(string fileName) =>
+        new AnalysisConfig().Invoking(x => x.Save(fileName)).Should().ThrowExactly<ArgumentNullException>();
 
-        // 1a. Missing file name - save
-        Action act = () => config.Save(null);
-        act.Should().ThrowExactly<ArgumentNullException>();
-
-        act = () => config.Save(string.Empty);
-        act.Should().ThrowExactly<ArgumentNullException>();
-
-        act = () => config.Save("\r\t ");
-        act.Should().ThrowExactly<ArgumentNullException>();
-
-        // 1b. Missing file name - load
-        act = () => ProjectInfo.Load(null);
-        act.Should().ThrowExactly<ArgumentNullException>();
-
-        act = () => ProjectInfo.Load(string.Empty);
-        act.Should().ThrowExactly<ArgumentNullException>();
-
-        act = () => ProjectInfo.Load("\r\t ");
-        act.Should().ThrowExactly<ArgumentNullException>();
-    }
+    [TestMethod]
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow(" ")]
+    [DataRow("\r\t ")]
+    public void Load_InvalidFileName(string fileName) =>
+        FluentActions.Invoking(() => ProjectInfo.Load(fileName)).Should().ThrowExactly<ArgumentNullException>();
 
     [TestMethod]
     [Description("Checks AnalysisConfig can be serialized and deserialized")]
-    public void AnalysisConfig_Serialization_SaveAndReload()
+    public void Serialization_SaveAndReload()
     {
-        // 0. Setup
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
         var originalConfig = new AnalysisConfig
         {
             SonarConfigDir = @"c:\config",
@@ -66,146 +53,113 @@ public class AnalysisConfigTests
             SonarProjectKey = @"key.1.2",
             SonarProjectName = @"My project",
             SonarProjectVersion = @"1.0",
-
-            LocalSettings = new AnalysisProperties()
+            LocalSettings = [new("local.key", "local.value")],
+            ServerSettings = [new("server.key", "server.value")],
+            AnalyzersSettings = [
+                new()
+                {
+                    RulesetPath = "ruleset path",
+                    AdditionalFilePaths = ["additional path1", "additional path2"],
+                    AnalyzerPlugins = [
+                        new AnalyzerPlugin("pluginkey1", "1.2.3.4", "static-resource.zip", ["analyzer path1", "analyzer path2"]),
+                        new AnalyzerPlugin("plugin-key2", "a-version", "a/b/c/d.zip", ["analyzer path3", "analyzer path4"])]
+                }]
         };
-        originalConfig.LocalSettings.Add(new("local.key", "local.value"));
-        originalConfig.ServerSettings = new AnalysisProperties { new("server.key", "server.value") };
-        var settings = new AnalyzerSettings
-        {
-            RulesetPath = "ruleset path",
-            AdditionalFilePaths = new List<string>()
-        };
-        settings.AdditionalFilePaths.Add("additional path1");
-        settings.AdditionalFilePaths.Add("additional path2");
-
-        settings.AnalyzerPlugins = new List<AnalyzerPlugin>
-        {
-            new AnalyzerPlugin("pluginkey1", "1.2.3.4", "static-resource.zip", new List<string> { "analyzer path1", "analyzer path2" }),
-            new AnalyzerPlugin("plugin-key2", "a-version", "a/b/c/d.zip", new List<string> { "analyzer path3", "analyzer path4" })
-        };
-
-        originalConfig.AnalyzersSettings = new List<AnalyzerSettings>
-        {
-            settings
-        };
-
-        var fileName = Path.Combine(testFolder, "config1.xml");
-
-        SaveAndReloadConfig(originalConfig, fileName);
+        SaveAndReloadConfig(originalConfig, Path.Combine(testFolder, "config1.xml"));
     }
 
     [TestMethod]
-    [Description("Checks AnalysisConfig can be serialized and deserialized with missing values and empty collections")]
-    public void AnalysisConfig_Serialization_SaveAndReload_EmptySettings()
+    public void Serialization_SaveAndReload_EmptySettings()
     {
-        // Arrange
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-
         var originalConfig = new AnalysisConfig();
         var fileName = Path.Combine(testFolder, "empty_config.xml");
-
-        // Act and assert
         SaveAndReloadConfig(originalConfig, fileName);
     }
 
     [TestMethod]
-    [Description("Checks additional analysis settings can be serialized and deserialized")]
-    public void AnalysisConfig_Serialization_AdditionalConfig()
+    public void Serialization_AdditionalConfig()
     {
-        // 0. Setup
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var config = new AnalysisConfig();
 
-        var originalConfig = new AnalysisConfig();
+        // AdditionalConfig is null
+        SaveAndReloadConfig(config, Path.Combine(testFolder, "NullAdditionalSettings.xml"));
 
-        // 1. Null list
-        SaveAndReloadConfig(originalConfig, Path.Combine(testFolder, "AnalysisConfig_NullAdditionalSettings.xml"));
+        config.AdditionalConfig = [];
+        SaveAndReloadConfig(config, Path.Combine(testFolder, "EmptyAdditionalSettings.xml"));
 
-        // 2. Empty list
-        originalConfig.AdditionalConfig = new List<ConfigSetting>();
-        SaveAndReloadConfig(originalConfig, Path.Combine(testFolder, "AnalysisConfig_EmptyAdditionalSettings.xml"));
-
-        // 3. Non-empty list
-        originalConfig.AdditionalConfig.Add(new ConfigSetting() { Id = string.Empty, Value = string.Empty }); // empty item
-        originalConfig.AdditionalConfig.Add(new ConfigSetting() { Id = "Id1", Value = "http://www.foo.xxx" });
-        originalConfig.AdditionalConfig.Add(new ConfigSetting() { Id = "Id2", Value = "value 2" });
-        SaveAndReloadConfig(originalConfig, Path.Combine(testFolder, "AnalysisConfig_NonEmptyList.xml"));
+        config.AdditionalConfig = [
+            new() { Id = string.Empty, Value = string.Empty },
+            new() { Id = "Id1", Value = "http://www.foo.xxx" },
+            new() { Id = "Id2", Value = "value 2" }];
+        SaveAndReloadConfig(config, Path.Combine(testFolder, "NonEmptyList.xml"));
     }
 
     [TestMethod]
-    [Description("Checks the serializer does not take an exclusive read lock")]
     [WorkItem(120)] // Regression test for http://jira.sonarsource.com/browse/SONARMSBRU-120
-    public void AnalysisConfig_SharedReadAllowed()
+    public void SharedReadAllowed()
     {
-        // 0. Setup
         var testFolder = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var filePath = Path.Combine(testFolder, "config.txt");
-
         var config = new AnalysisConfig();
         config.Save(filePath);
-
         using (var lockingStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
-            Action a = () => AnalysisConfig.Load(filePath);
-            a.Should().NotThrow();
+            FluentActions.Invoking(() => AnalysisConfig.Load(filePath)).Should().NotThrow();
         }
     }
 
     [TestMethod]
-    [Description("Checks that the XML uses the expected element and attribute names, and that unrecognized elements are silently ignored")]
-    public void AnalysisConfig_ExpectedXmlFormat()
+    public void ExpectedXmlFormat()
     {
-        // Arrange
-        var xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
-<AnalysisConfig xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns=""http://www.sonarsource.com/msbuild/integration/2015/1"">
-  <SonarConfigDir>c:\config</SonarConfigDir>
-  <SonarOutputDir>c:\output</SonarOutputDir>
-  <SonarProjectKey>key.1.2</SonarProjectKey>
-  <SonarProjectVersion>1.0</SonarProjectVersion>
-  <SonarProjectName>My project</SonarProjectName>
-  <ServerSettings>
-    <Property Name=""server.key"">server.value</Property>
-  </ServerSettings>
+        var xml = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <AnalysisConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
+              <SonarConfigDir>c:\config</SonarConfigDir>
+              <SonarOutputDir>c:\output</SonarOutputDir>
+              <SonarProjectKey>key.1.2</SonarProjectKey>
+              <SonarProjectVersion>1.0</SonarProjectVersion>
+              <SonarProjectName>My project</SonarProjectName>
+              <ServerSettings>
+                <Property Name="server.key">server.value</Property>
+              </ServerSettings>
 
-  <!-- Unexpected additional elements should be silently ignored -->
-  <UnexpectedElement1 />
+              <!-- Unexpected additional elements should be silently ignored -->
+              <UnexpectedElement1 />
 
-  <LocalSettings>
-    <Property Name=""local.key"">local.value</Property>
-  </LocalSettings>
-  <AnalyzersSettings>
-    <AnalyzerSettings>
-      <RulesetPath>d:\ruleset path.ruleset</RulesetPath>
-      <AnalyzerPlugins>
-        <AnalyzerPlugin Key='csharp' Version='7.10.0.7896' StaticResourceName='SonarAnalyzer-7.10.0.7896.zip'>
-          <AssemblyPaths>
-            <Path>c:\assembly1.dll</Path>
-            <Path>C:\assembly2.dll</Path>
-          </AssemblyPaths>
-        </AnalyzerPlugin>
-        <AnalyzerPlugin Key='pluginkey2' Version='1.2.3' StaticResourceName='staticresource.zip'>
-          <AssemblyPaths>
-            <Path>C:\assembly3.dll</Path>
-          </AssemblyPaths>
-        </AnalyzerPlugin>
-      </AnalyzerPlugins>
-      <AdditionalFilePaths>
+              <LocalSettings>
+                <Property Name="local.key">local.value</Property>
+              </LocalSettings>
+              <AnalyzersSettings>
+                <AnalyzerSettings>
+                  <RulesetPath>d:\ruleset path.ruleset</RulesetPath>
+                  <AnalyzerPlugins>
+                    <AnalyzerPlugin Key='csharp' Version='7.10.0.7896' StaticResourceName='SonarAnalyzer-7.10.0.7896.zip'>
+                      <AssemblyPaths>
+                        <Path>c:\assembly1.dll</Path>
+                        <Path>C:\assembly2.dll</Path>
+                      </AssemblyPaths>
+                    </AnalyzerPlugin>
+                    <AnalyzerPlugin Key='pluginkey2' Version='1.2.3' StaticResourceName='staticresource.zip'>
+                      <AssemblyPaths>
+                        <Path>C:\assembly3.dll</Path>
+                      </AssemblyPaths>
+                    </AnalyzerPlugin>
+                  </AnalyzerPlugins>
+                  <AdditionalFilePaths>
 
-        <MoreUnexpectedData><Foo /></MoreUnexpectedData>
+                    <MoreUnexpectedData><Foo /></MoreUnexpectedData>
 
-        <Path>c:\additional1.txt</Path>
-      </AdditionalFilePaths>
-    </AnalyzerSettings>
-  </AnalyzersSettings>
-</AnalysisConfig>";
-
+                    <Path>c:\additional1.txt</Path>
+                  </AdditionalFilePaths>
+                </AnalyzerSettings>
+              </AnalyzersSettings>
+            </AnalysisConfig>
+            """;
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var fullPath = TestUtils.CreateTextFile(testDir, "input.txt", xml);
-
-        // Act
         var actual = AnalysisConfig.Load(fullPath);
-
-        // Assert
         var expected = new AnalysisConfig
         {
             SonarConfigDir = "c:\\config",
@@ -238,44 +192,22 @@ public class AnalysisConfigTests
     }
 
     [TestMethod]
-    public void ReadAdditionalSetting_WhenSettingIdIsNull_ThrowsArgumentNullException() =>
-        new AnalysisConfig().Invoking(x => x.ReadAdditionalSetting(null, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
-
-    [TestMethod]
-    public void ReadAdditionalSetting_WhenSettingIdIsEmpty_ThrowsArgumentNullException() =>
-        new AnalysisConfig().Invoking(x => x.ReadAdditionalSetting(string.Empty, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
-
-    [TestMethod]
-    public void ReadAdditionalSetting_WhenSettingIdIsWhitespace_ThrowsArgumentNullException() =>
-        new AnalysisConfig().Invoking(x => x.ReadAdditionalSetting("   ", "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("    ")]
+    public void ReadAdditionalSetting_InvalidSettingId(string value) =>
+        new AnalysisConfig().Invoking(x => x.ReadAdditionalSetting(value, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
 
     [TestMethod]
     public void CreatePropertyProvider_WhenLoggerIsNull_ThrowsArgumentNullException() =>
         new AnalysisConfig().Invoking(x => x.CreatePropertyProvider(false, null)).Should().Throw<ArgumentNullException>().WithParameterName("logger");
 
     [TestMethod]
-    public void SetSettingsFilePath_WhenFileNameIsNull_ThrowsArgumentNullException() =>
-        new AnalysisConfig().Invoking(x => x.SetSettingsFilePath(null)).Should().Throw<ArgumentNullException>().WithParameterName("fileName");
-
-    [TestMethod]
-    public void SetSettingsFilePath_WhenFileNameIsEmpty_ThrowsArgumentNullException() =>
-        new AnalysisConfig().Invoking(x => x.SetSettingsFilePath(string.Empty)).Should().Throw<ArgumentNullException>().WithParameterName("fileName");
-
-    [TestMethod]
-    public void SetSettingsFilePath_WhenFileNameIsWhitespace_ThrowsArgumentNullException() =>
-        new AnalysisConfig().Invoking(x => x.SetSettingsFilePath("   ")).Should().Throw<ArgumentNullException>().WithParameterName("fileName");
-
-    [TestMethod]
-    public void SetAdditionalSetting_WhenSettingIdIsNull_ThrowsArgumentNullException() =>
-        new AnalysisConfig().Invoking(x => x.SetAdditionalSetting(null, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
-
-    [TestMethod]
-    public void SetAdditionalSetting_WhenSettingIdIsEmpty_ThrowsArgumentNullException() =>
-        new AnalysisConfig().Invoking(x => x.SetAdditionalSetting(string.Empty, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
-
-    [TestMethod]
-    public void SetAdditionalSetting_WhenSettingIdIsWhitespace_ThrowsArgumentNullException() =>
-        new AnalysisConfig().Invoking(x => x.SetAdditionalSetting("   ", "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
+    [DataRow(null)]
+    [DataRow("")]
+    [DataRow("    ")]
+    public void SetAdditionalSetting_InvalidSettingId(string value) =>
+        new AnalysisConfig().Invoking(x => x.SetAdditionalSetting(value, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
 
     [TestMethod]
     public void ReadAdditionalSetting_SetAdditionalSetting()
