@@ -194,39 +194,27 @@ public class AnalysisConfig
     {
         _ = logger ?? throw new ArgumentNullException(nameof(logger));
         var providers = new List<IAnalysisPropertyProvider>();
-        // Note: the order in which the providers are added determines the precedence
-
-        // Add local settings
         if (LocalSettings is not null)
         {
             providers.Add(new ListPropertiesProvider(LocalSettings));
         }
-
-        // Add file settings
-        var settingsFilePath = ReadSettingsFilePath();
-        if (settingsFilePath is not null)
+        if (ReadSettingsFilePath() is { } settingsFilePath)
         {
-            var fileProvider = new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath));
-            providers.Add(fileProvider);
+            providers.Add(new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath)));
         }
-
-        // Add scanner environment settings
         if (EnvScannerPropertiesProvider.TryCreateProvider(logger, out var envProvider))
         {
             providers.Add(envProvider);
         }
-
-        // Add server settings
         if (includeServerSettings && ServerSettings is not null)
         {
             providers.Add(new ListPropertiesProvider(ServerSettings));
         }
-
         return providers.Count switch
         {
             0 => EmptyPropertyProvider.Instance,
             1 => providers[0],
-            _ => new AggregatePropertiesProvider(providers.ToArray()),
+            _ => new AggregatePropertiesProvider(providers.ToArray()),  // Order of providers determines precedence
         };
     }
 
