@@ -175,10 +175,6 @@ public class BuildVNextCoverageReportProcessor
                 runtime.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
                 xmlFileNames.Add(xmlFilePath);
             }
-            else if (!File.Exists(vsCoverageFilePath))
-            {
-                runtime.Logger.LogError(Resources.CONV_ERROR_InputFileNotFound, vsCoverageFilePath);
-            }
             else if (ConvertToXml(vsCoverageFilePath, xmlFilePath))
             {
                 conversionPerformed = true;
