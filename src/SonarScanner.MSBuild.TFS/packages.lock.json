@@ -52,24 +52,11 @@
         "resolved": "4.3.0",
         "contentHash": "cbz4YJMqRDR7oLeMRbdYv7mYzc++17lNhScCX0goO2XpGWdvAt60CGN+FHdePUEHCe/Jy9jUlvNAiNdM+7jsOw=="
       },
-      "System.ValueTuple": {
-        "type": "Transitive",
-        "resolved": "4.6.2",
-        "contentHash": "yQgmjfFximrNm9LIV3mL6T5MzjeC+epeE5rl4hXxAlYmxby7RM1dPSkIKXk9HNkl6G54h2JHOmLD46+Pey+IRg=="
-      },
       "sonarscanner.msbuild.common": {
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
           "System.Runtime.InteropServices.RuntimeInformation": "[4.3.0, )"
-        }
-      },
-      "sonarscanner.msbuild.shim": {
-        "type": "Project",
-        "dependencies": {
-          "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[12.0.0, )",
-          "System.ValueTuple": "[4.6.2, )"
         }
       }
     },
@@ -275,24 +262,11 @@
           "System.Runtime": "4.3.0"
         }
       },
-      "System.ValueTuple": {
-        "type": "Transitive",
-        "resolved": "4.6.2",
-        "contentHash": "yQgmjfFximrNm9LIV3mL6T5MzjeC+epeE5rl4hXxAlYmxby7RM1dPSkIKXk9HNkl6G54h2JHOmLD46+Pey+IRg=="
-      },
       "sonarscanner.msbuild.common": {
         "type": "Project",
         "dependencies": {
           "Newtonsoft.Json": "[13.0.4, )",
           "System.Runtime.InteropServices.RuntimeInformation": "[4.3.0, )"
-        }
-      },
-      "sonarscanner.msbuild.shim": {
-        "type": "Project",
-        "dependencies": {
-          "Newtonsoft.Json": "[13.0.4, )",
-          "SonarScanner.MSBuild.Common": "[12.0.0, )",
-          "System.ValueTuple": "[4.6.2, )"
         }
       }
     }

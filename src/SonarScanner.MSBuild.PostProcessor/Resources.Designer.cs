@@ -147,15 +147,6 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Calling legacy TFS processor..
-        /// </summary>
-        internal static string MSG_TFSLegacyProcessorCalled {
-            get {
-                return ResourceManager.GetString("MSG_TFSLegacyProcessorCalled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Could not delete {0}.
         /// </summary>
         internal static string MSG_UninstallTargets_CouldNotDelete {
