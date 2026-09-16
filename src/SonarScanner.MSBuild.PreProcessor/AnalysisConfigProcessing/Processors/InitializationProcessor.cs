@@ -29,7 +29,6 @@ public class InitializationProcessor(BuildSettings buildSettings, ProcessedArgs 
     public override void Update(AnalysisConfig config)
     {
         config.SetBuildUri(buildSettings.BuildUri);
-        config.SetVsCoverageConverterToolPath(buildSettings.CoverageToolUserSuppliedPath);
         foreach (var item in additionalSettings)
         {
             config.SetConfigValue(item.Key, item.Value);

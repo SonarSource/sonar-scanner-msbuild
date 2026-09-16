@@ -50,10 +50,6 @@ public static class EnvironmentVariables
     public const string BuildDirectoryTfs2015 = "AGENT_BUILDDIRECTORY";         // TeamBuild 2015 and later build directory
     public const string SourcesDirectoryTfs2015 = "BUILD_SOURCESDIRECTORY";
 
-    // This env variable can be set by the VSTest platform installer tool available on AzDo. This will be also used if the user want to set a custom location.
-    // https://github.com/microsoft/azure-pipelines-tasks/blob/1538fd6fdb8efd93539b7fe65b00df900d963c1a/Tasks/VsTestPlatformToolInstallerV1/helpers.ts#L8
-    public const string VsTestToolCustomInstall = "VsTestToolsInstallerInstalledToolLocation";
-
     public static class BaseBranch
     {
         public const string JenkingsGitHubPullRequestBuilder = "ghprbTargetBranch";
