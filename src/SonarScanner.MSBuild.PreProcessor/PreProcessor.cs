@@ -114,7 +114,6 @@ public class PreProcessor
             client.ServerVersion,
             resolvedJavaExePath,
             scannerEngineJarPath,
-            null,   // delete in SCAN4NET-1782
             runtime);
 
         runtime.AnalysisWarnings.Write(buildSettings.SonarOutputDirectory); // Create the analysis warnings file to be picked up the plugin
