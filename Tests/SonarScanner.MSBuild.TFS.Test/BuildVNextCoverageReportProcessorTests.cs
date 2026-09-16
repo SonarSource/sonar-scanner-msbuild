@@ -61,187 +61,216 @@ public class BuildVNextCoverageReportProcessorTests
         environmentVariableScope.Dispose();
 
     [TestMethod]
-    public void Constructor_LoggerIsNull_ThrowsNullArgumentException() =>
+    public void Constructor_Null() =>
         FluentActions.Invoking(() => new BuildVNextCoverageReportProcessor(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
     [TestMethod]
-    public void ProcessCoverageReports_NoTrxFile_ReturnsTestReportsPathsNull()
+    public void ProcessCoverageReports()
     {
-        sut.ProcessCoverageReports(analysisConfig, buildSettings).VsTestReportsPaths.Should().BeNull();
-        runtime.Logger.Should().HaveNoErrors();
+        var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().BeNull();
+        result.VsCoverageXmlReportsPaths.Should().BeNull();
+        result.CoverageConversionPerformed.Should().BeFalse();
+        runtime.Logger.Should().HaveNoErrors().And.HaveInfos(
+            "Looking for binary coverage files to convert to XML format.",
+            "Falling back on locating coverage files in the agent temp directory.");
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_TrxFileFound_ReturnsTestReportsPaths()
+    public void ProcessCoverageReports_TrxFileFound()
     {
         CreateTrxFile();
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings).VsTestReportsPaths.Should().ContainSingle().Which.Should().EndWith("coverage.trx");
-        runtime.Logger.Should().HaveNoErrors();
+        var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().ContainSingle().Which.Should().EndWith("coverage.trx");
+        result.VsCoverageXmlReportsPaths.Should().BeNull();
+        result.CoverageConversionPerformed.Should().BeFalse();
+        runtime.Logger.Should().HaveNoErrors()
+            .And.HaveInfos("Looking for binary coverage files to convert to XML format.")
+            .And.HaveDebugs("Not using the fallback mechanism to detect binary coverage files.");
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_TrxFileFound_TestReportsPathsGiven_ReturnsTestReportsPathsNull()
+    public void ProcessCoverageReports_TrxFileFound_TestReportsPathsGiven()
     {
         CreateTrxFile();
         analysisConfig.LocalSettings = [new Property(SonarProperties.VsTestReportsPaths, "not null")];
 
-        sut.ProcessCoverageReports(analysisConfig, buildSettings).VsTestReportsPaths.Should().BeNull();
-        runtime.Logger.Should().HaveNoErrors();
-    }
-
-    [TestMethod]
-    public void ProcessCoverageReports_NoCoverageFile_ReturnsCoverageXmlReportsPathsNull()
-    {
-        sut.ProcessCoverageReports(analysisConfig, buildSettings).VsCoverageXmlReportsPaths.Should().BeNull();
-        runtime.Logger.Should().HaveNoErrors();
-    }
-
-    [TestMethod]
-    public void ProcessCoverageReports_CoverageFileFound_NoTrxFile_ReturnsCoverageXmlReportsPathsNull()
-    {
-        CreateFile(coverageDir, "sample.coverage", "coverage");
-
-        sut.ProcessCoverageReports(analysisConfig, buildSettings).VsCoverageXmlReportsPaths.Should().BeNull();
-        runtime.Logger.Should().HaveNoErrors();
-    }
-
-    [TestMethod]
-    public void ProcessCoverageReports_TrxFileFound_NoCoverageFile_ReturnsCoverageXmlReportsPathsNull()
-    {
-        CreateTrxFile();
-
-        sut.ProcessCoverageReports(analysisConfig, buildSettings).VsCoverageXmlReportsPaths.Should().BeNull();
-        runtime.Logger.Should().HaveNoErrors();
+        var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().BeNull();
+        result.VsCoverageXmlReportsPaths.Should().BeNull();
+        result.CoverageConversionPerformed.Should().BeFalse();
+        runtime.Logger.Should().HaveNoErrors().And.HaveInfos(
+            "Property 'sonar.cs.vstest.reportsPaths' provided, skipping the search for TRX files in default folders...",
+            "Looking for binary coverage files to convert to XML format.",
+            "Falling back on locating coverage files in the agent temp directory.");
     }
 
     [TestMethod]
     [DeploymentItem(@"Resources")]
-    public void ProcessCoverageReports_CoverageFileFound_TrxFileFound_ReturnsCoverageXmlReportsPaths()
+    public void ProcessCoverageReports_TrxFileFound_CoverageFileFound_TestReportsPathsGiven()
     {
+        CreateTrxFile();
         CreateFile(coverageDir, "sample.coverage", "coverage");
         CopySampleCoverageFile(coverageDir, "sample.coverage");
-        CreateTrxFile();
+        analysisConfig.LocalSettings = [new Property(SonarProperties.VsTestReportsPaths, "not null")];
 
         var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        result.VsCoverageXmlReportsPaths.Should().ContainSingle().Which.Should().EndWith("sample.coveragexml");
+        result.VsTestReportsPaths.Should().BeNull();
+        result.VsCoverageXmlReportsPaths.Should().ContainSingle().Which.Should().Be(Path.Combine(coverageDir, "sample.coveragexml"));
         result.CoverageConversionPerformed.Should().BeTrue();
-        runtime.Logger.Should().HaveNoErrors();
+        runtime.Logger.Should().HaveNoErrors()
+            .And.HaveInfos(
+                "Property 'sonar.cs.vstest.reportsPaths' provided, skipping the search for TRX files in default folders...",
+                "Looking for binary coverage files to convert to XML format.")
+            .And.HaveDebugs("Not using the fallback mechanism to detect binary coverage files.");
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_CoverageFileFound_TrxFileFound_CoverageXmlReportsPathsGiven_ReturnsCoverageXmlReportsPathsNull()
+    public void ProcessCoverageReports_CoverageFileFound()
     {
         CreateFile(coverageDir, "sample.coverage", "coverage");
+
+        var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().BeNull();
+        result.VsCoverageXmlReportsPaths.Should().BeNull();
+        result.CoverageConversionPerformed.Should().BeFalse();
+        runtime.Logger.Should().HaveNoErrors().And.HaveInfos(
+            "Looking for binary coverage files to convert to XML format.",
+            "Falling back on locating coverage files in the agent temp directory.");
+    }
+
+    [TestMethod]
+    [DeploymentItem(@"Resources")]
+    public void ProcessCoverageReports_TrxFileFound_CoverageFileFound()
+    {
+        CreateTrxFile();
+        CreateFile(coverageDir, "sample.coverage", "coverage");
+        CopySampleCoverageFile(coverageDir, "sample.coverage");
+
+        var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().ContainSingle().Which.Should().EndWith("coverage.trx");
+        result.VsCoverageXmlReportsPaths.Should().ContainSingle().Which.Should().EndWith("sample.coveragexml");
+        result.CoverageConversionPerformed.Should().BeTrue();
+        runtime.Logger.Should().HaveNoErrors()
+            .And.HaveInfos("Looking for binary coverage files to convert to XML format.")
+            .And.HaveDebugs(
+                "Not using the fallback mechanism to detect binary coverage files.",
+                $"Converting coverage file '{Path.Combine(coverageDir, "sample.coverage")}' to '{Path.Combine(coverageDir, "sample.coveragexml")}'.");
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_CoverageXmlReportsPathsGiven()
+    {
+        analysisConfig.LocalSettings = [new Property(SonarProperties.VsCoverageXmlReportsPaths, "not null")];
+
+        var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().BeNull();
+        result.VsCoverageXmlReportsPaths.Should().BeNull();
+        result.CoverageConversionPerformed.Should().BeFalse();
+        runtime.Logger.Should().HaveNoErrors()
+            .And.NotHaveInfo(Resources.CONV_DIAG_LookingForBinaries);
+    }
+
+    [TestMethod]
+    public void ProcessCoverageReports_TrxFileFound_CoverageXmlReportsPathsGiven()
+    {
         CreateTrxFile();
         analysisConfig.LocalSettings = [new Property(SonarProperties.VsCoverageXmlReportsPaths, "not null")];
 
         var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().ContainSingle().Which.Should().EndWith("coverage.trx");
         result.VsCoverageXmlReportsPaths.Should().BeNull();
         result.CoverageConversionPerformed.Should().BeFalse();
-        runtime.Logger.Should().HaveNoErrors();
+        runtime.Logger.Should().HaveNoErrors()
+            .And.NotHaveInfo(Resources.CONV_DIAG_LookingForBinaries);
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_ConvertedFileAlreadyExists_ReturnsCoverageXmlReportsPaths()
+    public void ProcessCoverageReports_ConvertedFileAlreadyExists()
     {
+        CreateTrxFile();
         CreateFile(coverageDir, "sample.coverage", "coverage");
         CreateFile(coverageDir, "sample.coveragexml", "coveragexml");
-        CreateTrxFile();
 
         var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().ContainSingle().Which.Should().EndWith("coverage.trx");
         result.VsCoverageXmlReportsPaths.Should().ContainSingle().Which.Should().EndWith("sample.coveragexml");
         result.CoverageConversionPerformed.Should().BeFalse();
-        runtime.Logger.Should().HaveNoErrors().And.HaveInfos($"Found corresponding Binary-to-XML conversion output file for {coverageDir + Path.DirectorySeparatorChar}sample.coverage, no conversion will be attempted.");
+        runtime.Logger.Should().HaveNoErrors()
+            .And.HaveInfos($"Found corresponding Binary-to-XML conversion output file for {Path.Combine(coverageDir, "sample.coverage")}, no conversion will be attempted.");
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_InvalidConversionFile_ReturnsCoverageXmlReportsPathsNull()
+    public void ProcessCoverageReports_InvalidConversionFile()
     {
+        CreateTrxFile();
         CreateFile(coverageDir, "sample.coverage", "coverage");
         Directory.CreateDirectory(coverageDir);
         File.WriteAllText(Path.Combine(coverageDir, "sample.coverage"), "invalid");
-        CreateTrxFile();
 
         var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().ContainSingle().Which.Should().EndWith("coverage.trx");
         result.VsCoverageXmlReportsPaths.Should().BeNull();
         result.CoverageConversionPerformed.Should().BeFalse();
         runtime.Logger.Should().HaveErrors($"""
             Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to SonarQube.
-            Check that the downloaded code coverage file ({coverageDir + Path.DirectorySeparatorChar}sample.coverage) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
+            Check that the downloaded code coverage file ({Path.Combine(coverageDir, "sample.coverage")}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.
             """);
     }
 
     [TestMethod]
-    public void ProcessCoverageReports_XmlCoverageFileFound_TrxFileFound_ReturnsCoverageXmlReportsPathsNull()
+    public void ProcessCoverageReports_XmlCoverageFileFound()
     {
-        CreateFile(coverageDir, "notbinary.xml", "xml");    // e.g. Cobertura
-        CreateTrxFile("notbinary.xml");
+        CreateTrxFile(coverageFileName: "notbinary.xml");
+        CreateFile(coverageDir, "notbinary.xml", "<xml />");    // e.g. Cobertura
 
         var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().ContainSingle().Which.Should().EndWith("coverage.trx");
         result.VsCoverageXmlReportsPaths.Should().BeNull();
         result.CoverageConversionPerformed.Should().BeFalse();
-        runtime.Logger.Should().HaveNoErrors();
+        runtime.Logger.Should().HaveNoErrors()
+            .And.HaveInfos("Looking for binary coverage files to convert to XML format.")
+            .And.HaveDebugs("Not using the fallback mechanism to detect binary coverage files.");
     }
 
     [TestMethod]
     [DeploymentItem(@"Resources")]
-    public void ProcessCoverageReports_CoverageFileInAgentTempDir_UsesFallback()
+    public void ProcessCoverageReports_CoverageFileInAgentTempDir()
     {
         CreateFile(agentTempDir, "fallback.coverage", "coverage");
         CopySampleCoverageFile(agentTempDir, "fallback.coverage");
         runtime.Directory.GetFiles(agentTempDir, "*.coverage", Arg.Any<SearchOption>()).Returns([Path.Combine(agentTempDir, "fallback.coverage")]);
 
         var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().BeNull();
         result.VsCoverageXmlReportsPaths.Should().ContainSingle().Which.Should().EndWith("fallback.coveragexml");
         result.CoverageConversionPerformed.Should().BeTrue();
-        runtime.Logger.Should().HaveInfos("Falling back on locating coverage files in the agent temp directory.");
+        runtime.Logger.Should().HaveNoErrors().And.HaveInfos(
+            "Looking for binary coverage files to convert to XML format.",
+            "Falling back on locating coverage files in the agent temp directory.")
+            .And.HaveDebugs($"Converting coverage file '{Path.Combine(agentTempDir, "fallback.coverage")}' to '{Path.Combine(agentTempDir, "fallback.coveragexml")}'.");
     }
 
     [TestMethod]
     [DeploymentItem(@"Resources")]
-    public void ProcessCoverageReports_CoverageFileInAgentTempDir_TrxFileFound_NoFallback()
+    public void ProcessCoverageReports_CoverageFileInAgentTempDir_TrxFileFound_TestReportsPathsGiven()
     {
+        CreateTrxFile();
         CreateFile(agentTempDir, "fallback.coverage", "coverage");
         CopySampleCoverageFile(agentTempDir, "fallback.coverage");
         runtime.Directory.GetFiles(agentTempDir, "*.coverage", Arg.Any<SearchOption>()).Returns([Path.Combine(agentTempDir, "fallback.coverage")]);
-        CreateTrxFile();
-
-        var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        result.VsCoverageXmlReportsPaths.Should().BeNull();
-        runtime.Logger.Should().HaveNoErrors().And.HaveDebugs("Not using the fallback mechanism to detect binary coverage files.");
-    }
-
-    [TestMethod]
-    [DeploymentItem(@"Resources")]
-    public void ProcessCoverageReports_CoverageFileInAgentTempDir_TrxFileFound_TestReportsPathsGiven_UsesFallback()
-    {
-        CreateFile(agentTempDir, "fallback.coverage", "coverage");
-        CopySampleCoverageFile(agentTempDir, "fallback.coverage");
-        runtime.Directory.GetFiles(agentTempDir, "*.coverage", Arg.Any<SearchOption>()).Returns([Path.Combine(agentTempDir, "fallback.coverage")]);
-        CreateTrxFile();
         analysisConfig.LocalSettings = [new Property(SonarProperties.VsTestReportsPaths, "not null")];
 
         var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
+        result.VsTestReportsPaths.Should().BeNull();
         result.VsCoverageXmlReportsPaths.Should().ContainSingle().Which.Should().EndWith("fallback.coveragexml");
         result.CoverageConversionPerformed.Should().BeTrue();
-        runtime.Logger.Should().HaveNoErrors().And.HaveInfos("Falling back on locating coverage files in the agent temp directory.");
-    }
-
-    [TestMethod]
-    [DeploymentItem(@"Resources")]
-    public void ProcessCoverageReports_CoverageFileInStandardAndAgentTempDir_UsesStandardLocation()
-    {
-        CreateFile(coverageDir, "sample.coverage", "coverage");
-        CopySampleCoverageFile(coverageDir, "sample.coverage");
-        CreateFile(agentTempDir, "fallback.coverage", "coverage");
-        runtime.Directory.GetFiles(agentTempDir, "*.coverage", Arg.Any<SearchOption>()).Returns([Path.Combine(agentTempDir, "fallback.coverage")]);
-        CreateTrxFile();
-
-        var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
-        result.VsCoverageXmlReportsPaths.Should().ContainSingle().Which.Should().Be(Path.Combine(coverageDir, "sample.coveragexml"));
-        result.CoverageConversionPerformed.Should().BeTrue();
-        runtime.Logger.Should().HaveNoErrors().And.HaveDebugs("Not using the fallback mechanism to detect binary coverage files.");
+        runtime.Logger.Should().HaveNoErrors().And.HaveInfos(
+            "Property 'sonar.cs.vstest.reportsPaths' provided, skipping the search for TRX files in default folders...",
+            "Looking for binary coverage files to convert to XML format.",
+            "Falling back on locating coverage files in the agent temp directory.")
+            .And.HaveDebugs($"Converting coverage file '{Path.Combine(agentTempDir, "fallback.coverage")}' to '{Path.Combine(agentTempDir, "fallback.coveragexml")}'.");
     }
 
     [TestMethod]
@@ -467,10 +496,10 @@ public class BuildVNextCoverageReportProcessorTests
         runtime.Directory.GetFiles(testResultsDir, "*.trx").Returns([Path.Combine(testResultsDir, "coverage.trx")]);
     }
 
-    private static void CopySampleCoverageFile(string path, string fileName)
+    private void CopySampleCoverageFile(string path, string fileName)
     {
         Directory.CreateDirectory(path);
-        File.Copy(Path.Combine(Environment.CurrentDirectory, "Sample.coverage"), Path.Combine(path, fileName), overwrite: true);
+        File.Copy(Path.Combine(TestContext.DeploymentDirectory, "Sample.coverage"), Path.Combine(path, fileName), overwrite: true);
     }
 
     private class ConverterTestContext

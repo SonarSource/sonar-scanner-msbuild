@@ -193,4 +193,7 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="WARN_XamlBuildDeprecated" xml:space="preserve">
     <value>** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the SonarScanner for .NET **</value>
   </data>
+  <data name="CONV_DIAG_LookingForBinaries" xml:space="preserve">
+    <value>Looking for binary coverage files to convert to XML format.</value>
+  </data>
 </root>
