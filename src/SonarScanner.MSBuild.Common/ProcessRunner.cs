@@ -96,25 +96,7 @@ public sealed class ProcessRunner : IProcessRunner
             runnerArgs.WorkingDirectory,
             runnerArgs.TimeoutInMilliseconds,
             process.Id);
-        var standardInputFailed = false;
-        if (runnerArgs.StandardInput is { } input)
-        {
-            try
-            {
-                // We need to write to the underlying stream directly, so we can control the encoding used for writing.
-                // Without this, the encodings like https://en.wikipedia.org/wiki/Code_page_437 might be used, which can lead to issues if the input contains non-ASCII characters.
-                // This is under test by IT ScannerEngineTest.scannerInput_UTF8
-                using var utf8Writer = new StreamWriter(process.StandardInput.BaseStream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)); // StreamWriter closes StandardInput on dispose
-                utf8Writer.Write(input);
-            }
-            catch (IOException ex)
-            {
-                // The process can break the pipe by exiting before, or while, we write the input.
-                // Do not fail here, so that the exit code and the output of the process are reported first.
-                standardInputFailed = true;
-                runtime.LogWarning(Resources.WARN_ProcessRunner_StandardInputFailed, ex.Message);
-            }
-        }
+        var standardInputWritten = runnerArgs.StandardInput is not { } input || WriteStandardInput(process, input);
         var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
         // false means we asked the process to stop but it didn't.
         // true: we might still have timed out, but the process ended when we asked it to
@@ -140,7 +122,7 @@ public sealed class ProcessRunner : IProcessRunner
         }
 
         // A process that never received its input did not do the work it was asked to do, whatever it exited with.
-        succeeded = succeeded && (ExitCode == 0) && !standardInputFailed;
+        succeeded = succeeded && (ExitCode == 0) && standardInputWritten;
 
         errorOutputWriter.Flush();
         standardOutputWriter.Flush();
@@ -148,6 +130,26 @@ public sealed class ProcessRunner : IProcessRunner
         standardOutputStream.Seek(0, SeekOrigin.Begin);
 
         return new ProcessResult(succeeded, new StreamReader(standardOutputStream).ReadToEnd(), new StreamReader(errorOutputStream).ReadToEnd());
+    }
+
+    private bool WriteStandardInput(Process process, string input)
+    {
+        try
+        {
+            // We need to write to the underlying stream directly, so we can control the encoding used for writing.
+            // Without this, the encodings like https://en.wikipedia.org/wiki/Code_page_437 might be used, which can lead to issues if the input contains non-ASCII characters.
+            // This is under test by IT ScannerEngineTest.scannerInput_UTF8
+            using var utf8Writer = new StreamWriter(process.StandardInput.BaseStream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)); // StreamWriter closes StandardInput on dispose
+            utf8Writer.Write(input);
+            return true;
+        }
+        catch (IOException ex)
+        {
+            // The process can break the pipe by exiting before, or while, we write the input.
+            // Do not throw here, so that the exit code and the output of the process are reported first.
+            runtime.LogWarning(Resources.WARN_ProcessRunner_StandardInputFailed, ex.Message);
+            return false;
+        }
     }
 
     private void SetEnvironmentVariables(ProcessStartInfo psi, IDictionary<string, string> envVariables)
