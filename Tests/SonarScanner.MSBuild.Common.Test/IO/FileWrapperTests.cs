@@ -205,6 +205,34 @@ public class FileWrapperTests
     [TestMethod]
     [TestCategory(TestCategories.NoMacOS)]
     [TestCategory(TestCategories.NoLinux)]
+    public void ShortName_WithFileNameCloseToMaxPath_ReturnsShortName()
+    {
+        var sut = FileWrapper.Instance;
+        // The path still fits into MAX_PATH, but a child process has no room left for the paths it derives from it:
+        // java.exe resolves 'bin\server\jvm.dll' relative to its own location and fails once that exceeds MAX_PATH.
+        const int pathLength = 250;
+        const string fileName = "a.txt";
+        var tempDirectory = Path.GetTempPath();
+        var longPath = Path.Combine(tempDirectory, new string('d', pathLength - tempDirectory.Length - fileName.Length - 1));
+        var longFile = Path.Combine(longPath, fileName);
+        Directory.CreateDirectory(longPath);
+        File.Create(longFile).Dispose(); // Create the file to ensure it exists
+        try
+        {
+            longFile.Should().HaveLength(pathLength);
+            var shortName = sut.ShortName(PlatformOS.Windows, longFile);
+            shortName.Length.Should().BeLessThan(longFile.Length);
+        }
+        finally
+        {
+            File.Delete(longFile);
+            Directory.Delete(longPath);
+        }
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoMacOS)]
+    [TestCategory(TestCategories.NoLinux)]
     [DataRow("")]
     [DataRow(@"\\?\")]
     public void ShortName_WithFileNameLongerThanMaxPath_ReturnsShortName(string extendedPath)

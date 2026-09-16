@@ -227,6 +227,31 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
+    public void ProcRunner_StandardInput_ProcessExitsWithoutReadingInput_DoesNotSucceed()
+    {
+        // The process exits without reading the input, so writing more than the pipe buffer holds breaks the pipe.
+        // Breaking the pipe must not crash, and the exit code alone must not report success: a process that never
+        // received its input did not do the work it was asked to do, even when it exits with 0.
+        var context = new ProcessRunnerContext(TestContext, "exit 0")
+        {
+            ExpectedExitCode = 0,
+#if !NETFRAMEWORK
+            ExpectedSuccess = false,
+#endif
+            ProcessArgs = { StandardInput = new string('a', 1024 * 1024) }
+        };
+
+        context.ExecuteAndAssert();
+
+#if NETFRAMEWORK
+        // .NET Framework treats a broken pipe as the normal end of the pipe, so the write succeeds silently.
+        context.Runtime.Logger.Should().HaveNoWarnings();
+#else
+        context.Runtime.Logger.Should().HaveWarnings(1).Which.Single().Should().StartWith("Failed to write the input to the process:");
+#endif
+    }
+
+    [TestMethod]
     [TestCategory(TestCategories.NoMacOS)]
     [TestCategory(TestCategories.NoLinux)]
     public void ProcRunner_StandardInput_BatchfileWithCodePageSetTo_UTF8()
@@ -660,6 +685,7 @@ public class ProcessRunnerTests
         public TestRuntime Runtime { get; }
         public string ExePath { get; }
         public int ExpectedExitCode { get; init; }
+        public bool? ExpectedSuccess { get; init; } // Defaults to ExpectedExitCode == 0, set it only when the two differ
         public ProcessRunnerArguments ProcessArgs { get; init; }
 
         public ProcessRunnerContext(TestContext testContext, string commands = null)
@@ -690,7 +716,8 @@ public class ProcessRunnerTests
 
         public void AssertExpected()
         {
-            result.Succeeded.Should().Be(ExpectedExitCode == 0, $"Expecting the process to have {(ExpectedExitCode == 0 ? "succeeded" : "failed")}");
+            var expectedSuccess = ExpectedSuccess ?? (ExpectedExitCode == 0);
+            result.Succeeded.Should().Be(expectedSuccess, $"Expecting the process to have {(expectedSuccess ? "succeeded" : "failed")}");
             runner.ExitCode.Should().Be(ExpectedExitCode, "Unexpected exit code");
         }
 
