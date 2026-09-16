@@ -478,7 +478,7 @@ public class ScannerEngineInputTest
             SonarProjectVersion = "4.2",
             SonarOutputDir = sonarOutputDir,
         };
-        config.SetConfigValue(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
+        config.SetAdditionalSetting(SonarProperties.PullRequestCacheBasePath, @"C:\PullRequest\Cache\BasePath");
         var sut = new ScannerEngineInput(config);
         sut.AddConfig(new DirectoryInfo(projectBaseDir));
 

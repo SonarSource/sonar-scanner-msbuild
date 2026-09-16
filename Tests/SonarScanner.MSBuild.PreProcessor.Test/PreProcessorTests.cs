@@ -145,7 +145,7 @@ public partial class PreProcessorTests
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("2026.1");
-        config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
+        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
         await context.Factory.ScannerCliResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);  // engine was resolved so CLI should not be used
     }
 
@@ -177,7 +177,7 @@ public partial class PreProcessorTests
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("2026.1");
-        config.GetConfigValue(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
+        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
     }
 
     [TestMethod]

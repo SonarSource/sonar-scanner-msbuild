@@ -211,7 +211,7 @@ public class SonarScannerWrapper
     }
 
     private IEnumerable<string> SensitiveFileSettings(AnalysisConfig config, IEnumerable<string> userCmdLineArguments) =>
-        config.AnalysisSettings(false, runtime.Logger)
+        config.CreatePropertyProvider(false, runtime.Logger)
             .GetAllProperties()
             .Where(x => x.ContainsSensitiveData() && !UserSettingExists(x, userCmdLineArguments))
             .Select(x => x.AsSonarScannerArg());

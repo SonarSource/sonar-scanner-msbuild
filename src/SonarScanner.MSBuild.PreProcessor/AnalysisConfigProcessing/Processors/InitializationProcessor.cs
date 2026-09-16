@@ -31,7 +31,7 @@ public class InitializationProcessor(BuildSettings buildSettings, ProcessedArgs 
         config.SetBuildUri(buildSettings.BuildUri);
         foreach (var item in additionalSettings)
         {
-            config.SetConfigValue(item.Key, item.Value);
+            config.SetAdditionalSetting(item.Key, item.Value);
         }
         foreach (var property in ServerProperties.Where(x => !Utilities.IsSecuredServerProperty(x.Key)))
         {
