@@ -133,6 +133,9 @@
   <data name="WARN_ExecutionTimedOutKilled" xml:space="preserve">
     <value>Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running.</value>
   </data>
+  <data name="WARN_ProcessRunner_StandardInputFailed" xml:space="preserve">
+    <value>Failed to write the input to the process: {0}</value>
+  </data>
   <data name="MSG_RetryingOperation" xml:space="preserve">
     <value>Retrying...</value>
   </data>

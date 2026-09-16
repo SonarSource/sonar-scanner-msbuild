@@ -227,6 +227,27 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
+    public void ProcRunner_StandardInput_ProcessExitsWithoutReadingInput_DoesNotThrow()
+    {
+        // The process exits without reading the input, so writing more than the pipe buffer holds breaks the pipe.
+        // That must be reported instead of crashing: the exit code and the process output carry the real failure.
+        var context = new ProcessRunnerContext(TestContext, "exit 4")
+        {
+            ExpectedExitCode = 4,
+            ProcessArgs = { StandardInput = new string('a', 1024 * 1024) }
+        };
+
+        context.ExecuteAndAssert();
+
+#if NETFRAMEWORK
+        // .NET Framework treats a broken pipe as the normal end of the pipe, so the write succeeds silently.
+        context.Runtime.Logger.Should().HaveNoWarnings();
+#else
+        context.Runtime.Logger.Should().HaveWarnings(1).Which.Single().Should().StartWith("Failed to write the input to the process:");
+#endif
+    }
+
+    [TestMethod]
     [TestCategory(TestCategories.NoMacOS)]
     [TestCategory(TestCategories.NoLinux)]
     public void ProcRunner_StandardInput_BatchfileWithCodePageSetTo_UTF8()

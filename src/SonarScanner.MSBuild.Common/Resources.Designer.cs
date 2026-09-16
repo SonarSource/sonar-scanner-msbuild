@@ -579,6 +579,15 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to write the input to the process: {0}.
+        /// </summary>
+        internal static string WARN_ProcessRunner_StandardInputFailed {
+            get {
+                return ResourceManager.GetString("WARN_ProcessRunner_StandardInputFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {0} parameter is set to &quot;{1}&quot;. The setting will be overriden by one or more of the properties {2}, {3}, or {4}..
         /// </summary>
         internal static string WARN_RegionIsOverriden {
