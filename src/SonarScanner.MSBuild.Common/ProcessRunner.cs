@@ -96,6 +96,7 @@ public sealed class ProcessRunner : IProcessRunner
             runnerArgs.WorkingDirectory,
             runnerArgs.TimeoutInMilliseconds,
             process.Id);
+        var standardInputFailed = false;
         if (runnerArgs.StandardInput is { } input)
         {
             try
@@ -109,7 +110,8 @@ public sealed class ProcessRunner : IProcessRunner
             catch (IOException ex)
             {
                 // The process can break the pipe by exiting before, or while, we write the input.
-                // Do not fail here: the exit code and the output of the process describe the actual failure.
+                // Do not fail here, so that the exit code and the output of the process are reported first.
+                standardInputFailed = true;
                 runtime.LogWarning(Resources.WARN_ProcessRunner_StandardInputFailed, ex.Message);
             }
         }
@@ -137,7 +139,8 @@ public sealed class ProcessRunner : IProcessRunner
             }
         }
 
-        succeeded = succeeded && (ExitCode == 0);
+        // A process that never received its input did not do the work it was asked to do, whatever it exited with.
+        succeeded = succeeded && (ExitCode == 0) && !standardInputFailed;
 
         errorOutputWriter.Flush();
         standardOutputWriter.Flush();

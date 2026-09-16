@@ -227,13 +227,17 @@ public class ProcessRunnerTests
     }
 
     [TestMethod]
-    public void ProcRunner_StandardInput_ProcessExitsWithoutReadingInput_DoesNotThrow()
+    public void ProcRunner_StandardInput_ProcessExitsWithoutReadingInput_DoesNotSucceed()
     {
         // The process exits without reading the input, so writing more than the pipe buffer holds breaks the pipe.
-        // That must be reported instead of crashing: the exit code and the process output carry the real failure.
-        var context = new ProcessRunnerContext(TestContext, "exit 4")
+        // Breaking the pipe must not crash, and the exit code alone must not report success: a process that never
+        // received its input did not do the work it was asked to do, even when it exits with 0.
+        var context = new ProcessRunnerContext(TestContext, "exit 0")
         {
-            ExpectedExitCode = 4,
+            ExpectedExitCode = 0,
+#if !NETFRAMEWORK
+            ExpectedSuccess = false,
+#endif
             ProcessArgs = { StandardInput = new string('a', 1024 * 1024) }
         };
 
@@ -681,6 +685,7 @@ public class ProcessRunnerTests
         public TestRuntime Runtime { get; }
         public string ExePath { get; }
         public int ExpectedExitCode { get; init; }
+        public bool? ExpectedSuccess { get; init; } // Defaults to ExpectedExitCode == 0, set it only when the two differ
         public ProcessRunnerArguments ProcessArgs { get; init; }
 
         public ProcessRunnerContext(TestContext testContext, string commands = null)
@@ -711,7 +716,8 @@ public class ProcessRunnerTests
 
         public void AssertExpected()
         {
-            result.Succeeded.Should().Be(ExpectedExitCode == 0, $"Expecting the process to have {(ExpectedExitCode == 0 ? "succeeded" : "failed")}");
+            var expectedSuccess = ExpectedSuccess ?? (ExpectedExitCode == 0);
+            result.Succeeded.Should().Be(expectedSuccess, $"Expecting the process to have {(expectedSuccess ? "succeeded" : "failed")}");
             runner.ExitCode.Should().Be(ExpectedExitCode, "Unexpected exit code");
         }
 
