@@ -330,12 +330,18 @@ public partial class PreProcessorTests
 
         // Check the settings used when creating the SonarLint file - local and server settings should be merged
         context.Factory.AnalyzerProvider.SuppliedSonarProperties.Should().NotBeNull();
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("server.key", "server value 1");
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("local.key", "local value 1");
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.key1", "local shared value 1 - should override server value");
-        // Keys are case-sensitive so differently cased values should be preserved
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.CASING", "server upper case value");
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.casing", "local lower case value");
+        context.Factory.AnalyzerProvider.SuppliedSonarProperties.GetAllProperties().Should().BeEquivalentTo([
+            new Property("cmd.line1", "cmdline.value.1"),
+            new Property("sonar.userHome", "homeSweetHome"),
+            new Property("sonar.host.url", "http://host"),
+            new Property("sonar.log.level", "INFO|DEBUG"),
+            new Property("server.key", "server value 1"),
+            new Property("local.key", "local value 1"),
+            new Property("shared.key1", "local shared value 1 - should override server value"),
+            // Keys are case-sensitive so differently cased values should be preserved
+            new Property("shared.CASING", "server upper case value"),
+            new Property("shared.casing", "local lower case value")
+        ]);
 
         // Check the settings used when creating the config file - settings should be separate
         var actualConfig = context.AssertAnalysisConfig(2);
