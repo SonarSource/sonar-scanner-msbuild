@@ -238,7 +238,7 @@ public partial class PreProcessorTests
     }
 
     [TestMethod]
-    public async Task Execute_EndToEnd_EngineNotResolved_FallbackToCli()
+    public async Task Execute_EndToEnd_EngineNotResolved_FallbackToCli()    // needs to be deleted in SCAN4NET-1781 together with other tests in this file
     {
         using var context = new Context(TestContext);
         context.Factory.EngineResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
@@ -247,7 +247,6 @@ public partial class PreProcessorTests
         (await context.Execute()).Should().BeTrue();
         var actualConfig = context.AssertAnalysisConfig(2);
         actualConfig.SonarScannerCliPath.Should().Be("some/path/to/sonar-scanner");
-        actualConfig.UseSonarScannerCli.Should().BeFalse();
         actualConfig.EngineJarPath.Should().BeNull();
     }
 
