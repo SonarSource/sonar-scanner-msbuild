@@ -146,7 +146,6 @@ public partial class PreProcessorTests
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("2026.1");
         config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
-        await context.Factory.ScannerCliResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);  // engine was resolved so CLI should not be used
     }
 
     [TestMethod]
@@ -210,58 +209,13 @@ public partial class PreProcessorTests
     }
 
     [TestMethod]
-    public async Task Execute_EndToEnd_UseCli_SuccessCase()
-    {
-        using var context = new Context(TestContext);
-        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs("some/path/to/sonar-scanner");
-        var args = new List<string>(CreateArgs()) { "/d:sonar.scanner.useSonarScannerCLI=true" };
-
-        (await context.Execute(args)).Should().BeTrue();
-        context.AssertDirectoriesCreated();
-        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
-        context.AssertAnalysisConfig(2).SonarScannerCliPath.Should().Be("some/path/to/sonar-scanner");
-        await context.Factory.EngineResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);
-    }
-
-    [TestMethod]
-    public async Task Execute_EndToEnd_UseCLI_ScannerCliDownloadFails()
-    {
-        using var context = new Context(TestContext);
-        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
-        var args = new List<string>(CreateArgs()) { "/d:sonar.scanner.useSonarScannerCLI=true" };
-
-        (await context.Execute(args)).Should().BeFalse();
-        context.Factory.Runtime.Logger.Should().HaveErrors("""
-            SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
-            Make sure 'https://binaries.sonarsource.com/' is reachable or roll back to a previous version of the Scanner (< 11.0).
-            """);
-    }
-
-    [TestMethod]
-    public async Task Execute_EndToEnd_EngineNotResolved_FallbackToCli()    // needs to be deleted in SCAN4NET-1781 together with other tests in this file
+    public async Task Execute_EndToEnd_ScannerEngineDownloadFails()
     {
         using var context = new Context(TestContext);
         context.Factory.EngineResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
-        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs("some/path/to/sonar-scanner");
-
-        (await context.Execute()).Should().BeTrue();
-        var actualConfig = context.AssertAnalysisConfig(2);
-        actualConfig.SonarScannerCliPath.Should().Be("some/path/to/sonar-scanner");
-        actualConfig.EngineJarPath.Should().BeNull();
-    }
-
-    [TestMethod]
-    public async Task Execute_EndToEnd_EngineNotResolved_ScannerCliDownloadFails()
-    {
-        using var context = new Context(TestContext);
-        context.Factory.EngineResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
-        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Runtime.Logger.Should().HaveErrors("""
-            SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
-            Make sure 'https://binaries.sonarsource.com/' is reachable or roll back to a previous version of the Scanner (< 11.0).
-            """);
+        context.Factory.Runtime.Logger.Should().HaveErrors("Scanner Engine could not be downloaded. Turn on verbose logging to see more details.");
     }
 
     [TestMethod]

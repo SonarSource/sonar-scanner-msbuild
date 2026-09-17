@@ -80,9 +80,6 @@ public class PreprocessorObjectFactory
     public virtual IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
         new EngineResolver(client, sonarUserHome, runtime);
 
-    public virtual IResolver CreateScannerCliResolver(SonarQubeBase client, string sonarUserHome) =>
-        new ScannerCliResolver(ChecksumSha256.Instance, sonarUserHome, runtime);
-
     private bool ValidateServerUrl(string serverUrl)
     {
         if (!Uri.IsWellFormedUriString(serverUrl, UriKind.Absolute))

@@ -85,11 +85,6 @@ public class ProcessedArgs
     public virtual string EngineJarPath { get; }
 
     /// <summary>
-    /// Force the usage of the SonarScanner CLI even if the engine jar is available.
-    /// </summary>
-    public virtual bool UseSonarScannerCli { get; }
-
-    /// <summary>
     /// The sonar.userHome base directory for caching. Default value: ~/.sonar.
     /// </summary>
     public string UserHome { get; private set; }
@@ -222,20 +217,6 @@ public class ProcessedArgs
         else
         {
             ScanAllAnalysis = true;
-        }
-
-        if (AggregateProperties.TryGetProperty(SonarProperties.UseSonarScannerCLI, out var useSonarScannerCli))
-        {
-            if (!bool.TryParse(useSonarScannerCli.Value, out var result))
-            {
-                IsValid = false;
-                runtime.LogError(Resources.ERROR_InvalidUseSonarScannerCli);
-            }
-            UseSonarScannerCli = result;
-        }
-        else
-        {
-            UseSonarScannerCli = false;
         }
 
         if (AggregateProperties.TryGetProperty(SonarProperties.Sources, out _) || AggregateProperties.TryGetProperty(SonarProperties.Tests, out _))
