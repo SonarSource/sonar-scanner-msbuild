@@ -99,17 +99,17 @@ public class AnalysisConfig
     /// List of additional configuration-related settings e.g. the build system identifier, if appropriate.
     /// </summary>
     /// <remarks>These settings will not be supplied to the sonar-scanner.</remarks>
-    public List<ConfigSetting> AdditionalConfig { get; set; }
+    public List<ConfigSetting> AdditionalConfig { get; set; } = [];
 
     /// <summary>
     /// List of analysis settings inherited from the SonarQube instance.
     /// </summary>
-    public AnalysisProperties ServerSettings { get; set; }
+    public AnalysisProperties ServerSettings { get; set; } = [];
 
     /// <summary>
     /// List of analysis settings supplied locally (either on the command line, in a file or through the scanner environment variable).
     /// </summary>
-    public AnalysisProperties LocalSettings { get; set; }
+    public AnalysisProperties LocalSettings { get; set; } = [];
 
     /// <summary>
     /// List of analysis settings supplied locally (on the command line) that has to be passed to the scanner through the SONAR_SCANNER_OPTS environment variable
@@ -120,7 +120,7 @@ public class AnalysisConfig
     /// <summary>
     /// Configuration for Roslyn analyzers.
     /// </summary>
-    public List<AnalyzerSettings> AnalyzersSettings { get; set; }
+    public List<AnalyzerSettings> AnalyzersSettings { get; set; } = [];
 
     [XmlIgnore]
     public string FileName { get; private set; }
@@ -154,26 +154,36 @@ public class AnalysisConfig
     public void SetBuildUri(string uri) =>
         SetAdditionalSetting(BuildUriSettingId, uri);
 
+    public string ReadSettingsFilePath() =>
+        ReadAdditionalSetting(SettingsFileKey, null);
+
+    public void SetSettingsFilePath(string fileName) =>
+        SetAdditionalSetting(SettingsFileKey, fileName);
+
     public string ReadAdditionalSetting(string settingId, string defaultValue)
     {
-        if (string.IsNullOrWhiteSpace(settingId))
-        {
-            throw new ArgumentNullException(nameof(settingId));
-        }
-
-        var result = defaultValue;
-
-        if (FindAdditionalSetting(settingId, out var setting))
-        {
-            result = setting.Value;
-        }
-
-        return result;
+        Contract.ThrowIfNullOrWhitespace(settingId, nameof(settingId));
+        return FindAdditionalSetting(settingId)?.Value ?? defaultValue;
     }
 
     public void SetAdditionalSetting(string settingId, string value)
     {
-        SetAdditionalSettingDuplicateToRemove(settingId, value);
+        Contract.ThrowIfNullOrWhitespace(settingId, nameof(settingId));
+        if (FindAdditionalSetting(settingId) is { } setting)
+        {
+            setting.Value = value;
+        }
+        else
+        {
+            AdditionalConfig.Add(new ConfigSetting { Id = settingId, Value = value });
+        }
+    }
+
+    public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
+    {
+        _ = settingName ?? throw new ArgumentNullException(nameof(settingName));
+        _ = logger ?? throw new ArgumentNullException(nameof(logger));
+        return CreatePropertyProvider(includeServerSettings, logger).TryGetValue(settingName, out var value) ? value : defaultValue;
     }
 
     /// <summary>
@@ -183,115 +193,30 @@ public class AnalysisConfig
     {
         _ = logger ?? throw new ArgumentNullException(nameof(logger));
         var providers = new List<IAnalysisPropertyProvider>();
-        // Note: the order in which the providers are added determines the precedence
-
-        // Add local settings
-        if (LocalSettings is not null)
+        if (LocalSettings is { Count: > 0 })
         {
             providers.Add(new ListPropertiesProvider(LocalSettings));
         }
-
-        // Add file settings
-        var settingsFilePath = ReadSettingsFilePath();
-        if (settingsFilePath is not null)
+        if (ReadSettingsFilePath() is { } settingsFilePath)
         {
-            var fileProvider = new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath));
-            providers.Add(fileProvider);
+            providers.Add(new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath)));
         }
-
-        // Add scanner environment settings
         if (EnvScannerPropertiesProvider.TryCreateProvider(logger, out var envProvider))
         {
             providers.Add(envProvider);
         }
-
-        // Add server settings
-        if (includeServerSettings && ServerSettings is not null)
+        if (includeServerSettings && ServerSettings is { Count: > 0 })
         {
             providers.Add(new ListPropertiesProvider(ServerSettings));
         }
-
         return providers.Count switch
         {
             0 => EmptyPropertyProvider.Instance,
             1 => providers[0],
-            _ => new AggregatePropertiesProvider(providers.ToArray()),
+            _ => new AggregatePropertiesProvider(providers.ToArray()),  // Order of providers determines precedence
         };
     }
 
-    public void SetSettingsFilePath(string fileName)
-    {
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            throw new ArgumentNullException(nameof(fileName));
-        }
-        SetAdditionalSettingDuplicateToRemove(SettingsFileKey, fileName);
-    }
-
-    public string ReadSettingsFilePath()
-    {
-        if (FindAdditionalSetting(SettingsFileKey, out var setting))
-        {
-            return setting.Value;
-        }
-        return null;
-    }
-
-    public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
-    {
-        if (settingName == null)
-        {
-            throw new ArgumentNullException(nameof(settingName));
-        }
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
-        if (CreatePropertyProvider(includeServerSettings, logger).TryGetValue(settingName, out var value))
-        {
-            return value;
-        }
-        return defaultValue;
-    }
-
-    private bool FindAdditionalSetting(string settingId, out ConfigSetting result)
-    {
-        Debug.Assert(!string.IsNullOrWhiteSpace(settingId), "Setting id should not be null/empty");
-
-        result = null;
-
-        if (AdditionalConfig != null)
-        {
-            result = AdditionalConfig.FirstOrDefault(ar => ConfigSetting.SettingKeyComparer.Equals(settingId, ar.Id));
-        }
-        return result != null;
-    }
-
-    private void SetAdditionalSettingDuplicateToRemove(string settingId, string value)
-    {
-        if (string.IsNullOrWhiteSpace(settingId))
-        {
-            throw new ArgumentNullException(nameof(settingId));
-        }
-
-        if (FindAdditionalSetting(settingId, out var setting))
-        {
-            setting.Value = value;
-        }
-        else
-        {
-            setting = new ConfigSetting()
-            {
-                Id = settingId,
-                Value = value
-            };
-        }
-
-        if (AdditionalConfig == null)
-        {
-            AdditionalConfig = new System.Collections.Generic.List<ConfigSetting>();
-        }
-        AdditionalConfig.Add(setting);
-    }
+    private ConfigSetting FindAdditionalSetting(string settingId) =>
+        AdditionalConfig?.FirstOrDefault(x => ConfigSetting.SettingKeyComparer.Equals(settingId, x.Id));
 }
