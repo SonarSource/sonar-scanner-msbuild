@@ -239,11 +239,11 @@ public class AnalysisConfig
 
     public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
     {
-        if (settingName == null)
+        if (settingName is null)
         {
             throw new ArgumentNullException(nameof(settingName));
         }
-        if (logger == null)
+        if (logger is null)
         {
             throw new ArgumentNullException(nameof(logger));
         }
@@ -261,11 +261,11 @@ public class AnalysisConfig
 
         result = null;
 
-        if (AdditionalConfig != null)
+        if (AdditionalConfig is not null)
         {
-            result = AdditionalConfig.FirstOrDefault(ar => ConfigSetting.SettingKeyComparer.Equals(settingId, ar.Id));
+            result = AdditionalConfig.FirstOrDefault(x => ConfigSetting.SettingKeyComparer.Equals(settingId, x.Id));
         }
-        return result != null;
+        return result is not null;
     }
 
     private void SetAdditionalSettingDuplicateToRemove(string settingId, string value)
@@ -281,17 +281,12 @@ public class AnalysisConfig
         }
         else
         {
-            setting = new ConfigSetting()
+            AdditionalConfig ??= new System.Collections.Generic.List<ConfigSetting>();
+            AdditionalConfig.Add(new ConfigSetting
             {
                 Id = settingId,
                 Value = value
-            };
+            });
         }
-
-        if (AdditionalConfig == null)
-        {
-            AdditionalConfig = new System.Collections.Generic.List<ConfigSetting>();
-        }
-        AdditionalConfig.Add(setting);
     }
 }
