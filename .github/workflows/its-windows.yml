@@ -189,14 +189,24 @@ jobs:
           probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-builds&v=*"
 
       # MultiLanguageTest needs npm, and only runs as part of the **/server/* legs.
-      - name: Set npm registry to Repox
+      # WarpBuild Windows can reach Edge. Use the `npm` virtual repo (same as
+      # config-npm); Edge 404s `api/npm/npmjs` tarballs. Rewrite lockfile
+      # resolved URLs so installs do not keep fetching SaaS npmjs hosts.
+      - name: Set npm registry to Repox Edge
         if: matrix.testInclude == '**/server/*'
         shell: bash
         env:
           ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
         run: |
-          npm config set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
-          npm config set "//repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$ARTIFACTORY_ACCESS_TOKEN"
+          npm config set loglevel http
+          npm config set registry https://repox-internal.dev.sonar.build/artifactory/api/npm/npm
+          npm config set "//repox-internal.dev.sonar.build/artifactory/api/npm/:_authToken=$ARTIFACTORY_ACCESS_TOKEN"
+          find its -name package-lock.json | while IFS= read -r lock; do
+            tmp="${lock}.edge"
+            sed 's|https://repox.jfrog.io/artifactory/api/npm/npmjs|https://repox-internal.dev.sonar.build/artifactory/api/npm/npm|g' "$lock" > "$tmp"
+            mv "$tmp" "$lock"
+          done
+          echo "npm registry=$(npm config get registry)"
 
       # MSBuild 15 (VS2017) never got MSBuild's long-path support (added in MSBuild 16/VS2019, see dotnet/msbuild#3507).
       - name: Use short-path temp directory (DEV_MsBuild15 only)
