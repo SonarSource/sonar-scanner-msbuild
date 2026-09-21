@@ -129,9 +129,6 @@
   <data name="MSG_PropertiesGenerationFailed" xml:space="preserve">
     <value>Generation of the sonar-properties file failed. Unable to complete the analysis.</value>
   </data>
-  <data name="MSG_SonarScannerCompleted" xml:space="preserve">
-    <value>The SonarScanner CLI has finished</value>
-  </data>
   <data name="MSG_WritingSummary" xml:space="preserve">
     <value>Writing processing summary to {0}</value>
   </data>

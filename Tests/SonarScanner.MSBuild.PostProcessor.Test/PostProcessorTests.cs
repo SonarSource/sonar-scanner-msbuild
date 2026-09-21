@@ -151,7 +151,7 @@ public class PostProcessorTests
         engine.Received().Execute(
             config,
             Arg.Any<string>(),
-            Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => x.AsSonarScannerArg()).SequenceEqual(expectedArgs)));
+            Arg.Is<IAnalysisPropertyProvider>(x => x.GetAllProperties().Select(x => $"-D{x.Id}={x.Value}").SequenceEqual(expectedArgs)));
 
         var expectedScannerEngineInput = $$"""
             {
@@ -179,41 +179,7 @@ public class PostProcessorTests
     }
 
     [TestMethod]
-    public void PostProc_ScannerEngine_Success()
-    {
-        config.HasBeginStepCommandLineCredentials = true;
-        scannerEngineInput.Add("sonar", "unsafe.value", "Sensitive data"); // Sensitive data is safe to pass via StdIn
-
-        Execute(["/d:sonar.token=token"]).Should().BeTrue("Expecting post-processor to have succeeded");
-
-        engine.Received(1).Execute(
-            config,
-            $$"""
-            {
-              "scannerProperties": [
-                {
-                  "key": "sonar.scanner.app",
-                  "value": "ScannerMSBuild"
-                },
-                {
-                  "key": "sonar.scanner.appVersion",
-                  "value": "{{Utilities.ScannerVersion}}"
-                },
-                {
-                  "key": "sonar.unsafe.value",
-                  "value": "Sensitive data"
-                }
-              ]
-            }
-            """
-                .ToEnvironmentLineEndings(),
-            Arg.Is<CmdLineArgPropertyProvider>(x => x.GetAllProperties().Count() == 1 && x.GetAllProperties().Any(x => x.Id == "sonar.token" && x.Value == "token")));
-        runtime.Logger.Should().HaveNoErrors();
-        VerifyTargetsUninstaller();
-    }
-
-    [TestMethod]
-    public void PostProc_ScannerEngine_Failure()
+    public void PostProc_ScannerEngineFails()
     {
         config.HasBeginStepCommandLineCredentials = true;
         engine.Execute(null, null, null).ReturnsForAnyArgs(false);
@@ -404,12 +370,6 @@ public class PostProcessorTests
         AssertProcessCoverageReportsCalledIfNetFramework();
 
 #if NETFRAMEWORK
-        runtime.File.Received().AppendAllText(
-            Arg.Any<string>(),
-            Arg.Is<string>(x => x.Contains("sonar.cs.vstest.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "Test", "Path"))));
-        runtime.File.Received().AppendAllText(
-            Arg.Any<string>(),
-            Arg.Is<string>(x => x.Contains("sonar.cs.vscoveragexml.reportsPaths") && x.Contains(PathCombineWithEscape("VS", "XML", "Coverage", "Path"))));
         var reader = new ScannerEngineInputReader(scannerEngineInput.ToString());
         reader.AssertProperty("sonar.cs.vstest.reportsPaths", Path.Combine("VS", "Test", "Path"));
         reader.AssertProperty("sonar.cs.vscoveragexml.reportsPaths", Path.Combine("VS", "XML", "Coverage", "Path"));
@@ -456,15 +416,5 @@ public class PostProcessorTests
     private void SubstituteSettings(bool isAzDo)
     {
         settings = BuildSettings.CreateForTesting(analysisBaseDirectory: "basedir", isAzDo: isAzDo, buildUri: config.ReadBuildUri());
-    }
-
-    private static string PathCombineWithEscape(params string[] parts)
-    {
-        var separator = Path.DirectorySeparatorChar.ToString();
-        if (separator == @"\")
-        {
-            separator = @"\\";
-        }
-        return string.Join(separator, parts);
     }
 }

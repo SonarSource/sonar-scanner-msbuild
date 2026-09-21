@@ -77,7 +77,7 @@ public class SonarEngineWrapper
             // set via the environment variable.
             foreach (var property in config.ScannerOptsSettings)
             {
-                yield return property.AsSonarScannerArg();
+                yield return $"-D{property.Id}={property.Value}";
             }
         }
 

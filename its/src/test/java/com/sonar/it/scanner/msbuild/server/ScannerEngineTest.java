@@ -111,13 +111,13 @@ class ScannerEngineTest {
     var logs = result.getLogs();
     // https://github.com/SonarSource/sonar-scanner-cli/blob/5.0.2.4997/src/main/java/org/sonarsource/scanner/cli/SystemInfo.java#L62-L74
     assertThat(logs).contains("Java " + jreDetails.version + " " + jreDetails.vendor);
-      assertThat(logs)
-        .contains("Could not find Java in Analysis Config")
-        .contains("'JAVA_HOME' environment variable not set")
-        .contains("Could not find Java, falling back to using PATH: java");
-      assertThat(TestUtils.scannerEngineInputJson(context))
-        .hasAllSecretsRedacted()
-        .containsKey("sonar.token");
+    assertThat(logs)
+      .contains("Could not find Java in Analysis Config")
+      .contains("'JAVA_HOME' environment variable not set")
+      .contains("Could not find Java, falling back to using PATH: java");
+    assertThat(TestUtils.scannerEngineInputJson(context))
+      .hasAllSecretsRedacted()
+      .containsKey("sonar.token");
   }
 
   @Test

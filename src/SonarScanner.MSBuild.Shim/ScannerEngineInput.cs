@@ -25,12 +25,11 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class ScannerEngineInput
 {
-    public const string SonarScannerAppValue = "ScannerMSBuild";    // TODO make this private in SCAN4NET-721
-
     private const string SonarSources = "sonar.sources";
     private const string SonarTests = "sonar.tests";
     private const string SonarScannerApp = "sonar.scanner.app";
     private const string SonarScannerAppVersion = "sonar.scanner.appVersion";
+    private const string SonarScannerAppValue = "ScannerMSBuild";
     private const string SonarScannerBootstrapStartTime = "sonar.scanner.bootstrapStartTime";
     private readonly AnalysisConfig config;
 

@@ -72,12 +72,12 @@ public class PostProcessor
         {
             return false;
         }
-        else if (analysisResult.RanToCompletion && config.EngineJarPath is not null)
+        else if (analysisResult.RanToCompletion)
         {
-            DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
             // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
             runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = ProcessCoverageReport(config, settings, analysisResult);
             runtime.Telemetry.Write(settings.SonarOutputDirectory);
+            DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
             return sonarEngine.Execute(config, analysisResult.ScannerEngineInput.ToString(), cmdLineArgs);
         }
         else
@@ -189,8 +189,6 @@ public class PostProcessor
         {
             runtime.LogInfo(Resources.MSG_ConvertingCoverageReports);
             var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
-            WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
-            WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
             analysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
             analysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
             return additionalProperties.CoverageConversionPerformed;
@@ -198,16 +196,4 @@ public class PostProcessor
 #endif
         return false;
     }
-
-#if NETFRAMEWORK
-
-    private void WriteProperty(string propertiesFilePath, string property, string[] paths)
-    {
-        if (paths is not null)
-        {
-            runtime.File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
-        }
-    }
-
-#endif
 }
