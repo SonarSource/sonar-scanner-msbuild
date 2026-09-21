@@ -69,12 +69,37 @@ runs:
         PROJECT_VERSION: unused
 
     # Needed for MultiLanguageTest, which only runs as part of the LATEST_RELEASE leg (**/sonarqube/*).
+    # Do not pass Edge as config-npm's repox-url: that input also switches Vault
+    # to vault.dev.sonar.build when the host contains "dev.sonar.build". Edge is
+    # that DNS name, but reader tokens still come from production Vault.
     - name: Configure NPM
       if: inputs.scenario == 'LATEST_RELEASE'
       uses: SonarSource/ci-github-actions/config-npm@v1
       with:
         artifactory-reader-role: private-reader
         working-directory: its
+
+    - name: Point NPM resolve at Edge
+      if: runner.environment != 'github-hosted' && inputs.scenario == 'LATEST_RELEASE'
+      shell: bash
+      run: |
+        saas="repox.jfrog.io"
+        edge="repox-internal.dev.sonar.build"
+        npmrc="${HOME}/.npmrc"
+        if [[ ! -f "$npmrc" ]] || ! grep -q "$saas" "$npmrc"; then
+          echo "::error::$npmrc does not contain $saas after config-npm"
+          exit 1
+        fi
+        tmp="${npmrc}.edge"
+        sed "s|${saas}|${edge}|g" "$npmrc" > "$tmp"
+        mv "$tmp" "$npmrc"
+        shopt -s globstar nullglob
+        for lock in its/**/package-lock.json; do
+          tmp="${lock}.edge"
+          sed "s|https://${saas}/artifactory/api/npm/npmjs|https://${edge}/artifactory/api/npm/npm|g" "$lock" > "$tmp"
+          mv "$tmp" "$lock"
+        done
+        echo "npm registry=$(npm config get registry)"
 
     # GitHub-hosted macOS cannot reach the internal Edge node (same split as
     # sonar-dataflow-bug-detection). Linux self-hosted runners can. Only legs

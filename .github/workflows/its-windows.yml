@@ -189,6 +189,9 @@ jobs:
           probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-builds&v=*"
 
       # MultiLanguageTest needs npm, and only runs as part of the **/server/* legs.
+      # Windows stays on SaaS npm. Edge 404s api/npm/npmjs tarballs (e.g. @babel).
+      # GitHub-hosted runners cannot reach Edge. Linux/self-hosted ITs rewrite to
+      # Edge api/npm/npm in its-unix (not the npmjs virtual repo).
       - name: Set npm registry to Repox
         if: matrix.testInclude == '**/server/*'
         shell: bash
