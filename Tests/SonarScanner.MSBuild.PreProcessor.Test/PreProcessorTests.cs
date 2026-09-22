@@ -145,7 +145,7 @@ public partial class PreProcessorTests
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("2026.1");
-        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
+        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath).Should().Be(Path.GetDirectoryName(context.WorkingDir));
     }
 
     [TestMethod]
@@ -176,7 +176,7 @@ public partial class PreProcessorTests
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("2026.1");
-        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
+        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath).Should().Be(Path.GetDirectoryName(context.WorkingDir));
     }
 
     [TestMethod]
