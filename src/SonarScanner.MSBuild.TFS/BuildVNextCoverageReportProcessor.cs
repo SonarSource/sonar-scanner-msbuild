@@ -146,7 +146,7 @@ public class BuildVNextCoverageReportProcessor
 
     private IEnumerable<string> FindVsCoverageFiles(IEnumerable<string> trxFilePaths, bool allowFallback)
     {
-        var binaryFilePaths = new TrxFileReader(runtime).FindCodeCoverageFiles(trxFilePaths).Where(x => x.EndsWith(".coverage"));
+        var binaryFilePaths = new TrxFileReader(runtime).FindCodeCoverageFiles(trxFilePaths).Where(x => x.EndsWith(".coverage")).ToArray();
         if (binaryFilePaths.Any() || !allowFallback)
         {
             runtime.LogDebug(Resources.TRX_DIAG_NotUsingFallback);
