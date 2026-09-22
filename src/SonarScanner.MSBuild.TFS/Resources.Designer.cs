@@ -70,21 +70,21 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Looking for binary coverage files to convert to XML format..
+        /// </summary>
+        internal static string CONV_DIAG_LookingForBinaries {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_LookingForBinaries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to SonarQube.
         ///Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine..
         /// </summary>
         internal static string CONV_ERROR_ConversionToolFailed {
             get {
                 return ResourceManager.GetString("CONV_ERROR_ConversionToolFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The binary coverage file {0} could not be found. No coverage information will be uploaded to SonarQube..
-        /// </summary>
-        internal static string CONV_ERROR_InputFileNotFound {
-            get {
-                return ResourceManager.GetString("CONV_ERROR_InputFileNotFound", resourceCulture);
             }
         }
         
