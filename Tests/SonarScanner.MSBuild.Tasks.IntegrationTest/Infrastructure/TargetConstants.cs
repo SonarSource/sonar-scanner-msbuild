@@ -87,7 +87,6 @@ internal static class TargetProperties
     public const string ErrorLog = "ErrorLog"; // file path to which the Roslyn error log should be written
     public const string AnalyzerItemType = "Analyzer";
     public const string AdditionalFilesItemType = "AdditionalFiles";
-    public const string SonarProjectOutFolderFilePath = "SonarProjectOutFolderFilePath";
     public const string SonarProjectConfigFilePath = "SonarProjectConfigFilePath";
     public const string ProjectSpecificOutDir = "ProjectSpecificOutDir";
     public const string ProjectSpecificConfDir = "ProjectSpecificConfDir";
