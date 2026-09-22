@@ -260,12 +260,11 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
-        ///Make sure &apos;https://binaries.sonarsource.com/&apos; is reachable or roll back to a previous version of the Scanner (&lt; 11.0)..
+        ///   Looks up a localized string similar to Scanner Engine could not be downloaded. Turn on verbose logging to see more details..
         /// </summary>
-        internal static string ERR_ScannerCliDownloadFailed {
+        internal static string ERR_ScannerEngineDownloadFailed {
             get {
-                return ResourceManager.GetString("ERR_ScannerCliDownloadFailed", resourceCulture);
+                return ResourceManager.GetString("ERR_ScannerEngineDownloadFailed", resourceCulture);
             }
         }
         
@@ -422,15 +421,6 @@ namespace SonarScanner.MSBuild.PreProcessor {
         internal static string ERROR_InvalidSkipJreProvisioning {
             get {
                 return ResourceManager.GetString("ERROR_InvalidSkipJreProvisioning", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The argument &apos;sonar.scanner.useSonarScannerCLI&apos; has an invalid value. Please ensure it is set to either &apos;true&apos; or &apos;false&apos;..
-        /// </summary>
-        internal static string ERROR_InvalidUseSonarScannerCli {
-            get {
-                return ResourceManager.GetString("ERROR_InvalidUseSonarScannerCli", resourceCulture);
             }
         }
         

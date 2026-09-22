@@ -204,7 +204,6 @@ public static class TelemetryUtils
         if (property.IsKey(SonarProperties.CacheBaseUrl)
             || property.IsKey(SonarProperties.SkipJreProvisioning)
             || property.IsKey(SonarProperties.EngineJarPath)
-            || property.IsKey(SonarProperties.UseSonarScannerCLI)
             || property.IsKey(SonarProperties.ConnectTimeout)
             || property.IsKey(SonarProperties.SocketTimeout)
             || property.IsKey(SonarProperties.ResponseTimeout)
