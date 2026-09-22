@@ -36,10 +36,10 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.sonarqube.ws.ProjectAnalyses;
 import org.sonarqube.ws.client.projectanalyses.SearchRequest;
 import org.xml.sax.SAXException;
@@ -52,12 +52,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith({ServerTests.class, ContextExtension.class})
 class ScannerEngineTest {
 
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void scannerInput_UTF8(boolean useSonarScannerCLI) {
+  @Test
+  void scannerInput_UTF8() {
     var context = AnalysisContext.forServer(Paths.get("ScannerEngine", "UTF8Filenames_äöü").toString());
     context.begin
-      .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
       .setProperty("sonar.buildString", "'_äöüß_😊_ソナー") // Round trip a string property with problematic characters from the begin step to the final analysis result on the server
       .setDebugLogs(); // So we can assert filenames with problematic characters in the log output.
     var result = context.runAnalysis();
@@ -91,13 +89,11 @@ class ScannerEngineTest {
       .allSatisfy(x -> assertThat(x).matches("UTF8Filename_.{4}_[?|ソ][?|ナ][?|ー]_[?|😊]\\??.cs"));
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void javaExe_fromPath(boolean useSonarScannerCLI) throws ParserConfigurationException, IOException, SAXException {
+  @Test
+  void javaExe_fromPath() throws ParserConfigurationException, IOException, SAXException {
     // Test if java.exe is found via %PATH% when skipJreProvisioning=true and JAVA_HOME=null
     var context = AnalysisContext.forServer("Empty");
     context.begin
-      .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
       .setProperty("sonar.scanner.skipJreProvisioning", "false") // Download a JRE we can use in %PATH%
       .execute(ORCHESTRATOR);
     var jreDetails = jreDetailsFromSonarQubeAnalysisConfig(context);
@@ -115,25 +111,21 @@ class ScannerEngineTest {
     var logs = result.getLogs();
     // https://github.com/SonarSource/sonar-scanner-cli/blob/5.0.2.4997/src/main/java/org/sonarsource/scanner/cli/SystemInfo.java#L62-L74
     assertThat(logs).contains("Java " + jreDetails.version + " " + jreDetails.vendor);
-    if (!useSonarScannerCLI) {
-      assertThat(logs)
-        .contains("Could not find Java in Analysis Config")
-        .contains("'JAVA_HOME' environment variable not set")
-        .contains("Could not find Java, falling back to using PATH: java");
-      assertThat(TestUtils.scannerEngineInputJson(context))
-        .hasAllSecretsRedacted()
-        .containsKey("sonar.token");
-    }
+    assertThat(logs)
+      .contains("Could not find Java in Analysis Config")
+      .contains("'JAVA_HOME' environment variable not set")
+      .contains("Could not find Java, falling back to using PATH: java");
+    assertThat(TestUtils.scannerEngineInputJson(context))
+      .hasAllSecretsRedacted()
+      .containsKey("sonar.token");
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void javaExe_withCacheDirectory(boolean useSonarScannerCLI) {
+  @Test
+  void javaExe_withCacheDirectory() {
     var context = AnalysisContext.forServer("Empty");
     var sonarHome = ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath().toString();
     context.begin
-      .setProperty("sonar.userHome", sonarHome) // set the download directory for scanner-cli and JRE
-      .setProperty("sonar.scanner.useSonarScannerCLI", Boolean.toString(useSonarScannerCLI))
+      .setProperty("sonar.userHome", sonarHome) // set the download directory for JRE
       .setProperty("sonar.scanner.skipJreProvisioning", "false")
       .setDebugLogs()
       .execute(ORCHESTRATOR);
@@ -145,15 +137,11 @@ class ScannerEngineTest {
     }
   }
 
-  @ParameterizedTest
-  @CsvSource({
-    "sonar.scanner.useSonarScannerCLI, true, SonarScannerCliPath",
-    "sonar.scanner.useSonarScannerCLI, false, EngineJarPath",
-    "sonar.scanner.skipJreProvisioning, false, JavaExePath"})
-  void scannerEngineJarPath_PassedAsAbsolute(String argument, String value, String element) throws ParserConfigurationException, IOException, SAXException {
+  @Test
+  void scannerEngineJarPath_PassedAsAbsolute() throws ParserConfigurationException, IOException, SAXException {
     var context = AnalysisContext.forServer("Empty");
     context.begin
-      .setProperty(argument, value)
+      .setProperty("sonar.scanner.skipJreProvisioning", "false")
       .setProperty("sonar.userHome", "../relative/path/")
       .setDebugLogs();
 
@@ -161,7 +149,7 @@ class ScannerEngineTest {
 
     assertThat(DocumentBuilderFactory.newInstance().newDocumentBuilder()
       .parse(context.projectDir.resolve(".sonarqube").resolve("conf").resolve("SonarQubeAnalysisConfig.xml").toFile())
-      .getDocumentElement().getElementsByTagName(element).item(0).getTextContent())
+      .getDocumentElement().getElementsByTagName("JavaExePath").item(0).getTextContent())
       .startsWithIgnoringCase(context.projectDir.toAbsolutePath().toString());
   }
 

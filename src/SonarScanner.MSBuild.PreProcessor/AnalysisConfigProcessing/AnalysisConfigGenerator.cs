@@ -65,7 +65,6 @@ public static class AnalysisConfigGenerator
             EngineJarPath = string.IsNullOrWhiteSpace(localSettings.EngineJarPath) ? resolvedEngineJarPath : localSettings.EngineJarPath,
             SonarScannerCliPath = resolvedScannerCliPath,
             ScanAllAnalysis = localSettings.ScanAllAnalysis,
-            UseSonarScannerCli = localSettings.UseSonarScannerCli,
             HasBeginStepCommandLineCredentials = localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarUserName)
                 || localSettings.CmdLineProperties.HasProperty(SonarProperties.SonarToken),
             SonarQubeHostUrl = localSettings.ServerInfo.ServerUrl,

@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="MSG_SonarScannerCalling" xml:space="preserve">
-    <value>Calling the SonarScanner CLI...</value>
-  </data>
   <data name="WARN_FileIsOutsideProjectDirectory" xml:space="preserve">
     <value>File '{0}' is not located under the base directory '{1}' and will not be analyzed.</value>
   </data>
@@ -131,9 +128,6 @@
   </data>
   <data name="MSG_PropertiesGenerationFailed" xml:space="preserve">
     <value>Generation of the sonar-properties file failed. Unable to complete the analysis.</value>
-  </data>
-  <data name="MSG_SonarScannerCompleted" xml:space="preserve">
-    <value>The SonarScanner CLI has finished</value>
   </data>
   <data name="MSG_WritingSummary" xml:space="preserve">
     <value>Writing processing summary to {0}</value>
@@ -148,15 +142,6 @@ Possible causes:
   </data>
   <data name="ERR_NoValidProjectInfoFiles" xml:space="preserve">
     <value>No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.</value>
-  </data>
-  <data name="ERR_SonarScannerExecutionFailed" xml:space="preserve">
-    <value>The SonarScanner did not complete successfully</value>
-  </data>
-  <data name="MSG_SettingJavaHomeEnvironmentVariable" xml:space="preserve">
-    <value>Setting the JAVA_HOME for the scanner cli to {0}.</value>
-  </data>
-  <data name="MSG_SettingJavaHomeEnvironmentVariableFailed" xml:space="preserve">
-    <value>Setting the JAVA_HOME for the scanner cli failed. `sonar.scanner.javaExePath` is `{0}`. {1}</value>
   </data>
   <data name="MSG_UsingSuppliedSonarScannerOptsValue" xml:space="preserve">
     <value>Using the supplied value for {0}. Value: {1}</value>
@@ -187,9 +172,6 @@ Possible causes:
   </data>
   <data name="WARN_InvalidProjectGuid" xml:space="preserve">
     <value>The project has an invalid GUID "{0}". The project will not be analyzed. Project file: {1}</value>
-  </data>
-  <data name="MSG_SonarScannerHomeIsSet" xml:space="preserve">
-    <value>The SONAR_SCANNER_HOME environment variable is not required and will be ignored.</value>
   </data>
   <data name="MSG_SettingAnalysisProperty" xml:space="preserve">
     <value>Setting analysis property: {0}={1}</value>
@@ -277,14 +259,5 @@ Possible causes:
   </data>
   <data name="ERR_ScannerEngineExecutionFailedWithException" xml:space="preserve">
     <value>The scanner engine execution failed with {0}: {1}.</value>
-  </data>
-  <data name="ERR_SonarScannerCliNotFound" xml:space="preserve">
-    <value>The SonarScanner CLI is needed to finish the analysis, but could not be found. {0}</value>
-  </data>
-  <data name="MSG_SonarScannerCliPath_Missing" xml:space="preserve">
-    <value>The path to the SonarScanner CLI wasn't set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step.</value>
-  </data>
-  <data name="MSG_SonarCliPath_FileNotFound" xml:space="preserve">
-    <value>The path '{0}' to the SonarScanner CLI is invalid. The file does not exists.</value>
   </data>
 </root>

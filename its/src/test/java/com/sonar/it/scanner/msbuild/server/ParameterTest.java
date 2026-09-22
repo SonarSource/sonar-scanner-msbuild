@@ -168,16 +168,14 @@ class ParameterTest {
     assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).hasSize(4);
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void sourcesAndTests_ViaEnvironmentVariable_AreNotIgnored_AnalysisFails(boolean useSonarScannerCLI) {
+  @Test
+  void sourcesAndTests_ViaEnvironmentVariable_AreNotIgnored_AnalysisFails() {
     // Repro for https://sonarsource.atlassian.net/browse/SCAN4NET-1180
     var context = AnalysisContext.forServer("SourcesTestsIgnored")
       .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", Json.object()
         .add("sonar.sources", "Program.cs")
         .add("sonar.tests", "Program.cs")
         .toString());
-    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", String.valueOf(useSonarScannerCLI));
     context.build.useDotNet();
 
     var logs = context.runFailedAnalysis().end().getLogs();
