@@ -139,21 +139,21 @@ public class AnalysisConfig
     }
 
     public string ReadBuildUri() =>
-        ReadAdditionalSetting(BuildUriSettingId, null);
+        ReadAdditionalSetting(BuildUriSettingId);
 
     public void SetBuildUri(string uri) =>
         SetAdditionalSetting(BuildUriSettingId, uri);
 
     public string ReadSettingsFilePath() =>
-        ReadAdditionalSetting(SettingsFileKey, null);
+        ReadAdditionalSetting(SettingsFileKey);
 
     public void SetSettingsFilePath(string fileName) =>
         SetAdditionalSetting(SettingsFileKey, fileName);
 
-    public string ReadAdditionalSetting(string settingId, string defaultValue)
+    public string ReadAdditionalSetting(string settingId)
     {
         Contract.ThrowIfNullOrWhitespace(settingId, nameof(settingId));
-        return FindAdditionalSetting(settingId)?.Value ?? defaultValue;
+        return FindAdditionalSetting(settingId)?.Value;
     }
 
     public void SetAdditionalSetting(string settingId, string value)

@@ -112,7 +112,7 @@ public class ScannerEngineInput
         Add(SonarProperties.ProjectVersion, config.SonarProjectVersion);
         Add(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
         Add(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
-        Add(SonarProperties.PullRequestCacheBasePath, config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null));
+        Add(SonarProperties.PullRequestCacheBasePath, config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath));
     }
 
     public void AddSharedFiles(AnalysisFiles analysisFiles)

@@ -91,7 +91,7 @@ public class AnalysisConfigGeneratorTests
         actualConfig.SonarConfigDir.Should().Be(localSettings.SonarConfigDirectory);
         actualConfig.SonarOutputDir.Should().Be(localSettings.SonarOutputDirectory);
         actualConfig.SonarScannerWorkingDirectory.Should().Be(localSettings.SonarScannerWorkingDirectory);
-        actualConfig.ReadAdditionalSetting("UnchangedFilesPath", null).Should().Be(@"f:\UnchangedFiles.txt");
+        actualConfig.ReadAdditionalSetting("UnchangedFilesPath").Should().Be(@"f:\UnchangedFiles.txt");
         actualConfig.ReadBuildUri().Should().Be(localSettings.BuildUri);
         actualConfig.ServerSettings.Should().NotBeNull();
         actualConfig.AnalyzersSettings.Should().HaveElementAt(0, analyzerSettings);

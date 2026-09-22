@@ -187,7 +187,7 @@ public class AnalysisConfigTests
     [DataRow("")]
     [DataRow("    ")]
     public void ReadAdditionalSetting_InvalidSettingId(string value) =>
-        new AnalysisConfig().Invoking(x => x.ReadAdditionalSetting(value, "default")).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
+        new AnalysisConfig().Invoking(x => x.ReadAdditionalSetting(value)).Should().Throw<ArgumentNullException>().WithParameterName("settingId");
 
     [TestMethod]
     public void CreatePropertyProvider_WhenLoggerIsNull() =>
@@ -204,13 +204,13 @@ public class AnalysisConfigTests
     public void ReadAdditionalSetting_SetAdditionalSetting()
     {
         var config = new AnalysisConfig();
-        config.ReadAdditionalSetting("missing", "DefaultValue").Should().Be("DefaultValue");
+        config.ReadAdditionalSetting("missing").Should().BeNull();
         // Add new
         config.SetAdditionalSetting("id1", "value1");
-        config.ReadAdditionalSetting("id1", "XXX").Should().Be("value1");
+        config.ReadAdditionalSetting("id1").Should().Be("value1");
         // Update
         config.SetAdditionalSetting("id1", "value2");
-        config.ReadAdditionalSetting("id1", "XXX").Should().Be("value2");
+        config.ReadAdditionalSetting("id1").Should().Be("value2");
         config.AdditionalConfig.Should().ContainSingle();
     }
 

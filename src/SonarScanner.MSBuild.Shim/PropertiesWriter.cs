@@ -245,7 +245,7 @@ public class PropertiesWriter
         AppendKeyValueIfNotEmpty(SonarProperties.ProjectVersion, config.SonarProjectVersion);
         AppendKeyValue(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
         AppendKeyValue(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
-        AppendKeyValue(SonarProperties.PullRequestCacheBasePath, config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null));
+        AppendKeyValue(SonarProperties.PullRequestCacheBasePath, config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath));
     }
 
     public void WriteSharedFiles(AnalysisFiles analysisFiles)
