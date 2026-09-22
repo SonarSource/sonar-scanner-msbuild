@@ -11,6 +11,7 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
+  queue: ${{ (github.ref_name != github.event.repository.default_branch) && 'single' || 'max' }}
 
 env:
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
