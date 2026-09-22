@@ -37,7 +37,6 @@ public class DefaultProcessorFactory : IProcessorFactory
             new SonarEngineWrapper(runtime, new ProcessRunner(runtime)),
             runtime,
             new TargetsUninstaller(runtime.Logger),
-            new SonarProjectPropertiesValidator(),
             new BuildVNextCoverageReportProcessor(runtime));
 
     public PreProcessor.PreProcessor CreatePreProcessor() =>

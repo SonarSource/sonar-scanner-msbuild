@@ -24,7 +24,6 @@ public class AnalysisResult
 {
     public ProjectData[] Projects { get; }
     public ScannerEngineInput ScannerEngineInput { get; }
-    public bool RanToCompletion { get; set; }       // ToDo: Remove this tangle in SCAN4NET-721, it can only be false when sonar-project.properties file already exists
 
     public AnalysisResult(ProjectData[] projects, ScannerEngineInput scannerEngineInput = null)
     {

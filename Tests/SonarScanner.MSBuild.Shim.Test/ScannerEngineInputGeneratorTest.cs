@@ -139,7 +139,6 @@ public partial class ScannerEngineInputGeneratorTest
     private void AssertFailedToCreateScannerInput(AnalysisResult result)
     {
         result.ScannerEngineInput.Should().BeNull();
-        result.RanToCompletion.Should().BeFalse();
         AssertNoValidProjects(result);
         runtime.Logger.Should().HaveErrors();
     }
