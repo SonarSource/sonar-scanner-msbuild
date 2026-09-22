@@ -135,7 +135,7 @@ public class SonarEngineOutputTests
         var runtime = new TestRuntime();
         runtime.File.ShortName(Arg.Any<PlatformOS>(), Arg.Any<string>()).Returns(x => x[1]);
         var runner = new ProcessRunner(runtime);
-        var processArgs = new ProcessRunnerArguments(exePath, isBatchScript: true)
+        var processArgs = new ProcessRunnerArguments(exePath)
         {
             WorkingDirectory = testDir,
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage

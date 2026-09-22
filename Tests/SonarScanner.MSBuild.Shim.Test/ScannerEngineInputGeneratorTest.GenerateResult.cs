@@ -497,7 +497,7 @@ public partial class ScannerEngineInputGeneratorTest
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
-        // Empty guids are supported by generating them to the ProjectInfo.xml by WriteProjectInfoFile. In case it is not in ProjectInfo.xml, sonar-project.properties generation should fail.
+        // Empty guids are supported by generating them to the ProjectInfo.xml by WriteProjectInfoFile. In case it is not in ProjectInfo.xml, ScannerEngineInput generation should fail.
         AssertFailedToCreateScannerInput(result);
         runtime.Logger.Warnings.Should().BeEmpty();
     }

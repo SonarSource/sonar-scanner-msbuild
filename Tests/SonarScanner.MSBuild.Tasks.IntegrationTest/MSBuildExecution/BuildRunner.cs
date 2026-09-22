@@ -51,7 +51,7 @@ public static class BuildRunner
         msbuildArgs.Add($"/t:{(targets?.Length > 0 ? string.Join(";", targets) : $"{TargetConstants.Restore};{TargetConstants.DefaultBuild}")}");
 
         // Run the build
-        var args = new ProcessRunnerArguments(exePath, false)
+        var args = new ProcessRunnerArguments(exePath)
         {
             CmdLineArgs = msbuildArgs.Select(x => new ProcessRunnerArguments.Argument(x)).ToArray()
         };

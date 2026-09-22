@@ -44,7 +44,7 @@ public class SonarEngineWrapper
         var javaExe = FindJavaExe(config.JavaExePath);
         var javaParams = JavaParams(config, userCmdLineArguments, runtime).Select(x => new ProcessRunnerArguments.Argument(x, true));
 
-        var args = new ProcessRunnerArguments(javaExe, isBatchScript: false)
+        var args = new ProcessRunnerArguments(javaExe)
         {
             CmdLineArgs = javaParams.Any() ? [.. javaParams, new("-jar"), new(engine)] : [new("-jar"), new(engine)],
             WorkingDirectory = config.SonarScannerWorkingDirectory,
