@@ -27,6 +27,7 @@ import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import com.sonar.orchestrator.build.BuildResult;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -80,7 +81,7 @@ class ParameterTest {
   }
 
   @Test
-  void withSonarQubeScannerParams() {
+  void withSonarQubeScannerParams() throws IOException {
     var context = AnalysisContext.forServer("ProjectUnderTest");
     context.setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", Json.object()
       .add("sonar.buildString", "testValue")  // can be queried from the server via web_api/api/project_analyses/search
@@ -92,8 +93,9 @@ class ParameterTest {
     var logs = context.runAnalysis().end().getLogs();
 
     assertThat(logs).contains("Using user supplied project base directory: '" + context.projectDir);
-    assertThat(logs).contains("sonar.buildString=testValue");
-    assertThat(logs).contains("sonar.projectBaseDir=" + context.projectDir.toString().replace("\\", "\\\\"));
+    assertThat(TestUtils.scannerEngineInputJson(context))
+      .containsProperty("sonar.buildString", "testValue")
+      .containsProperty("sonar.projectBaseDir", context.projectDir.toString());
 
     var webApiResponse = ORCHESTRATOR.getServer()
       .newHttpCall("api/project_analyses/search")

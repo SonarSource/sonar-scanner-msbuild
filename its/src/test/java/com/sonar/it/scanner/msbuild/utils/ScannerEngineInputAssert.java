@@ -74,6 +74,17 @@ public class ScannerEngineInputAssert extends AbstractAssert<ScannerEngineInputA
     return this;
   }
 
+  public ScannerEngineInputAssert containsProperty(String key, String value) {
+    isNotNull();
+    var property = actual.scannerProperties().stream().filter(x -> StringUtils.equalsIgnoreCase(x.key(), key)).findFirst();
+    if (property.isEmpty()) {
+      failWithMessage("ScannerInputJson misses key %s. It only contains %s", key, properties(actual.scannerProperties()));
+    } else if (!Objects.equals(property.get().value(), value)) {
+      failWithMessage("ScannerInputJson has key %s with value %s, but %s was expected.", key, property.get().value(), value);
+    }
+    return this;
+  }
+
   private static String properties(List<ScannerEngineInput.ScannerProperty> properties) {
     return properties.stream().map(ScannerEngineInput.ScannerProperty::toString).collect(Collectors.joining(System.lineSeparator()));
   }

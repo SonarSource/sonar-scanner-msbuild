@@ -35,8 +35,6 @@ public class ScannerEngineInputGenerator
     internal const char RoslynReportPathsDelimiter = '|';
     internal const char AnalyzerOutputPathsDelimiter = ',';
 
-    private const string ProjectPropertiesFileName = "sonar-project.properties";
-
     private readonly AnalysisConfig analysisConfig;
     private readonly IRuntime runtime;
     private readonly RoslynV1SarifFixer fixer;
@@ -82,41 +80,34 @@ public class ScannerEngineInputGenerator
         propertyKey == TelemetryPathsKeyCS || propertyKey == TelemetryPathsKeyVB;
 
     /// <summary>
-    /// Locates the ProjectInfo.xml files and uses the information in them to generate a sonar-project.properties file.
+    /// Locates the ProjectInfo.xml files and uses the information in them to generate the scanner engine input.
     /// </summary>
-    /// <returns>Information about each of the project info files that was processed, together with the full path to the generated sonar-project.properties file.
-    /// Note: The path to the generated file will be null if the file could not be generated.</returns>
+    /// <returns>Information about each of the project info files that was processed.</returns>
     public virtual AnalysisResult GenerateResult(DateTimeOffset startTime)
     {
-        var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
-        var legacyWriter = new PropertiesWriter(analysisConfig);
         var engineInput = new ScannerEngineInput(analysisConfig);
-        runtime.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
         var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray();
         if (projects.Length == 0)
         {
             runtime.LogError(Resources.ERR_NoProjectInfoFilesFound);
-            runtime.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+            runtime.LogInfo(Resources.MSG_EngineInputGenerationFailed);
             return new([]);
         }
         var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
         FixSarifAndEncoding(projects, analysisProperties);
         var allProjects = projects.ToProjectData(runtime);
-        if (GenerateProperties(analysisProperties, allProjects, startTime, legacyWriter, engineInput))
+        if (GenerateProperties(analysisProperties, allProjects, startTime, engineInput))
         {
-            var contents = legacyWriter.Flush();
-            File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
-            runtime.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
-            return new(allProjects, engineInput, projectPropertiesPath);
+            return new(allProjects, engineInput);
         }
         else
         {
-            runtime.LogInfo(Resources.MSG_PropertiesGenerationFailed);
+            runtime.LogInfo(Resources.MSG_EngineInputGenerationFailed);
             return new(allProjects);
         }
     }
 
-    internal bool GenerateProperties(AnalysisProperties analysisProperties, ProjectData[] allProjects, DateTimeOffset startTime, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
+    internal bool GenerateProperties(AnalysisProperties analysisProperties, ProjectData[] allProjects, DateTimeOffset startTime, ScannerEngineInput engineInput)
     {
         var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
@@ -149,13 +140,10 @@ public class ScannerEngineInputGenerator
             return false;
         }
 
-        legacyWriter.WriteSonarProjectInfo(projectBaseDir);
         engineInput.AddConfig(projectBaseDir);
-        legacyWriter.WriteSharedFiles(analysisFiles);
         engineInput.AddSharedFiles(analysisFiles);
         foreach (var project in validProjects)
         {
-            legacyWriter.WriteSettingsForProject(project);
             engineInput.AddProject(project);
             if (project.Project.AnalysisSettings is not null && project.Project.AnalysisSettings.Any())
             {
@@ -171,7 +159,6 @@ public class ScannerEngineInputGenerator
             AddProperty(engineInput, project, ReportFilePathsKeyCS, ReportFilePathsKeyVB, project.RoslynReportFilePaths);
             AddProperty(engineInput, project, TelemetryPathsKeyCS, TelemetryPathsKeyVB, project.TelemetryPaths);
         }
-        legacyWriter.WriteGlobalSettings(analysisProperties);
 
         var sensitiveArgsFromSettingsFile = analysisConfig.CreatePropertyProvider(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
         engineInput.AddUserSettings(new AggregatePropertiesProvider(cmdLineArgs, new ListPropertiesProvider(sensitiveArgsFromSettingsFile), new ListPropertiesProvider(analysisProperties)));

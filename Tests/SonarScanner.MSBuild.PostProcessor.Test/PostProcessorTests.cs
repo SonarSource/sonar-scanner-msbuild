@@ -391,8 +391,7 @@ public class PostProcessorTests
 
         var analysisResult = new AnalysisResult(
             [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(runtime).Single()],
-            withProject ? scannerEngineInput : null,
-            withProject ? Path.Combine(testDir, "sonar-project.properties") : null)
+            withProject ? scannerEngineInput : null)
         { RanToCompletion = true };
         var startTime = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
         runtime.DateTime.OffsetNow.Returns(startTime);

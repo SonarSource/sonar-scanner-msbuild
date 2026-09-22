@@ -26,6 +26,8 @@ import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -107,7 +109,7 @@ class CloudProvisioningTest {
   }
 
   @Test
-  void parameters_Propagated() {
+  void parameters_Propagated() throws IOException {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     context.begin
       .setProperty(activateProvisioning)
@@ -118,18 +120,17 @@ class CloudProvisioningTest {
       .setProperty("sonar.scanner.socketTimeout", "100")
       .setProperty("sonar.scanner.responseTimeout", "500")
       .setProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString());
-    var logs = context.runAnalysis().end().getLogs();
 
-    assertThat(logs).contains(
-      "Dumping content of sonar-project.properties",
-      "sonar.scanner.sonarcloudUrl=" + CloudConstants.SONARCLOUD_URL,
-      "sonar.scanner.apiBaseUrl=" + CloudConstants.SONARCLOUD_API_URL,
-      "sonar.scanner.os=windows",
-      "sonar.scanner.arch=x64",
-      "sonar.scanner.skipJreProvisioning=true",
-      "sonar.scanner.connectTimeout=42",
-      "sonar.scanner.socketTimeout=100",
-      "sonar.scanner.responseTimeout=500",
-      "sonar.userHome=" + context.projectDir.toAbsolutePath().toString().replace("\\", "\\\\"));
+    context.runAnalysis();
+    assertThat(TestUtils.scannerEngineInputJson(context))
+      .containsProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL)
+      .containsProperty("sonar.scanner.apiBaseUrl", CloudConstants.SONARCLOUD_API_URL)
+      .containsProperty("sonar.scanner.os", "windows")
+      .containsProperty("sonar.scanner.arch", "x64")
+      .containsProperty("sonar.scanner.skipJreProvisioning", "true")
+      .containsProperty("sonar.scanner.connectTimeout", "42")
+      .containsProperty("sonar.scanner.socketTimeout", "100")
+      .containsProperty("sonar.scanner.responseTimeout", "500")
+      .containsProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString());
   }
 }

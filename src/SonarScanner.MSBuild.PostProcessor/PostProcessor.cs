@@ -68,7 +68,7 @@ public class PostProcessor
         }
 
         var analysisResult = CreateAnalysisResult(startTime, config, cmdLineArgs);
-        if (analysisResult.FullPropertiesFilePath is null)
+        if (analysisResult.ScannerEngineInput is null)
         {
             return false;
         }

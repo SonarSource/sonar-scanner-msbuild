@@ -61,18 +61,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dumping content of sonar-project.properties
-        ///------------------------------------------------------------------------
-        ///{0}
-        ///------------------------------------------------------------------------.
-        /// </summary>
-        internal static string DEBUG_DumpSonarProjectProperties {
-            get {
-                return ResourceManager.GetString("DEBUG_DumpSonarProjectProperties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to File was referenced by the following projects: &apos;{0}&apos;..
         /// </summary>
         internal static string DEBUG_FileReferencedByProjects {
@@ -141,11 +129,11 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
+        ///   Looks up a localized string similar to Generation of scanner engine input failed. Unable to complete the analysis..
         /// </summary>
-        internal static string MSG_GeneratingProjectProperties {
+        internal static string MSG_EngineInputGenerationFailed {
             get {
-                return ResourceManager.GetString("MSG_GeneratingProjectProperties", resourceCulture);
+                return ResourceManager.GetString("MSG_EngineInputGenerationFailed", resourceCulture);
             }
         }
         
@@ -218,15 +206,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_ProjectIsExcluded {
             get {
                 return ResourceManager.GetString("MSG_ProjectIsExcluded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generation of the sonar-properties file failed. Unable to complete the analysis..
-        /// </summary>
-        internal static string MSG_PropertiesGenerationFailed {
-            get {
-                return ResourceManager.GetString("MSG_PropertiesGenerationFailed", resourceCulture);
             }
         }
         

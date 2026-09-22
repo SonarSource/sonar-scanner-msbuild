@@ -63,7 +63,7 @@ class BaseDirTest {
       TestUtils.createVirtualDrive("Z:", context.projectDir, "DriveZ");
       var logs = context.runFailedAnalysis().end().getLogs();
 
-      assertThat(logs).contains("Generation of the sonar-properties file failed. Unable to complete the analysis.");
+      assertThat(logs).contains("Generation of scanner engine input failed. Unable to complete the analysis.");
     } finally {
       TestUtils.deleteVirtualDrive("Z:", context.projectDir);
     }

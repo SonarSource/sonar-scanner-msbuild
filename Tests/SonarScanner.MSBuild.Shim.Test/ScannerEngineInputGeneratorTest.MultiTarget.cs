@@ -61,9 +61,7 @@ public partial class ScannerEngineInputGeneratorTest
 
         // One valid project info file -> file created
         AssertScannerInputCreated(result);
-        var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-        AssertFileIsReferenced(files[0], propertiesFileContent);
-        AssertFileIsReferenced(files[1], propertiesFileContent);
+        CreateInputReader(result).AssertProperty($"{guid.ToString().ToUpper()}.sonar.sources", string.Join(",", files));
     }
 
     [TestMethod]
@@ -104,9 +102,7 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
         AssertScannerInputCreated(result);
-        var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-        AssertFileIsReferenced(files[0], propertiesFileContent);
-        AssertFileIsReferenced(files[1], propertiesFileContent);
+        CreateInputReader(result).AssertProperty($"{guid.ToString().ToUpper()}.sonar.sources", string.Join(",", files));
     }
 
     [TestMethod]
@@ -147,9 +143,7 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
         AssertScannerInputCreated(result);
-        var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-        AssertFileIsReferenced(files[0], propertiesFileContent);
-        AssertFileIsNotReferenced(files[1], propertiesFileContent);
+        CreateInputReader(result).AssertProperty($"{guid.ToString().ToUpper()}.sonar.sources", files[0]);
     }
 
     [TestMethod]
