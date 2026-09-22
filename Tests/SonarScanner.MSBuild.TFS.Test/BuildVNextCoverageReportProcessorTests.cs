@@ -143,7 +143,7 @@ public class BuildVNextCoverageReportProcessorTests
 
         var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         result.VsTestReportsPaths.Should().BeNull();
-        result.VsCoverageXmlReportsPaths.Should().BeNull();
+        result.VsCoverageXmlReportsPaths.Should().BeNull("coverage files should not be returned without .trx files.");
         result.CoverageConversionPerformed.Should().BeFalse();
         runtime.Logger.Should().HaveNoErrors().And.HaveInfos(
             "No test results files found",
@@ -224,8 +224,7 @@ public class BuildVNextCoverageReportProcessorTests
     {
         var trxFile = CreateTrxFile();
         var coverageFile = CreateFile(coverageDir, "sample.coverage");
-        Directory.CreateDirectory(coverageDir);
-        File.WriteAllText(Path.Combine(coverageDir, "sample.coverage"), "invalid");
+        TestUtils.CreateTextFile(coverageDir, "sample.coverage", "invalid");
 
         var result = sut.ProcessCoverageReports(analysisConfig, buildSettings);
         result.VsTestReportsPaths.Should().ContainSingle().Which.Should().Be(trxFile);
@@ -514,10 +513,10 @@ public class BuildVNextCoverageReportProcessorTests
         return filePath;
     }
 
-    private string CopySampleCoverageFile(string path, string fileName)
+    private string CopySampleCoverageFile(string directory, string fileName)
     {
-        var filePath = CreateFile(path, fileName);
-        Directory.CreateDirectory(path);
+        var filePath = CreateFile(directory, fileName);
+        Directory.CreateDirectory(directory);
         File.Copy(Path.Combine(TestContext.DeploymentDirectory, "Sample.coverage"), filePath, overwrite: true);
         return filePath;
     }
