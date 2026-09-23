@@ -28,16 +28,15 @@ public class ProjectInfoExtensionsTests
     [TestMethod]
     [DataRow(null)]
     [DataRow("FOO")]
-    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_NotSupportedProject_DoesNothing(string projectLanguage)
+    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_NotSupportedProject(string projectLanguage)
     {
-        ProjectInfo sut = new()
+        var sut = new ProjectInfo
         {
             ProjectLanguage = projectLanguage,
             Encoding = null
         };
 
         sut.FixEncoding(null, logger);
-
         sut.Encoding.Should().BeNull();
         logger.Should().HaveNoInfos();
     }
@@ -45,58 +44,45 @@ public class ProjectInfoExtensionsTests
     [TestMethod]
     [DataRow(ProjectLanguages.CSharp)]
     [DataRow(ProjectLanguages.VisualBasic)]
-    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_SupportedProject_SetsUtf8WebName(string projectLanguage)
+    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_SupportedProject(string projectLanguage)
     {
-        ProjectInfo sut = new()
+        var sut = new ProjectInfo
         {
             ProjectLanguage = projectLanguage,
             Encoding = null
         };
 
         sut.FixEncoding(null, logger);
-
         sut.Encoding.Should().Be(Encoding.UTF8.WebName);
         logger.Should().HaveNoInfos();
     }
 
     [TestMethod]
-    public void FixEncoding_WithNullEncoding_GlobalEncoding_SetsGlobalEncoding()
+    public void FixEncoding_WithNullEncoding_GlobalEncoding()
     {
-        ProjectInfo sut = new()
-        {
-            Encoding = null
-        };
+        var sut = new ProjectInfo { Encoding = null };
 
         sut.FixEncoding("FOO", logger);
-
         sut.Encoding.Should().Be("FOO");
         logger.Should().HaveNoInfos();
     }
 
     [TestMethod]
-    public void FixEncoding_WithEncoding_GlobalEncoding_DoesNotChangeEncodingAndLogs()
+    public void FixEncoding_WithEncoding_GlobalEncoding()
     {
-        ProjectInfo sut = new()
-        {
-            Encoding = "FOO"
-        };
+        var sut = new ProjectInfo { Encoding = "FOO" };
 
         sut.FixEncoding("BAR", logger);
-
         sut.Encoding.Should().Be("FOO");
         logger.Should().HaveInfos("""Property "sonar.sourceEncoding" is defined, but will be ignored during analysis.""");
     }
 
     [TestMethod]
-    public void FixEncoding_WithEncoding_NullGlobalEncoding_DoesNothing()
+    public void FixEncoding_WithEncoding_NullGlobalEncoding()
     {
-        ProjectInfo sut = new()
-        {
-            Encoding = "FOO"
-        };
+        var sut = new ProjectInfo { Encoding = "FOO" };
 
         sut.FixEncoding(null, logger);
-
         sut.Encoding.Should().Be("FOO");
         logger.Should().HaveNoInfos();
     }
