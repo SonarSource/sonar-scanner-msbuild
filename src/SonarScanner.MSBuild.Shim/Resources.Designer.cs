@@ -129,15 +129,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generation of scanner engine input failed. Unable to complete the analysis..
-        /// </summary>
-        internal static string MSG_EngineInputGenerationFailed {
-            get {
-                return ResourceManager.GetString("MSG_EngineInputGenerationFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Using Java found in {0}: {1}.
         /// </summary>
         internal static string MSG_JavaExe_Found {

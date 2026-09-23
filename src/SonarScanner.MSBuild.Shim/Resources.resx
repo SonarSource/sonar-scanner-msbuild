@@ -123,9 +123,6 @@
   <data name="MSG_ProjectIsExcluded" xml:space="preserve">
     <value>The exclude flag has been set so the project will not be analyzed. Project file: {0}</value>
   </data>
-  <data name="MSG_EngineInputGenerationFailed" xml:space="preserve">
-    <value>Generation of scanner engine input failed. Unable to complete the analysis.</value>
-  </data>
   <data name="MSG_WritingSummary" xml:space="preserve">
     <value>Writing processing summary to {0}</value>
   </data>

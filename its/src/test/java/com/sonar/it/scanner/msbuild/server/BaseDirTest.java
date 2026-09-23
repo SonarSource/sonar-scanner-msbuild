@@ -63,7 +63,7 @@ class BaseDirTest {
       TestUtils.createVirtualDrive("Z:", context.projectDir, "DriveZ");
       var logs = context.runFailedAnalysis().end().getLogs();
 
-      assertThat(logs).contains("Generation of scanner engine input failed. Unable to complete the analysis.");
+      assertThat(logs).contains("The project base directory cannot be automatically detected. Please specify the \"/d:sonar.projectBaseDir\" on the begin step.");
     } finally {
       TestUtils.deleteVirtualDrive("Z:", context.projectDir);
     }

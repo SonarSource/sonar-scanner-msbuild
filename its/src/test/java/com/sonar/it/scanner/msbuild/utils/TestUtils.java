@@ -164,6 +164,10 @@ public class TestUtils {
     assertThat(input).matches("(?s).*" + pattern + ".*");
   }
 
+  public static String scannerEngineInputProperty(String key, String value) {
+    return "\"key\": \"" + key + "\",\n      \"value\": \"" + value.replace("\\", "\\\\") + "\"";
+  }
+
   @CheckForNull
   private static Measures.Measure getMeasure(@Nullable String componentKey, String metricKey, Orchestrator orchestrator) {
     Measures.ComponentWsResponse response = newWsClient(orchestrator).measures().component(new ComponentRequest()

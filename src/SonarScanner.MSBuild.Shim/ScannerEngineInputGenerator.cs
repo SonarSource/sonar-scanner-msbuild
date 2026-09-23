@@ -24,16 +24,17 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class ScannerEngineInputGenerator
 {
-    public const string ReportFilePathsKeyCS = "sonar.cs.roslyn.reportFilePaths";
-    public const string ReportFilePathsKeyVB = "sonar.vbnet.roslyn.reportFilePaths";
-    public const string ProjectOutPathsKeyCS = "sonar.cs.analyzer.projectOutPaths";
-    public const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
-    public const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
-    public const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
-
     // This delimiter needs to be the same as the one used in the Integration.targets
     internal const char RoslynReportPathsDelimiter = '|';
     internal const char AnalyzerOutputPathsDelimiter = ',';
+
+    internal const string ReportFilePathsKeyCS = "sonar.cs.roslyn.reportFilePaths";
+    internal const string ProjectOutPathsKeyCS = "sonar.cs.analyzer.projectOutPaths";
+
+    private const string ReportFilePathsKeyVB = "sonar.vbnet.roslyn.reportFilePaths";
+    private const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
+    private const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
+    private const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
 
     private readonly AnalysisConfig analysisConfig;
     private readonly IRuntime runtime;
@@ -85,48 +86,39 @@ public class ScannerEngineInputGenerator
     /// <returns>Information about each of the project info files that was processed.</returns>
     public virtual AnalysisResult GenerateResult(DateTimeOffset startTime)
     {
-        var engineInput = new ScannerEngineInput(analysisConfig);
         var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray();
         if (projects.Length == 0)
         {
             runtime.LogError(Resources.ERR_NoProjectInfoFilesFound);
-            runtime.LogInfo(Resources.MSG_EngineInputGenerationFailed);
             return new([]);
         }
         var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
         FixSarifAndEncoding(projects, analysisProperties);
         var allProjects = projects.ToProjectData(runtime);
-        if (GenerateProperties(analysisProperties, allProjects, startTime, engineInput))
-        {
-            return new(allProjects, engineInput);
-        }
-        else
-        {
-            runtime.LogInfo(Resources.MSG_EngineInputGenerationFailed);
-            return new(allProjects);
-        }
+        return new(allProjects, GenerateEngineInput(analysisConfig, analysisProperties, allProjects, startTime));
     }
 
-    internal bool GenerateProperties(AnalysisProperties analysisProperties, ProjectData[] allProjects, DateTimeOffset startTime, ScannerEngineInput engineInput)
+    internal ScannerEngineInput GenerateEngineInput(AnalysisConfig analysisConfig, AnalysisProperties analysisProperties, ProjectData[] allProjects, DateTimeOffset startTime)
     {
         var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
         {
             runtime.LogError(Resources.ERR_NoValidProjectInfoFiles);
-            return false;
+            return null;
         }
+        var engineInput = new ScannerEngineInput(analysisConfig);
         engineInput.AddBootstrapStartTime(startTime);
         var projectDirectories = validProjects.Select(x => x.Project.ProjectFileDirectory()).ToArray();
         var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
         if (projectBaseDir is null)
         {
             runtime.LogError(Resources.ERR_ProjectBaseDirCannotBeAutomaticallyDetected);
-            return false;
+            return null;
         }
         if (!projectBaseDir.Exists)
         {
             runtime.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
-            return false;
+            return null;
         }
 
         var analysisFiles = PutFilesToRightModuleOrRoot(validProjects, projectBaseDir);
@@ -137,7 +129,7 @@ public class ScannerEngineInputGenerator
             && validProjects.All(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
         {
             runtime.LogError(Resources.ERR_NoValidProjectInfoFiles);
-            return false;
+            return null;
         }
 
         engineInput.AddConfig(projectBaseDir);
@@ -162,7 +154,7 @@ public class ScannerEngineInputGenerator
 
         var sensitiveArgsFromSettingsFile = analysisConfig.CreatePropertyProvider(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
         engineInput.AddUserSettings(new AggregatePropertiesProvider(cmdLineArgs, new ListPropertiesProvider(sensitiveArgsFromSettingsFile), new ListPropertiesProvider(analysisProperties)));
-        return true;
+        return engineInput;
     }
 
     /// <summary>

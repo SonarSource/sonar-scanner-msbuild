@@ -27,7 +27,6 @@ import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -109,7 +108,7 @@ class CloudProvisioningTest {
   }
 
   @Test
-  void parameters_Propagated() throws IOException {
+  void parameters_Propagated() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     context.begin
       .setProperty(activateProvisioning)
@@ -120,17 +119,17 @@ class CloudProvisioningTest {
       .setProperty("sonar.scanner.socketTimeout", "100")
       .setProperty("sonar.scanner.responseTimeout", "500")
       .setProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString());
+    var logs = context.runAnalysis().end().getLogs();
 
-    context.runAnalysis();
-    assertThat(TestUtils.scannerEngineInputJson(context))
-      .containsProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL)
-      .containsProperty("sonar.scanner.apiBaseUrl", CloudConstants.SONARCLOUD_API_URL)
-      .containsProperty("sonar.scanner.os", "windows")
-      .containsProperty("sonar.scanner.arch", "x64")
-      .containsProperty("sonar.scanner.skipJreProvisioning", "true")
-      .containsProperty("sonar.scanner.connectTimeout", "42")
-      .containsProperty("sonar.scanner.socketTimeout", "100")
-      .containsProperty("sonar.scanner.responseTimeout", "500")
-      .containsProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString());
+    assertThat(logs)
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.apiBaseUrl", CloudConstants.SONARCLOUD_API_URL))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.os", "windows"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.arch", "x64"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.skipJreProvisioning", "true"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.connectTimeout", "42"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.socketTimeout", "100"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.responseTimeout", "500"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString()));
   }
 }
