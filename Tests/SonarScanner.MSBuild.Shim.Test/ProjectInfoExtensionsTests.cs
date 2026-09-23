@@ -23,11 +23,7 @@ namespace SonarScanner.MSBuild.Shim.Test;
 [TestClass]
 public class ProjectInfoExtensionsTests
 {
-    private static bool isLogActionInvoked;
-    private readonly Action logActionMock = () => isLogActionInvoked = true;
-
-    [TestInitialize]
-    public void InitializeTests() => isLogActionInvoked = false;
+    private readonly TestLogger logger = new();
 
     [TestMethod]
     [DataRow(null)]
@@ -40,10 +36,10 @@ public class ProjectInfoExtensionsTests
             Encoding = null
         };
 
-        sut.FixEncoding(null, logActionMock);
+        sut.FixEncoding(null, logger);
 
         sut.Encoding.Should().BeNull();
-        isLogActionInvoked.Should().BeFalse();
+        logger.Should().HaveNoInfos();
     }
 
     [TestMethod]
@@ -57,10 +53,10 @@ public class ProjectInfoExtensionsTests
             Encoding = null
         };
 
-        sut.FixEncoding(null, logActionMock);
+        sut.FixEncoding(null, logger);
 
         sut.Encoding.Should().Be(Encoding.UTF8.WebName);
-        isLogActionInvoked.Should().BeFalse();
+        logger.Should().HaveNoInfos();
     }
 
     [TestMethod]
@@ -71,24 +67,24 @@ public class ProjectInfoExtensionsTests
             Encoding = null
         };
 
-        sut.FixEncoding("FOO", logActionMock);
+        sut.FixEncoding("FOO", logger);
 
         sut.Encoding.Should().Be("FOO");
-        isLogActionInvoked.Should().BeFalse();
+        logger.Should().HaveNoInfos();
     }
 
     [TestMethod]
-    public void FixEncoding_WithEncoding_GlobalEncoding_DoesNotChangeEncodingAndCallsLogAction()
+    public void FixEncoding_WithEncoding_GlobalEncoding_DoesNotChangeEncodingAndLogs()
     {
         ProjectInfo sut = new()
         {
             Encoding = "FOO"
         };
 
-        sut.FixEncoding("BAR", logActionMock);
+        sut.FixEncoding("BAR", logger);
 
         sut.Encoding.Should().Be("FOO");
-        isLogActionInvoked.Should().BeTrue();
+        logger.Should().HaveInfos("""Property "sonar.sourceEncoding" is defined, but will be ignored during analysis.""");
     }
 
     [TestMethod]
@@ -99,9 +95,9 @@ public class ProjectInfoExtensionsTests
             Encoding = "FOO"
         };
 
-        sut.FixEncoding(null, logActionMock);
+        sut.FixEncoding(null, logger);
 
         sut.Encoding.Should().Be("FOO");
-        isLogActionInvoked.Should().BeFalse();
+        logger.Should().HaveNoInfos();
     }
 }
