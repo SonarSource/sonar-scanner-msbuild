@@ -55,7 +55,7 @@ public partial class ScannerEngineInputGeneratorTest
             SonarProjectVersion = "1.0",
         };
         var generator = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = generator.GenerateResult(runtime.DateTime.OffsetNow);
+        var result = generator.GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
 
@@ -97,7 +97,7 @@ public partial class ScannerEngineInputGeneratorTest
             SonarProjectVersion = "1.0",
         };
         var generator = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = generator.GenerateResult(runtime.DateTime.OffsetNow);
+        var result = generator.GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
@@ -138,7 +138,7 @@ public partial class ScannerEngineInputGeneratorTest
             SonarProjectVersion = "1.0",
         };
         var generator = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = generator.GenerateResult(runtime.DateTime.OffsetNow);
+        var result = generator.GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
@@ -179,7 +179,7 @@ public partial class ScannerEngineInputGeneratorTest
             SonarProjectVersion = "1.0",
         };
         var generator = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = generator.GenerateResult(runtime.DateTime.OffsetNow);
+        var result = generator.GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
         // No valid project info files -> properties not created

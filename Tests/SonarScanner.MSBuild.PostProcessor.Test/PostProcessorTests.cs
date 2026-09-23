@@ -38,6 +38,8 @@ public class PostProcessorTests
     private readonly AnalysisConfig config;
     private readonly SonarEngineWrapper engine;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
+    private readonly RoslynV1SarifFixer sarifFixer;
+    private readonly ScannerEngineInputGenerator scannerEngineInputGenerator;
     private readonly ScannerEngineInput scannerEngineInput;
     private readonly TestRuntime runtime;
     private BuildSettings settings;
@@ -61,12 +63,15 @@ public class PostProcessorTests
         coverageReportProcessor = Substitute
             .For<BuildVNextCoverageReportProcessor>(runtime);
         coverageReportProcessor.ProcessCoverageReports(null, null).ReturnsForAnyArgs(new AdditionalProperties([@"VS\Test\Path"], [@"VS\XML\Coverage\Path"], coverageConversionPerformed: true));
+        sarifFixer = Substitute.For<RoslynV1SarifFixer>(runtime);
+        scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, Substitute.For<IAnalysisPropertyProvider>(), runtime);
         scannerEngineInput = new ScannerEngineInput(config);
         sut = new PostProcessor(
             engine,
             runtime,
             targetsUninstaller,
-            coverageReportProcessor);
+            coverageReportProcessor,
+            sarifFixer);
     }
 
     [TestMethod]
@@ -75,10 +80,12 @@ public class PostProcessorTests
         var engn = engine;
         var rntm = runtime;
         var tuin = targetsUninstaller;
-        Invoking(() => new PostProcessor(null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarEngine");
-        Invoking(() => new PostProcessor(engn, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
-        Invoking(() => new PostProcessor(engn, rntm, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
-        Invoking(() => new PostProcessor(engn, rntm, tuin, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
+        var crpr = coverageReportProcessor;
+        Invoking(() => new PostProcessor(null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarEngine");
+        Invoking(() => new PostProcessor(engn, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
+        Invoking(() => new PostProcessor(engn, rntm, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
+        Invoking(() => new PostProcessor(engn, rntm, tuin, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
+        Invoking(() => new PostProcessor(engn, rntm, tuin, crpr, null)).Should().Throw<ArgumentNullException>().WithParameterName("sarifFixer");
     }
 
     [TestMethod]
@@ -322,6 +329,17 @@ public class PostProcessorTests
     }
 
     [TestMethod]
+    public void PostProc_SarifReportsAreFixedBeforeGeneratingResult()
+    {
+        Execute().Should().BeTrue();
+        Received.InOrder(() =>
+            {
+                sarifFixer.FixReports(Arg.Is<IEnumerable<ProjectInfo>>(x => x.Single().ProjectName == "withFiles1"));
+                scannerEngineInputGenerator.GenerateResult(Arg.Is<IEnumerable<ProjectInfo>>(x => x.Single().ProjectName == "withFiles1"), Arg.Any<DateTimeOffset>());
+            });
+    }
+
+    [TestMethod]
     public void Execute_NullArgs_Throws() =>
         sut.Invoking(x => x.Execute(null, new AnalysisConfig(), BuildSettings.CreateForTesting())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
 
@@ -367,16 +385,13 @@ public class PostProcessorTests
     private bool Execute(string[] args = null, bool withProject = true)
     {
         args ??= [];
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(testContext);
-        var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", testDir);
-        var scannerEngineInputGenerator = Substitute.For<ScannerEngineInputGenerator>(config, Substitute.For<IAnalysisPropertyProvider>(), runtime);
-
+        var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", config.SonarOutputDir);
         var analysisResult = new AnalysisResult(
             [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(runtime).Single()],
             withProject ? scannerEngineInput : null);
         var startTime = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
         runtime.DateTime.OffsetNow.Returns(startTime);
-        scannerEngineInputGenerator.GenerateResult(startTime).Returns(analysisResult); // make sure runtime.DateTime.OffsetNow is used for startTime
+        scannerEngineInputGenerator.GenerateResult(Arg.Any<IEnumerable<ProjectInfo>>(), startTime).Returns(analysisResult); // make sure runtime.DateTime.OffsetNow is used for startTime
         sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
         _ = runtime.DateTime.Received(1).OffsetNow;

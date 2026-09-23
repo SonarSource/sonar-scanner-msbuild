@@ -25,8 +25,8 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class RoslynV1SarifFixer
 {
-    public const string CSharpLanguage = "cs";
-    public const string VBNetLanguage = "vbnet";
+    private const string CSharpLanguage = "cs";
+    private const string VBNetLanguage = "vbnet";
     private const string FixedFileSuffix = "_fixed";
     private const string Version = "version";
     private readonly IRuntime runtime;
@@ -35,9 +35,34 @@ public class RoslynV1SarifFixer
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
 
     /// <summary>
-    /// Attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
+    /// Loads the SARIF reports referenced by the given projects and attempts to load and fix a SARIF file emitted by Roslyn 1.0 (VS 2015 RTM).
     /// </summary>
-    public virtual string LoadAndFixFile(string sarifFilePath, string language)
+    public virtual void FixReports(IEnumerable<ProjectInfo> projects)
+    {
+        foreach (var project in projects)
+        {
+            FixReports(project, CSharpLanguage, ScannerEngineInputGenerator.ReportFilePathsKeyCS);
+            FixReports(project, VBNetLanguage, ScannerEngineInputGenerator.ReportFilePathsKeyVB);
+        }
+    }
+
+    private void FixReports(ProjectInfo project, string language, string reportFilesPropertyKey)
+    {
+        if (project.FindAnalysisSetting(reportFilesPropertyKey) is { } reportPathsProperty)
+        {
+            project.AnalysisSettings.Remove(reportPathsProperty);
+            var listOfPaths = reportPathsProperty.Value.Split(ScannerEngineInputGenerator.RoslynReportPathsDelimiter)
+                .Select(x => LoadAndFixFile(x, language))
+                .Where(x => x is not null)
+                .ToArray();
+            if (listOfPaths.Any())
+            {
+                project.AnalysisSettings.Add(new(reportFilesPropertyKey, string.Join(ScannerEngineInputGenerator.RoslynReportPathsDelimiter.ToString(), listOfPaths)));
+            }
+        }
+    }
+
+    private string LoadAndFixFile(string sarifFilePath, string language)
     {
         if (!File.Exists(sarifFilePath))
         {

@@ -41,15 +41,13 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var cnfg = new AnalysisConfig();
         var rntm = runtime;
-        var rvsf = new RoslynV1SarifFixer(runtime);
         var cmds = new ListPropertiesProvider();
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, cmds, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, cmds, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("fixer");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, cmds, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("additionalFilesService");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, cmds, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("additionalFilesService");
     }
 
     [TestMethod]
@@ -199,17 +197,17 @@ public partial class ScannerEngineInputGeneratorTest
         return fullPath;
     }
 
-    private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig,
-                                                  RoslynV1SarifFixer sarifFixer = null,
-                                                  PlatformOS os = PlatformOS.Unknown)
+    private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig, PlatformOS os = PlatformOS.Unknown)
     {
-        sarifFixer ??= new RoslynV1SarifFixer(runtime);
         if (os != PlatformOS.Unknown)
         {
             runtime.ConfigureOS(os);
         }
-        return new(analysisConfig, runtime, sarifFixer, cmdLineArgs, new(runtime));
+        return new(analysisConfig, runtime, cmdLineArgs, new(runtime));
     }
+
+    private static IList<ProjectInfo> LoadProjects(AnalysisConfig config) =>
+        ProjectLoader.LoadFrom(config.SonarOutputDir);
 
     private ProjectData CreateProjectData(string fullPath) =>
         new[] { new ProjectInfo { FullPath = fullPath } }.ToProjectData(runtime).Single();
