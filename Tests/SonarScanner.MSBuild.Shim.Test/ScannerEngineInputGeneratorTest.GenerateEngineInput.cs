@@ -158,7 +158,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void GenerateEngineInput_AnalyzerOutputPaths_ForUnexpectedLanguage_DoesNotWritePaths()
     {
-        var context = new PropertiesContext(TestContext, "unexpected", runtime);
+        var context = new ScannerEngineInputContext(TestContext, "unexpected", runtime);
         context.AddAnalyzerOutPath("ProjectDir", ".sonarqube", "out", "0");
 
         context.GenerateEngineInput().Should().NotContain("ProjectDir");
@@ -169,17 +169,17 @@ public partial class ScannerEngineInputGeneratorTest
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.analyzer.projectOutPaths")]
     public void GenerateEngineInput_AnalyzerOutputPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
     {
-        var context = new PropertiesContext(TestContext, language, runtime);
+        var context = new ScannerEngineInputContext(TestContext, language, runtime);
         var path1 = context.AddAnalyzerOutPath("ProjectDir", ".sonarqube", "out", "0");
         var path2 = context.AddAnalyzerOutPath("ProjectDir", ".sonarqube", "out", "1");
 
-        new ScannerEngineInputReader(context.GenerateEngineInput()).AssertProperty($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}", path1 + "," + path2);
+        context.CreateEngineInputReader().AssertProperty($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}", path1 + "," + path2);
     }
 
     [TestMethod]
     public void GenerateEngineInput_RoslynReportPaths_ForUnexpectedLanguage_DoesNotWritePaths()
     {
-        var context = new PropertiesContext(TestContext, "unexpected", runtime);
+        var context = new ScannerEngineInputContext(TestContext, "unexpected", runtime);
         context.AddRoslynReportFilePath("ProjectDir", ".sonarqube", "out", "0", "Issues.json");
 
         context.GenerateEngineInput().Should().NotContain("ProjectDir");
@@ -190,17 +190,17 @@ public partial class ScannerEngineInputGeneratorTest
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths")]
     public void GenerateEngineInput_RoslynReportPaths_WritesEncodedPaths(string language, string expectedPropertyKey)
     {
-        var context = new PropertiesContext(TestContext, language, runtime);
+        var context = new ScannerEngineInputContext(TestContext, language, runtime);
         var path1 = context.AddRoslynReportFilePath("ProjectDir", ".sonarqube", "out", "0", "Issues.json");
         var path2 = context.AddRoslynReportFilePath("ProjectDir", ".sonarqube", "out", "1", "Issues.json");
 
-        new ScannerEngineInputReader(context.GenerateEngineInput()).AssertProperty($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}", path1 + "," + path2);
+        context.CreateEngineInputReader().AssertProperty($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}", path1 + "," + path2);
     }
 
     [TestMethod]
     public void GenerateEngineInput_Telemetry_ForUnexpectedLanguage_DoesNotWritePaths()
     {
-        var context = new PropertiesContext(TestContext, "unexpected", runtime);
+        var context = new ScannerEngineInputContext(TestContext, "unexpected", runtime);
         context.AddTelemetryPath("ProjectDir", ".sonarqube", "out", "0", "Telemetry.json");
 
         context.GenerateEngineInput().Should().NotContain("ProjectDir");
@@ -211,17 +211,17 @@ public partial class ScannerEngineInputGeneratorTest
     [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.scanner.telemetry")]
     public void GenerateEngineInput_Telemetry_WritesEncodedPaths(string language, string expectedPropertyKey)
     {
-        var context = new PropertiesContext(TestContext, language, runtime);
+        var context = new ScannerEngineInputContext(TestContext, language, runtime);
         var path1 = context.AddTelemetryPath("ProjectDir", ".sonarqube", "out", "0", "Telemetry.json");
         var path2 = context.AddTelemetryPath("ProjectDir", ".sonarqube", "out", "1", "Telemetry.json");
 
-        new ScannerEngineInputReader(context.GenerateEngineInput()).AssertProperty($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}", path1 + "," + path2);
+        context.CreateEngineInputReader().AssertProperty($"5762C17D-1DDF-4C77-86AC-E2B4940926A9.{expectedPropertyKey}", path1 + "," + path2);
     }
 
     [TestMethod]
     public void GenerateEngineInput_ProjectAnalysisSettings_Propagated()
     {
-        var context = new PropertiesContext(TestContext, ProjectLanguages.CSharp, runtime);
+        var context = new ScannerEngineInputContext(TestContext, ProjectLanguages.CSharp, runtime);
         context.Project.Project.AnalysisSettings =
         [
             new("my.setting1", "setting1"),
@@ -229,7 +229,7 @@ public partial class ScannerEngineInputGeneratorTest
             new("my.setting.3", @"c:\dir1\dir2\foo.txt")
         ];
 
-        var reader = new ScannerEngineInputReader(context.GenerateEngineInput());
+        var reader = context.CreateEngineInputReader();
         runtime.Logger.Should().HaveNoErrors();
         reader.AssertProperty("5762C17D-1DDF-4C77-86AC-E2B4940926A9.my.setting1", "setting1");
         reader.AssertProperty("5762C17D-1DDF-4C77-86AC-E2B4940926A9.my.setting2", "setting 2 with spaces");
@@ -260,13 +260,13 @@ public partial class ScannerEngineInputGeneratorTest
         return engineInput;
     }
 
-    private class PropertiesContext
+    private class ScannerEngineInputContext
     {
         public readonly AnalysisConfig Config;
         public readonly ProjectData Project;
         private readonly TestRuntime runtime;
 
-        public PropertiesContext(TestContext testContext, string language, TestRuntime runtime)
+        public ScannerEngineInputContext(TestContext testContext, string language, TestRuntime runtime)
         {
             this.runtime = runtime;
             Config = new AnalysisConfig { SonarOutputDir = testContext.TestRunDirectory };
@@ -292,6 +292,9 @@ public partial class ScannerEngineInputGeneratorTest
             engineInput.Should().NotBeNull();
             return engineInput.ToString();
         }
+
+        public ScannerEngineInputReader CreateEngineInputReader() =>
+            new(GenerateEngineInput());
 
         public string AddAnalyzerOutPath(params string[] pathParts) =>
             AddPath(Project.AnalyzerOutPaths, pathParts);
