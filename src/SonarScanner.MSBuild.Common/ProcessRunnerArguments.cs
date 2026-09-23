@@ -77,13 +77,8 @@ public class ProcessRunnerArguments
 
     public ProcessRunnerArguments(string exeName)
     {
-        if (string.IsNullOrWhiteSpace(exeName))
-        {
-            throw new ArgumentNullException(nameof(exeName));
-        }
-
+        Contract.ThrowIfNullOrWhitespace(exeName, nameof(exeName));
         ExeName = exeName;
-
         TimeoutInMilliseconds = Timeout.Infinite;
         OutputToLogMessage = (stdOut, outputLine) =>
         {
