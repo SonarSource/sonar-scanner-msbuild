@@ -84,7 +84,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details..
+        ///   Looks up a localized string similar to No analyzable projects were found. SonarQube analysis will not be performed..
         /// </summary>
         internal static string ERR_NoValidProjectInfoFiles {
             get {
@@ -296,69 +296,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_UsingWorkingDirectoryAsProjectBaseDir {
             get {
                 return ResourceManager.GetString("MSG_UsingWorkingDirectoryAsProjectBaseDir", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Writing processing summary to {0}.
-        /// </summary>
-        internal static string MSG_WritingSummary {
-            get {
-                return ResourceManager.GetString("MSG_WritingSummary", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Excluded projects.
-        /// </summary>
-        internal static string REPORT_ExcludedProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_ExcludedProjectsTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid projects.
-        /// </summary>
-        internal static string REPORT_InvalidProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_InvalidProjectsTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {none}.
-        /// </summary>
-        internal static string REPORT_NoProjectsOfType {
-            get {
-                return ResourceManager.GetString("REPORT_NoProjectsOfType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Product projects.
-        /// </summary>
-        internal static string REPORT_ProductProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_ProductProjectsTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Skipped projects.
-        /// </summary>
-        internal static string REPORT_SkippedProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_SkippedProjectsTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Test projects.
-        /// </summary>
-        internal static string REPORT_TestProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_TestProjectsTitle", resourceCulture);
             }
         }
         
