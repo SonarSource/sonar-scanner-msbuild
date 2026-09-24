@@ -77,17 +77,17 @@ public class ScannerEngineInputGenerator
     public static bool IsTelemetryPaths(string propertyKey) =>
         propertyKey == TelemetryPathsKeyCS || propertyKey == TelemetryPathsKeyVB;
 
-    public virtual AnalysisResult GenerateResult(ProjectInfo[] projects, DateTimeOffset startTime)
+    public virtual ScannerEngineInput GenerateResult(ProjectInfo[] projects, DateTimeOffset startTime)
     {
         if (!projects.Any())
         {
             runtime.LogError(Resources.ERR_NoProjectInfoFilesFound);
-            return new([]);
+            return null;
         }
         var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
         FixEncoding(projects, analysisProperties);
         var allProjects = projects.ToProjectData(runtime);
-        return new(allProjects, GenerateEngineInput(analysisConfig, analysisProperties, allProjects, startTime));
+        return GenerateEngineInput(analysisConfig, analysisProperties, allProjects, startTime);
     }
 
     internal ScannerEngineInput GenerateEngineInput(AnalysisConfig analysisConfig, AnalysisProperties analysisProperties, ProjectData[] allProjects, DateTimeOffset startTime)

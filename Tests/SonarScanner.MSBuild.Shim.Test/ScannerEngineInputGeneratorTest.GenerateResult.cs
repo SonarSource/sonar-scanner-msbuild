@@ -25,7 +25,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void GenerateResult_NoProjectInfoFiles()
     {
-        // Properties file should not be generated if there are no project info files.
+        // Properties file should not be generated if there are no project info files.  // FIXME update comment
         // Two sub-directories, neither containing a ProjectInfo.xml
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var subDir1 = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "dir1");
@@ -36,7 +36,6 @@ public partial class ScannerEngineInputGeneratorTest
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertFailedToCreateScannerInput(result);
-        AssertExpectedProjectCount(0, result);
     }
 
     [TestMethod]
@@ -54,17 +53,15 @@ public partial class ScannerEngineInputGeneratorTest
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", null, testDir, projectGuid: withFiles1Guid);
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", null, testDir, projectGuid: withFiles2Guid);
         var config = CreateValidConfig(testDir);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
-        AssertExpectedStatus("withoutFiles", ProjectInfoValidity.NoFilesToAnalyze, result);
-        AssertExpectedStatus("withFiles1", ProjectInfoValidity.Valid, result);
-        AssertExpectedStatus("withFiles2", ProjectInfoValidity.Valid, result);
-        AssertExpectedProjectCount(3, result);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        AssertExpectedStatus(result, withFiles1Guid, withFiles2Guid);
+        AssertExpectedProjectCount(2, result);  // FIXME delete
 
         // One valid project info file -> file created
         AssertScannerInputCreated(result);
 
-        var reader = new ScannerEngineInputReader(result.ScannerEngineInput.ToString());
+        var reader = new ScannerEngineInputReader(result.ToString());   // FIXME helper method
         reader.AssertProperty($"{withFiles1Guid.ToString().ToUpper()}.sonar.projectBaseDir", $"{testDir}{Path.DirectorySeparatorChar}projects{Path.DirectorySeparatorChar}withFiles1");
         reader.AssertProperty($"{withFiles1Guid.ToString().ToUpper()}.sonar.tests", string.Empty);
         reader.AssertProperty($"{withFiles1Guid.ToString().ToUpper()}.sonar.sources", $"{testDir}{Path.DirectorySeparatorChar}projects{Path.DirectorySeparatorChar}withFiles1{Path.DirectorySeparatorChar}contentFile1.txt");
@@ -89,10 +86,9 @@ public partial class ScannerEngineInputGeneratorTest
             Path.Combine(projectDir, "NotExisting.proj"),
             "UTF-8");
         var config = CreateValidConfig(rootDir);
-        var result = CreateSut(config).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
-        AssertExpectedStatus(projectName, ProjectInfoValidity.ProjectNotFound, result);
-        AssertExpectedProjectCount(1, result);
+        var result = CreateSut(config).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
+        AssertFailedToCreateScannerInput(result);
     }
 
     [TestMethod]
@@ -106,16 +102,15 @@ public partial class ScannerEngineInputGeneratorTest
         var config = CreateValidConfig(testRootDir);
         var result = CreateSut(config, os: os).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
-        var singleProject = result.Projects.Should().ContainSingle().Which;
         if (os == PlatformOS.Windows)
         {
-            singleProject.Status.Should().Be(ProjectInfoValidity.Valid);
+            AssertExpectedProjectCount(1, result);
             runtime.Logger.Warnings.Should().BeEmpty("Windows is case insensitive and all project files are considered the same");
         }
         else
         {
             // Casing should not be ignored on non-windows OS, none of those two different project files with the same GUID will be analyzed
-            singleProject.Status.Should().Be(ProjectInfoValidity.DuplicateGuid);
+            AssertFailedToCreateScannerInput(result);
             runtime.Logger.Warnings.Should().HaveCount(2).And.BeEquivalentTo(
                 $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{projectFileOrig}\"",
                 $"Duplicate ProjectGuid: \"{guid}\". The project will not be analyzed. Project file: \"{projectFileDiff}\"");
@@ -165,7 +160,7 @@ public partial class ScannerEngineInputGeneratorTest
     }
 
     [TestMethod]
-    public void GenerateResult_FilesOutOfProjectRootDir_TheyAreNotAnalyzedAndCorrectWarningsAreLogged()
+    public void GenerateResult_FilesOutOfProjectRootDir_TheyAreNotAnalyzedAndCorrectWarningsAreLogged() // test names need an update
     {
         var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var projectDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, "project");
@@ -185,9 +180,8 @@ public partial class ScannerEngineInputGeneratorTest
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
-        AssertExpectedProjectCount(1, result);
         // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
-        AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
+        AssertFailedToCreateScannerInput(result);  // FIXME result needs to be renamed everywhere
         runtime.Logger.Should().HaveWarnings(2)
             .And.HaveWarnings(
             $"File '{Path.Combine(TestContext.TestRunDirectory, "txtFile.txt")}' is not located under the base directory '{projectDir}' and will not be analyzed.",
@@ -215,9 +209,8 @@ public partial class ScannerEngineInputGeneratorTest
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
-        AssertExpectedProjectCount(1, result);
         // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
-        AssertExpectedStatus("project", ProjectInfoValidity.NoFilesToAnalyze, result);
+        AssertFailedToCreateScannerInput(result);
         if (isRaisingAWarning)
         {
             runtime.Logger.Should().HaveWarnings(1)
@@ -407,7 +400,6 @@ public partial class ScannerEngineInputGeneratorTest
         var config = CreateValidConfig(analysisRootDir);
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
-        AssertExpectedProjectCount(1, result);
         // Empty guids are supported by generating them to the ProjectInfo.xml by WriteProjectInfoFile. In case it is not in ProjectInfo.xml, ScannerEngineInput generation should fail.
         AssertFailedToCreateScannerInput(result);
         runtime.Logger.Warnings.Should().BeEmpty();
@@ -546,10 +538,12 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var project1 = "project1";
         var project2 = "project2";
+        var project1Guid = Guid.NewGuid();
+        var project2Guid = Guid.NewGuid();
         var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var rootProjects = Path.Combine(root, "projects");
-        TestUtils.CreateProjectWithFiles(TestContext, project1, root);
-        TestUtils.CreateProjectWithFiles(TestContext, project2, root);
+        TestUtils.CreateProjectWithFiles(TestContext, project1, null, root, project1Guid);
+        TestUtils.CreateProjectWithFiles(TestContext, project2, null, root, project2Guid);
         string[] rootSources =
         [
             TestUtils.CreateEmptyFile(rootProjects, "rootSource.ipynb"),
@@ -605,30 +599,29 @@ public partial class ScannerEngineInputGeneratorTest
             new("sonar.php.file.suffixes", "php"),
         ];
         var config = CreateValidConfig(root, serverProperties);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
         AssertExpectedProjectCount(2, result);
         AssertScannerInputCreated(result);
-        AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
-        AssertExpectedStatus(project2, ProjectInfoValidity.Valid, result);
-        AssertExpectedPathsAddedToModuleFiles(project1, project1Sources);
-        AssertExpectedPathsAddedToModuleFiles(project2, project2Sources);
-
+        AssertExpectedStatus(result, project1Guid, project2Guid);
         var reader = CreateInputReader(result);
+        AssertExpectedPathsAddedToModuleFiles(project1Guid, project1Sources);
+        AssertExpectedPathsAddedToModuleFiles(project2Guid, project2Sources);
         reader["sonar.sources"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootSources);
         reader["sonar.tests"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests.Concat(project2Tests));
 
-        void AssertExpectedPathsAddedToModuleFiles(string projectId, string[] expectedPaths) =>
-            expectedPaths.Should().BeSubsetOf(result.Projects.Single(x => x.Project.ProjectName == projectId).SonarQubeModuleFiles.Select(x => x.FullName));
+        void AssertExpectedPathsAddedToModuleFiles(Guid projectGuid, string[] expectedPaths) =>
+            expectedPaths.Should().BeSubsetOf(reader[$"{projectGuid.ToString().ToUpper()}.sonar.sources"].Split(',').Select(x => x.Trim('\"')));
     }
 
     [TestMethod]
     public void GenerateResult_AdditionalFiles_OnlyTestFiles_EndToEnd()
     {
         var project1 = "project1";
+        var project1Guid = Guid.NewGuid();
         var root = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var rootProjects = Path.Combine(root, "projects");
-        TestUtils.CreateProjectWithFiles(TestContext, project1, root);
+        TestUtils.CreateProjectWithFiles(TestContext, project1, null, root, project1Guid);
         string[] testFiles =
         [
             TestUtils.CreateEmptyFile(Path.Combine(rootProjects, project1), "project1.spec.tsx"),
@@ -641,13 +634,11 @@ public partial class ScannerEngineInputGeneratorTest
             new("sonar.typescript.file.suffixes", ".ts,.tsx"),
         ];
         var config = CreateValidConfig(root, serverProperties, rootProjects);
+
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
-
-        AssertExpectedProjectCount(1, result);
-        AssertScannerInputCreated(result);
-        AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
-
+        AssertExpectedStatus(result, project1Guid);
         CreateInputReader(result)["sonar.tests"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(testFiles);
+        runtime.Logger.Should().HaveNoErrors();
     }
 
     [TestMethod]
@@ -721,7 +712,7 @@ public partial class ScannerEngineInputGeneratorTest
     /// Creates a single new project valid project with dummy files and analysis config file with the specified local settings.
     /// Checks that a property file is created.
     /// </summary>
-    private AnalysisResult GenerateResultAndAssert(string projectName, params Property[] localSettings)
+    private ScannerEngineInput GenerateResultAndAssert(string projectName, params Property[] localSettings) // FIXME rename
     {
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext, projectName);
         TestUtils.CreateProjectWithFiles(TestContext, projectName, analysisRootDir);
@@ -734,6 +725,6 @@ public partial class ScannerEngineInputGeneratorTest
         return result;
     }
 
-    private static ScannerEngineInputReader CreateInputReader(AnalysisResult result) =>
-        new(result.ScannerEngineInput.ToString());
+    private static ScannerEngineInputReader CreateInputReader(ScannerEngineInput ScannerInput) =>
+        new(ScannerInput.ToString());
 }

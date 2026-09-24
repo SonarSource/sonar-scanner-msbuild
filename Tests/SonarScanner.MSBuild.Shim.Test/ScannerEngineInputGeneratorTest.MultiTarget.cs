@@ -179,9 +179,8 @@ public partial class ScannerEngineInputGeneratorTest
             SonarProjectVersion = "1.0",
         };
         var generator = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = generator.GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
-        AssertExpectedProjectCount(1, result);
+        var result = generator.GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
         // No valid project info files -> properties not created
         AssertFailedToCreateScannerInput(result);
     }

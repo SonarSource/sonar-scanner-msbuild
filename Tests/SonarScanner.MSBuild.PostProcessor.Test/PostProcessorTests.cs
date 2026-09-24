@@ -385,13 +385,11 @@ public class PostProcessorTests
     private bool Execute(string[] args = null, bool withProject = true)
     {
         args ??= [];
-        var projectInfo = TestUtils.CreateProjectWithFiles(testContext, "withFiles1", config.SonarOutputDir);
-        var analysisResult = new AnalysisResult(
-            [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(runtime).Single()],
-            withProject ? scannerEngineInput : null);
+        TestUtils.CreateProjectWithFiles(testContext, "withFiles1", config.SonarOutputDir);
         var startTime = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
         runtime.DateTime.OffsetNow.Returns(startTime);
-        scannerEngineInputGenerator.GenerateResult(Arg.Is<ProjectInfo[]>(x => x.Single().ProjectName == "withFiles1"), startTime).Returns(analysisResult); // make sure runtime.DateTime.OffsetNow is used for startTime
+        scannerEngineInputGenerator.GenerateResult(Arg.Is<ProjectInfo[]>(x => x.Single().ProjectName == "withFiles1"), startTime)
+            .Returns(withProject ? scannerEngineInput : null); // make sure runtime.DateTime.OffsetNow is used for startTime
         sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
         _ = runtime.DateTime.Received(1).OffsetNow;
