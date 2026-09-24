@@ -77,11 +77,7 @@ public class ScannerEngineInputGenerator
     public static bool IsTelemetryPaths(string propertyKey) =>
         propertyKey == TelemetryPathsKeyCS || propertyKey == TelemetryPathsKeyVB;
 
-    /// <summary>
-    /// Uses the information in the given projects to generate the scanner engine input.
-    /// </summary>
-    /// <returns>Information about each of the project info files that was processed.</returns>
-    public virtual AnalysisResult GenerateResult(IEnumerable<ProjectInfo> projects, DateTimeOffset startTime)
+    public virtual AnalysisResult GenerateResult(ProjectInfo[] projects, DateTimeOffset startTime)
     {
         if (!projects.Any())
         {

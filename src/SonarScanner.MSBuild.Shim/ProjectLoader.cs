@@ -22,11 +22,11 @@ namespace SonarScanner.MSBuild.Shim;
 
 public static class ProjectLoader
 {
-    public static IList<ProjectInfo> LoadFrom(string dumpFolderPath) =>
+    public static ProjectInfo[] LoadFrom(string dumpFolderPath) =>
         Directory.GetDirectories(dumpFolderPath)
             .Select(GetProjectInfo)
             .Where(x => x is not null)
-            .ToList();
+            .ToArray();
 
     private static ProjectInfo GetProjectInfo(string projectFolderPath)
     {

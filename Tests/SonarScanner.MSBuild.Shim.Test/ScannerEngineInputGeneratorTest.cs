@@ -206,7 +206,7 @@ public partial class ScannerEngineInputGeneratorTest
         return new(analysisConfig, runtime, cmdLineArgs, new(runtime));
     }
 
-    private static IList<ProjectInfo> LoadProjects(AnalysisConfig config) =>
+    private static ProjectInfo[] LoadProjects(AnalysisConfig config) =>
         ProjectLoader.LoadFrom(config.SonarOutputDir);
 
     private ProjectData CreateProjectData(string fullPath) =>
