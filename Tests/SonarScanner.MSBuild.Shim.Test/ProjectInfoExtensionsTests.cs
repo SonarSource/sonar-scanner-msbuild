@@ -30,11 +30,7 @@ public class ProjectInfoExtensionsTests
     [DataRow("FOO")]
     public void FixEncoding_WithNullEncoding_NullGlobalEncoding_NotSupportedProject(string projectLanguage)
     {
-        var sut = new ProjectInfo
-        {
-            ProjectLanguage = projectLanguage,
-            Encoding = null
-        };
+        var sut = new ProjectInfo { ProjectLanguage = projectLanguage, Encoding = null };
 
         sut.FixEncoding(null, logger);
         sut.Encoding.Should().BeNull();
@@ -46,11 +42,7 @@ public class ProjectInfoExtensionsTests
     [DataRow(ProjectLanguages.VisualBasic)]
     public void FixEncoding_WithNullEncoding_NullGlobalEncoding_SupportedProject(string projectLanguage)
     {
-        var sut = new ProjectInfo
-        {
-            ProjectLanguage = projectLanguage,
-            Encoding = null
-        };
+        var sut = new ProjectInfo { ProjectLanguage = projectLanguage, Encoding = null };
 
         sut.FixEncoding(null, logger);
         sut.Encoding.Should().Be(Encoding.UTF8.WebName);
