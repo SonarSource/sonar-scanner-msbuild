@@ -120,14 +120,8 @@
   <data name="WARN_FileIsOutsideProjectDirectory" xml:space="preserve">
     <value>File '{0}' is not located under the base directory '{1}' and will not be analyzed.</value>
   </data>
-  <data name="MSG_GeneratingProjectProperties" xml:space="preserve">
-    <value>Generating SonarQube project properties file to {0}</value>
-  </data>
   <data name="MSG_ProjectIsExcluded" xml:space="preserve">
     <value>The exclude flag has been set so the project will not be analyzed. Project file: {0}</value>
-  </data>
-  <data name="MSG_PropertiesGenerationFailed" xml:space="preserve">
-    <value>Generation of the sonar-properties file failed. Unable to complete the analysis.</value>
   </data>
   <data name="MSG_WritingSummary" xml:space="preserve">
     <value>Writing processing summary to {0}</value>
@@ -241,12 +235,6 @@ Possible causes:
   </data>
   <data name="MSG_JavaExe_NotFound" xml:space="preserve">
     <value>Could not find Java in {0}: {1}</value>
-  </data>
-  <data name="DEBUG_DumpSonarProjectProperties" xml:space="preserve">
-    <value>Dumping content of sonar-project.properties
-------------------------------------------------------------------------
-{0}
-------------------------------------------------------------------------</value>
   </data>
   <data name="MSG_JavaHomeSet" xml:space="preserve">
     <value>Found 'JAVA_HOME': {0}</value>

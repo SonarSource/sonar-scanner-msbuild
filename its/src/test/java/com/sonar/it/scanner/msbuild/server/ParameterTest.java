@@ -91,9 +91,10 @@ class ParameterTest {
       .setDebugLogs();
     var logs = context.runAnalysis().end().getLogs();
 
-    assertThat(logs).contains("Using user supplied project base directory: '" + context.projectDir);
-    assertThat(logs).contains("sonar.buildString=testValue");
-    assertThat(logs).contains("sonar.projectBaseDir=" + context.projectDir.toString().replace("\\", "\\\\"));
+    assertThat(logs)
+      .contains("Using user supplied project base directory: '" + context.projectDir)
+      .contains(TestUtils.scannerEngineInputProperty("sonar.buildString", "testValue"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.projectBaseDir", context.projectDir.toString()));
 
     var webApiResponse = ORCHESTRATOR.getServer()
       .newHttpCall("api/project_analyses/search")

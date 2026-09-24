@@ -141,11 +141,10 @@ public partial class ScannerEngineInputGeneratorTest
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
         var config = CreateValidConfig(testDir);
         config.LocalSettings = [new(SonarProperties.SourceEncoding, "test-encoding-here")];
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
 
-        var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-        settingsFileContent.Should().Contain("sonar.sourceEncoding=test-encoding-here", "Command line parameter 'sonar.sourceEncoding' is ignored.");
-        runtime.Logger.Should().HaveDebugs(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var reader = CreateInputReader(result);
+        reader.AssertProperty(SonarProperties.SourceEncoding, "test-encoding-here");     // Global setting is passed to the scanner engine
     }
 
     [TestMethod]
@@ -158,28 +157,11 @@ public partial class ScannerEngineInputGeneratorTest
             new(SonarProperties.VsCoverageXmlReportsPaths, "coverage-path"),
             new(SonarProperties.VsTestReportsPaths, "trx-path"),
         ];
+
         var result = CreateSut(config).GenerateResult(runtime.DateTime.OffsetNow);
-
-        var settingsFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-        settingsFileContent.Should().Contain("sonar.cs.vscoveragexml.reportsPaths=coverage-path");
-        settingsFileContent.Should().Contain("sonar.cs.vstest.reportsPaths=trx-path");
-        runtime.Logger.Should().HaveDebugs(string.Format(Resources.DEBUG_DumpSonarProjectProperties, settingsFileContent));
-    }
-
-    [TestMethod]
-    public void GenerateResult_SensitiveParamsNotLogged()
-    {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", testDir);
-        var config = CreateValidConfig(testDir);
-        config.LocalSettings = [
-            new(SonarProperties.ClientCertPath, "Client cert path"),           // should be logged as it is not sensitive
-            new(SonarProperties.ClientCertPassword, "Client cert password")    // should not be logged as it is sensitive
-        ];
-        CreateSut(config).GenerateResult(runtime.DateTime.OffsetNow);
-
-        runtime.Logger.DebugMessages.Should().Contain(x => x.Contains("Client cert path"));
-        runtime.Logger.DebugMessages.Should().NotContain(x => x.Contains("Client cert password"));
+        var reader = CreateInputReader(result);
+        reader.AssertProperty(SonarProperties.VsCoverageXmlReportsPaths, "coverage-path");
+        reader.AssertProperty(SonarProperties.VsTestReportsPaths, "trx-path");
     }
 
     [TestMethod]
@@ -200,8 +182,6 @@ public partial class ScannerEngineInputGeneratorTest
 
         mockSarifFixer.CallCount.Should().Be(1);
         // Already valid SARIF -> no change in file -> unchanged property
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists(projectGuid.ToString().ToUpper() + ".sonar.cs.roslyn.reportFilePaths", AddQuotes(mockReturnPath));
         CreateInputReader(result).AssertProperty(projectGuid.ToString().ToUpper() + ".sonar.cs.roslyn.reportFilePaths", mockReturnPath);
     }
 
@@ -226,8 +206,6 @@ public partial class ScannerEngineInputGeneratorTest
         sarifFixer.CallCount.Should().Be(1);
         sarifFixer.LastLanguage.Should().Be(expectedSarifLanguage);
         // Fixable SARIF -> new file saved -> changed property
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists(projectGuid.ToString().ToUpper() + "." + propertyKey, AddQuotes(sarifFixer.ReturnVal));
         CreateInputReader(result).AssertProperty(projectGuid.ToString().ToUpper() + "." + propertyKey, sarifFixer.ReturnVal);
     }
 
@@ -249,10 +227,6 @@ public partial class ScannerEngineInputGeneratorTest
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", ProjectLanguages.VisualBasic, testDir, projectGuid, true, projectSettings);
         var result = CreateSut(config, mockSarifFixer).GenerateResult(runtime.DateTime.OffsetNow);
 
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists(
-            $"{projectGuid.ToString().ToUpper()}.sonar.vbnet.roslyn.reportFilePaths",
-            $@"""{testSarifPath1}.fixed.mock.json"",""{testSarifPath2}.fixed.mock.json"",""{testSarifPath3}.fixed.mock.json""");
         CreateInputReader(result).AssertProperty(
             $"{projectGuid.ToString().ToUpper()}.sonar.vbnet.roslyn.reportFilePaths",
             $"{testSarifPath1}.fixed.mock.json,{testSarifPath2}.fixed.mock.json,{testSarifPath3}.fixed.mock.json");
@@ -277,8 +251,6 @@ public partial class ScannerEngineInputGeneratorTest
         // One valid project info file -> file created
         AssertScannerInputCreated(result);
         // Unfixable SARIF -> cannot fix -> report file property removed
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingDoesNotExist(projectGuid.ToString().ToUpper() + "." + "sonar.cs.roslyn.reportFilePaths");
         CreateInputReader(result).AssertPropertyDoesNotExist(projectGuid.ToString().ToUpper() + "." + "sonar.cs.roslyn.reportFilePaths");
     }
 
@@ -351,9 +323,6 @@ public partial class ScannerEngineInputGeneratorTest
     public void GenerateResult_AppIdentifier()
     {
         var result = new ScannerEngineInputGenerator(CreateValidConfig(), cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingDoesNotExist("sonar.scanner.app");
-        sqProperties.AssertSettingDoesNotExist("sonar.scanner.appVersion");
         var reader = CreateInputReader(result);
         reader.AssertProperty("sonar.scanner.app", "ScannerMSBuild");
         reader.AssertProperty("sonar.scanner.appVersion", Utilities.ScannerVersion);
@@ -380,9 +349,6 @@ public partial class ScannerEngineInputGeneratorTest
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
 
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists("sonar.projectBaseDir", testDir);
-        sqProperties.AssertSettingExists("sonar.sources", AddQuotes(sharedFile));
         var reader = CreateInputReader(result);
         reader.AssertProperty("sonar.projectBaseDir", testDir);
         reader.AssertProperty("sonar.sources", sharedFile);
@@ -414,9 +380,6 @@ public partial class ScannerEngineInputGeneratorTest
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
 
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists("sonar.projectBaseDir", testDir);
-        sqProperties.AssertSettingExists("sonar.sources", AddQuotes(sharedFile));   // First one wins
         var reader = CreateInputReader(result);
         reader.AssertProperty("sonar.projectBaseDir", testDir);
         reader.AssertProperty("sonar.sources", sharedFile);          // First one wins
@@ -445,10 +408,6 @@ public partial class ScannerEngineInputGeneratorTest
         var config = CreateValidConfig(testDir);
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
 
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists("sonar.projectBaseDir", testDir);
-        sqProperties.AssertSettingDoesNotExist("sonar.sources");
-        sqProperties.AssertSettingExists(project1Guid.ToString().ToUpper() + ".sonar.sources", AddQuotes(fileInProject1));
         var reader = CreateInputReader(result);
         reader.AssertProperty("sonar.projectBaseDir", testDir);
         reader.AssertProperty("sonar.sources", string.Empty);
@@ -484,12 +443,8 @@ public partial class ScannerEngineInputGeneratorTest
         projectInfo.Save(projectInfoFilePath);
         var config = CreateValidConfig();
         var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
-        var actual = File.ReadAllText(result.FullPropertiesFilePath);
 
-        AssertFileIsReferenced(existingContentFile, actual);
-        AssertFileIsReferenced(existingManagedFile, actual);
-        AssertFileIsNotReferenced(missingContentFile, actual);
-        AssertFileIsNotReferenced(missingManagedFile, actual);
+        CreateInputReader(result).AssertProperty($"{projectInfo.ProjectGuid.ToString().ToUpper()}.sonar.sources", string.Join(",", [existingManagedFile, existingContentFile]));
         runtime.Logger.Should().HaveWarnings(
             $"File '{missingManagedFile}' does not exist.",
             $"File '{missingContentFile}' does not exist.");
@@ -520,17 +475,6 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
         AssertScannerInputCreated(result);
-
-        // Sensitive data should not be written to the SQProperties File
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists("key1", "value1");
-        sqProperties.AssertSettingExists("key.2", "value two");
-        sqProperties.AssertSettingExists("key.3", string.Empty);
-        sqProperties.AssertSettingDoesNotExist(SonarProperties.SonarPassword);
-        sqProperties.AssertSettingDoesNotExist(SonarProperties.SonarUserName);
-        sqProperties.AssertSettingDoesNotExist(SonarProperties.SonarToken);
-        sqProperties.AssertSettingDoesNotExist(SonarProperties.ClientCertPassword);
-        sqProperties.AssertSettingDoesNotExist("server.key");
 
         // Sensitive data should be passed to the scanner-engine
         var reader = CreateInputReader(result);
@@ -563,8 +507,6 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var result = GenerateResultAndAssert("disableBootstrapper");
 
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         runtime.Logger.Should().HaveNoWarnings();
     }
@@ -576,8 +518,6 @@ public partial class ScannerEngineInputGeneratorTest
         var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "true");
         var result = GenerateResultAndAssert("disableBootstrapperDiff", bootstrapperProperty);
 
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         runtime.Logger.Should().HaveWarningOnce("Overriding analysis property. Effective value: sonar.visualstudio.enable=false");
     }
@@ -588,8 +528,6 @@ public partial class ScannerEngineInputGeneratorTest
         var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         var result = GenerateResultAndAssert("disableBootstrapperSame", bootstrapperProperty);
 
-        var sqProperties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        sqProperties.AssertSettingExists(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         CreateInputReader(result).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
         runtime.Logger.Should().HaveDebugs("Analysis property is already correctly set: sonar.visualstudio.enable=false")
             .And.HaveNoWarnings(); // not expecting a warning if the user has supplied the value we want
@@ -765,9 +703,6 @@ public partial class ScannerEngineInputGeneratorTest
         AssertExpectedPathsAddedToModuleFiles(project1, project1Sources);
         AssertExpectedPathsAddedToModuleFiles(project2, project2Sources);
 
-        var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        properties.PropertyValue("sonar.sources").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootSources);
-        properties.PropertyValue("sonar.tests").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests.Concat(project2Tests));
         var reader = CreateInputReader(result);
         reader["sonar.sources"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootSources);
         reader["sonar.tests"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(rootTests.Concat(project2Tests));
@@ -801,8 +736,6 @@ public partial class ScannerEngineInputGeneratorTest
         AssertScannerInputCreated(result);
         AssertExpectedStatus(project1, ProjectInfoValidity.Valid, result);
 
-        var properties = new SQPropertiesFileReader(result.FullPropertiesFilePath);
-        properties.PropertyValue("sonar.tests").Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(testFiles);
         CreateInputReader(result)["sonar.tests"].Split(',').Select(x => x.Trim('\"')).Should().BeEquivalentTo(testFiles);
     }
 

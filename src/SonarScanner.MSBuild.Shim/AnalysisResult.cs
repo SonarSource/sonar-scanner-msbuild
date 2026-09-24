@@ -24,14 +24,12 @@ public class AnalysisResult
 {
     public ProjectData[] Projects { get; }
     public ScannerEngineInput ScannerEngineInput { get; }
-    public string FullPropertiesFilePath { get; }   // ToDo: Remove in SCAN4NET-721
     public bool RanToCompletion { get; set; }       // ToDo: Remove this tangle in SCAN4NET-721, it can only be false when sonar-project.properties file already exists
 
-    public AnalysisResult(ProjectData[] projects, ScannerEngineInput scannerEngineInput = null, string fullPropertiesFilePath = null)
+    public AnalysisResult(ProjectData[] projects, ScannerEngineInput scannerEngineInput = null)
     {
         Projects = projects;
         ScannerEngineInput = scannerEngineInput;            // Can be null when there are no valid projects
-        FullPropertiesFilePath = fullPropertiesFilePath;    // Can be null when there are no valid projects
     }
 
     public ICollection<ProjectInfo> ProjectsByStatus(ProjectInfoValidity status) =>

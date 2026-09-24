@@ -26,6 +26,7 @@ import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Paths;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -120,16 +121,15 @@ class CloudProvisioningTest {
       .setProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString());
     var logs = context.runAnalysis().end().getLogs();
 
-    assertThat(logs).contains(
-      "Dumping content of sonar-project.properties",
-      "sonar.scanner.sonarcloudUrl=" + CloudConstants.SONARCLOUD_URL,
-      "sonar.scanner.apiBaseUrl=" + CloudConstants.SONARCLOUD_API_URL,
-      "sonar.scanner.os=windows",
-      "sonar.scanner.arch=x64",
-      "sonar.scanner.skipJreProvisioning=true",
-      "sonar.scanner.connectTimeout=42",
-      "sonar.scanner.socketTimeout=100",
-      "sonar.scanner.responseTimeout=500",
-      "sonar.userHome=" + context.projectDir.toAbsolutePath().toString().replace("\\", "\\\\"));
+    assertThat(logs)
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.apiBaseUrl", CloudConstants.SONARCLOUD_API_URL))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.os", "windows"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.arch", "x64"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.skipJreProvisioning", "true"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.connectTimeout", "42"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.socketTimeout", "100"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.responseTimeout", "500"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString()));
   }
 }

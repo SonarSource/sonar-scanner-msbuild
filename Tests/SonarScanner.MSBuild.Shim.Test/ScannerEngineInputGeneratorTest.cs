@@ -138,7 +138,6 @@ public partial class ScannerEngineInputGeneratorTest
 
     private void AssertFailedToCreateScannerInput(AnalysisResult result)
     {
-        result.FullPropertiesFilePath.Should().BeNull();
         result.ScannerEngineInput.Should().BeNull();
         result.RanToCompletion.Should().BeFalse();
         AssertNoValidProjects(result);
@@ -147,10 +146,8 @@ public partial class ScannerEngineInputGeneratorTest
 
     private void AssertScannerInputCreated(AnalysisResult result)
     {
-        result.FullPropertiesFilePath.Should().NotBeNull();
         result.ScannerEngineInput.Should().NotBeNull();
         AssertValidProjectsExist(result);
-        TestContext.AddResultFile(result.FullPropertiesFilePath);
         Console.WriteLine(result.ScannerEngineInput.ToString());
         runtime.Logger.Should().HaveNoErrors();
     }
@@ -170,12 +167,6 @@ public partial class ScannerEngineInputGeneratorTest
 
     private static void AssertExpectedProjectCount(int expected, AnalysisResult actual) =>
         actual.Projects.Should().HaveCount(expected);
-
-    private static void AssertFileIsReferenced(string fullFilePath, string content) =>
-        content.Should().Contain(PropertiesWriter.Escape(fullFilePath), "files should be referenced");
-
-    private static void AssertFileIsNotReferenced(string fullFilePath, string content) =>
-        content.Should().NotContain(PropertiesWriter.Escape(fullFilePath), "file should not be referenced");
 
     private AnalysisConfig CreateValidConfig()
     {
@@ -208,11 +199,6 @@ public partial class ScannerEngineInputGeneratorTest
         File.WriteAllLines(fullPath, files);
         return fullPath;
     }
-
-    private static string AddQuotes(string input) =>
-        $"""
-        "{input}"
-        """;
 
     private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig,
                                                   RoslynV1SarifFixer sarifFixer = null,
