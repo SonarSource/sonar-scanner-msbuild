@@ -28,7 +28,6 @@ public class PostProcessor
     private readonly SonarEngineWrapper sonarEngine;
     private readonly IRuntime runtime;
     private readonly TargetsUninstaller targetUninstaller;
-    private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
 
     private ScannerEngineInputGenerator scannerEngineInputGenerator;
@@ -36,13 +35,11 @@ public class PostProcessor
     public PostProcessor(SonarEngineWrapper sonarEngine,
                          IRuntime runtime,
                          TargetsUninstaller targetUninstaller,
-                         SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
                          BuildVNextCoverageReportProcessor coverageReportProcessor)
     {
         this.sonarEngine = sonarEngine ?? throw new ArgumentNullException(nameof(sonarEngine));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
-        this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
         this.coverageReportProcessor = coverageReportProcessor ?? throw new ArgumentNullException(nameof(coverageReportProcessor));
     }
 
@@ -72,17 +69,13 @@ public class PostProcessor
         {
             return false;
         }
-        else if (analysisResult.RanToCompletion)
+        else
         {
             // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
             runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = ProcessCoverageReport(config, settings, analysisResult);
             runtime.Telemetry.Write(settings.SonarOutputDirectory);
             DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
             return sonarEngine.Execute(config, analysisResult.ScannerEngineInput.ToString(), cmdLineArgs);
-        }
-        else
-        {
-            return false;
         }
     }
 
@@ -93,16 +86,7 @@ public class PostProcessor
     {
         scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
         var result = scannerEngineInputGenerator.GenerateResult(startTime);
-        if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
-        {
-            runtime.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
-            result.RanToCompletion = false;
-        }
-        else
-        {
-            ProjectInfoReportBuilder.WriteSummaryReport(config, result, runtime.Logger);
-            result.RanToCompletion = true;
-        }
+        ProjectInfoReportBuilder.WriteSummaryReport(config, result, runtime.Logger);
         return result;
     }
 

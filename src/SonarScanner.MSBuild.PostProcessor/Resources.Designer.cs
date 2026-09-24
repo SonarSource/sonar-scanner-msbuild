@@ -70,15 +70,6 @@ namespace SonarScanner.MSBuild.PostProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: {0}.
-        /// </summary>
-        internal static string ERR_ConflictingSonarProjectProperties {
-            get {
-                return ResourceManager.GetString("ERR_ConflictingSonarProjectProperties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Inconsistent build environment settings: the build Uri in the analysis config file does not match the build uri from the environment variable.
         ///Build Uri from environment: {0}
         ///Build Uri from config: {1}

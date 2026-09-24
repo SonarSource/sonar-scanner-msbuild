@@ -38,7 +38,6 @@ public class PostProcessorTests
     private readonly AnalysisConfig config;
     private readonly SonarEngineWrapper engine;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
-    private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly ScannerEngineInput scannerEngineInput;
     private readonly TestRuntime runtime;
     private BuildSettings settings;
@@ -59,7 +58,6 @@ public class PostProcessorTests
         engine = Substitute.For<SonarEngineWrapper>(runtime, Substitute.For<IProcessRunner>());
         engine.Execute(null, null, null).ReturnsForAnyArgs(true);
         targetsUninstaller = Substitute.For<TargetsUninstaller>(runtime.Logger);
-        sonarProjectPropertiesValidator = Substitute.For<SonarProjectPropertiesValidator>();
         coverageReportProcessor = Substitute
             .For<BuildVNextCoverageReportProcessor>(runtime);
         coverageReportProcessor.ProcessCoverageReports(null, null).ReturnsForAnyArgs(new AdditionalProperties([@"VS\Test\Path"], [@"VS\XML\Coverage\Path"], coverageConversionPerformed: true));
@@ -68,7 +66,6 @@ public class PostProcessorTests
             engine,
             runtime,
             targetsUninstaller,
-            sonarProjectPropertiesValidator,
             coverageReportProcessor);
     }
 
@@ -78,12 +75,10 @@ public class PostProcessorTests
         var engn = engine;
         var rntm = runtime;
         var tuin = targetsUninstaller;
-        var sppv = Substitute.For<SonarProjectPropertiesValidator>();
-        Invoking(() => new PostProcessor(null, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarEngine");
-        Invoking(() => new PostProcessor(engn, null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
-        Invoking(() => new PostProcessor(engn, rntm, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
-        Invoking(() => new PostProcessor(engn, rntm, tuin, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarProjectPropertiesValidator");
-        Invoking(() => new PostProcessor(engn, rntm, tuin, sppv, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
+        Invoking(() => new PostProcessor(null, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("sonarEngine");
+        Invoking(() => new PostProcessor(engn, null, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("runtime");
+        Invoking(() => new PostProcessor(engn, rntm, null, null)).Should().Throw<ArgumentNullException>().WithParameterName("targetUninstaller");
+        Invoking(() => new PostProcessor(engn, rntm, tuin, null)).Should().Throw<ArgumentNullException>().WithParameterName("coverageReportProcessor");
     }
 
     [TestMethod]
@@ -327,19 +322,6 @@ public class PostProcessorTests
     }
 
     [TestMethod]
-    public void Execute_ExistingSonarPropertiesFilesPresent_Fail()
-    {
-        sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(null, null, out var _).ReturnsForAnyArgs(x =>
-            {
-                x[2] = new[] { "Some Path" };
-                return true;
-            });
-        Execute().Should().BeFalse();
-        sonarProjectPropertiesValidator.ReceivedWithAnyArgs().AreExistingSonarPropertiesFilesPresent(null, null, out var _);
-        runtime.Logger.Should().HaveErrors("sonar-project.properties files are not understood by the SonarScanner for .NET. Remove those files from the following folders: Some Path");
-    }
-
-    [TestMethod]
     public void Execute_NullArgs_Throws() =>
         sut.Invoking(x => x.Execute(null, new AnalysisConfig(), BuildSettings.CreateForTesting())).Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("args");
 
@@ -391,8 +373,7 @@ public class PostProcessorTests
 
         var analysisResult = new AnalysisResult(
             [new[] { ProjectInfo.Load(projectInfo) }.ToProjectData(runtime).Single()],
-            withProject ? scannerEngineInput : null)
-        { RanToCompletion = true };
+            withProject ? scannerEngineInput : null);
         var startTime = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
         runtime.DateTime.OffsetNow.Returns(startTime);
         scannerEngineInputGenerator.GenerateResult(startTime).Returns(analysisResult); // make sure runtime.DateTime.OffsetNow is used for startTime
