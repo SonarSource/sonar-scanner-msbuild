@@ -403,7 +403,7 @@ public class RoslynV1SarifFixerTests
         var missingPath = Path.Combine(Path.GetDirectoryName(validPath), "missing.json");
         var project = CreateProject(ReportFilePathsKeyCS, $"{validPath}|{missingPath}|{roslynV1Path}");
 
-        new RoslynV1SarifFixer(new TestRuntime()).FixReports([project]);
+        new RoslynV1SarifFixer(runtime).FixReports([project]);
         project.AnalysisSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new Property(ReportFilePathsKeyCS, $"{validPath}|{roslynV1Path.Replace(".json", "_fixed.json")}"));
     }
 
@@ -417,7 +417,7 @@ public class RoslynV1SarifFixerTests
         var project2 = CreateProject(ReportFilePathsKeyVB, roslynV1Path);
         var project3 = CreateProject(ReportFilePathsKeyCS, missingPath);
 
-        new RoslynV1SarifFixer(new TestRuntime()).FixReports([project1, project2, project3]);
+        new RoslynV1SarifFixer(runtime).FixReports([project1, project2, project3]);
         project1.AnalysisSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new Property(ReportFilePathsKeyCS, validPath));
         project2.AnalysisSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new Property(ReportFilePathsKeyVB, roslynV1Path.Replace(".json", "_fixed.json")));
         project3.AnalysisSettings.Should().BeEmpty();
