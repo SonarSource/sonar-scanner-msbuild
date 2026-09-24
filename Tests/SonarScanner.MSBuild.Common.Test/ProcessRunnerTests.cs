@@ -350,7 +350,7 @@ public class ProcessRunnerTests
         var context = new ProcessRunnerContext(TestContext, string.Empty)
         {
             ExpectedExitCode = ProcessRunner.ErrorCode,
-            ProcessArgs = new ProcessRunnerArguments("missingExe.foo", false)
+            ProcessArgs = new ProcessRunnerArguments("missingExe.foo")
         };
 
         context.ExecuteAndAssert();
@@ -362,7 +362,7 @@ public class ProcessRunnerTests
     {
         var context = new ProcessRunnerContext(TestContext, string.Empty)
         {
-            ProcessArgs = new ProcessRunnerArguments("missingExe.foo", false) { ExeMustExists = false }
+            ProcessArgs = new ProcessRunnerArguments("missingExe.foo") { ExeMustExists = false }
         };
 
         FluentActions.Invoking(context.Execute).Should().Throw<Win32Exception>().Which.Message.Should().BeOneOf(
@@ -394,7 +394,7 @@ public class ProcessRunnerTests
 
         var context = new ProcessRunnerContext(TestContext)
         {
-            ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
+            ProcessArgs = new ProcessRunnerArguments(LogArgsPath())
             {
                 CmdLineArgs = expected,
                 WorkingDirectory = testDir
@@ -412,7 +412,7 @@ public class ProcessRunnerTests
     {
         var context = new ProcessRunnerContext(TestContext)
         {
-            ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
+            ProcessArgs = new ProcessRunnerArguments(LogArgsPath())
             {
                 CmdLineArgs = [
                     new("arg1", true),
@@ -431,7 +431,7 @@ public class ProcessRunnerTests
     {
         var context = new ProcessRunnerContext(TestContext)
         {
-            ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
+            ProcessArgs = new ProcessRunnerArguments(LogArgsPath())
             {
                 CmdLineArgs = [
                     new("arg1", false),
@@ -443,92 +443,6 @@ public class ProcessRunnerTests
 
         context.ExecuteAndAssert();
         context.AssertExpectedLogContents("arg1", "\"arg2\"", "\"arg with spaces\"");
-    }
-
-    [TestMethod]
-    public void ProcRunner_ArgumentQuotingForwardedByBatchScript()
-    {
-        var expected = new ProcessRunnerArguments.Argument[]
-        {
-            new("unquoted"),
-            new("\"quoted\""),
-            new("\"quoted with spaces\""),
-            new("/test:\"quoted arg\""),
-            new("unquoted with spaces"),
-            new("quote in \"the middle"),
-            new("quotes \"& ampersands"),
-            new("\"multiple \"\"\"      quotes \" "),
-            new("trailing backslash \\"),
-            new("all special chars: \\ / : * ? \" < > | %"),
-            new("injection \" > foo.txt"),
-            new("injection \" & echo haha"),
-            new("double escaping \\\" > foo.txt")
-        };
-
-        var listArgs = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "%*" : "\"$@\"";
-        var context = new ProcessRunnerContext(TestContext, "\"" + LogArgsPath() + "\" " + listArgs);
-        context.ProcessArgs.CmdLineArgs = expected;
-
-        context.ExecuteAndAssert();
-        context.AssertExpectedLogContents(expected);
-    }
-
-    [TestMethod]
-    public void ProcRunner_ArgumentQuotingScanner()
-    {
-        var expected = new ProcessRunnerArguments.Argument[]
-        {
-            new(@"-Dsonar.scanAllFiles=true"),
-            new(@"-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties"),
-            new(@"--from=ScannerMSBuild/5.13.1"),
-            new(@"--debug")
-        };
-
-        // The sonar-scanner.bat uses %* to pass the argument to javac.exe
-        // Because of the escaping, the single arguments are somewhat broken on echo. A workaround is to add some new lines for some reason.
-        var content = $"""
-            {ScriptInit()}
-            {EchoCommand("%*")}
-            {EchoCommand("%1")}
-
-
-            {EchoCommand("%2")}
-
-
-            {EchoCommand("%3")}
-
-
-            {EchoCommand("%4")}
-
-
-            """;
-
-        var context = new ProcessRunnerContext(TestContext, content);
-        context.ProcessArgs.CmdLineArgs = expected;
-
-        context.ExecuteAndAssert();
-        // Check that the public and private arguments are passed to the child process
-        var expectedLogMessages = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? new[]
-            {
-                @"""-Dsonar.scanAllFiles=true"" ""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties"" ""--from=ScannerMSBuild/5.13.1"" ""--debug""",
-                @"""-Dsonar.scanAllFiles=true""",
-                string.Empty,
-                @"""-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties""",
-                string.Empty,
-                @"""--from=ScannerMSBuild/5.13.1""",
-                string.Empty,
-                @"""--debug"""
-            }
-            : [
-            @"-Dsonar.scanAllFiles=true -Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties --from=ScannerMSBuild/5.13.1 --debug",
-            @"-Dsonar.scanAllFiles=true",
-            @"-Dproject.settings=D:\DevLibTest\ClassLibraryTest.sonarqube\out\sonar-project.properties",
-            @"--from=ScannerMSBuild/5.13.1",
-            @"--debug"
-            ];
-
-        context.Runtime.Logger.InfoMessages.Should().BeEquivalentTo(expectedLogMessages);
     }
 
     [TestMethod]
@@ -562,7 +476,7 @@ public class ProcessRunnerTests
         var allArgs = sensitiveArgs.Union(publicArgs).ToArray();
         var context = new ProcessRunnerContext(TestContext)
         {
-            ProcessArgs = new ProcessRunnerArguments(LogArgsPath(), false)
+            ProcessArgs = new ProcessRunnerArguments(LogArgsPath())
             {
                 CmdLineArgs = allArgs,
                 EnvironmentVariables = new Dictionary<string, string>
@@ -673,7 +587,7 @@ public class ProcessRunnerTests
             Runtime = new TestRuntime();
             Runtime.File.ShortName(Arg.Any<PlatformOS>(), Arg.Any<string>()).Returns(x => x[1]);
             runner = new ProcessRunner(Runtime);
-            ProcessArgs = new ProcessRunnerArguments(ExePath, RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            ProcessArgs = new ProcessRunnerArguments(ExePath)
             {
                 WorkingDirectory = testDir
             };

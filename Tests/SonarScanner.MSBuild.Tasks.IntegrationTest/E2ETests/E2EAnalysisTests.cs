@@ -1057,7 +1057,7 @@ public class E2EAnalysisTests
             ProjectSpecificConfigDir = projectSpecificConfigDir;
             ProjectSpecificOutputDir = projectSpecificOutputDir;
 
-            // ProjectInfo.xml should always exist (even for excluded projects) to provide file list for sonar-project.properties
+            // ProjectInfo.xml should always exist (even for excluded projects) to provide file list for ScannerEngineInput
             var projectInfoFile = TryAddToResults(projectSpecificOutputDir, FileConstants.ProjectInfoFileName);
             AssertFileExists(projectInfoFile);
             ProjectInfo = ProjectInfo.Load(projectInfoFile.FullPath);
