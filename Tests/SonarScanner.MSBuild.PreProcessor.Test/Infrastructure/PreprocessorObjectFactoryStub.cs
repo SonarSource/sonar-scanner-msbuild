@@ -28,8 +28,8 @@ internal class PreprocessorObjectFactoryStub : PreprocessorObjectFactory
 
     public TestRuntime Runtime { get; } = new();
     public SonarQubeBase Client { get; set; } = MockSonarQube.Create();
-    public IResolver JreResolver { get; } = Substitute.For<IResolver>();
-    public IResolver EngineResolver { get; } = Substitute.For<IResolver>();
+    public JreResolver JreResolver { get; } = Substitute.For<JreResolver>(MockSonarQube.Create(), ChecksumSha256.Instance, "sonarUserHome", Substitute.For<IRuntime>(), null);
+    public EngineResolver EngineResolver { get; } = Substitute.For<EngineResolver>(MockSonarQube.Create(), "sonarUserHome", Substitute.For<IRuntime>(), null);
     public string PluginCachePath { get; private set; }
     public MockRoslynAnalyzerProvider AnalyzerProvider { get; private set; }
 
@@ -65,10 +65,10 @@ internal class PreprocessorObjectFactoryStub : PreprocessorObjectFactory
         return AnalyzerProvider = new(teamBuildSettings, sonarProperties, rules, language) { SettingsToReturn = new AnalyzerSettings { RulesetPath = "c:\\xxx.ruleset" } };
     }
 
-    public override IResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
+    public override JreResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
         JreResolver;
 
-    public override IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
+    public override EngineResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
         EngineResolver;
 
     public void AssertMethodCalled(string methodName, int callCount) =>
