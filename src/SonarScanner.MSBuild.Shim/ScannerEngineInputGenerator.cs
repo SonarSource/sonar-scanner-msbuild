@@ -77,7 +77,7 @@ public class ScannerEngineInputGenerator
     public static bool IsTelemetryPaths(string propertyKey) =>
         propertyKey == TelemetryPathsKeyCS || propertyKey == TelemetryPathsKeyVB;
 
-    public virtual ScannerEngineInput GenerateResult(ProjectInfo[] projects, DateTimeOffset startTime)
+    public virtual ScannerEngineInput Generate(ProjectInfo[] projects, DateTimeOffset startTime)
     {
         if (!projects.Any())
         {

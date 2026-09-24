@@ -90,8 +90,7 @@ public class PostProcessor
         var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
         sarifFixer.FixReports(projects);
         scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = scannerEngineInputGenerator.GenerateResult(projects, startTime);
-        return result;
+        return scannerEngineInputGenerator.Generate(projects, startTime);
     }
 
     private void LogStartupSettings(AnalysisConfig config, BuildSettings settings)
