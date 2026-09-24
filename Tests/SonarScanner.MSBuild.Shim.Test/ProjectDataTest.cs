@@ -100,6 +100,14 @@ public class ProjectDataTest
             $@"Duplicate ProjectGuid: ""{guid}"". The project will not be analyzed. Project file: ""path2""");
     }
 
+    [TestMethod]
+    public void ProjectFileDoesNotExist()
+    {
+        var projectInfos = new[] { new ProjectInfo { ProjectGuid = Guid.NewGuid(), FullPath = "doesNotExist" } };
+
+        projectInfos.ToProjectData(new TestRuntime()).Single().Status.Should().Be(ProjectInfoValidity.ProjectNotFound);
+    }
+
     // Repro for https://sonarsource.atlassian.net/browse/SCAN4NET-431
     [TestMethod]
     public void DoesNotChooseValidProject()
