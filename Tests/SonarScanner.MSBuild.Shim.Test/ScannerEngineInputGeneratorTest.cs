@@ -134,31 +134,23 @@ public partial class ScannerEngineInputGeneratorTest
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
-    private void AssertFailedToCreateScannerInput(ScannerEngineInput scannerInput)
+    private void AssertFailedToCreateScannerInput(ScannerEngineInput scannerInput, string error = "No analyzable projects were found. SonarQube analysis will not be performed.")
     {
         scannerInput.Should().BeNull();
-        runtime.Logger.Should().HaveErrors();   // FIXME needs to be more specific
+        runtime.Logger.Should().HaveErrors(error);
     }
 
     private void AssertScannerInputCreated(ScannerEngineInput scannerInput)
     {
         scannerInput.Should().NotBeNull();
-        AssertValidProjectsExist(scannerInput);
         Console.WriteLine(scannerInput.ToString());
         runtime.Logger.Should().HaveNoErrors();
     }
 
-    private static void AssertExpectedStatus(ScannerEngineInput scannerInput, params Guid[] validProjectGuids) => // FIXME rename
-        new ScannerEngineInputReader(scannerInput.ToString())["sonar.modules"].Should().NotBeNull() // FIXME the null check might go away depending on how we restructure methods
-            .And.Subject.Split(',').Should().BeEquivalentTo(validProjectGuids.Select(x => x.ToString().ToUpper()));
-
-    private static void AssertValidProjectsExist(ScannerEngineInput scannerInput) =>    // FIXME inline
-        new ScannerEngineInputReader(scannerInput.ToString())["sonar.modules"].Should().NotBeNull();
-
-    private static void AssertExpectedProjectCount(int expected, ScannerEngineInput scannerInput)
+    private void AssertModules(ScannerEngineInput scannerInput, params Guid[] validProjectGuids)
     {
-        scannerInput.Should().NotBeNull();
-        new ScannerEngineInputReader(scannerInput.ToString())["sonar.modules"].Should().NotBeNull().And.Subject.Split(',').Should().HaveCount(expected);
+        AssertScannerInputCreated(scannerInput);
+        CreateInputReader(scannerInput)["sonar.modules"].Split(',').Should().BeEquivalentTo(validProjectGuids.Select(x => x.ToString().ToUpper()));
     }
 
     private AnalysisConfig CreateValidConfig()

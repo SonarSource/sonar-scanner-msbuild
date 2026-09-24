@@ -335,7 +335,7 @@ public class PostProcessorTests
         Received.InOrder(() =>
             {
                 sarifFixer.FixReports(Arg.Is<IEnumerable<ProjectInfo>>(x => x.Single().ProjectName == "withFiles1"));
-                scannerEngineInputGenerator.GenerateResult(Arg.Is<ProjectInfo[]>(x => x.Single().ProjectName == "withFiles1"), Arg.Any<DateTimeOffset>());
+                scannerEngineInputGenerator.Generate(Arg.Is<ProjectInfo[]>(x => x.Single().ProjectName == "withFiles1"), Arg.Any<DateTimeOffset>());
             });
     }
 
@@ -388,8 +388,7 @@ public class PostProcessorTests
         TestUtils.CreateProjectWithFiles(testContext, "withFiles1", config.SonarOutputDir);
         var startTime = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
         runtime.DateTime.OffsetNow.Returns(startTime);
-        scannerEngineInputGenerator.GenerateResult(Arg.Is<ProjectInfo[]>(x => x.Single().ProjectName == "withFiles1"), startTime)
-            .Returns(withProject ? scannerEngineInput : null); // make sure runtime.DateTime.OffsetNow is used for startTime
+        scannerEngineInputGenerator.Generate(Arg.Any<ProjectInfo[]>(), startTime).Returns(withProject ? scannerEngineInput : null); // make sure runtime.DateTime.OffsetNow is used for startTime
         sut.SetScannerEngineInputGenerator(scannerEngineInputGenerator);
         var success = sut.Execute(args, config, settings);
         _ = runtime.DateTime.Received(1).OffsetNow;
