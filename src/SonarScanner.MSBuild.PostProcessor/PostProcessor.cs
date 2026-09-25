@@ -91,7 +91,6 @@ public class PostProcessor
         sarifFixer.FixReports(projects);
         scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
         var result = scannerEngineInputGenerator.GenerateResult(projects, startTime);
-        ProjectInfoReportBuilder.WriteSummaryReport(config, result, runtime.Logger);
         return result;
     }
 

@@ -122,7 +122,7 @@ public partial class ScannerEngineInputGeneratorTest
             runtime.DateTime.OffsetNow);
 
         runtime.Logger.Should().HaveInfos($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}")
-            .And.HaveErrors("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+            .And.HaveErrors("No analyzable projects were found. SonarQube analysis will not be performed.");
     }
 
     [TestMethod]
