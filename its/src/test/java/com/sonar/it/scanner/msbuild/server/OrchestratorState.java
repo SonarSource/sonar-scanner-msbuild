@@ -19,13 +19,17 @@
  */
 package com.sonar.it.scanner.msbuild.server;
 
+import com.google.gson.JsonParser;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.languages.ListRequest;
+import org.sonarqube.ws.client.qualityprofiles.SetDefaultRequest;
 import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,11 +50,20 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
+        var server = orchestrator.getServer();
         for (var profile : QualityProfile.allProfiles()) {
-          orchestrator.getServer().restoreProfile(FileLocation.of(String.format("qualityProfiles/%s.xml", profile)));
+          server.restoreProfile(FileLocation.of(String.format("qualityProfiles/%s.xml", profile)));
         }
-
-        token = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(orchestrator.getServer().getUrl()).credentials("admin", "admin").build())
+        var wsClient = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(server.getUrl()).credentials("admin", "admin").build());
+        if (server.getEdition() == Edition.COMMUNITY || server.version().isGreaterThan(2026, 1)) {  // Sonar way comperhansive is available after 2026.1 LTA, somewhere from 2026.4.1+
+          var languages = JsonParser.parseString(wsClient.languages().list(new ListRequest())).getAsJsonObject().getAsJsonArray("languages");
+          for (var language : languages) {
+            wsClient.qualityprofiles().setDefault(new SetDefaultRequest()
+              .setLanguage(language.getAsJsonObject().get("key").getAsString())
+              .setQualityProfile("Sonar way comprehensive"));
+          }
+        }
+        token = wsClient
           .userTokens()
           .generate(new GenerateRequest().setName("ITs"))
           .getToken();
