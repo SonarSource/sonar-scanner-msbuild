@@ -134,36 +134,24 @@ public partial class ScannerEngineInputGeneratorTest
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
-    private void AssertFailedToCreateScannerInput(AnalysisResult result)
+    private void AssertFailedToCreateScannerInput(ScannerEngineInput scannerInput, string error = "No analyzable projects were found. SonarQube analysis will not be performed.")
     {
-        result.ScannerEngineInput.Should().BeNull();
-        AssertNoValidProjects(result);
-        runtime.Logger.Should().HaveErrors();
+        scannerInput.Should().BeNull();
+        runtime.Logger.Should().HaveErrors(error);
     }
 
-    private void AssertScannerInputCreated(AnalysisResult result)
+    private void AssertScannerInputCreated(ScannerEngineInput scannerInput)
     {
-        result.ScannerEngineInput.Should().NotBeNull();
-        AssertValidProjectsExist(result);
-        Console.WriteLine(result.ScannerEngineInput.ToString());
+        scannerInput.Should().NotBeNull();
+        Console.WriteLine(scannerInput.ToString());
         runtime.Logger.Should().HaveNoErrors();
     }
 
-    private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, AnalysisResult actual) =>
-        actual.ProjectsByStatus(expectedStatus).Where(x => x.ProjectName.Equals(expectedProjectName)).Should().ContainSingle(
-            "ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}, actual projects: {2}",
-            expectedProjectName,
-            expectedStatus,
-            actual.Projects.Aggregate(new StringBuilder(), (sb, x) => sb.AppendLine($"{x.Project.ProjectName}: {x.Status}"), sb => sb.ToString()));
-
-    private static void AssertNoValidProjects(AnalysisResult actual) =>
-        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().BeEmpty();
-
-    private static void AssertValidProjectsExist(AnalysisResult actual) =>
-        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().NotBeEmpty();
-
-    private static void AssertExpectedProjectCount(int expected, AnalysisResult actual) =>
-        actual.Projects.Should().HaveCount(expected);
+    private void AssertModules(ScannerEngineInput scannerInput, params Guid[] validProjectGuids)
+    {
+        AssertScannerInputCreated(scannerInput);
+        CreateInputReader(scannerInput)["sonar.modules"].Split(',').Should().BeEquivalentTo(validProjectGuids.Select(x => x.ToString().ToUpper()));
+    }
 
     private AnalysisConfig CreateValidConfig()
     {

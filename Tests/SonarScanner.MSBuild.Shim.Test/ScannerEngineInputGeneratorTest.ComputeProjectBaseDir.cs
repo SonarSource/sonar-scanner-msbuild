@@ -222,6 +222,103 @@ public partial class ScannerEngineInputGeneratorTest
         runtime.Logger.DebugMessages.Should().ContainSingle(x => x.StartsWith("Using user supplied project base directory:"));
     }
 
+    [TestMethod]
+    public void ComputeProjectBaseDir_Precedence()
+    {
+        VerifyProjectBaseDir(
+            expectedValue: Path.Combine(TestUtils.DriveRoot("d"), "work", "mysources"), // if there is a user value, use it
+            teamBuildValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),
+            userValue: Path.Combine(TestUtils.DriveRoot("d"), "work", "mysources"),
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("d"), "work", "proj1.csproj")]);
+
+        VerifyProjectBaseDir(
+            expectedValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),  // if no user value, use the team build value
+            teamBuildValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),
+            userValue: null,
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work")]);
+
+        VerifyProjectBaseDir(
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
+            teamBuildValue: null,
+            userValue: string.Empty,
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work")]);
+
+        VerifyProjectBaseDir(
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
+            teamBuildValue: null,
+            userValue: string.Empty,
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work"), Path.Combine(TestUtils.DriveRoot("e"), "work")]);
+
+        VerifyProjectBaseDir(
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
+            teamBuildValue: null,
+            userValue: string.Empty,
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work", "A"), Path.Combine(TestUtils.DriveRoot("e"), "work", "B", "C")]);
+
+        VerifyProjectBaseDir(
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work"),  // if no team build value, use the common project paths root
+            teamBuildValue: null,
+            userValue: string.Empty,
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work", "A"), Path.Combine(TestUtils.DriveRoot("e"), "work", "B"), Path.Combine(TestUtils.DriveRoot("e"), "work", "C")]);
+
+        VerifyProjectBaseDir(
+            expectedValue: Path.Combine(TestUtils.DriveRoot("e"), "work", "A"),  // if no team build value, use the common project paths root
+            teamBuildValue: null,
+            userValue: string.Empty,
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("e"), "work", "A", "X"), Path.Combine(TestUtils.DriveRoot("e"), "work", "A"), Path.Combine(TestUtils.DriveRoot("e"), "work", "A")]);
+
+        // Support relative paths
+        VerifyProjectBaseDir(
+            expectedValue: Path.Combine(Directory.GetCurrentDirectory(), "src"),
+            teamBuildValue: null,
+            userValue: Path.Combine(".", "src"),
+            projectPaths: [@"d:\work\proj1.csproj"]);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.NoLinux)]
+    [TestCategory(TestCategories.NoMacOS)]
+    public void ComputeProjectBaseDir_Windows()
+    {
+        VerifyProjectBaseDir(
+            expectedValue: null,  // if no common root exists, return null
+            teamBuildValue: null,
+            userValue: string.Empty,
+            projectPaths: [@"f:\work\A", @"e:\work\B"]);
+
+        // Support short name paths
+        var baseDir = ComputeProjectBaseDir(
+            teamBuildValue: null,
+            userValue: @"C:\PROGRA~1",
+            projectPaths: [@"d:\work\proj1.csproj"]);
+        baseDir.Should().BeOneOf(@"C:\Program Files", @"C:\Program Files (x86)");
+    }
+
+    [TestMethod]
+    [DataRow(@"d:\work", @"d:\work\mysources", new[] { @"d:\work\proj1.csproj" }, false)]
+    [DataRow(@"d:\work", null, new[] { @"e:\work" }, false)]
+    [DataRow(null, "", new[] { @"e:\work" }, true)]
+    [DataRow(null, "", new[] { @"e:\work", @"e:\work" }, true)]
+    public void ComputeProjectBaseDir_LogsProjectBaseDirInfo(string teamBuildValue, string userValue, string[] projectPaths, bool shouldLog)
+    {
+        var config = new AnalysisConfig
+        {
+            SonarOutputDir = TestSonarqubeOutputDir,
+            SourcesDirectory = teamBuildValue,
+            LocalSettings = [new(SonarProperties.ProjectBaseDir, userValue)]
+        };
+        new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).ComputeProjectBaseDir(projectPaths.Select(x => new DirectoryInfo(x)).ToList());
+
+        if (shouldLog)
+        {
+            runtime.Logger.Should().HaveInfos(ProjectBaseDirInfoMessage);
+        }
+        else
+        {
+            runtime.Logger.Should().NotHaveInfo(ProjectBaseDirInfoMessage);
+        }
+    }
+
     private string ComputeProjectBaseDir(string teamBuildValue, string userValue, string[] projectPaths)
     {
         var config = new AnalysisConfig
