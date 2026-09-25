@@ -68,7 +68,7 @@ public class EngineResolver : IResolver
         var metadata = await client.DownloadEngineMetadataAsync();
         if (metadata is null)
         {
-            runtime.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
+            runtime.LogDebug(Resources.MSG_Resolver_MetadataFailure, nameof(EngineResolver));
             runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.Failed;
             return null;
         }
