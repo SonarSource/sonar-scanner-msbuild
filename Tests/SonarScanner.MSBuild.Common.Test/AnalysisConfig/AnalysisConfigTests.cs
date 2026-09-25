@@ -262,9 +262,7 @@ public class AnalysisConfigTests
         };
         var settingsFilePath = Path.Combine(testDir, "settings.txt");
         fileSettings.Save(settingsFilePath);
-        config.ReadSettingsFilePath().Should().BeNull("path was not set yet");
         config.SetSettingsFilePath(settingsFilePath);
-        config.ReadSettingsFilePath().Should().Be(settingsFilePath);
 
         // Check file properties are retrieved
         config.CreatePropertyProvider(false, new TestLogger()).GetAllProperties().Should().BeEquivalentTo([

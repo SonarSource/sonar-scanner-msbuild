@@ -102,8 +102,7 @@ public class AnalysisConfig
     public AnalysisProperties LocalSettings { get; set; } = [];
 
     /// <summary>
-    /// List of analysis settings supplied locally (on the command line) that has to be passed to the scanner through the SONAR_SCANNER_OPTS environment variable
-    /// <see href="https://github.com/SonarSource/sonar-scanner-cli/blob/7d791c2465384b71465a6c05d23174fefdbfa213/src/main/assembly/bin/sonar-scanner.bat#L72C65-L72C73">sonar-scanner.bat</see>.
+    /// List of analysis settings supplied locally (on the command line) that has to be passed to the Scanner Engine.
     /// </summary>
     public AnalysisProperties ScannerOptsSettings { get; } = [];
 
@@ -144,9 +143,6 @@ public class AnalysisConfig
     public void SetBuildUri(string uri) =>
         SetAdditionalSetting(BuildUriSettingId, uri);
 
-    public string ReadSettingsFilePath() =>
-        ReadAdditionalSetting(SettingsFileKey);
-
     public void SetSettingsFilePath(string fileName) =>
         SetAdditionalSetting(SettingsFileKey, fileName);
 
@@ -169,6 +165,9 @@ public class AnalysisConfig
         }
     }
 
+    public AnalysisProperties ToAnalysisProperties(ILogger logger) =>
+        new(CreatePropertyProvider(includeServerSettings: false, logger).GetAllProperties().Where(x => !x.ContainsSensitiveData()));
+
     public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
     {
         _ = settingName ?? throw new ArgumentNullException(nameof(settingName));
@@ -187,7 +186,7 @@ public class AnalysisConfig
         {
             providers.Add(new ListPropertiesProvider(LocalSettings));
         }
-        if (ReadSettingsFilePath() is { } settingsFilePath)
+        if (ReadAdditionalSetting(SettingsFileKey) is { } settingsFilePath)
         {
             providers.Add(new ListPropertiesProvider(AnalysisProperties.Load(settingsFilePath)));
         }

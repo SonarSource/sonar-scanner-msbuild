@@ -174,15 +174,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis property is already correctly set: {0}={1}.
-        /// </summary>
-        internal static string MSG_MandatorySettingIsCorrectlySpecified {
-            get {
-                return ResourceManager.GetString("MSG_MandatorySettingIsCorrectlySpecified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Starting with SonarScanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. The path may be relative (to the directory from which the a [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string MSG_ProjectBaseDirChange {
@@ -242,15 +233,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_ScannerEngineCompleted {
             get {
                 return ResourceManager.GetString("MSG_ScannerEngineCompleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Setting analysis property: {0}={1}.
-        /// </summary>
-        internal static string MSG_SettingAnalysisProperty {
-            get {
-                return ResourceManager.GetString("MSG_SettingAnalysisProperty", resourceCulture);
             }
         }
         
@@ -350,15 +332,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string WARN_InvalidProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_InvalidProjectGuid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Overriding analysis property. Effective value: {0}={1}.
-        /// </summary>
-        internal static string WARN_OverridingAnalysisProperty {
-            get {
-                return ResourceManager.GetString("WARN_OverridingAnalysisProperty", resourceCulture);
             }
         }
         

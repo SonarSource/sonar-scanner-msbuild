@@ -183,6 +183,7 @@ target/
 .claude
 CLAUDE.md
 
+.codex/
 .sonar-code-context
 .codex/
 

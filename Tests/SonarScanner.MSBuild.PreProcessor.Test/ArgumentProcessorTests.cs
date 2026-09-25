@@ -430,8 +430,7 @@ public class ArgumentProcessorTests
         AssertExpectedPropertyValue("key1", "value1", result);
         AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
-        result.AllProperties().Should().NotBeNull()
-            .And.HaveCount(3);
+        result.AggregateProperties.GetAllProperties().Should().NotBeNull().And.HaveCount(3);
     }
 
     [TestMethod]
@@ -955,7 +954,7 @@ public class ArgumentProcessorTests
         actualValue.Should().Be(value);
 
         // Check the public list of properties
-        var found = Property.TryGetProperty(key, actual.AllProperties(), out var match);
+        var found = Property.TryGetProperty(key, actual.AggregateProperties.GetAllProperties(), out var match);
         found.Should().BeTrue("Failed to find the expected property. Key: {0}", key);
         match.Should().NotBeNull("Returned property should not be null. Key: {0}", key);
         match.Value.Should().Be(value);

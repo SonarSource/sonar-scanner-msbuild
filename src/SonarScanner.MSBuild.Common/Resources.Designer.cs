@@ -398,8 +398,7 @@ namespace SonarScanner.MSBuild.Common {
         ///   Looks up a localized string similar to Executing file {0}
         ///  Args: {1}
         ///  Working directory: {2}
-        ///  Timeout (ms):{3}
-        ///  Process id: {4}.
+        ///  Process id: {3}.
         /// </summary>
         internal static string MSG_ExecutingFile {
             get {
@@ -471,24 +470,6 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Overwriting the value of environment variable &apos;{0}&apos;. Old value: {1}, new value: {2}.
-        /// </summary>
-        internal static string MSG_Runner_OverwritingEnvVar {
-            get {
-                return ResourceManager.GetString("MSG_Runner_OverwritingEnvVar", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Setting environment variable &apos;{0}&apos;. Value: {1}.
-        /// </summary>
-        internal static string MSG_Runner_SettingEnvVar {
-            get {
-                return ResourceManager.GetString("MSG_Runner_SettingEnvVar", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Api Url: {0}.
         /// </summary>
         internal static string MSG_ServerInfo_ApiUrlDetected {
@@ -530,24 +511,6 @@ namespace SonarScanner.MSBuild.Common {
         internal static string MSG_SonarVerboseWasSpecified {
             get {
                 return ResourceManager.GetString("MSG_SonarVerboseWasSpecified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running..
-        /// </summary>
-        internal static string WARN_ExecutionTimedOutKilled {
-            get {
-                return ResourceManager.GetString("WARN_ExecutionTimedOutKilled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it could not be terminated and might still be running..
-        /// </summary>
-        internal static string WARN_ExecutionTimedOutNotKilled {
-            get {
-                return ResourceManager.GetString("WARN_ExecutionTimedOutNotKilled", resourceCulture);
             }
         }
         

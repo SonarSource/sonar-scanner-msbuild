@@ -258,11 +258,8 @@ public class ProcessedArgs
         return value;
     }
 
-    public /* for testing */ virtual bool TryGetSetting(string key, out string value) =>
+    public virtual bool TryGetSetting(string key, out string value) =>
         AggregateProperties.TryGetValue(key, out value);
-
-    public IEnumerable<Property> AllProperties() =>
-        AggregateProperties.GetAllProperties();
 
     private string OperatingSystemString(IAnalysisPropertyProvider properties) =>
         properties.TryGetProperty(SonarProperties.OperatingSystem, out var operatingSystem)
