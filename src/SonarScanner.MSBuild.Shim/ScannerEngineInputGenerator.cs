@@ -316,10 +316,9 @@ public class ScannerEngineInputGenerator
     private void FixEncoding(IEnumerable<ProjectInfo> projects, AnalysisProperties analysisProperties)
     {
         var globalSourceEncoding = GetSourceEncoding(analysisProperties);
-        Action logIfGlobalEncodingIsIgnored = () => runtime.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
         foreach (var project in projects)
         {
-            project.FixEncoding(globalSourceEncoding, logIfGlobalEncodingIsIgnored);
+            project.FixEncoding(globalSourceEncoding, runtime.Logger);
         }
 
         static string GetSourceEncoding(AnalysisProperties properties)

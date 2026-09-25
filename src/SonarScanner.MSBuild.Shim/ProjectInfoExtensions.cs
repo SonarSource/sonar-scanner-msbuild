@@ -40,7 +40,7 @@ public static class ProjectInfoExtensions
         }
     }
 
-    public static void FixEncoding(this ProjectInfo projectInfo, string globalSourceEncoding, Action logIfGlobalEncodingIsIgnored)
+    public static void FixEncoding(this ProjectInfo projectInfo, string globalSourceEncoding, ILogger logger)
     {
         if (projectInfo.Encoding is null)
         {
@@ -58,7 +58,7 @@ public static class ProjectInfoExtensions
         }
         else if (globalSourceEncoding is not null)
         {
-            logIfGlobalEncodingIsIgnored();
+            logger.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
         }
     }
 
