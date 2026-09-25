@@ -24,13 +24,21 @@ import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.locator.FileLocation;
+import java.util.stream.Collectors;
+import org.sonarqube.ws.Qualityprofiles;
 import org.sonarqube.ws.client.HttpConnector;
+import org.sonarqube.ws.client.WsClient;
 import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.qualityprofiles.SearchRequest;
+import org.sonarqube.ws.client.qualityprofiles.SetDefaultRequest;
 import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OrchestratorState {
+
+  private static final String CORE_PROFILE = "Sonar way core";
+  private static final String COMPREHENSIVE_PROFILE = "Sonar way comprehensive";
 
   private final Orchestrator orchestrator;
   private volatile int usageCount;
@@ -46,11 +54,13 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
+        var adminClient = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(orchestrator.getServer().getUrl()).credentials("admin", "admin").build());
+        restoreComprehensiveDefaultProfiles(adminClient);
         for (var profile : QualityProfile.allProfiles()) {
           orchestrator.getServer().restoreProfile(FileLocation.of(String.format("qualityProfiles/%s.xml", profile)));
         }
 
-        token = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(orchestrator.getServer().getUrl()).credentials("admin", "admin").build())
+        token = adminClient
           .userTokens()
           .generate(new GenerateRequest().setName("ITs"))
           .getToken();
@@ -78,6 +88,25 @@ public class OrchestratorState {
       throw new RuntimeException("OrchestratorState was not started and token is not available yet.");
     }
     return token;
+  }
+
+  // Since SonarQube 2026.6 (SONAR-32511), every language ships "Sonar way core", "Sonar way extended" and "Sonar way comprehensive",
+  // and "Sonar way core" is the default. Tests were written against the full rule set, so we restore "Sonar way comprehensive" as default.
+  // Older versions ship only "Sonar way" and are left untouched.
+  private static void restoreComprehensiveDefaultProfiles(WsClient client) {
+    var builtInProfiles = client.qualityprofiles().search(new SearchRequest()).getProfilesList().stream()
+      .filter(Qualityprofiles.SearchWsResponse.QualityProfile::getIsBuiltIn)
+      .toList();
+    var tieredLanguages = builtInProfiles.stream()
+      .filter(x -> x.getName().equals(CORE_PROFILE))
+      .map(Qualityprofiles.SearchWsResponse.QualityProfile::getLanguage)
+      .collect(Collectors.toSet());
+    for (var language : tieredLanguages) {
+      if (builtInProfiles.stream().noneMatch(x -> x.getLanguage().equals(language) && x.getName().equals(COMPREHENSIVE_PROFILE))) {
+        throw new IllegalStateException(String.format("Language '%s' has built-in profile '%s' but no '%s'", language, CORE_PROFILE, COMPREHENSIVE_PROFILE));
+      }
+      client.qualityprofiles().setDefault(new SetDefaultRequest().setLanguage(language).setQualityProfile(COMPREHENSIVE_PROFILE));
+    }
   }
 
   private void analyzeEmptyProject() {
