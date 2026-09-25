@@ -284,7 +284,8 @@ public class BootstrapperClassTests
             Substitute.For<SonarEngineWrapper>(new TestRuntime(), Substitute.For<IProcessRunner>()),
             Substitute.For<IRuntime>(),
             Substitute.For<TargetsUninstaller>(Substitute.For<ILogger>()),
-            Substitute.For<BuildVNextCoverageReportProcessor>(Substitute.For<IRuntime>()));
+            Substitute.For<BuildVNextCoverageReportProcessor>(Substitute.For<IRuntime>()),
+            Substitute.For<RoslynV1SarifFixer>(Substitute.For<IRuntime>()));
         processorFactory = Substitute.For<IProcessorFactory>();
         preProcessor.Execute(Arg.Any<string[]>()).Returns(Task.FromResult(preProcessorOutcome));
         postProcessor.Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<BuildSettings>()).Returns(postProcessorOutcome);

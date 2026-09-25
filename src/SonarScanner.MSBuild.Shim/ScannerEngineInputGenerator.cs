@@ -29,34 +29,31 @@ public class ScannerEngineInputGenerator
     internal const char AnalyzerOutputPathsDelimiter = ',';
 
     internal const string ReportFilePathsKeyCS = "sonar.cs.roslyn.reportFilePaths";
+    internal const string ReportFilePathsKeyVB = "sonar.vbnet.roslyn.reportFilePaths";
     internal const string ProjectOutPathsKeyCS = "sonar.cs.analyzer.projectOutPaths";
 
-    private const string ReportFilePathsKeyVB = "sonar.vbnet.roslyn.reportFilePaths";
     private const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
     private const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
     private const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
 
     private readonly AnalysisConfig analysisConfig;
     private readonly IRuntime runtime;
-    private readonly RoslynV1SarifFixer fixer;
     private readonly AdditionalFilesService additionalFilesService;
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
     private readonly IAnalysisPropertyProvider cmdLineArgs;
 
     public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IAnalysisPropertyProvider cmdLineArgs, IRuntime runtime)
-        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime), cmdLineArgs, new AdditionalFilesService(runtime))
+        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), cmdLineArgs, new AdditionalFilesService(runtime))
     { }
 
     internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
                                          IRuntime runtime,
-                                         RoslynV1SarifFixer fixer,
                                          IAnalysisPropertyProvider cmdLineArgs,
                                          AdditionalFilesService additionalFilesService)
     {
         this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
-        this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
         this.cmdLineArgs = cmdLineArgs ?? throw new ArgumentNullException(nameof(cmdLineArgs));
         this.additionalFilesService = additionalFilesService ?? throw new ArgumentNullException(nameof(additionalFilesService));
         if (runtime.OperatingSystem.IsWindows())
@@ -80,20 +77,15 @@ public class ScannerEngineInputGenerator
     public static bool IsTelemetryPaths(string propertyKey) =>
         propertyKey == TelemetryPathsKeyCS || propertyKey == TelemetryPathsKeyVB;
 
-    /// <summary>
-    /// Locates the ProjectInfo.xml files and uses the information in them to generate the scanner engine input.
-    /// </summary>
-    /// <returns>Information about each of the project info files that was processed.</returns>
-    public virtual AnalysisResult GenerateResult(DateTimeOffset startTime)
+    public virtual AnalysisResult GenerateResult(ProjectInfo[] projects, DateTimeOffset startTime)
     {
-        var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray();
-        if (projects.Length == 0)
+        if (!projects.Any())
         {
             runtime.LogError(Resources.ERR_NoProjectInfoFilesFound);
             return new([]);
         }
         var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
-        FixSarifAndEncoding(projects, analysisProperties);
+        FixEncoding(projects, analysisProperties);
         var allProjects = projects.ToProjectData(runtime);
         return new(allProjects, GenerateEngineInput(analysisConfig, analysisProperties, allProjects, startTime));
     }
@@ -321,13 +313,12 @@ public class ScannerEngineInputGenerator
         }
     }
 
-    private void FixSarifAndEncoding(IList<ProjectInfo> projects, AnalysisProperties analysisProperties)
+    private void FixEncoding(IEnumerable<ProjectInfo> projects, AnalysisProperties analysisProperties)
     {
         var globalSourceEncoding = GetSourceEncoding(analysisProperties);
         Action logIfGlobalEncodingIsIgnored = () => runtime.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
         foreach (var project in projects)
         {
-            TryFixSarifReport(project);
             project.FixEncoding(globalSourceEncoding, logIfGlobalEncodingIsIgnored);
         }
 
@@ -346,32 +337,6 @@ public class ScannerEngineInputGenerator
                 // encoding doesn't exist
             }
             return null;
-        }
-    }
-
-    private void TryFixSarifReport(ProjectInfo project)
-    {
-        TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFilePathsKeyCS);
-        TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFilePathsKeyVB);
-    }
-
-    /// <summary>
-    /// Loads SARIF reports from the given projects and attempts to fix
-    /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
-    /// </summary>
-    private void TryFixSarifReport(ProjectInfo project, string language, string reportFilesPropertyKey)
-    {
-        if (project.FindAnalysisSetting(reportFilesPropertyKey) is { } reportPathsProperty)
-        {
-            project.AnalysisSettings.Remove(reportPathsProperty);
-            var listOfPaths = reportPathsProperty.Value.Split(RoslynReportPathsDelimiter)
-                .Select(x => fixer.LoadAndFixFile(x, language))
-                .Where(x => x is not null)
-                .ToArray();
-            if (listOfPaths.Any())
-            {
-                project.AnalysisSettings.Add(new(reportFilesPropertyKey, string.Join(RoslynReportPathsDelimiter.ToString(), listOfPaths)));
-            }
         }
     }
 
