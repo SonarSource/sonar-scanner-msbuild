@@ -124,14 +124,10 @@
     <value>Executing file {0}
   Args: {1}
   Working directory: {2}
-  Timeout (ms):{3}
-  Process id: {4}</value>
+  Process id: {3}</value>
   </data>
   <data name="MSG_ExecutionExitCode" xml:space="preserve">
     <value>Process returned exit code {0}</value>
-  </data>
-  <data name="WARN_ExecutionTimedOutKilled" xml:space="preserve">
-    <value>Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running.</value>
   </data>
   <data name="MSG_RetryingOperation" xml:space="preserve">
     <value>Retrying...</value>
@@ -162,12 +158,6 @@
   </data>
   <data name="ERROR_CmdLine_UnrecognizedArg" xml:space="preserve">
     <value>Unrecognized command line argument: {0}</value>
-  </data>
-  <data name="MSG_Runner_OverwritingEnvVar" xml:space="preserve">
-    <value>Overwriting the value of environment variable '{0}'. Old value: {1}, new value: {2}</value>
-  </data>
-  <data name="MSG_Runner_SettingEnvVar" xml:space="preserve">
-    <value>Setting environment variable '{0}'. Value: {1}</value>
   </data>
   <data name="CmdLine_ArgDescription_PropertiesFilePath" xml:space="preserve">
     <value>[/s:{full path to the analysis settings file}]</value>
@@ -247,9 +237,6 @@
   </data>
   <data name="ERROR_TrustFailure" xml:space="preserve">
     <value>A server certificate could not be validated. Possible cause: you are using a self-signed SSL certificate but the certificate has not been installed on the client machine. Please make sure that you can access {0} without encountering certificate errors.</value>
-  </data>
-  <data name="WARN_ExecutionTimedOutNotKilled" xml:space="preserve">
-    <value>Timed out after waiting {0} ms for process {1} to complete: it could not be terminated and might still be running.</value>
   </data>
   <data name="ERROR_UnauthorizedConnection" xml:space="preserve">
     <value>Could not authorize while connecting to the SonarQube. Check your credentials and try again.</value>

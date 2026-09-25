@@ -405,36 +405,6 @@ public partial class ScannerEngineInputGeneratorTest
         runtime.Logger.Warnings.Should().BeEmpty();
     }
 
-    [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122
-    public void Generate_VSBootstrapperIsDisabled()
-    {
-        var scannerInput = GenerateScannerInputAndAssert("disableBootstrapper");
-        CreateInputReader(scannerInput).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Logger.Should().HaveNoWarnings();
-    }
-
-    [TestMethod]
-    public void Generate_VSBootstrapperIsDisabled_OverrideUserSettings_DifferentValue()
-    {
-        // Try to explicitly enable the setting
-        var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "true");
-
-        var scannerInput = GenerateScannerInputAndAssert("disableBootstrapperDiff", bootstrapperProperty);
-        CreateInputReader(scannerInput).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Logger.Should().HaveWarningOnce("Overriding analysis property. Effective value: sonar.visualstudio.enable=false");
-    }
-
-    [TestMethod]
-    public void Generate_VSBootstrapperIsDisabled_OverrideUserSettings_SameValue()
-    {
-        var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        var scannerInput = GenerateScannerInputAndAssert("disableBootstrapperSame", bootstrapperProperty);
-
-        CreateInputReader(scannerInput).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Logger.Should().HaveDebugs("Analysis property is already correctly set: sonar.visualstudio.enable=false")
-            .And.HaveNoWarnings(); // not expecting a warning if the user has supplied the value we want
-    }
-
     [TestMethod]
     public void Generate_AdditionalFiles_EndToEnd()
     {

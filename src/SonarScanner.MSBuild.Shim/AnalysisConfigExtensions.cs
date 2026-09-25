@@ -34,21 +34,10 @@ public static class AnalysisConfigExtensions
         properties.AddRange(
             config.CreatePropertyProvider(includeServerSettings: false, logger)
                 .GetAllProperties()
-                .Where(p => !p.ContainsSensitiveData()));
+                .Where(x => !x.ContainsSensitiveData()));
 
         // There are some properties we want to override regardless of what the user sets
         AddOrSetProperty(VSBootstrapperPropertyKey, "false", properties, logger);
-
-        if (!properties.Exists(x => x.Id == SonarProperties.HostUrl))
-        {
-            // The default value for SonarProperties.HostUrl changed in version
-            // https://github.com/SonarSource/sonar-scanner-msbuild/releases/tag/7.0.0.95646, but the embedded Scanner-Cli
-            // isn't updated with this new default yet (the default is probably changed in version
-            // https://github.com/SonarSource/sonar-scanner-cli/releases/tag/6.0.0.4432 of the CLI).
-            // As a workaround, we set SonarProperties.HostUrl to the new default in case the parameter isn't already set.
-            AddOrSetProperty(SonarProperties.HostUrl, config.SonarQubeHostUrl, properties, logger);
-        }
-
         return properties;
     }
 
