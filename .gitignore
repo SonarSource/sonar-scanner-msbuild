@@ -184,5 +184,6 @@ target/
 CLAUDE.md
 
 .sonar-code-context
+.codex/
 
 Packaging/Binaries/
