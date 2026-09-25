@@ -127,7 +127,7 @@ public class AnalysisConfigGeneratorTests
         runtime.Logger.Should().HaveNoErrors()
             .And.HaveNoWarnings();
 
-        var actualSettingsFilePath = actualConfig.ReadSettingsFilePath();
+        var actualSettingsFilePath = actualConfig.ReadAdditionalSetting("settings.file.path");
         actualSettingsFilePath.Should().Be(settingsFilePath);
 
         // Check the file setting value do not appear in the config file

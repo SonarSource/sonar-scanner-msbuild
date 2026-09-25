@@ -165,6 +165,9 @@ public class AnalysisConfig
         }
     }
 
+    public AnalysisProperties ToAnalysisProperties(ILogger logger) =>
+        new(CreatePropertyProvider(includeServerSettings: false, logger).GetAllProperties().Where(x => !x.ContainsSensitiveData()));
+
     public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
     {
         _ = settingName ?? throw new ArgumentNullException(nameof(settingName));
