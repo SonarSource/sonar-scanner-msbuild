@@ -101,9 +101,9 @@
       },
       "System.Text.Encoding.CodePages": {
         "type": "Direct",
-        "requested": "[10.0.11, )",
-        "resolved": "10.0.11",
-        "contentHash": "K00Cn0qXY9jYh7gRemcRDdwj5PhHKMC9UGJjC/dd7Cn9P5yadXDt2SHDC/Q3iVZ+iRnhbwecbvizEtNPBHJ6iA==",
+        "requested": "[10.0.12, )",
+        "resolved": "10.0.12",
+        "contentHash": "rt1G/LdKC6oc3xPyQhMn5vRTp9iTTt1BS9Dx/67TpW9KWgFJ39lyEz0y4CbDksx7iTZEfgG61UsQMoGEXEpF4A==",
         "dependencies": {
           "System.Memory": "4.6.3",
           "System.Runtime.CompilerServices.Unsafe": "6.1.2",
@@ -2154,9 +2154,9 @@
       },
       "System.Text.Encoding.CodePages": {
         "type": "Direct",
-        "requested": "[10.0.11, )",
-        "resolved": "10.0.11",
-        "contentHash": "K00Cn0qXY9jYh7gRemcRDdwj5PhHKMC9UGJjC/dd7Cn9P5yadXDt2SHDC/Q3iVZ+iRnhbwecbvizEtNPBHJ6iA=="
+        "requested": "[10.0.12, )",
+        "resolved": "10.0.12",
+        "contentHash": "rt1G/LdKC6oc3xPyQhMn5vRTp9iTTt1BS9Dx/67TpW9KWgFJ39lyEz0y4CbDksx7iTZEfgG61UsQMoGEXEpF4A=="
       },
       "WireMock.Net": {
         "type": "Direct",
