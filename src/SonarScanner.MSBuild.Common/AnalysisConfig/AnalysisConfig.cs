@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Newtonsoft.Json.Linq;
+
 namespace SonarScanner.MSBuild.Common;
 
 /// <summary>
@@ -163,6 +165,16 @@ public class AnalysisConfig
         {
             AdditionalConfig.Add(new ConfigSetting { Id = settingId, Value = value });
         }
+    }
+
+    public AnalysisProperties ToAnalysisProperties(ILogger logger)
+    {
+        var properties = new AnalysisProperties(CreatePropertyProvider(includeServerSettings: false, logger).GetAllProperties().Where(x => !x.ContainsSensitiveData()));
+        if (!properties.Exists(x => x.Id == SonarProperties.HostUrl))
+        {
+            properties.Add(new(SonarProperties.HostUrl, SonarQubeHostUrl));
+        }
+        return properties;
     }
 
     public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
