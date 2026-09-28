@@ -154,7 +154,7 @@ jobs:
             development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
 
       - name: Configure Maven
-        uses: SonarSource/ci-github-actions/config-maven@v1
+        uses: SonarSource/ci-github-actions/config-maven@v2
         with:
           artifactory-reader-role: private-reader
           working-directory: its
