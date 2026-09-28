@@ -33,7 +33,7 @@ public partial class ScannerEngineInputGeneratorTest
         TestUtils.CreateEmptyFile(subDir1, "file1.txt");
         TestUtils.CreateEmptyFile(subDir2, "file2.txt");
         var config = new AnalysisConfig { SonarOutputDir = testDir, SonarQubeHostUrl = "http://sonarqube.com" };
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertFailedToCreateScannerInput(result);
         AssertExpectedProjectCount(0, result);
@@ -54,7 +54,7 @@ public partial class ScannerEngineInputGeneratorTest
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", null, testDir, projectGuid: withFiles1Guid);
         TestUtils.CreateProjectWithFiles(TestContext, "withFiles2", null, testDir, projectGuid: withFiles2Guid);
         var config = CreateValidConfig(testDir);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
         AssertExpectedStatus("withoutFiles", ProjectInfoValidity.NoFilesToAnalyze, result);
         AssertExpectedStatus("withFiles1", ProjectInfoValidity.Valid, result);
@@ -89,7 +89,7 @@ public partial class ScannerEngineInputGeneratorTest
             Path.Combine(projectDir, "NotExisting.proj"),
             "UTF-8");
         var config = CreateValidConfig(rootDir);
-        var result = CreateSut(config).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = CreateSut(config).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedStatus(projectName, ProjectInfoValidity.ProjectNotFound, result);
         AssertExpectedProjectCount(1, result);
@@ -104,7 +104,7 @@ public partial class ScannerEngineInputGeneratorTest
         var projectFileOrig = CreateProject("Project1", "DifferentCasing.proj");
         var projectFileDiff = CreateProject("Project2", "dIFFERENTcASING.proj");    // Same file for windows, different for Unix
         var config = CreateValidConfig(testRootDir);
-        var result = CreateSut(config, os: os).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = CreateSut(config, os: os).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         var singleProject = result.Projects.Should().ContainSingle().Which;
         if (os == PlatformOS.Windows)
@@ -142,7 +142,7 @@ public partial class ScannerEngineInputGeneratorTest
         var config = CreateValidConfig(testDir);
         config.LocalSettings = [new(SonarProperties.SourceEncoding, "test-encoding-here")];
 
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
         var reader = CreateInputReader(result);
         reader.AssertProperty(SonarProperties.SourceEncoding, "test-encoding-here");     // Global setting is passed to the scanner engine
     }
@@ -158,100 +158,10 @@ public partial class ScannerEngineInputGeneratorTest
             new(SonarProperties.VsTestReportsPaths, "trx-path"),
         ];
 
-        var result = CreateSut(config).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = CreateSut(config).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
         var reader = CreateInputReader(result);
         reader.AssertProperty(SonarProperties.VsCoverageXmlReportsPaths, "coverage-path");
         reader.AssertProperty(SonarProperties.VsTestReportsPaths, "trx-path");
-    }
-
-    [TestMethod]
-    public void GenerateResult_ValidFiles_WithAlreadyValidSarif()
-    {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        // SARIF file path
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        // Create SARIF report path property and add it to the project info
-        var projectSettings = new AnalysisProperties { new("sonar.cs.roslyn.reportFilePaths", testSarifPath) };
-        var projectGuid = Guid.NewGuid();
-        TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", ProjectLanguages.CSharp, testDir, projectGuid, true, projectSettings);
-        var config = CreateValidConfig(testDir);
-        // Mock SARIF fixer simulates already valid sarif
-        var mockSarifFixer = new MockRoslynV1SarifFixer(testSarifPath);
-        var mockReturnPath = mockSarifFixer.ReturnVal;
-        var result = CreateSut(config, mockSarifFixer).GenerateResult(runtime.DateTime.OffsetNow);
-
-        mockSarifFixer.CallCount.Should().Be(1);
-        // Already valid SARIF -> no change in file -> unchanged property
-        CreateInputReader(result).AssertProperty(projectGuid.ToString().ToUpper() + ".sonar.cs.roslyn.reportFilePaths", mockReturnPath);
-    }
-
-    [TestMethod]
-    [DataRow(ProjectLanguages.CSharp, "sonar.cs.roslyn.reportFilePaths", "cs")]
-    [DataRow(ProjectLanguages.VisualBasic, "sonar.vbnet.roslyn.reportFilePaths", "vbnet")]
-    public void GenerateResult_ValidFiles_WithFixableSarif(string projectLanguage, string propertyKey, string expectedSarifLanguage)
-    {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        // SARIF file path
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        // Create SARIF report path property and add it to the project info
-        var projectSettings = new AnalysisProperties { new(propertyKey, testSarifPath) };
-        var projectGuid = Guid.NewGuid();
-        TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", projectLanguage, testDir, projectGuid, true, projectSettings);
-        var config = CreateValidConfig(testDir);
-        // Mock SARIF fixer simulates fixable SARIF with fixed name
-        var returnPathFileName = Path.GetFileNameWithoutExtension(testSarifPath) + "_fixed" + Path.GetExtension(testSarifPath);
-        var sarifFixer = new MockRoslynV1SarifFixer(Path.Combine(testDir, returnPathFileName));
-        var result = CreateSut(config, sarifFixer).GenerateResult(runtime.DateTime.OffsetNow);
-
-        sarifFixer.CallCount.Should().Be(1);
-        sarifFixer.LastLanguage.Should().Be(expectedSarifLanguage);
-        // Fixable SARIF -> new file saved -> changed property
-        CreateInputReader(result).AssertProperty(projectGuid.ToString().ToUpper() + "." + propertyKey, sarifFixer.ReturnVal);
-    }
-
-    [TestMethod]
-    public void GenerateResult_WithMultipleAnalyzerAndRoslynOutputPaths_ShouldBeSupported()
-    {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        var config = CreateValidConfig(testDir);
-        var testSarifPath1 = Path.Combine(testDir, "testSarif1.json");
-        var testSarifPath2 = Path.Combine(testDir, "testSarif2.json");
-        var testSarifPath3 = Path.Combine(testDir, "testSarif3.json");
-        // Mock SARIF fixer simulates fixable SARIF with fixed name
-        var mockSarifFixer = new MockRoslynV1SarifFixer(null);
-        var projectSettings = new AnalysisProperties
-        {
-            new("sonar.vbnet.roslyn.reportFilePaths", $"{testSarifPath1}|{testSarifPath2}|{testSarifPath3}")
-        };
-        var projectGuid = Guid.NewGuid();
-        TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", ProjectLanguages.VisualBasic, testDir, projectGuid, true, projectSettings);
-        var result = CreateSut(config, mockSarifFixer).GenerateResult(runtime.DateTime.OffsetNow);
-
-        CreateInputReader(result).AssertProperty(
-            $"{projectGuid.ToString().ToUpper()}.sonar.vbnet.roslyn.reportFilePaths",
-            $"{testSarifPath1}.fixed.mock.json,{testSarifPath2}.fixed.mock.json,{testSarifPath3}.fixed.mock.json");
-    }
-
-    [TestMethod]
-    public void GenerateResult_ValidFiles_WithUnfixableSarif()
-    {
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        // SARIF file path
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        // Create SARIF report path property and add it to the project info
-        var projectSettings = new AnalysisProperties { new("sonar.cs.roslyn.reportFilePaths", testSarifPath) };
-        var projectGuid = Guid.NewGuid();
-        TestUtils.CreateProjectWithFiles(TestContext, "withFiles1", null, testDir, projectGuid, true, projectSettings);
-        var config = CreateValidConfig(testDir);
-        // Mock SARIF fixer simulated unfixable/absent file
-        var mockSarifFixer = new MockRoslynV1SarifFixer(null);
-        var result = CreateSut(config, mockSarifFixer).GenerateResult(runtime.DateTime.OffsetNow);
-
-        mockSarifFixer.CallCount.Should().Be(1);
-        // One valid project info file -> file created
-        AssertScannerInputCreated(result);
-        // Unfixable SARIF -> cannot fix -> report file property removed
-        CreateInputReader(result).AssertPropertyDoesNotExist(projectGuid.ToString().ToUpper() + "." + "sonar.cs.roslyn.reportFilePaths");
     }
 
     [TestMethod]
@@ -273,7 +183,7 @@ public partial class ScannerEngineInputGeneratorTest
         // Add the file path of "contentList.txt" to the projectInfo.xml
         TestUtils.AddAnalysisResult(projectInfo, AnalysisResultFileType.FilesToAnalyze, contentFileListPath);
         var config = CreateValidConfig(testDir);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
         // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
@@ -303,7 +213,7 @@ public partial class ScannerEngineInputGeneratorTest
         // Add the file path of "contentList.txt" to the projectInfo.xml
         TestUtils.AddAnalysisResult(projectInfo, AnalysisResultFileType.FilesToAnalyze, contentFileListPath);
         var config = CreateValidConfig(testDir);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
         // The project has no files in its root dir and the rest of the files are outside of the root, thus ignored and not analyzed.
@@ -322,7 +232,8 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void GenerateResult_AppIdentifier()
     {
-        var result = new ScannerEngineInputGenerator(CreateValidConfig(), cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var config = CreateValidConfig();
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
         var reader = CreateInputReader(result);
         reader.AssertProperty("sonar.scanner.app", "ScannerMSBuild");
         reader.AssertProperty("sonar.scanner.appVersion", Utilities.ScannerVersion);
@@ -347,7 +258,7 @@ public partial class ScannerEngineInputGeneratorTest
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFile);
         TestUtils.AddAnalysisResult(project2Info, AnalysisResultFileType.FilesToAnalyze, contentFileList2);
         var config = CreateValidConfig(testDir);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         var reader = CreateInputReader(result);
         reader.AssertProperty("sonar.projectBaseDir", testDir);
@@ -378,7 +289,7 @@ public partial class ScannerEngineInputGeneratorTest
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", sharedFileDifferentCase);
         TestUtils.AddAnalysisResult(project2Info, AnalysisResultFileType.FilesToAnalyze, contentFileList2);
         var config = CreateValidConfig(testDir);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         var reader = CreateInputReader(result);
         reader.AssertProperty("sonar.projectBaseDir", testDir);
@@ -406,7 +317,7 @@ public partial class ScannerEngineInputGeneratorTest
         var contentFileList2 = TestUtils.CreateFile(project2Dir, "contentList.txt", fileInProject1);
         TestUtils.AddAnalysisResult(project2Info, AnalysisResultFileType.FilesToAnalyze, contentFileList2);
         var config = CreateValidConfig(testDir);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         var reader = CreateInputReader(result);
         reader.AssertProperty("sonar.projectBaseDir", testDir);
@@ -442,7 +353,7 @@ public partial class ScannerEngineInputGeneratorTest
         var projectInfoFilePath = Path.Combine(projectInfoDir, FileConstants.ProjectInfoFileName);
         projectInfo.Save(projectInfoFilePath);
         var config = CreateValidConfig();
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         CreateInputReader(result).AssertProperty($"{projectInfo.ProjectGuid.ToString().ToUpper()}.sonar.sources", string.Join(",", [existingManagedFile, existingContentFile]));
         runtime.Logger.Should().HaveWarnings(
@@ -470,7 +381,7 @@ public partial class ScannerEngineInputGeneratorTest
         };
         // Server properties should not be added
         config.ServerSettings = [new("server.key", "should not be added")];
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
         // One valid project info file -> file created
@@ -494,7 +405,7 @@ public partial class ScannerEngineInputGeneratorTest
         var analysisRootDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         TestUtils.CreateProjectWithFiles(TestContext, "project1", null, analysisRootDir, Guid.Empty);
         var config = CreateValidConfig(analysisRootDir);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
         // Empty guids are supported by generating them to the ProjectInfo.xml by WriteProjectInfoFile. In case it is not in ProjectInfo.xml, ScannerEngineInput generation should fail.
@@ -694,7 +605,7 @@ public partial class ScannerEngineInputGeneratorTest
             new("sonar.php.file.suffixes", "php"),
         ];
         var config = CreateValidConfig(root, serverProperties);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(2, result);
         AssertScannerInputCreated(result);
@@ -730,7 +641,7 @@ public partial class ScannerEngineInputGeneratorTest
             new("sonar.typescript.file.suffixes", ".ts,.tsx"),
         ];
         var config = CreateValidConfig(root, serverProperties, rootProjects);
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
         AssertScannerInputCreated(result);
@@ -748,7 +659,8 @@ public partial class ScannerEngineInputGeneratorTest
         cmdLineArgs.Add(SonarProperties.ClientCertPassword, "secret client certpwd");
         cmdLineArgs.Add("sonar.some.other.arg", "someValue");
 
-        var reader = CreateInputReader(new ScannerEngineInputGenerator(CreateValidConfig(), cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow));
+        var config = CreateValidConfig();
+        var reader = CreateInputReader(new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow));
 
         reader.AssertProperty(SonarProperties.SonarPassword, "secret pwd");
         reader.AssertProperty(SonarProperties.SonarUserName, "secret username");
@@ -769,7 +681,7 @@ public partial class ScannerEngineInputGeneratorTest
             new(SonarProperties.ClientCertPassword, "secret client certpwd"),
             new("sonar.some.other.arg", "someValue")
         ];
-        var reader = CreateInputReader(new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow));
+        var reader = CreateInputReader(new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow));
 
         reader.AssertProperty(SonarProperties.SonarPassword, "secret pwd");
         reader.AssertProperty(SonarProperties.SonarUserName, "secret username");
@@ -796,7 +708,7 @@ public partial class ScannerEngineInputGeneratorTest
             new(SonarProperties.ClientCertPassword, "file client certpwd"),
             new("sonar.some.other.arg", "fileValue")
         ];
-        var reader = CreateInputReader(new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow));
+        var reader = CreateInputReader(new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow));
 
         reader.AssertProperty(SonarProperties.SonarPassword, "cli pwd");
         reader.AssertProperty(SonarProperties.SonarUserName, "cli username");
@@ -815,7 +727,7 @@ public partial class ScannerEngineInputGeneratorTest
         TestUtils.CreateProjectWithFiles(TestContext, projectName, analysisRootDir);
         var config = CreateValidConfig(analysisRootDir);
         config.LocalSettings = [.. localSettings];
-        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(runtime.DateTime.OffsetNow);
+        var result = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).GenerateResult(LoadProjects(config), runtime.DateTime.OffsetNow);
 
         AssertExpectedProjectCount(1, result);
         AssertScannerInputCreated(result);

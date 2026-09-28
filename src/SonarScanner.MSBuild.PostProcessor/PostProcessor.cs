@@ -29,18 +29,21 @@ public class PostProcessor
     private readonly IRuntime runtime;
     private readonly TargetsUninstaller targetUninstaller;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
+    private readonly RoslynV1SarifFixer sarifFixer;
 
     private ScannerEngineInputGenerator scannerEngineInputGenerator;
 
     public PostProcessor(SonarEngineWrapper sonarEngine,
                          IRuntime runtime,
                          TargetsUninstaller targetUninstaller,
-                         BuildVNextCoverageReportProcessor coverageReportProcessor)
+                         BuildVNextCoverageReportProcessor coverageReportProcessor,
+                         RoslynV1SarifFixer sarifFixer)
     {
         this.sonarEngine = sonarEngine ?? throw new ArgumentNullException(nameof(sonarEngine));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
         this.coverageReportProcessor = coverageReportProcessor ?? throw new ArgumentNullException(nameof(coverageReportProcessor));
+        this.sarifFixer = sarifFixer ?? throw new ArgumentNullException(nameof(sarifFixer));
     }
 
     public virtual bool Execute(string[] args, AnalysisConfig config, BuildSettings settings)
@@ -84,8 +87,10 @@ public class PostProcessor
 
     private AnalysisResult CreateAnalysisResult(DateTimeOffset startTime, AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
     {
+        var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
+        sarifFixer.FixReports(projects);
         scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = scannerEngineInputGenerator.GenerateResult(startTime);
+        var result = scannerEngineInputGenerator.GenerateResult(projects, startTime);
         ProjectInfoReportBuilder.WriteSummaryReport(config, result, runtime.Logger);
         return result;
     }
