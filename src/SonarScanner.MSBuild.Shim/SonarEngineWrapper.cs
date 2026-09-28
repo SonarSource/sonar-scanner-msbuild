@@ -42,11 +42,11 @@ public class SonarEngineWrapper
 
         var engine = config.EngineJarPath;
         var javaExe = FindJavaExe(config.JavaExePath);
-        var javaParams = JavaParams(config, userCmdLineArguments, runtime).Select(x => new ProcessRunnerArguments.Argument(x, true));
+        var javaParams = JavaParams(config, userCmdLineArguments).Select(x => new ProcessRunnerArguments.Argument(x, true));
 
         var args = new ProcessRunnerArguments(javaExe)
         {
-            CmdLineArgs = javaParams.Any() ? [.. javaParams, new("-jar"), new(engine)] : [new("-jar"), new(engine)],
+            CmdLineArgs = [.. javaParams, new("-jar"), new(engine)],
             WorkingDirectory = config.SonarScannerWorkingDirectory,
             OutputToLogMessage = SonarEngineOutput.OutputToLogMessage,
             StandardInput = standardInput,
@@ -55,8 +55,7 @@ public class SonarEngineWrapper
         return Execute(args);
     }
 
-    // this is public static so scanner-cli can call it, when it is dropped it can be private and use the runtime field
-    public static IEnumerable<string> JavaParams(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments, IRuntime runtime)
+    private IEnumerable<string> JavaParams(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments)
     {
         // If there is a value for SONAR_SCANNER_OPTS pass it through explicitly
         var scannerOpts = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
