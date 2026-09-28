@@ -23,85 +23,59 @@ namespace SonarScanner.MSBuild.Shim.Test;
 [TestClass]
 public class ProjectInfoExtensionsTests
 {
-    private static bool isLogActionInvoked;
-    private readonly Action logActionMock = () => isLogActionInvoked = true;
-
-    [TestInitialize]
-    public void InitializeTests() => isLogActionInvoked = false;
+    private readonly TestLogger logger = new();
 
     [TestMethod]
     [DataRow(null)]
     [DataRow("FOO")]
-    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_NotSupportedProject_DoesNothing(string projectLanguage)
+    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_NotSupportedProject(string projectLanguage)
     {
-        ProjectInfo sut = new()
-        {
-            ProjectLanguage = projectLanguage,
-            Encoding = null
-        };
+        var sut = new ProjectInfo { ProjectLanguage = projectLanguage, Encoding = null };
 
-        sut.FixEncoding(null, logActionMock);
-
+        sut.FixEncoding(null, logger);
         sut.Encoding.Should().BeNull();
-        isLogActionInvoked.Should().BeFalse();
+        logger.Should().HaveNoInfos();
     }
 
     [TestMethod]
     [DataRow(ProjectLanguages.CSharp)]
     [DataRow(ProjectLanguages.VisualBasic)]
-    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_SupportedProject_SetsUtf8WebName(string projectLanguage)
+    public void FixEncoding_WithNullEncoding_NullGlobalEncoding_SupportedProject(string projectLanguage)
     {
-        ProjectInfo sut = new()
-        {
-            ProjectLanguage = projectLanguage,
-            Encoding = null
-        };
+        var sut = new ProjectInfo { ProjectLanguage = projectLanguage, Encoding = null };
 
-        sut.FixEncoding(null, logActionMock);
-
+        sut.FixEncoding(null, logger);
         sut.Encoding.Should().Be(Encoding.UTF8.WebName);
-        isLogActionInvoked.Should().BeFalse();
+        logger.Should().HaveNoInfos();
     }
 
     [TestMethod]
-    public void FixEncoding_WithNullEncoding_GlobalEncoding_SetsGlobalEncoding()
+    public void FixEncoding_WithNullEncoding_GlobalEncoding()
     {
-        ProjectInfo sut = new()
-        {
-            Encoding = null
-        };
+        var sut = new ProjectInfo { Encoding = null };
 
-        sut.FixEncoding("FOO", logActionMock);
-
+        sut.FixEncoding("FOO", logger);
         sut.Encoding.Should().Be("FOO");
-        isLogActionInvoked.Should().BeFalse();
+        logger.Should().HaveNoInfos();
     }
 
     [TestMethod]
-    public void FixEncoding_WithEncoding_GlobalEncoding_DoesNotChangeEncodingAndCallsLogAction()
+    public void FixEncoding_WithEncoding_GlobalEncoding()
     {
-        ProjectInfo sut = new()
-        {
-            Encoding = "FOO"
-        };
+        var sut = new ProjectInfo { Encoding = "FOO" };
 
-        sut.FixEncoding("BAR", logActionMock);
-
+        sut.FixEncoding("BAR", logger);
         sut.Encoding.Should().Be("FOO");
-        isLogActionInvoked.Should().BeTrue();
+        logger.Should().HaveInfos("""Property "sonar.sourceEncoding" is defined, but will be ignored during analysis.""");
     }
 
     [TestMethod]
-    public void FixEncoding_WithEncoding_NullGlobalEncoding_DoesNothing()
+    public void FixEncoding_WithEncoding_NullGlobalEncoding()
     {
-        ProjectInfo sut = new()
-        {
-            Encoding = "FOO"
-        };
+        var sut = new ProjectInfo { Encoding = "FOO" };
 
-        sut.FixEncoding(null, logActionMock);
-
+        sut.FixEncoding(null, logger);
         sut.Encoding.Should().Be("FOO");
-        isLogActionInvoked.Should().BeFalse();
+        logger.Should().HaveNoInfos();
     }
 }
