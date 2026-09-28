@@ -74,10 +74,10 @@ public class PreprocessorObjectFactory
                                                                        string language) =>
         new(new EmbeddedAnalyzerInstaller(client, localCacheTempPath, runtime.Logger), runtime.Logger, teamBuildSettings, sonarProperties, rules, language);
 
-    public virtual IResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
+    public virtual JreResolver CreateJreResolver(SonarQubeBase client, string sonarUserHome) =>
         new JreResolver(client, ChecksumSha256.Instance, sonarUserHome, runtime);
 
-    public virtual IResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
+    public virtual EngineResolver CreateEngineResolver(SonarQubeBase client, string sonarUserHome) =>
         new EngineResolver(client, sonarUserHome, runtime);
 
     private bool ValidateServerUrl(string serverUrl)
