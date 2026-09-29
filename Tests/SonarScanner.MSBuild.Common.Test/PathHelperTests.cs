@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Shim.Test;
+namespace SonarScanner.MSBuild.Common.Test;
 
 [TestClass]
 public class PathHelperTests
