@@ -86,13 +86,7 @@ public class ScannerEngineInputGenerator
         }
         var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
         FixEncoding(projects, analysisProperties);
-        var allProjects = projects.ToProjectData(runtime);
-        return GenerateEngineInput(analysisConfig, analysisProperties, allProjects, startTime);
-    }
-
-    internal ScannerEngineInput GenerateEngineInput(AnalysisConfig analysisConfig, AnalysisProperties analysisProperties, ProjectData[] allProjects, DateTimeOffset startTime)
-    {
-        var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
+        var validProjects = projects.ToProjectData(runtime).Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
         {
             runtime.LogError(Resources.ERR_NoValidProjectInfoFiles);
