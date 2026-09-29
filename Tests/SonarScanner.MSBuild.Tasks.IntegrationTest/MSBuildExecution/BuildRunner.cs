@@ -35,7 +35,8 @@ public static class BuildRunner
         exePath.Should().NotBeNull("Test setup failure - failed to locate MSBuild.exe");
         File.Exists(exePath).Should().BeTrue($"expecting the returned msbuild.exe file to exist. File path: {exePath}");
         var executable = Path.GetFileName(exePath);
-        executable.Should().MatchRegex(@"(msbuild\.exe|dotnet)");
+        // Case-insensitive: MSBUILD_PATH yields "MSBuild.exe", while ISetupInstance.ResolvePath yields "msbuild.exe".
+        executable.Should().MatchRegex(@"(?i)(msbuild\.exe|dotnet)");
 
         // We generate binary log because the build is being run in a separate process so we can't directly capture the property values or which tasks/targets were executed.
         var projectDir = Path.GetDirectoryName(projectFile);
