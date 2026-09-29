@@ -60,7 +60,7 @@ public class TarGzUnpacker : IUnpacker
         name = name.Replace('/', Path.DirectorySeparatorChar);
         var destinationFile = Path.Combine(destinationFullPath, name);
         var isRootDir = entry.IsDirectory && entry.Name == string.Empty;
-        if (!isRootDir && !new FileInfo(destinationFile).IsInDirectory(new DirectoryInfo(destinationFullPath)))
+        if (!isRootDir && !new FileInfo(destinationFile).IsInDirectory(new DirectoryInfo(destinationFullPath), StringComparison.Ordinal))
         {
             throw new InvalidNameException("Parent traversal in paths is not allowed");
         }

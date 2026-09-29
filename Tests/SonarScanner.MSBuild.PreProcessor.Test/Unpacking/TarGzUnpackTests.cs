@@ -127,6 +127,8 @@ public class TarGzUnpackTests
 
     [TestMethod]
     [DataRow("../currentDir2")]
+    [DataRow("../CURRENTDIR")]
+    [DataRow("../currentDir\u00AD")] // Soft hyphen is ignored by culture-sensitive comparisons
     public void TarGzUnpacking_SiblingDirectorySlip_IsDetected(string path)
     {
         path = path.Replace('/', Path.DirectorySeparatorChar);
@@ -136,20 +138,6 @@ public class TarGzUnpackTests
         var action = () => new TarGzUnpacker(runtime).Unpack(archive, baseDirectory);
         action.Should().Throw<InvalidNameException>().WithMessage("Parent traversal in paths is not allowed");
         runtime.File.DidNotReceiveWithAnyArgs().Create(null);
-    }
-
-    [TestMethod]
-    [DataRow("../CURRENTDIR")]
-    [DataRow("../currentDir\u00AD")] // Soft hyphen is ignored by culture-sensitive comparisons
-    public void TarGzUnpacking_SiblingDirectorySlip(string path)
-    {
-        path = path.Replace('/', Path.DirectorySeparatorChar);
-        var baseDirectory = Path.Combine(Path.GetTempPath(), "currentDir");
-        using var archive = CreateTarGz(Path.Combine(path, "evil.txt"));
-        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
-
-        new TarGzUnpacker(runtime).Unpack(archive, baseDirectory);
-        runtime.File.Received(1).Create(Path.Combine(baseDirectory, path, "evil.txt"));
     }
 
     private static MemoryStream CreateTarGz(string entryName)
