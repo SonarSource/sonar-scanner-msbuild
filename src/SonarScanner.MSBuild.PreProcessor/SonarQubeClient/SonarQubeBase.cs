@@ -114,9 +114,14 @@ public abstract class SonarQubeBase : IDisposable
         Contract.ThrowIfNullOrWhitespace(embeddedFileName, nameof(embeddedFileName));
         Contract.ThrowIfNullOrWhitespace(targetDirectory, nameof(targetDirectory));
 
-        var uri = WebUtils.EscapedUri("static/{0}/{1}", pluginKey, embeddedFileName);
         var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
+        if (!new FileInfo(targetFilePath).IsInDirectory(new DirectoryInfo(targetDirectory), StringComparison.Ordinal))
+        {
+            runtime.LogError(Resources.ERROR_InvalidStaticResourceName, embeddedFileName, pluginKey, targetDirectory);
+            return false;
+        }
 
+        var uri = WebUtils.EscapedUri("static/{0}/{1}", pluginKey, embeddedFileName);
         runtime.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, targetDirectory);
         return await webDownloader.TryDownloadFileIfExists(uri, targetFilePath);
     }

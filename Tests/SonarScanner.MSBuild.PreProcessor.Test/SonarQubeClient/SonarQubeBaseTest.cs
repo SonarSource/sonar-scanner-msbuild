@@ -710,8 +710,9 @@ public class SonarQubeBaseTest
         var targetDirectory = "targetDir";
 
         var result = await sut.TryDownloadEmbeddedFile("csharp", fileName, targetDirectory);
-        result.Should().BeTrue();
-        await downloader.Received(1).TryDownloadFileIfExists(WebUtils.EscapedUri("static/csharp/{0}", fileName), Path.Combine(targetDirectory, fileName));
+        result.Should().BeFalse();
+        await downloader.DidNotReceiveWithAnyArgs().TryDownloadFileIfExists(null, null);
+        runtime.Logger.Should().HaveErrors($"The static resource name '{fileName}' of plugin 'csharp' is invalid. It must not resolve to a path outside of '{targetDirectory}'.");
     }
 
     [TestMethod]
