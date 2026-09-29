@@ -37,7 +37,6 @@ public class MSBuildLocatorTests
         {
             var expected = @"C:\any\path\to\msbuild.exe";
             Environment.SetEnvironmentVariable(MsBuildPathEnvVar, expected);
-
             MSBuildLocator.GetMSBuildPath(TestContext).Should().Be(expected);
         }
         finally

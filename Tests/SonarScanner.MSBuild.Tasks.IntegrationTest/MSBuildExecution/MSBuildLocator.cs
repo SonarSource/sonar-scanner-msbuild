@@ -39,7 +39,7 @@ internal static class MSBuildLocator
     {
         testContext.WriteLine($"Test setup: attempting to locate an MSBuild instance...");
 
-        // Pinne on CI to the latest Visual Studio
+        // Pinned on CI to the latest Visual Studio
         var overridePath = Environment.GetEnvironmentVariable("MSBUILD_PATH");
         if (!string.IsNullOrEmpty(overridePath))
         {
