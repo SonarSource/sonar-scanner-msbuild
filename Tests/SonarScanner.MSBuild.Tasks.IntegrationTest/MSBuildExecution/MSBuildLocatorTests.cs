@@ -34,7 +34,6 @@ public class MSBuildLocatorTests
         // ISetupConfiguration.EnumInstances() (that order changes between image builds and can select an old MSBuild).
         var expected = @"C:\any\path\to\msbuild.exe";
         using var scope = new EnvironmentVariableScope().SetVariable(MsBuildPathEnvVar, expected);
-
         MSBuildLocator.GetMSBuildPath(TestContext).Should().Be(expected);
     }
 
@@ -56,7 +55,6 @@ public class MSBuildLocatorTests
             (new Version("18.5.11723.231"), @"C:\VS2026\msbuild.exe"),
             (new Version("17.14.36121.58"), @"C:\VS2022\msbuild.exe"),
         ];
-
         MSBuildLocator.SelectNewest(candidates).Should().Be(@"C:\VS2026\msbuild.exe");
     }
 }
