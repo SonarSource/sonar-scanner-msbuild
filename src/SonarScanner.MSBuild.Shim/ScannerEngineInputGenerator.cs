@@ -31,10 +31,10 @@ public class ScannerEngineInputGenerator
     internal const string ReportFilePathsKeyCS = "sonar.cs.roslyn.reportFilePaths";
     internal const string ReportFilePathsKeyVB = "sonar.vbnet.roslyn.reportFilePaths";
     internal const string ProjectOutPathsKeyCS = "sonar.cs.analyzer.projectOutPaths";
+    internal const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
+    internal const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
+    internal const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
 
-    private const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
-    private const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
-    private const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
 
     private readonly AnalysisConfig analysisConfig;
     private readonly IRuntime runtime;
