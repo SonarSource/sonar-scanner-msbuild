@@ -32,17 +32,10 @@ public class MSBuildLocatorTests
     {
         // The CI image sets MSBUILD_PATH to the newest Visual Studio, which lets us bypass the unspecified order of
         // ISetupConfiguration.EnumInstances() (that order changes between image builds and can select an old MSBuild).
-        var original = Environment.GetEnvironmentVariable(MsBuildPathEnvVar);
-        try
-        {
-            var expected = @"C:\any\path\to\msbuild.exe";
-            Environment.SetEnvironmentVariable(MsBuildPathEnvVar, expected);
-            MSBuildLocator.GetMSBuildPath(TestContext).Should().Be(expected);
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable(MsBuildPathEnvVar, original);
-        }
+        var expected = @"C:\any\path\to\msbuild.exe";
+        using var scope = new EnvironmentVariableScope().SetVariable(MsBuildPathEnvVar, expected);
+
+        MSBuildLocator.GetMSBuildPath(TestContext).Should().Be(expected);
     }
 
     [TestMethod]
