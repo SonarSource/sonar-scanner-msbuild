@@ -134,23 +134,23 @@ public partial class ScannerEngineInputGeneratorTest
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
-    private void AssertFailedToCreateScannerInput(ScannerEngineInput scannerInput, string error = "No analyzable projects were found. SonarQube analysis will not be performed.")
+    private void AssertFailedToCreateScannerInput(ScannerEngineInput input, string error = "No analyzable projects were found. SonarQube analysis will not be performed.")
     {
-        scannerInput.Should().BeNull();
+        input.Should().BeNull();
         runtime.Logger.Should().HaveErrors(error);
     }
 
-    private void AssertScannerInputCreated(ScannerEngineInput scannerInput)
+    private void AssertScannerInputCreated(ScannerEngineInput input)
     {
-        scannerInput.Should().NotBeNull();
-        Console.WriteLine(scannerInput.ToString());
+        input.Should().NotBeNull();
+        Console.WriteLine(input.ToString());
         runtime.Logger.Should().HaveNoErrors();
     }
 
-    private void AssertModules(ScannerEngineInput scannerInput, params Guid[] validProjectGuids)
+    private void AssertModules(ScannerEngineInput input, params Guid[] validProjectGuids)
     {
-        AssertScannerInputCreated(scannerInput);
-        CreateInputReader(scannerInput)["sonar.modules"].Split(',').Should().BeEquivalentTo(validProjectGuids.Select(x => x.ToString().ToUpper()));
+        AssertScannerInputCreated(input);
+        CreateInputReader(input)["sonar.modules"].Split(',').Should().BeEquivalentTo(validProjectGuids.Select(x => x.ToString().ToUpper()));
     }
 
     private AnalysisConfig CreateValidConfig()

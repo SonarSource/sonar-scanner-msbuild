@@ -229,7 +229,7 @@ public partial class ScannerEngineInputGeneratorTest
             expectedValue: Path.Combine(TestUtils.DriveRoot("d"), "work", "mysources"), // if there is a user value, use it
             teamBuildValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),
             userValue: Path.Combine(TestUtils.DriveRoot("d"), "work", "mysources"),
-            projectPaths: [Path.Combine(TestUtils.DriveRoot("d"), "work", "proj1.csproj")]);
+            projectPaths: [Path.Combine(TestUtils.DriveRoot("d"), "work")]);
 
         VerifyProjectBaseDir(
             expectedValue: Path.Combine(TestUtils.DriveRoot("d"), "work"),  // if no user value, use the team build value

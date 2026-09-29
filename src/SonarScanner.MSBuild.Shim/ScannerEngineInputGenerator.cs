@@ -35,7 +35,6 @@ public class ScannerEngineInputGenerator
     internal const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
     internal const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
 
-
     private readonly AnalysisConfig analysisConfig;
     private readonly IRuntime runtime;
     private readonly AdditionalFilesService additionalFilesService;

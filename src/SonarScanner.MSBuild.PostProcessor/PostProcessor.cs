@@ -67,31 +67,25 @@ public class PostProcessor
             return false;   // logging already done
         }
 
-        var scannerEngineInput = CreateScannerEngineInput(startTime, config, cmdLineArgs);
-        if (scannerEngineInput is null)
+        var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
+        sarifFixer.FixReports(projects);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
+        if (scannerEngineInputGenerator.Generate(projects, startTime) is { } input)
         {
-            return false;
+            // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
+            runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = ProcessCoverageReport(config, settings, input);
+            runtime.Telemetry.Write(settings.SonarOutputDirectory);
+            DumpScannerEngineInput(settings, input);
+            return sonarEngine.Execute(config, input.ToString(), cmdLineArgs);
         }
         else
         {
-            // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
-            runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = ProcessCoverageReport(config, settings, scannerEngineInput);
-            runtime.Telemetry.Write(settings.SonarOutputDirectory);
-            DumpScannerEngineInput(settings, scannerEngineInput);
-            return sonarEngine.Execute(config, scannerEngineInput.ToString(), cmdLineArgs);
+            return false;
         }
     }
 
     internal void SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
         this.scannerEngineInputGenerator = scannerEngineInputGenerator;
-
-    private ScannerEngineInput CreateScannerEngineInput(DateTimeOffset startTime, AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
-    {
-        var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
-        sarifFixer.FixReports(projects);
-        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        return scannerEngineInputGenerator.Generate(projects, startTime);
-    }
 
     private void LogStartupSettings(AnalysisConfig config, BuildSettings settings)
     {
