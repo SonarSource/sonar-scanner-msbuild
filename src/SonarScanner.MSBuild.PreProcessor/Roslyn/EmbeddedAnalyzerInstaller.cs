@@ -136,19 +136,12 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 
         Directory.CreateDirectory(targetDir);
 
-        if (client.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result)
+        var targetFilePath = client.DownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result
+            ?? throw new FileNotFoundException(string.Format(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName));
+        if (IsZipFile(targetFilePath))
         {
-            var targetFilePath = Path.Combine(targetDir, plugin.StaticResourceName);
-
-            if (IsZipFile(targetFilePath))
-            {
-                logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
-                ZipFile.ExtractToDirectory(targetFilePath, targetDir);
-            }
-        }
-        else
-        {
-            throw new FileNotFoundException(string.Format(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName));
+            logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
+            ZipFile.ExtractToDirectory(targetFilePath, targetDir);
         }
     }
 

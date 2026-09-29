@@ -651,25 +651,25 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_NullPluginKey_Throws()
+    public async Task DownloadEmbeddedFile_NullPluginKey_Throws()
     {
-        Func<Task> act = async () => await sut.TryDownloadEmbeddedFile(null, "filename", "targetDir");
+        Func<Task> act = async () => await sut.DownloadEmbeddedFile(null, "filename", "targetDir");
 
         (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("pluginKey");
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_NullEmbeddedFileName_Throws()
+    public async Task DownloadEmbeddedFile_NullEmbeddedFileName_Throws()
     {
-        Func<Task> act = async () => await sut.TryDownloadEmbeddedFile("key", null, "targetDir");
+        Func<Task> act = async () => await sut.DownloadEmbeddedFile("key", null, "targetDir");
 
         (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("embeddedFileName");
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_NullTargetDirectory_Throws()
+    public async Task DownloadEmbeddedFile_NullTargetDirectory_Throws()
     {
-        Func<Task> act = async () => await sut.TryDownloadEmbeddedFile("pluginKey", "filename", null);
+        Func<Task> act = async () => await sut.DownloadEmbeddedFile("pluginKey", "filename", null);
 
         (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("targetDirectory");
     }
@@ -677,23 +677,23 @@ public class SonarQubeBaseTest
     [TestMethod]
     [DataRow("dummy.txt")]
     [DataRow("sub/dummy.txt")]
-    public async Task TryDownloadEmbeddedFile_FileExist(string fileName)
+    public async Task DownloadEmbeddedFile_FileExist(string fileName)
     {
         downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(true));
         var targetDirectory = "targetDir";
 
-        var result = await sut.TryDownloadEmbeddedFile("csharp", fileName, targetDirectory);
-        result.Should().BeTrue();
+        var filePath = await sut.DownloadEmbeddedFile("csharp", fileName, targetDirectory);
+        filePath.Should().Be(Path.Combine(targetDirectory, fileName));
         await downloader.Received(1).TryDownloadFileIfExists(WebUtils.EscapedUri("static/csharp/{0}", fileName), Path.Combine(targetDirectory, fileName));
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_FileDoesNotExist()
+    public async Task DownloadEmbeddedFile_FileDoesNotExist()
     {
         downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(false));
 
-        var result = await sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
-        result.Should().BeFalse();
+        var result = await sut.DownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
+        result.Should().BeNull();
     }
 
     [TestMethod]
@@ -704,13 +704,13 @@ public class SonarQubeBaseTest
     [DataRow("/tmp/evil.txt")]
     [DataRow("../targetDir\u00AD/evil.txt")]
     [DataRow("../TARGETDIR/evil.txt")]
-    public async Task TryDownloadEmbeddedFile_FileNotInTargetDirectory(string fileName)
+    public async Task DownloadEmbeddedFile_FileNotInTargetDirectory(string fileName)
     {
         downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(true));
         var targetDirectory = "targetDir";
 
-        var result = await sut.TryDownloadEmbeddedFile("csharp", fileName, targetDirectory);
-        result.Should().BeFalse();
+        var result = await sut.DownloadEmbeddedFile("csharp", fileName, targetDirectory);
+        result.Should().BeNull();
         await downloader.DidNotReceiveWithAnyArgs().TryDownloadFileIfExists(null, null);
         runtime.Logger.Should().HaveErrors($"The static resource name '{fileName}' of plugin 'csharp' is invalid. It must not resolve to a path outside of '{targetDirectory}'.");
     }
