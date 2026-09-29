@@ -33,12 +33,19 @@ internal static class MSBuildLocator
     /// Returns a path to an instance of msbuild.exe or null if one could
     /// not be found.
     /// </summary>
-    /// <remarks>If there are multiple instances of VS on the machine there is no guarantee which
-    /// one will be returned, except that instances of VS2019 or later will be returned in preference
-    /// to VS2017.</remarks>
+    /// <remarks>First checks MSBUILD_PATH. Otherwise, when there are multiple instances of VS on
+    /// the machine, the newest one is returned.</remarks>
     public static string GetMSBuildPath(TestContext testContext)
     {
         testContext.WriteLine($"Test setup: attempting to locate an MSBuild instance...");
+
+        // Pinne on CI to the latest Visual Studio
+        var overridePath = Environment.GetEnvironmentVariable("MSBUILD_PATH");
+        if (!string.IsNullOrEmpty(overridePath))
+        {
+            testContext.WriteLine($"Test setup: using MSBuild from MSBUILD_PATH: {overridePath}");
+            return overridePath;
+        }
 
         var path = GetMSBuildPath("Current", testContext) // VS2019 or later
             ?? GetMSBuildPath("15.0", testContext); // VS2017
@@ -90,6 +97,8 @@ internal static class MSBuildLocator
 
         string partialExePath = Path.Combine("MSBuild", msBuildMajorVersion, "Bin", "msbuild.exe");
 
+        // We need the latest version of MSBuild. New versions of dotnet sdk are incompatible with old versions of MSBuild.
+        var candidates = new List<(Version version, string exePath)>();
         for (int i = 0; i < fetched; i++)
         {
             var instance = instances[i];
@@ -97,14 +106,22 @@ internal static class MSBuildLocator
 
             var candidateExePath = instance.ResolvePath(partialExePath);
 
-            if (File.Exists(candidateExePath))
+            if (File.Exists(candidateExePath) && Version.TryParse(instance.GetInstallationVersion(), out var version))
             {
-                testContext.WriteLine($"\tMSBuild exe located: {candidateExePath}");
-                return candidateExePath;
+                candidates.Add((version, candidateExePath));
             }
+        }
+
+        if (SelectNewest(candidates) is { } newest)
+        {
+            testContext.WriteLine($"\tMSBuild exe located: {newest}");
+            return newest;
         }
 
         testContext.WriteLine($"Test setup: MSBuild exe could not be located");
         return null;
     }
+
+    internal static string SelectNewest(IEnumerable<(Version version, string exePath)> candidates) =>
+        candidates.OrderByDescending(x => x.version).Select(x => x.exePath).FirstOrDefault();
 }
