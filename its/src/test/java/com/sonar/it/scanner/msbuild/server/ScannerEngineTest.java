@@ -81,7 +81,7 @@ class ScannerEngineTest {
     assertThat(matchResults)
       .extracting(x -> x.group(1))
       .hasSize(1)
-      .as("Any of these can be found in the Windows/Linux/MacOS" +
+      .as("Any of these can be found on Windows/Linux/MacOS" +
         "UTF8Filename_����_???_?.cs" +
         "UTF8Filename_����_???_??.cs" +
         "UTF8Filename_????_???_??.cs" +
