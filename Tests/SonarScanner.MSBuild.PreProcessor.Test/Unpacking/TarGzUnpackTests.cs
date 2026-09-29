@@ -19,6 +19,8 @@
  */
 
 using ICSharpCode.SharpZipLib.Core;
+using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
 
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking.Test;
 
@@ -121,6 +123,32 @@ public class TarGzUnpackTests
         var action = () => sut.Unpack(zipStream, baseDirectory);
 
         action.Should().Throw<InvalidNameException>().WithMessage("Parent traversal in paths is not allowed");
+    }
+
+    [TestMethod]
+    [DataRow("../currentDir2")]
+    [DataRow("../CURRENTDIR")]
+    [DataRow("../currentDir\u00AD")] // Soft hyphen is ignored by culture-sensitive comparisons
+    public void TarGzUnpacking_SiblingDirectorySlip(string path)
+    {
+        path = path.Replace('/', Path.DirectorySeparatorChar);
+        var baseDirectory = Path.Combine(Path.GetTempPath(), "currentDir");
+        using var archive = CreateTarGz(Path.Combine(path, "evil.txt"));
+        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
+
+        new TarGzUnpacker(runtime).Unpack(archive, baseDirectory);
+        runtime.File.Received(1).Create(Path.Combine(baseDirectory, path, "evil.txt"));
+    }
+
+    private static MemoryStream CreateTarGz(string entryName)
+    {
+        var output = new MemoryStream();
+        using (var tar = new TarOutputStream(new GZipOutputStream(output), Encoding.GetEncoding(28591))) // Latin-1 maps each char to one byte, like TarGzUnpacker reads them
+        {
+            tar.PutNextEntry(TarEntry.CreateTarEntry(entryName));
+            tar.CloseEntry();
+        }
+        return new MemoryStream(output.ToArray());
     }
 
     private void RootedPath_Success(string base64Archive)
