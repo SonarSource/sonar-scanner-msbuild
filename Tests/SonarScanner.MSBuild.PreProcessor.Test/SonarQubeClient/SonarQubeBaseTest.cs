@@ -675,25 +675,43 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_RequestedFileExist_ReturnsTrue()
+    [DataRow("dummy.txt")]
+    [DataRow("sub/dummy.txt")]
+    public async Task TryDownloadEmbeddedFile_FileExist(string fileName)
     {
-        downloader
-            .TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>())
-            .Returns(Task.FromResult(true));
+        downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(true));
+        var targetDirectory = "targetDir";
 
-        var success = await sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
-
-        success.Should().BeTrue("Expected success");
+        var result = await sut.TryDownloadEmbeddedFile("csharp", fileName, targetDirectory);
+        result.Should().BeTrue();
+        await downloader.Received(1).TryDownloadFileIfExists(WebUtils.EscapedUri("static/csharp/{0}", fileName), Path.Combine(targetDirectory, fileName));
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_RequestedFileDoesNotExist_ReturnsFalse()
+    public async Task TryDownloadEmbeddedFile_FileDoesNotExist()
     {
         downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(false));
 
-        var success = await sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
+        var result = await sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
+        result.Should().BeFalse();
+    }
 
-        success.Should().BeFalse("Expected failure");
+    [TestMethod]
+    [DataRow(".")]
+    [DataRow("..")]
+    [DataRow("../evil.txt")]
+    [DataRow("sub/../../evil.txt")]
+    [DataRow("/tmp/evil.txt")]
+    [DataRow("../targetDir\u00AD/evil.txt")]
+    [DataRow("../TARGETDIR/evil.txt")]
+    public async Task TryDownloadEmbeddedFile_FileNotInTargetDirectory(string fileName)
+    {
+        downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(true));
+        var targetDirectory = "targetDir";
+
+        var result = await sut.TryDownloadEmbeddedFile("csharp", fileName, targetDirectory);
+        result.Should().BeTrue();
+        await downloader.Received(1).TryDownloadFileIfExists(WebUtils.EscapedUri("static/csharp/{0}", fileName), Path.Combine(targetDirectory, fileName));
     }
 
     [TestMethod]
