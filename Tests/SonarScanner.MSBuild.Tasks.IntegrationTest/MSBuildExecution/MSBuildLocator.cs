@@ -57,6 +57,9 @@ internal static class MSBuildLocator
         return path;
     }
 
+    internal static string SelectNewest(IEnumerable<(Version Version, string ExePath)> candidates) =>
+        candidates.OrderByDescending(x => x.Version).Select(x => x.ExePath).FirstOrDefault();
+
     /// <summary>
     /// Returns the path to the specified version of msbuild.exe or
     /// null if it could not be found
@@ -98,7 +101,7 @@ internal static class MSBuildLocator
         string partialExePath = Path.Combine("MSBuild", msBuildMajorVersion, "Bin", "msbuild.exe");
 
         // We need the latest version of MSBuild. New versions of dotnet sdk are incompatible with old versions of MSBuild.
-        var candidates = new List<(Version version, string exePath)>();
+        var candidates = new List<(Version Version, string ExePath)>();
         for (int i = 0; i < fetched; i++)
         {
             var instance = instances[i];
@@ -121,7 +124,4 @@ internal static class MSBuildLocator
         testContext.WriteLine($"Test setup: MSBuild exe could not be located");
         return null;
     }
-
-    internal static string SelectNewest(IEnumerable<(Version version, string exePath)> candidates) =>
-        candidates.OrderByDescending(x => x.version).Select(x => x.exePath).FirstOrDefault();
 }

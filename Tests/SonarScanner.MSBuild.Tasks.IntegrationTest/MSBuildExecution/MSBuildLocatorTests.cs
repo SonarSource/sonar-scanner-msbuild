@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarScanner for .NET
  * Copyright (C) SonarSource Sàrl
  * mailto: info AT sonarsource DOT com
@@ -50,7 +50,7 @@ public class MSBuildLocatorTests
     [TestMethod]
     public void SelectNewest_PicksHighestVersion_RegardlessOfOrder()
     {
-        (Version version, string exePath)[] candidates =
+        (Version Version, string ExePath)[] candidates =
         [
             (new Version("16.11.35026.282"), @"C:\VS2019\msbuild.exe"),
             (new Version("18.5.11723.231"), @"C:\VS2026\msbuild.exe"),
