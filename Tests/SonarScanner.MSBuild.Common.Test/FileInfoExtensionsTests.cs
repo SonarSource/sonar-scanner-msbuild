@@ -67,4 +67,13 @@ public class FileInfoExtensionsTests
     [DataRow(@"/mnt/c/Src/File.cs", @"/mnt/c/Src/Bar")]
     public void IsInDirectory_Unix_False(string file, string directory) =>
         new FileInfo(file).IsInDirectory(new DirectoryInfo(directory)).Should().BeFalse();
+
+    [TestMethod]
+    [DataRow("dir", StringComparison.Ordinal, true)]
+    [DataRow("dir", StringComparison.OrdinalIgnoreCase, true)]
+    [DataRow("DIR", StringComparison.Ordinal, false)]
+    [DataRow("DIR", StringComparison.OrdinalIgnoreCase, true)]
+    [DataRow("dir\u00AD", StringComparison.Ordinal, false)] // Soft hyphen is ignored by culture-sensitive comparisons
+    public void IsInDirectory_WithComparison(string fileDirectoryName, StringComparison comparison, bool expected) =>
+        new FileInfo(Path.Combine(fileDirectoryName, "File.cs")).IsInDirectory(new DirectoryInfo("dir"), comparison).Should().Be(expected);
 }
