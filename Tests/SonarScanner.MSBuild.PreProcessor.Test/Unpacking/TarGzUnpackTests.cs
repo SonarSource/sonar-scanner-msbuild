@@ -30,7 +30,7 @@ public class TarGzUnpackTests
     private readonly TestRuntime runtime = new();
 
     [TestMethod]
-    public void TarGzUnpacking_Success_CopyFilePermissions_Fails()
+    public void TarGzUnpacking_Success_CopyFilePermissions()
     {
         // A tarball with the following content:
         // Main
@@ -62,7 +62,7 @@ public class TarGzUnpackTests
     [TestCategory(TestCategories.NoMacOS)]
     [TestCategory(TestCategories.NoLinux)]
     [TestMethod]
-    public void TarGzUnpacking_BackslashRootedPath_Success()
+    public void TarGzUnpacking_BackslashRootedPath()
     {
         // A tarball with a single file with a rooted path: "\ sample.txt"
         var zipWithRootedPath = """
@@ -76,7 +76,7 @@ public class TarGzUnpackTests
     }
 
     [TestMethod]
-    public void TarGzUnpacking_ForwardSlashRootedPath_Success()
+    public void TarGzUnpacking_ForwardSlashRootedPath()
     {
         // A tarball with a single file with a rooted path: "/ sample.txt"
         const string zipWithRootedPath = """
@@ -90,7 +90,7 @@ public class TarGzUnpackTests
     }
 
     [TestMethod]
-    public void TarGzUnpacking_Fails_InvalidZipFile()
+    public void TarGzUnpacking_InvalidZipFile()
     {
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var archive = new MemoryStream([1, 2, 3]); // Invalid archive content
@@ -104,7 +104,7 @@ public class TarGzUnpackTests
     }
 
     [TestMethod]
-    public void TarGzUnpacking_ZipSlip_IsDetected()
+    public void TarGzUnpacking_ZipSlip()
     {
         // slip.tar.gz from https://github.com/kevva/decompress/issues/71
         // google "Zip Slip Vulnerability" for details
@@ -129,7 +129,7 @@ public class TarGzUnpackTests
     [DataRow("../currentDir2")]
     [DataRow("../CURRENTDIR")]
     [DataRow("../currentDir\u00AD")] // Soft hyphen is ignored by culture-sensitive comparisons
-    public void TarGzUnpacking_SiblingDirectorySlip_IsDetected(string path)
+    public void TarGzUnpacking_SiblingDirectorySlip(string path)
     {
         path = path.Replace('/', Path.DirectorySeparatorChar);
         var baseDirectory = Path.Combine(Path.GetTempPath(), "currentDir");
