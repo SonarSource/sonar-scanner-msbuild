@@ -24,7 +24,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: [ LTA-2025-1, LTA-2025-4, LTA-2026-1, LATEST_RELEASE, DEV_MsBuild15, DEV_MsBuild16, DEV_MsBuild17, DEV_MsBuild18, DEV_Community, Cloud, Others ]
         include:
           - scenario: LTA-2025-1
             sqVersion: "LATEST_RELEASE[2025.1]"
@@ -89,6 +88,26 @@ jobs:
             textVersion: "2.38.0.10279"             # Bundled version with SQ 2026.1
             tsqlVersion: "1.16.1.9133"              # Bundled version with SQ 2026.1
             xmlVersion: "2.15.0.7513"               # Bundled version with SQ 2026.1
+          - scenario: LTA-2026-5
+            sqVersion: "LATEST_RELEASE[2026.5]"
+            testInclude: "**/server/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+            cfamilyVersion: "6.85.0.102562"         # Bundled version with SQ 2026.5
+            dotnetVersion: "10.34.0.3385"           # Bundled version with SQ 2026.5
+            dreVersion: "2.13.1.21718"              # Bundled version with SQ 2026.5
+            goVersion: "NONE"                       # Go Enterprise is used
+            goEnterpriseVersion: "1.44.0.8969"      # Bundled version with SQ 2026.5
+            iacEnterpriseVersion: "2.18.0.23895"    # Bundled version with SQ 2026.5
+            javaVersion: "8.43.0.47668"             # Bundled version with SQ 2026.5
+            javascriptVersion: "13.9.0.44793"       # Bundled version with SQ 2026.5
+            phpVersion: "4.0.0.16889"               # Bundled version with SQ 2026.5
+            plsqlVersion: "3.24.0.9611"             # Bundled version with SQ 2026.5
+            pythonVersion: "5.31.0.36502"           # Bundled version with SQ 2026.5
+            rubyVersion: "NONE"                     # Old Slang-based plugin, not used anymore
+            textVersion: "2.51.0.13430"             # Bundled version with SQ 2026.5
+            tsqlVersion: "1.20.0.9447"              # Bundled version with SQ 2026.5
+            xmlVersion: "2.19.0.8138"               # Bundled version with SQ 2026.5
           - scenario: LATEST_RELEASE
             testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_18_PATH
