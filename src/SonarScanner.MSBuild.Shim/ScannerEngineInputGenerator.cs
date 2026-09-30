@@ -31,10 +31,9 @@ public class ScannerEngineInputGenerator
     internal const string ReportFilePathsKeyCS = "sonar.cs.roslyn.reportFilePaths";
     internal const string ReportFilePathsKeyVB = "sonar.vbnet.roslyn.reportFilePaths";
     internal const string ProjectOutPathsKeyCS = "sonar.cs.analyzer.projectOutPaths";
-
-    private const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
-    private const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
-    private const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
+    internal const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
+    internal const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
+    internal const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
 
     private readonly AnalysisConfig analysisConfig;
     private readonly IRuntime runtime;
@@ -77,22 +76,16 @@ public class ScannerEngineInputGenerator
     public static bool IsTelemetryPaths(string propertyKey) =>
         propertyKey == TelemetryPathsKeyCS || propertyKey == TelemetryPathsKeyVB;
 
-    public virtual AnalysisResult GenerateResult(ProjectInfo[] projects, DateTimeOffset startTime)
+    public virtual ScannerEngineInput Generate(ProjectInfo[] projects, DateTimeOffset startTime)
     {
         if (!projects.Any())
         {
             runtime.LogError(Resources.ERR_NoProjectInfoFilesFound);
-            return new([]);
+            return null;
         }
         var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
         FixEncoding(projects, analysisProperties);
-        var allProjects = projects.ToProjectData(runtime);
-        return new(allProjects, GenerateEngineInput(analysisConfig, analysisProperties, allProjects, startTime));
-    }
-
-    internal ScannerEngineInput GenerateEngineInput(AnalysisConfig analysisConfig, AnalysisProperties analysisProperties, ProjectData[] allProjects, DateTimeOffset startTime)
-    {
-        var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
+        var validProjects = projects.ToProjectData(runtime).Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
         {
             runtime.LogError(Resources.ERR_NoValidProjectInfoFiles);

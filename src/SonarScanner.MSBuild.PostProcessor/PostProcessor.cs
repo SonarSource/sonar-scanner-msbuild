@@ -67,32 +67,25 @@ public class PostProcessor
             return false;   // logging already done
         }
 
-        var analysisResult = CreateAnalysisResult(startTime, config, cmdLineArgs);
-        if (analysisResult.ScannerEngineInput is null)
+        var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
+        sarifFixer.FixReports(projects);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
+        if (scannerEngineInputGenerator.Generate(projects, startTime) is { } input)
         {
-            return false;
+            // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
+            runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = ProcessCoverageReport(config, settings, input);
+            runtime.Telemetry.Write(settings.SonarOutputDirectory);
+            DumpScannerEngineInput(settings, input);
+            return sonarEngine.Execute(config, input.ToString(), cmdLineArgs);
         }
         else
         {
-            // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
-            runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = ProcessCoverageReport(config, settings, analysisResult);
-            runtime.Telemetry.Write(settings.SonarOutputDirectory);
-            DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
-            return sonarEngine.Execute(config, analysisResult.ScannerEngineInput.ToString(), cmdLineArgs);
+            return false;
         }
     }
 
     internal void SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
         this.scannerEngineInputGenerator = scannerEngineInputGenerator;
-
-    private AnalysisResult CreateAnalysisResult(DateTimeOffset startTime, AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
-    {
-        var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
-        sarifFixer.FixReports(projects);
-        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = scannerEngineInputGenerator.GenerateResult(projects, startTime);
-        return result;
-    }
 
     private void LogStartupSettings(AnalysisConfig config, BuildSettings settings)
     {
@@ -170,15 +163,15 @@ public class PostProcessor
         return true;
     }
 
-    private bool ProcessCoverageReport(AnalysisConfig config, BuildSettings settings, AnalysisResult analysisResult)
+    private bool ProcessCoverageReport(AnalysisConfig config, BuildSettings settings, ScannerEngineInput scannerEngineInput)
     {
 #if NETFRAMEWORK
         if (settings.IsAzureDevOps)
         {
             runtime.LogInfo(Resources.MSG_ConvertingCoverageReports);
             var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
-            analysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
-            analysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
+            scannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
+            scannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
             return additionalProperties.CoverageConversionPerformed;
         }
 #endif
