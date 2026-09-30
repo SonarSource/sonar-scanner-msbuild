@@ -25,7 +25,7 @@ public sealed class CachedDownloaderTests : IDisposable
 {
     private const string ExpectedSha = "sha256";
     private const string TempFileName = "xFirst.rnd";
-    private static readonly FileDescriptor FileDescriptor = new("someFile.jar", "sha256");
+    private static readonly FileDescriptor FileDescriptor = new("someFile.jar", ExpectedSha);
     private static readonly string SonarUserHome = Path.Combine("home", ".sonar");
     private static readonly string SonarUserHomeCache = Path.Combine(SonarUserHome, "cache");
     private static readonly string DownloadPath = Path.Combine(SonarUserHomeCache, ExpectedSha);
@@ -294,6 +294,32 @@ public sealed class CachedDownloaderTests : IDisposable
         var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
         result.Should().BeOfType<DownloadError>().Which.Message
             .Should().Be($"The directory '{DownloadPath}' could not be created.");
+    }
+
+    [TestMethod]
+    [DataRow("../someFile.jar")]
+    [DataRow("/tmp/someFile.jar")]
+    [DataRow("../SHA256/someFile.jar")]
+    [DataRow("../sha256\u00AD/someFile.jar")]
+    public async Task DownloadFileAsync_FileLocationOutsideCache(string fileName)
+    {
+        var result = await new CachedDownloader(runtime, checksum, new(fileName, ExpectedSha), SonarUserHome)
+            .DownloadFileAsync(() => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+        result.Should().BeOfType<Downloaded>();
+    }
+
+    [TestMethod]
+    [DataRow("../sha256")]
+    [DataRow(".")]
+    [DataRow("")]
+    [DataRow("/tmp")]
+    public async Task DownloadFileAsync_ShaLocationOutsideCache(string sha256)
+    {
+        checksum.ComputeHash(null).ReturnsForAnyArgs(sha256);
+        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        var result = await new CachedDownloader(runtime, checksum, new(FileDescriptor.Filename, sha256), SonarUserHome)
+            .DownloadFileAsync(() => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+        result.Should().BeOfType<Downloaded>();
     }
 
     private async Task<DownloadResult> ExecuteDownloadFileAsync(MemoryStream downloadContent) =>
