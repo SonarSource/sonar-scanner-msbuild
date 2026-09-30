@@ -80,6 +80,61 @@ public class ArchiveDownloaderTests
     }
 
     [TestMethod]
+    [DataRow("../../../targetFileInArchive.exe")]
+    [DataRow("/tmp/targetFileInArchive.exe")]
+    [DataRow("../../../CACHE/targetFileInArchive.exe")]
+    [DataRow("../../../cache\u00AD/targetFileInArchive.exe")]
+    public async Task Download_TargetFileOutsideCache(string targetFilePath)
+    {
+        runtime.File.Exists(null).ReturnsForAnyArgs(true);
+        var result = await ExecuteDownloadAndUnpack(descriptor: new(DownloadFileName, Sha256, targetFilePath));
+        result.Should().BeOfType<CacheHit>()
+            .Which.FilePath.Should().Be(Path.Combine(ExtractedPath, targetFilePath));
+    }
+
+    [TestMethod]
+    [DataRow("../../filename.tar.gz")]
+    [DataRow("/tmp/filename.tar.gz")]
+    public async Task Download_FileLocationOutsideCache(string fileName)
+    {
+        runtime.File.Exists(null).ReturnsForAnyArgs(true);
+        var result = await ExecuteDownloadAndUnpack(descriptor: new(fileName, Sha256, TargetFileName));
+        result.Should().BeOfType<CacheHit>()
+            .Which.FilePath.Should().Be(Path.Combine($"{Path.Combine(ShaPath, fileName)}_extracted", TargetFileName));
+    }
+
+    [TestMethod]
+    [DataRow("../sha256")]
+    [DataRow("/tmp")]
+    public async Task Download_ShaLocationOutsideCache(string sha256)
+    {
+        runtime.File.Exists(null).ReturnsForAnyArgs(true);
+        var result = await ExecuteDownloadAndUnpack(descriptor: new(DownloadFileName, sha256, TargetFileName));
+        result.Should().BeOfType<CacheHit>()
+            .Which.FilePath.Should().Be(Path.Combine(SonarCache, sha256, ExtractedFolderName, TargetFileName));
+    }
+
+    [TestMethod]
+    [DataRow("../../targetFileInArchive.exe")]
+    [DataRow("../../../sha256/sub/filename.tar.gz_extracted/targetFileInArchive.exe")]
+    public async Task Unpack_TargetFileOutsideTempExtractionPath(string targetFilePath)
+    {
+        var fileName = "sub/filename.tar.gz";
+        var tempExtractionPath = Path.Combine(ShaPath, "randomForArchiveDownloader");
+        var archiveExtractionPath = $"{Path.Combine(ShaPath, fileName)}_extracted";
+        runtime.Directory.GetRandomFileName().Returns("randomForCachedDownloader", "randomForArchiveDownloader");
+        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        var tempFileStream = new MemoryStream();
+        runtime.File.Open(Path.Combine(ShaPath, "randomForCachedDownloader")).Returns(tempFileStream);
+        checksum.ComputeHash(tempFileStream).Returns(Sha256);
+        runtime.File.Exists(Path.Combine(tempExtractionPath, targetFilePath)).Returns(true);
+
+        var result = await ExecuteDownloadAndUnpack(descriptor: new(fileName, Sha256, targetFilePath));
+        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(Path.Combine(archiveExtractionPath, targetFilePath));
+        runtime.Directory.Received(1).Move(tempExtractionPath, archiveExtractionPath);
+    }
+
+    [TestMethod]
     public async Task Download_CreateUnpackerFails_ReturnsError()
     {
         unpackerFactory.Create("filename.tar.gz").ReturnsNull();
