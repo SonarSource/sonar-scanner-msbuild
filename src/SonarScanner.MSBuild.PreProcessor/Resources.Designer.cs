@@ -214,6 +214,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The file &apos;{0}&apos; with checksum &apos;{1}&apos; must not resolve to a path outside of the cache directory &apos;{2}&apos;..
+        /// </summary>
+        internal static string ERR_FileNotInCache {
+            get {
+                return ResourceManager.GetString("ERR_FileNotInCache", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unauthorized: Access is denied due to invalid credentials. Please check the authentication parameters..
         /// </summary>
         internal static string ERR_InvalidCredentials {

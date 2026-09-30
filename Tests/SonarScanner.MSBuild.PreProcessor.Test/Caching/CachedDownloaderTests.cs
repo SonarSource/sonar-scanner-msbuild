@@ -305,7 +305,10 @@ public sealed class CachedDownloaderTests : IDisposable
     {
         var result = await new CachedDownloader(runtime, checksum, new(fileName, ExpectedSha), SonarUserHome)
             .DownloadFileAsync(() => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
-        result.Should().BeOfType<Downloaded>();
+        result.Should().BeOfType<DownloadError>()
+            .Which.Message.Should().Be($"The file '{fileName}' with checksum '{ExpectedSha}' must not resolve to a path outside of the cache directory '{SonarUserHomeCache}'.");
+        runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
+        runtime.File.DidNotReceiveWithAnyArgs().Create(null);
     }
 
     [TestMethod]
@@ -319,7 +322,27 @@ public sealed class CachedDownloaderTests : IDisposable
         runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
         var result = await new CachedDownloader(runtime, checksum, new(FileDescriptor.Filename, sha256), SonarUserHome)
             .DownloadFileAsync(() => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
-        result.Should().BeOfType<Downloaded>();
+        result.Should().BeOfType<DownloadError>()
+            .Which.Message.Should().Be($"The file '{FileDescriptor.Filename}' with checksum '{sha256}' must not resolve to a path outside of the cache directory '{SonarUserHomeCache}'.");
+        runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
+        runtime.File.DidNotReceiveWithAnyArgs().Create(null);
+    }
+
+    [TestMethod]
+    public async Task DownloadFileAsync_InvalidFileLocation()
+    {
+#if NETFRAMEWORK
+        var sha256 = "ab:cd";   // NotSupportedException
+#else
+        var sha256 = "a\0b";    // ArgumentException
+#endif
+        var result = await new CachedDownloader(runtime, checksum, new(FileDescriptor.Filename, sha256), SonarUserHome)
+            .DownloadFileAsync(() => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+        var error = result.Should().BeOfType<DownloadError>().Which;
+        error.Message.Should().Be($"The file '{FileDescriptor.Filename}' with checksum '{sha256}' must not resolve to a path outside of the cache directory '{SonarUserHomeCache}'.");
+        error.Exception.Should().NotBeNull();
+        runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
+        runtime.File.DidNotReceiveWithAnyArgs().Create(null);
     }
 
     private async Task<DownloadResult> ExecuteDownloadFileAsync(MemoryStream downloadContent) =>

@@ -465,8 +465,6 @@ public class ArchiveDownloaderTests
     [TestMethod]
     [DataRow("fileHash", "expectedHash")]
     [DataRow("e3b0c ", "e3b0c")]
-    [DataRow("e3b0c", "e3b0c ")]
-    [DataRow("e3b0c", "")]
     [DataRow("", "e3b0c")]
     public async Task Checksum_DownloadFilesChecksumDoesNotMatchExpectation(string fileHashValue, string expectedHashValue)
     {

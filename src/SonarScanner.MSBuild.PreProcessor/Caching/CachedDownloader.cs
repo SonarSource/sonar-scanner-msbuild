@@ -25,6 +25,7 @@ public class CachedDownloader
     private readonly IChecksum checksum;
     private readonly IRuntime runtime;
     private readonly FileDescriptor fileDescriptor;
+    private readonly string cacheRoot;
 
     public string FileRootPath { get; }
     public string CacheLocation { get; }
@@ -35,12 +36,17 @@ public class CachedDownloader
         this.checksum = checksum;
         this.fileDescriptor = fileDescriptor;
 
-        FileRootPath = Path.Combine(sonarUserHome, "cache", fileDescriptor.Sha256);
+        cacheRoot = Path.Combine(sonarUserHome, "cache");
+        FileRootPath = Path.Combine(cacheRoot, fileDescriptor.Sha256);
         CacheLocation = Path.Combine(FileRootPath, fileDescriptor.Filename);
     }
 
     public virtual async Task<DownloadResult> DownloadFileAsync(Func<Task<Stream>> download)
     {
+        if (ValidateCacheLocation() is { } cacheLocationError)
+        {
+            return cacheLocationError;
+        }
         if (EnsureDirectoryExists() is { } createDirectoryError)
         {
             return createDirectoryError;
@@ -51,6 +57,22 @@ public class CachedDownloader
         }
         runtime.LogDebug(Resources.MSG_Downloader_CacheMiss, CacheLocation);
         return await DownloadFile(download);
+    }
+
+    private DownloadError ValidateCacheLocation()
+    {
+        var message = string.Format(Resources.ERR_FileNotInCache, fileDescriptor.Filename, fileDescriptor.Sha256, cacheRoot);
+        try
+        {
+            return new FileInfo(FileRootPath).IsInDirectory(new DirectoryInfo(cacheRoot), StringComparison.Ordinal)
+                && new FileInfo(CacheLocation).IsInDirectory(new DirectoryInfo(FileRootPath), StringComparison.Ordinal)
+                    ? null
+                    : new DownloadError(message);
+        }
+        catch (Exception e)
+        {
+            return new DownloadError(message, e);
+        }
     }
 
     private DownloadError EnsureDirectoryExists()
