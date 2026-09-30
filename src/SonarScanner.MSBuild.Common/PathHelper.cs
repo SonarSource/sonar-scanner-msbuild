@@ -22,21 +22,6 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class PathHelper
 {
-    public static string WithTrailingDirectorySeparator(this DirectoryInfo directory)
-    {
-        _ = directory ?? throw new ArgumentNullException(nameof(directory));
-        var lastChar = directory.FullName.Last();
-        return lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar
-            ? directory.FullName
-            : directory.FullName + Path.DirectorySeparatorChar;
-    }
-
-    public static bool IsInDirectory(this FileInfo file, DirectoryInfo directory)
-    {
-        var normalizedDirectoryPath = directory.WithTrailingDirectorySeparator();
-        return file.FullName.StartsWith(normalizedDirectoryPath, FileInfoEqualityComparer.ComparisonType);
-    }
-
     /// <summary>
     /// Returns longest common root path.
     /// In case paths do not share common root, path from most common drive is selected.
@@ -47,7 +32,7 @@ public static class PathHelper
         {
             return null;
         }
-        var allPathParts = paths.Select(GetParts).ToArray();
+        var allPathParts = paths.Select(DirectoryInfoExtensions.GetParts).ToArray();
         if (BestRoot(allPathParts, pathComparer) is { } bestRoot)
         {
             var bestRootPathParts = allPathParts.Where(x => pathComparer.Equals(bestRoot, x[0])).ToArray();
@@ -58,19 +43,6 @@ public static class PathHelper
         {
             return null;
         }
-    }
-
-    public static string[] GetParts(this DirectoryInfo directory)
-    {
-        _ = directory ?? throw new ArgumentNullException(nameof(directory));
-        var parts = new List<string>();
-        while (directory.Parent != null)
-        {
-            parts.Add(directory.Name);
-            directory = directory.Parent;
-        }
-        parts.Add(directory.Name);
-        return parts.AsEnumerable().Reverse().ToArray();
     }
 
     private static string BestRoot(string[][] pathParts, StringComparer pathComparer)
