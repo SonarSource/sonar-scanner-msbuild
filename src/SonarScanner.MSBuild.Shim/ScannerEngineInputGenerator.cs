@@ -179,7 +179,7 @@ public class ScannerEngineInputGenerator
             runtime.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
             return workingDirectory;
         }
-        else if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
+        else if (projectPaths.BestCommonPrefix(pathComparer) is { } commonPrefix)
         {
             runtime.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
             if (IsFileSystemRoot(commonPrefix))

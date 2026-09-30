@@ -22,25 +22,77 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class DirectoryInfoExtensions
 {
-    public static string WithTrailingDirectorySeparator(this DirectoryInfo directory)
+    extension(DirectoryInfo directory)
     {
-        _ = directory ?? throw new ArgumentNullException(nameof(directory));
-        var lastChar = directory.FullName.Last();
-        return lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar
-            ? directory.FullName
-            : directory.FullName + Path.DirectorySeparatorChar;
+        public string WithTrailingDirectorySeparator()
+        {
+            _ = directory ?? throw new ArgumentNullException(nameof(directory));
+            var lastChar = directory.FullName.Last();
+            return lastChar == Path.DirectorySeparatorChar || lastChar == Path.AltDirectorySeparatorChar
+                ? directory.FullName
+                : directory.FullName + Path.DirectorySeparatorChar;
+        }
+
+        public string[] Parts()
+        {
+            _ = directory ?? throw new ArgumentNullException(nameof(directory));
+            var parts = new List<string>();
+            while (directory.Parent is not null)
+            {
+                parts.Add(directory.Name);
+                directory = directory.Parent;
+            }
+            parts.Add(directory.Name);
+            return parts.AsEnumerable().Reverse().ToArray();
+        }
     }
 
-    public static string[] Parts(this DirectoryInfo directory)
+    extension(IEnumerable<DirectoryInfo> directories)
     {
-        _ = directory ?? throw new ArgumentNullException(nameof(directory));
-        var parts = new List<string>();
-        while (directory.Parent is not null)
+        /// <summary>
+        /// Returns longest common root path.
+        /// In case paths do not share common root, path from most common drive is selected.
+        /// </summary>
+        public DirectoryInfo BestCommonPrefix(StringComparer pathComparer)
         {
-            parts.Add(directory.Name);
-            directory = directory.Parent;
+            if (directories is null || pathComparer is null)
+            {
+                return null;
+            }
+            var allPathParts = directories.Select(DirectoryInfoExtensions.Parts).ToArray();
+            if (BestRoot(allPathParts, pathComparer) is { } bestRoot)
+            {
+                var bestRootPathParts = allPathParts.Where(x => pathComparer.Equals(bestRoot, x[0])).ToArray();
+                var shortest = bestRootPathParts.OrderBy(x => x.Length).First();
+                return new DirectoryInfo(Path.Combine(shortest.TakeWhile((x, index) => bestRootPathParts.All(parts => pathComparer.Equals(parts[index], x))).ToArray()));
+            }
+            else
+            {
+                return null;
+            }
         }
-        parts.Add(directory.Name);
-        return parts.AsEnumerable().Reverse().ToArray();
+    }
+
+    private static string BestRoot(string[][] pathParts, StringComparer pathComparer)
+    {
+        var roots = pathParts.Select(x => x[0])
+            .GroupBy(x => x, pathComparer)
+            .Select(x => new { Root = x.Key, Count = x.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToArray();
+        if (roots.Length == 0)
+        {
+            return null;
+        }
+        else if (roots.Length == 1)
+        {
+            return roots[0].Root;
+        }
+        else    // Paths do not share common root. Choose the best one, if there's a clear winner.
+        {
+            return roots[0].Count > roots[1].Count
+                ? roots[0].Root
+                : null;
+        }
     }
 }

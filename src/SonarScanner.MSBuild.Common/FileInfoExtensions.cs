@@ -22,12 +22,16 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class FileInfoExtensions
 {
-    public static bool IsInDirectory(this FileInfo file, DirectoryInfo directory) =>
-        file.IsInDirectory(directory, FileInfoEqualityComparer.ComparisonType);
-
-    public static bool IsInDirectory(this FileInfo file, DirectoryInfo directory, StringComparison comparison)
+    extension(FileInfo file)
     {
-        var normalizedDirectoryPath = directory.WithTrailingDirectorySeparator();
-        return file.FullName.StartsWith(normalizedDirectoryPath, comparison);
+        public bool IsInDirectory(DirectoryInfo directory) =>
+            file.IsInDirectory(directory, FileInfoEqualityComparer.ComparisonType);
+
+        public bool IsInDirectory(DirectoryInfo directory, StringComparison comparison)
+        {
+            var normalizedDirectoryPath = directory.WithTrailingDirectorySeparator();
+            return file.FullName.StartsWith(normalizedDirectoryPath, comparison);
+        }
+
     }
 }
