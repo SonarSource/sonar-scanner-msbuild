@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '17 2 * * 1-5' # Mon-Fri 2:17 AM UTC
   push:
-    branches: [master, 'branch-*', 'feature/*']
+    branches: [master, 'branch-*', 'feature/*', 'dogfood-*']
   pull_request:
   workflow_dispatch:
 
@@ -426,6 +426,6 @@ jobs:
         uses: SonarSource/core-languages-tooling-public/common-actions/slack-notify@v1
         with:
           slack-channel: squad-corelang-notifs
-          branch-patterns: ${{ format('{0},branch-*,dogfood-*', github.event.repository.default_branch) }}
+          branch-patterns: ${{ format('{0},branch-*,dogfood-*', github.event.repository.default_branch || 'master') }}
           github-token: ${{ github.token }}
           branch: ${{ github.ref_name }}
