@@ -886,7 +886,7 @@ public partial class ScannerEngineInputGeneratorTest
             }
             else
             {
-                settings.Add(new Property(key, path));
+                AddSetting(key, path);
             }
             return path;
         }
