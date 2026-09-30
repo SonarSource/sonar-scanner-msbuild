@@ -26,10 +26,10 @@ runs:
           Where-Object { $null -ne $_.postUpgradeTasks -and $null -ne $_.constraints.dotnet } |
           Select-Object -First 1
         $RenovateVersion = $RenovateRule.constraints.dotnet
-        $InstalledVersion = dotnet --version
+        $InstalledSdks = dotnet --list-sdks | ForEach-Object { ($_ -split ' ')[0] }
 
-        if ($RenovateVersion -ne $GlobalVersion -or $InstalledVersion -ne $GlobalVersion) {
-          throw "SDK version mismatch: Renovate=$RenovateVersion, global.json=$GlobalVersion, installed=$InstalledVersion"
+        if ($RenovateVersion -ne $GlobalVersion -or -not ($InstalledSdks -contains $GlobalVersion)) {
+          throw "SDK version mismatch: Renovate=$RenovateVersion, global.json=$GlobalVersion, installed SDKs=$($InstalledSdks -join ', ')"
         }
 
     - name: Version and secrets
