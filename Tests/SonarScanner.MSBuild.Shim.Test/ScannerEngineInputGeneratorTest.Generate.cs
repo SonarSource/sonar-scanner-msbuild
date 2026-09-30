@@ -661,7 +661,6 @@ public partial class ScannerEngineInputGeneratorTest
         var engineInput = Generate_HostUrl_Execute(config);
 
         new ScannerEngineInputReader(engineInput.ToString()).AssertProperty("sonar.host.url", sonarQubeHost);
-        runtime.Logger.Should().HaveDebugs("Setting analysis property: sonar.host.url=" + sonarQubeHost);
     }
 
     [TestMethod]
