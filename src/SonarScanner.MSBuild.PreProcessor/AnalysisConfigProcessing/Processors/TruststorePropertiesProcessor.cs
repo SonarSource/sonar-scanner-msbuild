@@ -21,8 +21,7 @@
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 /// <summary>
-/// Map property name to another property name and/or value to pass them through the SONAR_SCANNER_OPTS
-/// environment variable to Scanner CLI 5.
+/// Map property name to another property name and/or value to pass them through the SONAR_SCANNER_OPTS environment variable to the Scanner Engine.
 /// </summary>
 public class TruststorePropertiesProcessor : AnalysisConfigProcessorBase
 {
@@ -86,19 +85,10 @@ public class TruststorePropertiesProcessor : AnalysisConfigProcessorBase
     private static string ConvertToJavaPath(string path) =>
         path?.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
-    // We need to make sure that the value is surrounded by quotes in the case it
-    // contains spaces.
-    // If the value is surrounded by quotes, we assume that all the characters are
-    // properly escaped if needed.
-    private string EnsureSurroundedByQuotes(string str)
-    {
-        if (str is null
-            || runtime.OperatingSystem.IsUnix()
-            || (str.StartsWith("\"") && str.EndsWith("\"")))
-        {
-            return str;
-        }
-
-        return $@"""{str}""";
-    }
+    // We need to make sure that the value is surrounded by quotes in the case it contains spaces.
+    // If the value is surrounded by quotes, we assume that all the characters are properly escaped if needed.
+    private string EnsureSurroundedByQuotes(string value) =>
+        value is null || runtime.OperatingSystem.IsUnix() || (value.StartsWith("\"") && value.EndsWith("\""))
+            ? value
+            : $@"""{value}""";
 }

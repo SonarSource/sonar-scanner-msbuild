@@ -83,7 +83,13 @@ public class ScannerEngineInputGenerator
             runtime.LogError(Resources.ERR_NoProjectInfoFilesFound);
             return null;
         }
-        var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
+        var analysisProperties = new AnalysisProperties(analysisConfig.CreatePropertyProvider(includeServerSettings: false, runtime.Logger)
+            .GetAllProperties()
+            .Where(x => !x.ContainsSensitiveData()));
+        if (!analysisProperties.Exists(x => x.Id == SonarProperties.HostUrl))
+        {
+            analysisProperties.Add(new(SonarProperties.HostUrl, analysisConfig.SonarQubeHostUrl));
+        }
         FixEncoding(projects, analysisProperties);
         var validProjects = projects.ToProjectData(runtime).Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)

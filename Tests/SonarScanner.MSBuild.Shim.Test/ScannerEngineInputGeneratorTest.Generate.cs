@@ -405,36 +405,6 @@ public partial class ScannerEngineInputGeneratorTest
         runtime.Logger.Warnings.Should().BeEmpty();
     }
 
-    [TestMethod] // Old VS Bootstrapper should be forceably disabled: https://jira.sonarsource.com/browse/SONARMSBRU-122
-    public void Generate_VSBootstrapperIsDisabled()
-    {
-        var input = GenerateScannerInputAndAssert("disableBootstrapper");
-        CreateInputReader(input).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Logger.Should().HaveNoWarnings();
-    }
-
-    [TestMethod]
-    public void Generate_VSBootstrapperIsDisabled_OverrideUserSettings_DifferentValue()
-    {
-        // Try to explicitly enable the setting
-        var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "true");
-
-        var input = GenerateScannerInputAndAssert("disableBootstrapperDiff", bootstrapperProperty);
-        CreateInputReader(input).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Logger.Should().HaveWarningOnce("Overriding analysis property. Effective value: sonar.visualstudio.enable=false");
-    }
-
-    [TestMethod]
-    public void Generate_VSBootstrapperIsDisabled_OverrideUserSettings_SameValue()
-    {
-        var bootstrapperProperty = new Property(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        var input = GenerateScannerInputAndAssert("disableBootstrapperSame", bootstrapperProperty);
-
-        CreateInputReader(input).AssertProperty(AnalysisConfigExtensions.VSBootstrapperPropertyKey, "false");
-        runtime.Logger.Should().HaveDebugs("Analysis property is already correctly set: sonar.visualstudio.enable=false")
-            .And.HaveNoWarnings(); // not expecting a warning if the user has supplied the value we want
-    }
-
     [TestMethod]
     public void Generate_AdditionalFiles_EndToEnd()
     {
@@ -691,7 +661,6 @@ public partial class ScannerEngineInputGeneratorTest
         var engineInput = Generate_HostUrl_Execute(config);
 
         new ScannerEngineInputReader(engineInput.ToString()).AssertProperty("sonar.host.url", sonarQubeHost);
-        runtime.Logger.Should().HaveDebugs("Setting analysis property: sonar.host.url=" + sonarQubeHost);
     }
 
     [TestMethod]

@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
-
 namespace SonarScanner.MSBuild.Common;
 
 public enum LogLevel
@@ -48,16 +46,9 @@ public class ProcessRunnerArguments
 
     public string WorkingDirectory { get; set; }
 
-    public int TimeoutInMilliseconds { get; set; }
-
     public bool LogOutput { get; set; } = true;
 
     public string EscapedArguments => CmdLineArgs is null ? null : string.Join(" ", CmdLineArgs.Select(x => x.EscapeArgument()));
-
-    /// <summary>
-    /// Additional environments variables that should be set/overridden for the process. Can be null.
-    /// </summary>
-    public IDictionary<string, string> EnvironmentVariables { get; set; }
 
     public OutputToLogMessage OutputToLogMessage { get; set; }
 
@@ -79,7 +70,6 @@ public class ProcessRunnerArguments
     {
         Contract.ThrowIfNullOrWhitespace(exeName, nameof(exeName));
         ExeName = exeName;
-        TimeoutInMilliseconds = Timeout.Infinite;
         OutputToLogMessage = (stdOut, outputLine) =>
         {
             var logLevel = stdOut
