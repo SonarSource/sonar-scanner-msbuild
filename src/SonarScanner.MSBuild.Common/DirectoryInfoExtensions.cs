@@ -31,11 +31,11 @@ public static class DirectoryInfoExtensions
             : directory.FullName + Path.DirectorySeparatorChar;
     }
 
-    public static string[] GetParts(this DirectoryInfo directory)
+    public static string[] Parts(this DirectoryInfo directory)
     {
         _ = directory ?? throw new ArgumentNullException(nameof(directory));
         var parts = new List<string>();
-        while (directory.Parent != null)
+        while (directory.Parent is not null)
         {
             parts.Add(directory.Name);
             directory = directory.Parent;

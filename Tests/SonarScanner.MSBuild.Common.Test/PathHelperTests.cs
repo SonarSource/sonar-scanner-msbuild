@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.Common.Test;
 public class PathHelperTests
 {
     [TestMethod]
-    public void BestCommonPrefix_WhenParametersAreNull_ReturnsNull()
+    public void BestCommonPrefix_ParametersAreNull()
     {
         PathHelper.BestCommonPrefix(null, StringComparer.Ordinal).Should().BeNull();
         PathHelper.BestCommonPrefix(new DirectoryInfo[] { }, null).Should().BeNull();
@@ -32,7 +32,7 @@ public class PathHelperTests
     }
 
     [TestMethod]
-    public void BestCommonPrefix_WhenEmpty_ReturnsNull() =>
+    public void BestCommonPrefix_Empty() =>
         PathHelper.BestCommonPrefix([], StringComparer.Ordinal).Should().BeNull();
 
     [TestCategory(TestCategories.NoLinux)]

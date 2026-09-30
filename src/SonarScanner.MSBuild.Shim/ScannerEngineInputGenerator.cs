@@ -351,13 +351,9 @@ public class ScannerEngineInputGenerator
             {
                 return keySuffixCS;
             }
-            else if (ProjectLanguages.IsVbProject(project.Project.ProjectLanguage))
-            {
-                return keySuffixVB;
-            }
             else
             {
-                return null;
+                return ProjectLanguages.IsVbProject(project.Project.ProjectLanguage) ? keySuffixVB : null;
             }
         }
     }

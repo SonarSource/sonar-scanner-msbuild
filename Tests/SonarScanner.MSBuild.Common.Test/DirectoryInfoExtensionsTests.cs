@@ -24,7 +24,7 @@ namespace SonarScanner.MSBuild.Common.Test;
 public class DirectoryInfoExtensionsTests
 {
     [TestMethod]
-    public void WithTrailingSeparator_WhenNull_ThrowsArgumentNullException() =>
+    public void WithTrailingSeparator_Null() =>
         ((Action)(() => DirectoryInfoExtensions.WithTrailingDirectorySeparator(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("directory");
 
     [TestCategory(TestCategories.NoLinux)]
@@ -33,7 +33,7 @@ public class DirectoryInfoExtensionsTests
     [DataRow(@"C:\SomeDirectory", @"C:\SomeDirectory\")]
     [DataRow(@"C:\SomeDirectory\", @"C:\SomeDirectory\")]
     [DataRow(@"C:\SomeDirectory/", @"C:\SomeDirectory\")]
-    public void WithTrailingSeparator_WhenEndsWithBackslash_ReturnsDirectoryFullName_Windows(string directory, string expected) =>
+    public void WithTrailingSeparator_EndsWithBackslash_Windows(string directory, string expected) =>
         new DirectoryInfo(directory).WithTrailingDirectorySeparator().Should().Be(expected);
 
     [TestCategory(TestCategories.NoWindows)]
@@ -41,11 +41,11 @@ public class DirectoryInfoExtensionsTests
     [DataRow(@"/mnt/c/SomeDirectory", @"/mnt/c/SomeDirectory/")]
     [DataRow(@"/mnt/c/SomeDirectory/", @"/mnt/c/SomeDirectory/")]
     [DataRow(@"/mnt/c/SomeDirectory\", @"/mnt/c/SomeDirectory\/")]
-    public void WithTrailingSeparator_WhenEndsWithBackslash_ReturnsDirectoryFullName_Unix(string directory, string expected) =>
+    public void WithTrailingSeparator_EndsWithBackslash_Unix(string directory, string expected) =>
         new DirectoryInfo(directory).WithTrailingDirectorySeparator().Should().Be(expected);
 
     [TestMethod]
-    public void WithTrailingSeparator_WhenDoesNotEndWithSeparatorAndContainsDirectorySeparatorChar_ReturnsStringWithRightEnd()
+    public void WithTrailingSeparator_DoesNotEndWithSeparatorAndContainsDirectorySeparatorChar()
     {
         var directory = new DirectoryInfo("C:" + Path.DirectorySeparatorChar + "SomeDirectory" + Path.DirectorySeparatorChar + "Foo");
         var result = DirectoryInfoExtensions.WithTrailingDirectorySeparator(directory);
@@ -54,7 +54,7 @@ public class DirectoryInfoExtensionsTests
     }
 
     [TestMethod]
-    public void WithTrailingSeparator_WhenDoesNotEndWithSeparatorAndContainsAltDirectorySeparatorChar_ReturnsStringWithRightEnd()
+    public void WithTrailingSeparator_DoesNotEndWithSeparatorAndContainsAltDirectorySeparatorChar()
     {
         var directory = new DirectoryInfo("C:" + Path.AltDirectorySeparatorChar + "SomeDirectory" + Path.AltDirectorySeparatorChar + "Foo");
         var result = DirectoryInfoExtensions.WithTrailingDirectorySeparator(directory);
@@ -63,7 +63,7 @@ public class DirectoryInfoExtensionsTests
     }
 
     [TestMethod]
-    public void WithTrailingSeparator_WhenDoesNotEndWithSeparatorAndContainsMixedSeparators_ReturnsStringWithRightEnd()
+    public void WithTrailingSeparator_DoesNotEndWithSeparatorAndContainsMixedSeparators()
     {
         var directory = new DirectoryInfo("C:" + Path.DirectorySeparatorChar + "SomeDirectory" + Path.AltDirectorySeparatorChar + "Foo");
         var result = DirectoryInfoExtensions.WithTrailingDirectorySeparator(directory);
@@ -72,7 +72,7 @@ public class DirectoryInfoExtensionsTests
     }
 
     [TestMethod]
-    public void WithTrailingSeparator_WhenDoesNotEndWithSeparatorAndContainsNoSeparator_ReturnsStringWithDirectorySeparatorChar()
+    public void WithTrailingSeparator_DoesNotEndWithSeparatorAndContainsNoSeparator()
     {
         var directory = new DirectoryInfo("SomeDirectory");
         var result = DirectoryInfoExtensions.WithTrailingDirectorySeparator(directory);
@@ -81,8 +81,8 @@ public class DirectoryInfoExtensionsTests
     }
 
     [TestMethod]
-    public void GetParts_WhenNull_ThrowsArgumentNullException() =>
-        ((Action)(() => DirectoryInfoExtensions.GetParts(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("directory");
+    public void Parts_Null() =>
+        ((Action)(() => DirectoryInfoExtensions.Parts(null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("directory");
 
     [TestCategory(TestCategories.NoLinux)]
     [TestCategory(TestCategories.NoMacOS)]
@@ -90,14 +90,14 @@ public class DirectoryInfoExtensionsTests
     [DataRow(@"C:\", @"C:\")]
     [DataRow(@"C:\Foo\Bar", @"C:\", "Foo", "Bar")]
     [DataRow(@"C:\Foo\Bar\File.cs", @"C:\", "Foo", "Bar", "File.cs")]
-    public void GetParts_ReturnsTheExpectedValues_Windows(string directory, params string[] parts) =>
-        new DirectoryInfo(directory).GetParts().Should().BeEquivalentTo(parts);
+    public void Parts_Windows(string directory, params string[] parts) =>
+        new DirectoryInfo(directory).Parts().Should().BeEquivalentTo(parts);
 
     [TestCategory(TestCategories.NoWindows)]
     [TestMethod]
     [DataRow("/mnt/c/", "/", "mnt", "c")]
     [DataRow("/mnt/c/Foo/Bar", "/", "mnt", "c", "Foo", "Bar")]
     [DataRow("/mnt/c/Foo/Bar/File.cs", "/", "mnt", "c", "Foo", "Bar", "File.cs")]
-    public void GetParts_ReturnsTheExpectedValues_Unix(string directory, params string[] parts) =>
-        new DirectoryInfo(directory).GetParts().Should().BeEquivalentTo(parts);
+    public void Parts_Unix(string directory, params string[] parts) =>
+        new DirectoryInfo(directory).Parts().Should().BeEquivalentTo(parts);
 }

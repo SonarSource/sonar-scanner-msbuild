@@ -38,7 +38,7 @@ public class FileInfoExtensionsTests
     [DataRow(@"C:\äöü\File.cs", @"C:\äöü")]
     [DataRow("C:\\Foo_\u00e4öü\\File.cs", "C:\\Foo_a\u0308öü")] // https://www.compart.com/en/unicode/U+00E4 = ä; https://www.compart.com/en/unicode/U+0308 = ̈ (combining diaeresis)
     [DataRow("C:\\Foo_\u00e4öü\\File.cs", "C:\\Foo_\u0041\u0308öü")] // https://www.compart.com/en/unicode/U+0041 = A
-    public void IsInDirectory_Windows_True(string file, string directory) =>
+    public void IsInDirectory_True_Windows(string file, string directory) =>
         new FileInfo(file).IsInDirectory(new DirectoryInfo(directory)).Should().BeTrue();
 
     [TestCategory(TestCategories.NoLinux)]
@@ -46,7 +46,7 @@ public class FileInfoExtensionsTests
     [TestMethod]
     [DataRow(@"C:\SrcFile.cs", @"C:\Src")]
     [DataRow(@"C:\Src\File.cs", @"C:\Src\Bar")]
-    public void IsInDirectory_Windows_False(string file, string directory) =>
+    public void IsInDirectory_False_Windows(string file, string directory) =>
         new FileInfo(file).IsInDirectory(new DirectoryInfo(directory)).Should().BeFalse();
 
     [TestCategory(TestCategories.NoWindows)]
@@ -58,14 +58,14 @@ public class FileInfoExtensionsTests
     [DataRow(@"~Foo/File.cs", "~Foo")]
     [DataRow(@"/mnt/c/Src/Bar/../File.cs", @"/mnt/c/Src")]
     [DataRow(@"/mnt/c/Src/File.cs", @"/mnt/c/Src/Bar/..")]
-    public void IsInDirectory_Unix_True(string file, string directory) =>
+    public void IsInDirectory_True_Unix(string file, string directory) =>
         new FileInfo(file).IsInDirectory(new DirectoryInfo(directory)).Should().BeTrue();
 
     [TestCategory(TestCategories.NoWindows)]
     [TestMethod]
     [DataRow(@"/mnt/c/SrcFile.cs", @"/mnt/c/Src")]
     [DataRow(@"/mnt/c/Src/File.cs", @"/mnt/c/Src/Bar")]
-    public void IsInDirectory_Unix_False(string file, string directory) =>
+    public void IsInDirectory_False_Unix(string file, string directory) =>
         new FileInfo(file).IsInDirectory(new DirectoryInfo(directory)).Should().BeFalse();
 
     [TestMethod]

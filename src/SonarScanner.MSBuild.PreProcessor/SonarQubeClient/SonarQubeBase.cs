@@ -33,7 +33,7 @@ public abstract class SonarQubeBase : IDisposable
     protected readonly string organization;
     protected readonly IRuntime runtime;
 
-    private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
+    private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = [];
     private bool disposed;
 
     public abstract string ServerVersion { get; }

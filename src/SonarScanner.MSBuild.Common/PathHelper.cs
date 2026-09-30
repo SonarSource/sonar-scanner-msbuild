@@ -32,7 +32,7 @@ public static class PathHelper
         {
             return null;
         }
-        var allPathParts = paths.Select(DirectoryInfoExtensions.GetParts).ToArray();
+        var allPathParts = paths.Select(DirectoryInfoExtensions.Parts).ToArray();
         if (BestRoot(allPathParts, pathComparer) is { } bestRoot)
         {
             var bestRootPathParts = allPathParts.Where(x => pathComparer.Equals(bestRoot, x[0])).ToArray();
