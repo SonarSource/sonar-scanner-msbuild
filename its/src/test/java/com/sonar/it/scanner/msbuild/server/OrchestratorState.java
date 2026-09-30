@@ -19,7 +19,6 @@
  */
 package com.sonar.it.scanner.msbuild.server;
 
-import com.google.gson.JsonParser;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
@@ -28,7 +27,7 @@ import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClientFactories;
-import org.sonarqube.ws.client.languages.ListRequest;
+import org.sonarqube.ws.client.qualityprofiles.SearchRequest;
 import org.sonarqube.ws.client.qualityprofiles.SetDefaultRequest;
 import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
@@ -56,11 +55,10 @@ public class OrchestratorState {
         }
         var wsClient = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(server.getUrl()).credentials("admin", "admin").build());
         if (server.getEdition() == Edition.COMMUNITY || server.version().isGreaterThan(2026, 1)) {  // Sonar way comperhansive is available after 2026.1 LTA, somewhere from 2026.4.1+
-          var languages = JsonParser.parseString(wsClient.languages().list(new ListRequest())).getAsJsonObject().getAsJsonArray("languages");
-          for (var language : languages) {
-            wsClient.qualityprofiles().setDefault(new SetDefaultRequest()
-              .setLanguage(language.getAsJsonObject().get("key").getAsString())
-              .setQualityProfile("Sonar way comprehensive"));
+          for (var profile : wsClient.qualityprofiles().search(new SearchRequest()).getProfilesList()) {
+            if (profile.getName().equals("Sonar way comprehensive")) {
+              wsClient.qualityprofiles().setDefault(new SetDefaultRequest().setLanguage(profile.getLanguage()).setQualityProfile(profile.getName()));
+            }
           }
         }
         token = wsClient
