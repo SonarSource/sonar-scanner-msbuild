@@ -88,8 +88,10 @@ public class ArchiveDownloaderTests
     {
         runtime.File.Exists(null).ReturnsForAnyArgs(true);
         var result = await ExecuteDownloadAndUnpack(descriptor: new(DownloadFileName, Sha256, targetFilePath));
-        result.Should().BeOfType<CacheHit>()
-            .Which.FilePath.Should().Be(Path.Combine(ExtractedPath, targetFilePath));
+        result.Should().BeOfType<DownloadError>()
+            .Which.Message.Should().Be($"The cache file path '{Path.Combine(ExtractedPath, targetFilePath)}' is invalid.");
+        runtime.File.DidNotReceiveWithAnyArgs().Exists(null);
+        runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
     }
 
     [TestMethod]
@@ -99,8 +101,10 @@ public class ArchiveDownloaderTests
     {
         runtime.File.Exists(null).ReturnsForAnyArgs(true);
         var result = await ExecuteDownloadAndUnpack(descriptor: new(fileName, Sha256, TargetFileName));
-        result.Should().BeOfType<CacheHit>()
-            .Which.FilePath.Should().Be(Path.Combine($"{Path.Combine(ShaPath, fileName)}_extracted", TargetFileName));
+        result.Should().BeOfType<DownloadError>()
+            .Which.Message.Should().Be($"The cache file path '{Path.Combine($"{Path.Combine(ShaPath, fileName)}_extracted", TargetFileName)}' is invalid.");
+        runtime.File.DidNotReceiveWithAnyArgs().Exists(null);
+        runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
     }
 
     [TestMethod]
@@ -110,8 +114,26 @@ public class ArchiveDownloaderTests
     {
         runtime.File.Exists(null).ReturnsForAnyArgs(true);
         var result = await ExecuteDownloadAndUnpack(descriptor: new(DownloadFileName, sha256, TargetFileName));
-        result.Should().BeOfType<CacheHit>()
-            .Which.FilePath.Should().Be(Path.Combine(SonarCache, sha256, ExtractedFolderName, TargetFileName));
+        result.Should().BeOfType<DownloadError>()
+            .Which.Message.Should().Be($"The cache file path '{Path.Combine(SonarCache, sha256, ExtractedFolderName, TargetFileName)}' is invalid.");
+        runtime.File.DidNotReceiveWithAnyArgs().Exists(null);
+        runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
+    }
+
+    [TestMethod]
+    public async Task Download_InvalidTargetFile()
+    {
+#if NETFRAMEWORK
+        var targetFilePath = "ab:cd";   // NotSupportedException
+#else
+        var targetFilePath = "a\0b";    // ArgumentException
+#endif
+        var result = await ExecuteDownloadAndUnpack(descriptor: new(DownloadFileName, Sha256, targetFilePath));
+        var error = result.Should().BeOfType<DownloadError>().Which;
+        error.Message.Should().Be($"The cache file path '{Path.Combine(ExtractedPath, targetFilePath)}' is invalid.");
+        error.Exception.Should().NotBeNull();
+        runtime.File.DidNotReceiveWithAnyArgs().Exists(null);
+        runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
     }
 
     [TestMethod]

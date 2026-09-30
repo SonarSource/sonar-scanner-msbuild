@@ -46,6 +46,10 @@ public class ArchiveDownloader
 
     public async Task<DownloadResult> DownloadAsync(Func<Task<Stream>> downloadStream)
     {
+        if (ValidateTargetFile() is { } targetFileError)
+        {
+            return targetFileError;
+        }
         if (runtime.File.Exists(extractedTargetFile))
         {
             return new CacheHit(extractedTargetFile);
@@ -57,6 +61,21 @@ public class ArchiveDownloader
         }
         var result = await cachedDownloader.DownloadFileAsync(downloadStream);
         return result is FileRetrieved success ? UnpackArchive(success.FilePath) : result;
+    }
+
+    private DownloadError ValidateTargetFile()
+    {
+        var message = string.Format(Resources.ERR_FileNotInCache, extractedTargetFile);
+        try
+        {
+            return new FileInfo(extractedTargetFile).IsInDirectory(cachedDownloader.CacheRoot, StringComparison.Ordinal)
+                ? null
+                : new DownloadError(message);
+        }
+        catch (Exception e)
+        {
+            return new DownloadError(message, e);
+        }
     }
 
     private DownloadResult UnpackArchive(string archiveFile)
