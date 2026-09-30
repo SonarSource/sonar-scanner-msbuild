@@ -167,16 +167,6 @@ public class AnalysisConfig
         }
     }
 
-    public AnalysisProperties ToAnalysisProperties(ILogger logger)
-    {
-        var properties = new AnalysisProperties(CreatePropertyProvider(includeServerSettings: false, logger).GetAllProperties().Where(x => !x.ContainsSensitiveData()));
-        if (!properties.Exists(x => x.Id == SonarProperties.HostUrl))
-        {
-            properties.Add(new(SonarProperties.HostUrl, SonarQubeHostUrl));
-        }
-        return properties;
-    }
-
     public string ReadSetting(string settingName, bool includeServerSettings, string defaultValue, ILogger logger)
     {
         _ = settingName ?? throw new ArgumentNullException(nameof(settingName));
