@@ -124,35 +124,11 @@
     <value>Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to SonarQube.
 Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine.</value>
   </data>
-  <data name="CONV_ERROR_InputFileNotFound" xml:space="preserve">
-    <value>The binary coverage file {0} could not be found. No coverage information will be uploaded to SonarQube.</value>
-  </data>
   <data name="COVXML_DIAG_FileAlreadyExist_NoConversionAttempted" xml:space="preserve">
     <value>Found corresponding Binary-to-XML conversion output file for {0}, no conversion will be attempted.</value>
   </data>
-  <data name="EX_CoverageReportProcessorNotInitialized" xml:space="preserve">
-    <value>The Coverage Report Processor was not initialized before use.</value>
-  </data>
   <data name="PROC_DIAG_FetchingCoverageReportInfoFromServer" xml:space="preserve">
     <value>Fetching code coverage report information from TFS...</value>
-  </data>
-  <data name="Report_AnalysisFailed" xml:space="preserve">
-    <value>Analysis failed for SonarQube project {0}</value>
-  </data>
-  <data name="Report_AnalysisSucceeded" xml:space="preserve">
-    <value>Analysis succeeded for SonarQube project {0} [(Analysis results)] ({1})</value>
-  </data>
-  <data name="Report_InvalidSkippedAndExcludedMessage" xml:space="preserve">
-    <value>  Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}</value>
-  </data>
-  <data name="Report_ProductAndTestMessage" xml:space="preserve">
-    <value>  Product projects: {0}, test projects: {1}</value>
-  </data>
-  <data name="Report_SonarQubeProjectDescription" xml:space="preserve">
-    <value>"{0}", version {2}</value>
-  </data>
-  <data name="Report_UpdatingTeamBuildSummary" xml:space="preserve">
-    <value>Updating the TeamBuild summary...</value>
   </data>
   <data name="TRX_DIAG_NoCoverageFilesFound" xml:space="preserve">
     <value>Did not find any binary coverage files in the expected location.</value>
@@ -193,7 +169,7 @@ Check that the downloaded code coverage file ({0}) is valid by opening it in Vis
   <data name="TRX_WARN_InvalidTrx" xml:space="preserve">
     <value>Located trx file is not a valid xml file. File: {0}. File load error: {1}</value>
   </data>
-  <data name="WARN_XamlBuildDeprecated" xml:space="preserve">
-    <value>** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the SonarScanner for .NET **</value>
+  <data name="CONV_DIAG_LookingForBinaries" xml:space="preserve">
+    <value>Looking for binary coverage files to convert to XML format.</value>
   </data>
 </root>

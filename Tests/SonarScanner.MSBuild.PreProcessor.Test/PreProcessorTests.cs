@@ -145,8 +145,7 @@ public partial class PreProcessorTests
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("2026.1");
-        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
-        await context.Factory.ScannerCliResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);  // engine was resolved so CLI should not be used
+        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath).Should().Be(Path.GetDirectoryName(context.WorkingDir));
     }
 
     [TestMethod]
@@ -177,7 +176,7 @@ public partial class PreProcessorTests
 
         var config = context.AssertAnalysisConfig(2);
         config.SonarQubeVersion.Should().Be("2026.1");
-        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null).Should().Be(Path.GetDirectoryName(context.WorkingDir));
+        config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath).Should().Be(Path.GetDirectoryName(context.WorkingDir));
     }
 
     [TestMethod]
@@ -210,59 +209,13 @@ public partial class PreProcessorTests
     }
 
     [TestMethod]
-    public async Task Execute_EndToEnd_UseCli_SuccessCase()
-    {
-        using var context = new Context(TestContext);
-        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs("some/path/to/sonar-scanner");
-        var args = new List<string>(CreateArgs()) { "/d:sonar.scanner.useSonarScannerCLI=true" };
-
-        (await context.Execute(args)).Should().BeTrue();
-        context.AssertDirectoriesCreated();
-        context.AssertDownloadMethodsCalled(properties: 1, allLanguages: 1, qualityProfile: 2, rules: 2);
-        context.AssertAnalysisConfig(2).SonarScannerCliPath.Should().Be("some/path/to/sonar-scanner");
-        await context.Factory.EngineResolver.DidNotReceiveWithAnyArgs().ResolvePath(null);
-    }
-
-    [TestMethod]
-    public async Task Execute_EndToEnd_UseCLI_ScannerCliDownloadFails()
-    {
-        using var context = new Context(TestContext);
-        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
-        var args = new List<string>(CreateArgs()) { "/d:sonar.scanner.useSonarScannerCLI=true" };
-
-        (await context.Execute(args)).Should().BeFalse();
-        context.Factory.Runtime.Logger.Should().HaveErrors("""
-            SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
-            Make sure 'https://binaries.sonarsource.com/' is reachable or roll back to a previous version of the Scanner (< 11.0).
-            """);
-    }
-
-    [TestMethod]
-    public async Task Execute_EndToEnd_EngineNotResolved_FallbackToCli()
+    public async Task Execute_EndToEnd_ScannerEngineDownloadFails()
     {
         using var context = new Context(TestContext);
         context.Factory.EngineResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
-        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs("some/path/to/sonar-scanner");
-
-        (await context.Execute()).Should().BeTrue();
-        var actualConfig = context.AssertAnalysisConfig(2);
-        actualConfig.SonarScannerCliPath.Should().Be("some/path/to/sonar-scanner");
-        actualConfig.UseSonarScannerCli.Should().BeFalse();
-        actualConfig.EngineJarPath.Should().BeNull();
-    }
-
-    [TestMethod]
-    public async Task Execute_EndToEnd_EngineNotResolved_ScannerCliDownloadFails()
-    {
-        using var context = new Context(TestContext);
-        context.Factory.EngineResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
-        context.Factory.ScannerCliResolver.ResolvePath(null).ReturnsForAnyArgs((string)null);
 
         (await context.Execute()).Should().BeFalse();
-        context.Factory.Runtime.Logger.Should().HaveErrors("""
-            SonarScanner CLI could not be downloaded. Turn on verbose logging to see more details.
-            Make sure 'https://binaries.sonarsource.com/' is reachable or roll back to a previous version of the Scanner (< 11.0).
-            """);
+        context.Factory.Runtime.Logger.Should().HaveErrors("Scanner Engine could not be downloaded. Turn on verbose logging to see more details.");
     }
 
     [TestMethod]
@@ -330,12 +283,18 @@ public partial class PreProcessorTests
 
         // Check the settings used when creating the SonarLint file - local and server settings should be merged
         context.Factory.AnalyzerProvider.SuppliedSonarProperties.Should().NotBeNull();
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("server.key", "server value 1");
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("local.key", "local value 1");
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.key1", "local shared value 1 - should override server value");
-        // Keys are case-sensitive so differently cased values should be preserved
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.CASING", "server upper case value");
-        context.Factory.AnalyzerProvider.SuppliedSonarProperties.AssertExpectedPropertyValue("shared.casing", "local lower case value");
+        context.Factory.AnalyzerProvider.SuppliedSonarProperties.GetAllProperties().Should().BeEquivalentTo([
+            new Property("cmd.line1", "cmdline.value.1"),
+            new Property("sonar.userHome", "homeSweetHome"),
+            new Property("sonar.host.url", "http://host"),
+            new Property("sonar.log.level", "INFO|DEBUG"),
+            new Property("server.key", "server value 1"),
+            new Property("local.key", "local value 1"),
+            new Property("shared.key1", "local shared value 1 - should override server value"),
+            // Keys are case-sensitive so differently cased values should be preserved
+            new Property("shared.CASING", "server upper case value"),
+            new Property("shared.casing", "local lower case value")
+        ]);
 
         // Check the settings used when creating the config file - settings should be separate
         var actualConfig = context.AssertAnalysisConfig(2);

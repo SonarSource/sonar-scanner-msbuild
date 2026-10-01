@@ -60,7 +60,7 @@ public static class TestUtils
     /// <returns>Returns the full path to the created file</returns>
     public static string CreateTextFile(string parentDir, string fileName, string content, params string[] substitutionArgs)
     {
-        Directory.Exists(parentDir).Should().BeTrue("Test setup error: expecting the parent directory to exist: {0}", parentDir);
+        Directory.CreateDirectory(parentDir);
         var fullPath = Path.Combine(parentDir, fileName);
 
         var formattedContent = content;

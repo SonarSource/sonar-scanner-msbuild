@@ -25,28 +25,25 @@ namespace SonarScanner.MSBuild.PostProcessor;
 
 public class PostProcessor
 {
-    private readonly SonarScannerWrapper sonarScanner;
     private readonly SonarEngineWrapper sonarEngine;
     private readonly IRuntime runtime;
     private readonly TargetsUninstaller targetUninstaller;
-    private readonly SonarProjectPropertiesValidator sonarProjectPropertiesValidator;
     private readonly BuildVNextCoverageReportProcessor coverageReportProcessor;
+    private readonly RoslynV1SarifFixer sarifFixer;
 
     private ScannerEngineInputGenerator scannerEngineInputGenerator;
 
-    public PostProcessor(SonarScannerWrapper sonarScanner,
-                         SonarEngineWrapper sonarEngine,
+    public PostProcessor(SonarEngineWrapper sonarEngine,
                          IRuntime runtime,
                          TargetsUninstaller targetUninstaller,
-                         SonarProjectPropertiesValidator sonarProjectPropertiesValidator,
-                         BuildVNextCoverageReportProcessor coverageReportProcessor)
+                         BuildVNextCoverageReportProcessor coverageReportProcessor,
+                         RoslynV1SarifFixer sarifFixer)
     {
-        this.sonarScanner = sonarScanner ?? throw new ArgumentNullException(nameof(sonarScanner));
         this.sonarEngine = sonarEngine ?? throw new ArgumentNullException(nameof(sonarEngine));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
         this.targetUninstaller = targetUninstaller ?? throw new ArgumentNullException(nameof(targetUninstaller));
-        this.sonarProjectPropertiesValidator = sonarProjectPropertiesValidator ?? throw new ArgumentNullException(nameof(sonarProjectPropertiesValidator));
         this.coverageReportProcessor = coverageReportProcessor ?? throw new ArgumentNullException(nameof(coverageReportProcessor));
+        this.sarifFixer = sarifFixer ?? throw new ArgumentNullException(nameof(sarifFixer));
     }
 
     public virtual bool Execute(string[] args, AnalysisConfig config, BuildSettings settings)
@@ -70,48 +67,25 @@ public class PostProcessor
             return false;   // logging already done
         }
 
-        var analysisResult = CreateAnalysisResult(startTime, config, cmdLineArgs);
-        if (analysisResult.FullPropertiesFilePath is null)
+        var projects = ProjectLoader.LoadFrom(config.SonarOutputDir);
+        sarifFixer.FixReports(projects);
+        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
+        if (scannerEngineInputGenerator.Generate(projects, startTime) is { } input)
         {
-            return false;
+            // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
+            runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = ProcessCoverageReport(config, settings, input);
+            runtime.Telemetry.Write(settings.SonarOutputDirectory);
+            DumpScannerEngineInput(settings, input);
+            return sonarEngine.Execute(config, input.ToString(), cmdLineArgs);
         }
         else
         {
-            var coverageConversionPerformed = ProcessCoverageReport(config, settings, analysisResult);
-            var result = false;
-            if (analysisResult.RanToCompletion)
-            {
-                DumpScannerEngineInput(settings, analysisResult.ScannerEngineInput);
-                // This is the last moment where we can set telemetry, because telemetry needs to be written before the scanner/engine invocation.
-                runtime.Telemetry[TelemetryKeys.EndstepCoverageConversion] = coverageConversionPerformed;
-                runtime.Telemetry.Write(settings.SonarOutputDirectory);
-                result = config.UseSonarScannerCli || config.EngineJarPath is null
-                    ? InvokeSonarScanner(cmdLineArgs, config, analysisResult.FullPropertiesFilePath)
-                    : InvokeScannerEngine(cmdLineArgs, config, analysisResult.ScannerEngineInput);
-            }
-            return result;
+            return false;
         }
     }
 
     internal void SetScannerEngineInputGenerator(ScannerEngineInputGenerator scannerEngineInputGenerator) =>
         this.scannerEngineInputGenerator = scannerEngineInputGenerator;
-
-    private AnalysisResult CreateAnalysisResult(DateTimeOffset startTime, AnalysisConfig config, IAnalysisPropertyProvider cmdLineArgs)
-    {
-        scannerEngineInputGenerator ??= new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = scannerEngineInputGenerator.GenerateResult(startTime);
-        if (sonarProjectPropertiesValidator.AreExistingSonarPropertiesFilesPresent(config.SonarScannerWorkingDirectory, result.Projects, out var invalidFolders))
-        {
-            runtime.LogError(Resources.ERR_ConflictingSonarProjectProperties, string.Join(", ", invalidFolders));
-            result.RanToCompletion = false;
-        }
-        else
-        {
-            ProjectInfoReportBuilder.WriteSummaryReport(config, result, runtime.Logger);
-            result.RanToCompletion = true;
-        }
-        return result;
-    }
 
     private void LogStartupSettings(AnalysisConfig config, BuildSettings settings)
     {
@@ -189,43 +163,18 @@ public class PostProcessor
         return true;
     }
 
-    private bool ProcessCoverageReport(AnalysisConfig config, BuildSettings settings, AnalysisResult analysisResult)
+    private bool ProcessCoverageReport(AnalysisConfig config, BuildSettings settings, ScannerEngineInput scannerEngineInput)
     {
 #if NETFRAMEWORK
         if (settings.IsAzureDevOps)
         {
             runtime.LogInfo(Resources.MSG_ConvertingCoverageReports);
             var additionalProperties = coverageReportProcessor.ProcessCoverageReports(config, settings);
-            WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsTestReportsPaths, additionalProperties.VsTestReportsPaths);
-            WriteProperty(analysisResult.FullPropertiesFilePath, SonarProperties.VsCoverageXmlReportsPaths, additionalProperties.VsCoverageXmlReportsPaths);
-            analysisResult.ScannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
-            analysisResult.ScannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
+            scannerEngineInput.AddVsTestReportPaths(additionalProperties.VsTestReportsPaths);
+            scannerEngineInput.AddVsXmlCoverageReportPaths(additionalProperties.VsCoverageXmlReportsPaths);
             return additionalProperties.CoverageConversionPerformed;
         }
 #endif
         return false;
     }
-
-#if NETFRAMEWORK
-
-    private void WriteProperty(string propertiesFilePath, string property, string[] paths)
-    {
-        if (paths is not null)
-        {
-            runtime.File.AppendAllText(propertiesFilePath, $"{Environment.NewLine}{property}={string.Join(",", paths.Select(x => x.Replace(@"\", @"\\")))}");
-        }
-    }
-
-#endif
-
-    private bool InvokeSonarScanner(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, string propertiesFilePath)
-    {
-        runtime.Logger.IncludeTimestamp = false;
-        var result = sonarScanner.Execute(config, cmdLineArgs, propertiesFilePath);
-        runtime.Logger.IncludeTimestamp = true;
-        return result;
-    }
-
-    private bool InvokeScannerEngine(IAnalysisPropertyProvider cmdLineArgs, AnalysisConfig config, ScannerEngineInput input) =>
-        sonarEngine.Execute(config, input.ToString(), cmdLineArgs);
 }

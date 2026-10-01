@@ -70,7 +70,8 @@ public class FileWrapper : IFileWrapper
 
     public string ShortName(PlatformOS os, string path)
     {
-        const int maxPath = 260;
+        // Windows MAX_PATH is 260, but we use 240 because Java will derive longer sub paths like `bin\java.exe` -> `bin\server\jvm.dll`
+        const int maxPath = 240;
         const uint bufferSize = 256;
         const string ExtendedPathLengthSpecifier = @"\\?\"; // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
 

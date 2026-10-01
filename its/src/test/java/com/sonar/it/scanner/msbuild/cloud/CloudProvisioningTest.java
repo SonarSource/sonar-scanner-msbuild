@@ -26,6 +26,7 @@ import com.sonar.it.scanner.msbuild.utils.ProvisioningAssertions;
 import com.sonar.it.scanner.msbuild.utils.ScannerClassifier;
 import com.sonar.it.scanner.msbuild.utils.ScannerCommand;
 import com.sonar.it.scanner.msbuild.utils.TempDirectory;
+import com.sonar.it.scanner.msbuild.utils.TestUtils;
 import java.nio.file.Paths;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -70,22 +71,20 @@ class CloudProvisioningTest {
         "JreResolver: Cache failure.");
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void cacheMiss_DownloadsCache(Boolean useSonarScannerCLI) {
+  @Test
+  void cacheMiss_DownloadsCache() {
     var context = AnalysisContext.forCloud(DIRECTORY_NAME);
     try (var userHome = new TempDirectory("junit-cache-miss-")) { // context.projectDir has a test name in it and that leads to too long path
       context.begin
         .setProperty(activateProvisioning)
-        .setProperty("sonar.userHome", userHome.toString())
-        .setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by both the scanner-cli and the scanner-engine
+        .setProperty("sonar.userHome", userHome.toString());
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var oldJavaHome = Optional.ofNullable(System.getenv("JAVA_HOME")).orElse(Paths.get("somewhere", "else").toString());
       context.end.setEnvironmentVariable("JAVA_HOME", oldJavaHome);
 
       var result = context.runAnalysis();
 
-      ProvisioningAssertions.cacheMissAssertions(result, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), oldJavaHome, true, useSonarScannerCLI);
+      ProvisioningAssertions.cacheMissAssertions(result, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), true);
     }
   }
 
@@ -100,7 +99,7 @@ class CloudProvisioningTest {
       // First analysis, cache misses and downloads the JRE
       // If this fails with "Error: could not find java.dll", the temp & JRE cache path is too long
       var cacheMiss = context.runAnalysis().begin();
-      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), true, false);
+      ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, CloudConstants.SONARCLOUD_API_URL, userHome.toString(), true);
 
       // Second analysis, cache hits and does not download the JRE
       var secondBegin = context.runAnalysis().begin();
@@ -122,16 +121,15 @@ class CloudProvisioningTest {
       .setProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString());
     var logs = context.runAnalysis().end().getLogs();
 
-    assertThat(logs).contains(
-      "Dumping content of sonar-project.properties",
-      "sonar.scanner.sonarcloudUrl=" + CloudConstants.SONARCLOUD_URL,
-      "sonar.scanner.apiBaseUrl=" + CloudConstants.SONARCLOUD_API_URL,
-      "sonar.scanner.os=windows",
-      "sonar.scanner.arch=x64",
-      "sonar.scanner.skipJreProvisioning=true",
-      "sonar.scanner.connectTimeout=42",
-      "sonar.scanner.socketTimeout=100",
-      "sonar.scanner.responseTimeout=500",
-      "sonar.userHome=" + context.projectDir.toAbsolutePath().toString().replace("\\", "\\\\"));
+    assertThat(logs)
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.sonarcloudUrl", CloudConstants.SONARCLOUD_URL))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.apiBaseUrl", CloudConstants.SONARCLOUD_API_URL))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.os", "windows"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.arch", "x64"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.skipJreProvisioning", "true"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.connectTimeout", "42"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.socketTimeout", "100"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.scanner.responseTimeout", "500"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.userHome", context.projectDir.toAbsolutePath().toString()));
   }
 }

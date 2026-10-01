@@ -24,16 +24,13 @@ namespace SonarScanner.MSBuild.Common;
 
 public static class TruststoreUtils
 {
-    // There is 2 possible values for the default password.
-    // During the begin step, it would be easy to determine which one to use:
-    // we try all the possible passwords and use the one that works.
-    // However, during the end step, we need to know which password to use as we set it before
-    // invoking the scanner CLI.
+    // There is 2 possible values for the default password. During the begin step, it would be easy to determine which one to use:
+    // We try all the possible passwords and use the one that works.
+    // However, during the end step, we need to know which password to use as we set it before invoking the scanner engine.
     //
     // This method tries all default passwords and returns the first one that works.
     // If none of them works, it returns the first one.
-    // We ignore the failures and let it happened either when we build the WebClientDownloader or
-    // during the Scanner CLI execution.
+    // We ignore the failures and let it happened either when we build the WebClientDownloader or during the Scanner engine execution.
     public static string TruststoreDefaultPassword(string truststorePath, ILogger logger)
     {
         if (truststorePath is not null)

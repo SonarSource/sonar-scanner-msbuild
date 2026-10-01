@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
-
 namespace SonarScanner.MSBuild.Common;
 
 public enum LogLevel
@@ -39,9 +37,6 @@ public delegate LogMessage? OutputToLogMessage(bool stdOut, string outputLine);
 /// </summary>
 public class ProcessRunnerArguments
 {
-    // ToDo: Remove this in https://sonarsource.atlassian.net/browse/SCAN4NET-721
-    private readonly bool isBatchScript;
-
     public string ExeName { get; }
 
     /// <summary>
@@ -51,34 +46,9 @@ public class ProcessRunnerArguments
 
     public string WorkingDirectory { get; set; }
 
-    public int TimeoutInMilliseconds { get; set; }
-
     public bool LogOutput { get; set; } = true;
 
-    public string EscapedArguments
-    {
-        get
-        {
-            if (CmdLineArgs is null)
-            {
-                return null;
-            }
-
-            var result = string.Join(" ", CmdLineArgs.Select(x => x.EscapeArgument()));
-
-            if (isBatchScript)
-            {
-                result = ShellEscape(result);
-            }
-
-            return result;
-        }
-    }
-
-    /// <summary>
-    /// Additional environments variables that should be set/overridden for the process. Can be null.
-    /// </summary>
-    public IDictionary<string, string> EnvironmentVariables { get; set; }
+    public string EscapedArguments => CmdLineArgs is null ? null : string.Join(" ", CmdLineArgs.Select(x => x.EscapeArgument()));
 
     public OutputToLogMessage OutputToLogMessage { get; set; }
 
@@ -96,17 +66,10 @@ public class ProcessRunnerArguments
     /// </remarks>
     public bool ExeMustExists { get; set; } = true;
 
-    public ProcessRunnerArguments(string exeName, bool isBatchScript)
+    public ProcessRunnerArguments(string exeName)
     {
-        if (string.IsNullOrWhiteSpace(exeName))
-        {
-            throw new ArgumentNullException(nameof(exeName));
-        }
-
+        Contract.ThrowIfNullOrWhitespace(exeName, nameof(exeName));
         ExeName = exeName;
-        this.isBatchScript = isBatchScript;
-
-        TimeoutInMilliseconds = Timeout.Infinite;
         OutputToLogMessage = (stdOut, outputLine) =>
         {
             var logLevel = stdOut
@@ -169,47 +132,6 @@ public class ProcessRunnerArguments
         }
 
         return SonarProperties.SensitivePropertyKeys.Any(x => text.IndexOf(x, StringComparison.OrdinalIgnoreCase) > -1);
-    }
-
-    /// <summary>
-    /// Batch scripts are evil.
-    /// The escape character in batch is '^'.
-    ///
-    /// Example:
-    /// script.bat : echo %*
-    /// cmd.exe: script.bat foo^>out.txt
-    ///
-    /// This passes the argument "foo >out.txt" to script.bat.
-    /// Variable expansion happen before execution (i.e. it is preprocessing), so the script becomes:
-    ///
-    /// echo foo>out.txt
-    ///
-    /// which will write "foo" into the file "out.txt"
-    ///
-    /// To avoid this, one must call:
-    /// cmd.exe: script.bat foo^^^>out.txt
-    ///
-    /// which gets rewritten into: echo foo^>out.txt
-    /// and then executed.
-    ///
-    /// Note: Delayed expansion is not available for %*, %1
-    /// set foo=%* and set foo="%*" with echo !foo!
-    /// will only move the command injection away from the "echo" to the "set" itself.
-    /// </summary>
-    private static string ShellEscape(string argLine)
-    {
-        var sb = new StringBuilder();
-        foreach (var c in argLine)
-        {
-            // This escape is required after %* is expanded to prevent command injections
-            sb.Append('^');
-            sb.Append('^');
-
-            // This escape is required only to pass the argument line to the batch script
-            sb.Append('^');
-            sb.Append(c);
-        }
-        return sb.ToString();
     }
 
     public readonly record struct Argument(string Value, bool Escaped = false)

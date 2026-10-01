@@ -28,12 +28,6 @@ public static class EnvironmentVariables
     public const string SonarQubeScannerParams = "SONARQUBE_SCANNER_PARAMS";
 
     /// <summary>
-    /// Env variable that locates the sonar-scanner.
-    /// </summary>
-    /// <remarks>Existing values set by the user might cause failures.</remarks>
-    public const string SonarScannerHomeVariableName = "SONAR_SCANNER_HOME";
-
-    /// <summary>
     /// Env variable used to specify options to the JVM for the sonar-scanner.
     /// </summary>
     /// <remarks>Large projects error out with OutOfMemoryException if not set.</remarks>

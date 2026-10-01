@@ -18,22 +18,55 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using static SonarScanner.MSBuild.Shim.ScannerEngineInputGenerator;
+
 namespace SonarScanner.MSBuild.Shim.Test;
 
 [TestClass]
 public class RoslynV1SarifFixerTests
 {
+    private const string ValidSarif = """
+        {
+          "version": "0.1",
+          "toolInfo": {
+            "toolName": "Microsoft (R) Visual C# Compiler",
+            "productVersion": "1.0.0",
+            "fileVersion": "1.0.0"
+          },
+          "issues": [
+            {
+              "ruleId": "DD001",
+              "locations": [
+                {
+                  "analysisTarget": [
+                    {
+                      "uri": "C:\\agent\\_work\\2\\s\\MyTestProj\\Program.cs",
+                    }
+                  ]
+                }
+              ],
+              "shortMessage": "Test shortMessage. It features \"quoted text\".",
+              "properties": {
+                "severity": "Info",
+                "helpLink": "https://github.com/SonarSource/sonar-msbuild-runner",
+              }
+            }
+          ]
+        }
+        """;
+
+    private readonly TestRuntime runtime = new();
+
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void SarifFixer_ConstructorThrows() =>
+    public void Constructor_Null() =>
         FluentActions.Invoking(() => new RoslynV1SarifFixer(null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
 
     [TestMethod]
-    public void SarifFixer_FileDoesNotExist_LogsMessage()
+    public void FixReports_FileDoesNotExist()
     {
-        var runtime = new TestRuntime();
-        new RoslynV1SarifFixer(runtime).LoadAndFixFile("Some/NonexistantPath", RoslynV1SarifFixer.CSharpLanguage).Should().BeNull();
+        FixReport("Some/NonexistantPath", ReportFilePathsKeyCS).Should().BeNull();
         runtime.Logger.InfoMessages.Should().ContainSingle().Which.Should().Contain("No Code Analysis ErrorLog file found");
     }
 
@@ -42,57 +75,22 @@ public class RoslynV1SarifFixerTests
     /// This should be the case even if the output came from VS 2015 RTM.
     /// </summary>
     [TestMethod]
-    public void SarifFixer_ShouldNotChange_Valid()
+    public void FixReport_Valid()
     {
-        var runtime = new TestRuntime();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        const string inputSarif = """
-            {
-              "version": "0.1",
-              "toolInfo": {
-                "toolName": "Microsoft (R) Visual C# Compiler",
-                "productVersion": "1.0.0",
-                "fileVersion": "1.0.0"
-              },
-              "issues": [
-                {
-                  "ruleId": "DD001",
-                  "locations": [
-                    {
-                      "analysisTarget": [
-                        {
-                          "uri": "C:\\agent\\_work\\2\\s\\MyTestProj\\Program.cs",
-                        }
-                      ]
-                    }
-                  ],
-                  "shortMessage": "Test shortMessage. It features \"quoted text\".",
-                  "properties": {
-                    "severity": "Info",
-                    "helpLink": "https://github.com/SonarSource/sonar-msbuild-runner",
-                  }
-                }
-              ]
-            }
-            """;
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
+        var testSarifPath = CreateSarifFile("testSarif.json", ValidSarif);
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
+        var returnedSarifPath = FixReport(testSarifPath, ReportFilePathsKeyCS);
         // Already valid -> no change to file, same file path returned
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().Be(testSarifPath);
-        runtime.Telemetry.Messages.Should().ContainEquivalentOf(
-            new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.v0_1_0_0.Valid", "True"));
+        runtime.Telemetry.Messages.Should().ContainEquivalentOf(new KeyValuePair<string, string>("dotnetenterprise.s4net.endstep.Sarif.v0_1_0_0.Valid", "True"));
     }
 
     [TestMethod]
-    public void SarifFixer_ShouldNotChange_Unfixable()
+    public void FixReport_Unfixable()
     {
-        var runtime = new TestRuntime();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        const string sarifInput = """
+        var sarifInput = """
             {
               "version": "0.1",
               "toolInfo": {
@@ -123,11 +121,10 @@ public class RoslynV1SarifFixerTests
               ]
             }
             """;
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        File.WriteAllText(testSarifPath, sarifInput);
+        var testSarifPath = CreateSarifFile("testSarif.json", sarifInput);
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
+        var returnedSarifPath = FixReport(testSarifPath, ReportFilePathsKeyCS);
         // Not fixable -> no change to file, null return
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().BeNull();
@@ -142,11 +139,9 @@ public class RoslynV1SarifFixerTests
     /// \test\ ["_"]",
     /// </summary>
     [TestMethod]
-    public void SarifFixer_ShouldNotChange_MultipleLineValues()
+    public void FixReport_MultipleLineValues()
     {
-        var runtime = new TestRuntime();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        const string inputSarif = """
+        var inputSarif = """
             {
               "version": "0.1",
               "toolInfo": {
@@ -167,11 +162,10 @@ public class RoslynV1SarifFixerTests
               ]
             }
             """;
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
+        var testSarifPath = CreateSarifFile("testSarif.json", inputSarif);
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
+        var returnedSarifPath = FixReport(testSarifPath, ReportFilePathsKeyCS);
         // Not fixable -> no change to file, null return
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().BeNull();
@@ -179,35 +173,9 @@ public class RoslynV1SarifFixerTests
     }
 
     [TestMethod]
-    public void SarifFixer_ShouldChange_EscapeBackslashes()
+    public void FixReport_EscapeBackslashes()
     {
-        var runtime = new TestRuntime();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        const string inputSarif = """
-            {
-              "version": "0.1",
-              "toolInfo": {
-                "toolName": "Microsoft (R) Visual C# Compiler",
-                "productVersion": "1.0.0",
-                "fileVersion": "1.0.0"
-              },
-              "issues": [
-                {
-                  "ruleId": "DD001",
-                  "locations": [
-                    {
-                      "analysisTarget": [
-                        {
-                          "uri": "C:\agent\_work\2\s\MyTestProj\Program.cs",
-                        }
-                      ]
-                    }
-                  ],
-                }
-              ]
-            }
-            """;
-        const string expectedSarif = """
+        var expectedSarif = """
             {
               "version": "0.1",
               "toolInfo": {
@@ -231,11 +199,10 @@ public class RoslynV1SarifFixerTests
               ]
             }
             """;
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
+        var testSarifPath = CreateSarifFile("testSarif.json", RoslynV1Sarif("Visual C#"));
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
+        var returnedSarifPath = FixReport(testSarifPath, ReportFilePathsKeyCS);
         // Fixable -> no change to file, file path in return value, file contents as expected
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().NotBeNull();
@@ -245,11 +212,9 @@ public class RoslynV1SarifFixerTests
     }
 
     [TestMethod]
-    public void SarifFixer_ShouldChange_EscapeQuotes()
+    public void FixReport_EscapeQuotes()
     {
-        var runtime = new TestRuntime();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        const string inputSarif = """
+        var inputSarif = """
             {
               "version": "0.1",
               "toolInfo": {
@@ -269,7 +234,7 @@ public class RoslynV1SarifFixerTests
               ]
             }
             """;
-        const string expectedSarif = """
+        var expectedSarif = """
             {
               "version": "0.1",
               "toolInfo": {
@@ -289,11 +254,10 @@ public class RoslynV1SarifFixerTests
               ]
             }
             """;
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
+        var testSarifPath = CreateSarifFile("testSarif.json", inputSarif);
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
+        var returnedSarifPath = FixReport(testSarifPath, ReportFilePathsKeyCS);
         // Fixable -> no change to file, file path in return value, file contents as expected
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().NotBeNull();
@@ -303,11 +267,9 @@ public class RoslynV1SarifFixerTests
     }
 
     [TestMethod]
-    public void SarifFixer_ShouldChange_EscapeCharsInAllAffectedFields()
+    public void FixReport_EscapeCharsInAllAffectedFields()
     {
-        var runtime = new TestRuntime();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        const string inputSarif = """
+        var inputSarif = """
             {
               "version": "0.1",
               "toolInfo": {
@@ -338,7 +300,7 @@ public class RoslynV1SarifFixerTests
               ]
             }
             """;
-        const string expectedSarif = """
+        var expectedSarif = """
             {
               "version": "0.1",
               "toolInfo": {
@@ -369,11 +331,10 @@ public class RoslynV1SarifFixerTests
               ]
             }
             """;
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
+        var testSarifPath = CreateSarifFile("testSarif.json", inputSarif);
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.CSharpLanguage);
 
+        var returnedSarifPath = FixReport(testSarifPath, ReportFilePathsKeyCS);
         // Fixable -> no change to file, file path in return value, file contents as expected
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().NotBeNull();
@@ -383,35 +344,9 @@ public class RoslynV1SarifFixerTests
     }
 
     [TestMethod]
-    public void SarifFixer_VBNet()
+    public void FixReport_VBNet()
     {
-        var runtime = new TestRuntime();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        const string inputSarif = """
-            {
-              "version": "0.1",
-              "toolInfo": {
-                "toolName": "Microsoft (R) Visual Basic Compiler",
-                "productVersion": "1.0.0",
-                "fileVersion": "1.0.0"
-              },
-              "issues": [
-                {
-                  "ruleId": "DD001",
-                  "locations": [
-                    {
-                      "analysisTarget": [
-                        {
-                          "uri": "C:\agent\_work\2\s\MyTestProj\Program.cs",
-                        }
-                      ]
-                    }
-                  ],
-                }
-              ]
-            }
-            """;
-        const string expectedSarif = """
+        var expectedSarif = """
             {
               "version": "0.1",
               "toolInfo": {
@@ -435,11 +370,10 @@ public class RoslynV1SarifFixerTests
               ]
             }
             """;
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
+        var testSarifPath = CreateSarifFile("testSarif.json", RoslynV1Sarif("Visual Basic"));
         var originalWriteTime = new FileInfo(testSarifPath).LastWriteTime;
-        var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
 
+        var returnedSarifPath = FixReport(testSarifPath, ReportFilePathsKeyVB);
         // Fixable -> no change to file, file path in return value, file contents as expected
         AssertFileUnchanged(testSarifPath, originalWriteTime);
         returnedSarifPath.Should().NotBeNull();
@@ -452,41 +386,81 @@ public class RoslynV1SarifFixerTests
     /// To avoid FPs, the tool name declared in the file is compared with the language. If it doesn't match, do nothing.
     /// </summary>
     [TestMethod]
-    public void SarifFixer_ShouldNotFixInvalid()
+    public void FixReport_Invalid()
     {
-        var runtime = new TestRuntime();
-        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
-        const string inputSarif = """
-            {
-              "version": "0.1",
-              "toolInfo": {
-                "toolName": "Microsoft (R) Visual C# Compiler",
-                "productVersion": "1.0.0",
-                "fileVersion": "1.0.0"
-              },
-              "issues": [
-                {
-                  "ruleId": "DD001",
-                  "locations": [
-                    {
-                      "analysisTarget": [
-                        {
-                          "uri": "C:\agent\_work\2\s\MyTestProj\Program.cs",
-                        }
-                      ]
-                    }
-                  ],
-                }
-              ]
-            }
-            """;
-        var testSarifPath = Path.Combine(testDir, "testSarif.json");
-        File.WriteAllText(testSarifPath, inputSarif.ToEnvironmentLineEndings());
-        var returnedSarifPath = new RoslynV1SarifFixer(runtime).LoadAndFixFile(testSarifPath, RoslynV1SarifFixer.VBNetLanguage);
+        var testSarifPath = CreateSarifFile("testSarif.json", RoslynV1Sarif("Visual C#"));
 
+        var returnedSarifPath = FixReport(testSarifPath, ReportFilePathsKeyVB);
         returnedSarifPath.Should().BeNull();
         runtime.Telemetry.Messages.Should().BeEmpty();
     }
+
+    [TestMethod]
+    public void FixReports_MultipleReportPaths()
+    {
+        var validPath = CreateSarifFile("valid.json", ValidSarif);
+        var roslynV1Path = CreateSarifFile("roslynV1.json", RoslynV1Sarif("Visual C#"));
+        var missingPath = Path.Combine(Path.GetDirectoryName(validPath), "missing.json");
+        var project = CreateProject(ReportFilePathsKeyCS, $"{validPath}|{missingPath}|{roslynV1Path}");
+
+        new RoslynV1SarifFixer(runtime).FixReports([project]);
+        project.AnalysisSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new Property(ReportFilePathsKeyCS, $"{validPath}|{roslynV1Path.Replace(".json", "_fixed.json")}"));
+    }
+
+    [TestMethod]
+    public void FixReports_MultipleProjects()
+    {
+        var validPath = CreateSarifFile("valid.json", ValidSarif);
+        var roslynV1Path = CreateSarifFile("roslynV1.json", RoslynV1Sarif("Visual Basic"));
+        var missingPath = Path.Combine(Path.GetDirectoryName(validPath), "missing.json");
+        var project1 = CreateProject(ReportFilePathsKeyCS, validPath);
+        var project2 = CreateProject(ReportFilePathsKeyVB, roslynV1Path);
+        var project3 = CreateProject(ReportFilePathsKeyCS, missingPath);
+
+        new RoslynV1SarifFixer(runtime).FixReports([project1, project2, project3]);
+        project1.AnalysisSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new Property(ReportFilePathsKeyCS, validPath));
+        project2.AnalysisSettings.Should().ContainSingle().Which.Should().BeEquivalentTo(new Property(ReportFilePathsKeyVB, roslynV1Path.Replace(".json", "_fixed.json")));
+        project3.AnalysisSettings.Should().BeEmpty();
+    }
+
+    private string FixReport(string sarifPath, string reportPathsKey)
+    {
+        var project = CreateProject(reportPathsKey, sarifPath);
+        new RoslynV1SarifFixer(runtime).FixReports([project]);
+        return project.AnalysisSettings.SingleOrDefault()?.Value;
+    }
+
+    private string CreateSarifFile(string fileName, string content) =>
+        TestUtils.CreateFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), fileName, content.ToEnvironmentLineEndings());
+
+    private static string RoslynV1Sarif(string compiler) =>
+        $$"""
+        {
+          "version": "0.1",
+          "toolInfo": {
+            "toolName": "Microsoft (R) {{compiler}} Compiler",
+            "productVersion": "1.0.0",
+            "fileVersion": "1.0.0"
+          },
+          "issues": [
+            {
+              "ruleId": "DD001",
+              "locations": [
+                {
+                  "analysisTarget": [
+                    {
+                      "uri": "C:\agent\_work\2\s\MyTestProj\Program.cs",
+                    }
+                  ]
+                }
+              ],
+            }
+          ]
+        }
+        """;
+
+    private static ProjectInfo CreateProject(string key, string value) =>
+        new() { AnalysisSettings = [new Property(key, value)] };
 
     private static void AssertFileUnchanged(string filePath, DateTime originalWriteTime) =>
         new FileInfo(filePath).LastWriteTime.Should().Be(originalWriteTime);

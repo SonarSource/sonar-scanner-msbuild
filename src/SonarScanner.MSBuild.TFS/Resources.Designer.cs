@@ -70,21 +70,21 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Looking for binary coverage files to convert to XML format..
+        /// </summary>
+        internal static string CONV_DIAG_LookingForBinaries {
+            get {
+                return ResourceManager.GetString("CONV_DIAG_LookingForBinaries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to convert the binary code coverage reports to XML. No code coverage information will be uploaded to SonarQube.
         ///Check that the downloaded code coverage file ({0}) is valid by opening it in Visual Studio. If it is not, check that the internet security settings on the build machine allow files to be downloaded from the Team Foundation Server machine..
         /// </summary>
         internal static string CONV_ERROR_ConversionToolFailed {
             get {
                 return ResourceManager.GetString("CONV_ERROR_ConversionToolFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The binary coverage file {0} could not be found. No coverage information will be uploaded to SonarQube..
-        /// </summary>
-        internal static string CONV_ERROR_InputFileNotFound {
-            get {
-                return ResourceManager.GetString("CONV_ERROR_InputFileNotFound", resourceCulture);
             }
         }
         
@@ -98,74 +98,11 @@ namespace SonarScanner.MSBuild.TFS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Coverage Report Processor was not initialized before use..
-        /// </summary>
-        internal static string EX_CoverageReportProcessorNotInitialized {
-            get {
-                return ResourceManager.GetString("EX_CoverageReportProcessorNotInitialized", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Fetching code coverage report information from TFS....
         /// </summary>
         internal static string PROC_DIAG_FetchingCoverageReportInfoFromServer {
             get {
                 return ResourceManager.GetString("PROC_DIAG_FetchingCoverageReportInfoFromServer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Analysis failed for SonarQube project {0}.
-        /// </summary>
-        internal static string Report_AnalysisFailed {
-            get {
-                return ResourceManager.GetString("Report_AnalysisFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Analysis succeeded for SonarQube project {0} [(Analysis results)] ({1}).
-        /// </summary>
-        internal static string Report_AnalysisSucceeded {
-            get {
-                return ResourceManager.GetString("Report_AnalysisSucceeded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to   Invalid projects: {0}, skipped projects: {1}, excluded projects: {2}.
-        /// </summary>
-        internal static string Report_InvalidSkippedAndExcludedMessage {
-            get {
-                return ResourceManager.GetString("Report_InvalidSkippedAndExcludedMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to   Product projects: {0}, test projects: {1}.
-        /// </summary>
-        internal static string Report_ProductAndTestMessage {
-            get {
-                return ResourceManager.GetString("Report_ProductAndTestMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &quot;{0}&quot;, version {2}.
-        /// </summary>
-        internal static string Report_SonarQubeProjectDescription {
-            get {
-                return ResourceManager.GetString("Report_SonarQubeProjectDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Updating the TeamBuild summary....
-        /// </summary>
-        internal static string Report_UpdatingTeamBuildSummary {
-            get {
-                return ResourceManager.GetString("Report_UpdatingTeamBuildSummary", resourceCulture);
             }
         }
         
@@ -283,15 +220,6 @@ namespace SonarScanner.MSBuild.TFS {
         internal static string TRX_WARN_InvalidTrx {
             get {
                 return ResourceManager.GetString("TRX_WARN_InvalidTrx", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ** WARNING: Support for XAML builds is deprecated since version 4.1 and will be removed in version 5.0 of the SonarScanner for .NET **.
-        /// </summary>
-        internal static string WARN_XamlBuildDeprecated {
-            get {
-                return ResourceManager.GetString("WARN_XamlBuildDeprecated", resourceCulture);
             }
         }
     }

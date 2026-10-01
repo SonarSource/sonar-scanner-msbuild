@@ -133,8 +133,7 @@ public class GetAnalyzerSettings : Task
         return !Log.HasLoggedErrors;
 
         bool ExcludeTestProjects() =>
-            config.CreatePropertyProvider(false, logger).TryGetValue(ExcludeTestProjectsSettingId, out var excludeTestProjects)
-            && excludeTestProjects.Equals("true", StringComparison.OrdinalIgnoreCase);
+            config.ReadSetting(ExcludeTestProjectsSettingId, false, "false", logger).Equals("true", StringComparison.OrdinalIgnoreCase);
     }
 
     private TaskOutputs CreateDeactivatedProjectSettings(AnalyzerSettings settings)

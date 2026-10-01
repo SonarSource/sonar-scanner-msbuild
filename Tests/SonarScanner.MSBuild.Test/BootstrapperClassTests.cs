@@ -281,12 +281,11 @@ public class BootstrapperClassTests
         var runtime = new TestRuntime();
         preProcessor = Substitute.For<PreProcessor.PreProcessor>(Substitute.For<PreProcessor.PreprocessorObjectFactory>(runtime), runtime);
         postProcessor = Substitute.For<PostProcessor.PostProcessor>(
-            Substitute.For<SonarScannerWrapper>(Substitute.For<IRuntime>()),
             Substitute.For<SonarEngineWrapper>(new TestRuntime(), Substitute.For<IProcessRunner>()),
             Substitute.For<IRuntime>(),
             Substitute.For<TargetsUninstaller>(Substitute.For<ILogger>()),
-            Substitute.For<SonarProjectPropertiesValidator>(),
-            Substitute.For<BuildVNextCoverageReportProcessor>(Substitute.For<IRuntime>()));
+            Substitute.For<BuildVNextCoverageReportProcessor>(Substitute.For<IRuntime>()),
+            Substitute.For<RoslynV1SarifFixer>(Substitute.For<IRuntime>()));
         processorFactory = Substitute.For<IProcessorFactory>();
         preProcessor.Execute(Arg.Any<string[]>()).Returns(Task.FromResult(preProcessorOutcome));
         postProcessor.Execute(Arg.Any<string[]>(), Arg.Any<AnalysisConfig>(), Arg.Any<BuildSettings>()).Returns(postProcessorOutcome);

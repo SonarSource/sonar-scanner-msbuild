@@ -34,12 +34,11 @@ public class DefaultProcessorFactory : IProcessorFactory
 
     public PostProcessor.PostProcessor CreatePostProcessor() =>
         new(
-            new SonarScannerWrapper(runtime),
             new SonarEngineWrapper(runtime, new ProcessRunner(runtime)),
             runtime,
             new TargetsUninstaller(runtime.Logger),
-            new SonarProjectPropertiesValidator(),
-            new BuildVNextCoverageReportProcessor(runtime));
+            new BuildVNextCoverageReportProcessor(runtime),
+            new RoslynV1SarifFixer(runtime));
 
     public PreProcessor.PreProcessor CreatePreProcessor() =>
         new(new PreprocessorObjectFactory(runtime), runtime);

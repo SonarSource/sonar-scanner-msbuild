@@ -203,12 +203,10 @@ public class RoslynTargetsTests
         AssertExpectedItemValuesExists(
             result,
             TargetProperties.AdditionalFilesItemType,
-            new[]
-            {
-                result.GetPropertyValue(TargetProperties.SonarProjectOutFolderFilePath),
+            [
                 result.GetPropertyValue(TargetProperties.SonarProjectConfigFilePath),
                 "should.be.preserved.additional1.txt" /* additional files are not removed */
-            });
+            ]);
     }
 
     [TestMethod]
@@ -244,7 +242,6 @@ public class RoslynTargetsTests
         AssertExpectedItemValuesExists(
             result,
             TargetProperties.AdditionalFilesItemType,
-            result.GetPropertyValue(TargetProperties.SonarProjectOutFolderFilePath),
             result.GetPropertyValue(TargetProperties.SonarProjectConfigFilePath),
             "should.be.preserved.additional1.txt");
     }
@@ -455,9 +452,8 @@ public class RoslynTargetsTests
     private void AssertExpectedAdditionalFiles(BuildLog result, params string[] testSpecificAdditionalFiles)
     {
         var projectSetupAdditionalFiles = new[] { $"{baseDir}config.1.txt", $"{baseDir}config.2.txt" };
-        var projectSpecificOutFolderFilePath = result.GetPropertyValue(TargetProperties.SonarProjectOutFolderFilePath);
         var projectSpecificConfigFilePath = result.GetPropertyValue(TargetProperties.SonarProjectConfigFilePath);
-        var allExpectedAdditionalFiles = projectSetupAdditionalFiles.Concat(testSpecificAdditionalFiles).Concat([projectSpecificOutFolderFilePath, projectSpecificConfigFilePath]);
+        var allExpectedAdditionalFiles = projectSetupAdditionalFiles.Concat(testSpecificAdditionalFiles).Append(projectSpecificConfigFilePath);
         AssertExpectedItemValuesExists(result, TargetProperties.AdditionalFilesItemType, allExpectedAdditionalFiles.ToArray());
     }
 

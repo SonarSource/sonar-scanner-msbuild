@@ -60,12 +60,6 @@ public class Property
     public bool ContainsSensitiveData() =>
         ProcessRunnerArguments.ContainsSensitiveData(Id) || ProcessRunnerArguments.ContainsSensitiveData(Value);
 
-    /// <summary>
-    /// Returns the property formatted as a sonar-scanner "-D" argument.
-    /// </summary>
-    public string AsSonarScannerArg() =>
-        $"-D{Id}={Value}";
-
     public bool IsKey(string id) =>
         AreKeysEqual(Id, id);
 

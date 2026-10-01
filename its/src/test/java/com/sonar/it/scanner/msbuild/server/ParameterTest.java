@@ -91,9 +91,10 @@ class ParameterTest {
       .setDebugLogs();
     var logs = context.runAnalysis().end().getLogs();
 
-    assertThat(logs).contains("Using user supplied project base directory: '" + context.projectDir);
-    assertThat(logs).contains("sonar.buildString=testValue");
-    assertThat(logs).contains("sonar.projectBaseDir=" + context.projectDir.toString().replace("\\", "\\\\"));
+    assertThat(logs)
+      .contains("Using user supplied project base directory: '" + context.projectDir)
+      .contains(TestUtils.scannerEngineInputProperty("sonar.buildString", "testValue"))
+      .contains(TestUtils.scannerEngineInputProperty("sonar.projectBaseDir", context.projectDir.toString()));
 
     var webApiResponse = ORCHESTRATOR.getServer()
       .newHttpCall("api/project_analyses/search")
@@ -154,7 +155,7 @@ class ParameterTest {
     var logs = context.runFailedAnalysis().end().getLogs();
 
     assertThat(logs).contains("The exclude flag has been set so the project will not be analyzed.");
-    assertThat(logs).contains("No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.");
+    assertThat(logs).contains("No analyzable projects were found. SonarQube analysis will not be performed.");
   }
 
   @Test
@@ -168,16 +169,14 @@ class ParameterTest {
     assertThat(TestUtils.projectIssues(ORCHESTRATOR, context.projectKey)).hasSize(4);
   }
 
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void sourcesAndTests_ViaEnvironmentVariable_AreNotIgnored_AnalysisFails(boolean useSonarScannerCLI) {
+  @Test
+  void sourcesAndTests_ViaEnvironmentVariable_AreNotIgnored_AnalysisFails() {
     // Repro for https://sonarsource.atlassian.net/browse/SCAN4NET-1180
     var context = AnalysisContext.forServer("SourcesTestsIgnored")
       .setEnvironmentVariable("SONARQUBE_SCANNER_PARAMS", Json.object()
         .add("sonar.sources", "Program.cs")
         .add("sonar.tests", "Program.cs")
         .toString());
-    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", String.valueOf(useSonarScannerCLI));
     context.build.useDotNet();
 
     var logs = context.runFailedAnalysis().end().getLogs();

@@ -24,40 +24,35 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class ScannerEngineInputGenerator
 {
-    public const string ReportFilePathsKeyCS = "sonar.cs.roslyn.reportFilePaths";
-    public const string ReportFilePathsKeyVB = "sonar.vbnet.roslyn.reportFilePaths";
-    public const string ProjectOutPathsKeyCS = "sonar.cs.analyzer.projectOutPaths";
-    public const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
-    public const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
-    public const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
-
     // This delimiter needs to be the same as the one used in the Integration.targets
     internal const char RoslynReportPathsDelimiter = '|';
     internal const char AnalyzerOutputPathsDelimiter = ',';
 
-    private const string ProjectPropertiesFileName = "sonar-project.properties";
+    internal const string ReportFilePathsKeyCS = "sonar.cs.roslyn.reportFilePaths";
+    internal const string ReportFilePathsKeyVB = "sonar.vbnet.roslyn.reportFilePaths";
+    internal const string ProjectOutPathsKeyCS = "sonar.cs.analyzer.projectOutPaths";
+    internal const string ProjectOutPathsKeyVB = "sonar.vbnet.analyzer.projectOutPaths";
+    internal const string TelemetryPathsKeyCS = "sonar.cs.scanner.telemetry";
+    internal const string TelemetryPathsKeyVB = "sonar.vbnet.scanner.telemetry";
 
     private readonly AnalysisConfig analysisConfig;
     private readonly IRuntime runtime;
-    private readonly RoslynV1SarifFixer fixer;
     private readonly AdditionalFilesService additionalFilesService;
     private readonly StringComparer pathComparer;
     private readonly StringComparison pathComparison;
     private readonly IAnalysisPropertyProvider cmdLineArgs;
 
     public ScannerEngineInputGenerator(AnalysisConfig analysisConfig, IAnalysisPropertyProvider cmdLineArgs, IRuntime runtime)
-        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), new RoslynV1SarifFixer(runtime), cmdLineArgs, new AdditionalFilesService(runtime))
+        : this(analysisConfig, runtime ?? throw new ArgumentNullException(nameof(runtime)), cmdLineArgs, new AdditionalFilesService(runtime))
     { }
 
     internal ScannerEngineInputGenerator(AnalysisConfig analysisConfig,
                                          IRuntime runtime,
-                                         RoslynV1SarifFixer fixer,
                                          IAnalysisPropertyProvider cmdLineArgs,
                                          AdditionalFilesService additionalFilesService)
     {
         this.analysisConfig = analysisConfig ?? throw new ArgumentNullException(nameof(analysisConfig));
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
-        this.fixer = fixer ?? throw new ArgumentNullException(nameof(fixer));
         this.cmdLineArgs = cmdLineArgs ?? throw new ArgumentNullException(nameof(cmdLineArgs));
         this.additionalFilesService = additionalFilesService ?? throw new ArgumentNullException(nameof(additionalFilesService));
         if (runtime.OperatingSystem.IsWindows())
@@ -81,61 +76,40 @@ public class ScannerEngineInputGenerator
     public static bool IsTelemetryPaths(string propertyKey) =>
         propertyKey == TelemetryPathsKeyCS || propertyKey == TelemetryPathsKeyVB;
 
-    /// <summary>
-    /// Locates the ProjectInfo.xml files and uses the information in them to generate a sonar-project.properties file.
-    /// </summary>
-    /// <returns>Information about each of the project info files that was processed, together with the full path to the generated sonar-project.properties file.
-    /// Note: The path to the generated file will be null if the file could not be generated.</returns>
-    public virtual AnalysisResult GenerateResult(DateTimeOffset startTime)
+    public virtual ScannerEngineInput Generate(ProjectInfo[] projects, DateTimeOffset startTime)
     {
-        var projectPropertiesPath = Path.Combine(analysisConfig.SonarOutputDir, ProjectPropertiesFileName);
-        var legacyWriter = new PropertiesWriter(analysisConfig);
-        var engineInput = new ScannerEngineInput(analysisConfig);
-        runtime.LogDebug(Resources.MSG_GeneratingProjectProperties, projectPropertiesPath);
-        var projects = ProjectLoader.LoadFrom(analysisConfig.SonarOutputDir).ToArray();
-        if (projects.Length == 0)
+        if (!projects.Any())
         {
             runtime.LogError(Resources.ERR_NoProjectInfoFilesFound);
-            runtime.LogInfo(Resources.MSG_PropertiesGenerationFailed);
-            return new([]);
+            return null;
         }
-        var analysisProperties = analysisConfig.ToAnalysisProperties(runtime.Logger);
-        FixSarifAndEncoding(projects, analysisProperties);
-        var allProjects = projects.ToProjectData(runtime);
-        if (GenerateProperties(analysisProperties, allProjects, startTime, legacyWriter, engineInput))
+        var analysisProperties = new AnalysisProperties(analysisConfig.CreatePropertyProvider(includeServerSettings: false, runtime.Logger)
+            .GetAllProperties()
+            .Where(x => !x.ContainsSensitiveData()));
+        if (!analysisProperties.Exists(x => x.Id == SonarProperties.HostUrl))
         {
-            var contents = legacyWriter.Flush();
-            File.WriteAllText(projectPropertiesPath, contents, Encoding.ASCII);
-            runtime.LogDebug(Resources.DEBUG_DumpSonarProjectProperties, contents);
-            return new(allProjects, engineInput, projectPropertiesPath);
+            analysisProperties.Add(new(SonarProperties.HostUrl, analysisConfig.SonarQubeHostUrl));
         }
-        else
-        {
-            runtime.LogInfo(Resources.MSG_PropertiesGenerationFailed);
-            return new(allProjects);
-        }
-    }
-
-    internal bool GenerateProperties(AnalysisProperties analysisProperties, ProjectData[] allProjects, DateTimeOffset startTime, PropertiesWriter legacyWriter, ScannerEngineInput engineInput)
-    {
-        var validProjects = allProjects.Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
+        FixEncoding(projects, analysisProperties);
+        var validProjects = projects.ToProjectData(runtime).Where(x => x.Status == ProjectInfoValidity.Valid).ToArray();
         if (validProjects.Length == 0)
         {
             runtime.LogError(Resources.ERR_NoValidProjectInfoFiles);
-            return false;
+            return null;
         }
+        var engineInput = new ScannerEngineInput(analysisConfig);
         engineInput.AddBootstrapStartTime(startTime);
         var projectDirectories = validProjects.Select(x => x.Project.ProjectFileDirectory()).ToArray();
         var projectBaseDir = ComputeProjectBaseDir(projectDirectories);
         if (projectBaseDir is null)
         {
             runtime.LogError(Resources.ERR_ProjectBaseDirCannotBeAutomaticallyDetected);
-            return false;
+            return null;
         }
         if (!projectBaseDir.Exists)
         {
             runtime.LogError(Resources.ERR_ProjectBaseDirDoesNotExist);
-            return false;
+            return null;
         }
 
         var analysisFiles = PutFilesToRightModuleOrRoot(validProjects, projectBaseDir);
@@ -146,16 +120,13 @@ public class ScannerEngineInputGenerator
             && validProjects.All(x => x.Status == ProjectInfoValidity.NoFilesToAnalyze))
         {
             runtime.LogError(Resources.ERR_NoValidProjectInfoFiles);
-            return false;
+            return null;
         }
 
-        legacyWriter.WriteSonarProjectInfo(projectBaseDir);
         engineInput.AddConfig(projectBaseDir);
-        legacyWriter.WriteSharedFiles(analysisFiles);
         engineInput.AddSharedFiles(analysisFiles);
         foreach (var project in validProjects)
         {
-            legacyWriter.WriteSettingsForProject(project);
             engineInput.AddProject(project);
             if (project.Project.AnalysisSettings is not null && project.Project.AnalysisSettings.Any())
             {
@@ -171,11 +142,10 @@ public class ScannerEngineInputGenerator
             AddProperty(engineInput, project, ReportFilePathsKeyCS, ReportFilePathsKeyVB, project.RoslynReportFilePaths);
             AddProperty(engineInput, project, TelemetryPathsKeyCS, TelemetryPathsKeyVB, project.TelemetryPaths);
         }
-        legacyWriter.WriteGlobalSettings(analysisProperties);
 
         var sensitiveArgsFromSettingsFile = analysisConfig.CreatePropertyProvider(false, runtime.Logger).GetAllProperties().Where(x => x.ContainsSensitiveData());
         engineInput.AddUserSettings(new AggregatePropertiesProvider(cmdLineArgs, new ListPropertiesProvider(sensitiveArgsFromSettingsFile), new ListPropertiesProvider(analysisProperties)));
-        return true;
+        return engineInput;
     }
 
     /// <summary>
@@ -342,14 +312,12 @@ public class ScannerEngineInputGenerator
         }
     }
 
-    private void FixSarifAndEncoding(IList<ProjectInfo> projects, AnalysisProperties analysisProperties)
+    private void FixEncoding(IEnumerable<ProjectInfo> projects, AnalysisProperties analysisProperties)
     {
         var globalSourceEncoding = GetSourceEncoding(analysisProperties);
-        Action logIfGlobalEncodingIsIgnored = () => runtime.LogInfo(Resources.WARN_PropertyIgnored, SonarProperties.SourceEncoding);
         foreach (var project in projects)
         {
-            TryFixSarifReport(project);
-            project.FixEncoding(globalSourceEncoding, logIfGlobalEncodingIsIgnored);
+            project.FixEncoding(globalSourceEncoding, runtime.Logger);
         }
 
         static string GetSourceEncoding(AnalysisProperties properties)
@@ -367,32 +335,6 @@ public class ScannerEngineInputGenerator
                 // encoding doesn't exist
             }
             return null;
-        }
-    }
-
-    private void TryFixSarifReport(ProjectInfo project)
-    {
-        TryFixSarifReport(project, RoslynV1SarifFixer.CSharpLanguage, ReportFilePathsKeyCS);
-        TryFixSarifReport(project, RoslynV1SarifFixer.VBNetLanguage, ReportFilePathsKeyVB);
-    }
-
-    /// <summary>
-    /// Loads SARIF reports from the given projects and attempts to fix
-    /// improper escaping from Roslyn V1 (VS 2015 RTM) where appropriate.
-    /// </summary>
-    private void TryFixSarifReport(ProjectInfo project, string language, string reportFilesPropertyKey)
-    {
-        if (project.FindAnalysisSetting(reportFilesPropertyKey) is { } reportPathsProperty)
-        {
-            project.AnalysisSettings.Remove(reportPathsProperty);
-            var listOfPaths = reportPathsProperty.Value.Split(RoslynReportPathsDelimiter)
-                .Select(x => fixer.LoadAndFixFile(x, language))
-                .Where(x => x is not null)
-                .ToArray();
-            if (listOfPaths.Any())
-            {
-                project.AnalysisSettings.Add(new(reportFilesPropertyKey, string.Join(RoslynReportPathsDelimiter.ToString(), listOfPaths)));
-            }
         }
     }
 

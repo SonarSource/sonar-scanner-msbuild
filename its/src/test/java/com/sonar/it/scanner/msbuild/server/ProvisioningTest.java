@@ -49,12 +49,10 @@ import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 class ProvisioningTest {
   private static final String DIRECTORY_NAME = "JreProvisioning";
 
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void cacheMiss_DownloadsCache(Boolean useSonarScannerCLI) {
+  @Test
+  void cacheMiss_DownloadsCache() {
     var userHome = ContextExtension.currentTempDir().resolve(".sonar").toAbsolutePath();
     var context = createContext(userHome);
-    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", useSonarScannerCLI.toString()); // The downloaded JRE needs to be used by scanner-cli and scanner-engine
     context.build.useDotNet();
     // JAVA_HOME might not be set in the environment, so we set it to a non-existing path
     // so we can test that we updated it correctly
@@ -62,7 +60,7 @@ class ProvisioningTest {
     context.end.setEnvironmentVariable("JAVA_HOME", oldJavaHome);
     var result = context.runAnalysis();
 
-    ProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), oldJavaHome, false, useSonarScannerCLI);
+    ProvisioningAssertions.cacheMissAssertions(result, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), false);
   }
 
   @Test
@@ -72,7 +70,7 @@ class ProvisioningTest {
     // first analysis, cache misses and downloads the JRE & scanner-engine
     var cacheMiss = context.begin.execute(ORCHESTRATOR);
 
-    ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), false, false);
+    ProvisioningAssertions.assertCacheMissBeginStep(cacheMiss, ORCHESTRATOR.getServer().getUrl() + "/api/v2", userHome.toString(), false);
 
     // second analysis, cache hits and does not download the JRE or scanner-engine
     var cacheHit = context.begin.execute(ORCHESTRATOR);

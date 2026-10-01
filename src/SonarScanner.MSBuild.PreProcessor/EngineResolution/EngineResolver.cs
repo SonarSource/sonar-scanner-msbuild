@@ -20,7 +20,7 @@
 
 namespace SonarScanner.MSBuild.PreProcessor.EngineResolution;
 
-public class EngineResolver : IResolver
+public class EngineResolver
 {
     private const string ScannerEngine = "Scanner Engine";
 
@@ -40,7 +40,7 @@ public class EngineResolver : IResolver
         this.checksum = checksum ?? ChecksumSha256.Instance;
     }
 
-    public async Task<string> ResolvePath(ProcessedArgs args)
+    public virtual async Task<string> ResolvePath(ProcessedArgs args)
     {
         runtime.LogDebug(Resources.MSG_Resolver_Resolving, nameof(EngineResolver), ScannerEngine, string.Empty);
         if (args.EngineJarPath is { } localEngine)
@@ -68,7 +68,7 @@ public class EngineResolver : IResolver
         var metadata = await client.DownloadEngineMetadataAsync();
         if (metadata is null)
         {
-            runtime.LogDebug(Resources.MSG_EngineResolver_MetadataFailure);
+            runtime.LogDebug(Resources.MSG_Resolver_MetadataFailure, nameof(EngineResolver));
             runtime.Telemetry[TelemetryKeys.ScannerEngineDownload] = TelemetryValues.ScannerEngineDownload.Failed;
             return null;
         }

@@ -69,7 +69,7 @@ public class FilePropertyProviderTests
         var provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
 
         AssertExpectedPropertiesFile(validPropertiesFile, provider);
-        provider.AssertExpectedPropertyValue("key1", "value1");
+        provider.GetAllProperties().Should().BeEquivalentTo([new Property("key1", "value1")]);
         AssertIsDefaultPropertiesFile(provider);
     }
 
@@ -89,7 +89,7 @@ public class FilePropertyProviderTests
         var provider = CheckProcessingSucceeds(args, defaultPropertiesDir, logger);
 
         AssertExpectedPropertiesFile(validPropertiesFile, provider);
-        provider.AssertExpectedPropertyValue("xxx", "value with spaces");
+        provider.GetAllProperties().Should().BeEquivalentTo([new Property("xxx", "value with spaces")]);
         AssertIsNotDefaultPropertiesFile(provider);
     }
 

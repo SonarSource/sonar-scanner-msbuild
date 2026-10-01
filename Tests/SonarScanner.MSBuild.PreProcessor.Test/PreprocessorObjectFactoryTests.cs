@@ -92,10 +92,6 @@ public class PreprocessorObjectFactoryTests
     public void CreateEngineResolver_Success() =>
         new PreprocessorObjectFactory(runtime).CreateEngineResolver(MockSonarQube.Create(), "sonarUserHome").Should().NotBeNull();
 
-    [TestMethod]
-    public void CreateScannerCliResolver_Success() =>
-        new PreprocessorObjectFactory(runtime).CreateScannerCliResolver(MockSonarQube.Create(), "sonarUserHome").Should().NotBeNull();
-
     [DataRow(HttpStatusCode.Forbidden)]
     [DataRow(HttpStatusCode.Unauthorized)]
     [TestMethod]

@@ -46,26 +46,17 @@ public class CmdLineArgsPropertiesProviderTests
     [TestMethod]
     public void CmdLineArgProperties_DynamicProperties()
     {
-        // Arrange
         var logger = new TestLogger();
         IList<ArgumentInstance> args = new List<ArgumentInstance>();
-
         var dummyDescriptor = new ArgumentDescriptor("dummy", ["dummy prefix"], false, "dummy desc", true);
         var dummyDescriptor2 = new ArgumentDescriptor("dummy2", ["dummy prefix 2"], false, "dummy desc 2", true);
-
         args.Add(new ArgumentInstance(dummyDescriptor, "should be ignored"));
         args.Add(new ArgumentInstance(dummyDescriptor2, "should be ignored"));
-
         AddDynamicArguments(args, "key1=value1", "key2=value two with spaces");
 
-        // Act
-        var provider = CheckProcessingSucceeds(args, logger);
-
-        // Assert
-        provider.AssertExpectedPropertyValue("key1", "value1");
-        provider.AssertExpectedPropertyValue("key2", "value two with spaces");
-
-        provider.AssertExpectedPropertyCount(2);
+        CheckProcessingSucceeds(args, logger).GetAllProperties().Should().BeEquivalentTo([
+            new Property("key1", "value1"),
+            new Property("key2", "value two with spaces")]);
     }
 
     [TestMethod]
@@ -134,15 +125,12 @@ public class CmdLineArgsPropertiesProviderTests
     public void SonarProperties_IsAllowed(string argument)
     {
         var logger = new TestLogger();
-        IList<ArgumentInstance> args = new List<ArgumentInstance>();
-
+        var args = new List<ArgumentInstance>();
         AddDynamicArguments(args, argument);
         var expectedValues = argument.Split('=');
         var propertyName = expectedValues[0];
         var propertyValue = expectedValues[1];
-        var provider = CheckProcessingSucceeds(args, logger);
-        provider.AssertExpectedPropertyValue(propertyName, propertyValue);
-        provider.AssertExpectedPropertyCount(1);
+        CheckProcessingSucceeds(args, logger).GetAllProperties().Should().BeEquivalentTo([new Property(propertyName, propertyValue)]);
     }
 
     private static void AddDynamicArguments(IList<ArgumentInstance> args, params string[] argValues)

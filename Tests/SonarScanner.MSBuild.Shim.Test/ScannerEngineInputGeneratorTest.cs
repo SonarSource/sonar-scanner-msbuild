@@ -41,15 +41,13 @@ public partial class ScannerEngineInputGeneratorTest
     {
         var cnfg = new AnalysisConfig();
         var rntm = runtime;
-        var rvsf = new RoslynV1SarifFixer(runtime);
         var cmds = new ListPropertiesProvider();
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(null, cmds, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("analysisConfig");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, rntm)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");
         FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, cmds, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("fixer");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");
-        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, rvsf, cmds, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("additionalFilesService");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, null, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("runtime");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, null, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("cmdLineArgs");
+        FluentActions.Invoking(() => new ScannerEngineInputGenerator(cnfg, rntm, cmds, null)).Should().ThrowExactly<ArgumentNullException>().WithParameterName("additionalFilesService");
     }
 
     [TestMethod]
@@ -136,46 +134,24 @@ public partial class ScannerEngineInputGeneratorTest
         ScannerEngineInputGenerator.SingleClosestProjectOrDefault(new FileInfo(Path.Combine(TestUtils.DriveRoot(), "ProjectDir", "SubDir", "foo.cs")), projects).Should().Be(projects[0]);
     }
 
-    private void AssertFailedToCreateScannerInput(AnalysisResult result)
+    private void AssertFailedToCreateScannerInput(ScannerEngineInput input, string error = "No analyzable projects were found. SonarQube analysis will not be performed.")
     {
-        result.FullPropertiesFilePath.Should().BeNull();
-        result.ScannerEngineInput.Should().BeNull();
-        result.RanToCompletion.Should().BeFalse();
-        AssertNoValidProjects(result);
-        runtime.Logger.Should().HaveErrors();
+        input.Should().BeNull();
+        runtime.Logger.Should().HaveErrors(error);
     }
 
-    private void AssertScannerInputCreated(AnalysisResult result)
+    private void AssertScannerInputCreated(ScannerEngineInput input)
     {
-        result.FullPropertiesFilePath.Should().NotBeNull();
-        result.ScannerEngineInput.Should().NotBeNull();
-        AssertValidProjectsExist(result);
-        TestContext.AddResultFile(result.FullPropertiesFilePath);
-        Console.WriteLine(result.ScannerEngineInput.ToString());
+        input.Should().NotBeNull();
+        Console.WriteLine(input.ToString());
         runtime.Logger.Should().HaveNoErrors();
     }
 
-    private static void AssertExpectedStatus(string expectedProjectName, ProjectInfoValidity expectedStatus, AnalysisResult actual) =>
-        actual.ProjectsByStatus(expectedStatus).Where(x => x.ProjectName.Equals(expectedProjectName)).Should().ContainSingle(
-            "ProjectInfo was not classified as expected. Project name: {0}, expected status: {1}, actual projects: {2}",
-            expectedProjectName,
-            expectedStatus,
-            actual.Projects.Aggregate(new StringBuilder(), (sb, x) => sb.AppendLine($"{x.Project.ProjectName}: {x.Status}"), sb => sb.ToString()));
-
-    private static void AssertNoValidProjects(AnalysisResult actual) =>
-        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().BeEmpty();
-
-    private static void AssertValidProjectsExist(AnalysisResult actual) =>
-        actual.ProjectsByStatus(ProjectInfoValidity.Valid).Should().NotBeEmpty();
-
-    private static void AssertExpectedProjectCount(int expected, AnalysisResult actual) =>
-        actual.Projects.Should().HaveCount(expected);
-
-    private static void AssertFileIsReferenced(string fullFilePath, string content) =>
-        content.Should().Contain(PropertiesWriter.Escape(fullFilePath), "files should be referenced");
-
-    private static void AssertFileIsNotReferenced(string fullFilePath, string content) =>
-        content.Should().NotContain(PropertiesWriter.Escape(fullFilePath), "file should not be referenced");
+    private void AssertModules(ScannerEngineInput input, params Guid[] validProjectGuids)
+    {
+        AssertScannerInputCreated(input);
+        CreateInputReader(input)["sonar.modules"].Split(',').Should().BeEquivalentTo(validProjectGuids.Select(x => x.ToString().ToUpper()));
+    }
 
     private AnalysisConfig CreateValidConfig()
     {
@@ -209,22 +185,17 @@ public partial class ScannerEngineInputGeneratorTest
         return fullPath;
     }
 
-    private static string AddQuotes(string input) =>
-        $"""
-        "{input}"
-        """;
-
-    private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig,
-                                                  RoslynV1SarifFixer sarifFixer = null,
-                                                  PlatformOS os = PlatformOS.Unknown)
+    private ScannerEngineInputGenerator CreateSut(AnalysisConfig analysisConfig, PlatformOS os = PlatformOS.Unknown)
     {
-        sarifFixer ??= new RoslynV1SarifFixer(runtime);
         if (os != PlatformOS.Unknown)
         {
             runtime.ConfigureOS(os);
         }
-        return new(analysisConfig, runtime, sarifFixer, cmdLineArgs, new(runtime));
+        return new(analysisConfig, runtime, cmdLineArgs, new(runtime));
     }
+
+    private static ProjectInfo[] LoadProjects(AnalysisConfig config) =>
+        ProjectLoader.LoadFrom(config.SonarOutputDir);
 
     private ProjectData CreateProjectData(string fullPath) =>
         new[] { new ProjectInfo { FullPath = fullPath } }.ToProjectData(runtime).Single();

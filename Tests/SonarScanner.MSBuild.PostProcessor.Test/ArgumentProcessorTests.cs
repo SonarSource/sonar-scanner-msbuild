@@ -25,38 +25,21 @@ public class ArgumentProcessorTests
 {
     public TestContext TestContext { get; set; }
 
-    #region Tests
+    [TestMethod]
+    public void PostArgProc_Null() =>
+        FluentActions.Invoking(() => ArgumentProcessor.TryProcessArgs(null, new TestLogger(), out _)).Should().ThrowExactly<ArgumentNullException>();
 
     [TestMethod]
-    public void PostArgProc_NoArgs()
-    {
-        // 0. Setup
-        var logger = new TestLogger();
-        IAnalysisPropertyProvider provider;
-
-        // 1. Null input
-        Action act = () => ArgumentProcessor.TryProcessArgs(null, logger, out provider); act.Should().ThrowExactly<ArgumentNullException>();
-
-        // 2. Empty array input
-        provider = CheckProcessingSucceeds(logger, new string[] { });
-        provider.AssertExpectedPropertyCount(0);
-    }
+    public void PostArgProc_NoArgs() =>
+        CheckProcessingSucceeds(new TestLogger(), []).GetAllProperties().Should().BeEmpty();
 
     [TestMethod]
     public void PostArgProc_Unrecognised()
     {
-        // 0. Setup
-        TestLogger logger;
-
-        // 1. Unrecognized args
-        logger = CheckProcessingFails("begin"); // bootstrapper verbs aren't meaningful to the post-processor
-        logger.Should().HaveErrorOnce("Unrecognized command line argument: begin");
-
-        logger = CheckProcessingFails("end");
-        logger.Should().HaveErrorOnce("Unrecognized command line argument: end");
-
-        logger = CheckProcessingFails("AAA", "BBB", "CCC");
-        logger.Should().HaveErrors(
+        // bootstrapper verbs aren't meaningful to the post-processor
+        CheckProcessingFails("begin").Should().HaveErrorOnce("Unrecognized command line argument: begin");
+        CheckProcessingFails("end").Should().HaveErrorOnce("Unrecognized command line argument: end");
+        CheckProcessingFails("AAA", "BBB", "CCC").Should().HaveErrors(
             "Unrecognized command line argument: AAA",
             "Unrecognized command line argument: BBB",
             "Unrecognized command line argument: CCC");
@@ -65,20 +48,16 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PostArgProc_PermittedArguments()
     {
-        var logger = new TestLogger();
         var args = new[]
         {
             "/d:sonar.token=token",
             "/d:sonar.login=user name",
             "/d:sonar.password=pwd",
         };
-
-        var provider = CheckProcessingSucceeds(logger, args);
-
-        provider.AssertExpectedPropertyCount(3);
-        provider.AssertExpectedPropertyValue("sonar.token", "token");
-        provider.AssertExpectedPropertyValue("sonar.login", "user name");
-        provider.AssertExpectedPropertyValue("sonar.password", "pwd");
+        CheckProcessingSucceeds(new TestLogger(), args).GetAllProperties().Should().BeEquivalentTo([
+            new Property("sonar.token", "token"),
+            new Property("sonar.login", "user name"),
+            new Property("sonar.password", "pwd")]);
     }
 
     [TestMethod]
@@ -96,33 +75,20 @@ public class ArgumentProcessorTests
         }
     }
 
-    #endregion Tests
-
-    #region Checks
-
     private static IAnalysisPropertyProvider CheckProcessingSucceeds(TestLogger logger, string[] input)
     {
-        var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
-
-        success.Should().BeTrue("Expecting processing to have succeeded");
+        ArgumentProcessor.TryProcessArgs(input, logger, out var provider).Should().BeTrue("Expecting processing to have succeeded");
         provider.Should().NotBeNull("Returned provider should not be null");
         logger.Should().HaveNoErrors();
-
         return provider;
     }
 
     private static TestLogger CheckProcessingFails(params string[] input)
     {
         var logger = new TestLogger();
-
-        var success = ArgumentProcessor.TryProcessArgs(input, logger, out IAnalysisPropertyProvider provider);
-
-        success.Should().BeFalse("Not expecting processing to have succeeded");
+        ArgumentProcessor.TryProcessArgs(input, logger, out var provider).Should().BeFalse("Not expecting processing to have succeeded");
         provider.Should().BeNull("Provider should be null if processing fails");
         logger.Should().HaveErrors(); // expecting errors if processing failed
-
         return logger;
     }
-
-    #endregion Checks
 }

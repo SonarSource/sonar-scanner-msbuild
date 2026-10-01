@@ -27,7 +27,6 @@ public class E2EAnalysisTests
 {
     private const string ExpectedAnalysisFilesListFileName = "FilesToAnalyze.txt";
     private const string ExpectedProjectConfigFileName = "SonarProjectConfig.xml";
-    private const string ExpectedProjectOutFolderFileName = "ProjectOutFolderPath.txt";
     private const string ExpectedIssuesFileName = "Issues.json";
 
     /// <summary>
@@ -172,7 +171,7 @@ public class E2EAnalysisTests
         actualStructure.AssertExpectedFileList("none1.txt", "content1.txt", "code1.txt", "content2.txt");
         actualStructure.ProjectInfo.ProjectGuidAsString().Should().Be("4077C120-AF29-422F-8360-8D7192FA03F3");
 
-        AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName, ExpectedProjectConfigFileName, ExpectedProjectOutFolderFileName);
+        AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificConfigDir, ExpectedAnalysisFilesListFileName, ExpectedProjectConfigFileName);
         AssertNoAdditionalFilesInFolder(actualStructure.ProjectSpecificOutputDir, ExpectedIssuesFileName, FileConstants.ProjectInfoFileName, FileConstants.TelemetryProjectFileName);
     }
 
@@ -1058,7 +1057,7 @@ public class E2EAnalysisTests
             ProjectSpecificConfigDir = projectSpecificConfigDir;
             ProjectSpecificOutputDir = projectSpecificOutputDir;
 
-            // ProjectInfo.xml should always exist (even for excluded projects) to provide file list for sonar-project.properties
+            // ProjectInfo.xml should always exist (even for excluded projects) to provide file list for ScannerEngineInput
             var projectInfoFile = TryAddToResults(projectSpecificOutputDir, FileConstants.ProjectInfoFileName);
             AssertFileExists(projectInfoFile);
             ProjectInfo = ProjectInfo.Load(projectInfoFile.FullPath);

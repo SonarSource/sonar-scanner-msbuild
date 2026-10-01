@@ -30,10 +30,8 @@ public class BuildVNextCoverageReportProcessor
     private const string XmlReportFileExtension = "coveragexml";
     private readonly IRuntime runtime;
 
-    public BuildVNextCoverageReportProcessor(IRuntime runtime)
-    {
+    public BuildVNextCoverageReportProcessor(IRuntime runtime) =>
         this.runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
-    }
 
     // ToDo: SCAN4NET-786 Test report discovery is flawed
     // ToDo: SCAN4NET-787 Coverage fallback should be in AzDo Extension
@@ -57,7 +55,7 @@ public class BuildVNextCoverageReportProcessor
 
         var conversionPerformed = false;
         var vsCoverageXmlReportsPaths = config.ReadSetting(SonarProperties.VsCoverageXmlReportsPaths, true, null, runtime.Logger) is null
-            ? ConvertCoverageReports(trxFilePaths, disableFallback: vsTestReportsPaths is not null, out conversionPerformed)
+            ? ConvertCoverageReports(trxFilePaths, allowFallback: vsTestReportsPaths is null, out conversionPerformed)
             : [];
         return new(vsTestReportsPaths, vsCoverageXmlReportsPaths.Any() ? vsCoverageXmlReportsPaths : null, conversionPerformed);
     }
@@ -146,10 +144,10 @@ public class BuildVNextCoverageReportProcessor
         }
     }
 
-    private IEnumerable<string> FindVsCoverageFiles(IEnumerable<string> trxFilePaths, bool disableFallback)
+    private IEnumerable<string> FindVsCoverageFiles(IEnumerable<string> trxFilePaths, bool allowFallback)
     {
-        var binaryFilePaths = new TrxFileReader(runtime).FindCodeCoverageFiles(trxFilePaths).Where(x => x.EndsWith(".coverage"));
-        if (binaryFilePaths.Any() || disableFallback)
+        var binaryFilePaths = new TrxFileReader(runtime).FindCodeCoverageFiles(trxFilePaths).Where(x => x.EndsWith(".coverage")).ToArray();
+        if (binaryFilePaths.Any() || !allowFallback)
         {
             runtime.LogDebug(Resources.TRX_DIAG_NotUsingFallback);
             return binaryFilePaths;
@@ -163,21 +161,18 @@ public class BuildVNextCoverageReportProcessor
         }
     }
 
-    private string[] ConvertCoverageReports(IEnumerable<string> trxFilePaths, bool disableFallback, out bool conversionPerformed)
+    private string[] ConvertCoverageReports(IEnumerable<string> trxFilePaths, bool allowFallback, out bool conversionPerformed)
     {
+        runtime.LogInfo(Resources.CONV_DIAG_LookingForBinaries);
         var xmlFileNames = new List<string>();
         conversionPerformed = false;
-        foreach (var vsCoverageFilePath in FindVsCoverageFiles(trxFilePaths, disableFallback))
+        foreach (var vsCoverageFilePath in FindVsCoverageFiles(trxFilePaths, allowFallback))
         {
             var xmlFilePath = Path.ChangeExtension(vsCoverageFilePath, XmlReportFileExtension);
             if (runtime.File.Exists(xmlFilePath))
             {
                 runtime.LogInfo(string.Format(Resources.COVXML_DIAG_FileAlreadyExist_NoConversionAttempted, vsCoverageFilePath));
                 xmlFileNames.Add(xmlFilePath);
-            }
-            else if (!File.Exists(vsCoverageFilePath))
-            {
-                runtime.Logger.LogError(Resources.CONV_ERROR_InputFileNotFound, vsCoverageFilePath);
             }
             else if (ConvertToXml(vsCoverageFilePath, xmlFilePath))
             {

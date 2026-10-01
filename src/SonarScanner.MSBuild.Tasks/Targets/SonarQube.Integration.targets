@@ -676,11 +676,7 @@
 
     <PropertyGroup>
       <ResolvedCodeAnalysisRuleSet>$(SQRuleSetFilePath)</ResolvedCodeAnalysisRuleSet>
-      <SonarProjectOutFolderFilePath>$(ProjectSpecificConfDir)\ProjectOutFolderPath.txt</SonarProjectOutFolderFilePath>
     </PropertyGroup>
-
-    <!--SonarProjectOutFolderFilePath is generated only for backward compatibility with CSharp and VBNet analyzers before 8.20 -->
-    <WriteLinesToFile File="$(SonarProjectOutFolderFilePath)" Lines="$(ProjectSpecificOutDir)" Overwrite="true" />
 
     <WriteProjectConfigFile ConfigDir="$(ProjectSpecificConfDir)"
                             AnalysisConfigPath="$(SonarQubeConfigPath)\SonarQubeAnalysisConfig.xml"
@@ -701,7 +697,6 @@
       <Analyzer Include="@(SQAnalyzerFilePaths)" />
       <AdditionalFiles Include="@(SQAdditionalFiles)" />
       <AdditionalFiles Include="$(SonarProjectConfigFilePath)" />
-      <AdditionalFiles Include="$(SonarProjectOutFolderFilePath)" />
     </ItemGroup>
 
     <Message Importance="normal" Text="Sonar: ($(MSBuildProjectFile)) Analysis configured successfully with $(SonarProjectConfigFilePath)." />

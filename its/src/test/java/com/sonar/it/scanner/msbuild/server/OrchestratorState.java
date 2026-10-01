@@ -23,9 +23,12 @@ import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
 import com.sonar.it.scanner.msbuild.utils.QualityProfile;
 import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.container.Edition;
 import com.sonar.orchestrator.locator.FileLocation;
 import org.sonarqube.ws.client.HttpConnector;
 import org.sonarqube.ws.client.WsClientFactories;
+import org.sonarqube.ws.client.qualityprofiles.SearchRequest;
+import org.sonarqube.ws.client.qualityprofiles.SetDefaultRequest;
 import org.sonarqube.ws.client.usertokens.GenerateRequest;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,18 +49,24 @@ public class OrchestratorState {
       usageCount += 1;
       if (usageCount == 1) {
         orchestrator.start();
+        var server = orchestrator.getServer();
         for (var profile : QualityProfile.allProfiles()) {
-          orchestrator.getServer().restoreProfile(FileLocation.of(String.format("qualityProfiles/%s.xml", profile)));
+          server.restoreProfile(FileLocation.of(String.format("qualityProfiles/%s.xml", profile)));
         }
-
-        token = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(orchestrator.getServer().getUrl()).credentials("admin", "admin").build())
+        var wsClient = WsClientFactories.getDefault().newClient(HttpConnector.newBuilder().url(server.getUrl()).credentials("admin", "admin").build());
+        if (server.getEdition() == Edition.COMMUNITY || server.version().isGreaterThan(2026, 1)) {  // Sonar way comperhansive is available after 2026.1 LTA, somewhere from 2026.4.1+
+          for (var profile : wsClient.qualityprofiles().search(new SearchRequest()).getProfilesList()) {
+            if (profile.getName().equals("Sonar way comprehensive")) {
+              wsClient.qualityprofiles().setDefault(new SetDefaultRequest().setLanguage(profile.getLanguage()).setQualityProfile(profile.getName()));
+            }
+          }
+        }
+        token = wsClient
           .userTokens()
           .generate(new GenerateRequest().setName("ITs"))
           .getToken();
         // To avoid a race condition in scanner file cache mechanism we analyze single project before any test to populate the cache
         analyzeEmptyProject();
-        // To avoid a race condition in the scanner-cli cache — the standalone sonar-scanner CLI's own FileCache/JarDownloader. Used only when sonar.scanner.useSonarScannerCLI=true is set.
-        analyzeEmptyProjectWithScannerCli();
         isStarted = true;
       } else if (!isStarted) {  // The second, third and any other caller should fail fast if something went wrong for the first one
         throw new IllegalStateException("Previous OrchestratorState startup failed");
@@ -88,17 +97,6 @@ public class OrchestratorState {
     assertTrue(result.begin().isSuccess(), "Orchestrator warmup failed - begin step");
     assertTrue(result.build().isSuccess(), "Orchestrator warmup failed - build");
     assertTrue(result.end().isSuccess(), "Orchestrator warmup failed - end step");
-    ContextExtension.cleanup();
-  }
-
-  private void analyzeEmptyProjectWithScannerCli() {
-    ContextExtension.init("OrchestratorState.StartupCli." + Thread.currentThread().getName());
-    var context = AnalysisContext.forServer("Empty");
-    context.begin.setProperty("sonar.scanner.useSonarScannerCLI", "true");
-    var result = context.runAnalysis();
-    assertTrue(result.begin().isSuccess(), "Orchestrator warmup (scanner CLI) failed - begin step");
-    assertTrue(result.build().isSuccess(), "Orchestrator warmup (scanner CLI) failed - build");
-    assertTrue(result.end().isSuccess(), "Orchestrator warmup (scanner CLI) failed - end step");
     ContextExtension.cleanup();
   }
 }

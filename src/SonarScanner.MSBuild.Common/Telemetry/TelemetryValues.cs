@@ -52,13 +52,6 @@ public static class TelemetryValues
         public static readonly string Failed = nameof(Failed);
     }
 
-    public static class ScannerCliDownload
-    {
-        public static readonly string Downloaded = nameof(Downloaded);
-        public static readonly string CacheHit = nameof(CacheHit);
-        public static readonly string Failed = nameof(Failed);
-    }
-
     public static class EndStepSarifVersion
     {
         public static readonly string True = nameof(True);

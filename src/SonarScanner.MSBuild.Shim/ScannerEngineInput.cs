@@ -25,12 +25,11 @@ namespace SonarScanner.MSBuild.Shim;
 
 public class ScannerEngineInput
 {
-    public const string SonarScannerAppValue = "ScannerMSBuild";    // TODO make this private in SCAN4NET-721
-
     private const string SonarSources = "sonar.sources";
     private const string SonarTests = "sonar.tests";
     private const string SonarScannerApp = "sonar.scanner.app";
     private const string SonarScannerAppVersion = "sonar.scanner.appVersion";
+    private const string SonarScannerAppValue = "ScannerMSBuild";
     private const string SonarScannerBootstrapStartTime = "sonar.scanner.bootstrapStartTime";
     private readonly AnalysisConfig config;
 
@@ -99,7 +98,7 @@ public class ScannerEngineInput
     public void AddUserSettings(IAnalysisPropertyProvider properties)
     {
         _ = properties ?? throw new ArgumentNullException(nameof(properties));
-        // https://github.com/SonarSource/sonar-scanner-msbuild/issues/543 We should no longer pass the sonar.verbose=true parameter to the scanner CLI
+        // https://github.com/SonarSource/sonar-scanner-msbuild/issues/543 We should no longer pass the sonar.verbose=true parameter to the Scanner Engine
         foreach (var setting in properties.GetAllProperties())
         {
             Add(setting.Id, setting.Value);
@@ -113,7 +112,7 @@ public class ScannerEngineInput
         Add(SonarProperties.ProjectVersion, config.SonarProjectVersion);
         Add(SonarProperties.WorkingDirectory, Path.Combine(config.SonarOutputDir, ".sonar"));
         Add(SonarProperties.ProjectBaseDir, projectBaseDir.FullName);
-        Add(SonarProperties.PullRequestCacheBasePath, config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath, null));
+        Add(SonarProperties.PullRequestCacheBasePath, config.ReadAdditionalSetting(SonarProperties.PullRequestCacheBasePath));
     }
 
     public void AddSharedFiles(AnalysisFiles analysisFiles)

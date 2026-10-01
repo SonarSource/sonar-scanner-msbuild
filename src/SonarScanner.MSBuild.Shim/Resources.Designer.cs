@@ -61,18 +61,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dumping content of sonar-project.properties
-        ///------------------------------------------------------------------------
-        ///{0}
-        ///------------------------------------------------------------------------.
-        /// </summary>
-        internal static string DEBUG_DumpSonarProjectProperties {
-            get {
-                return ResourceManager.GetString("DEBUG_DumpSonarProjectProperties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to File was referenced by the following projects: &apos;{0}&apos;..
         /// </summary>
         internal static string DEBUG_FileReferencedByProjects {
@@ -96,7 +84,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details..
+        ///   Looks up a localized string similar to No analyzable projects were found. SonarQube analysis will not be performed..
         /// </summary>
         internal static string ERR_NoValidProjectInfoFiles {
             get {
@@ -137,33 +125,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string ERR_ScannerEngineExecutionFailedWithException {
             get {
                 return ResourceManager.GetString("ERR_ScannerEngineExecutionFailedWithException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The SonarScanner CLI is needed to finish the analysis, but could not be found. {0}.
-        /// </summary>
-        internal static string ERR_SonarScannerCliNotFound {
-            get {
-                return ResourceManager.GetString("ERR_SonarScannerCliNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The SonarScanner did not complete successfully.
-        /// </summary>
-        internal static string ERR_SonarScannerExecutionFailed {
-            get {
-                return ResourceManager.GetString("ERR_SonarScannerExecutionFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generating SonarQube project properties file to {0}.
-        /// </summary>
-        internal static string MSG_GeneratingProjectProperties {
-            get {
-                return ResourceManager.GetString("MSG_GeneratingProjectProperties", resourceCulture);
             }
         }
         
@@ -213,15 +174,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Analysis property is already correctly set: {0}={1}.
-        /// </summary>
-        internal static string MSG_MandatorySettingIsCorrectlySpecified {
-            get {
-                return ResourceManager.GetString("MSG_MandatorySettingIsCorrectlySpecified", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Starting with SonarScanner for .NET v8 the way the `sonar.projectBaseDir` property is automatically detected has changed and this has an impact on the files that are analyzed and other properties that are resolved relative to it like `sonar.exclusions` and `sonar.test.exclusions`. If you would like to customize the behavior, please set the `sonar.projectBaseDir` property to point to a directory that contains all the source code you want to analyze. The path may be relative (to the directory from which the a [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string MSG_ProjectBaseDirChange {
@@ -236,15 +188,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_ProjectIsExcluded {
             get {
                 return ResourceManager.GetString("MSG_ProjectIsExcluded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Generation of the sonar-properties file failed. Unable to complete the analysis..
-        /// </summary>
-        internal static string MSG_PropertiesGenerationFailed {
-            get {
-                return ResourceManager.GetString("MSG_PropertiesGenerationFailed", resourceCulture);
             }
         }
         
@@ -294,78 +237,6 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Setting analysis property: {0}={1}.
-        /// </summary>
-        internal static string MSG_SettingAnalysisProperty {
-            get {
-                return ResourceManager.GetString("MSG_SettingAnalysisProperty", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Setting the JAVA_HOME for the scanner cli to {0}..
-        /// </summary>
-        internal static string MSG_SettingJavaHomeEnvironmentVariable {
-            get {
-                return ResourceManager.GetString("MSG_SettingJavaHomeEnvironmentVariable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Setting the JAVA_HOME for the scanner cli failed. `sonar.scanner.javaExePath` is `{0}`. {1}.
-        /// </summary>
-        internal static string MSG_SettingJavaHomeEnvironmentVariableFailed {
-            get {
-                return ResourceManager.GetString("MSG_SettingJavaHomeEnvironmentVariableFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The path &apos;{0}&apos; to the SonarScanner CLI is invalid. The file does not exists..
-        /// </summary>
-        internal static string MSG_SonarCliPath_FileNotFound {
-            get {
-                return ResourceManager.GetString("MSG_SonarCliPath_FileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Calling the SonarScanner CLI....
-        /// </summary>
-        internal static string MSG_SonarScannerCalling {
-            get {
-                return ResourceManager.GetString("MSG_SonarScannerCalling", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The path to the SonarScanner CLI wasn&apos;t set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step..
-        /// </summary>
-        internal static string MSG_SonarScannerCliPath_Missing {
-            get {
-                return ResourceManager.GetString("MSG_SonarScannerCliPath_Missing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The SonarScanner CLI has finished.
-        /// </summary>
-        internal static string MSG_SonarScannerCompleted {
-            get {
-                return ResourceManager.GetString("MSG_SonarScannerCompleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The SONAR_SCANNER_HOME environment variable is not required and will be ignored..
-        /// </summary>
-        internal static string MSG_SonarScannerHomeIsSet {
-            get {
-                return ResourceManager.GetString("MSG_SonarScannerHomeIsSet", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Using TFS/Azure DevOps sources directory as project base directory: &apos;{0}&apos;..
         /// </summary>
         internal static string MSG_UsingAzDoSourceDirectoryAsProjectBaseDir {
@@ -407,69 +278,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string MSG_UsingWorkingDirectoryAsProjectBaseDir {
             get {
                 return ResourceManager.GetString("MSG_UsingWorkingDirectoryAsProjectBaseDir", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Writing processing summary to {0}.
-        /// </summary>
-        internal static string MSG_WritingSummary {
-            get {
-                return ResourceManager.GetString("MSG_WritingSummary", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Excluded projects.
-        /// </summary>
-        internal static string REPORT_ExcludedProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_ExcludedProjectsTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid projects.
-        /// </summary>
-        internal static string REPORT_InvalidProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_InvalidProjectsTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {none}.
-        /// </summary>
-        internal static string REPORT_NoProjectsOfType {
-            get {
-                return ResourceManager.GetString("REPORT_NoProjectsOfType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Product projects.
-        /// </summary>
-        internal static string REPORT_ProductProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_ProductProjectsTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Skipped projects.
-        /// </summary>
-        internal static string REPORT_SkippedProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_SkippedProjectsTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Test projects.
-        /// </summary>
-        internal static string REPORT_TestProjectsTitle {
-            get {
-                return ResourceManager.GetString("REPORT_TestProjectsTitle", resourceCulture);
             }
         }
         
@@ -524,15 +332,6 @@ namespace SonarScanner.MSBuild.Shim {
         internal static string WARN_InvalidProjectGuid {
             get {
                 return ResourceManager.GetString("WARN_InvalidProjectGuid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Overriding analysis property. Effective value: {0}={1}.
-        /// </summary>
-        internal static string WARN_OverridingAnalysisProperty {
-            get {
-                return ResourceManager.GetString("WARN_OverridingAnalysisProperty", resourceCulture);
             }
         }
         

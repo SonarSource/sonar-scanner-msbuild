@@ -430,8 +430,7 @@ public class ArgumentProcessorTests
         AssertExpectedPropertyValue("key1", "value1", result);
         AssertExpectedPropertyValue("key2", "value two with spaces", result);
 
-        result.AllProperties().Should().NotBeNull()
-            .And.HaveCount(3);
+        result.AggregateProperties.GetAllProperties().Should().NotBeNull().And.HaveCount(3);
     }
 
     [TestMethod]
@@ -636,25 +635,6 @@ public class ArgumentProcessorTests
     [TestMethod]
     public void PreArgProc_EngineJarPath_NotSet() =>
         CheckProcessingSucceeds("/k:key").EngineJarPath.Should().BeNull();
-
-    [TestMethod]
-    [DataRow("true", true)]
-    [DataRow("True", true)]
-    [DataRow("false", false)]
-    [DataRow("False", false)]
-    public void PreArgProc_UseSonarScannerCli_SetValid(string useSonarScannerCli, bool result) =>
-        CheckProcessingSucceeds("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCli}").UseSonarScannerCli.Should().Be(result);
-
-    [TestMethod]
-    [DataRow("gibberish")]
-    [DataRow(" ")]
-    public void PreArgProc_UseSonarScannerCli_SetInvalid(string useSonarScannerCli) =>
-        CheckProcessingFails("/k:key", $"/d:sonar.scanner.useSonarScannerCLI={useSonarScannerCli}").Logger
-            .Should().HaveErrors("The argument 'sonar.scanner.useSonarScannerCLI' has an invalid value. Please ensure it is set to either 'true' or 'false'.");
-
-    [TestMethod]
-    public void PreArgProc_UseSonarScannerCli_NotSet() =>
-        CheckProcessingSucceeds("/k:key").UseSonarScannerCli.Should().BeFalse();
 
     [TestMethod]
     [DataRow("true", true)]
@@ -974,7 +954,7 @@ public class ArgumentProcessorTests
         actualValue.Should().Be(value);
 
         // Check the public list of properties
-        var found = Property.TryGetProperty(key, actual.AllProperties(), out var match);
+        var found = Property.TryGetProperty(key, actual.AggregateProperties.GetAllProperties(), out var match);
         found.Should().BeTrue("Failed to find the expected property. Key: {0}", key);
         match.Should().NotBeNull("Returned property should not be null. Key: {0}", key);
         match.Value.Should().Be(value);

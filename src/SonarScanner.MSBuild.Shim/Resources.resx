@@ -117,26 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="MSG_SonarScannerCalling" xml:space="preserve">
-    <value>Calling the SonarScanner CLI...</value>
-  </data>
   <data name="WARN_FileIsOutsideProjectDirectory" xml:space="preserve">
     <value>File '{0}' is not located under the base directory '{1}' and will not be analyzed.</value>
   </data>
-  <data name="MSG_GeneratingProjectProperties" xml:space="preserve">
-    <value>Generating SonarQube project properties file to {0}</value>
-  </data>
   <data name="MSG_ProjectIsExcluded" xml:space="preserve">
     <value>The exclude flag has been set so the project will not be analyzed. Project file: {0}</value>
-  </data>
-  <data name="MSG_PropertiesGenerationFailed" xml:space="preserve">
-    <value>Generation of the sonar-properties file failed. Unable to complete the analysis.</value>
-  </data>
-  <data name="MSG_SonarScannerCompleted" xml:space="preserve">
-    <value>The SonarScanner CLI has finished</value>
-  </data>
-  <data name="MSG_WritingSummary" xml:space="preserve">
-    <value>Writing processing summary to {0}</value>
   </data>
   <data name="ERR_NoProjectInfoFilesFound" xml:space="preserve">
     <value>The SonarScanner for .NET integration failed: SonarQube was unable to collect the required information about your projects.
@@ -147,37 +132,10 @@ Possible causes:
   4. None of the analyzed projects have a valid ProjectGuid and you have not used a solution (.sln).</value>
   </data>
   <data name="ERR_NoValidProjectInfoFiles" xml:space="preserve">
-    <value>No analyzable projects were found. SonarQube analysis will not be performed. Check the build summary report for details.</value>
-  </data>
-  <data name="ERR_SonarScannerExecutionFailed" xml:space="preserve">
-    <value>The SonarScanner did not complete successfully</value>
-  </data>
-  <data name="MSG_SettingJavaHomeEnvironmentVariable" xml:space="preserve">
-    <value>Setting the JAVA_HOME for the scanner cli to {0}.</value>
-  </data>
-  <data name="MSG_SettingJavaHomeEnvironmentVariableFailed" xml:space="preserve">
-    <value>Setting the JAVA_HOME for the scanner cli failed. `sonar.scanner.javaExePath` is `{0}`. {1}</value>
+    <value>No analyzable projects were found. SonarQube analysis will not be performed.</value>
   </data>
   <data name="MSG_UsingSuppliedSonarScannerOptsValue" xml:space="preserve">
     <value>Using the supplied value for {0}. Value: {1}</value>
-  </data>
-  <data name="REPORT_ExcludedProjectsTitle" xml:space="preserve">
-    <value>Excluded projects</value>
-  </data>
-  <data name="REPORT_InvalidProjectsTitle" xml:space="preserve">
-    <value>Invalid projects</value>
-  </data>
-  <data name="REPORT_NoProjectsOfType" xml:space="preserve">
-    <value>{none}</value>
-  </data>
-  <data name="REPORT_ProductProjectsTitle" xml:space="preserve">
-    <value>Product projects</value>
-  </data>
-  <data name="REPORT_SkippedProjectsTitle" xml:space="preserve">
-    <value>Skipped projects</value>
-  </data>
-  <data name="REPORT_TestProjectsTitle" xml:space="preserve">
-    <value>Test projects</value>
   </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
     <value>Duplicate ProjectGuid: "{0}". The project will not be analyzed. Project file: "{1}"</value>
@@ -187,18 +145,6 @@ Possible causes:
   </data>
   <data name="WARN_InvalidProjectGuid" xml:space="preserve">
     <value>The project has an invalid GUID "{0}". The project will not be analyzed. Project file: {1}</value>
-  </data>
-  <data name="MSG_SonarScannerHomeIsSet" xml:space="preserve">
-    <value>The SONAR_SCANNER_HOME environment variable is not required and will be ignored.</value>
-  </data>
-  <data name="MSG_SettingAnalysisProperty" xml:space="preserve">
-    <value>Setting analysis property: {0}={1}</value>
-  </data>
-  <data name="WARN_OverridingAnalysisProperty" xml:space="preserve">
-    <value>Overriding analysis property. Effective value: {0}={1}</value>
-  </data>
-  <data name="MSG_MandatorySettingIsCorrectlySpecified" xml:space="preserve">
-    <value>Analysis property is already correctly set: {0}={1}</value>
   </data>
   <data name="MSG_SarifFileNotFound" xml:space="preserve">
     <value>No Code Analysis ErrorLog file found at {0}.</value>
@@ -260,12 +206,6 @@ Possible causes:
   <data name="MSG_JavaExe_NotFound" xml:space="preserve">
     <value>Could not find Java in {0}: {1}</value>
   </data>
-  <data name="DEBUG_DumpSonarProjectProperties" xml:space="preserve">
-    <value>Dumping content of sonar-project.properties
-------------------------------------------------------------------------
-{0}
-------------------------------------------------------------------------</value>
-  </data>
   <data name="MSG_JavaHomeSet" xml:space="preserve">
     <value>Found 'JAVA_HOME': {0}</value>
   </data>
@@ -277,14 +217,5 @@ Possible causes:
   </data>
   <data name="ERR_ScannerEngineExecutionFailedWithException" xml:space="preserve">
     <value>The scanner engine execution failed with {0}: {1}.</value>
-  </data>
-  <data name="ERR_SonarScannerCliNotFound" xml:space="preserve">
-    <value>The SonarScanner CLI is needed to finish the analysis, but could not be found. {0}</value>
-  </data>
-  <data name="MSG_SonarScannerCliPath_Missing" xml:space="preserve">
-    <value>The path to the SonarScanner CLI wasn't set. Please specify /d:sonar.scanner.useSonarScannerCLI=true in the begin step.</value>
-  </data>
-  <data name="MSG_SonarCliPath_FileNotFound" xml:space="preserve">
-    <value>The path '{0}' to the SonarScanner CLI is invalid. The file does not exists.</value>
   </data>
 </root>

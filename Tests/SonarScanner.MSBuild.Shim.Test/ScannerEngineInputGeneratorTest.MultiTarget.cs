@@ -55,15 +55,10 @@ public partial class ScannerEngineInputGeneratorTest
             SonarProjectVersion = "1.0",
         };
         var generator = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = generator.GenerateResult(runtime.DateTime.OffsetNow);
 
-        AssertExpectedProjectCount(1, result);
-
-        // One valid project info file -> file created
-        AssertScannerInputCreated(result);
-        var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-        AssertFileIsReferenced(files[0], propertiesFileContent);
-        AssertFileIsReferenced(files[1], propertiesFileContent);
+        var scannerInput = generator.Generate(LoadProjects(config), runtime.DateTime.OffsetNow);
+        AssertModules(scannerInput, guid);
+        CreateInputReader(scannerInput).AssertProperty($"{guid.ToString().ToUpper()}.sonar.sources", string.Join(",", files));
     }
 
     [TestMethod]
@@ -99,14 +94,10 @@ public partial class ScannerEngineInputGeneratorTest
             SonarProjectVersion = "1.0",
         };
         var generator = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = generator.GenerateResult(runtime.DateTime.OffsetNow);
 
-        AssertExpectedProjectCount(1, result);
-        // One valid project info file -> file created
-        AssertScannerInputCreated(result);
-        var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-        AssertFileIsReferenced(files[0], propertiesFileContent);
-        AssertFileIsReferenced(files[1], propertiesFileContent);
+        var scannerInput = generator.Generate(LoadProjects(config), runtime.DateTime.OffsetNow);
+        AssertModules(scannerInput, guid);
+        CreateInputReader(scannerInput).AssertProperty($"{guid.ToString().ToUpper()}.sonar.sources", string.Join(",", files));
     }
 
     [TestMethod]
@@ -142,14 +133,10 @@ public partial class ScannerEngineInputGeneratorTest
             SonarProjectVersion = "1.0",
         };
         var generator = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = generator.GenerateResult(runtime.DateTime.OffsetNow);
 
-        AssertExpectedProjectCount(1, result);
-        // One valid project info file -> file created
-        AssertScannerInputCreated(result);
-        var propertiesFileContent = File.ReadAllText(result.FullPropertiesFilePath);
-        AssertFileIsReferenced(files[0], propertiesFileContent);
-        AssertFileIsNotReferenced(files[1], propertiesFileContent);
+        var scannerInput = generator.Generate(LoadProjects(config), runtime.DateTime.OffsetNow);
+        AssertModules(scannerInput, guid);
+        CreateInputReader(scannerInput).AssertProperty($"{guid.ToString().ToUpper()}.sonar.sources", files[0]);
     }
 
     [TestMethod]
@@ -185,11 +172,9 @@ public partial class ScannerEngineInputGeneratorTest
             SonarProjectVersion = "1.0",
         };
         var generator = new ScannerEngineInputGenerator(config, cmdLineArgs, runtime);
-        var result = generator.GenerateResult(runtime.DateTime.OffsetNow);
 
-        AssertExpectedProjectCount(1, result);
-        // No valid project info files -> properties not created
-        AssertFailedToCreateScannerInput(result);
+        var scannerInput = generator.Generate(LoadProjects(config), runtime.DateTime.OffsetNow);
+        AssertFailedToCreateScannerInput(scannerInput);
     }
 
     private static void CreateProjectInfoAndFilesToAnalyze(Guid guid,
