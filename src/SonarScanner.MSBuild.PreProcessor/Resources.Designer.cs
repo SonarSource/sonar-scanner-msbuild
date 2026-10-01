@@ -214,7 +214,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The file &apos;{0}&apos; with checksum &apos;{1}&apos; must not resolve to a path outside of the cache directory &apos;{2}&apos;..
+        ///   Looks up a localized string similar to The cache file path &apos;{0}&apos; is invalid..
         /// </summary>
         internal static string ERR_FileNotInCache {
             get {

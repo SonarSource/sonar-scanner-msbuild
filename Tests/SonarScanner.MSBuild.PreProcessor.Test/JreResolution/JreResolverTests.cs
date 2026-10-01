@@ -25,7 +25,7 @@ namespace SonarScanner.MSBuild.PreProcessor.JreResolution.Test;
 [TestClass]
 public class JreResolverTests
 {
-    private const string SonarUserHome = "sonarUserHome";
+    private static readonly string SonarUserHome = Path.GetFullPath("sonarUserHome");
 
     private static readonly string CacheDir = Path.Combine(SonarUserHome, "cache");
     private static readonly string ShaPath = Path.Combine(CacheDir, "sha256");

@@ -26,7 +26,7 @@ public sealed class CachedDownloaderTests : IDisposable
     private const string ExpectedSha = "sha256";
     private const string TempFileName = "xFirst.rnd";
     private static readonly FileDescriptor FileDescriptor = new("someFile.jar", ExpectedSha);
-    private static readonly string SonarUserHome = Path.Combine("home", ".sonar");
+    private static readonly string SonarUserHome = Path.GetFullPath(Path.Combine("home", ".sonar"));
     private static readonly string SonarUserHomeCache = Path.Combine(SonarUserHome, "cache");
     private static readonly string DownloadPath = Path.Combine(SonarUserHomeCache, ExpectedSha);
     private static readonly string DownloadFilePath = Path.Combine(DownloadPath, FileDescriptor.Filename);
@@ -37,6 +37,7 @@ public sealed class CachedDownloaderTests : IDisposable
     private readonly byte[] fileContentArray = new byte[3];
     private readonly MemoryStream fileContentStream;
     private readonly byte[] downloadContentArray = [1, 2, 3,];
+    private readonly MemoryStream downloadContentStream;
 
     public CachedDownloaderTests()
     {
@@ -45,12 +46,16 @@ public sealed class CachedDownloaderTests : IDisposable
         cachedDownloader = new CachedDownloader(runtime, checksum, FileDescriptor, SonarUserHome);
         runtime.Directory.GetRandomFileName().Returns(TempFileName);
         fileContentStream = new MemoryStream(fileContentArray, writable: true);
+        downloadContentStream = new MemoryStream(downloadContentArray);
         runtime.File.Create(TempFilePath).Returns(fileContentStream);
         checksum.ComputeHash(null).ReturnsForAnyArgs(ExpectedSha);
     }
 
-    public void Dispose() =>
+    public void Dispose()
+    {
         fileContentStream.Dispose();
+        downloadContentStream.Dispose();
+    }
 
     [TestMethod]
     public async Task DownloadFileAsync_DirectoryDoesNotExist_CreatesDirectory()
@@ -101,17 +106,22 @@ public sealed class CachedDownloaderTests : IDisposable
     }
 
     [TestMethod]
-    public async Task DownloadFileAsync_Succeeds()
+    [DataRow("someFile.jar")]
+    [DataRow("../someFile.jar")]              // Other cache entries are allowed: everything in the cache comes from the same server.
+    [DataRow("../otherSha256/someFile.jar")]
+    public async Task DownloadFileAsync_Succeeds(string fileName)
     {
-        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
+        var filePath = Path.Combine(DownloadPath, fileName);
+        var result = await new CachedDownloader(runtime, checksum, new(fileName, ExpectedSha), SonarUserHome)
+            .DownloadFileAsync(() => Task.FromResult<Stream>(downloadContentStream));
 
-        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(DownloadFilePath);
+        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(filePath);
         AssertStreamDisposed();
         runtime.File.Received(1).Create(TempFilePath);
-        runtime.File.Received(1).Move(TempFilePath, DownloadFilePath);
+        runtime.File.Received(1).Move(TempFilePath, filePath);
         fileContentArray.Should().BeEquivalentTo(downloadContentArray);
         runtime.Logger.DebugMessages.Should().BeEquivalentTo(
-            $"Cache miss. Could not find '{DownloadFilePath}'.",
+            $"Cache miss. Could not find '{filePath}'.",
             $"The checksum of the downloaded file is '{ExpectedSha}' and the expected checksum is '{ExpectedSha}'.");
     }
 
@@ -158,7 +168,7 @@ public sealed class CachedDownloaderTests : IDisposable
     {
         checksum.ComputeHash(null).ReturnsForAnyArgs("someOtherHash");
 
-        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
+        var result = await ExecuteDownloadFileAsync(downloadContentStream);
 
         var error = result.Should().BeOfType<DownloadError>().Which;
         error.Message.Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
@@ -180,7 +190,7 @@ public sealed class CachedDownloaderTests : IDisposable
         var exception = new InvalidOperationException("Checksum provider failed", new IOException("The provider is unavailable."));
         checksum.ComputeHash(null).ThrowsForAnyArgs(exception);
 
-        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
+        var result = await ExecuteDownloadFileAsync(downloadContentStream);
 
         var error = result.Should().BeOfType<DownloadError>().Which;
         error.Message.Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
@@ -202,7 +212,7 @@ public sealed class CachedDownloaderTests : IDisposable
         var exception = new IOException("The downloaded file is locked.");
         runtime.File.Open(TempFilePath).Throws(exception);
 
-        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
+        var result = await ExecuteDownloadFileAsync(downloadContentStream);
 
         var error = result.Should().BeOfType<DownloadError>().Which;
         error.Message.Should().Be("The download of the file from the server failed with the exception 'The checksum of the downloaded file does not match the expected checksum.'.");
@@ -218,7 +228,7 @@ public sealed class CachedDownloaderTests : IDisposable
     {
         runtime.File.Exists(DownloadFilePath).Returns(true);
 
-        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
+        var result = await ExecuteDownloadFileAsync(downloadContentStream);
 
         result.Should().BeOfType<CacheHit>().Which.FilePath.Should().Be(DownloadFilePath);
         runtime.File.DidNotReceiveWithAnyArgs().Create(null);
@@ -234,7 +244,7 @@ public sealed class CachedDownloaderTests : IDisposable
         runtime.File.Exists(DownloadFilePath).Returns(true);
         checksum.ComputeHash(null).ReturnsForAnyArgs(x => "someOtherHash", x => ExpectedSha);
 
-        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
+        var result = await ExecuteDownloadFileAsync(downloadContentStream);
 
         result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(DownloadFilePath);
         runtime.File.Received(1).Delete(DownloadFilePath);
@@ -291,22 +301,22 @@ public sealed class CachedDownloaderTests : IDisposable
     public async Task DownloadFileAsync_EnsureDownloadDirectoryFails()
     {
         runtime.Directory.When(x => x.CreateDirectory(DownloadPath)).Do(_ => throw new IOException());
-        var result = await ExecuteDownloadFileAsync(new MemoryStream(downloadContentArray));
+        var result = await ExecuteDownloadFileAsync(downloadContentStream);
         result.Should().BeOfType<DownloadError>().Which.Message
             .Should().Be($"The directory '{DownloadPath}' could not be created.");
     }
 
     [TestMethod]
-    [DataRow("../someFile.jar")]
+    [DataRow("../../someFile.jar")]
     [DataRow("/tmp/someFile.jar")]
-    [DataRow("../SHA256/someFile.jar")]
-    [DataRow("../sha256\u00AD/someFile.jar")]
+    [DataRow("../../CACHE/someFile.jar")]
+    [DataRow("../../cache\u00AD/someFile.jar")]
     public async Task DownloadFileAsync_FileLocationOutsideCache(string fileName)
     {
         var result = await new CachedDownloader(runtime, checksum, new(fileName, ExpectedSha), SonarUserHome)
-            .DownloadFileAsync(() => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+            .DownloadFileAsync(() => Task.FromResult<Stream>(downloadContentStream));
         result.Should().BeOfType<DownloadError>()
-            .Which.Message.Should().Be($"The file '{fileName}' with checksum '{ExpectedSha}' must not resolve to a path outside of the cache directory '{SonarUserHomeCache}'.");
+            .Which.Message.Should().Be($"The cache file path '{Path.Combine(SonarUserHomeCache, ExpectedSha, fileName)}' is invalid.");
         runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
         runtime.File.DidNotReceiveWithAnyArgs().Create(null);
     }
@@ -318,12 +328,10 @@ public sealed class CachedDownloaderTests : IDisposable
     [DataRow("/tmp")]
     public async Task DownloadFileAsync_ShaLocationOutsideCache(string sha256)
     {
-        checksum.ComputeHash(null).ReturnsForAnyArgs(sha256);
-        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
         var result = await new CachedDownloader(runtime, checksum, new(FileDescriptor.Filename, sha256), SonarUserHome)
-            .DownloadFileAsync(() => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+            .DownloadFileAsync(() => Task.FromResult<Stream>(downloadContentStream));
         result.Should().BeOfType<DownloadError>()
-            .Which.Message.Should().Be($"The file '{FileDescriptor.Filename}' with checksum '{sha256}' must not resolve to a path outside of the cache directory '{SonarUserHomeCache}'.");
+            .Which.Message.Should().Be($"The cache file path '{Path.Combine(SonarUserHomeCache, sha256, FileDescriptor.Filename)}' is invalid.");
         runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
         runtime.File.DidNotReceiveWithAnyArgs().Create(null);
     }
@@ -337,9 +345,9 @@ public sealed class CachedDownloaderTests : IDisposable
         var sha256 = "a\0b";    // ArgumentException
 #endif
         var result = await new CachedDownloader(runtime, checksum, new(FileDescriptor.Filename, sha256), SonarUserHome)
-            .DownloadFileAsync(() => Task.FromResult<Stream>(new MemoryStream(downloadContentArray)));
+            .DownloadFileAsync(() => Task.FromResult<Stream>(downloadContentStream));
         var error = result.Should().BeOfType<DownloadError>().Which;
-        error.Message.Should().Be($"The file '{FileDescriptor.Filename}' with checksum '{sha256}' must not resolve to a path outside of the cache directory '{SonarUserHomeCache}'.");
+        error.Message.Should().Be($"The cache file path '{Path.Combine(SonarUserHomeCache, sha256, FileDescriptor.Filename)}' is invalid.");
         error.Exception.Should().NotBeNull();
         runtime.Directory.DidNotReceiveWithAnyArgs().CreateDirectory(null);
         runtime.File.DidNotReceiveWithAnyArgs().Create(null);

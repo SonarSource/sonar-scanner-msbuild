@@ -352,7 +352,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>The download of the file from the server failed with the exception '{0}'.</value>
   </data>
   <data name="ERR_FileNotInCache" xml:space="preserve">
-    <value>The file '{0}' with checksum '{1}' must not resolve to a path outside of the cache directory '{2}'.</value>
+    <value>The cache file path '{0}' is invalid.</value>
   </data>
   <data name="MSG_FileAlreadyDownloaded" xml:space="preserve">
     <value>The file was already downloaded from the server and stored at '{0}'.</value>

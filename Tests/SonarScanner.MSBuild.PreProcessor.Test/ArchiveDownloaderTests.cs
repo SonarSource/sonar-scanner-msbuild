@@ -29,7 +29,7 @@ public class ArchiveDownloaderTests
     private const string DownloadFileName = "filename.tar.gz";
     private const string Sha256 = "sha256";
     private const string ExtractedFolderName = "filename.tar.gz_extracted";
-    private static readonly string SonarUserHome = Path.Combine("C:", "Users", "user", ".sonar");
+    private static readonly string SonarUserHome = Path.GetFullPath(Path.Combine("Users", "user", ".sonar"));
     private static readonly string SonarCache = Path.Combine(SonarUserHome, "cache");
     private static readonly string ShaPath = Path.Combine(SonarCache, Sha256);
     private static readonly string DownloadPath = Path.Combine(ShaPath, DownloadFileName);
