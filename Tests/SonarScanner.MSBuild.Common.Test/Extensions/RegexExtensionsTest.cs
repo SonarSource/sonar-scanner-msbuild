@@ -20,7 +20,7 @@
 
 using System.Text.RegularExpressions;
 
-namespace SonarAnalyzer.Test.Extensions;
+namespace SonarScanner.MSBuild.Common.Extensions.Test;
 
 [TestClass]
 public class RegexExtensionsTest
