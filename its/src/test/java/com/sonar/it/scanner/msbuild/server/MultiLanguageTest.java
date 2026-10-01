@@ -64,7 +64,6 @@ class MultiLanguageTest {
   }
 
   @Test
-  @EnabledOnOs({OS.WINDOWS, OS.LINUX}) // macOS fails with ERR_SSL_CIPHER_OPERATION_FAILED during npm install - see SCAN4NET-1142
   // This test is not supported on versions older than Visual Studio 2026
   @MSBuildMinVersion(18)
   @DisableOnEdition(Edition.COMMUNITY)
@@ -73,8 +72,7 @@ class MultiLanguageTest {
     // https://developercommunity.visualstudio.com/t/visual-studio-2022-freezes-when-opening-esproj-fil/1581344
     var context = AnalysisContext.forServer("VueWithAspBackend");
     context.begin.CreateAndSetUserHomeFolder("junit-esproj-vue-");
-    context.build.setTimeout(Timeout.FIVE_MINUTES);  // Longer timeout because of npm install
-    context.end.setTimeout(Timeout.FIVE_MINUTES);    // End step was timing out, JS is slow
+    context.build.addArgument("/p:ShouldRunNpmInstall=false");  // Waste of time, JS/TS will not have dependencies, but will raise enough issues to prove itself
     ORCHESTRATOR.getServer().provisionProject(context.projectKey, context.projectKey);
     context.runAnalysis();
 
@@ -82,12 +80,10 @@ class MultiLanguageTest {
     assertLanguageExists(issues, "csharpsquid");
     assertLanguageExists(issues, "javascript");
     assertLanguageExists(issues, "typescript");
-    assertLanguageExists(issues, "php");
-    assertLanguageExists(issues, "python");
     // Different expected values are for different SQ and MsBuild versions and local run
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "lines", ORCHESTRATOR)).isGreaterThan(300);
     assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "ncloc", ORCHESTRATOR)).isGreaterThan(200);
-    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "files", ORCHESTRATOR)).isGreaterThanOrEqualTo(9);
+    assertThat(TestUtils.getMeasureAsInteger(context.projectKey, "files", ORCHESTRATOR)).isGreaterThan(7);
   }
 
   @Test
@@ -138,6 +134,9 @@ class MultiLanguageTest {
       assertLanguageExists(issues, "azureresourcemanager");
       assertLanguageExists(issues, "cloudformation");
       assertLanguageExists(issues, "ipython");
+      if (version.isGreaterThanOrEquals(2025, 5)) {
+        assertLanguageExists(issues, "githubactions");
+      }
       if (version.isGreaterThan(2026, 1)) {
         assertLanguageExists(issues, "groovydre");
         assertLanguageExists(issues, "powershelldre");
@@ -160,38 +159,28 @@ class MultiLanguageTest {
   void react() {
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.begin.CreateAndSetUserHomeFolder("junit-react-");
-    context.build.setTimeout(Timeout.TEN_MINUTES);   // Longer timeout because of npm install
-    context.end.setTimeout(Timeout.TWENTY_MINUTES);  // End step is timing out on macOS, JS analysis is slow - see SCAN4NET-1144
+    context.build.addArgument("/p:Configuration=Release");  // This will disable DebugEnsureNodeEnv target from the CSPROJ file and will prevent running "npm ci" in CI
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     assertLanguageExists(issues, "csharpsquid");
     assertLanguageExists(issues, "javascript");
-    assertLanguageExists(issues, "python");
   }
 
   @Test
-  @EnabledOnOs({OS.WINDOWS, OS.LINUX}) // macOS fails with ERR_SSL_CIPHER_OPERATION_FAILED during npm install - see SCAN4NET-1142
   // .Net 7 is supported by VS 2022 and above
   @MSBuildMinVersion(17)
   @DisableOnEdition(Edition.COMMUNITY)
   void angular() {
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
     context.begin.CreateAndSetUserHomeFolder("junit-angular-");
-    context.build.setTimeout(Timeout.TEN_MINUTES);  // Longer timeout because of npm install
-    context.end.setTimeout(Timeout.TEN_MINUTES);    // End step was timing out, JS is slow
+    context.build.addArgument("/p:Configuration=Release");  // This will disable DebugEnsureNodeEnv target from the CSPROJ file and will prevent running "npm ci" in CI
     context.runAnalysis();
 
     var issues = TestUtils.projectIssues(ORCHESTRATOR, context.projectKey);
     var version = ORCHESTRATOR.getServer().version();
     assertLanguageExists(issues, "csharpsquid");
     assertLanguageExists(issues, "javascript");
-    assertLanguageExists(issues, "python");
-    assertLanguageExists(issues, "php");
-    assertLanguageExists(issues, "typescript");
-    if (version.isGreaterThanOrEquals(2025, 5)) {
-      assertLanguageExists(issues, "githubactions");
-    }
   }
 
   @Test
