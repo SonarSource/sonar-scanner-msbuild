@@ -18,20 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarScanner.MSBuild.Common;
+namespace SonarScanner.MSBuild.Common.Extensions;
 
-public static class FileInfoExtensions
+public static class ILoggerExtensions
 {
-    extension(FileInfo file)
+    public static void Log(this ILogger logger, LoggerVerbosity level, string message, params object[] args)
     {
-        public bool IsInDirectory(DirectoryInfo directory) =>
-            file.IsInDirectory(directory, FileInfoEqualityComparer.ComparisonType);
-
-        public bool IsInDirectory(DirectoryInfo directory, StringComparison comparison)
+        Action<string, object[]> log = level switch
         {
-            var normalizedDirectoryPath = directory.WithTrailingDirectorySeparator();
-            return file.FullName.StartsWith(normalizedDirectoryPath, comparison);
-        }
-
+            LoggerVerbosity.Debug => logger.LogDebug,
+            LoggerVerbosity.Info => logger.LogInfo,
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, "Unsupported log level.")
+        };
+        log(message, args);
     }
 }

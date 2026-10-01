@@ -26,6 +26,7 @@
     <Using Include="FluentAssertions" />
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
     <Using Include="SonarScanner.MSBuild.Common" />
+    <Using Include="SonarScanner.MSBuild.Common.Extensions" />
     <Using Include="SonarScanner.MSBuild.Common.Interfaces"/>
     <Using Include="System.Net" />
     <Using Include="System.Net.Http" />

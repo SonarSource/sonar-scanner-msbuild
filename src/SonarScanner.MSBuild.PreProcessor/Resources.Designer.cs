@@ -425,7 +425,7 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The static resource name &apos;{0}&apos; of plugin &apos;{1}&apos; is invalid. It must not resolve to a path outside of &apos;{2}&apos;..
+        ///   Looks up a localized string similar to The static resource name &apos;{0}&apos; of plugin &apos;{1}&apos; is invalid..
         /// </summary>
         internal static string ERROR_InvalidStaticResourceName {
             get {

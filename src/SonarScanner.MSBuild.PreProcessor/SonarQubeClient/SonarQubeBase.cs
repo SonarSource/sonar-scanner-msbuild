@@ -117,7 +117,7 @@ public abstract class SonarQubeBase : IDisposable
         var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
         if (!new FileInfo(targetFilePath).IsInDirectory(new DirectoryInfo(targetDirectory), StringComparison.Ordinal))
         {
-            runtime.LogError(Resources.ERROR_InvalidStaticResourceName, embeddedFileName, pluginKey, targetDirectory);
+            runtime.LogError(Resources.ERROR_InvalidStaticResourceName, embeddedFileName, pluginKey);
             return null;
         }
 

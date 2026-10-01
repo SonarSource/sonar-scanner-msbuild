@@ -145,7 +145,7 @@
     <value>The following CheckId should not appear multiple times: {0}</value>
   </data>
   <data name="ERROR_InvalidStaticResourceName" xml:space="preserve">
-    <value>The static resource name '{0}' of plugin '{1}' is invalid. It must not resolve to a path outside of '{2}'.</value>
+    <value>The static resource name '{0}' of plugin '{1}' is invalid.</value>
   </data>
   <data name="ERROR_InvalidCommandLineArgs" xml:space="preserve">
     <value>Expecting at least the following command line argument:

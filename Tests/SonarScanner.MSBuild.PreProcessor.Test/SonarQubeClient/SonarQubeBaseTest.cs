@@ -64,9 +64,8 @@ public class SonarQubeBaseTest
         downloader
             .TryDownloadIfExists(new($"api/qualityprofiles/search?project={ProjectKey}", UriKind.Relative), Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(true, "trash")));
-        Func<Task> action = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
-        await action.Should().ThrowAsync<Exception>();
+        await FluentActions.Invoking(() => sut.DownloadQualityProfile(ProjectKey, null, "cs")).Should().ThrowAsync<Exception>();
     }
 
     [TestMethod]
@@ -79,9 +78,8 @@ public class SonarQubeBaseTest
         downloader
             .Download(WebUtils.EscapedUri("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)
             .Returns(Task.FromResult<string>(null));
-        Func<Task> act = async () => await CreateClient("ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
-        await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+        await FluentActions.Invoking(() => CreateClient("ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs")).Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
         runtime.Logger.Should().HaveErrors("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
     }
 
@@ -651,35 +649,23 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadEmbeddedFile_NullPluginKey()
-    {
-        Func<Task> act = async () => await sut.DownloadEmbeddedFile(null, "filename", "targetDir");
-
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("pluginKey");
-    }
+    public async Task DownloadEmbeddedFile_NullPluginKey() =>
+        (await FluentActions.Invoking(() => sut.DownloadEmbeddedFile(null, "filename", "targetDir")).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("pluginKey");
 
     [TestMethod]
-    public async Task DownloadEmbeddedFile_NullEmbeddedFileName()
-    {
-        Func<Task> act = async () => await sut.DownloadEmbeddedFile("key", null, "targetDir");
-
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("embeddedFileName");
-    }
+    public async Task DownloadEmbeddedFile_NullEmbeddedFileName() =>
+        (await FluentActions.Invoking(() => sut.DownloadEmbeddedFile("key", null, "targetDir")).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("embeddedFileName");
 
     [TestMethod]
-    public async Task DownloadEmbeddedFile_NullTargetDirectory()
-    {
-        Func<Task> act = async () => await sut.DownloadEmbeddedFile("pluginKey", "filename", null);
-
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("targetDirectory");
-    }
+    public async Task DownloadEmbeddedFile_NullTargetDirectory() =>
+        (await FluentActions.Invoking(() => sut.DownloadEmbeddedFile("pluginKey", "filename", null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("targetDirectory");
 
     [TestMethod]
     [DataRow("dummy.txt")]
     [DataRow("sub/dummy.txt")]
     public async Task DownloadEmbeddedFile_FileExist(string fileName)
     {
-        downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(true));
+        downloader.TryDownloadFileIfExists(null, null, false).ReturnsForAnyArgs(Task.FromResult(true));
         var targetDirectory = "targetDir";
 
         var filePath = await sut.DownloadEmbeddedFile("csharp", fileName, targetDirectory);
@@ -690,7 +676,7 @@ public class SonarQubeBaseTest
     [TestMethod]
     public async Task DownloadEmbeddedFile_FileDoesNotExist()
     {
-        downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(false));
+        downloader.TryDownloadFileIfExists(null, null, false).ReturnsForAnyArgs(Task.FromResult(false));
 
         var result = await sut.DownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
         result.Should().BeNull();
@@ -706,28 +692,22 @@ public class SonarQubeBaseTest
     [DataRow("../TARGETDIR/evil.txt")]
     public async Task DownloadEmbeddedFile_FileNotInTargetDirectory(string fileName)
     {
-        downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(true));
+        downloader.TryDownloadFileIfExists(null, null, false).ReturnsForAnyArgs(Task.FromResult(true));
         var targetDirectory = "targetDir";
 
         var result = await sut.DownloadEmbeddedFile("csharp", fileName, targetDirectory);
         result.Should().BeNull();
         await downloader.DidNotReceiveWithAnyArgs().TryDownloadFileIfExists(null, null);
-        runtime.Logger.Should().HaveErrors($"The static resource name '{fileName}' of plugin 'csharp' is invalid. It must not resolve to a path outside of '{targetDirectory}'.");
+        runtime.Logger.Should().HaveErrors($"The static resource name '{fileName}' of plugin 'csharp' is invalid.");
     }
 
     [TestMethod]
-    public async Task DownloadJreMetadataAsync_NullOperatingSystem()
-    {
-        Func<Task> act = async () => await sut.DownloadJreMetadataAsync(null, "whatever");
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("operatingSystem");
-    }
+    public async Task DownloadJreMetadataAsync_NullOperatingSystem() =>
+        (await FluentActions.Invoking(() => sut.DownloadJreMetadataAsync(null, "whatever")).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("operatingSystem");
 
     [TestMethod]
-    public async Task DownloadJreMetadataAsync_NullArchitecture()
-    {
-        Func<Task> act = async () => await sut.DownloadJreMetadataAsync("whatever", null);
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("architecture");
-    }
+    public async Task DownloadJreMetadataAsync_NullArchitecture() =>
+        (await FluentActions.Invoking(() => sut.DownloadJreMetadataAsync("whatever", null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("architecture");
 
     [TestMethod]
     public async Task DownloadJreMetadataAsync_DownloadFails()
