@@ -143,12 +143,13 @@ public class TarGzUnpackTests
     private static MemoryStream CreateTarGz(string entryName)
     {
         var output = new MemoryStream();
-        using (var tar = new TarOutputStream(new GZipOutputStream(output), Encoding.GetEncoding(28591))) // Latin-1 maps each char to one byte, like TarGzUnpacker reads them
+        using (var tar = new TarOutputStream(new GZipOutputStream(output) { IsStreamOwner = false }, Encoding.GetEncoding(28591))) // Latin-1 maps each char to one byte, like TarGzUnpacker reads them
         {
             tar.PutNextEntry(TarEntry.CreateTarEntry(entryName));
             tar.CloseEntry();
         }
-        return new MemoryStream(output.ToArray());
+        output.Position = 0;
+        return output;
     }
 
     private void RootedPath_Success(string base64Archive)
