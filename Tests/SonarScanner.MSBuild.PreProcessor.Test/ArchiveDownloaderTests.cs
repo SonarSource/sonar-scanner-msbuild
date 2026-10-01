@@ -143,17 +143,20 @@ public class ArchiveDownloaderTests
     {
         var fileName = "sub/filename.tar.gz";
         var tempExtractionPath = Path.Combine(ShaPath, "randomForArchiveDownloader");
-        var archiveExtractionPath = $"{Path.Combine(ShaPath, fileName)}_extracted";
         runtime.Directory.GetRandomFileName().Returns("randomForCachedDownloader", "randomForArchiveDownloader");
         runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
         var tempFileStream = new MemoryStream();
         runtime.File.Open(Path.Combine(ShaPath, "randomForCachedDownloader")).Returns(tempFileStream);
         checksum.ComputeHash(tempFileStream).Returns(Sha256);
-        runtime.File.Exists(Path.Combine(tempExtractionPath, targetFilePath)).Returns(true);
 
         var result = await ExecuteDownloadAndUnpack(descriptor: new(fileName, Sha256, targetFilePath));
-        result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(Path.Combine(archiveExtractionPath, targetFilePath));
-        runtime.Directory.Received(1).Move(tempExtractionPath, archiveExtractionPath);
+        var error = result.Should().BeOfType<DownloadError>().Which;
+        error.Message.Should().Be("The downloaded archive could not be extracted.");
+        error.Exception.Should().BeOfType<InvalidOperationException>()
+            .Which.Message.Should().Be($"The target file in the extracted archive was expected to be at '{Path.Combine(tempExtractionPath, targetFilePath)}' but couldn't be found.");
+        runtime.File.DidNotReceive().Exists(Path.Combine(tempExtractionPath, targetFilePath));
+        runtime.Directory.DidNotReceiveWithAnyArgs().Move(null, null);
+        runtime.Directory.Received(1).Delete(tempExtractionPath, true);
     }
 
     [TestMethod]

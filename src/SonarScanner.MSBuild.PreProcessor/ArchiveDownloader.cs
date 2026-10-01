@@ -88,7 +88,8 @@ public class ArchiveDownloader
             using var archiveStream = runtime.File.Open(archiveFile);
             unpacker.Unpack(archiveStream, tempExtractionPath);
             var expectedTargetFileInTempPath = Path.Combine(tempExtractionPath, archiveDescriptor.TargetFilePath);
-            if (runtime.File.Exists(expectedTargetFileInTempPath))
+            if (new FileInfo(expectedTargetFileInTempPath).IsInDirectory(new DirectoryInfo(tempExtractionPath), StringComparison.Ordinal)
+                && runtime.File.Exists(expectedTargetFileInTempPath))
             {
                 runtime.LogDebug(Resources.MSG_MovingUnpackedFiles, tempExtractionPath, archiveExtractionPath);
                 runtime.Directory.Move(tempExtractionPath, archiveExtractionPath);
