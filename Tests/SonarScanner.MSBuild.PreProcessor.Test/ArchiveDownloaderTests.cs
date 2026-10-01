@@ -23,7 +23,7 @@ using SonarScanner.MSBuild.PreProcessor.Caching;
 namespace SonarScanner.MSBuild.PreProcessor.Test;
 
 [TestClass]
-public class ArchiveDownloaderTests
+public sealed class ArchiveDownloaderTests : IDisposable
 {
     private const string TargetFileName = "targetFileInArchive.exe";
     private const string DownloadFileName = "filename.tar.gz";
@@ -41,6 +41,10 @@ public class ArchiveDownloaderTests
     private readonly UnpackerFactory unpackerFactory;
     private readonly IUnpacker unpacker;
     private readonly MemoryStream failingStream;
+    private readonly MemoryStream createdFileStream = new();
+    private readonly MemoryStream checksumStream = new();
+    private readonly MemoryStream archiveFileStream = new();
+    private readonly MemoryStream downloadContentStream = new();
 
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.directory.createdirectory
     // https://learn.microsoft.com/en-us/dotnet/api/system.io.file.create
@@ -68,6 +72,14 @@ public class ArchiveDownloaderTests
         unpackerFactory.Create(null).ReturnsForAnyArgs(unpacker);
         failingStream = Substitute.For<MemoryStream>();
         failingStream.CopyToAsync(null, default, default).ThrowsAsyncForAnyArgs(new InvalidOperationException("Download failure simulation."));
+    }
+
+    public void Dispose()
+    {
+        createdFileStream.Dispose();
+        checksumStream.Dispose();
+        archiveFileStream.Dispose();
+        downloadContentStream.Dispose();
     }
 
     [TestMethod]
@@ -139,15 +151,16 @@ public class ArchiveDownloaderTests
     [TestMethod]
     [DataRow("../../targetFileInArchive.exe")]
     [DataRow("../../../sha256/sub/filename.tar.gz_extracted/targetFileInArchive.exe")]
+    [DataRow("../RANDOMFORARCHIVEDOWNLOADER/targetFileInArchive.exe")]
+    [DataRow("../randomForArchiveDownloader\u00AD/targetFileInArchive.exe")]
     public async Task Unpack_TargetFileOutsideTempExtractionPath(string targetFilePath)
     {
         var fileName = "sub/filename.tar.gz";
         var tempExtractionPath = Path.Combine(ShaPath, "randomForArchiveDownloader");
         runtime.Directory.GetRandomFileName().Returns("randomForCachedDownloader", "randomForArchiveDownloader");
-        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
-        var tempFileStream = new MemoryStream();
-        runtime.File.Open(Path.Combine(ShaPath, "randomForCachedDownloader")).Returns(tempFileStream);
-        checksum.ComputeHash(tempFileStream).Returns(Sha256);
+        runtime.File.Create(Arg.Any<string>()).Returns(createdFileStream);
+        runtime.File.Open(Path.Combine(ShaPath, "randomForCachedDownloader")).Returns(checksumStream);
+        checksum.ComputeHash(checksumStream).Returns(Sha256);
 
         var result = await ExecuteDownloadAndUnpack(descriptor: new(fileName, Sha256, targetFilePath));
         var error = result.Should().BeOfType<DownloadError>().Which;
@@ -197,7 +210,7 @@ public class ArchiveDownloaderTests
         runtime.File.Exists(Path.Combine(ShaPath, TargetFileName)).Returns(true);
         runtime.File.Exists(DownloadPath).Returns(true);
 
-        runtime.File.Create(DownloadPath).ReturnsForAnyArgs(new MemoryStream(new byte[3], writable: true));
+        runtime.File.Create(DownloadPath).ReturnsForAnyArgs(createdFileStream);
         checksum.ComputeHash(null).ReturnsForAnyArgs(x => "notValid", x => Sha256);
 
         var result = await ExecuteDownloadAndUnpack();
@@ -221,9 +234,8 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(SonarCache).Returns(true);
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.File.Exists(DownloadPath).Returns(true);
-        var fileContent = new MemoryStream();
-        runtime.File.Open(DownloadPath).Returns(fileContent);
-        checksum.ComputeHash(fileContent).Returns(Sha256);
+        runtime.File.Open(DownloadPath).Returns(checksumStream);
+        checksum.ComputeHash(checksumStream).Returns(Sha256);
 
         var result = await ExecuteDownloadAndUnpack();
 
@@ -249,7 +261,7 @@ public class ArchiveDownloaderTests
         runtime.File.Exists(DownloadPath).Returns(false);
         var downloadContentArray = new byte[] { 1, 2, 3 };
         var fileContentArray = new byte[3];
-        var fileContentStream = new MemoryStream(fileContentArray, writable: true);
+        using var fileContentStream = new MemoryStream(fileContentArray, writable: true);
         runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileContentStream);
         using var content = new MemoryStream(downloadContentArray);
 
@@ -374,7 +386,7 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd");
         runtime.File.Exists(DownloadPath).Returns(false);
-        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(new MemoryStream());
+        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(createdFileStream);
         runtime.File.When(x => x.Delete(Path.Combine(ShaPath, "xFirst.rnd"))).Do(x => throw ((Exception)Activator.CreateInstance(exceptionType)));
 
         var result = await ExecuteDownloadAndUnpack(failingStream);
@@ -420,8 +432,7 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd");
         runtime.File.Exists(DownloadPath).Returns(false);
-        var fileContentStream = new MemoryStream();
-        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileContentStream);
+        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(createdFileStream);
 
         var result = await ExecuteDownloadAndUnpack(failingStream);
 
@@ -429,7 +440,7 @@ public class ArchiveDownloaderTests
         runtime.File.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
         runtime.File.Received(1).Delete(Path.Combine(ShaPath, "xFirst.rnd"));
         runtime.File.DidNotReceive().Move(Path.Combine(ShaPath, "xFirst.rnd"), DownloadPath);
-        var streamAccess = () => fileContentStream.Position;
+        var streamAccess = () => createdFileStream.Position;
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
 
@@ -440,8 +451,7 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd");
         runtime.File.Exists(DownloadPath).Returns(false);
-        var fileContentStream = new MemoryStream();
-        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileContentStream);
+        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(createdFileStream);
         var sut = CreateSutWithSubstitutes();
 
         var result = await sut.DownloadAsync(() => Task.FromResult<Stream>(null));
@@ -451,7 +461,7 @@ public class ArchiveDownloaderTests
         runtime.File.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
         runtime.File.Received(1).Delete(Path.Combine(ShaPath, "xFirst.rnd"));
         runtime.File.DidNotReceive().Move(Path.Combine(ShaPath, "xFirst.rnd"), DownloadPath);
-        var streamAccess = () => fileContentStream.Position;
+        var streamAccess = () => createdFileStream.Position;
         streamAccess.Should().Throw<ObjectDisposedException>("FileStream should be closed after failure.");
     }
 
@@ -465,8 +475,8 @@ public class ArchiveDownloaderTests
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd");
         runtime.File.Exists(file).Returns(false);
         var fileContentArray = new byte[3];
-        var fileContentStream = new MemoryStream(fileContentArray);
-        var computeHashStream = new MemoryStream();
+        using var fileContentStream = new MemoryStream(fileContentArray);
+        using var computeHashStream = new MemoryStream();
         runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileContentStream);
         runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(computeHashStream);
         var exception = (Exception)Activator.CreateInstance(exceptionType);
@@ -518,10 +528,9 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(sha).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd");
         runtime.File.Exists(file).Returns(false);
-        runtime.File.Create(Path.Combine(sha, "xFirst.rnd")).Returns(new MemoryStream()); // This is the temp file creation.
-        var fileStream = new MemoryStream();
-        runtime.File.Open(Path.Combine(sha, "xFirst.rnd")).Returns(fileStream);
-        checksum.ComputeHash(fileStream).Returns(fileHashValue);
+        runtime.File.Create(Path.Combine(sha, "xFirst.rnd")).Returns(createdFileStream); // This is the temp file creation.
+        runtime.File.Open(Path.Combine(sha, "xFirst.rnd")).Returns(checksumStream);
+        checksum.ComputeHash(checksumStream).Returns(fileHashValue);
 
         var result = await ExecuteDownloadAndUnpack(descriptor: new ArchiveDescriptor(DownloadFileName, expectedHashValue, TargetFileName));
 
@@ -539,7 +548,7 @@ public class ArchiveDownloaderTests
         runtime.File.Received(1).Move(Path.Combine(sha, "xFirst.rnd"), file);
         runtime.File.Received(1).Open(Path.Combine(sha, "xFirst.rnd")); // For the checksum.
         runtime.File.Received(1).Open(file); // For the unpacking.
-        checksum.Received(1).ComputeHash(fileStream);
+        checksum.Received(1).ComputeHash(checksumStream);
     }
 
     [TestMethod]
@@ -554,11 +563,10 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(sha).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd");
         runtime.File.Exists(file).Returns(false);
-        runtime.File.Create(Path.Combine(sha, "xFirst.rnd")).Returns(new MemoryStream());
+        runtime.File.Create(Path.Combine(sha, "xFirst.rnd")).Returns(createdFileStream);
         runtime.File.When(x => x.Delete(Path.Combine(sha, "xFirst.rnd"))).Do(x => throw new FileNotFoundException());
-        var fileStream = new MemoryStream();
-        runtime.File.Open(Path.Combine(sha, "xFirst.rnd")).Returns(fileStream);
-        checksum.ComputeHash(fileStream).Returns(fileHashValue);
+        runtime.File.Open(Path.Combine(sha, "xFirst.rnd")).Returns(checksumStream);
+        checksum.ComputeHash(checksumStream).Returns(fileHashValue);
 
         var result = await ExecuteDownloadAndUnpack(descriptor: new ArchiveDescriptor(DownloadFileName, expectedHashValue, TargetFileName));
 
@@ -575,7 +583,7 @@ public class ArchiveDownloaderTests
         runtime.File.Received(1).Create(Path.Combine(sha, "xFirst.rnd"));
         runtime.File.Received(1).Open(Path.Combine(sha, "xFirst.rnd"));
         runtime.File.Received(1).Delete(Path.Combine(sha, "xFirst.rnd"));
-        checksum.Received(1).ComputeHash(fileStream);
+        checksum.Received(1).ComputeHash(checksumStream);
     }
 
     [TestMethod]
@@ -586,10 +594,9 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd");
         runtime.File.Exists(file).Returns(false);
-        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(new MemoryStream());
-        var fileStream = new MemoryStream();
-        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(fileStream);
-        checksum.ComputeHash(fileStream).Throws<InvalidOperationException>();
+        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(createdFileStream);
+        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(checksumStream);
+        checksum.ComputeHash(checksumStream).Throws<InvalidOperationException>();
 
         var result = await ExecuteDownloadAndUnpack();
 
@@ -601,7 +608,7 @@ public class ArchiveDownloaderTests
         runtime.File.Received(1).Create(Path.Combine(ShaPath, "xFirst.rnd"));
         runtime.File.DidNotReceive().Move(Path.Combine(ShaPath, "xFirst.rnd"), file);
         runtime.File.DidNotReceive().Open(file);
-        checksum.Received(1).ComputeHash(fileStream);
+        checksum.Received(1).ComputeHash(checksumStream);
     }
 
     [TestMethod]
@@ -612,7 +619,7 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd");
         runtime.File.Exists(file).Returns(false);
-        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(new MemoryStream());
+        runtime.File.Create(Path.Combine(ShaPath, "xFirst.rnd")).Returns(createdFileStream);
         runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Throws<IOException>();
 
         var result = await ExecuteDownloadAndUnpack();
@@ -635,7 +642,7 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd");
         runtime.File.Exists(file).Returns(false);
-        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
+        runtime.File.Create(Arg.Any<string>()).Returns(createdFileStream);
         checksum.ComputeHash(Arg.Any<Stream>()).Returns(Sha256);
 
         var result = await ExecuteDownloadAndUnpack();
@@ -661,12 +668,10 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(SonarCache).Returns(true);
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd"); // First for the download file, second for the extraction temp folder.
-        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
-        var tempFileStream = new MemoryStream();
-        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(tempFileStream);
-        var archiveFileStream = new MemoryStream();
+        runtime.File.Create(Arg.Any<string>()).Returns(createdFileStream);
+        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(checksumStream);
         runtime.File.Open(file).Returns(archiveFileStream);
-        checksum.ComputeHash(tempFileStream).Returns(Sha256);
+        checksum.ComputeHash(checksumStream).Returns(Sha256);
         runtime.File.Exists(Path.Combine(ShaPath, "xSecond.rnd", TargetFileName)).Returns(true);
 
         var result = await ExecuteDownloadAndUnpack();
@@ -691,12 +696,10 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(SonarCache).Returns(true);
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd"); // First for the download file, second for the extraction temp folder.
-        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
-        var tempFileStream = new MemoryStream();
-        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(tempFileStream);
-        var archiveFileStream = new MemoryStream();
+        runtime.File.Create(Arg.Any<string>()).Returns(createdFileStream);
+        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(checksumStream);
         runtime.File.Open(file).Returns(archiveFileStream);
-        checksum.ComputeHash(tempFileStream).Returns(Sha256);
+        checksum.ComputeHash(checksumStream).Returns(Sha256);
         unpacker.When(x => x.Unpack(archiveFileStream, Path.Combine(ShaPath, "xSecond.rnd"))).Throw(new IOException("Unpack failure"));
 
         var result = await ExecuteDownloadAndUnpack();
@@ -720,12 +723,10 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(SonarCache).Returns(true);
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd"); // First for the download file, second for the extraction temp folder.
-        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
-        var tempFileStream = new MemoryStream();
-        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(tempFileStream);
-        var archiveFileStream = new MemoryStream();
+        runtime.File.Create(Arg.Any<string>()).Returns(createdFileStream);
+        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(checksumStream);
         runtime.File.Open(file).Returns(archiveFileStream);
-        checksum.ComputeHash(tempFileStream).Returns(Sha256);
+        checksum.ComputeHash(checksumStream).Returns(Sha256);
         runtime.File.Exists(Path.Combine(ShaPath, "xSecond.rnd", TargetFileName)).Returns(true);
         runtime.Directory.When(x => x.Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted")).Throw<IOException>();
 
@@ -751,12 +752,10 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(SonarCache).Returns(true);
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd"); // First for the download file, second for the extraction temp folder.
-        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
-        var tempFileStream = new MemoryStream();
-        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(tempFileStream);
-        var archiveFileStream = new MemoryStream();
+        runtime.File.Create(Arg.Any<string>()).Returns(createdFileStream);
+        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(checksumStream);
         runtime.File.Open(file).Returns(archiveFileStream);
-        checksum.ComputeHash(tempFileStream).Returns(Sha256);
+        checksum.ComputeHash(checksumStream).Returns(Sha256);
         runtime.File.Exists(Path.Combine("sha", "xSecond.rnd", TargetFileName)).Returns(false);
 
         var result = await ExecuteDownloadAndUnpack();
@@ -780,11 +779,10 @@ public class ArchiveDownloaderTests
         runtime.Directory.Exists(SonarCache).Returns(true);
         runtime.Directory.Exists(ShaPath).Returns(true);
         runtime.Directory.GetRandomFileName().Returns("xFirst.rnd", "xSecond.rnd"); // First for the download file, second for the extraction temp folder.
-        runtime.File.Create(Arg.Any<string>()).Returns(new MemoryStream());
-        var tempFileStream = new MemoryStream();
-        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(tempFileStream);
-        runtime.File.Open(file).Returns(new MemoryStream());
-        checksum.ComputeHash(tempFileStream).Returns(Sha256);
+        runtime.File.Create(Arg.Any<string>()).Returns(createdFileStream);
+        runtime.File.Open(Path.Combine(ShaPath, "xFirst.rnd")).Returns(checksumStream);
+        runtime.File.Open(file).Returns(archiveFileStream);
+        checksum.ComputeHash(checksumStream).Returns(Sha256);
         runtime.File.Exists(Path.Combine(ShaPath, "xSecond.rnd", TargetFileName)).Returns(true);
         runtime.Directory.When(x => x.Move(Path.Combine(ShaPath, "xSecond.rnd"), file + "_extracted")).Throw(new IOException("Move failure"));
         runtime.Directory.When(x => x.Delete(Path.Combine(ShaPath, "xSecond.rnd"), true)).Throw(new IOException("Folder cleanup failure"));
@@ -837,7 +835,8 @@ public class ArchiveDownloaderTests
 
         try
         {
-            var result = await sut.DownloadAsync(() => Task.FromResult<Stream>(new MemoryStream(zipContent)));
+            using var content = new MemoryStream(zipContent);
+            var result = await sut.DownloadAsync(() => Task.FromResult<Stream>(content));
 
             result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(
                 Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.zip_extracted", targetFilePath));
@@ -892,7 +891,8 @@ public class ArchiveDownloaderTests
 
         try
         {
-            var result = await sut.DownloadAsync(() => Task.FromResult<Stream>(new MemoryStream(tarContent)));
+            using var content = new MemoryStream(tarContent);
+            var result = await sut.DownloadAsync(() => Task.FromResult<Stream>(content));
 
             result.Should().BeOfType<Downloaded>().Which.FilePath.Should().Be(
                 Path.Combine(cache, sha, "OpenJDK17U-jre_x64_windows_hotspot_17.0.11_9.tar.gz_extracted", targetFilePath));
@@ -923,7 +923,7 @@ public class ArchiveDownloaderTests
     {
         var archiveDescriptor = descriptor ?? new ArchiveDescriptor(DownloadFileName, Sha256, TargetFileName);
         var sut = CreateSutWithSubstitutes(archiveDescriptor);
-        var memoryStream = content ?? new MemoryStream();
+        var memoryStream = content ?? downloadContentStream;
         return await sut.DownloadAsync(() => Task.FromResult<Stream>(memoryStream));
     }
 
