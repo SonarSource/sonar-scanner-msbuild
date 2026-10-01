@@ -24,7 +24,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: [ LTA-2025-1, LTA-2025-4, LTA-2026-1, LATEST_RELEASE, DEV_MsBuild15, DEV_MsBuild16, DEV_MsBuild17, DEV_MsBuild18, DEV_Community, Cloud, Others ]
         include:
           - scenario: LTA-2025-1
             sqVersion: "LATEST_RELEASE[2025.1]"
@@ -44,7 +43,6 @@ jobs:
             phpVersion: "3.42.0.12795"              # Bundled version with SQ 2025.1
             plsqlVersion: "3.15.0.7123"             # Bundled version with SQ 2025.1
             pythonVersion: "4.26.0.19456"           # Bundled version with SQ 2025.1
-            rubyVersion: "NONE"                     # DRE Dependency
             textVersion: "2.20.0.5038"              # Bundled version with SQ 2025.1
             tsqlVersion: "1.14.0.7614"              # Bundled version with SQ 2025.1
             xmlVersion: "2.12.0.5749"               # Bundled version with SQ 2025.1
@@ -65,7 +63,6 @@ jobs:
             phpVersion: "3.46.1.15272"              # Bundled version with SQ 2025.4
             plsqlVersion: "3.17.1.7623"             # Bundled version with SQ 2025.4
             pythonVersion: "5.7.1.26730"            # Bundled version with SQ 2025.4
-            rubyVersion: "NONE"                     # DRE Dependency
             textVersion: "2.26.1.9976"              # Bundled version with SQ 2025.4
             tsqlVersion: "1.15.0.7898"              # Bundled version with SQ 2025.4
             xmlVersion: "2.13.1.6351"               # Bundled version with SQ 2025.4
@@ -85,10 +82,28 @@ jobs:
             phpVersion: "3.54.0.15452"              # Bundled version with SQ 2026.1
             plsqlVersion: "3.18.1.230"              # Bundled version with SQ 2026.1
             pythonVersion: "5.14.2.29072"           # Bundled version with SQ 2026.1
-            rubyVersion: "NONE"                     # DRE Dependency
             textVersion: "2.38.0.10279"             # Bundled version with SQ 2026.1
             tsqlVersion: "1.16.1.9133"              # Bundled version with SQ 2026.1
             xmlVersion: "2.15.0.7513"               # Bundled version with SQ 2026.1
+          - scenario: LTA-2026-5
+            sqVersion: "LATEST_RELEASE[2026.5]"
+            testInclude: "**/server/*"
+            msbuildPathVar: MSBUILD_18_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
+            cfamilyVersion: "6.85.0.102562"         # Bundled version with SQ 2026.5
+            dotnetVersion: "10.34.0.3385"           # Bundled version with SQ 2026.5
+            dreVersion: "2.13.1.21718"              # Bundled version with SQ 2026.5
+            goVersion: "NONE"                       # Go Enterprise is used
+            goEnterpriseVersion: "1.44.0.8969"      # Bundled version with SQ 2026.5
+            iacEnterpriseVersion: "2.18.0.23895"    # Bundled version with SQ 2026.5
+            javaVersion: "8.43.0.47668"             # Bundled version with SQ 2026.5
+            javascriptVersion: "13.9.0.44793"       # Bundled version with SQ 2026.5
+            phpVersion: "4.0.0.16889"               # Bundled version with SQ 2026.5
+            plsqlVersion: "3.24.0.9611"             # Bundled version with SQ 2026.5
+            pythonVersion: "5.31.0.36502"           # Bundled version with SQ 2026.5
+            textVersion: "2.51.0.13430"             # Bundled version with SQ 2026.5
+            tsqlVersion: "1.20.0.9447"              # Bundled version with SQ 2026.5
+            xmlVersion: "2.19.0.8138"               # Bundled version with SQ 2026.5
           - scenario: LATEST_RELEASE
             testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_18_PATH
@@ -124,7 +139,6 @@ jobs:
             goEnterpriseVersion: "NONE"             # Commercial plugin & DRE Dependency
             iacEnterpriseVersion: "NONE"            # Commercial plugin
             plsqlVersion: "NONE"                    # Commercial plugin
-            rubyVersion: "NONE"                     # Not-Commercial, but only required when the DRE plugin is installed
             tsqlVersion: "NONE"                     # Commercial plugin
           - scenario: Cloud
             testInclude: "**/cloud/*"
@@ -240,7 +254,6 @@ jobs:
           IAC_ENTERPRISE_VERSION: ${{ matrix.iacEnterpriseVersion }}
           JAVA_VERSION: ${{ matrix.javaVersion }}
           TEXT_VERSION: ${{ matrix.textVersion }}
-          RUBY_VERSION: ${{ matrix.rubyVersion }}
           GO_VERSION: ${{ matrix.goVersion }}
           GO_ENTERPRISE_VERSION: ${{ matrix.goEnterpriseVersion }}
           TSQL_VERSION: ${{ matrix.tsqlVersion }}
