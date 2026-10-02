@@ -42,7 +42,7 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
     private readonly ILogger logger;
     private readonly PluginResourceCache cache;
 
-    public EmbeddedAnalyzerInstaller(SonarQubeBase client, ILogger logger) : this(client, GetLocalCacheDirectory(), logger) { }
+    public EmbeddedAnalyzerInstaller(SonarQubeBase client, ILogger logger) : this(client, LocalCacheDirectory(), logger) { }
 
     public EmbeddedAnalyzerInstaller(SonarQubeBase client, string localCacheDirectory, ILogger logger)
     {
@@ -50,7 +50,7 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
         {
             // we may end up sending an empty string from the PreProcessor
             // if the user does not specify a custom path, we will need to set it here.
-            localCacheDirectory = GetLocalCacheDirectory();
+            localCacheDirectory = LocalCacheDirectory();
         }
 
         this.client = client ?? throw new ArgumentNullException(nameof(client));
@@ -64,7 +64,7 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 
     public IEnumerable<AnalyzerPlugin> InstallAssemblies(IEnumerable<Plugin> plugins)
     {
-        if (plugins == null)
+        if (plugins is null)
         {
             throw new ArgumentNullException(nameof(plugins));
         }
@@ -72,7 +72,7 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
         if (!plugins.Any())
         {
             logger.LogInfo(RoslynResources.EAI_NoPluginsSpecified);
-            return Enumerable.Empty<AnalyzerPlugin>(); // nothing to deploy
+            return [];  // nothing to deploy
         }
 
         logger.LogInfo(RoslynResources.EAI_InstallingAnalyzers);
@@ -80,7 +80,7 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
         var analyzerPlugins = new List<AnalyzerPlugin>();
         foreach (var plugin in plugins)
         {
-            var files = GetPluginResourceFiles(plugin);
+            var files = PluginResourceFiles(plugin);
             // Don't add the plugin to the list if it doesn't have any assemblies
             if (files.Any())
             {
@@ -94,15 +94,15 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 
     /// <summary>
     /// We want the resource cache to be in a well-known location so we can re-use files that have
-    /// already been installed (although this won't help for e.g. hosted build agents)
+    /// already been installed (although this won't help for e.g. hosted build agents).
     /// </summary>
-    private static string GetLocalCacheDirectory()
+    private static string LocalCacheDirectory()
     {
         var localCache = Path.Combine(Path.GetTempPath(), ".sonarqube", "resources");
         return localCache;
     }
 
-    private IEnumerable<string> GetPluginResourceFiles(Plugin plugin)
+    private IEnumerable<string> PluginResourceFiles(Plugin plugin)
     {
         logger.LogInfo(RoslynResources.EAI_ProcessingPlugin, plugin.Key, plugin.Version);
 
@@ -126,9 +126,7 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
     }
 
     private static IEnumerable<string> FetchFilesFromCache(string pluginCacheDir) =>
-        Directory.Exists(pluginCacheDir)
-            ? Directory.GetFiles(pluginCacheDir, "*.*", SearchOption.AllDirectories).Where(name => !name.EndsWith(".zip"))
-            : Enumerable.Empty<string>();
+        Directory.Exists(pluginCacheDir) ? Directory.GetFiles(pluginCacheDir, "*.*", SearchOption.AllDirectories).Where(x => !x.EndsWith(".zip")) : [];
 
     private void FetchResourceFromServer(Plugin plugin, string targetDir)
     {
@@ -136,19 +134,12 @@ public class EmbeddedAnalyzerInstaller : IAnalyzerInstaller
 
         Directory.CreateDirectory(targetDir);
 
-        if (client.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result)
+        var targetFilePath = client.DownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, targetDir).Result
+            ?? throw new FileNotFoundException(string.Format(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName));
+        if (IsZipFile(targetFilePath))
         {
-            var targetFilePath = Path.Combine(targetDir, plugin.StaticResourceName);
-
-            if (IsZipFile(targetFilePath))
-            {
-                logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
-                ZipFile.ExtractToDirectory(targetFilePath, targetDir);
-            }
-        }
-        else
-        {
-            throw new FileNotFoundException(string.Format(RoslynResources.EAI_PluginResourceNotFound, plugin.Key, plugin.Version, plugin.StaticResourceName));
+            logger.LogDebug(Resources.MSG_ExtractingFiles, targetDir);
+            ZipFile.ExtractToDirectory(targetFilePath, targetDir);
         }
     }
 

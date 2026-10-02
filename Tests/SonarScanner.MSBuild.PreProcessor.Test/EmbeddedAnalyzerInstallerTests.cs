@@ -26,15 +26,15 @@ public class EmbeddedAnalyzerInstallerTests
     public TestContext TestContext { get; set; }
 
     [TestMethod]
-    public void Constructor_NullClient_ThrowsArgumentNullException() =>
+    public void Constructor_NullClient() =>
         FluentActions.Invoking(() => new EmbeddedAnalyzerInstaller(null, "NonNullPath", new TestLogger())).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("client");
 
     [TestMethod]
-    public void Constructor_NullLogger_ThrowsArgumentNullException() =>
+    public void Constructor_NullLogger() =>
         FluentActions.Invoking(() => new EmbeddedAnalyzerInstaller(MockSonarQube.Create(), "NonNullPath", null)).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
     [TestMethod]
-    public void InstallAssemblies_NullPlugins_ThrowsArgumentNullException()
+    public void InstallAssemblies_NullPlugins()
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var embeddedAnalyzerInstaller = new EmbeddedAnalyzerInstaller(MockSonarQube.Create(), localCacheDir, new TestLogger());
@@ -42,7 +42,7 @@ public class EmbeddedAnalyzerInstallerTests
     }
 
     [TestMethod]
-    public void EmbeddedInstall_SinglePlugin_SingleResource_Succeeds()
+    public void EmbeddedInstall_SinglePlugin_SingleResource()
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
@@ -62,7 +62,7 @@ public class EmbeddedAnalyzerInstallerTests
     }
 
     [TestMethod]
-    public void EmbeddedInstall_TempPath_Succeeds()
+    public void EmbeddedInstall_TempPath()
     {
         var localCacheDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), ".sonarqube", "resources");
         try
@@ -91,7 +91,7 @@ public class EmbeddedAnalyzerInstallerTests
     }
 
     [TestMethod]
-    public void EmbeddedInstall_MultiplePlugins_Succeeds()
+    public void EmbeddedInstall_MultiplePlugins()
     {
         const string p1Resource1 = "p1.resource1";
         const string p1Resource2 = "p1.resource2";
@@ -121,7 +121,7 @@ public class EmbeddedAnalyzerInstallerTests
     }
 
     [TestMethod]
-    public void EmbeddedInstall_MissingResource_ThrowFileNotFoundException()
+    public void EmbeddedInstall_MissingResource()
     {
         const string missingPluginKey = "could.be.anything";
         const string missingPluginVersion = "1.0";
@@ -136,7 +136,7 @@ public class EmbeddedAnalyzerInstallerTests
     }
 
     [TestMethod]
-    public void EmbeddedInstall_NoPluginsSpecified_SucceedsButNoFiles()
+    public void EmbeddedInstall_NoPluginsSpecified()
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
@@ -151,7 +151,7 @@ public class EmbeddedAnalyzerInstallerTests
     }
 
     [TestMethod]
-    public void EmbeddedInstall_PluginWithNoFiles_Succeeds()
+    public void EmbeddedInstall_PluginWithNoFiles()
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
@@ -179,7 +179,7 @@ public class EmbeddedAnalyzerInstallerTests
     }
 
     [TestMethod]
-    public void EmbeddedInstall_CachingScenarios()
+    public async Task EmbeddedInstall_CachingScenarios()
     {
         var localCacheDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var logger = new TestLogger();
@@ -198,8 +198,8 @@ public class EmbeddedAnalyzerInstallerTests
 
         // 1. Empty cache -> cache miss -> server called
         var actualFiles = testSubject.InstallAssemblies([requestA]);
-        client.Received(1).TryDownloadEmbeddedFile("p111", "p1.zip", Arg.Any<string>());
-        client.ReceivedWithAnyArgs(1).TryDownloadEmbeddedFile(null, null, null);    // no other downloads
+        await client.Received(1).DownloadEmbeddedFile("p111", "p1.zip", Arg.Any<string>());
+        await client.ReceivedWithAnyArgs(1).DownloadEmbeddedFile(null, null, null);    // no other downloads
         client.ClearReceivedCalls();
 
         AssertExpectedFilesReturned(expectedPlugin111Paths, actualFiles);
@@ -208,8 +208,8 @@ public class EmbeddedAnalyzerInstallerTests
 
         // 2. New request + request -> partial cache miss -> server called only for the new request
         actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
-        client.Received(1).TryDownloadEmbeddedFile("p222", "p2.zip", Arg.Any<string>());
-        client.ReceivedWithAnyArgs(1).TryDownloadEmbeddedFile(null, null, null);
+        await client.Received(1).DownloadEmbeddedFile("p222", "p2.zip", Arg.Any<string>());
+        await client.ReceivedWithAnyArgs(1).DownloadEmbeddedFile(null, null, null);
         client.ClearReceivedCalls();
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
@@ -218,7 +218,7 @@ public class EmbeddedAnalyzerInstallerTests
 
         // 3. Repeat the request -> cache hit -> server not called
         actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
-        client.DidNotReceiveWithAnyArgs().TryDownloadEmbeddedFile(null, null, null);
+        await client.DidNotReceiveWithAnyArgs().DownloadEmbeddedFile(null, null, null);
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
 
@@ -227,9 +227,9 @@ public class EmbeddedAnalyzerInstallerTests
         Directory.Exists(localCacheDir).Should().BeFalse("Test error: failed to delete the local cache directory");
 
         actualFiles = testSubject.InstallAssemblies([requestA, requestB]);
-        client.Received(1).TryDownloadEmbeddedFile("p111", "p1.zip", Arg.Any<string>());
-        client.Received(1).TryDownloadEmbeddedFile("p222", "p2.zip", Arg.Any<string>());
-        client.ReceivedWithAnyArgs(2).TryDownloadEmbeddedFile(null, null, null);
+        await client.Received(1).DownloadEmbeddedFile("p111", "p1.zip", Arg.Any<string>());
+        await client.Received(1).DownloadEmbeddedFile("p222", "p2.zip", Arg.Any<string>());
+        await client.ReceivedWithAnyArgs(2).DownloadEmbeddedFile(null, null, null);
 
         AssertExpectedFilesReturned(allExpectedPaths, actualFiles);
         AssertExpectedFilesExist(allExpectedPaths);
@@ -243,12 +243,13 @@ public class EmbeddedAnalyzerInstallerTests
     {
         var client = MockSonarQube.Create();
         client.DownloadAllLanguages().Returns([languageKey]);
-        client.TryDownloadEmbeddedFile(languageKey, "embeddedFile1.zip", Arg.Any<string>()).Returns(true);
+        client.DownloadEmbeddedFile(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).ReturnsNull();
+        client.DownloadEmbeddedFile(languageKey, "embeddedFile1.zip", Arg.Any<string>()).Returns(x => Path.Combine(x.ArgAt<string>(2), "embeddedFile1.zip"));
         return client;
     }
 
     private static void AddPlugin(SonarQubeBase client, Plugin plugin, params string[] files) =>
-        client.TryDownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, Arg.Any<string>()).Returns(true)
+        client.DownloadEmbeddedFile(plugin.Key, plugin.StaticResourceName, Arg.Any<string>()).Returns(x => Path.Combine(x.ArgAt<string>(2), plugin.StaticResourceName))
             .AndDoes(x => CreateZipFile(Path.Combine(x.ArgAt<string>(2), plugin.StaticResourceName), files));
 
     private static void CreateZipFile(string zipFilePath, params string[] contentFileNames)

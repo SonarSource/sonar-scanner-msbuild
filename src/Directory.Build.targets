@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <Using Include="SonarScanner.MSBuild.Common" />
+    <Using Include="SonarScanner.MSBuild.Common.Extensions" />
     <Using Include="System.Xml.Serialization" />
   </ItemGroup>
 

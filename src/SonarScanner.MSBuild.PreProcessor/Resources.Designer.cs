@@ -425,6 +425,15 @@ namespace SonarScanner.MSBuild.PreProcessor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The static resource name &apos;{0}&apos; of plugin &apos;{1}&apos; is invalid..
+        /// </summary>
+        internal static string ERROR_InvalidStaticResourceName {
+            get {
+                return ResourceManager.GetString("ERROR_InvalidStaticResourceName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing analysis setting: {0}.
         /// </summary>
         internal static string ERROR_MissingSetting {

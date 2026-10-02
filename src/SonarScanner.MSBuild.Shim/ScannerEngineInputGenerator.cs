@@ -179,7 +179,7 @@ public class ScannerEngineInputGenerator
             runtime.LogDebug(Resources.MSG_UsingWorkingDirectoryAsProjectBaseDir, workingDirectory.FullName);
             return workingDirectory;
         }
-        else if (PathHelper.BestCommonPrefix(projectPaths, pathComparer) is { } commonPrefix)
+        else if (projectPaths.BestCommonPrefix(pathComparer) is { } commonPrefix)
         {
             runtime.LogDebug(Resources.MSG_UsingLongestCommonBaseDir, commonPrefix.FullName, Environment.NewLine + string.Join($"{Environment.NewLine}", projectPaths.Select(x => x.FullName)));
             if (IsFileSystemRoot(commonPrefix))
@@ -263,7 +263,7 @@ public class ScannerEngineInputGenerator
                 runtime.LogWarning(Resources.WARN_FileDoesNotExist, file);
                 runtime.LogDebug(Resources.DEBUG_FileReferencedByProjects, string.Join("', '", group.Value.Select(x => x.Project.FullPath)));
             }
-            else if (!PathHelper.IsInDirectory(file, baseDirectory)) // File is outside of the SonarQube root module
+            else if (!file.IsInDirectory(baseDirectory)) // File is outside of the SonarQube root module
             {
                 if (!file.FullName.Contains(Path.Combine(".nuget", "packages")))
                 {

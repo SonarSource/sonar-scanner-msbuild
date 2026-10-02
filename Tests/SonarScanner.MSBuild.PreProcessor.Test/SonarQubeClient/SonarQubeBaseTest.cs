@@ -44,7 +44,7 @@ public class SonarQubeBaseTest
         sut?.Dispose();
 
     [TestMethod]
-    public void Ctor_Null_Throws()
+    public void Ctor_Null()
     {
         ((Func<SonarQubeStub>)(() => new SonarQubeStub(null, null, runtime, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("webDownloader");
         ((Func<SonarQubeStub>)(() => new SonarQubeStub(downloader, null, runtime, null))).Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("apiDownloader");
@@ -52,21 +52,20 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task IsAllValid_Throws_LogsError()
+    public async Task IsAllValidPublic_False()
     {
         (await sut.IsAllValidPublic()).Should().BeFalse();
         runtime.Logger.Should().HaveErrors("Specified method is not supported.");   // NotSupportedException in the stub
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_LogHttpError()
+    public async Task DownloadQualityProfile_HttpError()
     {
         downloader
             .TryDownloadIfExists(new($"api/qualityprofiles/search?project={ProjectKey}", UriKind.Relative), Arg.Any<bool>())
             .Returns(Task.FromResult(Tuple.Create(true, "trash")));
-        Func<Task> action = async () => await sut.DownloadQualityProfile(ProjectKey, null, "cs");
 
-        await action.Should().ThrowAsync<Exception>();
+        await FluentActions.Invoking(() => sut.DownloadQualityProfile(ProjectKey, null, "cs")).Should().ThrowAsync<Exception>();
     }
 
     [TestMethod]
@@ -79,15 +78,14 @@ public class SonarQubeBaseTest
         downloader
             .Download(WebUtils.EscapedUri("api/qualityprofiles/search?defaults=true&organization=ThisIsInvalidValue"), false)
             .Returns(Task.FromResult<string>(null));
-        Func<Task> act = async () => await CreateClient("ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs");
 
-        await act.Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
+        await FluentActions.Invoking(() => CreateClient("ThisIsInvalidValue").DownloadQualityProfile(ProjectKey, null, "cs")).Should().ThrowAsync<AnalysisException>().WithMessage("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
         runtime.Logger.Should().HaveErrors("Cannot download quality profile. Check scanner arguments and the reported URL for more information.");
     }
 
     [TestMethod]
     [CombinatorialData]
-    public async Task DownloadQualityProfile_QualityProfileFound(
+    public async Task DownloadQualityProfile(
         [CombinatorialValues("aBranch", null)] string branchName,
         [CombinatorialValues("my Org", null)] string organization)
     {
@@ -107,7 +105,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_FallBackDefaultProfile_QualityProfileFound()
+    public async Task DownloadQualityProfile_FallBackDefaultProfile()
     {
         const string profileKey = "defaultProfile";
         const string language = "cs";
@@ -125,7 +123,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_NoProfileForLanguage_QualityProfileNotFound()
+    public async Task DownloadQualityProfile_NoProfileForLanguage()
     {
         const string profileKey = "defaultProfile";
         const string language = "cs";
@@ -143,7 +141,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_NoProfileForProject_QualityProfileNotFound()
+    public async Task DownloadQualityProfile_NoProfileForProject()
     {
         const string language = "cs";
         var projectKey = "someKey";
@@ -159,7 +157,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_MissingProfiles_ReturnsFalseAndEmptyContent()
+    public async Task DownloadQualityProfile_MissingProfiles()
     {
         var downloadResult = Tuple.Create(true, """{"unexpected": "valid json"}""");
         downloader
@@ -172,7 +170,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_MissingKey_ReturnsFalseAndEmptyContent()
+    public async Task DownloadQualityProfile_MissingKey()
     {
         var downloadResult = Tuple.Create(true, """{ profiles: [ { "language":"cs" } ] }""");
         downloader
@@ -185,7 +183,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_MissingLanguage_ReturnsFalseAndEmptyContent()
+    public async Task DownloadQualityProfile_MissingLanguage()
     {
         var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""key"":""p1"" } ] }");
         downloader
@@ -198,7 +196,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_MultipleProfileWithSameLanguage_ShouldThrow()
+    public async Task DownloadQualityProfile_MultipleProfileWithSameLanguage()
     {
         var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""key"":""p2"", ""language"":""cs"" }, { ""key"":""p1"", ""language"":""cs"" } ] }");
         downloader
@@ -210,7 +208,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_SpecificProfileRequestUrl_QualityProfileFound()
+    public async Task DownloadQualityProfile_SpecificProfileRequestUrl()
     {
         var downloadResult = Tuple.Create(true, @"{ profiles: [ { ""key"":""p1"", ""name"":""p1"", ""language"":""cs"", ""isDefault"": false } ] }");
         downloader
@@ -223,7 +221,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadQualityProfile_DefaultProfileRequestUrl_QualityProfileFound()
+    public async Task DownloadQualityProfile_DefaultProfileRequestUrl()
     {
         downloader
             .TryDownloadIfExists(Arg.Any<Uri>(), Arg.Any<bool>())
@@ -471,7 +469,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public void DownloadRules_Active_WhenActivesContainsRuleWithMultipleBodies_UseFirst()
+    public void DownloadRules_Active_ActivesContainsRuleWithMultipleBodies()
     {
         downloader
             .Download(new("api/rules/search?f=repo,name,severity,lang,internalKey,templateKey,params,actives&ps=500&qprofile=qp&p=1", UriKind.Relative))
@@ -637,7 +635,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadAllLanguages_Succeeds()
+    public async Task DownloadAllLanguages()
     {
         downloader
             .Download(new("api/languages/list", UriKind.Relative), Arg.Any<bool>())
@@ -651,67 +649,68 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_NullPluginKey_Throws()
-    {
-        Func<Task> act = async () => await sut.TryDownloadEmbeddedFile(null, "filename", "targetDir");
+    public async Task DownloadEmbeddedFile_NullPluginKey() =>
+        (await FluentActions.Invoking(() => sut.DownloadEmbeddedFile(null, "filename", "targetDir")).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("pluginKey");
 
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("pluginKey");
+    [TestMethod]
+    public async Task DownloadEmbeddedFile_NullEmbeddedFileName() =>
+        (await FluentActions.Invoking(() => sut.DownloadEmbeddedFile("key", null, "targetDir")).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("embeddedFileName");
+
+    [TestMethod]
+    public async Task DownloadEmbeddedFile_NullTargetDirectory() =>
+        (await FluentActions.Invoking(() => sut.DownloadEmbeddedFile("pluginKey", "filename", null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("targetDirectory");
+
+    [TestMethod]
+    [DataRow("dummy.txt")]
+    [DataRow("sub/dummy.txt")]
+    public async Task DownloadEmbeddedFile_FileExist(string fileName)
+    {
+        downloader.TryDownloadFileIfExists(null, null, false).ReturnsForAnyArgs(Task.FromResult(true));
+        var targetDirectory = "targetDir";
+
+        var filePath = await sut.DownloadEmbeddedFile("csharp", fileName, targetDirectory);
+        filePath.Should().Be(Path.Combine(targetDirectory, fileName));
+        await downloader.Received(1).TryDownloadFileIfExists(WebUtils.EscapedUri("static/csharp/{0}", fileName), Path.Combine(targetDirectory, fileName));
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_NullEmbeddedFileName_Throws()
+    public async Task DownloadEmbeddedFile_FileDoesNotExist()
     {
-        Func<Task> act = async () => await sut.TryDownloadEmbeddedFile("key", null, "targetDir");
+        downloader.TryDownloadFileIfExists(null, null, false).ReturnsForAnyArgs(Task.FromResult(false));
 
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("embeddedFileName");
+        var result = await sut.DownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
+        result.Should().BeNull();
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_NullTargetDirectory_Throws()
+    [DataRow(".")]
+    [DataRow("..")]
+    [DataRow("../evil.txt")]
+    [DataRow("sub/../../evil.txt")]
+    [DataRow("/tmp/evil.txt")]
+    [DataRow("../targetDir\u00AD/evil.txt")]
+    [DataRow("../TARGETDIR/evil.txt")]
+    public async Task DownloadEmbeddedFile_FileNotInTargetDirectory(string fileName)
     {
-        Func<Task> act = async () => await sut.TryDownloadEmbeddedFile("pluginKey", "filename", null);
+        downloader.TryDownloadFileIfExists(null, null, false).ReturnsForAnyArgs(Task.FromResult(true));
+        var targetDirectory = "targetDir";
 
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("targetDirectory");
+        var result = await sut.DownloadEmbeddedFile("csharp", fileName, targetDirectory);
+        result.Should().BeNull();
+        await downloader.DidNotReceiveWithAnyArgs().TryDownloadFileIfExists(null, null);
+        runtime.Logger.Should().HaveErrors($"The static resource name '{fileName}' of plugin 'csharp' is invalid.");
     }
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_RequestedFileExist_ReturnsTrue()
-    {
-        downloader
-            .TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>())
-            .Returns(Task.FromResult(true));
-
-        var success = await sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
-
-        success.Should().BeTrue("Expected success");
-    }
+    public async Task DownloadJreMetadataAsync_NullOperatingSystem() =>
+        (await FluentActions.Invoking(() => sut.DownloadJreMetadataAsync(null, "whatever")).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("operatingSystem");
 
     [TestMethod]
-    public async Task TryDownloadEmbeddedFile_RequestedFileDoesNotExist_ReturnsFalse()
-    {
-        downloader.TryDownloadFileIfExists(Arg.Any<Uri>(), Arg.Any<string>(), Arg.Any<bool>()).Returns(Task.FromResult(false));
-
-        var success = await sut.TryDownloadEmbeddedFile("csharp", "dummy.txt", Path.GetRandomFileName());
-
-        success.Should().BeFalse("Expected failure");
-    }
+    public async Task DownloadJreMetadataAsync_NullArchitecture() =>
+        (await FluentActions.Invoking(() => sut.DownloadJreMetadataAsync("whatever", null)).Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("architecture");
 
     [TestMethod]
-    public async Task DownloadJreMetadataAsync_NullOperatingSystem_Throws()
-    {
-        Func<Task> act = async () => await sut.DownloadJreMetadataAsync(null, "whatever");
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("operatingSystem");
-    }
-
-    [TestMethod]
-    public async Task DownloadJreMetadataAsync_NullArchitecture_Throws()
-    {
-        Func<Task> act = async () => await sut.DownloadJreMetadataAsync("whatever", null);
-        (await act.Should().ThrowAsync<ArgumentNullException>()).And.ParamName.Should().Be("architecture");
-    }
-
-    [TestMethod]
-    public async Task DownloadJreMetadataAsync_Throws_Warning()
+    public async Task DownloadJreMetadataAsync_DownloadFails()
     {
         downloader
             .When(x => x.Download(new("analysis/jres?os=what&arch=ever", UriKind.Relative)))
@@ -725,7 +724,7 @@ public class SonarQubeBaseTest
     [DataRow(null)]
     [DataRow("")]
     [DataRow("{broken json")]
-    public async Task DownloadJreMetadataAsync_ReturnsInvalid_Warning(string jresResponse)
+    public async Task DownloadJreMetadataAsync_Invalid(string jresResponse)
     {
         downloader
             .Download(new("analysis/jres?os=what&arch=ever", UriKind.Relative))
@@ -736,7 +735,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadJreMetadataAsync_ReturnsSingle_Success()
+    public async Task DownloadJreMetadataAsync_Single()
     {
         downloader
             .Download(new("analysis/jres?os=what&arch=ever", UriKind.Relative))
@@ -763,7 +762,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadJreMetadataAsync_ReturnsMultiple_Success_ReturnsFirst()
+    public async Task DownloadJreMetadataAsync_Multiple()
     {
         downloader
             .Download(new("analysis/jres?os=what&arch=ever", UriKind.Relative))
@@ -782,7 +781,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadJreMetadataAsync_ReturnsNone_ReturnsNull()
+    public async Task DownloadJreMetadataAsync_None()
     {
         downloader
             .Download(new("analysis/jres?os=what&arch=ever", UriKind.Relative))
@@ -793,7 +792,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadEngineMetadataAsync_Throws_Warning()
+    public async Task DownloadEngineMetadataAsync_DownloadFails()
     {
         var exception = new InvalidOperationException("Connection failed", new IOException("SSL handshake failed"));
         downloader
@@ -815,7 +814,7 @@ public class SonarQubeBaseTest
           "sha256": "907f676d488af266431bafd3bc26f58408db2d9e73efc66c882c203f275c739b"
         }]
         """)]
-    public async Task DownloadEngineMetadataAsync_ReturnsInvalid_Warning(string jresResponse)
+    public async Task DownloadEngineMetadataAsync_Invalid(string jresResponse)
     {
         downloader
             .Download(new("analysis/engine", UriKind.Relative))
@@ -826,7 +825,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadEngineMetadataAsync_SonarQubeCloud_Success()
+    public async Task DownloadEngineMetadataAsync_SonarQubeCloud()
     {
         downloader
             .Download(new("analysis/engine", UriKind.Relative)) // returns a downloadUrl
@@ -850,7 +849,7 @@ public class SonarQubeBaseTest
     }
 
     [TestMethod]
-    public async Task DownloadEngineMetadataAsync_Success()
+    public async Task DownloadEngineMetadataAsync()
     {
         downloader
             .Download(new("analysis/engine", UriKind.Relative)) // returns no downloadUrl

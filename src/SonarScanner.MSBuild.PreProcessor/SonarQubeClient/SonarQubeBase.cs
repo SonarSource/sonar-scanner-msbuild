@@ -33,7 +33,7 @@ public abstract class SonarQubeBase : IDisposable
     protected readonly string organization;
     protected readonly IRuntime runtime;
 
-    private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = new();
+    private readonly Dictionary<string, IDictionary<string, string>> propertiesCache = [];
     private bool disposed;
 
     public abstract string ServerVersion { get; }
@@ -108,17 +108,22 @@ public abstract class SonarQubeBase : IDisposable
         return langArray.Select(x => x["key"].ToString());
     }
 
-    public virtual async Task<bool> TryDownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
+    public virtual async Task<string> DownloadEmbeddedFile(string pluginKey, string embeddedFileName, string targetDirectory)
     {
         Contract.ThrowIfNullOrWhitespace(pluginKey, nameof(pluginKey));
         Contract.ThrowIfNullOrWhitespace(embeddedFileName, nameof(embeddedFileName));
         Contract.ThrowIfNullOrWhitespace(targetDirectory, nameof(targetDirectory));
 
-        var uri = WebUtils.EscapedUri("static/{0}/{1}", pluginKey, embeddedFileName);
         var targetFilePath = Path.Combine(targetDirectory, embeddedFileName);
+        if (!new FileInfo(targetFilePath).IsInDirectory(new DirectoryInfo(targetDirectory), StringComparison.Ordinal))
+        {
+            runtime.LogError(Resources.ERROR_InvalidStaticResourceName, embeddedFileName, pluginKey);
+            return null;
+        }
 
+        var uri = WebUtils.EscapedUri("static/{0}/{1}", pluginKey, embeddedFileName);
         runtime.LogDebug(Resources.MSG_DownloadingZip, embeddedFileName, targetDirectory);
-        return await webDownloader.TryDownloadFileIfExists(uri, targetFilePath);
+        return await webDownloader.TryDownloadFileIfExists(uri, targetFilePath) ? targetFilePath : null;
     }
 
     public virtual async Task<JreMetadata> DownloadJreMetadataAsync(string operatingSystem, string architecture)
