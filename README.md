@@ -1,10 +1,25 @@
-﻿# SonarScanner for .NET
+﻿<!-- Sonar Marketing hosts these approved brand assets on its Kentico Kontent CDN (assets-eu-01.kc-usercontent.com). Shared URLs are intentional; consult Marketing before replacing them. -->
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://assets-eu-01.kc-usercontent.com/ef593040-b591-0198-9506-ed88b30bc023/a23fc7ba-23f0-489a-829d-ed88c0748521/Sonar_Logo_Dark%20Backgrounds.svg">
+    <img src="https://assets-eu-01.kc-usercontent.com/ef593040-b591-0198-9506-ed88b30bc023/82c13eba-d95c-4bb8-8007-7ce77c14e043/Sonar_Logo_Light%20Backgrounds.svg" alt="Sonar logo" width="400">
+  </picture>
+</p>
 
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=alert_status)](https://sonarcloud.io/dashboard?id=sonarscanner-msbuild)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=sonarscanner-msbuild&metric=coverage)](https://sonarcloud.io/component_measures?id=sonarscanner-msbuild&metric=coverage)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
 
-The SonarScanner for .NET is the recommended way to launch a SonarQube analysis for [Clean Code](https://www.sonarsource.com/solutions/clean-code/) projects/solutions using MSBuild or dotnet command as a build tool. It is the result of a [collaboration between SonarSource and Microsoft.](https://www.sonarsource.com/blog/easy-analysis-of-visual-studio-solutions-with-the-sonarqube-scanner-for-msbuild/)
+<!-- sonar-marketing:start -->
+<!-- Marketing maintains this section. For wording changes, consult the relevant Product Marketing Manager (PMM). Repository CODEOWNERS review accuracy and merge changes. -->
+
+# SonarScanner for .NET
+
+SonarScanner for .NET is the preferred way to analyze .NET projects with SonarQube. It integrates SonarQube analysis into projects built with MSBuild or the `dotnet` command and sends the results to SonarQube Server or SonarQube Cloud.
+
+Learn more about the [SonarQube product family](https://www.sonarsource.com/products/sonarqube/), then choose the scanner distribution that fits your build environment below.
+
+<!-- sonar-marketing:end -->
 
 SonarScanner for .NET is distributed as a
 
