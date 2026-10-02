@@ -58,7 +58,7 @@ runs:
           development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
 
     - name: Configure Maven
-      uses: SonarSource/ci-github-actions/config-maven@v1
+      uses: SonarSource/ci-github-actions/config-maven@v2
       with:
         artifactory-reader-role: private-reader
         working-directory: its
@@ -71,7 +71,7 @@ runs:
     # Needed for MultiLanguageTest, which only runs as part of the LATEST_RELEASE leg (**/sonarqube/*).
     - name: Configure NPM
       if: inputs.scenario == 'LATEST_RELEASE'
-      uses: SonarSource/ci-github-actions/config-npm@v1
+      uses: SonarSource/ci-github-actions/config-npm@v2
       with:
         artifactory-reader-role: private-reader
         working-directory: its

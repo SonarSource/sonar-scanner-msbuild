@@ -22,6 +22,7 @@ jobs:
     runs-on: sonar-xs
     permissions:
       id-token: write
+      contents: write
     outputs:
       BUILD_NUMBER: ${{ steps.get-build-number.outputs.BUILD_NUMBER }}
       SHORT_VERSION: ${{ steps.set-version.outputs.SHORT_VERSION }}
@@ -35,7 +36,7 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Get build number
-        uses: SonarSource/ci-github-actions/get-build-number@v1
+        uses: SonarSource/ci-github-actions/get-build-number@v2
         id: get-build-number
 
       - name: Set version
@@ -133,7 +134,7 @@ jobs:
           "PROJECT_VERSION=$env:FULL_VERSION" >> $env:GITHUB_ENV
 
       - name: Stage to repox
-        uses: SonarSource/ci-github-actions/build-maven@v1
+        uses: SonarSource/ci-github-actions/build-maven@v2
         with:
           deploy-pull-request: true
           sonar-platform: none
@@ -405,7 +406,7 @@ jobs:
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: exit 1
 
-      - uses: SonarSource/ci-github-actions/promote@v1
+      - uses: SonarSource/ci-github-actions/promote@v2
         if: github.event_name == 'pull_request' || needs.version.outputs.IS_RELEASE_BRANCH == 'true' || startsWith(github.ref_name, 'dogfood-on-')
         with:
           promote-pull-request: true
