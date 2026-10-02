@@ -55,7 +55,7 @@ jobs:
   build:
     name: Build
     needs: version
-    runs-on: warp-custom-dotnet-bubble-ci
+    runs-on: warp-custom-pr-484-dotnet-bubble-ci-v20260928125211
     permissions:
       id-token: write
       contents: read
@@ -150,7 +150,7 @@ jobs:
   uts_windows:
     name: UTs Windows and analysis
     needs: version
-    runs-on: warp-custom-dotnet-bubble-ci
+    runs-on: warp-custom-pr-484-dotnet-bubble-ci-v20260928125211
     permissions:
       id-token: write
       contents: read
