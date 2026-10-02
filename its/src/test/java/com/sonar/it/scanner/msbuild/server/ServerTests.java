@@ -69,7 +69,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     addPlugin(orchestrator, "com.sonarsource.plsql", "sonar-plsql-plugin", "sonar.plsqlplugin.version");
     addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-csharp-plugin", "sonar.csharpplugin.version", "DEV");
     addPlugin(orchestrator, "org.sonarsource.dotnet", "sonar-vbnet-plugin", "sonar.vbnetplugin.version", "DEV");
-    addPlugin(orchestrator, "org.sonarsource.iac", "sonar-iac-plugin", "sonar.iacplugin.version");
+    addPlugin(orchestrator, "org.sonarsource.iac", "sonar-iac-plugin", "sonar.iacplugin.version", "NONE");
     addPlugin(orchestrator, "com.sonarsource.iac", "sonar-iac-enterprise-plugin", "sonar.iacplugin-enterprise.version");
     addPlugin(orchestrator, "org.sonarsource.java", "sonar-java-plugin", "sonar.javaplugin.version");
     addPlugin(orchestrator, "org.sonarsource.javascript", "sonar-javascript-plugin", "sonar.javascriptplugin.version");
@@ -79,7 +79,7 @@ public class ServerTests implements BeforeAllCallback, AfterAllCallback {
     addPlugin(orchestrator, "com.sonarsource.tsql", "sonar-tsql-plugin", "sonar.tsqlplugin.version");
     addPlugin(orchestrator, "org.sonarsource.xml", "sonar-xml-plugin", "sonar.xmlplugin.version");
     addPlugin(orchestrator, "com.sonarsource.go", "sonar-go-enterprise-plugin", "sonar.goplugin-enterprise.version");
-    addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version");
+    addPlugin(orchestrator, System.getProperty("go.groupid", "org.sonarsource.go"), "sonar-go-plugin", "sonar.goplugin.version", "NONE");
     addPlugin(orchestrator, "com.sonarsource.dre", "sonar-dre-plugin", "sonar.dreplugin.version");
     orchestrator.addPlugin(FileLocation.of(customRoslynPlugin().toFile()));
 

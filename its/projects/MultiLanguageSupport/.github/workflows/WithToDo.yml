@@ -1,0 +1,8 @@
+name: GitHub Actions Demo
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      # TODO: This will raise S1135
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."

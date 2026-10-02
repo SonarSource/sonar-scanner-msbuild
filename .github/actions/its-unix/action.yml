@@ -1,7 +1,7 @@
 name: ITs Unix
 description: >-
   Shared IT runner for the Linux and macOS ITs jobs: installs toolchains, creates the self-signed
-  certificate needed by SslTest, configures Maven/NPM, runs the Maven ITs for one matrix leg via
+  certificate needed by SslTest, configures Maven, runs the Maven ITs for one matrix leg via
   scripts/run-its.sh, and publishes the results. Not used by the Windows ITs job (separate
   toolchain needs; see run-its.sh's Windows-only branches, which this action never sets env vars for).
 
@@ -67,14 +67,6 @@ runs:
       env:
         CURRENT_VERSION: unused
         PROJECT_VERSION: unused
-
-    # Needed for MultiLanguageTest, which only runs as part of the LATEST_RELEASE leg (**/sonarqube/*).
-    - name: Configure NPM
-      if: inputs.scenario == 'LATEST_RELEASE'
-      uses: SonarSource/ci-github-actions/config-npm@v1
-      with:
-        artifactory-reader-role: private-reader
-        working-directory: its
 
     # GitHub-hosted macOS cannot reach the internal Edge node (same split as
     # sonar-dataflow-bug-detection). Linux self-hosted runners can. Only legs
