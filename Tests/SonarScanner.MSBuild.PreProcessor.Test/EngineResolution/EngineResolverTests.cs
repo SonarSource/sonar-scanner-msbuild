@@ -25,9 +25,9 @@ namespace SonarScanner.MSBuild.PreProcessor.EngineResolution.Test;
 [TestClass]
 public class EngineResolverTests
 {
-    private const string SonarUserHome = "sonarUserHome";
     private const string EngineJar = "engine.jar";
     private const string ChecksumValue = "sha256";
+    private static readonly string SonarUserHome = Path.GetFullPath("sonarUserHome");
     private static readonly string CacheDir = Path.Combine(SonarUserHome, "cache");
     private static readonly string ShaPath = Path.Combine(CacheDir, ChecksumValue);
     private static readonly string CachedEnginePath = Path.Combine(ShaPath, EngineJar);

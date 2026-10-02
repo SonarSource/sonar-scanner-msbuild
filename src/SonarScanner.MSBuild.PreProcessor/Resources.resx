@@ -351,6 +351,9 @@ Use '/?' or '/h' to see the help message.</value>
   <data name="ERR_DownloadFailed" xml:space="preserve">
     <value>The download of the file from the server failed with the exception '{0}'.</value>
   </data>
+  <data name="ERR_FileNotInCache" xml:space="preserve">
+    <value>The cache file path '{0}' is invalid.</value>
+  </data>
   <data name="MSG_FileAlreadyDownloaded" xml:space="preserve">
     <value>The file was already downloaded from the server and stored at '{0}'.</value>
   </data>
