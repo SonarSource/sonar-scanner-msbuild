@@ -25,8 +25,8 @@ public class CachedDownloader
     private readonly IChecksum checksum;
     private readonly IRuntime runtime;
     private readonly FileDescriptor fileDescriptor;
-    private readonly DirectoryInfo cacheRoot;
 
+    public DirectoryInfo CacheRoot { get; }
     public string FileRootPath { get; }
     public string CacheLocation { get; }
 
@@ -36,8 +36,8 @@ public class CachedDownloader
         this.checksum = checksum;
         this.fileDescriptor = fileDescriptor;
 
-        cacheRoot = new DirectoryInfo(Path.Combine(sonarUserHome, "cache"));
-        FileRootPath = Path.Combine(cacheRoot.FullName, fileDescriptor.Sha256);
+        CacheRoot = new DirectoryInfo(Path.Combine(sonarUserHome, "cache"));
+        FileRootPath = Path.Combine(CacheRoot.FullName, fileDescriptor.Sha256);
         CacheLocation = Path.Combine(FileRootPath, fileDescriptor.Filename);
     }
 
@@ -64,7 +64,7 @@ public class CachedDownloader
         var message = string.Format(Resources.ERR_FileNotInCache, CacheLocation);
         try
         {
-            return new FileInfo(FileRootPath).IsInDirectory(cacheRoot, StringComparison.Ordinal) && new FileInfo(CacheLocation).IsInDirectory(cacheRoot, StringComparison.Ordinal)
+            return new FileInfo(FileRootPath).IsInDirectory(CacheRoot, StringComparison.Ordinal) && new FileInfo(CacheLocation).IsInDirectory(CacheRoot, StringComparison.Ordinal)
                 ? null
                 : new DownloadError(message);
         }

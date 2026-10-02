@@ -46,6 +46,10 @@ public class ArchiveDownloader
 
     public async Task<DownloadResult> DownloadAsync(Func<Task<Stream>> downloadStream)
     {
+        if (ValidateTargetFile() is { } targetFileError)
+        {
+            return targetFileError;
+        }
         if (runtime.File.Exists(extractedTargetFile))
         {
             return new CacheHit(extractedTargetFile);
@@ -59,6 +63,21 @@ public class ArchiveDownloader
         return result is FileRetrieved success ? UnpackArchive(success.FilePath) : result;
     }
 
+    private DownloadError ValidateTargetFile()
+    {
+        var message = string.Format(Resources.ERR_FileNotInCache, extractedTargetFile);
+        try
+        {
+            return new FileInfo(extractedTargetFile).IsInDirectory(cachedDownloader.CacheRoot, StringComparison.Ordinal)
+                ? null
+                : new DownloadError(message);
+        }
+        catch (Exception e)
+        {
+            return new DownloadError(message, e);
+        }
+    }
+
     private DownloadResult UnpackArchive(string archiveFile)
     {
         // We extract the archive to a temporary folder in the right location, to avoid conflicts with other scanners.
@@ -69,7 +88,8 @@ public class ArchiveDownloader
             using var archiveStream = runtime.File.Open(archiveFile);
             unpacker.Unpack(archiveStream, tempExtractionPath);
             var expectedTargetFileInTempPath = Path.Combine(tempExtractionPath, archiveDescriptor.TargetFilePath);
-            if (runtime.File.Exists(expectedTargetFileInTempPath))
+            if (new FileInfo(expectedTargetFileInTempPath).IsInDirectory(new DirectoryInfo(tempExtractionPath), StringComparison.Ordinal)
+                && runtime.File.Exists(expectedTargetFileInTempPath))
             {
                 runtime.LogDebug(Resources.MSG_MovingUnpackedFiles, tempExtractionPath, archiveExtractionPath);
                 runtime.Directory.Move(tempExtractionPath, archiveExtractionPath);
