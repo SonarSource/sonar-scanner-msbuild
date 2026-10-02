@@ -37,18 +37,18 @@ public class TarGzUnpacker : IUnpacker
         using var gzip = new GZipInputStream(archive);
         using var tarIn = new TarInputStream(gzip, null);
 
-        var destinationFullPath = Path.GetFullPath(destinationDirectory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var destination = new DirectoryInfo(Path.GetFullPath(destinationDirectory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
         while (tarIn.GetNextEntry() is { } entry)
         {
             if (entry.TarHeader.TypeFlag is not (TarHeader.LF_LINK or TarHeader.LF_SYMLINK))
             {
-                ExtractEntry(tarIn, destinationFullPath, entry);
+                ExtractEntry(tarIn, destination, entry);
             }
         }
     }
 
     // ref https://github.com/icsharpcode/SharpZipLib/blob/ff2d7c30bdb2474d507f001bc555405e9f02a0bb/src/ICSharpCode.SharpZipLib/Tar/TarArchive.cs#L644
-    private void ExtractEntry(TarInputStream tar, string destinationFullPath, TarEntry entry)
+    private void ExtractEntry(TarInputStream tar, DirectoryInfo destination, TarEntry entry)
     {
         var name = entry.Name;
         if (Path.IsPathRooted(name))
@@ -57,16 +57,14 @@ public class TarGzUnpacker : IUnpacker
             // for UNC names...  \\machine\share\zoom\beet.txt gives \zoom\beet.txt
             name = name.Substring(Path.GetPathRoot(name).Length);
         }
-
         name = name.Replace('/', Path.DirectorySeparatorChar);
-        var destinationFile = Path.Combine(destinationFullPath, name);
-        var destinationFileDirectory = Path.GetDirectoryName(Path.GetFullPath(destinationFile)) ?? string.Empty;
+        var destinationFile = Path.Combine(destination.FullName, name);
         var isRootDir = entry.IsDirectory && entry.Name == string.Empty;
-
-        if (!isRootDir && !destinationFileDirectory.StartsWith(destinationFullPath, StringComparison.InvariantCultureIgnoreCase))
+        if (!isRootDir && !new FileInfo(destinationFile).IsInDirectory(destination, StringComparison.Ordinal))
         {
             throw new InvalidNameException("Parent traversal in paths is not allowed");
         }
+        var destinationFileDirectory = Path.GetDirectoryName(Path.GetFullPath(destinationFile)) ?? string.Empty;
 
         if (entry.IsDirectory)
         {

@@ -19,6 +19,8 @@
  */
 
 using ICSharpCode.SharpZipLib.Core;
+using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
 
 namespace SonarScanner.MSBuild.PreProcessor.Unpacking.Test;
 
@@ -28,7 +30,7 @@ public class TarGzUnpackTests
     private readonly TestRuntime runtime = new();
 
     [TestMethod]
-    public void TarGzUnpacking_Success_CopyFilePermissions_Fails()
+    public void TarGzUnpacking_Success_CopyFilePermissions()
     {
         // A tarball with the following content:
         // Main
@@ -60,7 +62,7 @@ public class TarGzUnpackTests
     [TestCategory(TestCategories.NoMacOS)]
     [TestCategory(TestCategories.NoLinux)]
     [TestMethod]
-    public void TarGzUnpacking_BackslashRootedPath_Success()
+    public void TarGzUnpacking_BackslashRootedPath()
     {
         // A tarball with a single file with a rooted path: "\ sample.txt"
         var zipWithRootedPath = """
@@ -74,7 +76,7 @@ public class TarGzUnpackTests
     }
 
     [TestMethod]
-    public void TarGzUnpacking_ForwardSlashRootedPath_Success()
+    public void TarGzUnpacking_ForwardSlashRootedPath()
     {
         // A tarball with a single file with a rooted path: "/ sample.txt"
         const string zipWithRootedPath = """
@@ -88,7 +90,7 @@ public class TarGzUnpackTests
     }
 
     [TestMethod]
-    public void TarGzUnpacking_Fails_InvalidZipFile()
+    public void TarGzUnpacking_InvalidZipFile()
     {
         var baseDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         using var archive = new MemoryStream([1, 2, 3]); // Invalid archive content
@@ -102,7 +104,7 @@ public class TarGzUnpackTests
     }
 
     [TestMethod]
-    public void TarGzUnpacking_ZipSlip_IsDetected()
+    public void TarGzUnpacking_ZipSlip()
     {
         // slip.tar.gz from https://github.com/kevva/decompress/issues/71
         // google "Zip Slip Vulnerability" for details
@@ -121,6 +123,33 @@ public class TarGzUnpackTests
         var action = () => sut.Unpack(zipStream, baseDirectory);
 
         action.Should().Throw<InvalidNameException>().WithMessage("Parent traversal in paths is not allowed");
+    }
+
+    [TestMethod]
+    [DataRow("../currentDir2")]
+    [DataRow("../CURRENTDIR")]
+    [DataRow("../currentDir\u00AD")] // Soft hyphen is ignored by culture-sensitive comparisons
+    public void TarGzUnpacking_SiblingDirectorySlip(string path)
+    {
+        path = path.Replace('/', Path.DirectorySeparatorChar);
+        var baseDirectory = Path.Combine(Path.GetTempPath(), "currentDir");
+        using var archive = CreateTarGz(Path.Combine(path, "evil.txt"));
+
+        var action = () => new TarGzUnpacker(runtime).Unpack(archive, baseDirectory);
+        action.Should().Throw<InvalidNameException>().WithMessage("Parent traversal in paths is not allowed");
+        runtime.File.DidNotReceiveWithAnyArgs().Create(null);
+    }
+
+    private static MemoryStream CreateTarGz(string entryName)
+    {
+        var output = new MemoryStream();
+        using (var tar = new TarOutputStream(new GZipOutputStream(output) { IsStreamOwner = false }, Encoding.GetEncoding(28591))) // Latin-1 maps each char to one byte, like TarGzUnpacker reads them
+        {
+            tar.PutNextEntry(TarEntry.CreateTarEntry(entryName));
+            tar.CloseEntry();
+        }
+        output.Position = 0;
+        return output;
     }
 
     private void RootedPath_Success(string base64Archive)
