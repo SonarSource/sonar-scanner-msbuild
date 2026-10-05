@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '17 2 * * 1-5' # Mon-Fri 2:17 AM UTC
   push:
-    branches: [master, 'branch-*', 'feature/*', 'dogfood-*']
+    branches: [master, 'branch-*', 'feature/*']
   pull_request:
   workflow_dispatch:
 
