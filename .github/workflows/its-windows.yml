@@ -202,16 +202,6 @@ jobs:
         with:
           probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-builds&v=*"
 
-      # MultiLanguageTest needs npm, and only runs as part of the **/server/* legs.
-      - name: Set npm registry to Repox
-        if: matrix.testInclude == '**/server/*'
-        shell: bash
-        env:
-          ARTIFACTORY_ACCESS_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
-        run: |
-          npm config set loglevel=http registry=https://repox.jfrog.io/artifactory/api/npm/npmjs/
-          npm config set "//repox.jfrog.io/artifactory/api/npm/npmjs/:_authToken=$ARTIFACTORY_ACCESS_TOKEN"
-
       # MSBuild 15 (VS2017) never got MSBuild's long-path support (added in MSBuild 16/VS2019, see dotnet/msbuild#3507).
       - name: Use short-path temp directory (DEV_MsBuild15 only)
         if: matrix.scenario == 'DEV_MsBuild15'
