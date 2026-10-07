@@ -15,7 +15,7 @@
 
 # SonarScanner for .NET
 
-SonarScanner for .NET is the preferred way to analyze .NET projects with SonarQube. It integrates SonarQube analysis into projects built with MSBuild or the `dotnet` command and sends the results to SonarQube Server or SonarQube Cloud.
+SonarScanner for .NET is a tool to analyze .NET projects with SonarQube. It integrates SonarQube analysis into projects built with MSBuild or the `dotnet` command and sends the results to SonarQube Server or SonarQube Cloud.
 
 Learn more about the [SonarQube product family](https://www.sonarsource.com/products/sonarqube/), then choose the scanner distribution that fits your build environment below.
 
