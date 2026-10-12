@@ -410,3 +410,23 @@ jobs:
         if: github.event_name == 'pull_request' || needs.version.outputs.IS_RELEASE_BRANCH == 'true' || startsWith(github.ref_name, 'dogfood-on-')
         with:
           promote-pull-request: true
+
+  notify-build-failure:
+    name: Notify build failure
+    needs: [version, build, uts_windows, uts_linux, uts_macos, its_windows, its_linux, its_macos, promote]
+    if: >-
+      always()
+      && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-') || startsWith(github.ref, 'refs/heads/dogfood-'))
+      && contains(needs.*.result, 'failure')
+    runs-on: sonar-xs
+    permissions:
+      actions: read
+      id-token: write # required for vault-action-wrapper in the shared slack-notify action
+    steps:
+      - name: Slack Notification
+        uses: SonarSource/core-languages-tooling-public/common-actions/slack-notify@v1
+        with:
+          slack-channel: squad-corelang-notifs
+          branch-patterns: ${{ format('{0},branch-*,dogfood-*', github.event.repository.default_branch || 'master') }}
+          github-token: ${{ github.token }}
+          branch: ${{ github.ref_name }}
