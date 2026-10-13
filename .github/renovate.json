@@ -22,7 +22,7 @@
       "enabled": false
     },
     {
-      "description": "Refresh NuGet lockfiles with .NET 10 after dependency updates",
+      "description": "Refresh NuGet lockfiles with .NET 11 after dependency updates",
       "matchManagers": [
         "nuget"
       ],
