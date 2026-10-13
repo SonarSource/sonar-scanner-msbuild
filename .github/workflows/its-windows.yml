@@ -128,6 +128,13 @@ jobs:
             testInclude: "**/server/*"
             msbuildPathVar: MSBUILD_18_PATH
             jdkHomeVar: JAVA_HOME_21_X64
+          # VS Insiders build, needed for .NET 11 RC (Microsoft.NET.Sdk.Web requires MSBuild >= 18.7,
+          # newer than the stable VS 18 pinned via MSBUILD_18_PATH - see MSBuildInsidersOnly.
+          - scenario: DEV_MsBuild18_Insiders
+            sqVersion: DEV
+            testInclude: "**/server/*"
+            msbuildPathVar: MSBUILD_18_INSIDERS_PATH
+            jdkHomeVar: JAVA_HOME_21_X64
           - scenario: DEV_Community
             sqVersion: DEV
             sqEdition: COMMUNITY
