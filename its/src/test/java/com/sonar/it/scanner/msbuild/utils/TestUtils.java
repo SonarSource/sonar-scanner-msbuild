@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,6 +54,7 @@ import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.settings.SetRequest;
 
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class TestUtils {
   static final Logger LOG = LoggerFactory.getLogger(TestUtils.class);
@@ -187,6 +189,28 @@ public class TestUtils {
 
   public static ScannerEngineInput scannerEngineInputJson(AnalysisContext context) throws IOException {
     return new Gson().fromJson(Files.newBufferedReader(context.projectDir.resolve(".sonarqube").resolve("out").resolve("ScannerEngineInput.json")), ScannerEngineInput.class);
+  }
+
+  public static void waitForTaskProcessing(Orchestrator orchestrator, BuildResult buildResult) {
+    var taskId = extractCeTaskId(buildResult);
+    var client = newWsClient(orchestrator);
+    var request = new TaskRequest().setId(taskId);
+
+    LOG.info("Waiting for CE task {} to finish processing", taskId);
+    await("CE task " + taskId)
+      .pollInterval(Duration.ofSeconds(5))
+      .atMost(Duration.ofMinutes(2))
+      .until(() -> {
+        var status = client.ce().task(request).getTask().getStatus();
+        if (status == Ce.TaskStatus.PENDING || status == Ce.TaskStatus.IN_PROGRESS) {
+          // Still running
+          return false;
+        }
+
+        // At this stage, the engine has finished computing, we throw if the result is not a success
+        assertThat(status).as("Ensure the CE task %s succeeded", taskId).isEqualTo(Ce.TaskStatus.SUCCESS);
+        return true;
+      });
   }
 
   private static String extractCeTaskId(BuildResult buildResult) {
