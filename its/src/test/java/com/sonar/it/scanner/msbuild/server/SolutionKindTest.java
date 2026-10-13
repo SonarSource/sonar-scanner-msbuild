@@ -178,6 +178,13 @@ class SolutionKindTest {
   }
 
   @Test
+  // dotnet sdk tests should run only on VS 2022 and above
+  @MSBuildMinVersion(17)
+  void sdk11() {
+    validateCSharpSdk("CSharp.SDK.11");
+  }
+
+  @Test
   // dotnet sdk tests should run only on VS 2022
   @MSBuildMinVersion(17)
   void net8_NoAnalysisWarnings() {
