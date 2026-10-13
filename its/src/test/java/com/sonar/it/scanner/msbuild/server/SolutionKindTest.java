@@ -22,7 +22,6 @@ package com.sonar.it.scanner.msbuild.server;
 import com.sonar.it.scanner.msbuild.utils.AnalysisContext;
 import com.sonar.it.scanner.msbuild.utils.AnalysisResult;
 import com.sonar.it.scanner.msbuild.utils.ContextExtension;
-import com.sonar.it.scanner.msbuild.utils.MSBuildInsidersOnly;
 import com.sonar.it.scanner.msbuild.utils.MSBuildMaxVersion;
 import com.sonar.it.scanner.msbuild.utils.MSBuildMinVersion;
 import com.sonar.it.scanner.msbuild.utils.TestUtils;
@@ -89,8 +88,6 @@ class SolutionKindTest {
   @Test
   // We can't build without MsBuild18
   @MSBuildMinVersion(18)
-  // net11.0 (Microsoft.NET.Sdk.Web) requires MSBuild >= 18.7, newer than our stable CI pin
-  @MSBuildInsidersOnly
   void razor_Net9_WithoutSourceGenerators() {
     String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
@@ -99,8 +96,6 @@ class SolutionKindTest {
   @Test
   // We can't build without MsBuild18
   @MSBuildMinVersion(18)
-  // net11.0 (Microsoft.NET.Sdk.Web) requires MSBuild >= 18.7, newer than our stable CI pin
-  @MSBuildInsidersOnly
   void razor_Net9_WithSourceGenerators() {
     String projectName = "RazorWebApplication.net9.withSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
