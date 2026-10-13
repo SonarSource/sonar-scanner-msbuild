@@ -87,8 +87,8 @@ class MultiLanguageTest {
   }
 
   @Test
-  // new SDK-style format was introduced with .NET Core, we can't run .NET Core SDK under VS 2017 CI context
-  @MSBuildMinVersion(16)
+  // .NET 11 requires VS 2026 (MSBuild 18) and above
+  @MSBuildMinVersion(18)
   @DisableOnEdition(Edition.COMMUNITY)
   void sdkFormat() {
     var context = AnalysisContext.forServer("MultiLanguageSupport");
@@ -154,8 +154,8 @@ class MultiLanguageTest {
   }
 
   @Test
-  // .Net 7 is supported by VS 2022 and above
-  @MSBuildMinVersion(17)
+  // .NET 11 requires VS 2026 (MSBuild 18) and above
+  @MSBuildMinVersion(18)
   void react() {
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
     context.begin.CreateAndSetUserHomeFolder("junit-react-");
@@ -168,8 +168,8 @@ class MultiLanguageTest {
   }
 
   @Test
-  // .Net 7 is supported by VS 2022 and above
-  @MSBuildMinVersion(17)
+  // .NET 11 requires VS 2026 (MSBuild 18) and above
+  @MSBuildMinVersion(18)
   @DisableOnEdition(Edition.COMMUNITY)
   void angular() {
     var context = AnalysisContext.forServer("MultiLanguageSupportAngular");
