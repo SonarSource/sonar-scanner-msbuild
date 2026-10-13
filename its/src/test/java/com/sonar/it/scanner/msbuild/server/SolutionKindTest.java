@@ -102,8 +102,7 @@ class SolutionKindTest {
   }
 
   @Test
-  // .NET 11 requires VS 2026 (MSBuild 18) and above
-  @MSBuildMinVersion(18)
+  @MSBuildMinVersion(16)
   void flatProjectStructure() {
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
