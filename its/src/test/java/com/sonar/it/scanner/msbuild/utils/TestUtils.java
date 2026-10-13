@@ -28,11 +28,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
@@ -53,6 +55,7 @@ import org.sonarqube.ws.client.measures.ComponentRequest;
 import org.sonarqube.ws.client.settings.SetRequest;
 
 import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class TestUtils {
   static final Logger LOG = LoggerFactory.getLogger(TestUtils.class);
@@ -189,6 +192,45 @@ public class TestUtils {
     return new Gson().fromJson(Files.newBufferedReader(context.projectDir.resolve(".sonarqube").resolve("out").resolve("ScannerEngineInput.json")), ScannerEngineInput.class);
   }
 
+  public static void waitForTasksProcessing(Orchestrator orchestrator, BuildResult buildResult) {
+    var taskIds = extractCeTaskIds(buildResult);
+    if (taskIds.isEmpty()) {
+      throw new IllegalStateException("No task found in logs");
+    }
+
+    var client = newWsClient(orchestrator);
+    var futures = taskIds.stream()
+      .map(taskId ->
+        // Wait for each task asynchronously
+        CompletableFuture.runAsync(() -> waitForTaskProcessing(client, taskId)))
+      .toArray(CompletableFuture[]::new);
+
+    //
+    CompletableFuture.allOf(futures).join();
+  }
+
+  private static void waitForTaskProcessing(WsClient client, String taskId) {
+    var request = new TaskRequest().setId(taskId);
+
+    LOG.info("Waiting for CE task {} to finish processing", taskId);
+    await("CE task " + taskId)
+      .pollInterval(Duration.ofSeconds(5))
+      .atMost(Duration.ofMinutes(2))
+      .until(() -> {
+        var status = client.ce().task(request).getTask().getStatus();
+        if (status == Ce.TaskStatus.PENDING || status == Ce.TaskStatus.IN_PROGRESS) {
+          // Still running
+          return false;
+        }
+
+        // At this stage, the engine has finished computing, we throw if the result is not a success
+        assertThat(status)
+          .as("Ensure the CE task %s succeeded", taskId)
+          .isEqualTo(Ce.TaskStatus.SUCCESS);
+        return true;
+      });
+  }
+
   private static String extractCeTaskId(BuildResult buildResult) {
     List<String> taskIds = extractCeTaskIds(buildResult);
     if (taskIds.size() != 1) {
@@ -197,7 +239,7 @@ public class TestUtils {
     return taskIds.iterator().next();
   }
 
-  private static List<String> extractCeTaskIds(BuildResult buildResult) {
+  public static List<String> extractCeTaskIds(BuildResult buildResult) {
     // The log looks like this:
     // INFO: More about the report processing at http://127.0.0.1:53395/api/ce/task?id=0f639b4c-6421-4620-81d0-eac0f5759f06
     return buildResult.getLogsLines(s -> s.contains("More about the report processing at")).stream()
