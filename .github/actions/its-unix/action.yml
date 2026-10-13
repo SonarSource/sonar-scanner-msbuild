@@ -33,7 +33,7 @@ runs:
         tool_versions: |
           java temurin-21
           maven 3.9.15
-          dotnet 11.0.100-rc.1.26425.128 9 8
+          dotnet 11.0.100-rc.1.26425.128 10 9 8
           node 24
 
     - name: Download Binaries artifact
