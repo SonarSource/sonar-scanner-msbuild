@@ -68,28 +68,13 @@ runs:
         CURRENT_VERSION: unused
         PROJECT_VERSION: unused
 
-    # GitHub-hosted macOS cannot reach the internal Edge node (same split as
-    # sonar-dataflow-bug-detection). Linux self-hosted runners can. Only legs
-    # that boot a local SonarQube (i.e. have sq-version) download distributions.
-    # Local composite: this public repo cannot resolve the private
-    # sonarsource-infra-artifactory action. Probe releases then builds —
-    # DEV zips live in sonarsource-builds; federation can 200 one repo and 401 the other.
-    - name: Wait for Artifactory token federation (releases)
-      if: runner.os != 'macOS' && inputs.sq-version != ''
-      uses: ./.github/actions/wait-for-artifactory-token-federation
-      env:
-        ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN }}
+    - name: Fetch production Edge reader token
+      if: runner.os != 'macOS'
+      id: orchestrator-secrets
+      uses: SonarSource/vault-action-wrapper@v3
       with:
-        artifactory-url: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
-        probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-releases&v=*"
-    - name: Wait for Artifactory token federation (builds)
-      if: runner.os != 'macOS' && inputs.sq-version != ''
-      uses: ./.github/actions/wait-for-artifactory-token-federation
-      env:
-        ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN }}
-      with:
-        artifactory-url: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
-        probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-builds&v=*"
+        secrets: |
+          development/artifactory-edge-prod/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ORCHESTRATOR_ACCESS_TOKEN;
 
     - name: Run Maven ITs
       env:
@@ -98,7 +83,9 @@ runs:
         SQ_VERSION: ${{ inputs.sq-version }}
         SQ_EDITION: DEVELOPER
         ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
-        ORCHESTRATOR_ARTIFACTORY_URL: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
+        ORCHESTRATOR_ACCESS_TOKEN: ${{ runner.os != 'macOS' && fromJSON(steps.orchestrator-secrets.outputs.vault).ORCHESTRATOR_ACCESS_TOKEN || env.ARTIFACTORY_ACCESS_TOKEN }}
+        ORCHESTRATOR_HOME: ${{ runner.temp }}/orchestrator
+        ORCHESTRATOR_ARTIFACTORY_URL: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.sonar.build/artifactory' }}
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
         SONARCLOUD_PROJECT_TOKEN: ${{ inputs.sonarcloud-project-token }}
         SONARCLOUD_URL: https://sc-staging.io/
