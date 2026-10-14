@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.sonarsource.orchestrator</groupId>
       <artifactId>sonar-orchestrator-junit5</artifactId>
-      <version>6.4.3.4676</version>
+      <version>6.4.4.4797</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -126,6 +126,7 @@
           <failIfNoTests>${failIfNoTests}</failIfNoTests>
           <!-- Display logs in CI output -->
           <redirectTestOutputToFile>false</redirectTestOutputToFile>
+          <enablePropertiesElement>false</enablePropertiesElement>
           <includes>
             <include>${testInclude}</include>
           </includes>
