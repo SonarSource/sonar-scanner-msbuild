@@ -64,7 +64,7 @@ fi
 # settings.xml. Callers that can reach the internal Edge node set
 # ORCHESTRATOR_ARTIFACTORY_URL to it; everyone else (GitHub-hosted macOS, local
 # developer machines) leaves it unset and keeps Orchestrator's own default.
-ORCHESTRATOR_ARTIFACTORY_TOKEN="${ARTIFACTORY_ACCESS_TOKEN:-${ARTIFACTORY_PASSWORD:-}}"
+ORCHESTRATOR_ARTIFACTORY_TOKEN="${ORCHESTRATOR_ACCESS_TOKEN:-${ARTIFACTORY_ACCESS_TOKEN:-${ARTIFACTORY_PASSWORD:-}}}"
 if [[ -n "${ORCHESTRATOR_ARTIFACTORY_URL:-}" && -n "${ORCHESTRATOR_ARTIFACTORY_TOKEN}" ]]; then
   MVN_ARGS+=(
     "-Dorchestrator.artifactory.url=${ORCHESTRATOR_ARTIFACTORY_URL}"
