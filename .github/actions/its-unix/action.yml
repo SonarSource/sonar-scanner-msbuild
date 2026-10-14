@@ -68,28 +68,37 @@ runs:
         CURRENT_VERSION: unused
         PROJECT_VERSION: unused
 
-    # GitHub-hosted macOS cannot reach the internal Edge node (same split as
-    # sonar-dataflow-bug-detection). Linux self-hosted runners can. Only legs
-    # that boot a local SonarQube (i.e. have sq-version) download distributions.
-    # Local composite: this public repo cannot resolve the private
-    # sonarsource-infra-artifactory action. Probe releases then builds —
-    # DEV zips live in sonarsource-builds; federation can 200 one repo and 401 the other.
-    - name: Wait for Artifactory token federation (releases)
-      if: runner.os != 'macOS' && inputs.sq-version != ''
-      uses: ./.github/actions/wait-for-artifactory-token-federation
-      env:
-        ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN }}
+    - name: Fetch production Edge reader token
+      if: runner.os != 'macOS'
+      id: orchestrator-secrets
+      uses: SonarSource/vault-action-wrapper@v3
       with:
-        artifactory-url: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
-        probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-releases&v=*"
-    - name: Wait for Artifactory token federation (builds)
-      if: runner.os != 'macOS' && inputs.sq-version != ''
-      uses: ./.github/actions/wait-for-artifactory-token-federation
+        secrets: |
+          development/artifactory-edge-prod/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ORCHESTRATOR_ACCESS_TOKEN;
+
+    - name: Configure Orchestrator downloads
+      shell: bash
       env:
-        ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN }}
-      with:
-        artifactory-url: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
-        probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-builds&v=*"
+        ORCHESTRATOR_HOME: ${{ runner.temp }}/orchestrator
+        ORCHESTRATOR_ARTIFACTORY_URL: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.sonar.build/artifactory' }}
+        ORCHESTRATOR_ACCESS_TOKEN: ${{ runner.os != 'macOS' && fromJSON(steps.orchestrator-secrets.outputs.vault).ORCHESTRATOR_ACCESS_TOKEN || env.ARTIFACTORY_ACCESS_TOKEN }}
+      run: |
+        set -euo pipefail
+        : "${ORCHESTRATOR_ACCESS_TOKEN:?Orchestrator reader token is required}"
+        umask 077
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          ORCHESTRATOR_HOME="$(cygpath -u "$ORCHESTRATOR_HOME")"
+        fi
+        mkdir -p "$ORCHESTRATOR_HOME"
+        config_path="$ORCHESTRATOR_HOME/orchestrator.properties"
+        printf 'orchestrator.artifactory.url=%s\norchestrator.artifactory.accessToken=%s\n' \
+          "$ORCHESTRATOR_ARTIFACTORY_URL" "$ORCHESTRATOR_ACCESS_TOKEN" > "$config_path"
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          config_url="file:///$(cygpath -m "$config_path")"
+        else
+          config_url="file://$config_path"
+        fi
+        echo "ORCHESTRATOR_CONFIG_URL=$config_url" >> "$GITHUB_ENV"
 
     - name: Run Maven ITs
       env:
@@ -98,7 +107,7 @@ runs:
         SQ_VERSION: ${{ inputs.sq-version }}
         SQ_EDITION: DEVELOPER
         ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
-        ORCHESTRATOR_ARTIFACTORY_URL: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.dev.sonar.build/artifactory' }}
+        ORCHESTRATOR_HOME: ${{ runner.temp }}/orchestrator
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
         SONARCLOUD_PROJECT_TOKEN: ${{ inputs.sonarcloud-project-token }}
         SONARCLOUD_URL: https://sc-staging.io/
@@ -106,6 +115,17 @@ runs:
         SONARCLOUD_ORGANIZATION: s4net-its
       shell: bash
       run: bash scripts/run-its.sh
+
+    - name: Remove Orchestrator credentials
+      if: always()
+      shell: bash
+      env:
+        ORCHESTRATOR_HOME: ${{ runner.temp }}/orchestrator
+      run: |
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          ORCHESTRATOR_HOME="$(cygpath -u "$ORCHESTRATOR_HOME")"
+        fi
+        rm -f "$ORCHESTRATOR_HOME/orchestrator.properties"
 
     - name: Publish test results
       uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3.2.0
