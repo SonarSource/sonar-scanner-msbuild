@@ -168,9 +168,10 @@ jobs:
             development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
 
       - name: Configure Maven
-        uses: SonarSource/ci-github-actions/config-maven@v2
+        uses: SonarSource/ci-github-actions/config-maven@2.3.0
         with:
           artifactory-reader-role: private-reader
+          repox-url: https://repox-internal.dev.sonar.build
           working-directory: its
         env:
           CURRENT_VERSION: ${{ inputs.short-version }}
@@ -181,26 +182,6 @@ jobs:
         with:
           name: Binaries
           path: Packaging/Binaries
-
-      # WarpBuild Windows can reach Edge (same pattern as sonar-security plugin ITs).
-      # Local composite: this public repo cannot resolve the private
-      # sonarsource-infra-artifactory action. Only **/sonarqube/* legs download a zip.
-      - name: Wait for Artifactory token federation (releases)
-        if: matrix.testInclude == '**/server/*'
-        timeout-minutes: 5
-        uses: ./.github/actions/wait-for-artifactory-token-federation
-        env:
-          ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN || fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
-        with:
-          probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-releases&v=*"
-      - name: Wait for Artifactory token federation (builds)
-        if: matrix.testInclude == '**/server/*'
-        timeout-minutes: 5
-        uses: ./.github/actions/wait-for-artifactory-token-federation
-        env:
-          ARTIFACTORY_ACCESS_TOKEN: ${{ env.ARTIFACTORY_ACCESS_TOKEN || fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
-        with:
-          probe-path: "api/search/versions?g=com.sonarsource.sonarqube&a=sonarqube-developer&remote=1&repos=sonarsource-builds&v=*"
 
       # MSBuild 15 (VS2017) never got MSBuild's long-path support (added in MSBuild 16/VS2019, see dotnet/msbuild#3507).
       - name: Use short-path temp directory (DEV_MsBuild15 only)
