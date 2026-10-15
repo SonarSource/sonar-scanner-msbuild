@@ -22,13 +22,13 @@
       "enabled": false
     },
     {
-      "description": "Refresh NuGet lockfiles with .NET 10 after dependency updates",
+      "description": "Refresh NuGet lockfiles with .NET 11 after dependency updates",
       "matchManagers": [
         "nuget"
       ],
       "skipArtifactsUpdate": true,
       "constraints": {
-        "dotnet": "10.0.100"
+        "dotnet": "11.0.100-rc.1.26425.128"
       },
       "postUpgradeTasks": {
         "executionMode": "update",
