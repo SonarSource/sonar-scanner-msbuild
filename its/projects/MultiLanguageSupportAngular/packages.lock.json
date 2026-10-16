@@ -1,12 +1,12 @@
 {
   "version": 1,
   "dependencies": {
-    "net7.0": {
+    "net11.0": {
       "Microsoft.AspNetCore.SpaProxy": {
         "type": "Direct",
-        "requested": "[7.0.20, )",
-        "resolved": "7.0.20",
-        "contentHash": "ykqnzl3W8B0Yd/rfTjcfUzuwVo5hEnQjHxZf1skYf9czIyaJZ3345tRFBx8eAe58ZUmiBvrr10QDOJjJxFwnAQ=="
+        "requested": "[11.0.0-rc.2.26504.105, )",
+        "resolved": "11.0.0-rc.2.26504.105",
+        "contentHash": "sQyKk8WUmZ1k2lArkQC1JtOlC3S4iZBVE26f5LRzNmCji1LgNab4rdmjFxUV6mNY7ua53lutq12nCJZxYiwpow=="
       }
     }
   }
