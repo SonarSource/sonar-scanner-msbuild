@@ -79,28 +79,6 @@ jobs:
       use-jira-sandbox: ${{ inputs.dry-run }}
       is-draft-release: ${{ inputs.dry-run }}
 
-  unlock-branch:
-    name: Unlock branch
-    runs-on: sonar-xs
-    needs: release
-    if: ${{ needs.release.result == 'success' }}
-    permissions:
-      id-token: write
-    steps:
-      - id: secrets
-        uses: SonarSource/vault-action-wrapper@v3
-        with:
-          secrets: |
-            development/github/token/{REPO_OWNER_NAME_DASH}-lock token | lock_token;
-            development/kv/data/slack token | slack_api_token;
-      - uses: sonarsource/gh-action-lt-backlog/LockBranch@v2
-        with:
-          github-token: ${{ fromJSON(steps.secrets.outputs.vault).lock_token }}
-          slack-token: ${{ fromJSON(steps.secrets.outputs.vault).slack_api_token }}
-          slack-channel: squad-corelang-releases
-          branch-pattern: ${{ inputs.branch }}
-          lock-branch: false
-
   publish-nuget:
     name: Publish NuGet
     needs: release
@@ -140,7 +118,7 @@ jobs:
           cache: true
           tool_versions: |
             powershell-core 7.6.1
-            dotnet 11.0.100-rc.1.26425.128
+            dotnet 11.0.100-rc.2.26504.105
 
       - name: Normalize version to X.Y.Z
         id: normalize
