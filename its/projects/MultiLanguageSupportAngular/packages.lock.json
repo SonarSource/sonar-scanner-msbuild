@@ -4,9 +4,9 @@
     "net11.0": {
       "Microsoft.AspNetCore.SpaProxy": {
         "type": "Direct",
-        "requested": "[11.0.0-rc.1.26425.128, )",
-        "resolved": "11.0.0-rc.1.26425.128",
-        "contentHash": "Z4SHEd6PvYQNiPjhMDXRL+DZ4pNsXGQKU9VcEAj/PuED09NvIdGMoQQk6ggmbH5gOZHG0shlS8NhwXVMFL3mww=="
+        "requested": "[11.0.0-rc.2.26504.105, )",
+        "resolved": "11.0.0-rc.2.26504.105",
+        "contentHash": "sQyKk8WUmZ1k2lArkQC1JtOlC3S4iZBVE26f5LRzNmCji1LgNab4rdmjFxUV6mNY7ua53lutq12nCJZxYiwpow=="
       }
     }
   }
