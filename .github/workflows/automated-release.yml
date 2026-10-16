@@ -127,7 +127,8 @@ jobs:
           NEW_VERSION: ${{ needs.release.outputs.new-version }}
         run: |
           $v = $env:NEW_VERSION
-          if ($v -match '^\d+\.\d+$') { $v = "$v.0" }
+          if ($v -match '^\d+$') { $v = "$v.0.0" }
+          elseif ($v -match '^\d+\.\d+$') { $v = "$v.0" }
           "version=$v" >> $env:GITHUB_OUTPUT
 
       - name: Configure git identity
