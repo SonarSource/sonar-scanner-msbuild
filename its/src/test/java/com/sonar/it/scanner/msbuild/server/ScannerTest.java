@@ -102,8 +102,8 @@ class ScannerTest {
   @Test
   // We don't want to run this on non-Windows platforms
   @EnabledOnOs(OS.WINDOWS)
-  // We can't build without MsBuild17
-  @MSBuildMinVersion(17)
+  // DuplicateAnalyzerReferences targets net11, which requires MSBuild 18.7+
+  @MSBuildMinVersion(18)
   void duplicateAnalyzersWithSameName_AreNotRemoved() {
     // ensure that the Environment Variable parsing happens for .NET Core versions
     var context = AnalysisContext.forServer("DuplicateAnalyzerReferences");
