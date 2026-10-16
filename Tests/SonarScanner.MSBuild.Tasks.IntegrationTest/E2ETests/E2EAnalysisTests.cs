@@ -125,7 +125,7 @@ public class E2EAnalysisTests
         actualStructure.ProjectInfo.ProjectGuid.Should().Be(Guid.Empty);
 
         result.AssertErrorCount(0);
-        result.AssertNoWarningsOrErrors();
+        result.Warnings.Should().OnlyContain(x => x.Contains("UnknownEventType"), "Only the log Viewer compatibility warning should be present");
         result.Messages.Should().Contain(x => x.Contains(projectFilePath), "Expecting the warning to contain the full path to the bad project file");
         // Only Windows's independently-resolved Visual Studio MSBuild reliably triggers the StructuredLogger version mismatch that populates this.
         if (MSBuildLocator.OperatingSystemProvider.IsWindows())
