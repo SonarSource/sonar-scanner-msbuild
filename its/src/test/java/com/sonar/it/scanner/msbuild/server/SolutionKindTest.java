@@ -173,6 +173,13 @@ class SolutionKindTest {
   }
 
   @Test
+  // net10+ target frameworks can't be built with MSBuild 17
+  @MSBuildMinVersion(18)
+  void sdk11() {
+    validateCSharpSdk("CSharp.SDK.11");
+  }
+
+  @Test
   // dotnet sdk tests should run only on VS 2022
   @MSBuildMinVersion(17)
   void net8_NoAnalysisWarnings() {
