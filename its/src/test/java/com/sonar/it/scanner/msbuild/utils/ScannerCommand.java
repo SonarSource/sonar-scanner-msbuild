@@ -129,8 +129,8 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     if (step == Step.end) {
       if (orchestrator == null) {
         CloudUtils.waitForTaskProcessing(result.getLogs());
-      } else {
-        new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for Compute Engine to finish processing (all) analysis
+      } else if (result.isSuccess()) {
+        TestUtils.waitForTasksProcessing(orchestrator, result);
       }
     }
     return result;
