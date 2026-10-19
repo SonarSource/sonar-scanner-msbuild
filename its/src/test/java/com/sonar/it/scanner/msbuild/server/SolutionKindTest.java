@@ -102,7 +102,8 @@ class SolutionKindTest {
   }
 
   @Test
-  @MSBuildMinVersion(16)
+  // CSharpAllFlat targets net11, which requires MSBuild 18.7+
+  @MSBuildMinVersion(18)
   void flatProjectStructure() {
     var context = AnalysisContext.forServer("CSharpAllFlat");
     context.build.addArgument("CSharpAllFlat.sln");
