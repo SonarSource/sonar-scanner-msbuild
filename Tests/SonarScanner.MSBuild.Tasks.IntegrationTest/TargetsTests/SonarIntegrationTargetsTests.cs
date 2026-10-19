@@ -102,6 +102,14 @@ public class SonarIntegrationTargetsTests
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, $@"c:{Path.DirectorySeparatorChar}config");
     }
 
+    [TestMethod]
+    public void IntTargets_SkippedBinlogData_DoesNotLeakIntoWarnings()
+    {
+        var result = CreateProjectAndLoad(null);
+        result.Warnings.Should().NotContain(x => x.StartsWith("Skipped some data unknown to this version of Viewer.", StringComparison.Ordinal));
+        TestContext.WriteLine($"SkippedBinlogData count: {result.SkippedBinlogData.Count}");
+    }
+
     private BuildLog CreateProjectAndLoad(string projectSnippet)
     {
         projectSnippet += @"<Target Name=""DoNothing""/>";
