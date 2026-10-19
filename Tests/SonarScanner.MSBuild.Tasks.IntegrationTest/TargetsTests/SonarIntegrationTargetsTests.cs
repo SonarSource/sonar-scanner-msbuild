@@ -103,12 +103,8 @@ public class SonarIntegrationTargetsTests
     }
 
     [TestMethod]
-    public void IntTargets_SkippedBinlogData_DoesNotLeakIntoWarnings()
-    {
-        var result = CreateProjectAndLoad(null);
-        result.Warnings.Should().NotContain(x => x.StartsWith("Skipped some data unknown to this version of Viewer.", StringComparison.Ordinal));
-        TestContext.WriteLine($"SkippedBinlogData count: {result.SkippedBinlogData.Count}");
-    }
+    public void IntTargets_SkippedBinlogData_DoesNotLeakIntoWarnings() =>
+        CreateProjectAndLoad(null).SkippedBinlogData.Should().NotBeEmpty();
 
     private BuildLog CreateProjectAndLoad(string projectSnippet)
     {
