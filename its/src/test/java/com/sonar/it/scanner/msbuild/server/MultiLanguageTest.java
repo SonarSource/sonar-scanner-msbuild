@@ -87,7 +87,6 @@ class MultiLanguageTest {
   }
 
   @Test
-  // MultiLanguageSupport targets net11, which requires MSBuild 18.7+
   @MSBuildMinVersion(18)
   @DisableOnEdition(Edition.COMMUNITY)
   void sdkFormat() {
@@ -154,7 +153,6 @@ class MultiLanguageTest {
   }
 
   @Test
-  // MultiLanguageSupportReact targets net11, which requires MSBuild 18.7+
   @MSBuildMinVersion(18)
   void react() {
     var context = AnalysisContext.forServer("MultiLanguageSupportReact");
@@ -168,7 +166,6 @@ class MultiLanguageTest {
   }
 
   @Test
-  // MultiLanguageSupportAngular targets net11, which requires MSBuild 18.7+
   @MSBuildMinVersion(18)
   @DisableOnEdition(Edition.COMMUNITY)
   void angular() {
