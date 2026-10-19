@@ -1,6 +1,6 @@
 {
   "sdk": {
-    "version": "10.0",
-    "rollForward": "latestFeature"
+    "comment": "Exact pin required: rollForward+allowPrerelease is mishandled by MSBuildSdkResolver under standalone MSBuild.exe, which this IT matrix invokes directly",
+    "version": "11.0.100-rc.2.26504.105"
   }
 }

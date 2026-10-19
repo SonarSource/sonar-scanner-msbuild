@@ -88,16 +88,16 @@ class SolutionKindTest {
   @Test
   // We can't build without MsBuild18
   @MSBuildMinVersion(18)
-  void razor_Net9_WithoutSourceGenerators() {
-    String projectName = "RazorWebApplication.net9.withoutSourceGenerators";
+  void razor_Net11_WithoutSourceGenerators() {
+    String projectName = "RazorWebApplication.net11.withoutSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>false</UseRazorSourceGenerator>");
   }
 
   @Test
   // We can't build without MsBuild18
   @MSBuildMinVersion(18)
-  void razor_Net9_WithSourceGenerators() {
-    String projectName = "RazorWebApplication.net9.withSourceGenerators";
+  void razor_Net11_WithSourceGenerators() {
+    String projectName = "RazorWebApplication.net11.withSourceGenerators";
     validateRazorProject(projectName, "<UseRazorSourceGenerator>true</UseRazorSourceGenerator>");
   }
 
@@ -231,6 +231,8 @@ class SolutionKindTest {
   private void validateRazorProject(String project, String textToLookFor) {
     var context = AnalysisContext.forServer(project);
     assertProjectFileContains(context, textToLookFor);
+    // .NET 11 dumps json in the obj folder due to dotnet-watch, that we don't care about.
+    context.begin.setProperty("sonar.exclusions", "**/obj/**/dotnet-watch/**");
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
