@@ -102,6 +102,10 @@ public class SonarIntegrationTargetsTests
         result.AssertPropertyValue(TargetProperties.SonarQubeConfigPath, $@"c:{Path.DirectorySeparatorChar}config");
     }
 
+    [TestMethod]
+    public void IntTargets_SkippedBinlogData_DoesNotLeakIntoWarnings() =>
+        CreateProjectAndLoad(null).SkippedBinlogData.Should().NotBeEmpty();
+
     private BuildLog CreateProjectAndLoad(string projectSnippet)
     {
         projectSnippet += @"<Target Name=""DoNothing""/>";

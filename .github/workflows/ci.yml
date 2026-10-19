@@ -250,7 +250,7 @@ jobs:
         with:
           cache: true
           tool_versions: |
-            dotnet 11.0.100-rc.1.26425.128 10 9
+            dotnet 11.0.100-rc.2.26504.105 10 9
             powershell-core 7.5.4
 
       - name: Make dotnet discoverable at the well-known Linux path
