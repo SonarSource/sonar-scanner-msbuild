@@ -37,6 +37,7 @@ public class BuildLog
     public List<string> Messages { get; } = new List<string>();
     public List<string> Warnings { get; } = new List<string>();
     public List<string> Errors { get; } = new List<string>();
+    public List<string> SkippedBinlogData { get; } = new List<string>();
     public bool BuildSucceeded { get; private set; }
 
     public BuildLog(string filePath)
@@ -47,7 +48,18 @@ public class BuildLog
         root.VisitAllChildren<Target>(ProcessTarget);
         root.VisitAllChildren<Task>(x => tasks.Add(x.Name));
         root.VisitAllChildren<Message>(x => Messages.Add(x.Text));
-        root.VisitAllChildren<Warning>(x => Warnings.Add(x.Text));
+        // MSBuild.StructuredLogger injects this warning when a newer MSBuild emits binlog event it doesn't recognize yet.
+        root.VisitAllChildren<Warning>(x =>
+        {
+            if (x.Text?.StartsWith("Skipped some data unknown to this version of Viewer.", StringComparison.Ordinal) == true)
+            {
+                SkippedBinlogData.Add(x.Text);
+            }
+            else
+            {
+                Warnings.Add(x.Text);
+            }
+        });
         root.VisitAllChildren<Error>(x => Errors.Add(x.Text));
         // If, in target files, we assign <Varialbe>$(B)</Variable> and 'B = "something/$/something"'
         // MsBuild will replace '$' with '%24' before doing the assignment and we need to revert this.
