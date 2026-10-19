@@ -47,8 +47,7 @@ public class BuildLog
         root.VisitAllChildren<Target>(ProcessTarget);
         root.VisitAllChildren<Task>(x => tasks.Add(x.Name));
         root.VisitAllChildren<Message>(x => Messages.Add(x.Text));
-        // MSBuild.StructuredLogger injects this synthetic warning itself when a newer MSBuild emits binlog event
-        // types it doesn't recognize yet. It reflects a reader-library parsing gap, not an actual build warning.
+        // MSBuild.StructuredLogger injects this warning when a newer MSBuild emits binlog event it doesn't recognize yet.
         root.VisitAllChildren<Warning>(x =>
         {
             if (!x.Text.StartsWith("Skipped some data unknown to this version of Viewer.", StringComparison.Ordinal))

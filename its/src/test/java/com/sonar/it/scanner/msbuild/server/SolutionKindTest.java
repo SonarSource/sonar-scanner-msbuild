@@ -231,8 +231,7 @@ class SolutionKindTest {
   private void validateRazorProject(String project, String textToLookFor) {
     var context = AnalysisContext.forServer(project);
     assertProjectFileContains(context, textToLookFor);
-    // The .NET 11 SDK copies dotnet-watch browser-refresh tooling JS into obj/ during a normal build (not just `dotnet watch`).
-    // It's a build artifact, not source code, and must not be picked up by the JS sensor.
+    // .NET 11 dumps json in the obj folder due to dotnet-watch, that we don't care about.
     context.begin.setProperty("sonar.exclusions", "**/obj/**/dotnet-watch/**");
     context.runAnalysis();
 
