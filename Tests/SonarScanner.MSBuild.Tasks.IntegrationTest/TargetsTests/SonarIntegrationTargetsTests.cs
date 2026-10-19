@@ -103,7 +103,6 @@ public class SonarIntegrationTargetsTests
     }
 
     [TestMethod]
-    [Description("Checks that MSBuild.StructuredLogger's synthetic unknown-binlog-event warning is routed to SkippedBinlogData instead of Warnings")]
     public void IntTargets_SkippedBinlogData_DoesNotLeakIntoWarnings()
     {
         var result = CreateProjectAndLoad(null);
