@@ -127,6 +127,7 @@ public class E2EAnalysisTests
         result.AssertErrorCount(0);
         result.AssertNoWarningsOrErrors();
         result.Messages.Should().Contain(x => x.Contains(projectFilePath), "Expecting the warning to contain the full path to the bad project file");
+        result.SkippedBinlogData.Should().NotBeEmpty();
     }
 
     [TestMethod]
