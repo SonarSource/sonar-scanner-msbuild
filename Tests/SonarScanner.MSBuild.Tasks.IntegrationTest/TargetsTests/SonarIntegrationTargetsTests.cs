@@ -103,8 +103,24 @@ public class SonarIntegrationTargetsTests
     }
 
     [TestMethod]
-    public void IntTargets_SkippedBinlogData_DoesNotLeakIntoWarnings() =>
-        CreateProjectAndLoad(null).SkippedBinlogData.Should().NotBeEmpty();
+    public void IntTargets_SkippedBinlogData_DoesNotLeakIntoWarnings()
+    {
+        // The "DoNothing"-target build used by CreateProjectAndLoad() does no restore/compile, so it never emits
+        // enough binlog content to trigger MSBuild.StructuredLogger's unknown-event warning. Compile something for
+        // real instead, matching the conditions under which this warning was originally observed (E2E_InvalidGuid).
+        var context = new TargetsTestsContext(TestContext);
+        var codeFilePath = context.CreateInputFile("Class1.cs");
+        File.WriteAllText(codeFilePath, "public class Class1 { }");
+        var projectXml = $"""
+            <ItemGroup>
+              <Compile Include='{codeFilePath}' />
+            </ItemGroup>
+            """;
+        var projectFile = context.CreateProjectFile(projectXml, sqProperties: string.Empty);
+        var result = BuildRunner.BuildTargets(TestContext, projectFile);
+
+        result.SkippedBinlogData.Should().NotBeEmpty();
+    }
 
     private BuildLog CreateProjectAndLoad(string projectSnippet)
     {
