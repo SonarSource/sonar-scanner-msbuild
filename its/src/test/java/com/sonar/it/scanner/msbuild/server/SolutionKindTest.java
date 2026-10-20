@@ -176,8 +176,8 @@ class SolutionKindTest {
   @Test
   // net10+ target frameworks can't be built with MSBuild 17
   @MSBuildMinVersion(18)
-  void sdk11() {
-    validateCSharpSdk("CSharp.SDK.11");
+  void sdk10() {
+    validateCSharpSdk("CSharp.SDK.10");
   }
 
   @Test
