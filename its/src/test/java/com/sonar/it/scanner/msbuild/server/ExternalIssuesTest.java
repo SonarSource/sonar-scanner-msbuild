@@ -78,7 +78,7 @@ class ExternalIssuesTest {
   }
 
   @Test
-  // IgnoreIssuesDoesNotRemoveSourceGenerator targets net11, which requires MSBuild 18.7+
+  // IgnoreIssuesDoesNotRemoveSourceGenerator is pinned to net11, which requires MSBuild 18.7+
   @MSBuildMinVersion(18)
   void ignoreIssues_DoesNotRemoveSourceGenerator() {
     var context = AnalysisContext.forServer("IgnoreIssuesDoesNotRemoveSourceGenerator");
