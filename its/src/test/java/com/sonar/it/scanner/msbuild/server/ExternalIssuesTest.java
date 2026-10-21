@@ -78,7 +78,8 @@ class ExternalIssuesTest {
   }
 
   @Test
-  @MSBuildMinVersion(17)
+  // IgnoreIssuesDoesNotRemoveSourceGenerator is pinned to net11, which requires MSBuild 18.7+
+  @MSBuildMinVersion(18)
   void ignoreIssues_DoesNotRemoveSourceGenerator() {
     var context = AnalysisContext.forServer("IgnoreIssuesDoesNotRemoveSourceGenerator");
     context.begin.setProperty("sonar.cs.roslyn.ignoreIssues", "true");
