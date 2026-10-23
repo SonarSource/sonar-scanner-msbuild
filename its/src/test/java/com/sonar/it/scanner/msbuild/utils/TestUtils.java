@@ -29,16 +29,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import org.apache.commons.io.FileUtils;
+import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonarqube.ws.Ce;
@@ -192,30 +193,33 @@ public class TestUtils {
     return new Gson().fromJson(Files.newBufferedReader(context.projectDir.resolve(".sonarqube").resolve("out").resolve("ScannerEngineInput.json")), ScannerEngineInput.class);
   }
 
-  public static void waitForTasksProcessing(Orchestrator orchestrator, BuildResult buildResult) {
+  public static void waitAllCeTasksProcessing(Orchestrator orchestrator, BuildResult buildResult) {
     var taskIds = extractCeTaskIds(buildResult);
     if (taskIds.isEmpty()) {
       throw new IllegalStateException("No task found in logs");
     }
 
     var client = newWsClient(orchestrator);
-    var futures = taskIds.stream()
-      .map(taskId ->
-        // Wait for each task asynchronously
-        CompletableFuture.runAsync(() -> waitForTaskProcessing(client, taskId)))
-      .toArray(CompletableFuture[]::new);
-
-    //
-    CompletableFuture.allOf(futures).join();
+    // Create a shared deadline to make sure that the timeout is respected
+    var deadline = Instant.now().plus(Duration.ofMinutes(2));
+    for (var taskId : taskIds) {
+      waitSingleCeTaskProcessing(client, taskId, deadline);
+    }
   }
 
-  private static void waitForTaskProcessing(WsClient client, String taskId) {
-    var request = new TaskRequest().setId(taskId);
-
+  private static void waitSingleCeTaskProcessing(WsClient client, String taskId, Instant deadline) {
     LOG.info("Waiting for CE task {} to finish processing", taskId);
+
+    var timeout = Duration.between(Instant.now(), deadline);
+    if (timeout.isNegative()) {
+      var message = String.format("The deadline to compute the CE task %s has already exceeded.", taskId);
+      throw new ConditionTimeoutException(message);
+    }
+
+    var request = new TaskRequest().setId(taskId);
     await("CE task " + taskId)
       .pollInterval(Duration.ofSeconds(5))
-      .atMost(Duration.ofMinutes(2))
+      .atMost(timeout)
       .until(() -> {
         var status = client.ce().task(request).getTask().getStatus();
         if (status == Ce.TaskStatus.PENDING || status == Ce.TaskStatus.IN_PROGRESS) {
@@ -239,11 +243,11 @@ public class TestUtils {
     return taskIds.iterator().next();
   }
 
-  public static List<String> extractCeTaskIds(BuildResult buildResult) {
+  private static List<String> extractCeTaskIds(BuildResult buildResult) {
     // The log looks like this:
     // INFO: More about the report processing at http://127.0.0.1:53395/api/ce/task?id=0f639b4c-6421-4620-81d0-eac0f5759f06
     return buildResult.getLogsLines(s -> s.contains("More about the report processing at")).stream()
       .map(s -> s.substring(s.lastIndexOf("=") + 1))
-      .collect(Collectors.toList());
+      .toList();
   }
 }
