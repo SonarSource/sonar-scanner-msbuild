@@ -22,7 +22,6 @@ package com.sonar.it.scanner.msbuild.utils;
 import com.sonar.it.scanner.msbuild.cloud.CloudUtils;
 import com.sonar.orchestrator.Orchestrator;
 import com.sonar.orchestrator.build.BuildResult;
-import com.sonar.orchestrator.server.SynchronousAnalyzer;
 import com.sonar.orchestrator.util.StreamConsumer;
 
 import com.sonar.orchestrator.util.command.Command;
@@ -129,8 +128,8 @@ public class ScannerCommand extends BaseCommand<ScannerCommand> {
     if (step == Step.end) {
       if (orchestrator == null) {
         CloudUtils.waitForTaskProcessing(result.getLogs());
-      } else {
-        new SynchronousAnalyzer(orchestrator.getServer()).waitForDone();  // Wait for Compute Engine to finish processing (all) analysis
+      } else if (result.isSuccess()) {
+        TestUtils.waitAllCeTasksProcessing(orchestrator, result);
       }
     }
     return result;
