@@ -39,13 +39,6 @@ jobs:
             dotnet 11.0.100-rc.2.26504.105
             github-cli 2.92
 
-      - name: Get secrets
-        id: secrets
-        uses: SonarSource/vault-action-wrapper@v3
-        with:
-          secrets: |
-            development/team/languages/kv/data/nuget apikey | NUGET_API_KEY;
-
       - name: Download release assets
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -65,11 +58,18 @@ jobs:
 
           echo "Downloaded: $PACKAGE_NAME"
 
+      - name: NuGet login
+        id: nuget-login
+        if: ${{ !inputs.dry-run }}
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: SonarTech
+
       - name: Publish dotnet-sonarscanner to NuGet
         if: ${{ !inputs.dry-run }}
         shell: bash
         env:
-          NUGET_API_KEY: ${{ fromJSON(steps.secrets.outputs.vault).NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
           PACKAGES_DIR: ${{ runner.temp }}/packages
         run: |
           echo "Publishing $PACKAGE_NAME to NuGet..."
