@@ -37,6 +37,8 @@ import static com.sonar.it.scanner.msbuild.utils.SonarAssertions.assertThat;
 public class BuildCommand extends BaseCommand<BuildCommand> {
 
   private static final String MSBUILD_DEFAULT_PATH = "C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\MSBuild\\Current\\Bin\\MSBuild.exe";
+  // JUnit runs test classes concurrently, so serialize builds that share the NuGet package cache.
+  private static final Object NUGET_PACKAGE_CACHE_LOCK = new Object();
   private static final Logger LOG = LoggerFactory.getLogger(BuildCommand.class);
 
   private final ArrayList<String> arguments = new ArrayList<>();
@@ -78,16 +80,18 @@ public class BuildCommand extends BaseCommand<BuildCommand> {
   }
 
   public BuildResult execute() {
-    if (shouldInvokeNugetRestore) {
-      executeNuGetRestore();
+    synchronized (NUGET_PACKAGE_CACHE_LOCK) {
+      if (shouldInvokeNugetRestore) {
+        executeNuGetRestore();
+      }
+      var command = createCommand();
+      var result = new BuildResult();
+      LOG.info("Build command start: '{}' in {}", command.toCommandLine(), command.getDirectory());
+      result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout.miliseconds));
+      assertThat(result.isSuccess()).describedAs("BUILD step failed. Logs: " + result.getLogs()).isTrue();
+      LOG.info("Build command finish: '{}' in {}", command.toCommandLine(), command.getDirectory());
+      return result;
     }
-    var command = createCommand();
-    var result = new BuildResult();
-    LOG.info("Build command start: '{}' in {}", command.toCommandLine(), command.getDirectory());
-    result.addStatus(CommandExecutor.create().execute(command, new StreamConsumer.Pipe(result.getLogsWriter()), timeout.miliseconds));
-    assertThat(result.isSuccess()).describedAs("BUILD step failed. Logs: " + result.getLogs()).isTrue();
-    LOG.info("Build command finish: '{}' in {}", command.toCommandLine(), command.getDirectory());
-    return result;
   }
 
   private void executeNuGetRestore() {

@@ -17,6 +17,8 @@ jobs:
   its_windows:
     name: ${{ matrix.scenario }}
     runs-on: warp-custom-dotnet-bubble-ci
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
     permissions:
       id-token: write
       contents: read
