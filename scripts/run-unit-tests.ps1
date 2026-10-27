@@ -11,7 +11,8 @@ function Run-Tests-With-Coverage ([string]$ProjectPath) {
     # Built as its own variable and passed as a single quoted argument. Interpolating $SourcesDirectory/$ProjectNameLiteral directly inside an unquoted /p:Key=Val,...
     # token broke under pwsh's native-argument-passing to dotnet, silently.
     $MsbuildProperties = "AltCover=true,AltCoverForce=true,AltCoverVisibleBranches=true,AltCoverAssemblyFilter=testhost|AltCover|Microsoft|protobuf|Humanizer|GraphQL|StructuredLogger|Test,AltCoverAttributeFilter=ExcludeFromCodeCoverage,AltCoverReport=$SourcesDirectory/Coverage/$ProjectNameLiteral.xml"
-    dotnet test $ProjectPath --configuration $BuildConfiguration --results-directory "$SourcesDirectory\TestResults" -l trx --no-build --no-restore --filter "TestCategory!=NoWindows" "/p:$MsbuildProperties"
+    $TrxFileName = [IO.Path]::GetFileNameWithoutExtension($ProjectPath) + '.trx'
+    dotnet test $ProjectPath --configuration $BuildConfiguration --results-directory "$SourcesDirectory\TestResults" -l "trx;LogFileName=$TrxFileName" --no-build --no-restore --filter "TestCategory!=NoWindows" "/p:$MsbuildProperties"
     Test-ExitCode "ERROR: Unit tests for '$ProjectPath' FAILED."
 }
 
