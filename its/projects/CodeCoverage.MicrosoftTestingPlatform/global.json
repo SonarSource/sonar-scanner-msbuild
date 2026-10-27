@@ -1,7 +1,7 @@
 {
   "sdk": {
     "comment": "Exact pin required: rollForward+allowPrerelease is mishandled by MSBuildSdkResolver under standalone MSBuild.exe, which this IT matrix invokes directly",
-    "version": "11.0.100-rc.2.26504.105"
+    "version": "11.0.100-rc.3.26522.148"
   },
   "test": {
     "runner": "Microsoft.Testing.Platform"
