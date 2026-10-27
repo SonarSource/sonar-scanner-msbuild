@@ -63,6 +63,15 @@ runs:
         unset LANGUAGE
         dotnet test --framework net10.0 --filter "TestCategory!=NoUnixNeedsReview&TestCategory!=No${{ inputs.os-name }}" --logger trx --results-directory TestResults /p:AutomaticallyUseReferenceAssemblyPackages=true
 
+    - name: Verify test results
+      if: success()
+      shell: bash
+      run: |
+        if ! compgen -G 'TestResults/*.trx' > /dev/null; then
+          echo "No TRX test results were written to TestResults." >&2
+          exit 1
+        fi
+
     - name: Publish test results
       uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3.2.0
       if: ${{ !cancelled() }}
@@ -70,3 +79,4 @@ runs:
         name: Unit Test Results ${{ inputs.os-name }}
         path: TestResults/*.trx
         reporter: dotnet-trx
+        fail-on-empty: false
