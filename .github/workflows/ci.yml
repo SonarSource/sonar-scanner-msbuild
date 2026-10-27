@@ -221,6 +221,7 @@ jobs:
           path: TestResults/*.trx
           reporter: dotnet-trx
           fail-on-error: false
+          fail-on-empty: false
 
       - name: Delete files created by unit tests
         run: |
