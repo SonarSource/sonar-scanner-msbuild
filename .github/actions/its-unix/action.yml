@@ -28,9 +28,7 @@ runs:
   steps:
     - name: Install Java, Maven, .NET and Node
       uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
-      # Installing multiple dotnet SDK side-by-side versions concurrently races on mise's
-      # shared dotnet-install.sh cache, intermittently failing one of them. Force serial
-      # installs on a cold cache to avoid it; this only slows down the (rare) cache-miss case.
+      # Installing multiple dotnet SDK side-by-side versions concurrently races on mise.
       env:
         MISE_JOBS: "1"
       with:
