@@ -58,15 +58,15 @@
       },
       "MSBuild.StructuredLogger": {
         "type": "Direct",
-        "requested": "[2.3.246, )",
-        "resolved": "2.3.246",
-        "contentHash": "W7sQrvBS9KzipO7TuL35RsahjDIWxjieK1x9SasTHcu8jbTUyUSxPxnwmt5I19WyMvytatI0TqpL3xF4XL9mhw==",
+        "requested": "[2.3.269, )",
+        "resolved": "2.3.269",
+        "contentHash": "m3mgwxcJ3cl8+FA8k99lwIjGybfJsDdcnkrVZheTyr/WQS+2DV55tgc7AQsBfOstJfNYNFXhBsXvi28fjAbD1Q==",
         "dependencies": {
           "Microsoft.Build.Framework": "17.5.0",
           "Microsoft.Build.Utilities.Core": "17.5.0",
-          "System.Collections.Immutable": "8.0.0",
-          "System.Memory": "4.6.0",
-          "System.Runtime.CompilerServices.Unsafe": "6.1.0"
+          "System.Collections.Immutable": "10.0.0",
+          "System.Memory": "4.6.3",
+          "System.Runtime.CompilerServices.Unsafe": "6.1.2"
         }
       },
       "MSTest.TestAdapter": {
@@ -2157,9 +2157,9 @@
       },
       "MSBuild.StructuredLogger": {
         "type": "Direct",
-        "requested": "[2.3.246, )",
-        "resolved": "2.3.246",
-        "contentHash": "W7sQrvBS9KzipO7TuL35RsahjDIWxjieK1x9SasTHcu8jbTUyUSxPxnwmt5I19WyMvytatI0TqpL3xF4XL9mhw==",
+        "requested": "[2.3.269, )",
+        "resolved": "2.3.269",
+        "contentHash": "m3mgwxcJ3cl8+FA8k99lwIjGybfJsDdcnkrVZheTyr/WQS+2DV55tgc7AQsBfOstJfNYNFXhBsXvi28fjAbD1Q==",
         "dependencies": {
           "Microsoft.Build.Framework": "17.5.0",
           "Microsoft.Build.Utilities.Core": "17.5.0"
