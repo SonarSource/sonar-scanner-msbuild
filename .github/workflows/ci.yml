@@ -247,6 +247,9 @@ jobs:
 
       - name: Install tools
         uses: jdx/mise-action@2d8d4cafcbd33be2ea37d2b6f5ad595363d1f1ca # v5.1.1
+        # Installing multiple dotnet SDK side-by-side versions concurrently races on mise's
+        env:
+          MISE_JOBS: "1"
         with:
           cache: true
           tool_versions: |
