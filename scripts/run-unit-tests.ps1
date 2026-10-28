@@ -13,12 +13,11 @@ function Run-Tests-With-Coverage ([string]$ProjectPath) {
     $MsbuildProperties = "AltCover=true,AltCoverForce=true,AltCoverVisibleBranches=true,AltCoverAssemblyFilter=testhost|AltCover|Microsoft|protobuf|Humanizer|GraphQL|StructuredLogger|Test,AltCoverAttributeFilter=ExcludeFromCodeCoverage,AltCoverReport=$SourcesDirectory/Coverage/$ProjectNameLiteral.xml"
     $TestResultsDirectory = Join-Path $SourcesDirectory 'TestResults'
     New-Item -ItemType Directory -Path $TestResultsDirectory -Force | Out-Null
-    $TrxFileName = [IO.Path]::GetFileNameWithoutExtension($ProjectPath) + '.trx'
-    $TrxFilePath = Join-Path $TestResultsDirectory $TrxFileName
-    dotnet test $ProjectPath --configuration $BuildConfiguration --results-directory $TestResultsDirectory -l "trx;LogFileName=$TrxFileName" --no-build --no-restore --filter "TestCategory!=NoWindows" "/p:$MsbuildProperties"
+    $TrxPrefix = [IO.Path]::GetFileNameWithoutExtension($ProjectPath)
+    dotnet test $ProjectPath --configuration $BuildConfiguration --results-directory $TestResultsDirectory -l "trx;LogFilePrefix=$TrxPrefix" --no-build --no-restore --filter "TestCategory!=NoWindows" "/p:$MsbuildProperties"
     Test-ExitCode "ERROR: Unit tests for '$ProjectPath' FAILED."
-    if (-not (Test-Path -LiteralPath $TrxFilePath -PathType Leaf)) {
-        throw "ERROR: Unit test results were not written to '$TrxFilePath'."
+    if (-not (Get-ChildItem -Path $TestResultsDirectory -Filter "$TrxPrefix*.trx" -File)) {
+        throw "ERROR: Unit test results for '$ProjectPath' were not written to '$TestResultsDirectory'."
     }
 }
 
