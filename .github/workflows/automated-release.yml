@@ -118,7 +118,7 @@ jobs:
           cache: true
           tool_versions: |
             powershell-core 7.6.1
-            dotnet 11.0.100-rc.2.26504.105
+            dotnet 11.0.100-rc.3.26522.148
 
       - name: Normalize version to X.Y.Z
         id: normalize

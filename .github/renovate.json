@@ -28,7 +28,7 @@
       ],
       "skipArtifactsUpdate": true,
       "constraints": {
-        "dotnet": "11.0.100-rc.2.26504.105"
+        "dotnet": "11.0.100-rc.3.26522.148"
       },
       "postUpgradeTasks": {
         "executionMode": "update",
