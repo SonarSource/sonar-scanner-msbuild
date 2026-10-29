@@ -105,6 +105,9 @@ runs:
         fi
         echo "ORCHESTRATOR_CONFIG_URL=$config_url" >> "$GITHUB_ENV"
 
+    - name: Configure NuGet
+      uses: ./.github/actions/configure-nuget
+
     - name: Run Maven ITs
       env:
         MAVEN_OPTS: -Xmx3072m

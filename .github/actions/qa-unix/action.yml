@@ -51,9 +51,15 @@ runs:
         key: nuget-${{ runner.os }}-${{ steps.cache-month.outputs.CACHE_MONTH }}-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: nuget-${{ runner.os }}-${{ steps.cache-month.outputs.CACHE_MONTH }}-
 
+    - name: Configure NuGet
+      uses: ./.github/actions/configure-nuget
+
     - name: Build test pre-requisites
       shell: bash
       run: dotnet publish ./Tests/LogArgs/LogArgs.csproj --framework net10.0 --self-contained -r ${{ inputs.rid }}
+
+    - name: Refresh NuGet reader
+      uses: ./.github/actions/configure-nuget
 
     - name: Run UTs
       shell: bash
