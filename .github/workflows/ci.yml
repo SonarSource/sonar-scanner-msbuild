@@ -1,439 +1,71 @@
-name: CI
+name: BUILD-13211 temporary NuGet evidence
 
 on:
-  schedule:
-    - cron: '17 2 * * 1-5' # Mon-Fri 2:17 AM UTC
-  push:
-    branches: [master, 'branch-*', 'feature/*']
-  pull_request:
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.ref_name != github.event.repository.default_branch }}
-  queue: ${{ (github.ref_name != github.event.repository.default_branch) && 'single' || 'max' }}
-
-env:
-  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
-  NUGET_USE_PROD_EDGE: ${{ vars.NUGET_USE_PROD_EDGE }}
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
-  version:
-    name: Compute version
-    runs-on: sonar-xs
-    permissions:
-      id-token: write
-      contents: write
-    outputs:
-      BUILD_NUMBER: ${{ steps.get-build-number.outputs.BUILD_NUMBER }}
-      SHORT_VERSION: ${{ steps.set-version.outputs.SHORT_VERSION }}
-      FULL_VERSION: ${{ steps.set-version.outputs.FULL_VERSION }}
-      PATCH_VERSION: ${{ steps.set-version.outputs.PATCH_VERSION }}
-      IS_RELEASE_BRANCH: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-') }}
+  validate:
+    name: Empty-cache NuGet (${{ matrix.os }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: Windows
+            runner: warp-custom-dotnet-bubble-ci
+          - os: Linux
+            runner: sonar-xs
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - name: Get build number
-        uses: SonarSource/ci-github-actions/get-build-number@v2
-        id: get-build-number
-
-      - name: Set version
-        id: set-version
-        run: |
-          SHORT_VERSION=$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('Version.targets').getroot().find('.//ShortVersion').text.strip())")
-          if [ "$(echo "$SHORT_VERSION" | tr -cd '.' | wc -c)" -eq 1 ]; then
-            PATCH_VERSION="$SHORT_VERSION.0"
-          else
-            PATCH_VERSION="$SHORT_VERSION"
-          fi
-          FULL_VERSION="$PATCH_VERSION.${{ steps.get-build-number.outputs.BUILD_NUMBER }}"
-          echo "SHORT_VERSION=$SHORT_VERSION" >> "$GITHUB_OUTPUT"
-          echo "PATCH_VERSION=$PATCH_VERSION" >> "$GITHUB_OUTPUT"
-          echo "FULL_VERSION=$FULL_VERSION"   >> "$GITHUB_OUTPUT"
-
-  build:
-    name: Build
-    needs: version
-    runs-on: warp-custom-dotnet-bubble-ci
-    permissions:
-      id-token: write
-      contents: read
-    env:
-      BUILD_NUMBER: ${{ needs.version.outputs.BUILD_NUMBER }}
-      SHORT_VERSION: ${{ needs.version.outputs.SHORT_VERSION }}
-      FULL_VERSION: ${{ needs.version.outputs.FULL_VERSION }}
-      PATCH_VERSION: ${{ needs.version.outputs.PATCH_VERSION }}
-      PACKAGING_BINARIES: Packaging/Binaries
-      PACKAGING_BINARIES_NET: Packaging/Binaries/Net
-      PACKAGING_BINARIES_NET_FRAMEWORK: Packaging/Binaries/Net-Framework
-      PACKAGING_BINARIES_NUGET: Packaging/Binaries/NuGet
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-
-      - name: Prepare
-        id: prepare
-        uses: ./.github/actions/prepare
-        with:
-          build-number: ${{ env.BUILD_NUMBER }}
-          short-version: ${{ env.SHORT_VERSION }}
-
-      - name: Generate SBOM
-        run: dotnet CycloneDX SonarScanner.MSBuild.sln -t --json -o $env:PACKAGING_BINARIES
-
-      - name: Build
-        run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /m
-
-      - name: Sign DLLs
-        uses: SonarSource/gh-action_azure-artifact-signing@v1
-        with:
-          files: |
-            ${{ env.PACKAGING_BINARIES_NET }}/Sonar*.dll
-            ${{ env.PACKAGING_BINARIES_NET }}/Sonar*.exe
-            ${{ env.PACKAGING_BINARIES_NET_FRAMEWORK }}/Sonar*.dll
-            ${{ env.PACKAGING_BINARIES_NET_FRAMEWORK }}/Sonar*.exe
-
-      - name: Zip .NET packages
-        run: |
-          function Zip-Assemblies([string]$Source, [string]$Destination) {
-              # Don't use Compress-Archive because https://github.com/SonarSource/sonar-scanner-msbuild/issues/2086
-              tar -c -a -C "$Source" --options "zip:compression-level=9" -f "$Destination" *
-          }
-
-          Zip-Assemblies "$env:PACKAGING_BINARIES_NET" "$env:PACKAGING_BINARIES/sonar-scanner-$env:FULL_VERSION-net.zip"
-          Zip-Assemblies "$env:PACKAGING_BINARIES_NET_FRAMEWORK" "$env:PACKAGING_BINARIES/sonar-scanner-$env:FULL_VERSION-net-framework.zip"
-
-      - name: Package dotnet global tool
-        run: nuget pack Packaging\NuGet\dotnet-sonarscanner.nuspec -Version $env:PATCH_VERSION -OutputDirectory $env:PACKAGING_BINARIES_NUGET
-
-      - name: Generate Choco packages
-        run: . .\scripts\create-choco-packages.ps1
-
-      # We can't use Azure Artifact Signing for NuGets: https://github.com/NuGet/NuGetGallery/issues/10027
-      - name: Sign NuGet package
-        if: needs.version.outputs.IS_RELEASE_BRANCH == 'true'
-        uses: SonarSource/core-languages-tooling-public/dotnet_pipeline/digicert-sign@master
-        with:
-          files: ${{ env.PACKAGING_BINARIES_NUGET }}/dotnet-sonarscanner*.nupkg
-
-      - name: Run packaging tests
-        env:
-          IS_RELEASE_BRANCH: ${{ needs.version.outputs.IS_RELEASE_BRANCH }}
-        run: dotnet test Tests\SonarScanner.MSBuild.PackagingTest\SonarScanner.MSBuild.PackagingTest.csproj --configuration Release --no-build --no-restore
-
-      - name: Set Maven project version
-        env:
-          SHORT_VERSION: ${{ needs.version.outputs.SHORT_VERSION }}
-          FULL_VERSION: ${{ needs.version.outputs.FULL_VERSION }}
-        run: |
-          "CURRENT_VERSION=$env:SHORT_VERSION" >> $env:GITHUB_ENV
-          "PROJECT_VERSION=$env:FULL_VERSION" >> $env:GITHUB_ENV
-
-      - name: Stage to repox
-        uses: SonarSource/ci-github-actions/build-maven@v2
-        with:
-          deploy-pull-request: true
-          sonar-platform: none
-          maven-args: -Dmaven.test.skip=true
-
-      - name: Upload binaries as pipeline artifact
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: Binaries
-          path: ${{ env.PACKAGING_BINARIES }}
-          retention-days: 14
-          if-no-files-found: error
-
-  uts_windows:
-    name: UTs Windows and analysis
-    needs: version
-    runs-on: warp-custom-dotnet-bubble-ci
-    permissions:
-      id-token: write
-      contents: read
-      checks: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-          fetch-depth: 0
-
-      - name: Prepare
-        uses: ./.github/actions/prepare
-        with:
-          build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
-          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
-
-      - name: Fetch Vault Secrets
-        id: secrets
-        uses: SonarSource/vault-action-wrapper@v3
-        with:
-          secrets: |
-            development/kv/data/sonarcloud token | SONAR_TOKEN;
-
-      - name: Cache SonarScanner for .NET
-        id: s4net-cache
-        uses: SonarSource/gh-action_cache@v1
-        with:
-          path: ${{ env.NUGET_PACKAGES }}/dotnet-sonarscanner
-          key: s4net-${{ hashFiles('.config/dotnet-tools.json') }}
-
-      - name: Refresh NuGet reader
-        uses: ./.github/actions/configure-nuget
-
-      - name: Restore SonarScanner for .NET
-        run: dotnet tool restore --tool-manifest .config/dotnet-tools.json --configfile "NuGet.Config"
-
-      - name: SonarQube Analysis begin
-        env:
-          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
-        run: >
-          dotnet tool run dotnet-sonarscanner -- begin
-          /o:"sonarsource"
-          /k:"sonarscanner-msbuild"
-          /v:"${{ needs.version.outputs.SHORT_VERSION }}"
-          /d:sonar.token="$env:SONAR_TOKEN"
-          /d:sonar.cs.opencover.reportsPaths="${{ github.workspace }}\Coverage\*.xml"
-          /d:sonar.cs.vstest.reportsPaths="${{ github.workspace }}\TestResults\*.trx"
-          /d:sonar.sca.exclusions="its/projects/**"
-
-      - name: Build and analyze
-        run: dotnet build SonarScanner.MSBuild.sln --no-restore -c Release /p:RunAnalyzers=true /p:RunAnalyzersDuringBuild=true
-
-      - name: Run UTs and compute coverage
-        run: .\scripts\run-unit-tests.ps1 -SourcesDirectory "${{ github.workspace }}" -BuildConfiguration Release
-
-      - name: Upload coverage report as pipeline artifact
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: CoverageReport
-          path: ${{ github.workspace }}/Coverage
-          retention-days: 14
-          if-no-files-found: error
-
-      - name: Publish test results
-        uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3.2.0
-        if: ${{ !cancelled() }}
-        with:
-          name: Unit Test Results
-          path: TestResults/*.trx
-          reporter: dotnet-trx
-          fail-on-error: false
-
-      - name: Delete files created by unit tests
-        run: |
-          Get-ChildItem "${{ runner.temp }}" -Filter 'dummy.*' -Recurse -Attributes !Directory | Remove-Item
-
-      - name: SonarQube Analysis end
-        env:
-          SONAR_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).SONAR_TOKEN }}
-        run: dotnet tool run dotnet-sonarscanner -- end /d:sonar.token="$env:SONAR_TOKEN"
-
-  uts_linux:
-    name: UTs Linux
-    needs: [version, build]
-    runs-on: sonar-xs
-    permissions:
-      id-token: write
-      contents: read
-      checks: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-
-      - name: Install tools
-        uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550 # v5.2.2
-        # Installing multiple dotnet SDK side-by-side versions concurrently races on mise's
-        env:
-          MISE_JOBS: "1"
+      - name: Install tools on Linux
+        if: runner.os == 'Linux'
+        uses: jdx/mise-action@8418fedb1110381a0d3ba51a7a415d7c1b884550
         with:
           cache: true
           tool_versions: |
-            dotnet 11.0.100-rc.3.26522.148 10 9
             powershell-core 7.5.4
+            dotnet 11.0.100-rc.3.26522.148
 
-      - name: Make dotnet discoverable at the well-known Linux path
-        run: sudo ln -sfn "$(command -v dotnet)" /usr/local/bin/dotnet
-
-      - name: QA UTs
-        uses: ./.github/actions/qa-unix
+      - name: Install repository .NET SDK on Windows
+        if: runner.os == 'Windows'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
-          build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
-          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
-          rid: linux-x64
-          os-name: Linux
-          is-release-branch: ${{ needs.version.outputs.IS_RELEASE_BRANCH }}
+          global-json-file: global.json
 
-  uts_macos:
-    name: UTs macOS
-    needs: [version, build]
-    runs-on: macos-latest-xlarge
-    if: needs.version.outputs.IS_RELEASE_BRANCH == 'true' || startsWith(github.ref_name, 'feature/') || github.event_name == 'workflow_dispatch'
-    permissions:
-      id-token: write
-      contents: read
-      checks: write
-    steps:
-      - name: Setup Cloudflare WARP
-        uses: SonarSource/gh-action_setup-cloudflare-warp@v1
-        id: warp
+      - name: Seed unrelated Artifactory environment
+        shell: bash
+        run: |
+          for variable in ARTIFACTORY_URL ARTIFACTORY_USERNAME ARTIFACTORY_ACCESS_TOKEN ARTIFACTORY_USER ARTIFACTORY_PASSWORD ARTIFACTORY_READER_ROLE; do
+            printf '%s=unchanged-%s\n' "$variable" "$variable" >> "$GITHUB_ENV"
+          done
 
-      - name: Remove pre-existing .bash_profile
-        run: rm -f ~/.bash_profile
-
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Configure production Edge and matching native reader
+        uses: ./.github/actions/configure-nuget
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
+          use-prod-edge: 'true'
 
-      - name: QA UTs
-        uses: ./.github/actions/qa-unix
+      - name: Validate Edge downloads from empty caches
+        shell: pwsh
+        run: ./scripts/validate-nuget-transfer.ps1 -Mode edge -ReaderRole 'production-native sonar-scanner-msbuild private-reader'
+
+      - name: Configure SaaS and matching SaaS reader
+        uses: ./.github/actions/configure-nuget
         with:
-          build-number: ${{ needs.version.outputs.BUILD_NUMBER }}
-          short-version: ${{ needs.version.outputs.SHORT_VERSION }}
-          rid: osx-arm64
-          os-name: MacOS
-          is-release-branch: ${{ needs.version.outputs.IS_RELEASE_BRANCH }}
+          use-prod-edge: 'false'
 
-  its_windows:
-    name: ITs Windows
-    needs: [version, build]
-    uses: ./.github/workflows/its-windows.yml
-    permissions:
-      id-token: write
-      contents: read
-      checks: write
-    with:
-      short-version: ${{ needs.version.outputs.SHORT_VERSION }}
-      full-version: ${{ needs.version.outputs.FULL_VERSION }}
-    secrets:
-      SONARCLOUD_PROJECT_TOKEN: ${{ secrets.SONARCLOUD_PROJECT_TOKEN }}
+      - name: Validate SaaS rollback from separate empty caches
+        shell: pwsh
+        run: ./scripts/validate-nuget-transfer.ps1 -Mode saas -ReaderRole 'SaaS sonar-scanner-msbuild private-reader'
 
-  its_linux:
-    name: ITs Linux (${{ matrix.scenario }})
-    needs: build
-    runs-on: ${{ matrix.runsOn }}
-    permissions:
-      id-token: write
-      contents: read
-      checks: write
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario: [LATEST_RELEASE, Others, Cloud]
-        include:
-          - scenario: LATEST_RELEASE
-            sqVersion: LATEST_RELEASE
-            testInclude: "**/server/*"
-            runsOn: sonar-s
-          - scenario: Others
-            testInclude: "**/others/*"
-            runsOn: sonar-xs
-          - scenario: Cloud
-            testInclude: "**/cloud/*"
-            runsOn: sonar-xs
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Upload credential-free summaries
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
-
-      - name: Run ITs
-        uses: ./.github/actions/its-unix
-        with:
-          scenario: ${{ matrix.scenario }}
-          test-include: ${{ matrix.testInclude }}
-          sq-version: ${{ matrix.sqVersion }}
-          sonarcloud-project-token: ${{ secrets.SONARCLOUD_PROJECT_TOKEN }}
-
-  its_macos:
-    name: ITs macOS (${{ matrix.scenario }})
-    needs: [version, build]
-    if: needs.version.outputs.IS_RELEASE_BRANCH == 'true' || startsWith(github.ref_name, 'feature/') || github.event_name == 'workflow_dispatch'
-    runs-on: macos-latest-xlarge
-    permissions:
-      id-token: write
-      contents: read
-      checks: write
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario: [LATEST_RELEASE, Others, Cloud]
-        include:
-          - scenario: LATEST_RELEASE
-            sqVersion: LATEST_RELEASE
-            testInclude: "**/server/*"
-          - scenario: Others
-            testInclude: "**/others/*"
-          - scenario: Cloud
-            testInclude: "**/cloud/*"
-    steps:
-      - name: Setup Cloudflare WARP
-        uses: SonarSource/gh-action_setup-cloudflare-warp@v1
-        id: warp
-
-      - name: Remove pre-existing .bash_profile
-        run: rm -f ~/.bash_profile
-
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-
-      - name: Run ITs
-        uses: ./.github/actions/its-unix
-        with:
-          scenario: ${{ matrix.scenario }}
-          test-include: ${{ matrix.testInclude }}
-          sq-version: ${{ matrix.sqVersion }}
-          sonarcloud-project-token: ${{ secrets.SONARCLOUD_PROJECT_TOKEN }}
-
-  promote:
-    name: Promote
-    needs: [version, build, uts_windows, uts_linux, uts_macos, its_windows, its_linux, its_macos]
-    # always() is needed because uts_macos/its_macos are conditionally skipped, and GitHub would then
-    # skip this job too - but a skipped required check counts as passing, letting a real failure merge silently.
-    if: always()
-    runs-on: sonar-xs
-    permissions:
-      id-token: write
-      contents: write
-    env:
-      BUILD_NUMBER: ${{ needs.version.outputs.BUILD_NUMBER }}
-    steps:
-      - name: Fail if a dependency failed or was cancelled
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
-        run: exit 1
-
-      - uses: SonarSource/ci-github-actions/promote@v2
-        if: github.event_name == 'pull_request' || needs.version.outputs.IS_RELEASE_BRANCH == 'true' || startsWith(github.ref_name, 'dogfood-on-')
-        with:
-          promote-pull-request: true
-
-  notify-build-failure:
-    name: Notify build failure
-    needs: [version, build, uts_windows, uts_linux, uts_macos, its_windows, its_linux, its_macos, promote]
-    if: >-
-      always()
-      && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/branch-') || startsWith(github.ref, 'refs/heads/dogfood-'))
-      && contains(needs.*.result, 'failure')
-    runs-on: sonar-xs
-    permissions:
-      actions: read
-      id-token: write # required for vault-action-wrapper in the shared slack-notify action
-    steps:
-      - name: Slack Notification
-        uses: SonarSource/core-languages-tooling-public/common-actions/slack-notify@v1
-        with:
-          slack-channel: squad-corelang-notifs,squad-dotnet
-          branch-patterns: ${{ format('{0},branch-*,dogfood-*', github.event.repository.default_branch || 'master') }}
-          github-token: ${{ github.token }}
-          branch: ${{ github.ref_name }}
+          name: BUILD-13211-nuget-evidence-${{ matrix.os }}
+          path: edge-validation-evidence/**/*.json
+          if-no-files-found: error
