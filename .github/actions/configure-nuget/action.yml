@@ -1,0 +1,85 @@
+name: Configure NuGet
+description: Pair the Repox NuGet source with a fresh reader for the selected Artifactory instance.
+
+inputs:
+  use-prod-edge:
+    description: Use production Edge on internal runners. Set false to use the SaaS source and reader.
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Select NuGet instance
+      id: instance
+      shell: bash
+      env:
+        USE_PROD_EDGE: ${{ inputs.use-prod-edge }}
+        RUNNER_ENVIRONMENT: ${{ runner.environment }}
+      run: |
+        set -euo pipefail
+        if [[ -z "$USE_PROD_EDGE" ]]; then
+          inherited_selection="$(printf '%s\n' "${NUGET_USE_PROD_EDGE:-}" | tr '[:upper:]' '[:lower:]' | sed -e ':all' -e '$!N' -e '$!b all' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          case "$inherited_selection" in
+            ''|true|false) ;;
+            *) echo '::error::NUGET_USE_PROD_EDGE must be empty, true or false'; exit 1 ;;
+          esac
+          USE_PROD_EDGE=false
+          if [[ ("$RUNNER_OS" == Windows || "$RUNNER_OS" == Linux) && "$RUNNER_ENVIRONMENT" != github-hosted && "$inherited_selection" != false ]]; then
+            USE_PROD_EDGE=true
+          fi
+        fi
+        case "$USE_PROD_EDGE" in
+          true|false) ;;
+          *) echo '::error::use-prod-edge must be true or false'; exit 1 ;;
+        esac
+        printf 'use-prod-edge=%s\n' "$USE_PROD_EDGE" >> "$GITHUB_OUTPUT"
+
+    - name: Preserve Artifactory environment
+      id: environment
+      shell: bash
+      run: |
+        set -euo pipefail
+        for variable in ARTIFACTORY_URL ARTIFACTORY_USERNAME ARTIFACTORY_ACCESS_TOKEN ARTIFACTORY_USER ARTIFACTORY_PASSWORD ARTIFACTORY_READER_ROLE; do
+          printf '%s=%s\n' "$variable" "${!variable-}" >> "$GITHUB_OUTPUT"
+        done
+
+    - name: Reset NuGet source for SaaS rollback
+      if: steps.instance.outputs.use-prod-edge == 'false'
+      shell: bash
+      run: |
+        dotnet nuget update source Repox \
+          --source https://repox.jfrog.io/artifactory/api/nuget/v3/nuget/index.json \
+          --configfile NuGet.Config
+
+    - name: Configure NuGet source and reader
+      id: nuget
+      uses: SonarSource/ci-github-actions/config-nuget@b4eede988476ebb13a242fbc3ae4e8e374d78ad0
+      with:
+        artifactory-reader-role: private-reader
+        repox-url: ${{ steps.instance.outputs.use-prod-edge == 'true' && 'https://repox.sonar.build' || 'https://repox.jfrog.io' }}
+
+    - name: Scope reader credentials to NuGet
+      if: always() && steps.environment.outcome == 'success'
+      shell: bash
+      env:
+        PREVIOUS_ARTIFACTORY_URL: ${{ steps.environment.outputs.ARTIFACTORY_URL }}
+        PREVIOUS_ARTIFACTORY_USERNAME: ${{ steps.environment.outputs.ARTIFACTORY_USERNAME }}
+        PREVIOUS_ARTIFACTORY_ACCESS_TOKEN: ${{ steps.environment.outputs.ARTIFACTORY_ACCESS_TOKEN }}
+        PREVIOUS_ARTIFACTORY_USER: ${{ steps.environment.outputs.ARTIFACTORY_USER }}
+        PREVIOUS_ARTIFACTORY_PASSWORD: ${{ steps.environment.outputs.ARTIFACTORY_PASSWORD }}
+        PREVIOUS_ARTIFACTORY_READER_ROLE: ${{ steps.environment.outputs.ARTIFACTORY_READER_ROLE }}
+        NUGET_CONFIGURATION_OUTCOME: ${{ steps.nuget.outcome }}
+      run: |
+        set -euo pipefail
+        for variable in ARTIFACTORY_URL ARTIFACTORY_USERNAME ARTIFACTORY_ACCESS_TOKEN ARTIFACTORY_USER ARTIFACTORY_PASSWORD ARTIFACTORY_READER_ROLE; do
+          previous_variable="PREVIOUS_$variable"
+          printf '%s=%s\n' "$variable" "${!previous_variable}" >> "$GITHUB_ENV"
+        done
+        if [[ "$NUGET_CONFIGURATION_OUTCOME" != success ]]; then
+          exit 0
+        fi
+        : "${ARTIFACTORY_USERNAME:?NuGet reader username is required}" "${ARTIFACTORY_ACCESS_TOKEN:?NuGet reader token is required}"
+        # NuGet 4.9 treats authentication-type metadata after Password as part of the password.
+        credentials="Username=$ARTIFACTORY_USERNAME;Password=$ARTIFACTORY_ACCESS_TOKEN"
+        printf '::add-mask::%s\n' "$credentials"
+        printf 'NuGetPackageSourceCredentials_Repox=%s\n' "$credentials" >> "$GITHUB_ENV"

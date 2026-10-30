@@ -1,0 +1,15 @@
+# NuGet reader configuration
+
+Call this action immediately before a NuGet restore or another phase that can download NuGet packages. It delegates source configuration and fresh Vault authentication to [the shared config-nuget action](https://github.com/SonarSource/ci-github-actions/tree/b4eede988476ebb13a242fbc3ae4e8e374d78ad0/config-nuget), pinned to that revision, with an explicit `private-reader` role and selected Repox URL.
+
+Internal Windows and Linux runners use `https://repox.sonar.build/artifactory/api/nuget/v3/nuget/index.json` with the production native reader at `development/artifactory-edge-prod/token/{REPO_OWNER_NAME_DASH}-private-reader`. GitHub-hosted and macOS runners use `https://repox.jfrog.io/artifactory/api/nuget/v3/nuget/index.json` with the SaaS reader at `development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader`.
+
+The `use-prod-edge` input defaults to empty. The first step then trims surrounding whitespace and normalizes the case of the inherited `NUGET_USE_PROD_EDGE` environment variable. Empty, `true`, and `false` are accepted; other values fail before requesting credentials. Production Edge is selected only for internal Windows or Linux runners when the normalized value is not `false`. Explicit `true` or `false` inputs override this default selection without reading the inherited variable; other input values fail before requesting credentials.
+
+The wrapper preserves the existing generic Artifactory environment, calls the shared action, then restores the prior values and exports the fresh reader as `NuGetPackageSourceCredentials_Repox`. It uses the `Username=...;Password=...` syntax supported by both modern NuGet and the NuGet client shipped with Visual Studio 2017. NuGet uses this source-specific credential before the credentials in `NuGet.Config`, so Maven, publication, signing, and Orchestrator credentials retain their own scope. Credentials stay out of the configuration file; source mapping, signature requirements, and trusted signers are preserved. The committed configuration retains its SaaS default for local use.
+
+The reader's configured default lifetime is one hour. A call refreshes the credential for subsequent steps; it does not refresh a running command. Keep calls close to network activity and refresh again before a later download phase.
+
+To roll back CI downloads to SaaS, set the repository or organization Actions variable `NUGET_USE_PROD_EDGE` to `false`, or pass `use-prod-edge: 'false'` at a call site. The CI workflows pass the variable to the action through the matching environment variable. The wrapper resets the source to SaaS before calling the shared action on this path, so rollback switches both source and reader even after an Edge call in the same job. An explicit `use-prod-edge: 'true'` selects production Edge regardless of runner defaults.
+
+NuGet's environment credential precedence and syntax are documented in [Consuming packages from authenticated feeds](https://learn.microsoft.com/en-us/nuget/consume-packages/consuming-packages-authenticated-feeds#credentials-in-environment-variables).

@@ -55,6 +55,9 @@ runs:
         key: nuget-${{ steps.cache-month.outputs.CACHE_MONTH }}-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: nuget-${{ steps.cache-month.outputs.CACHE_MONTH }}-
 
+    - name: Configure NuGet
+      uses: ./.github/actions/configure-nuget
+
     - name: Restore
       shell: powershell
       env:

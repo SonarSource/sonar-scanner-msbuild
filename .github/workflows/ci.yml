@@ -15,6 +15,7 @@ concurrency:
 
 env:
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+  NUGET_USE_PROD_EDGE: ${{ vars.NUGET_USE_PROD_EDGE }}
 
 jobs:
   version:
@@ -182,6 +183,9 @@ jobs:
         with:
           path: ${{ env.NUGET_PACKAGES }}/dotnet-sonarscanner
           key: s4net-${{ hashFiles('.config/dotnet-tools.json') }}
+
+      - name: Refresh NuGet reader
+        uses: ./.github/actions/configure-nuget
 
       - name: Restore SonarScanner for .NET
         run: dotnet tool restore --tool-manifest .config/dotnet-tools.json --configfile "NuGet.Config"

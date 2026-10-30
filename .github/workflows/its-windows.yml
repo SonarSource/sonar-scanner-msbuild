@@ -13,6 +13,9 @@ on:
       SONARCLOUD_PROJECT_TOKEN:
         required: true
 
+env:
+  NUGET_USE_PROD_EDGE: ${{ vars.NUGET_USE_PROD_EDGE }}
+
 jobs:
   its_windows:
     name: ${{ matrix.scenario }}
@@ -222,6 +225,9 @@ jobs:
             config_url="file://$config_path"
           fi
           echo "ORCHESTRATOR_CONFIG_URL=$config_url" >> "$GITHUB_ENV"
+
+      - name: Configure NuGet
+        uses: ./.github/actions/configure-nuget
 
       - name: Run Windows ITs (${{ matrix.scenario }})
         env:
