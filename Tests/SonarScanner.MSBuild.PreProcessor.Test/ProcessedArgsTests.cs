@@ -289,6 +289,7 @@ public class ProcessedArgsTests
     [DataRow("https://SONARCLOUD.IO", "https://api.sonarcloud.io", "")]
     [DataRow("https://sonarcloud.io/", "https://api.sonarcloud.io", "")]
     [DataRow("https://sonarcloud.io///", "https://api.sonarcloud.io", "")]
+    [DataRow("https://sonarqube.au", "https://api.sonarqube.au", "au")]
     [DataRow("https://sonarqube.us", "https://api.sonarqube.us", "us")]
     [DataRow("https://SonarQube.us", "https://api.sonarqube.us", "us")]
     [DataRow("https://SONARQUBE.US", "https://api.sonarqube.us", "us")]
