@@ -16,7 +16,7 @@ on:
 jobs:
   its_windows:
     name: ${{ matrix.scenario }}
-    runs-on: warp-custom-dotnet-bubble-ci
+    runs-on: warp-custom-pr-506-dotnet-bubble-ci-v20261028103037
     permissions:
       id-token: write
       contents: read
