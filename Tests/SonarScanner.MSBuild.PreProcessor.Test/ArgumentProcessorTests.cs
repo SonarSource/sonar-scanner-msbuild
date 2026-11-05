@@ -112,6 +112,21 @@ public class ArgumentProcessorTests
     }
 
     [TestMethod]
+    [DataRow("au")]
+    [DataRow("AU")]
+    [DataRow("aU")]
+    [DataRow("Au")]
+    public void PreArgProc_Region_AU(string region)
+    {
+        var runtime = new TestRuntime();
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.region={region}").ServerInfo.Should().Be(new CloudHostInfo("https://sonarqube.au", "https://api.sonarqube.au", "au"));
+        runtime.Logger.Should().HaveDebugs(
+            "Server Url: https://sonarqube.au",
+            "Api Url: https://api.sonarqube.au",
+            "Is SonarQube Cloud: True");
+    }
+
+    [TestMethod]
     [DataRow("us")]
     [DataRow("US")]
     [DataRow("uS")]
@@ -119,8 +134,7 @@ public class ArgumentProcessorTests
     public void PreArgProc_Region_US(string region)
     {
         var runtime = new TestRuntime();
-        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.region={region}").ServerInfo
-            .Should().Be(new CloudHostInfo("https://sonarqube.us", "https://api.sonarqube.us", "us"));
+        CheckProcessingSucceeds(runtime, "/k:key", $"/d:sonar.region={region}").ServerInfo.Should().Be(new CloudHostInfo("https://sonarqube.us", "https://api.sonarqube.us", "us"));
         runtime.Logger.Should().HaveDebugs(
             "Server Url: https://sonarqube.us",
             "Api Url: https://api.sonarqube.us",
@@ -148,7 +162,7 @@ public class ArgumentProcessorTests
     [DataRow(@"""us""")]
     public void PreArgProc_Region_Unknown(string region) =>
         CheckProcessingFails("/k:key", $"/d:sonar.region={region}").Logger
-            .Should().HaveErrors($"Unsupported region '{region}'. List of supported regions: 'us'. Please check the 'sonar.region' property.");
+            .Should().HaveErrors($"Unsupported region '{region}'. List of supported regions: 'au', 'us'. Please check the 'sonar.region' property.");
 
     [TestMethod]
     public void PreArgProc_Region_Invalid() =>

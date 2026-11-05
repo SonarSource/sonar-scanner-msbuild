@@ -305,7 +305,7 @@ namespace SonarScanner.MSBuild.Common {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unsupported region &apos;{0}&apos;. List of supported regions: &apos;us&apos;. Please check the &apos;sonar.region&apos; property..
+        ///   Looks up a localized string similar to Unsupported region &apos;{0}&apos;. List of supported regions: &apos;au&apos;, &apos;us&apos;. Please check the &apos;sonar.region&apos; property..
         /// </summary>
         internal static string ERROR_UnsupportedRegion {
             get {

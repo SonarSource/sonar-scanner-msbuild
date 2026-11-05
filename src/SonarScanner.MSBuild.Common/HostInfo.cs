@@ -76,6 +76,7 @@ public record CloudHostInfo(string ServerUrl, string ApiBaseUrl, string Region) 
 {
     private static readonly CloudHostInfo[] KnownRegions = [
         new("https://sonarcloud.io", "https://api.sonarcloud.io", string.Empty),
+        new("https://sonarqube.au", "https://api.sonarqube.au", "au"),
         new("https://sonarqube.us", "https://api.sonarqube.us", "us")
     ];
 

@@ -33,23 +33,36 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class CloudRegionTest {
 
   @Test
+  void region_au() {
+    assertThat(execute("au")).contains(
+      "Server Url: https://sonarqube.au",
+      "Api Url: https://api.sonarqube.au",
+      "Downloading from https://sonarqube.au/api/settings/values?component=unknown");
+  }
+
+  @Test
   void region_us() {
+    assertThat(execute("us")).contains(
+      "Server Url: https://sonarqube.us",
+      "Api Url: https://api.sonarqube.us",
+      "Downloading from https://sonarqube.us/api/settings/values?component=unknown");
+  }
+
+  static String execute(String region) {
     var projectDir = TestUtils.projectDir(ContextExtension.currentTempDir(), "ProjectUnderTest");
     var result = ScannerCommand.createBeginStep(ScannerClassifier.NET, null, projectDir, ContextExtension.currentTestName())
       .setOrganization(CloudConstants.SONARCLOUD_ORGANIZATION)
-      .setProperty("sonar.region", "us")
+      .setProperty("sonar.region", region)
       .setDebugLogs()
       .execute(null);
 
     assertFalse(result.isSuccess());
-    assertThat(result.getLogs()).contains(
-      "Server Url: https://sonarqube.us",
-      "Api Url: https://api.sonarqube.us",
+    var logs = result.getLogs();
+    assertThat(logs).contains(
       "Is SonarQube Cloud: True",
-      "Downloading from https://sonarqube.us/api/settings/values?component=unknown",
       "Using SonarQube Cloud.",
-      "Downloading from https://sonarqube.us/api/settings/values?component=" + ContextExtension.currentTestName() + "...",
       "Cannot download quality profile. Check scanner arguments and the reported URL for more information.",
       "Pre-processing failed. Exit code: 1");
+    return logs;
   }
 }
