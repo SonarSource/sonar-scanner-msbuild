@@ -138,6 +138,7 @@ jobs:
         with:
           deploy-pull-request: true
           sonar-platform: none
+          repox-url: https://repox.sonar.build
           maven-args: -Dmaven.test.skip=true
 
       - name: Upload binaries as pipeline artifact
