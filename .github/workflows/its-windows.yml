@@ -158,6 +158,25 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Diagnose certificate trust (TEMPORARY - test PR only)
+        if: matrix.scenario == 'DEV_MsBuild15'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          [System.Environment]::OSVersion.VersionString
+          Write-Host "--- Symantec/VeriSign certificates in machine stores"
+          foreach ($store in 'Root', 'AuthRoot', 'CA', 'TrustedPublisher') {
+            Get-ChildItem "Cert:\LocalMachine\$store" -ErrorAction SilentlyContinue |
+              Where-Object { $_.Subject -match 'Symantec|VeriSign' } |
+              ForEach-Object { "{0,-16} {1} | {2} | NotAfter {3:yyyy-MM-dd}" -f $store, $_.Thumbprint, $_.Subject, $_.NotAfter }
+          }
+          Write-Host "--- Root auto-update policy"
+          Get-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\SystemCertificates\AuthRoot' -ErrorAction SilentlyContinue | Format-List
+          Write-Host "--- Reachability of the Microsoft trusted root list"
+          try { (Invoke-WebRequest 'http://ctldl.windowsupdate.com/msdownload/update/v3/static/trustedr/en/authrootstl.cab' -Method Head -UseBasicParsing -TimeoutSec 20).StatusCode } catch { "FAILED: $($_.Exception.Message)" }
+          Write-Host "--- Machine NuGet config"
+          Get-ChildItem "${env:ProgramFiles(x86)}\NuGet\Config" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName }
+
       - name: Fetch Vault Secrets
         id: secrets
         uses: SonarSource/vault-action-wrapper@v3
