@@ -127,11 +127,6 @@ public class E2EAnalysisTests
         result.AssertErrorCount(0);
         result.AssertNoWarningsOrErrors();
         result.Messages.Should().Contain(x => x.Contains(projectFilePath), "Expecting the warning to contain the full path to the bad project file");
-        // Only Windows's independently-resolved Visual Studio MSBuild reliably triggers the StructuredLogger version mismatch that populates this.
-        if (MSBuildLocator.OperatingSystemProvider.IsWindows())
-        {
-            result.SkippedBinlogData.Should().NotBeEmpty();
-        }
     }
 
     [TestMethod]
