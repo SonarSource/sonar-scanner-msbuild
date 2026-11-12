@@ -56,16 +56,20 @@ runs:
       uses: SonarSource/vault-action-wrapper@v3
       with:
         secrets: |
-          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | ARTIFACTORY_USER;
-          development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
-          development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
+          development/github/token/licenses-ro token | GH_LICENSES_TOKEN;
 
-    # GitHub-hosted macOS cannot reach the internal Edge node.
-    - name: Configure Maven
-      uses: SonarSource/ci-github-actions/config-maven@2.3.0
+    # Points NuGet.Config (copied into the IT projects) at the Edge and exports ARTIFACTORY_USER / ARTIFACTORY_PASSWORD.
+    - name: Config NuGet
+      uses: SonarSource/ci-github-actions/config-nuget@v2
       with:
         artifactory-reader-role: private-reader
-        repox-url: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io' || 'https://repox-internal.dev.sonar.build' }}
+        repox-url: https://repox.sonar.build
+
+    - name: Configure Maven
+      uses: SonarSource/ci-github-actions/config-maven@v2
+      with:
+        artifactory-reader-role: private-reader
+        repox-url: https://repox.sonar.build
         working-directory: its
       # Opts config-maven out of its automatic build-number bump. Otherwise it would update pom.xml with wrong values.
       # We do not deploy, so dummy values are fine.
@@ -74,7 +78,6 @@ runs:
         PROJECT_VERSION: unused
 
     - name: Fetch production Edge reader token
-      if: runner.os != 'macOS'
       id: orchestrator-secrets
       uses: SonarSource/vault-action-wrapper@v3
       with:
@@ -85,8 +88,8 @@ runs:
       shell: bash
       env:
         ORCHESTRATOR_HOME: ${{ runner.temp }}/orchestrator
-        ORCHESTRATOR_ARTIFACTORY_URL: ${{ runner.os == 'macOS' && 'https://repox.jfrog.io/artifactory' || 'https://repox-internal.sonar.build/artifactory' }}
-        ORCHESTRATOR_ACCESS_TOKEN: ${{ runner.os != 'macOS' && fromJSON(steps.orchestrator-secrets.outputs.vault).ORCHESTRATOR_ACCESS_TOKEN || env.ARTIFACTORY_ACCESS_TOKEN }}
+        ORCHESTRATOR_ARTIFACTORY_URL: https://repox.sonar.build/artifactory
+        ORCHESTRATOR_ACCESS_TOKEN: ${{ fromJSON(steps.orchestrator-secrets.outputs.vault).ORCHESTRATOR_ACCESS_TOKEN }}
       run: |
         set -euo pipefail
         : "${ORCHESTRATOR_ACCESS_TOKEN:?Orchestrator reader token is required}"
@@ -111,8 +114,6 @@ runs:
         TEST_INCLUDE: ${{ inputs.test-include }}
         SQ_VERSION: ${{ inputs.sq-version }}
         SQ_EDITION: DEVELOPER
-        ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
-        ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
         ORCHESTRATOR_HOME: ${{ runner.temp }}/orchestrator
         GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
         SONARCLOUD_PROJECT_TOKEN: ${{ inputs.sonarcloud-project-token }}

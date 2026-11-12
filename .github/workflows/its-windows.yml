@@ -163,15 +163,20 @@ jobs:
         uses: SonarSource/vault-action-wrapper@v3
         with:
           secrets: |
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader username     | ARTIFACTORY_USER;
-            development/artifactory/token/{REPO_OWNER_NAME_DASH}-private-reader access_token | ARTIFACTORY_PASSWORD;
-            development/github/token/licenses-ro token                                       | GH_LICENSES_TOKEN;
+            development/github/token/licenses-ro token | GH_LICENSES_TOKEN;
 
-      - name: Configure Maven
-        uses: SonarSource/ci-github-actions/config-maven@2.3.0
+      # Points NuGet.Config (copied into the IT projects) at the Edge and exports ARTIFACTORY_USER / ARTIFACTORY_PASSWORD.
+      - name: Config NuGet
+        uses: SonarSource/ci-github-actions/config-nuget@v2
         with:
           artifactory-reader-role: private-reader
-          repox-url: https://repox-internal.dev.sonar.build
+          repox-url: https://repox.sonar.build
+
+      - name: Configure Maven
+        uses: SonarSource/ci-github-actions/config-maven@v2
+        with:
+          artifactory-reader-role: private-reader
+          repox-url: https://repox.sonar.build
           working-directory: its
         env:
           CURRENT_VERSION: ${{ inputs.short-version }}
@@ -203,7 +208,7 @@ jobs:
         shell: bash
         env:
           ORCHESTRATOR_HOME: ${{ runner.temp }}/orchestrator
-          ORCHESTRATOR_ARTIFACTORY_URL: https://repox-internal.sonar.build/artifactory
+          ORCHESTRATOR_ARTIFACTORY_URL: https://repox.sonar.build/artifactory
           ORCHESTRATOR_ACCESS_TOKEN: ${{ fromJSON(steps.orchestrator-secrets.outputs.vault).ORCHESTRATOR_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
@@ -227,8 +232,6 @@ jobs:
         env:
           MAVEN_OPTS: -Xmx3072m
           GITHUB_TOKEN: ${{ fromJSON(steps.secrets.outputs.vault).GH_LICENSES_TOKEN }}
-          ARTIFACTORY_USER: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_USER }}
-          ARTIFACTORY_PASSWORD: ${{ fromJSON(steps.secrets.outputs.vault).ARTIFACTORY_PASSWORD }}
           ORCHESTRATOR_HOME: ${{ runner.temp }}/orchestrator
           NUGET_PATH: C:\ProgramData\chocolatey\bin\nuget.exe
           # These variables are needed for SQC ITs (see CloudConstants.java).
