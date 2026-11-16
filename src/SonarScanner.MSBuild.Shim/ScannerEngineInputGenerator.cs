@@ -296,7 +296,7 @@ public class ScannerEngineInputGenerator
                 .Concat(additionalFiles.Sources)
                 .Except(additionalFiles.Tests, FileInfoEqualityComparer.Instance); // the tests are removed here as they are reported at root level.
 
-        bool IsBinary(FileInfo file) =>
+        static bool IsBinary(FileInfo file) =>
             file.Extension.Equals(".exe", StringComparison.InvariantCultureIgnoreCase)
             || file.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase);
     }
