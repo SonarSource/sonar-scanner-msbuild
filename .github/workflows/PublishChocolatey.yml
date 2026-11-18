@@ -32,7 +32,7 @@ jobs:
       NET_PACKAGE: sonar-scanner-${{ inputs.version }}-net.nupkg
     steps:
       - name: Install tools
-        uses: step-security/mise-action@a225bbd7c202ddf57dd76dff22bb7992f6314173 # v5.1.2
+        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
         with:
           cache: true
           tool_versions: |

@@ -246,15 +246,15 @@ jobs:
           ref: ${{ github.head_ref || github.ref_name }}
 
       - name: Install tools
-        uses: SonarSource/mise-action-wrapper@65aa289d3f408f4999d13a52a14cde4f54b48442 # 2.0.0
+        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
         # Installing multiple dotnet SDK side-by-side versions concurrently races on mise's
         env:
           MISE_JOBS: "1"
         with:
+          cache: true
           tool_versions: |
             dotnet 11.0.100 10 9
             powershell-core 7.5.4
-          persist_github_token: false
 
       - name: Make dotnet discoverable at the well-known Linux path
         run: sudo ln -sfn "$(command -v dotnet)" /usr/local/bin/dotnet
