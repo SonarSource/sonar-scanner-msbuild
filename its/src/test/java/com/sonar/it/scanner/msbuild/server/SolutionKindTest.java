@@ -239,8 +239,8 @@ class SolutionKindTest {
   private void validateRazorProject(String project, String textToLookFor) {
     var context = AnalysisContext.forServer(project);
     assertProjectFileContains(context, textToLookFor);
-    // .NET 11 dumps json in the obj folder due to dotnet-watch, that we don't care about.
-    context.begin.setProperty("sonar.exclusions", "**/obj/**/dotnet-watch/**");
+    // .NET 11 writes the hot reload browser tools (js and a key json) into obj/<configuration>/<tfm>/HotReload, that we don't care about.
+    context.begin.setProperty("sonar.exclusions", "**/obj/**/HotReload/**");
     context.runAnalysis();
 
     List<Issue> issues = TestUtils.projectIssues(context.orchestrator, context.projectKey);
