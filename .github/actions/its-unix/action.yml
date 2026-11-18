@@ -27,7 +27,7 @@ runs:
   using: composite
   steps:
     - name: Install Java, Maven, .NET and Node
-      uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
+      uses: step-security/mise-action@a225bbd7c202ddf57dd76dff22bb7992f6314173 # v5.1.2
       # Installing multiple dotnet SDK side-by-side versions concurrently races on mise.
       env:
         MISE_JOBS: "1"
@@ -92,7 +92,7 @@ runs:
       run: bash scripts/run-its.sh
 
     - name: Publish test results
-      uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3.2.0
+      uses: step-security/test-reporter@033644e32639f3077b48dc7c3a692b15fb929c8d # v3.0.0
       if: ${{ !cancelled() }}
       with:
         name: ITs ${{ runner.os }} (${{ inputs.scenario }})

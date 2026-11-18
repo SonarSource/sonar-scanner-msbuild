@@ -113,12 +113,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install tools
-        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
+        uses: SonarSource/mise-action-wrapper@65aa289d3f408f4999d13a52a14cde4f54b48442 # 2.0.0
         with:
-          cache: true
           tool_versions: |
             powershell-core 7.6.1
             dotnet 11.0.100
+          persist_github_token: false
 
       - name: Normalize version to X.Y.Z
         id: normalize
