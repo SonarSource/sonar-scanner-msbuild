@@ -256,6 +256,31 @@ public class PostProcessorTests
     }
 
     [TestMethod]
+    public void PostProc_TruststorePasswordProvidedThroughScannerJavaOptsEnv_DoesNotFail()
+    {
+        config.HasBeginStepCommandLineTruststorePassword = true;
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-Djavax.net.ssl.trustStorePassword=foo");
+        env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
+
+        Execute().Should().BeTrue();
+        runtime.Logger.Should().NotHaveError(TruststorePasswordErrorMessage);
+    }
+
+    [TestMethod]
+    public void PostProc_TruststorePasswordOnlyInScannerOptsWhileScannerJavaOptsIsSet_Fail()
+    {
+        // SONAR_SCANNER_JAVA_OPTS wins, so the password in SONAR_SCANNER_OPTS never reaches the Scanner Engine
+        config.HasBeginStepCommandLineTruststorePassword = true;
+        using var env = new EnvironmentVariableScope();
+        env.SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-Xmx2048m");
+        env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=foo");
+
+        Execute().Should().BeFalse();
+        runtime.Logger.Should().HaveErrors(TruststorePasswordErrorMessage);
+    }
+
+    [TestMethod]
     public void PostProc_PasswordNotProvidedDuringBeginStepAndTruststorePasswordProvidedThroughEnvDuringEndStep_DoesNotFail()
     {
         config.HasBeginStepCommandLineTruststorePassword = false;

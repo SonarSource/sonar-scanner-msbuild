@@ -166,6 +166,62 @@ public class SonarEngineWrapperTest
     }
 
     [TestMethod]
+    public void Execute_ScannerJavaOptsFromEnv_UsedForJavaInvocation()
+    {
+        using var scope = new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-DJavaParam=JavaOpts")
+            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
+        var context = new Context();
+
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=JavaOpts", true), new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
+            StandardInput = SampleInput,
+        });
+    }
+
+    [TestMethod]
+    public void Execute_ScannerJavaOptsAndScannerOptsFromEnv_ScannerJavaOptsWins()
+    {
+        using var scope = new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-DJavaParam=JavaOpts")
+            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Opts");
+        var context = new Context();
+
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=JavaOpts", true), new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
+            StandardInput = SampleInput,
+        });
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow("   ")]
+    public void Execute_EmptyScannerJavaOpts_FallsBackToScannerOpts(string scannerJavaOpts)
+    {
+        using var scope = new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, scannerJavaOpts)
+            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Opts");
+        var context = new Context();
+
+        context.Execute().Should().BeTrue();
+
+        context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
+        {
+            ExeName = $"{context.ResolvedJavaExe}#shortened",
+            CmdLineArgs = new ProcessRunnerArguments.Argument[] { new("-DJavaParam=Opts", true), new("-Djavax.net.ssl.trustStorePassword=\"changeit\"", true), new("-jar"), new("engine.jar") },
+            StandardInput = SampleInput,
+        });
+    }
+
+    [TestMethod]
     public void Execute_ScannerOptsFromConfig_UsedForJavaInvocation()
     {
         var context = new Context();
