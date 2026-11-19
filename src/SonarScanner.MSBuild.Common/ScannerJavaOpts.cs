@@ -25,6 +25,8 @@ namespace SonarScanner.MSBuild.Common;
 /// </summary>
 public static class ScannerJavaOpts
 {
+    private static readonly string[] VariableNames = [EnvironmentVariables.SonarScannerJavaOptsVariableName, EnvironmentVariables.SonarScannerOptsVariableName];
+
     /// <summary>
     /// Reads the JVM options from SONAR_SCANNER_JAVA_OPTS, the name documented in the scanner bootstrapper guidelines and used by the other scanners.
     /// Falls back to SONAR_SCANNER_OPTS, the historical name of this scanner. When both are set, SONAR_SCANNER_JAVA_OPTS wins and SONAR_SCANNER_OPTS is ignored.
@@ -34,7 +36,7 @@ public static class ScannerJavaOpts
     /// <returns>True if one of the variables is set to a value that is not empty or whitespace.</returns>
     public static bool TryGetFromEnvironment(out string name, out string value)
     {
-        foreach (var candidate in new[] { EnvironmentVariables.SonarScannerJavaOptsVariableName, EnvironmentVariables.SonarScannerOptsVariableName })
+        foreach (var candidate in VariableNames)
         {
             var candidateValue = Environment.GetEnvironmentVariable(candidate);
             if (!string.IsNullOrWhiteSpace(candidateValue))

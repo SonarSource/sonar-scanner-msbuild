@@ -248,7 +248,7 @@ public class PostProcessorTests
     public void PostProc_TruststorePasswordProvidedThroughEnv_DoesNotFail(string truststorePasswordProp)
     {
         config.HasBeginStepCommandLineTruststorePassword = true;
-        using var env = new EnvironmentVariableScope();
+        using var env = CleanScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, $"-D{truststorePasswordProp}");
 
         Execute().Should().BeTrue();
@@ -259,9 +259,8 @@ public class PostProcessorTests
     public void PostProc_TruststorePasswordProvidedThroughScannerJavaOptsEnv_DoesNotFail()
     {
         config.HasBeginStepCommandLineTruststorePassword = true;
-        using var env = new EnvironmentVariableScope();
+        using var env = CleanScope();
         env.SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-Djavax.net.ssl.trustStorePassword=foo");
-        env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
 
         Execute().Should().BeTrue();
         runtime.Logger.Should().NotHaveError(TruststorePasswordErrorMessage);
@@ -284,7 +283,7 @@ public class PostProcessorTests
     public void PostProc_PasswordNotProvidedDuringBeginStepAndTruststorePasswordProvidedThroughEnvDuringEndStep_DoesNotFail()
     {
         config.HasBeginStepCommandLineTruststorePassword = false;
-        using var env = new EnvironmentVariableScope();
+        using var env = CleanScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=foo");
 
         Execute().Should().BeTrue();
@@ -295,8 +294,7 @@ public class PostProcessorTests
     public void PostProc_PasswordNotProvidedDuringBeginStepAndTruststorePasswordProvidedEndStep_DoesNotFail()
     {
         config.HasBeginStepCommandLineTruststorePassword = false;
-        using var env = new EnvironmentVariableScope();
-        env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
+        using var env = CleanScope();
 
         Execute("/d:sonar.scanner.truststorePassword=foo").Should().BeTrue();
         runtime.Logger.Should().NotHaveError(TruststorePasswordErrorMessage);
@@ -319,7 +317,7 @@ public class PostProcessorTests
     public void PostProc_InvalidTruststorePasswordProvidedInEnv_Fail()
     {
         config.HasBeginStepCommandLineTruststorePassword = true;
-        using var env = new EnvironmentVariableScope();
+        using var env = CleanScope();
         env.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Dsonar.scanner.truststorePassword");
 
         Execute().Should().BeFalse();
@@ -403,6 +401,11 @@ public class PostProcessorTests
         runtime.Telemetry.Should().HaveMessage("dotnetenterprise.s4net.endstep.coverage_conversion", false);
 #endif
     }
+
+    private static EnvironmentVariableScope CleanScope() =>
+        new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, null)
+            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
 
     private bool Execute(string arg) =>
         Execute([arg]);

@@ -152,10 +152,12 @@ public class SonarEngineWrapperTest
     [TestMethod]
     public void Execute_ScannerOptsFromEnv_UsedForJavaInvocation()
     {
-        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Env");
+        using var scope = CleanScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Env");
         var context = new Context();
 
         context.Execute().Should().BeTrue();
+        context.Runtime.Logger.Should().HaveInfoOnce("Using the supplied value for SONAR_SCANNER_OPTS. Value: -DJavaParam=Env");
+        context.Runtime.Logger.Should().HaveNoWarnings();
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
@@ -174,6 +176,8 @@ public class SonarEngineWrapperTest
         var context = new Context();
 
         context.Execute().Should().BeTrue();
+        context.Runtime.Logger.Should().HaveInfoOnce("Using the supplied value for SONAR_SCANNER_JAVA_OPTS. Value: -DJavaParam=JavaOpts");
+        context.Runtime.Logger.Should().HaveNoWarnings();
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
@@ -192,6 +196,8 @@ public class SonarEngineWrapperTest
         var context = new Context();
 
         context.Execute().Should().BeTrue();
+        context.Runtime.Logger.Should().HaveInfoOnce("Using the supplied value for SONAR_SCANNER_JAVA_OPTS. Value: -DJavaParam=JavaOpts");
+        context.Runtime.Logger.Should().HaveWarningOnce("Both SONAR_SCANNER_JAVA_OPTS and SONAR_SCANNER_OPTS are set. Only SONAR_SCANNER_JAVA_OPTS is used, SONAR_SCANNER_OPTS is ignored.");
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
@@ -212,6 +218,8 @@ public class SonarEngineWrapperTest
         var context = new Context();
 
         context.Execute().Should().BeTrue();
+        context.Runtime.Logger.Should().HaveInfoOnce("Using the supplied value for SONAR_SCANNER_OPTS. Value: -DJavaParam=Opts");
+        context.Runtime.Logger.Should().HaveNoWarnings();
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {
@@ -268,7 +276,7 @@ public class SonarEngineWrapperTest
     // Java Params that come afterwards overwrite earlier ones
     public void Execute_ScannerOptsFromConfig_ComeAfterScannerOptsFromEnv()
     {
-        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Env");
+        using var scope = CleanScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Env");
         var context = new Context();
         var config = new AnalysisConfig
         {
@@ -298,7 +306,7 @@ public class SonarEngineWrapperTest
     // Java Params that come afterwards overwrite earlier ones
     public void Execute_ScannerOpts_MultipleParameters()
     {
-        using var scope = new EnvironmentVariableScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Env -DJavaOtherParam=Value -DSomeOtherParam=AnotherValue");
+        using var scope = CleanScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-DJavaParam=Env -DJavaOtherParam=Value -DSomeOtherParam=AnotherValue");
         var context = new Context();
         var config = new AnalysisConfig
         {
@@ -398,7 +406,7 @@ public class SonarEngineWrapperTest
     [TestMethod]
     public void Execute_TrustStorePassword_UserSuppliedEnv_UsedForJavaInvocation()
     {
-        using var scope = new EnvironmentVariableScope();
+        using var scope = CleanScope();
         scope.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=\"UserSuppliedPassword\"");
         var context = new Context();
 
@@ -415,7 +423,7 @@ public class SonarEngineWrapperTest
     // Java Params that come afterwards overwrite earlier ones
     public void Execute_TrustStorePassword_UserSupplied_CliPasswordOverWritesEnvPassword()
     {
-        using var scope = new EnvironmentVariableScope();
+        using var scope = CleanScope();
         scope.SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Djavax.net.ssl.trustStorePassword=\"EnvPassword\"");
 
         var userCmdLineArgs = new ListPropertiesProvider([new(SonarProperties.TruststorePassword, "CliPassword")]);
@@ -450,6 +458,11 @@ public class SonarEngineWrapperTest
             StandardInput = SampleInput,
         });
     }
+
+    private static EnvironmentVariableScope CleanScope() =>
+        new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, null)
+            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
 
     private sealed class Context
     {

@@ -21,7 +21,7 @@
 namespace SonarScanner.MSBuild.PreProcessor.AnalysisConfigProcessing.Processors;
 
 /// <summary>
-/// Map property name to another property name and/or value to pass them through the SONAR_SCANNER_OPTS environment variable to the Scanner Engine.
+/// Map property name to another property name and/or value to pass them through the SONAR_SCANNER_JAVA_OPTS (or the legacy SONAR_SCANNER_OPTS) environment variable to the Scanner Engine.
 /// </summary>
 public class TruststorePropertiesProcessor : AnalysisConfigProcessorBase
 {

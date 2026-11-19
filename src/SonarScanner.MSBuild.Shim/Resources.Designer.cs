@@ -300,6 +300,15 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Both {0} and {1} are set. Only {0} is used, {1} is ignored..
+        /// </summary>
+        internal static string WARN_ScannerOptsIgnored {
+            get {
+                return ResourceManager.GetString("WARN_ScannerOptsIgnored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Duplicate ProjectGuid: &quot;{0}&quot;. The project will not be analyzed. Project file: &quot;{1}&quot;.
         /// </summary>
         internal static string WARN_DuplicateProjectGuid {
