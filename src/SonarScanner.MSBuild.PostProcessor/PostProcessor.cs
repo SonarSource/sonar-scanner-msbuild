@@ -149,9 +149,9 @@ public class PostProcessor
             return false;
         }
 
-        var sonarScannerOpts = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
+        ScannerJavaOpts.TryGetFromEnvironment(out _, out var sonarScannerOpts);
         var hasTruststorePasswordInEndStep = cmdLineArgs.HasProperty(SonarProperties.TruststorePassword)
-            || (!string.IsNullOrWhiteSpace(sonarScannerOpts) && sonarScannerOpts.Contains("-Djavax.net.ssl.trustStorePassword="));
+            || (sonarScannerOpts is not null && sonarScannerOpts.Contains("-Djavax.net.ssl.trustStorePassword="));
         // Truststore password must be passed to the end step when it was passed to the begin step
         // However, it is not mandatory to pass it to the begin step to pass it to the end step
         if (config.HasBeginStepCommandLineTruststorePassword && !hasTruststorePasswordInEndStep)

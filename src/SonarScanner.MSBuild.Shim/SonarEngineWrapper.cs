@@ -57,11 +57,14 @@ public class SonarEngineWrapper
 
     private IEnumerable<string> JavaParams(AnalysisConfig config, IAnalysisPropertyProvider userCmdLineArguments)
     {
-        // If there is a value for SONAR_SCANNER_OPTS pass it through explicitly
-        var scannerOpts = Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName);
-        if (scannerOpts?.Trim() is { Length: > 0 })
+        // If there is a value for SONAR_SCANNER_JAVA_OPTS (or the legacy SONAR_SCANNER_OPTS) pass it through explicitly
+        if (ScannerJavaOpts.TryGetFromEnvironment(out var scannerOptsName, out var scannerOpts))
         {
-            runtime.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, EnvironmentVariables.SonarScannerOptsVariableName, scannerOpts.RedactSensitiveData());
+            runtime.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, scannerOptsName, scannerOpts.RedactSensitiveData());
+            if (ScannerJavaOpts.AreMultipleSet())
+            {
+                runtime.LogWarning(Resources.WARN_ScannerOptsIgnored, EnvironmentVariables.SonarScannerJavaOptsVariableName, EnvironmentVariables.SonarScannerOptsVariableName);
+            }
             yield return scannerOpts;
         }
 

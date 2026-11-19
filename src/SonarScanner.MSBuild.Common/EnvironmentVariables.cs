@@ -30,8 +30,15 @@ public static class EnvironmentVariables
     /// <summary>
     /// Env variable used to specify options to the JVM for the sonar-scanner.
     /// </summary>
-    /// <remarks>Large projects error out with OutOfMemoryException if not set.</remarks>
+    /// <remarks>Large projects error out with OutOfMemoryException if not set.
+    /// Historical name of this scanner. <see cref="SonarScannerJavaOptsVariableName"/> is preferred when both are set. Read it through <see cref="ScannerJavaOpts"/>.</remarks>
     public const string SonarScannerOptsVariableName = "SONAR_SCANNER_OPTS";
+
+    /// <summary>
+    /// Env variable used to specify options to the JVM for the sonar-scanner. This is the name documented in the scanner bootstrapper guidelines and used by the other scanners.
+    /// </summary>
+    /// <remarks>Takes precedence over <see cref="SonarScannerOptsVariableName"/>. Read it through <see cref="ScannerJavaOpts"/>.</remarks>
+    public const string SonarScannerJavaOptsVariableName = "SONAR_SCANNER_JAVA_OPTS";
 
     public const string JavaHomeVariableName = "JAVA_HOME";
     public const string SonarUserHome = "SONAR_USER_HOME";
