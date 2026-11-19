@@ -197,7 +197,7 @@ public class SonarEngineWrapperTest
 
         context.Execute().Should().BeTrue();
         context.Runtime.Logger.Should().HaveInfoOnce("Using the supplied value for SONAR_SCANNER_JAVA_OPTS. Value: -DJavaParam=JavaOpts");
-        context.Runtime.Logger.Should().HaveWarningOnce("Both SONAR_SCANNER_JAVA_OPTS and SONAR_SCANNER_OPTS are set. Only SONAR_SCANNER_JAVA_OPTS is used, SONAR_SCANNER_OPTS is ignored.");
+        context.Runtime.Logger.Should().HaveWarningOnce("Both the environment variables SONAR_SCANNER_JAVA_OPTS and SONAR_SCANNER_OPTS are set. Only the value of SONAR_SCANNER_JAVA_OPTS is used; SONAR_SCANNER_OPTS is ignored.");
 
         context.Runner.SuppliedArguments.Should().BeEquivalentTo(new
         {

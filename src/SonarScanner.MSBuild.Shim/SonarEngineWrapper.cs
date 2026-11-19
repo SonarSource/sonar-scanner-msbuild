@@ -61,8 +61,7 @@ public class SonarEngineWrapper
         if (ScannerJavaOpts.TryGetFromEnvironment(out var scannerOptsName, out var scannerOpts))
         {
             runtime.LogInfo(Resources.MSG_UsingSuppliedSonarScannerOptsValue, scannerOptsName, scannerOpts.RedactSensitiveData());
-            if (scannerOptsName == EnvironmentVariables.SonarScannerJavaOptsVariableName
-                && !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(EnvironmentVariables.SonarScannerOptsVariableName)))
+            if (ScannerJavaOpts.AreMultipleSet())
             {
                 runtime.LogWarning(Resources.WARN_ScannerOptsIgnored, EnvironmentVariables.SonarScannerJavaOptsVariableName, EnvironmentVariables.SonarScannerOptsVariableName);
             }

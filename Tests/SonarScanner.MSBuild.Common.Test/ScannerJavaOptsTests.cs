@@ -28,9 +28,7 @@ public class ScannerJavaOptsTests
     [TestMethod]
     public void TryGetFromEnvironment_NothingSet_ReturnsFalse()
     {
-        using var scope = new EnvironmentVariableScope()
-            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, null)
-            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
+        using var scope = CleanScope();
 
         ScannerJavaOpts.TryGetFromEnvironment(out var name, out var value).Should().BeFalse();
         name.Should().BeNull();
@@ -40,9 +38,7 @@ public class ScannerJavaOptsTests
     [TestMethod]
     public void TryGetFromEnvironment_OnlyScannerJavaOpts_ReturnsIt()
     {
-        using var scope = new EnvironmentVariableScope()
-            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-XX:-UseBASE64Intrinsics")
-            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
+        using var scope = CleanScope().SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-XX:-UseBASE64Intrinsics");
 
         ScannerJavaOpts.TryGetFromEnvironment(out var name, out var value).Should().BeTrue();
         name.Should().Be("SONAR_SCANNER_JAVA_OPTS");
@@ -52,9 +48,7 @@ public class ScannerJavaOptsTests
     [TestMethod]
     public void TryGetFromEnvironment_OnlyScannerOpts_ReturnsIt()
     {
-        using var scope = new EnvironmentVariableScope()
-            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, null)
-            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-XX:-UseBASE64Intrinsics");
+        using var scope = CleanScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-XX:-UseBASE64Intrinsics");
 
         ScannerJavaOpts.TryGetFromEnvironment(out var name, out var value).Should().BeTrue();
         name.Should().Be("SONAR_SCANNER_OPTS");
@@ -64,7 +58,7 @@ public class ScannerJavaOptsTests
     [TestMethod]
     public void TryGetFromEnvironment_BothSet_ScannerJavaOptsWins()
     {
-        using var scope = new EnvironmentVariableScope()
+        using var scope = CleanScope()
             .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-Xmx1g")
             .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Xmx2g");
 
@@ -78,7 +72,7 @@ public class ScannerJavaOptsTests
     [DataRow("  ")]
     public void TryGetFromEnvironment_ScannerJavaOptsEmptyOrWhitespace_FallsBackToScannerOpts(string scannerJavaOpts)
     {
-        using var scope = new EnvironmentVariableScope()
+        using var scope = CleanScope()
             .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, scannerJavaOpts)
             .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Xmx2g");
 
@@ -86,4 +80,55 @@ public class ScannerJavaOptsTests
         name.Should().Be("SONAR_SCANNER_OPTS");
         value.Should().Be("-Xmx2g");
     }
+
+    [TestMethod]
+    public void AreMultipleSet_BothSet_ReturnsTrue()
+    {
+        using var scope = CleanScope()
+            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-Xmx1g")
+            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Xmx2g");
+
+        ScannerJavaOpts.AreMultipleSet().Should().BeTrue();
+    }
+
+    [TestMethod]
+    public void AreMultipleSet_NothingSet_ReturnsFalse()
+    {
+        using var scope = CleanScope();
+
+        ScannerJavaOpts.AreMultipleSet().Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void AreMultipleSet_OnlyScannerJavaOpts_ReturnsFalse()
+    {
+        using var scope = CleanScope().SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, "-Xmx1g");
+
+        ScannerJavaOpts.AreMultipleSet().Should().BeFalse();
+    }
+
+    [TestMethod]
+    public void AreMultipleSet_OnlyScannerOpts_ReturnsFalse()
+    {
+        using var scope = CleanScope().SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Xmx2g");
+
+        ScannerJavaOpts.AreMultipleSet().Should().BeFalse();
+    }
+
+    [TestMethod]
+    [DataRow("")]
+    [DataRow("  ")]
+    public void AreMultipleSet_ScannerJavaOptsEmptyOrWhitespace_ReturnsFalse(string scannerJavaOpts)
+    {
+        using var scope = CleanScope()
+            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, scannerJavaOpts)
+            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, "-Xmx2g");
+
+        ScannerJavaOpts.AreMultipleSet().Should().BeFalse();
+    }
+
+    private static EnvironmentVariableScope CleanScope() =>
+        new EnvironmentVariableScope()
+            .SetVariable(EnvironmentVariables.SonarScannerJavaOptsVariableName, null)
+            .SetVariable(EnvironmentVariables.SonarScannerOptsVariableName, null);
 }

@@ -28,6 +28,13 @@ public static class ScannerJavaOpts
     private static readonly string[] VariableNames = [EnvironmentVariables.SonarScannerJavaOptsVariableName, EnvironmentVariables.SonarScannerOptsVariableName];
 
     /// <summary>
+    /// Checks whether all supported variables are set, so the lower-priority ones are ignored by <see cref="TryGetFromEnvironment"/>.
+    /// </summary>
+    /// <returns>True if all supported variables are set to a value that is not empty or whitespace.</returns>
+    public static bool AreMultipleSet() =>
+        VariableNames.All(x => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(x)));
+
+    /// <summary>
     /// Reads the JVM options from SONAR_SCANNER_JAVA_OPTS, the name documented in the scanner bootstrapper guidelines and used by the other scanners.
     /// Falls back to SONAR_SCANNER_OPTS, the historical name of this scanner. When both are set, SONAR_SCANNER_JAVA_OPTS wins and SONAR_SCANNER_OPTS is ignored.
     /// </summary>

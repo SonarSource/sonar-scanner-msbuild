@@ -138,7 +138,7 @@ Possible causes:
     <value>Using the supplied value for {0}. Value: {1}</value>
   </data>
   <data name="WARN_ScannerOptsIgnored" xml:space="preserve">
-    <value>Both {0} and {1} are set. Only {0} is used, {1} is ignored.</value>
+    <value>Both the environment variables {0} and {1} are set. Only the value of {0} is used; {1} is ignored.</value>
   </data>
   <data name="WARN_DuplicateProjectGuid" xml:space="preserve">
     <value>Duplicate ProjectGuid: "{0}". The project will not be analyzed. Project file: "{1}"</value>

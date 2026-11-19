@@ -300,7 +300,7 @@ namespace SonarScanner.MSBuild.Shim {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Both {0} and {1} are set. Only {0} is used, {1} is ignored..
+        ///   Looks up a localized string similar to Both the environment variables {0} and {1} are set. Only the value of {0} is used; {1} is ignored..
         /// </summary>
         internal static string WARN_ScannerOptsIgnored {
             get {
