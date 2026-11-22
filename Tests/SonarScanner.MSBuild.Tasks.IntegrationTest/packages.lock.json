@@ -52,9 +52,9 @@
       },
       "Microsoft.VisualStudio.Setup.Configuration.Interop": {
         "type": "Direct",
-        "requested": "[4.12.34, )",
-        "resolved": "4.12.34",
-        "contentHash": "zEVMj2I7JmJLhKzsBaH1A7MIV/vlhzg/jhcQ6qH15cCyHZYQ0lpt2F5ekBzcjxFhqxCrAik7KKk1rR+764W7eA=="
+        "requested": "[4.14.1008, )",
+        "resolved": "4.14.1008",
+        "contentHash": "dbTGwLZx7vaCLlJWac02AS279nl0Tm+tf0N4TxY1uAYi0oTVHHHKqUf5zYl8pmXtZYpKyNxtFL2gqwCtntEmtQ=="
       },
       "MSBuild.StructuredLogger": {
         "type": "Direct",
@@ -2144,9 +2144,9 @@
       },
       "Microsoft.VisualStudio.Setup.Configuration.Interop": {
         "type": "Direct",
-        "requested": "[4.12.34, )",
-        "resolved": "4.12.34",
-        "contentHash": "zEVMj2I7JmJLhKzsBaH1A7MIV/vlhzg/jhcQ6qH15cCyHZYQ0lpt2F5ekBzcjxFhqxCrAik7KKk1rR+764W7eA=="
+        "requested": "[4.14.1008, )",
+        "resolved": "4.14.1008",
+        "contentHash": "dbTGwLZx7vaCLlJWac02AS279nl0Tm+tf0N4TxY1uAYi0oTVHHHKqUf5zYl8pmXtZYpKyNxtFL2gqwCtntEmtQ=="
       },
       "MSBuild.StructuredLogger": {
         "type": "Direct",
