@@ -26,4 +26,8 @@ public static class TestSuiteInitialization
     [AssemblyInitialize]
     public static void AssemblyInit(TestContext context) =>
         AssemblyInitialization.Initialize();
+
+    [AssemblyCleanup]
+    public static void AssemblyCleanup() =>
+        AssemblyInitialization.Cleanup();
 }
