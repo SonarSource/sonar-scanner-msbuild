@@ -34,6 +34,12 @@ public static class TestUtils
     /// </summary>
     private static readonly ConcurrentDictionary<string, string> TestDirectoriesMap = new();
 
+    /// <summary>
+    /// Root of all test specific folders. It is outside of the repository, so the test folders neither inherit Directory.Build.* files from Tests/ nor share a folder with the test binaries.
+    /// MSTest 4.3+ on .NET Core sets TestContext.TestRunDirectory to the output folder of the test project.
+    /// </summary>
+    private static readonly string TestRoot = Path.Combine(Path.GetTempPath(), "SonarScannerMSBuildTests", Guid.NewGuid().ToString("N"));
+
     #region Public methods
 
     /// <summary>
@@ -302,10 +308,11 @@ public static class TestUtils
             testContext.FullyQualifiedTestClassName + testContext.TestDisplayName,
             x =>
             {
-                var uniqueDir = UniqueDirectory.CreateNext(testContext.TestRunDirectory);
+                Directory.CreateDirectory(TestRoot);
+                var uniqueDir = UniqueDirectory.CreateNext(TestRoot);
                 // Save the unique directory name into a file to improve the debugging experience.
-                File.AppendAllText(Path.Combine(testContext.TestRunDirectory, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
-                return Path.Combine(testContext.TestRunDirectory, uniqueDir);
+                File.AppendAllText(Path.Combine(TestRoot, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
+                return Path.Combine(TestRoot, uniqueDir);
             });
 
     private static void ExtractResourceToFile(string resourceName, string filePath)

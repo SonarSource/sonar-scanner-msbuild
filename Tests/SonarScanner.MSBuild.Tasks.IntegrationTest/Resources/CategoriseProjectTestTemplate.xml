@@ -5,8 +5,6 @@
 
   <!-- Boilerplate -->
   <PropertyGroup>
-    <!-- Isolate the generated project from Tests/Directory.Build.targets: it adds package references and global usings that only apply to the test projects of this repository. -->
-    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
     <ProjectGuid>{1}</ProjectGuid>
     <SonarQubeTempPath>c:\dummy\path</SonarQubeTempPath>
     <SonarQubeOutputPath>c:\dummy\path</SonarQubeOutputPath>
