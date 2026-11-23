@@ -2,6 +2,8 @@
     <!-- All of these boilerplate properties can be overridden by setting the value again in the test-specific XML snippet -->
     <PropertyGroup>
         <!-- Prevent MSBuild to load source files automatically -->
+        <!-- Isolate the generated project from Tests/Directory.Build.targets: it adds package references and global usings that only apply to the test projects of this repository. -->
+        <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
         <ImplicitUsings>false</ImplicitUsings>
         <Language>LANGUAGE</Language>
