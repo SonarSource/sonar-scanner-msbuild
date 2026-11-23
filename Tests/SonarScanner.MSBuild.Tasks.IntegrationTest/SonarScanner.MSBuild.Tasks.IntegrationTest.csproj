@@ -10,7 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Framework" Version="17.11.4" />
-    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="4.12.34" />
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="4.14.1008" />
     <PackageReference Include="MSBuild.StructuredLogger" Version="2.3.269" />
     <PackageReference Include="System.Text.Json" Version="11.0.0" />
   </ItemGroup>
