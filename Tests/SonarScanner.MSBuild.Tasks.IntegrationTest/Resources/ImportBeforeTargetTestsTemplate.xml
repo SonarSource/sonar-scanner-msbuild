@@ -1,6 +1,8 @@
 ﻿<Project Sdk='Microsoft.NET.Sdk'>
 
     <PropertyGroup>
+        <!-- Isolate the generated project from Tests/Directory.Build.targets: it adds package references and global usings that only apply to the test projects of this repository. -->
+        <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
         <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
         <TargetFramework>TARGET_FRAMEWORK</TargetFramework>
     </PropertyGroup>
