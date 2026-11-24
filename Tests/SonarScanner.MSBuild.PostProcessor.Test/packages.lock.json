@@ -4,9 +4,9 @@
     ".NETFramework,Version=v4.8": {
       "altcover": {
         "type": "Direct",
-        "requested": "[9.0.184, )",
-        "resolved": "9.0.184",
-        "contentHash": "blZ1xX0WD0rcnVPnLCBp6pH4tmxAIZLhjB4Po18e0bmOBj+ZATwxuo4SffsCuTgYXrGA1rctrunjPiy6Wsxh9A=="
+        "requested": "[9.0.189, )",
+        "resolved": "9.0.189",
+        "contentHash": "VCKDsFcGqDJySCtHrz6zwTzZYguDmgL+/rZqIesMardg2nrQ9CT4Tbb0WfefFuqtXqtBwkhJgPHYDkq2Y5gtRg=="
       },
       "Combinatorial.MSTest": {
         "type": "Direct",
@@ -1996,16 +1996,16 @@
           "NSubstitute": "[6.2.0, )",
           "SonarScanner.MSBuild.Common": "[12.2.0, )",
           "WireMock.Net": "[2.31.0, )",
-          "altcover": "[9.0.184, )"
+          "altcover": "[9.0.189, )"
         }
       }
     },
     "net10.0": {
       "altcover": {
         "type": "Direct",
-        "requested": "[9.0.184, )",
-        "resolved": "9.0.184",
-        "contentHash": "blZ1xX0WD0rcnVPnLCBp6pH4tmxAIZLhjB4Po18e0bmOBj+ZATwxuo4SffsCuTgYXrGA1rctrunjPiy6Wsxh9A=="
+        "requested": "[9.0.189, )",
+        "resolved": "9.0.189",
+        "contentHash": "VCKDsFcGqDJySCtHrz6zwTzZYguDmgL+/rZqIesMardg2nrQ9CT4Tbb0WfefFuqtXqtBwkhJgPHYDkq2Y5gtRg=="
       },
       "Combinatorial.MSTest": {
         "type": "Direct",
@@ -3802,7 +3802,7 @@
           "NSubstitute": "[6.2.0, )",
           "SonarScanner.MSBuild.Common": "[12.2.0, )",
           "WireMock.Net": "[2.31.0, )",
-          "altcover": "[9.0.184, )"
+          "altcover": "[9.0.189, )"
         }
       }
     }
