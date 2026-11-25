@@ -67,7 +67,7 @@ class CloudIncrementalPRAnalysisTest {
 
     // Verify that the file hashes are considered and all of them will be skipped.
     // We do not know the total number of cache entries because other plugin can cache as well.
-    TestUtils.matchesSingleLine(logs, "Incremental PR analysis: 3 files out of \\d+ are unchanged");
+    TestUtils.matchesSingleLine(logs, "Incremental PR analysis: 3 out of \\d+ resolved files are unchanged");
     Path unchangedFilesPath = unchangedFilesPath(context.projectDir);
     assertThat(Files.readString(unchangedFilesPath)).contains("Unchanged1.cs", "Unchanged2.cs", "WithChanges.cs");
   }
