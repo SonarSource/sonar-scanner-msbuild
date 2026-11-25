@@ -304,7 +304,7 @@ Use '/?' or '/h' to see the help message.</value>
     <value>Cache data is empty. A full analysis will be performed.</value>
   </data>
   <data name="MSG_UnchangedFilesStats" xml:space="preserve">
-    <value>Incremental PR analysis: {0} files out of {1} are unchanged.</value>
+    <value>Incremental PR analysis: {0} out of {1} resolved files are unchanged.</value>
   </data>
   <data name="MSG_Processing_PullRequest_NoCacheBaseUrl" xml:space="preserve">
     <value>Incremental PR analysis: CacheBaseUrl was not successfully retrieved.</value>

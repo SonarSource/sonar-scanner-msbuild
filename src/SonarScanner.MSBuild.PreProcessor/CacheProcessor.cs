@@ -64,6 +64,9 @@ public sealed class CacheProcessor : IDisposable
         }
     }
 
+    public void Dispose() =>
+        sha256.Dispose();
+
     internal /* for testing */ byte[] ContentHash(string path)
     {
         using var stream = new FileStream(path, FileMode.Open);
@@ -73,21 +76,17 @@ public sealed class CacheProcessor : IDisposable
     internal /* for testing */ void ProcessPullRequest(IList<SensorCacheEntry> cache)
     {
         var invalidPathChars = Path.GetInvalidPathChars();
-
-        var unchangedFiles = cache
-            .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Key.IndexOfAny(invalidPathChars) < 0)
+        var existingFiles = cache
+            .Where(x => !string.IsNullOrWhiteSpace(x.Key) && x.Key.IndexOfAny(invalidPathChars) < 0)    // There are cache items from different plugins that do not represent files
             .Select(x => new { Hash = x.Data, Path = Path.Combine(PullRequestCacheBasePath, x.Key) })
-            .Where(x => File.Exists(x.Path) && ContentHash(x.Path).SequenceEqual(x.Hash))
-            .Select(x => Path.GetFullPath(x.Path))
+            .Where(x => File.Exists(x.Path))
             .ToArray();
+        var unchangedFiles = existingFiles.Where(x => ContentHash(x.Path).SequenceEqual(x.Hash)).Select(x => Path.GetFullPath(x.Path)).ToArray();
         if (unchangedFiles.Any())
         {
             UnchangedFilesPath = Path.Combine(buildSettings.SonarConfigDirectory, "UnchangedFiles.txt");
             File.WriteAllLines(UnchangedFilesPath, unchangedFiles);
         }
-        logger.LogInfo(Resources.MSG_UnchangedFilesStats, unchangedFiles.Length, cache.Count);
+        logger.LogInfo(Resources.MSG_UnchangedFilesStats, unchangedFiles.Length, existingFiles.Length);
     }
-
-    public void Dispose() =>
-        sha256.Dispose();
 }
