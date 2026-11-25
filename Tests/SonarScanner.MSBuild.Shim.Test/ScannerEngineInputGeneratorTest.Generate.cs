@@ -172,7 +172,7 @@ public partial class ScannerEngineInputGeneratorTest
         var filesToBeAnalyzedPaths = new List<string>();
         foreach (var fileName in filesOutsideProjectPath)
         {
-            filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, fileName));
+            filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), fileName));
         }
         // To add the files above, to the list of files that are to be analyzed, you need to add their paths to
         // the "contentList.txt" which is placed inside the projectDir folder.
@@ -186,8 +186,8 @@ public partial class ScannerEngineInputGeneratorTest
         AssertFailedToCreateScannerInput(input);
         runtime.Logger.Should().HaveWarnings(2)
             .And.HaveWarnings(
-                $"File '{Path.Combine(TestContext.TestRunDirectory, "txtFile.txt")}' is not located under the base directory '{projectDir}' and will not be analyzed.",
-                $"File '{Path.Combine(TestContext.TestRunDirectory, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
+                $"File '{Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "txtFile.txt")}' is not located under the base directory '{projectDir}' and will not be analyzed.",
+                $"File '{Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
     }
 
     [TestMethod]
@@ -580,12 +580,12 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void Generate_WhenThereIsNoCommonPath_LogsError()
     {
-        var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "file.cs");
-        var filesToAnalyzePath = TestUtils.CreateFile(TestContext.TestRunDirectory, AnalysisResultFileType.FilesToAnalyze.ToString(), fileToAnalyzePath);
+        var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "file.cs");
+        var filesToAnalyzePath = TestUtils.CreateFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), AnalysisResultFileType.FilesToAnalyze.ToString(), fileToAnalyzePath);
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
-            FullPath = Path.Combine(TestContext.TestRunDirectory, "First"),
+            FullPath = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "First"),
             ProjectName = "First",
             AnalysisSettings = [],
             AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)]
@@ -593,16 +593,15 @@ public partial class ScannerEngineInputGeneratorTest
         var secondProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
-            FullPath = Path.Combine(Path.GetTempPath(), "Second"),
+            FullPath = typeof(ScannerEngineInputGeneratorTest).Assembly.Location,
             ProjectName = "Second",
             AnalysisSettings = [],
             AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)]
         };
-        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
-        TestUtils.CreateEmptyFile(Path.GetTempPath(), "Second");
+        TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "First");
 
         // In order to force automatic root path detection to point to file system root,
-        // create a project in the test run directory and a second one in the temp folder.
+        // create a project in the test specific folder (in the temp folder) and a second one (the test assembly) in the output folder of the test project.
         new ScannerEngineInputGenerator(new AnalysisConfig(), cmdLineArgs, runtime).Generate([firstProjectInfo, secondProjectInfo], runtime.DateTime.OffsetNow);
         runtime.Logger.Should().HaveErrors("""The project base directory cannot be automatically detected. Please specify the "/d:sonar.projectBaseDir" on the begin step.""");
     }
@@ -610,7 +609,7 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void Generate_WhenProjectBaseDirDoesNotExist_LogsError()
     {
-        var outPath = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out");
+        var outPath = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), ".sonarqube", "out");
         TestUtils.CreateProjectWithFiles(TestContext, "Project", outPath);
         var config = new AnalysisConfig
         {
@@ -625,11 +624,11 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void Generate_WhenThereAreNoValidProjects_LogsError()
     {
-        var config = new AnalysisConfig { SonarOutputDir = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out") };
+        var config = new AnalysisConfig { SonarOutputDir = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), ".sonarqube", "out") };
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
-            FullPath = Path.Combine(TestContext.TestRunDirectory, "First"),
+            FullPath = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "First"),
             ProjectName = "First",
             IsExcluded = true,
             AnalysisSettings = [],
@@ -638,13 +637,13 @@ public partial class ScannerEngineInputGeneratorTest
         var secondProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
-            FullPath = Path.Combine(TestContext.TestRunDirectory, "Second"),
+            FullPath = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "Second"),
             ProjectName = "Second",
             AnalysisSettings = [],
             AnalysisResultFiles = []
         };
-        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "First");
-        TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "Second");
+        TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "First");
+        TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "Second");
 
         new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).Generate([firstProjectInfo, secondProjectInfo], runtime.DateTime.OffsetNow);
         runtime.Logger.Should().HaveInfos($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}")
@@ -657,7 +656,7 @@ public partial class ScannerEngineInputGeneratorTest
     [DataRow("https://sonarqqqq.whale")]    // Any value, as long as it was auto-computed by the default URL mechanism and stored in SonarQubeAnalysisConfig.xml
     public void Generate_HostUrl_NotSet_UseSonarQubeHostUrl(string sonarQubeHost)
     {
-        var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out"), SonarQubeHostUrl = sonarQubeHost };
+        var config = new AnalysisConfig { SonarProjectKey = "key", SonarOutputDir = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), ".sonarqube", "out"), SonarQubeHostUrl = sonarQubeHost };
         var engineInput = Generate_HostUrl_Execute(config);
 
         new ScannerEngineInputReader(engineInput.ToString()).AssertProperty("sonar.host.url", sonarQubeHost);
@@ -669,7 +668,7 @@ public partial class ScannerEngineInputGeneratorTest
         var config = new AnalysisConfig
         {
             SonarProjectKey = "key",
-            SonarOutputDir = Path.Combine(TestContext.TestRunDirectory, ".sonarqube", "out"),
+            SonarOutputDir = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), ".sonarqube", "out"),
             SonarQubeHostUrl = "Property should take precedence and this should not be used",
             LocalSettings = [new Property(SonarProperties.HostUrl, "http://localhost:9000")]
         };

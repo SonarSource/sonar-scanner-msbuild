@@ -42,7 +42,7 @@ public partial class PreProcessorTests
     [TestMethod]
     public async Task Execute_WritesTelemetry_SetViaAnalysisXml()
     {
-        var analysisXmlPath = CreateAnalysisXml(TestContext.TestRunDirectory, new Dictionary<string, string> { { "sonar.scanner.scanAll", "false" } });
+        var analysisXmlPath = CreateAnalysisXml(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), new Dictionary<string, string> { { "sonar.scanner.scanAll", "false" } });
         var args = new List<string>(CreateArgs())
         {
             $"/s:{analysisXmlPath}"

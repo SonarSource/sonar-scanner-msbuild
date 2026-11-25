@@ -114,7 +114,7 @@ public class WriteSonarTelemetryTaskTests
 
     private BuildLog ExecuteMsBuild(string writeTelemetry, bool buildShouldSucceed)
     {
-        var telemetryDirectory = Path.Combine(TestContext.TestRunDirectory, UniqueDirectory.CreateNext(TestContext.TestRunDirectory));
+        var telemetryDirectory = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), UniqueDirectory.CreateNext(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext)));
         var telemetryFilename = Path.Combine(telemetryDirectory, TelemetryFileName);
         var projFileContent = $"""
             <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
