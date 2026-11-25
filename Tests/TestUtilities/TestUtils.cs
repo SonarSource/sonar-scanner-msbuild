@@ -333,25 +333,27 @@ public static class TestUtils
 
     private static string CreateTestRoot()
     {
+        // The test folders are outside of the repository. Copy the files that configure the SDK and the NuGet restore, so the generated projects build as they would inside of it.
+        // global.json also pins the SDK that msbuild.exe resolves from the project folder.
+        var repositoryRoot = AncestorsOf(AppContext.BaseDirectory).FirstOrDefault(x => File.Exists(Path.Combine(x.FullName, "global.json")))
+            ?? throw new InvalidOperationException($"Test setup failure - could not find global.json in any parent folder of {AppContext.BaseDirectory}.");
         var root = Path.Combine(Path.GetTempPath(), "SonarScannerMSBuildTests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        // The test folders are outside of the repository. Copy the files that configure the SDK and the NuGet restore, so the generated projects build as they would inside of it.
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        foreach (var fileName in new[] { "global.json", "NuGet.Config" })
         {
-            if (File.Exists(Path.Combine(directory.FullName, "global.json")))
-            {
-                foreach (var fileName in new[] { "global.json", "NuGet.Config" })
-                {
-                    var source = Path.Combine(directory.FullName, fileName);
-                    if (File.Exists(source))
-                    {
-                        File.Copy(source, Path.Combine(root, fileName));
-                    }
-                }
-                break;
-            }
+            var source = Path.Combine(repositoryRoot.FullName, fileName);
+            File.Exists(source).Should().BeTrue($"the test folders need the repository's {fileName}.");
+            File.Copy(source, Path.Combine(root, fileName));
         }
         return root;
+
+        static IEnumerable<DirectoryInfo> AncestorsOf(string path)
+        {
+            for (var directory = new DirectoryInfo(path); directory is not null; directory = directory.Parent)
+            {
+                yield return directory;
+            }
+        }
     }
 
     private static void ExtractResourceToFile(string resourceName, string filePath)

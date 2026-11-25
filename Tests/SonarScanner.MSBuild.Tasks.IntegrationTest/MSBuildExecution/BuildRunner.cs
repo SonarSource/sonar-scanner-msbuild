@@ -45,7 +45,9 @@ public static class BuildRunner
         [
             .. executable == "dotnet" ? (string[])["msbuild"] : [],
             projectFile,
-            "/bl:" + binaryLogPath
+            "/bl:" + binaryLogPath,
+            // The projects must not inherit Tests/Directory.Build.targets, regardless of where they are located.
+            "/p:ImportDirectoryBuildTargets=false"
         ];
         Console.WriteLine("Project Directory: " + projectDir);
 
