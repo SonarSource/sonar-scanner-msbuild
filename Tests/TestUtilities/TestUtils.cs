@@ -337,13 +337,16 @@ public static class TestUtils
         // global.json also pins the SDK that msbuild.exe resolves from the project folder.
         var repositoryRoot = AncestorsOf(AppContext.BaseDirectory).FirstOrDefault(x => File.Exists(Path.Combine(x.FullName, "global.json")))
             ?? throw new InvalidOperationException($"Test setup failure - could not find global.json in any parent folder of {AppContext.BaseDirectory}.");
+        var sources = new[] { "global.json", "NuGet.Config" }.Select(x => Path.Combine(repositoryRoot.FullName, x)).ToArray();
+        foreach (var source in sources)
+        {
+            File.Exists(source).Should().BeTrue($"the test folders need the repository's {Path.GetFileName(source)}.");
+        }
         var root = Path.Combine(Path.GetTempPath(), "SonarScannerMSBuildTests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
-        foreach (var fileName in new[] { "global.json", "NuGet.Config" })
+        foreach (var source in sources)
         {
-            var source = Path.Combine(repositoryRoot.FullName, fileName);
-            File.Exists(source).Should().BeTrue($"the test folders need the repository's {fileName}.");
-            File.Copy(source, Path.Combine(root, fileName));
+            File.Copy(source, Path.Combine(root, Path.GetFileName(source)));
         }
         return root;
 

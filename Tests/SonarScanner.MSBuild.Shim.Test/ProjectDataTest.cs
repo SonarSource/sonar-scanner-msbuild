@@ -113,9 +113,10 @@ public class ProjectDataTest
     public void DoesNotChooseValidProject()
     {
         var guid = Guid.NewGuid();
-        var fullPath = TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "File.txt");
-        var contentFile1 = TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "contentFile1.txt");
-        var contentFileList1 = TestUtils.CreateFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "contentList.txt", contentFile1);
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var fullPath = TestUtils.CreateEmptyFile(testDir, "File.txt");
+        var contentFile1 = TestUtils.CreateEmptyFile(testDir, "contentFile1.txt");
+        var contentFileList1 = TestUtils.CreateFile(testDir, "contentList.txt", contentFile1);
         var projectInfos = new[]
         {
             new ProjectInfo

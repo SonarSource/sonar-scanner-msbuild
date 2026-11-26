@@ -172,7 +172,7 @@ public partial class ScannerEngineInputGeneratorTest
         var filesToBeAnalyzedPaths = new List<string>();
         foreach (var fileName in filesOutsideProjectPath)
         {
-            filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), fileName));
+            filesToBeAnalyzedPaths.Add(TestUtils.CreateEmptyFile(testDir, fileName));
         }
         // To add the files above, to the list of files that are to be analyzed, you need to add their paths to
         // the "contentList.txt" which is placed inside the projectDir folder.
@@ -186,8 +186,8 @@ public partial class ScannerEngineInputGeneratorTest
         AssertFailedToCreateScannerInput(input);
         runtime.Logger.Should().HaveWarnings(2)
             .And.HaveWarnings(
-                $"File '{Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "txtFile.txt")}' is not located under the base directory '{projectDir}' and will not be analyzed.",
-                $"File '{Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
+                $"File '{Path.Combine(testDir, "txtFile.txt")}' is not located under the base directory '{projectDir}' and will not be analyzed.",
+                $"File '{Path.Combine(testDir, "foo.cs")}' is not located under the base directory '{projectDir}' and will not be analyzed.");
     }
 
     [TestMethod]
@@ -580,12 +580,13 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void Generate_WhenThereIsNoCommonPath_LogsError()
     {
-        var fileToAnalyzePath = TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "file.cs");
-        var filesToAnalyzePath = TestUtils.CreateFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), AnalysisResultFileType.FilesToAnalyze.ToString(), fileToAnalyzePath);
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var fileToAnalyzePath = TestUtils.CreateEmptyFile(testDir, "file.cs");
+        var filesToAnalyzePath = TestUtils.CreateFile(testDir, AnalysisResultFileType.FilesToAnalyze.ToString(), fileToAnalyzePath);
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
-            FullPath = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "First"),
+            FullPath = Path.Combine(testDir, "First"),
             ProjectName = "First",
             AnalysisSettings = [],
             AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)]
@@ -598,7 +599,7 @@ public partial class ScannerEngineInputGeneratorTest
             AnalysisSettings = [],
             AnalysisResultFiles = [new(AnalysisResultFileType.FilesToAnalyze, filesToAnalyzePath)]
         };
-        TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "First");
+        TestUtils.CreateEmptyFile(testDir, "First");
 
         // In order to force automatic root path detection to point to file system root,
         // create a project in the test specific folder (in the temp folder) and a second one (the test assembly) in the output folder of the test project.
@@ -624,11 +625,12 @@ public partial class ScannerEngineInputGeneratorTest
     [TestMethod]
     public void Generate_WhenThereAreNoValidProjects_LogsError()
     {
-        var config = new AnalysisConfig { SonarOutputDir = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), ".sonarqube", "out") };
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var config = new AnalysisConfig { SonarOutputDir = Path.Combine(testDir, ".sonarqube", "out") };
         var firstProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
-            FullPath = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "First"),
+            FullPath = Path.Combine(testDir, "First"),
             ProjectName = "First",
             IsExcluded = true,
             AnalysisSettings = [],
@@ -637,13 +639,13 @@ public partial class ScannerEngineInputGeneratorTest
         var secondProjectInfo = new ProjectInfo
         {
             ProjectGuid = Guid.NewGuid(),
-            FullPath = Path.Combine(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "Second"),
+            FullPath = Path.Combine(testDir, "Second"),
             ProjectName = "Second",
             AnalysisSettings = [],
             AnalysisResultFiles = []
         };
-        TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "First");
-        TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "Second");
+        TestUtils.CreateEmptyFile(testDir, "First");
+        TestUtils.CreateEmptyFile(testDir, "Second");
 
         new ScannerEngineInputGenerator(config, cmdLineArgs, runtime).Generate([firstProjectInfo, secondProjectInfo], runtime.DateTime.OffsetNow);
         runtime.Logger.Should().HaveInfos($"The exclude flag has been set so the project will not be analyzed. Project file: {firstProjectInfo.FullPath}")
