@@ -186,7 +186,7 @@ public class CacheProcessorTests
 
         sut.ProcessPullRequest(Array.Empty<SensorCacheEntry>());
         sut.UnchangedFilesPath.Should().BeNull();
-        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 0 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 0 out of 0 resolved files are unchanged.");
     }
 
     [TestMethod]
@@ -200,7 +200,7 @@ public class CacheProcessorTests
 
         context.ProcessPullRequest();
         context.Sut.UnchangedFilesPath.Should().BeNull();
-        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 3 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 0 out of 3 resolved files are unchanged.");
     }
 
     [TestMethod]
@@ -211,7 +211,7 @@ public class CacheProcessorTests
         context.ProcessPullRequest();
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths);
-        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 3 files out of 3 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 3 out of 3 resolved files are unchanged.");
     }
 
     [TestMethod]
@@ -219,13 +219,13 @@ public class CacheProcessorTests
     {
         using var context = new CacheContext(this);
         CreateFile(context.Root, "AddedFile.cs", "// This file is not in cache", Encoding.UTF8);
-        File.Delete(context.Paths[0]);       // This file was in cache, but doesn't exist anymore
+        File.Delete(context.Paths[0]);       // This file was in cache, but doesn't exist anymore. It is not counted as resolved file in the log.
         File.WriteAllText(context.Paths[context.Paths.Count - 1], " // This file was modified");
 
         context.ProcessPullRequest();
         context.Sut.UnchangedFilesPath.Should().EndWith("UnchangedFiles.txt");
         File.ReadAllLines(context.Sut.UnchangedFilesPath).Should().BeEquivalentTo(context.Paths[1]);  // Only a single file was not modified
-        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 1 files out of 3 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 1 out of 2 resolved files are unchanged.");
     }
 
     [TestMethod]
@@ -246,7 +246,7 @@ public class CacheProcessorTests
 
         sut.ProcessPullRequest(cache);
         sut.UnchangedFilesPath.Should().BeNull();
-        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 0 files out of 7 are unchanged.");
+        runtime.Logger.Should().HaveInfos("Incremental PR analysis: 0 out of 0 resolved files are unchanged.");
     }
 
     private CacheProcessor CreateSut(BuildSettings buildSettings = null) =>
