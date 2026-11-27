@@ -34,6 +34,12 @@ public static class TestUtils
     /// </summary>
     private static readonly ConcurrentDictionary<string, string> TestDirectoriesMap = new();
 
+    /// <summary>
+    /// Root of all test specific folders. It is outside of the repository, so the test folders neither inherit Directory.Build.* files from Tests/ nor share a folder with the test binaries.
+    /// MSTest 4.3+ on .NET Core sets TestContext.TestRunDirectory to the output folder of the test project.
+    /// </summary>
+    private static readonly Lazy<string> TestRoot = new(CreateTestRoot);
+
     #region Public methods
 
     /// <summary>
@@ -293,6 +299,24 @@ public static class TestUtils
     public static string DriveRoot(string driveLetter = "c") =>
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @$"{driveLetter}:\" : @$"/mnt/{driveLetter}/";
 
+    /// <summary>
+    /// Deletes the root of the test specific folders. Best effort: a locked file must not fail the test run.
+    /// </summary>
+    public static void DeleteTestRoot()
+    {
+        if (TestRoot.IsValueCreated)
+        {
+            try
+            {
+                Directory.Delete(TestRoot.Value, recursive: true);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Nothing to do, the folder is in the temp folder.
+            }
+        }
+    }
+
     #endregion Public methods
 
     #region Private methods
@@ -302,11 +326,38 @@ public static class TestUtils
             testContext.FullyQualifiedTestClassName + testContext.TestDisplayName,
             x =>
             {
-                var uniqueDir = UniqueDirectory.CreateNext(testContext.TestRunDirectory);
-                // Save the unique directory name into a file to improve the debugging experience.
-                File.AppendAllText(Path.Combine(testContext.TestRunDirectory, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
-                return Path.Combine(testContext.TestRunDirectory, uniqueDir);
+                var uniqueDir = UniqueDirectory.CreateNext(TestRoot.Value);
+                File.AppendAllText(Path.Combine(TestRoot.Value, "testmap.txt"), $"{testContext.TestName} : {uniqueDir}{Environment.NewLine}");
+                return Path.Combine(TestRoot.Value, uniqueDir);
             });
+
+    private static string CreateTestRoot()
+    {
+        // The test folders are outside of the repository. Copy the files that configure the SDK and the NuGet restore, so the generated projects build as they would inside of it.
+        // global.json also pins the SDK that msbuild.exe resolves from the project folder.
+        var repositoryRoot = AncestorsOf(AppContext.BaseDirectory).FirstOrDefault(x => File.Exists(Path.Combine(x.FullName, "global.json")))
+            ?? throw new InvalidOperationException($"Test setup failure - could not find global.json in any parent folder of {AppContext.BaseDirectory}.");
+        var sources = new[] { "global.json", "NuGet.Config" }.Select(x => Path.Combine(repositoryRoot.FullName, x)).ToArray();
+        foreach (var source in sources)
+        {
+            File.Exists(source).Should().BeTrue($"the test folders need the repository's {Path.GetFileName(source)}.");
+        }
+        var root = Path.Combine(Path.GetTempPath(), "SonarScannerMSBuildTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        foreach (var source in sources)
+        {
+            File.Copy(source, Path.Combine(root, Path.GetFileName(source)));
+        }
+        return root;
+
+        static IEnumerable<DirectoryInfo> AncestorsOf(string path)
+        {
+            for (var directory = new DirectoryInfo(path); directory is not null; directory = directory.Parent)
+            {
+                yield return directory;
+            }
+        }
+    }
 
     private static void ExtractResourceToFile(string resourceName, string filePath)
     {

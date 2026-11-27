@@ -27,6 +27,9 @@ public static class AssemblyInitialization
         // AzDo environment and our AzDo extension sets additional properties in an environment variable that would affect the setup.
         ResetEnvironmentVariables(typeof(EnvironmentVariables));
 
+    public static void Cleanup() =>
+        TestUtils.DeleteTestRoot();
+
     private static void ResetEnvironmentVariables(Type variableNames)
     {
         foreach (var field in variableNames.GetFields())

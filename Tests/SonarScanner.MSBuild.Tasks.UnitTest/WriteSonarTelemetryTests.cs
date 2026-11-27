@@ -175,7 +175,7 @@ public class WriteSonarTelemetryTests
     {
         var fileWrapper = FileWrapper.Instance; // Use the real file wrapper to test the exception handling logic.
         var buildEngine = new DummyBuildEngine();
-        var basePath = TestContext.TestRunDirectory;
+        var basePath = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
         var testFile = Path.Combine(basePath, "Telemetry.json");
         var sut = new WriteSonarTelemetry(fileWrapper)
         {

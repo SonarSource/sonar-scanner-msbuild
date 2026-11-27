@@ -32,7 +32,7 @@ public class ProjectDataTest
     {
         var guid = Guid.NewGuid();
         var propertyKey = $"sonar.{languageKey}.analyzer.projectOutPaths";
-        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
+        var fullPath = TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "File.txt");
         var projectInfos = new[]
         {
             new ProjectInfo
@@ -113,9 +113,10 @@ public class ProjectDataTest
     public void DoesNotChooseValidProject()
     {
         var guid = Guid.NewGuid();
-        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
-        var contentFile1 = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "contentFile1.txt");
-        var contentFileList1 = TestUtils.CreateFile(TestContext.TestRunDirectory, "contentList.txt", contentFile1);
+        var testDir = TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext);
+        var fullPath = TestUtils.CreateEmptyFile(testDir, "File.txt");
+        var contentFile1 = TestUtils.CreateEmptyFile(testDir, "contentFile1.txt");
+        var contentFileList1 = TestUtils.CreateFile(testDir, "contentList.txt", contentFile1);
         var projectInfos = new[]
         {
             new ProjectInfo
@@ -155,7 +156,7 @@ public class ProjectDataTest
     {
         var guid = Guid.NewGuid();
         var propertyKey = $"sonar.{languageKey}.scanner.telemetry";
-        var fullPath = TestUtils.CreateEmptyFile(TestContext.TestRunDirectory, "File.txt");
+        var fullPath = TestUtils.CreateEmptyFile(TestUtils.CreateTestSpecificFolderWithSubPaths(TestContext), "File.txt");
         var projectInfos = new[]
         {
             new ProjectInfo
